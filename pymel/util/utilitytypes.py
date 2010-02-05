@@ -7,7 +7,7 @@ import inspect, types, operator, sys, warnings
 
 class Singleton(type):
     """ Metaclass for Singleton classes.
-        
+
         >>> class DictSingleton(dict) :
         ...    __metaclass__ = Singleton
         ...
@@ -21,7 +21,7 @@ class Singleton(type):
         ({'B': 2}, {'B': 2}, {'B': 2})
         >>> a is b and a is DictSingleton()
         True
-        
+
         >>> class StringSingleton(str) :
         ...    __metaclass__ = Singleton
         ...
@@ -35,7 +35,7 @@ class Singleton(type):
         ('first', 'first', 'first')
         >>> a is b and a is StringSingleton()
         True
-        
+
         >>> class DictSingleton2(DictSingleton):
         ...     pass
         ...
@@ -49,12 +49,12 @@ class Singleton(type):
         ({'B': 2}, {'B': 2}, {'B': 2})
         >>> a is b and a is DictSingleton2()
         True
-               
-    """    
+
+    """
     def __new__(mcl, classname, bases, classdict):
-        
+
         # newcls =  super(Singleton, mcl).__new__(mcl, classname, bases, classdict)
-        
+
         # redefine __new__
         def __new__(cls, *p, **k):
             if '_the_instance' not in cls.__dict__:
@@ -64,7 +64,7 @@ class Singleton(type):
         # define __init__ if it has not been defined in the class being created
         def __init__(self, *p, **k):
             cls = self.__class__
-            if p :   
+            if p :
                 if hasattr(self, 'clear') :
                     self.clear()
                 else :
@@ -80,13 +80,13 @@ class Singleton(type):
                 newdict[k] = classdict[k]
 
         newcls =  super(Singleton, mcl).__new__(mcl, classname, bases, newdict)
-        
+
         return newcls
-          
+
 class metaStatic(Singleton) :
     """ A static (immutable) Singleton metaclass to quickly build classes
         holding predefined immutable dicts
-        
+
         >>> class FrozenDictSingleton(dict) :
         ...    __metaclass__ = metaStatic
         ...
@@ -100,32 +100,32 @@ class metaStatic(Singleton) :
         ({'A': 1}, {'A': 1})
         >>> a is b
         True
-        
+
         >>> b = FrozenDictSingleton({'B':2})
         Traceback (most recent call last):
             ...
         TypeError: 'FrozenDictSingleton' object does not support redefinition
-    
+
         >>> a['A']
         1
         >>> a['A'] = 2   #doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
         TypeError: '<class '...FrozenDictSingleton'>' object does not support item assignation
-        
+
         >>> a.clear()
         Traceback (most recent call last):
             ...
         AttributeError: 'FrozenDictSingleton' object has no attribute 'clear'
-        
+
         >>> a, b, FrozenDictSingleton()
         ({'A': 1}, {'A': 1}, {'A': 1})
         >>> a is b and a is FrozenDictSingleton()
         True
-        
+
         >>> class StaticTest(FrozenDictSingleton):
         ...     pass
-        ...        
+        ...
         >>> StaticTest({'A': 1})
         {'A': 1}
         >>> a = StaticTest()
@@ -134,10 +134,10 @@ class metaStatic(Singleton) :
         >>> b = StaticTest()
         >>> a, b
         ({'A': 1}, {'A': 1})
-                
+
         >>> class StaticTest2( StaticTest ):
         ...     pass
-        ...        
+        ...
         >>> StaticTest2({'B': 2})
         {'B': 2}
         >>> a = StaticTest2()
@@ -146,7 +146,7 @@ class metaStatic(Singleton) :
         >>> b = StaticTest2()
         >>> a, b
         ({'B': 2}, {'B': 2})
-                      
+
     """
     def __new__(mcl, classname, bases, classdict):
         """
@@ -154,30 +154,30 @@ class metaStatic(Singleton) :
         # redefine __init__
         def __init__(self, *p, **k):
             cls = self.__class__
-            # Can only create once)       
+            # Can only create once)
             if p :
                 # Can only init once
                 if not self:
                     return super(newcls, self).__init__(*p, **k)
                 else :
                     raise TypeError, "'"+classname+"' object does not support redefinition"
-        newdict = { '__init__':__init__}       
+        newdict = { '__init__':__init__}
         # hide methods with might herit from a mutable base
-        def __getattribute__(self, name):   
+        def __getattribute__(self, name):
             if name in newcls._hide :
-                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
+                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'"
             else :
                 return super(newcls, self).__getattribute__(name)
-        newdict['__getattribute__'] = __getattribute__  
+        newdict['__getattribute__'] = __getattribute__
         _hide = ('clear', 'update', 'pop', 'popitem', '__setitem__', '__delitem__', 'append', 'extend' )
         newdict['_hide'] = _hide
         # prevent item assignation or deletion
         def __setitem__(self, key, value) :
             raise TypeError, "'%s' object does not support item assignation" % (self.__class__)
-        newdict['__setitem__'] = __setitem__        
+        newdict['__setitem__'] = __setitem__
         def __delitem__(self, key):
-            raise TypeError, "'%s' object does not support item deletion" % (self.__class__)  
-        newdict['__delitem__'] = __delitem__   
+            raise TypeError, "'%s' object does not support item deletion" % (self.__class__)
+        newdict['__delitem__'] = __delitem__
         # Now add methods of the defined class, as long as it doesn't try to redefine
         # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
         for k in classdict :
@@ -187,9 +187,9 @@ class metaStatic(Singleton) :
                 newdict[k] = classdict[k]
 
         newcls = super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
-        
+
         return newcls
-         
+
 try:
     from collections import defaultdict
 except:
@@ -231,13 +231,13 @@ except:
 
 class defaultlist(list):
 
-    def __init__(self, default_factory, *args, **kwargs ): 
+    def __init__(self, default_factory, *args, **kwargs ):
         if (default_factory is not None and
             not hasattr(default_factory, '__call__')):
             raise TypeError('first argument must be callable')
         list.__init__(self,*args, **kwargs)
         self.default_factory = default_factory
-        
+
     def __setitem__( self, index, item ):
         try:
             list.__setitem__(self, index, item)
@@ -245,7 +245,7 @@ class defaultlist(list):
             diff = index - len(self) - 1
             assert diff > 0
             self.extend( [self.default_factory() ] * diff + [item] )
-            
+
     def __getitem__(self, index):
         try:
             return list.__getitem__(self, index)
@@ -258,17 +258,17 @@ class ModuleInterceptor(object):
     This class is used to intercept an unset attribute of a module to perfrom a callback. The
     callback will only be performed if the attribute does not exist on the module. Any error raised
     in the callback will cause the original AttributeError to be raised.
-        
+
         def cb( module, attr):
              if attr == 'this':
                  print "intercepted"
              else:
-                 raise ValueError        
+                 raise ValueError
         import sys
         sys.modules[__name__] = ModuleInterceptor(__name__, cb)
         intercepted
-        
-    The class does not work when imported into the main namespace.    
+
+    The class does not work when imported into the main namespace.
     """
     def __init__(self, moduleName, callback):
         self.module = __import__( moduleName , globals(), locals(), [''] )
@@ -294,23 +294,23 @@ class metaReadOnlyAttr(type) :
         Read only attributes are stored in the class '__readonly__' dictionary.
         Any attribute can be marked as read only by including its name in a tuple named '__readonly__' in the class
         definition. Alternatively methods can be marked as read only with the @readonly decorator and will then get
-        added to the dictionary at class creation """ 
+        added to the dictionary at class creation """
 
     def __setattr__(cls, name, value):
-        """ overload __setattr__ to forbid modification of read only class info """  
+        """ overload __setattr__ to forbid modification of read only class info """
         readonly = {}
         for c in inspect.getmro(cls) :
             if hasattr(c, '__readonly__') :
-                readonly.update(c.__readonly__) 
+                readonly.update(c.__readonly__)
         if name in readonly :
             raise AttributeError, "attribute %s is a read only class attribute and cannot be modified on class %s" % (name, cls.__name__)
         else :
             super(metaReadOnlyAttr, cls).__setattr__(name, value)
 
-           
+
     def __new__(mcl, classname, bases, classdict):
         """ Create a new metaReadOnlyAttr class """
-            
+
         # checks for protected members, in base classes on in class to be created
         readonly = {}
         # check for protected members in class definition
@@ -321,21 +321,21 @@ class metaReadOnlyAttr(type) :
                 readonly[a] = None
         readonly['__readonly__'] = None
         classdict['__readonly__'] = readonly
-        
+
         # the use of __slots__ protects instance attributes
 #        slots = []
 #        if '__slots__' in classdict :
 #            slots = list(classdict['__slots__'])
 
-        # create the new class   
+        # create the new class
         newcls = super(metaReadOnlyAttr, mcl).__new__(mcl, classname, bases, classdict)
-        
+
 #        if hasattr(newcls, '__slots__') :
 #            for s in newcls.__slots__ :
 #                if s not in slots :
 #                    slots.append(s)
 #        type.__setattr__(newcls, '__slots__', slots)
-        
+
         # unneeded through the use of __slots__
 #        def __setattr__(self, name, value):
 #            """ overload __setattr__ to forbid overloading of read only class info on a class instance """
@@ -347,10 +347,10 @@ class metaReadOnlyAttr(type) :
 #                raise AttributeError, "attribute '%s' is a read only class attribute of class %s and cannot be overloaded on an instance of class %s" % (name, self.__class__.__name__, self.__class__.__name__)
 #            else :
 #                super(newcls, self).__setattr__(name, value)
-#                
+#
 #        type.__setattr__(newcls, '__setattr__', __setattr__)
-        
-        return newcls                     
+
+        return newcls
 
 NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__',
                      '__class__', '__weakref__', '__subclasshook__',
@@ -359,11 +359,11 @@ NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__'
 def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
                 remove=(), makeDefaultInit = False, sourceIsImmutable=True ):
     """
-    This function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
+    This function will generate a proxy class which keeps the internal data separate from the wrapped class. This
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
     will break hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
     a valid __hash__ method.
-    
+
     :Parameters:
     cls : `type`
         The class to wrap
@@ -390,7 +390,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
     sourceIsImmutable : `bool`
         This parameter is included only for backwards compatibility - it is
         ignored.
-        
+
     :rtype: `type`
     """
 
@@ -407,7 +407,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
                 else:
                     return getattr(getattr(proxyInst, dataAttrName),
                                    self.name)
-                    
+
         def _methodWrapper( method ):
             def wrapper(self, *args, **kwargs):
                 return method( getattr(self, dataAttrName), *args, **kwargs )
@@ -415,7 +415,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
             wrapper.__doc__ = method.__doc__
             wrapper.__name__ = method.__name__
             return wrapper
-        
+
     elif dataFuncName:
         class ProxyAttribute(object):
             def __init__(self, name):
@@ -427,7 +427,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
                 else:
                     return getattr(getattr(proxyInst, dataFuncName)(),
                                    self.name)
-                    
+
         def _methodWrapper( method ):
             #print method
             #@functools.wraps(f)
@@ -436,9 +436,9 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
 
             wrapper.__doc__ = method.__doc__
             wrapper.__name__ = method.__name__
-            return wrapper                    
+            return wrapper
     else:
-        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
+        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'
 
     class Proxy(object):
         # make a default __init__ which sets the dataAttr...
@@ -449,7 +449,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
             def __init__(self, *args, **kwargs):
                 # We may wrap __setattr__, so don't use 'our' __setattr__!
                 object.__setattr__(self, dataAttrName, cls(*args, **kwargs))
-                
+
         # For 'type' objects, you can't set the __doc__ outside of
         # the class definition, so do it here:
         if '__doc__' not in remove:
@@ -474,7 +474,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
                  inspect.ismethod(attrValue)) and
                 not isinstance(cls.__dict__.get(attrName, None),
                                (classmethod, staticmethod))):
-                try:            
+                try:
                     setattr(  Proxy, attrName, _methodWrapper(attrValue) )
                 except AttributeError:
                     print "proxyClass: error adding proxy method %s.%s" % (classname, attrName)
@@ -483,16 +483,16 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
                     setattr(  Proxy, attrName, ProxyAttribute(attrName) )
                 except AttributeError:
                     print "proxyClass: error adding proxy attribute %s.%s" % (classname, attrName)
-                
+
     Proxy.__name__ = classname
     return Proxy
 
-        
+
 
 # NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
-            remove=[ '__doc__', '__getslice__', '__contains__',  '__len__', 
+            remove=[ '__doc__', '__getslice__', '__contains__',  '__len__',
             '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__', # reserved for higher levels
             'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
             'capitalize', 'swapcase', 'title',
@@ -505,7 +505,7 @@ class universalmethod(object):
 #    as a normal instance method:
 #        - when the wrapped method is called as a class method, the first argument will be the class.
 #        - when the wrapped method is called as an instance method, the first argument will be the instance.
-#        
+#
 #        >>> import inspect
 #        >>> class D(object):
 #        ...    @universalmethod
@@ -520,7 +520,7 @@ class universalmethod(object):
 #        >>> d = D()
 #        >>> d.f()
 #        doing something instance related
-#        
+#
 #    """
 
     def __init__(self, f):
@@ -539,62 +539,62 @@ def LazyLoadModule(name, contents):
     """
     :param name: name of the module
     :param contents: dictionary of initial module globals
-    
+
     This function returns a special module type with one method `_addattr`.  The signature
     of this method is:
-    
+
         _addattr(name, creator, *creatorArgs, **creatorKwargs)
-    
+
     Attributes added with this method will not be created until the first time that
     they are accessed, at which point a callback function will be called to generate
     the attribute's value.
-    
+
     :param name: name of the attribute to lazily add
     :param creator: a function that create the
-    
+
     Example::
-    
+
         import sys
         mod = LazyLoadModule(__name__, globals())
         mod._addattr( 'foo', str, 'bar' )
         sys.modules[__name__] = mod
-    
+
     One caveat of this technique is that if a user imports everything from your
     lazy module ( .e.g from module import * ), it will cause all lazy attributes
     to be evaluated.
-    
+
     Also, if any module-level expression needs to reference something that only
     exists in the LazyLoadModule, it will need to be stuck in after the creation of the
     LazyLoadModule.  Then, typically, after defining all functions/classes/etc
     which rely on the LazyLoadModule attributes, you will wish to update the
     LazyLoadModule with the newly-created functions - typically, this is done
     with the _updateLazyModule method.
-    
+
     Finally, any functions which reference any LazyLoadModule-only attributes,
     whether they are defined after OR before the creation of the LazyLoadModule,
     will have to prefix it with a reference to the LazyLoadModule.
-    
+
     Example::
-    
+
         import sys
-        
+
         def myFunc():
             # need to preface foo with 'lazyModule',
             # even though this function is defined before
             # the creation of the lazy module!
             print 'foo is:', lazyModule.foo
-        
+
         mod = lazyLoadModule(__name__, globals())
         mod._addattr( 'foo', str, 'bar' )
         sys.modules[__name__] = mod
-        
+
         # create a reference to the LazyLoadModule in this module's
         # global space
         lazyModule = sys.modules[__name__]
-        
+
         # define something which relies on something in the lazy module
         fooExpanded = lazyModule.foo + '... now with MORE!'
-        
+
         # update the lazyModule with our new additions (ie, fooExpanded)
         lazyModule._updateLazyModule(globals())
     """
@@ -609,7 +609,7 @@ def LazyLoadModule(name, contents):
                 self.args = creatorArgs
                 self.kwargs = creatorKwargs
                 self.name = name
-    
+
             def __get__(self, obj, objtype):
                 # In case the LazyLoader happens to get stored on more
                 # than one object, cache the created object so the exact
@@ -622,7 +622,7 @@ def LazyLoadModule(name, contents):
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
                 setattr( obj, self.name, self.newobj)
                 return self.newobj
-                   
+
         def __init__(self, name, contents):
             types.ModuleType.__init__(self, name)
             self.__dict__.update(contents)
@@ -636,7 +636,7 @@ def LazyLoadModule(name, contents):
         def __all__(self):
             public = [ x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_') ]
             return public
-        
+
         @classmethod
         def _lazyModule_addAttr(cls, name, creator, *creatorArgs, **creatorKwargs):
             lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
@@ -647,7 +647,7 @@ def LazyLoadModule(name, contents):
             """
             dynModule['attrName'] = ( callbackFunc, ( 'arg1', ), {} )
             """
-            # args will either be a single callable, or will be a tuple of 
+            # args will either be a single callable, or will be a tuple of
             # ( callable, (args,), {kwargs} )
             if hasattr( args, '__call__'):
                 callback = args
@@ -673,7 +673,7 @@ def LazyLoadModule(name, contents):
             else:
                 raise ValueError, "the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})"
             self._lazyModule_addAttr(attr, callback, *cb_args, **cb_kwargs)
-              
+
         def __getitem__(self, attr):
             """
             return a LazyLoader without initializing it, or, if a LazyLoader does not exist with this name,
@@ -683,7 +683,7 @@ def LazyLoadModule(name, contents):
                 return self.__class__.__dict__[attr]
             except KeyError:
                 return self.__dict__[attr]
-        
+
         # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
         # 'real' entries in the module
         def _lazyModule_update(self):
@@ -697,7 +697,7 @@ def LazyLoadModule(name, contents):
 #                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(otherDict)
 #                                              if not x.startswith('__')]
 
-    
+
     return _LazyLoadModule(name, contents)
 
 # Note - since anything referencing attributes that only exist on the lazy module
@@ -729,64 +729,64 @@ class LazyDocString(types.StringType):
     """
     Set the __doc__ of an object to an object of this class in order to have
     a docstring that is dynamically generated when used.
-    
+
     Due to restrictions of inheriting from StringType (which is necessary,
     as the 'help' function does a check to see if __doc__ is a string),
     the creator can only take a single object.
-    
+
     Since the object initialization requires multiple parameters, the
     LazyDocString should be fed an sliceable-iterable on creation,
     of the following form:
-    
+
         LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )
-    
+
     documentedObj should be the object on which we are placing the docstring
-    
+
     docGetter should be a function which is used to retrieve the 'real'
     docstring - it's args will be documentedObj and any extra args
     passed to the object on creation.
-    
+
     Example Usage:
-    
+
     >>> def getDocStringFromDict(obj):
     ...     returnVal = docStringDict[obj]
     ...     return returnVal
-    >>> 
+    >>>
     >>> # In order to alter the doc of a class, we need to use a metaclass
     >>> class TestMetaClass(type): pass
-    >>>         
+    >>>
     >>> class TestClass(object):
     ...     __metaclass__ = TestMetaClass
-    ... 
+    ...
     ...     def aMethod(self):
     ...         pass
-    ... 
+    ...
     ...     aMethod.__doc__ = LazyDocString( (aMethod, getDocStringFromDict, (aMethod,)) )
-    >>> 
+    >>>
     >>> TestClass.__doc__ = LazyDocString( (TestClass, getDocStringFromDict, (TestClass,)) )
-    >>> 
-    >>> 
+    >>>
+    >>>
     >>> docStringDict = {TestClass:'New Docs for PynodeClass!',
     ...                  TestClass.aMethod.im_func:'Method docs!'}
-    >>> 
+    >>>
     >>> TestClass.__doc__
     'New Docs for PynodeClass!'
     >>> TestClass.aMethod.__doc__
     'Method docs!'
 
-    
+
     Note that new-style classes (ie, instances of 'type') and instancemethods
     can't have their __doc__ altered.
-    
+
     In the case of classes, you can get around this by using a metaclass for
     the class whose docstring you wish to alter.
-    
+
     In the case of instancemethods, just set the __doc__ on the function
     underlying the method (ie, myMethod.im_func). Note that if the __doc__
     for the method is set within the class definition itself, you will
     already automatically be modifying the underlying function.
     """
-   
+
     def __init__(self, argList):
         if len(argList) < 2:
             raise LazyDocStringError('LazyDocString must be initialized with an iterable of the form: LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )')
@@ -801,7 +801,7 @@ class LazyDocString(types.StringType):
         else:
             args = ()
             kwargs = {}
-        
+
         try:
             # put in a placeholder docstring, and check to make
             # sure we can change the __doc__ of this object!
@@ -812,7 +812,7 @@ class LazyDocString(types.StringType):
         self.docGetter = docGetter
         self.args = args
         self.kwargs = kwargs
-    
+
     def __str__(self):
         #print "creating docstrings", self.docGetter, self.args, self.kwargs
         self.documentedObj.__doc__ = self.docGetter(*self.args, **self.kwargs)
@@ -823,16 +823,16 @@ class LazyDocString(types.StringType):
 for _name, _method in inspect.getmembers(types.StringType, inspect.isroutine):
     if _name.startswith('_'):
         continue
-    
+
     def makeMethod(name):
         def LazyDocStringMethodWrapper(self, *args, **kwargs):
             return getattr(str(self), name)(*args, **kwargs)
         return LazyDocStringMethodWrapper
     setattr(LazyDocString, _name, makeMethod(_name) )
-   
+
 def addLazyDocString( object, creator, *creatorArgs, **creatorKwargs):
     """helper for LazyDocString.  Equivalent to :
-    
+
         object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
     """
     object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
@@ -846,15 +846,15 @@ class TwoWayDict(dict):
     'foobar'
     >>> twd.get_key('foobar')
     3
-        
+
     Entries in both sets (keys and values) must be unique within that set, but
     not necessarily across the two sets - ie, you may have 12 as both a key and
     a value, but you may not have two keys which both map to 12 (or, as with a
     regular dict, two key entries for 12).
-    
+
     If a key is updated to a new value, get_key for the old value will raise
     a KeyError:
-    
+
     >>> twd = TwoWayDict( {3:'old'} )
     >>> twd[3] = 'new'
     >>> twd[3]
@@ -865,10 +865,10 @@ class TwoWayDict(dict):
     Traceback (most recent call last):
         ...
     KeyError: 'old'
-    
+
     Similarly, if a key is updated to an already-existing value, then the old key
-    will be removed from the dictionary! 
-    
+    will be removed from the dictionary!
+
     >>> twd = TwoWayDict( {'oldKey':'aValue'} )
     >>> twd['newKey'] = 'aValue'
     >>> twd['newKey']
@@ -879,7 +879,7 @@ class TwoWayDict(dict):
     Traceback (most recent call last):
         ...
     KeyError: 'oldKey'
-    
+
     If a group of values is fed to the TwoWayDict (either on initialization, or
     through 'update', etc) that is not consistent with these conditions, then the
     resulting dictionary is indeterminate; however, it is guaranteed to be a valid/
@@ -900,11 +900,11 @@ class TwoWayDict(dict):
     Traceback (most recent call last):
         ...
     KeyError: (either 1 or 2)
-        
+
     Obviously, such shenannigans should be avoided - at some point in the future, this may
     cause an error to be raised...
     """
-    
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
         self._reverse = {}
@@ -921,11 +921,11 @@ class TwoWayDict(dict):
 
     def has_value(self, v):
         return self._reverse.has_key(v)
-    
+
     def __delitem__(self, k):
         del self._reverse[self[k]]
         dict.__delitem__(self, k)
-            
+
     def clear(self):
         self._reverse.clear()
         dict.clear(self)
@@ -959,13 +959,13 @@ class TwoWayDict(dict):
             self[key] = val
 
     def get_key(self, v):
-        return self._reverse[v] 
+        return self._reverse[v]
 
 class EquivalencePairs(TwoWayDict):
     """
     A mapping object similar to a TwoWayDict, with the addition that indexing
     and '__contains__' can now be used with keys OR values:
-    
+
     >>> eq = EquivalencePairs( {3:'foobar'} )
     >>> eq[3]
     'foobar'
@@ -975,16 +975,16 @@ class EquivalencePairs(TwoWayDict):
     True
     >>> 'foobar' in eq
     True
-    
+
     This is intended to be used where there is a clear distinction between
     keys and values, so there is little likelihood of the sets of keys
-    and values intersecting. 
-    
+    and values intersecting.
+
     The dictionary has the same restrictions as a TwoWayDict, with the added restriction
     that an object must NOT appear in both the keys and values, unless it maps to itself.
     If a new item is set that would break this restriction, the old keys/values will be
-    removed from the mapping to ensure these restrictions are met. 
-    
+    removed from the mapping to ensure these restrictions are met.
+
     >>> eq = EquivalencePairs( {1:'a', 2:'b', 3:'die'} )
     >>> eq['a']
     1
@@ -1026,7 +1026,7 @@ class EquivalencePairs(TwoWayDict):
     Traceback (most recent call last):
         ...
     KeyError: 'b'
-    
+
     # Similarly, if you set as a KEy something that
     # already exists as a value...
     >>> eq = EquivalencePairs( {1:'a', 2:'b'} )
@@ -1044,13 +1044,13 @@ class EquivalencePairs(TwoWayDict):
     through 'update', etc) that is not consistent with it's restrictions, then the
     resulting dictionary is indeterminate; however, it is guaranteed to be a valid/
     uncorrupted TwoWayDict.
-    
+
     (This is somewhat similar to the behavior of the dict object itself, which will allow
     a definition such as {1:2, 1:4} )
-    
+
     Obviously, such shenannigans should be avoided - at some point in the future, this may
     even cause an error to be raised...
-    
+
     Finally, note that a distinction between keys and values IS maintained, for compatibility
     with keys(), iter_values(), etc.
     """
@@ -1062,7 +1062,7 @@ class EquivalencePairs(TwoWayDict):
             del self[v]
         dict.__setitem__(self, k, v)
         self._reverse[v] = k
-        
+
     def __delitem__(self, key):
         if dict.__contains__(self, key):
             super(EquivalencePairs, self).__delitem__(key)
@@ -1071,7 +1071,7 @@ class EquivalencePairs(TwoWayDict):
             del self._reverse[key]
         else:
             raise KeyError(key)
-            
+
     def __getitem__(self, key):
         if dict.__contains__(self, key):
             return super(EquivalencePairs, self).__getitem__(key)
@@ -1079,7 +1079,7 @@ class EquivalencePairs(TwoWayDict):
             return self._reverse[key]
         else:
             raise KeyError(key)
-    
+
     def __contains__(self, key):
         return (dict.__contains__(self, key) or
                 key in self._reverse)
@@ -1087,16 +1087,16 @@ class EquivalencePairs(TwoWayDict):
 def alias(origAttrName):
     """
     Returns a property which is simply an alias for another property.
-    
+
     Acts simply to provide another name to reference the same
     underlying attribute; useful when subclassing, where a subclass
     might have a more descriptive name for an attribute that has the
     same function.
-    
+
     The only purpose of this function is to produce more readable code.
-    
+
     Example:
-    
+
     >>> class GenericExporter(object):
     ...     def __init__(self, outFile):
     ...         self.outFile = outFile
@@ -1110,14 +1110,14 @@ def alias(origAttrName):
     def getter(self):
         return getattr(self, origAttrName)
     getter.__name__ = "get_" + origAttrName
-    
+
     def setter(self, value):
         setattr(self, origAttrName, value)
-        
+
     setter.__name__ = "seet_" + origAttrName
     return property(getter, setter)
-    
+
 # unit test with doctest
 if __name__ == '__main__' :
     import doctest
-    doctest.testmod() 
+    doctest.testmod()

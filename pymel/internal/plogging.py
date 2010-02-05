@@ -25,7 +25,7 @@ PYMEL_CONF_ENV_VAR = 'PYMEL_CONF'
 
 def _fixMayaOutput():
     if not hasattr( sys.stdout,"flush"):
-        def flush(*args,**kwargs): 
+        def flush(*args,**kwargs):
             pass
         try:
             sys.stdout.flush = flush
@@ -36,7 +36,7 @@ def _fixMayaOutput():
                 def flush(*args,**kwargs):
                     pass
             maya.Output = MayaOutput()
-            sys.stdout = maya.Output          
+            sys.stdout = maya.Output
 
 _fixMayaOutput()
 
@@ -69,7 +69,7 @@ assert hasattr(maya.utils, 'shellLogHandler'), "If you manually installed pymel,
 
 #    Like logging.config.fileConfig, but intended only for pymel's loggers,
 #    and less heavy handed - fileConfig will, for instance, wipe out all
-#    handlers from logging._handlers, remove all handlers from logging.root, etc    
+#    handlers from logging._handlers, remove all handlers from logging.root, etc
 def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     """
     Reads in a file to set up pymel's loggers.
@@ -79,12 +79,12 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     must meet the same requirements - it must have the sections [loggers],
     [handlers], and [fomatters], and it must have an entry for [logger_root]...
     even if not options are set for it.
-    
+
     It differs from logging.config.fileConfig in the following ways:
-    
+
     1) It will not disable any pre-existing loggers which are not specified in
     the config file, unless disable_existing_loggers is set to True.
-    
+
     2) Like logging.config.fileConfig, the default behavior for pre-existing
     handlers on any loggers whose settings are specified in the config file is
     to remove them; ie, ONLY the handlers explicitly given in the config will
@@ -115,13 +115,13 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
         logger = logging.getLogger(loggerName)
         # make sure you get a COPY of handlers!
         oldLogHandlers[loggerName] = logger.handlers[:]
-        
+
     # critical section
     logging._acquireLock()
     try:
         # Handlers add themselves to logging._handlers
         handlers = logging.config._install_handlers(cp, formatters)
-            
+
         if sys.version_info >= (2,6):
             logging.config._install_loggers(cp, handlers,
                                             disable_existing_loggers=0)
@@ -150,11 +150,11 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
 
     finally:
         logging._releaseLock()
-        
+
 def _addOldHandlers(logger, oldHandlers, secName, configParser):
     opts = configParser.options(secName)
     if 'remove_existing_handlers' not in opts:
-        removeExisting = True 
+        removeExisting = True
     else:
         removeExisting = eval(configParser.get(secName, 'remove_existing_handlers'))
     if not removeExisting:
@@ -165,7 +165,7 @@ def _addOldHandlers(logger, oldHandlers, secName, configParser):
 maya.utils.shellLogHandler()
 
 pymelLogFileConfig(getLogConfigFile())
-    
+
 rootLogger = logging.root
 
 pymelLogger = logging.getLogger("pymel")
@@ -217,11 +217,11 @@ def timed(level=DEBUG):
 
 
 def _setupLevelPreferenceHook():
-    """Sets up a callback so that the last used log-level is saved to the user preferences file""" 
-    
+    """Sets up a callback so that the last used log-level is saved to the user preferences file"""
+
     LOGLEVEL_OPTVAR = 'pymel.logLevel'
 
-    
+
     # retrieve the preference as a string name, for human readability.
     # we need to use MGlobal because cmds.optionVar might not exist yet
     # TODO : resolve load order for standalone.  i don't think that userPrefs is loaded yet at this point in standalone.
@@ -230,10 +230,10 @@ def _setupLevelPreferenceHook():
         level =  min( logging.WARNING, nameToLevel(levelName) ) # no more than WARNING level
         pymelLogger.setLevel(level)
         pymelLogger.info("setting logLevel to user preference: %s (%d)" % (levelName, level) )
-        
+
     func = pymelLogger.setLevel
     def setLevelHook(level, *args, **kwargs):
-        
+
         levelName = levelToName(level)
         level = nameToLevel(level)
         ret = func(level, *args, **kwargs)
@@ -245,11 +245,11 @@ def _setupLevelPreferenceHook():
         except Exception, e:
             pymelLogger.warning("Log Level could not be saved to the user-prefs ('%s')" % e)
         return ret
- 
+
     setLevelHook.__doc__ = func.__doc__
     setLevelHook.__name__ = func.__name__
     pymelLogger.setLevel = setLevelHook
-    
+
 
 
 #_setupLevelPreferenceHook()

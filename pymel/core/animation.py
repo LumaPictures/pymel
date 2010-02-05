@@ -11,19 +11,19 @@ def currentTime( *args, **kwargs ):
 Modifications:
     - if no args are provided, the command returns the current time
     """
-    
+
     if not args and not kwargs:
         return cmds.currentTime(q=1)
     else:
         return cmds.currentTime(*args, **kwargs)
-    
+
 def getCurrentTime():
     """get the current time as a float"""
     return cmds.currentTime(q=1)
-    
+
 def setCurrentTime( time ):
     """set the current time """
-    return cmds.currentTime(time) 
+    return cmds.currentTime(time)
 
 def listAnimatable( *args, **kwargs ):
     """
@@ -47,15 +47,15 @@ Modifications:
 
 def deformer(*args, **kwargs):
     return map( _general.PyNode, cmds.deformer(*args, **kwargs) )
-    
+
 def joint(*args, **kwargs):
     """
 Maya Bug Fix:
-    - when queried, limitSwitch*, stiffness*, and angle* flags returned lists, each with one value, instead 
+    - when queried, limitSwitch*, stiffness*, and angle* flags returned lists, each with one value, instead
         of single values. Values are now properly unpacked
     """
     res = cmds.joint(*args, **kwargs)
-    
+
     #if kwargs.pop('query',False) or kwargs.pop('q',False):
 
     if kwargs.get('query', kwargs.get( 'q', False)):
@@ -88,26 +88,26 @@ Maya Bug Fix:
 
 Modifications:
   - added new syntax for querying the weight of a target object, by passing the constraint first::
-    
+
         aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
         aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
         aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
         """
         if kwargs.get( 'query', kwargs.get('q', False) and len(args)==1) :
-            
+
             # Fix the big with upVector, worldUpVector, and aimVector
             attrs = [
             'upVector', 'u',
             'worldUpVector', 'wu',
             'aimVector', 'a' ]
-            
+
             for attr in attrs:
                 if attr in kwargs:
                     return _general.datatypes.Vector( _general.getAttr(args[0] + "." + attr ) )
-            
+
             # ...otherwise, try seeing if we can apply the new weight query syntax
             targetObjects =  kwargs.get( 'weight', kwargs.get('w', None) )
-            if targetObjects is not None: 
+            if targetObjects is not None:
                 # old way caused KeyError if 'w' not in kwargs, even if 'weight' was!
                 # targetObjects = kwargs.get( 'weight', kwargs['w'] )
                 constraint = args[0]
@@ -116,8 +116,8 @@ Modifications:
                         targetObjects = [targetObjects]
                     elif not targetObjects:
                         targetObjects = func( constraint, q=1, targetList=1 )
-    
-                    constraintObj = cmds.listConnections( constraint + '.constraintParentInverseMatrix', s=1, d=0 )[0]    
+
+                    constraintObj = cmds.listConnections( constraint + '.constraintParentInverseMatrix', s=1, d=0 )[0]
                     args = targetObjects + [constraintObj]
                     kwargs.pop('w',None)
                     kwargs['weight'] = True
@@ -130,7 +130,7 @@ Modifications:
             elif kwargs.get( 'targetList', kwargs.get('tl', None) ):
                 res = _factories.toPyNodeList(res)
         return res
-    
+
     constraint.__name__ = func.__name__
     return constraint
 

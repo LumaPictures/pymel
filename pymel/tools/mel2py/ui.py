@@ -21,7 +21,7 @@ class MelToPythonWindow(Window):
             confirmDialog(t="Mel To Python",m="Conversion Error:\n%s" % e,b=["Ok"], db="Ok")
         else:
             cmds.cmdScrollFieldExecuter(w.python,e=1,text=py)
-    
+
 
     def __init__(self):
         formLayout(slc=True, ratios=[1,.1,1], orientation=FormLayout.HORIZONTAL, childCreators = [
@@ -29,7 +29,7 @@ class MelToPythonWindow(Window):
               button("button", slc=True, l="->", c=lambda *x: self.convert(), bgc=[.5,.7,1]),
               cmdScrollFieldExecuter("python", slc=True, st="python")
               ]).create(self.__dict__,parent=self,debug=1)
-        
+
         self.setWidthHeight([600,800])
         self.show()
 

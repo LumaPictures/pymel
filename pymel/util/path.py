@@ -39,7 +39,7 @@ try:
     import grp
 except ImportError:
     grp = None
-    
+
 __version__ = '2.1'
 __all__ = ['path']
 
@@ -151,7 +151,7 @@ class path(_base):
     def expandvars(self):    return self.__class__(os.path.expandvars(self))
     def dirname(self):       return self.__class__(os.path.dirname(self))
     basename = os.path.basename
-    
+
     def expand(self):
         """ Clean up a filename by calling expandvars(),
         expanduser(), and normpath() on it.
@@ -169,7 +169,7 @@ class path(_base):
         """
         drv, r = os.path.splitdrive(self)
         return self.__class__(drv)
-    
+
     @property
     def parent(self):
         """
@@ -188,7 +188,7 @@ class path(_base):
         For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
         """
         return self.basename()
-        
+
 
     @property
     def namebase(self):
@@ -378,7 +378,7 @@ class path(_base):
         whose names match the given pattern.  For example,
         d.files('*.pyc').
         """
-        
+
         return [p for p in self.listdir(pattern) if p.isfile()]
 
     def walk(self, pattern=None, errors='strict', regex=None ):
@@ -412,11 +412,11 @@ class path(_base):
                         isdir = child.isdir()
                     except Exception, exc:
                         _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s" % self))
-        
+
                     if isdir:
                         for item in child.walk(pattern=pattern, errors=errors, regex=regex):
                             yield item
-    
+
     def walkdirs(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
@@ -437,7 +437,7 @@ class path(_base):
             dirs = self.dirs(realpath=realpath)
         except Exception, exc:
             _handleException(exc,errors,PathWalkWarning("Unable to list directory '%s': %%(exc)s" % self))
-        else:  
+        else:
             parent_realpath = None
             for child in dirs:
                 if ( pattern is None or child.fnmatch(pattern) ) and ( regex is None or re.match( regex, child.name ) ):
@@ -456,7 +456,7 @@ class path(_base):
                             yield child
                     else:
                         yield child
-                        
+
                     for subsubdir in child.walkdirs(pattern, errors=errors, realpath=realpath, regex=regex):
                         yield subsubdir
 
@@ -483,7 +483,7 @@ class path(_base):
                 except Exception, exc:
                     _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s" % self) )
                 else:
-    
+
                     if isfile:
                         if ( pattern is None or child.fnmatch(pattern) ) and ( regex is None or re.match( regex, child.name ) ):
                             yield child
@@ -793,30 +793,30 @@ class path(_base):
 
     if hasattr(os.path, 'samefile'):
         samefile = os.path.samefile
-        
+
     def samepath(self, otherpath):
         """
         Whether the other path represents the same path as this one.
-        
+
         This will account for symbolic links, absolute/relative paths,
         case differences (if on a case-insensitive file system), and '..'
         usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
-        
+
         This will NOT account for hard links - use 'samefile' for this, if
         available on your os.
-        
+
         Essentially just compares the self.canonicalpath() to other.canonicalpath()
         """
         return self.canonicalpath() == self.__class__(otherpath).canonicalpath()
-    
+
     def canonicalpath(self):
         """
         Attempt to return a 'canonical' version of the path
-        
+
         This will standardize for symbolic links, absolute/relative paths,
         case differences (if on a case-insensitive file system), and '..'
         usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
-        
+
         The intention is that string comparison of canonical paths will yield
         a reasonable guess as to whether two paths represent the same file.
         """
@@ -895,7 +895,7 @@ class path(_base):
             if isinstance(group, basestring):
                 group = grp.getgrnam(group).gr_gid
             os.chown( self, -1, group )
-            
+
     if hasattr(os, 'statvfs'):
         def statvfs(self):
             """ Perform a statvfs() system call on this path. """
