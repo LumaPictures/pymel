@@ -459,7 +459,9 @@ class OptionVarDict(object):
 
     def keys(self):
         return cmds.optionVar( list=True )
-
+    
+    def values(self):
+        return [self[key] for key in self.keys()]
 
     def pop(self, key):
         val = cmds.optionVar( q=key )
@@ -468,6 +470,19 @@ class OptionVarDict(object):
     
     def __delitem__(self,key):
         self.pop(key)
+        
+    def iterkeys(self):
+        for key in self.keys():
+            yield key
+    __iter__ = iterkeys
+    
+    def itervalues(self):
+        for key in self.keys():
+            yield self[key]
+            
+    def iteritems(self):
+        for key in self.keys():
+            yield key, self[key]
     
 optionVar = OptionVarDict()
 
