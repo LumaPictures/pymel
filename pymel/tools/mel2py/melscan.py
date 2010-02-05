@@ -68,6 +68,7 @@ def p_type_specifier(t):
                       | FLOAT
                       | STRING
                       | VECTOR
+                      | MATRIX
                       '''
     #print "type_specifier"
     t[0] = t[1]

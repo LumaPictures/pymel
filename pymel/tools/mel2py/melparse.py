@@ -1142,6 +1142,7 @@ def p_type_specifier(t):
                       | FLOAT
                       | STRING
                       | VECTOR
+                      | MATRIX
                       '''
     t[0] = assemble(t, 'p_type_specifier')
     
@@ -2526,6 +2527,7 @@ def p_error(t):
         yacc.errok()    
         
     else:
+        t.lexer.errors.append(t)
         #if t.lexer.verbose:
         #    print "Error parsing script at %s, attempting to read forward and restart parser" % t.value
         while 1:
@@ -2547,12 +2549,17 @@ class MelParseError(Exception):
     def __init__(self, *args, **kwargs):
         self.data = kwargs.pop('data', None)
         self.file = kwargs.pop('file', None)
+        self.lexer = kwargs.pop('lexer', None)
         super(MelParseError, self).__init__(*args, **kwargs)
         
     def __str__(self):
         base = super(MelParseError, self).__str__()
         if self.file:
             base += " - Error parsing %s - check for syntax errors" % self.file
+        if self.lexer and self.lexer.errors:
+            base += "\n\nErrors:\n"
+            for errToken in self.lexer.errors:
+                base += "line %d (%s): %s\n" % (errToken.lineno, errToken.type, errToken.value)
         return base
 
 class MelParser(object):
@@ -2585,6 +2592,7 @@ class MelParser(object):
         self.add_pymel_import = addPymelImport
         self.lexer.force_compatibility = forceCompatibility
         self.lexer.expression_only = expressionsOnly
+        self.lexer.errors = []
         
     def parse(self, data):
         data = data.decode( 'utf-8', 'ignore')
@@ -2616,7 +2624,7 @@ class MelParser(object):
                 raise ValueError, msg
         
         if translatedStr is None:
-            raise MelParseError(data=data)
+            raise MelParseError(data=data, lexer=self.lexer)
         #except IndexError, msg:
         #    raise ValueError, '%s: %s' % (melfile, msg)
         #except AttributeError:

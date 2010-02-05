@@ -20,7 +20,7 @@ except ImportError:
 reserved = (
     'BREAK', 'CASE', 'CONTINUE', 'DEFAULT', 'DO',
     'ELSE', 'FALSE', 'FLOAT', 'FOR', 'GLOBAL', 'IF', 'IN', 'INT', 'NO', 'ON', 'OFF', 'PROC',
-    'RETURN', 'STRING', 'SWITCH', 'TRUE', 'VECTOR',
+    'RETURN', 'STRING', 'SWITCH', 'TRUE', 'VECTOR', 'MATRIX',
     'WHILE', 'YES',
     )
 
