@@ -11,12 +11,12 @@ To use, run this in a script editor tab::
 
     import pymel.tools.upgradeScripts
     pymel.tools.upgradeScripts.upgrade()
-    
+
 This will print out all the modules that will be upgraded.  If everything looks good
 run the following to perform the upgrade::
 
     pymel.tools.upgradeScripts.upgrade(test=False)
-    
+
 Once you're sure that the upgrade went smoothly, run::
 
     pymel.tools.upgradeScripts.cleanup()
@@ -26,7 +26,7 @@ This will delete the backup files.
 If you need to undo the changes, run::
 
     pymel.tools.upgradeScripts.undo()
-    
+
 Keep in mind that this will restore files to their state at the time that you ran
 ``upgrade``.  If you made edits to the files after running ``upgrade`` they will
 be lost.
@@ -60,12 +60,12 @@ def _getMayaAppDir():
                 return os.path.join(home, 'maya')
     return os.environ['MAYA_APP_DIR']
 
-objects = [ 
+objects = [
            ( 'Version',
-             re.compile('([a-zA-Z_][a-zA-Z0-9_.]+[.])?(Version[.])([a-zA-Z_][a-zA-Z0-9_]*)'), 
+             re.compile('([a-zA-Z_][a-zA-Z0-9_.]+[.])?(Version[.])([a-zA-Z_][a-zA-Z0-9_]*)'),
             ('pymel',
              'pymel.version',
-             'pymel.internal', 
+             'pymel.internal',
              'pymel.internal.version' ),
             'versions',
             { 'current' : 'current()',
@@ -89,7 +89,7 @@ def _getLogfile(logfile, read=True):
         global last_logfile
         if last_logfile:
             logfile = last_logfile
-    
+
     if logfile is None:
         baseDir = _getMayaAppDir()
         if not baseDir:
@@ -110,7 +110,7 @@ def upgradeFile(filepath, test=True):
     except Exception, e:
         print str(e)
         return False, False
-        
+
     modified = False
     uses_pymel = False
     pymel_namespaces =  defaultdict(set)
@@ -130,13 +130,13 @@ def upgradeFile(filepath, test=True):
             pymel_module = d['pymel']
             end = d['end']
             details = d['details']
-            
+
             if pymel_module == 'pymel.all':
                 print "skipping. already uses 'pymel.all':",  filepath
                 return False, True
-            
+
             uses_pymel = True
-            
+
             if pymel_module == 'pymel':
                 # import pymel, foo  -->  import pymel.all as pymel, foo
                 # import pymel as pm, foo  -->  import pymel.all as pm, foo
@@ -144,24 +144,24 @@ def upgradeFile(filepath, test=True):
                 as_name = ' as pymel' if mode == 'import' and not details else ''
                 lines[i] = start + 'pymel.all' + as_name + end
                 modified = True
-                
+
             if details:
                 details = details.strip()
-            
+
             if mode == 'import':
                 if details:
                     pymel_namespaces[pymel_module].add(details)     # pymel.version -> version
                     # import pymel.internal as internal
                     # 'internal' -> 'pymel.internal'
-                    rev_pymel_namespaces[details].add(pymel_module) 
+                    rev_pymel_namespaces[details].add(pymel_module)
                 else:
                     # 'import pymel'
                     pymel_namespaces[pymel_module].add(pymel_module)
-                    
+
                     # import pymel.internal
                     # 'pymel.internal' -> 'pymel.internal'
                     rev_pymel_namespaces[pymel_module].add(pymel_module)
-            
+
             elif mode == 'from':
                 details = '' if details == '*' else details
                 for detail in details.split(','):
@@ -170,14 +170,14 @@ def upgradeFile(filepath, test=True):
                     else:
                         module = pymel_module
                     pymel_namespaces[pymel_module].add(detail)
-                    
+
                     # from pymel import internal
                     # 'internal' -> 'pymel.internal'
-                    
+
                     # from pymel import *
                     # '' -> 'pymel'
-                    rev_pymel_namespaces[detail].add(module) 
-                    
+                    rev_pymel_namespaces[detail].add(module)
+
         if uses_pymel:
             for obj, reg, obj_namespaces, replace, attr_remap in objects:
                 parts = reg.split(line)
@@ -213,7 +213,7 @@ def upgradeFile(filepath, test=True):
                                                 else:
                                                     parts[j+PREFIX] = pmns + '.' + replace + '.'
                                                 parts[j+OBJECT] = None
-                                                
+
                                             attr = parts[j+SUFFIX]
                                             parts[j+SUFFIX] = attr_remap.get(attr, attr)
                                             break
@@ -221,9 +221,9 @@ def upgradeFile(filepath, test=True):
                     #print 'before:', `line`
                     #print 'after: ', `lines[i]`
 
-                                
-    success = True                           
-            
+
+    success = True
+
     if modified:
         if not test:
             tmpfile = filepath + '.tmp'
@@ -233,8 +233,8 @@ def upgradeFile(filepath, test=True):
                 f.close()
             except (IOError, OSError), err:
                 print "error writing temporary file: %s: %s" % ( tmpfile, err)
-                success = False               
-            
+                success = False
+
             if success:
                 try:
                     os.rename(filepath, filepath + BACKUPEXT)
@@ -259,46 +259,46 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
     """
     search PYTHONPATH (aka. sys.path) and MAYA_SCRIPT_PATH for python files using
     pymel that should be upgraded
-    
+
     Keywords
     --------
-    
-    :param logdir: 
+
+    :param logdir:
         directory to which to write the log of modified files
-    :param test: 
+    :param test:
         when run in test mode (default) no files are changed
-    :param excludeFolderRegex: 
+    :param excludeFolderRegex:
         a regex string which should match against a directory's basename, without parent path
-    :param excludeFileRegex: 
+    :param excludeFileRegex:
         a regex string which should match against a file's basename, without parent path or extension
-    :param verbose: 
+    :param verbose:
         print more information during conversion
-    :param force: 
+    :param force:
         by default, `upgrade` will skip files which already have already been processed,
         as determined by the existence of a backup file with a .pmbak extension. setting
         force to True will ignore this precaution
     """
-    
+
     if test:
         print "running in test mode. set test=False to enable file editing"
-    
+
     if excludeFolderRegex:
         assert isinstance(excludeFolderRegex, basestring), "excludeFolderRegex must be a string"
     if excludeFileRegex:
         assert isinstance(excludeFileRegex, basestring), "excludeFileRegex must be a string"
-    
+
 
     logfile = os.path.join(_getLogfile(logdir, read=False))
-    
+
     try:
         log = open(logfile, 'w' )
     except (IOError, OSError), err:
         print "could not create log file at %s. please pass a writable directory to 'logdir' keyword: %s" % ( logdir, err)
         return
-    
+
     global last_logfile
     last_logfile = logfile
-    
+
     completed = []
     try:
         for path in sys.path + os.environ['MAYA_SCRIPT_PATH'].split(os.pathsep):
@@ -306,7 +306,7 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
             for root, dirs, files in os.walk(path):
                 for f in files:
                     if f.endswith('.py') and not f.startswith('.'):
-                        if not excludeFileRegex or not re.match( excludeFileRegex, f[:-3] ): 
+                        if not excludeFileRegex or not re.match( excludeFileRegex, f[:-3] ):
                             fpath = os.path.realpath(os.path.join(root,f))
                             if fpath not in completed:
                                 if os.path.exists(fpath+BACKUPEXT) and not force:
@@ -315,7 +315,7 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
                                         # keep as part of the log so that undo will work
                                         log.write( fpath + '\n' )
                                 else:
-                                    modified, stat = upgradeFile( fpath, test )                                
+                                    modified, stat = upgradeFile( fpath, test )
                                     if modified and stat:
                                         print 'needs upgrading:' if test else 'upgraded:', fpath
                                         if not test:
@@ -323,9 +323,9 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
                                 completed.append(fpath)
                         elif verbose:
                             print "skipping", os.path.join(root,f)
-                            
+
                 #print 'before',  root, dirs
-                
+
                 # dirs must be modified in-place
                 i = 0
                 tmpdirs = dirs[:]
@@ -340,7 +340,7 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
                     else:
                         i += 1
                 #print 'after', root, dirs
-                
+
     except Exception, err:
         import traceback
         traceback.print_exc()
@@ -356,7 +356,7 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
         print "upgrade complete. the original files have been renamed with a %s extension\n" % BACKUPEXT
         print "to remove the backed-up original files run:\ncleanup(%r)\n" % logfile
         print "to restore the original files run:\nundo(%r)" % logfile
-        
+
 def undoFile(filepath):
     """
     undo a single file
@@ -406,11 +406,11 @@ def _getbackups(logfile, force):
         undofiles = [ x.rstrip() for x in log.readlines() if x]
         log.close()
     return undofiles
-                    
+
 def undo(logfile=None, force=False):
     """
     undo converted files to their original state and remove backups
-    
+
     :param logfile:
         the logfile containing the list of files to restore.  if None, the logfile
         will be determined in this order:
@@ -424,7 +424,7 @@ def undo(logfile=None, force=False):
         be restored, but without the log it is impossible to be certain.
     """
     undofiles = _getbackups(logfile, force)
-    
+
     try:
         for file in undofiles:
             undoFile(file)
@@ -432,14 +432,14 @@ def undo(logfile=None, force=False):
     except Exception, err:
         import traceback
         traceback.print_exc()
-        
+
 
 
 def cleanup(logfile=None, force=False):
     """
     remove backed-up files.  run this when you are certain that the upgrade went
     smoothly and you no longer need the original backups.
-    
+
     :param logfile:
     the logfile containing the list of files to restore.  if None, the logfile
     will be determined in this order:
@@ -453,7 +453,7 @@ def cleanup(logfile=None, force=False):
         be restored, but without the log it is impossible to be certain.
     """
     undofiles = _getbackups(logfile, force)
-    
+
     try:
         for file in undofiles:
             bkup = file + BACKUPEXT

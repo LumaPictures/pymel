@@ -266,8 +266,8 @@ class ClassFrame(object):
         count = 0
         #self.form = formLayout()
         self.frame = frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
-                            width = FRAME_WIDTH,
-                            labelAlign='top')
+                            width = FRAME_WIDTH)
+                            #labelAlign='top')
         
         tab = tabLayout()
         

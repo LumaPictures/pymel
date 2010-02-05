@@ -12,7 +12,7 @@ def refreshLoggerHierarchy():
         try:
             del v.children
         except:pass
-        
+
     for k, v in sorted(logging.Logger.manager.loggerDict.items()):
             if  not isinstance(v, logging.Logger):
                 continue
@@ -21,7 +21,7 @@ def refreshLoggerHierarchy():
                     v.parent.children.append(v)
             except:
                 v.parent.children = [v]
-                
+
 def initMenu():
     return LoggingMenu(parent=pymel.melGlobals["gMainWindow"])
 
@@ -67,13 +67,13 @@ class LoggingMenu(pymel.Menu):
 
     def setFormatter(self, handler):
         tips = """
-        name, levelno, levelname, pathname, filename, module, lineno, funcName, created, 
+        name, levelno, levelname, pathname, filename, module, lineno, funcName, created,
         asctime, msecs, relativeCreated, thread, threadName, process, message
         """
         fmt = pymel.promptBox("Logging","Set Format:\n" + tips, "Set", "Cancel", tx=logging.BASIC_FORMAT)
-        if fmt:     
+        if fmt:
             handler.setFormatter(logging.Formatter(fmt))
-        
+
     def addHandler(self, logger):
         mode = pymel.confirmBox("Logging","Handler Type:", "File", "Script Editor", "Console", "Log Server", "Cancel")
         if mode=="Cancel":
@@ -92,7 +92,7 @@ class LoggingMenu(pymel.Menu):
             server = pymel.promptBox("Logging","Log Server Address:", "Connect", "Cancel", tx="%s:%s" % (kHostName, logging.handlers.DEFAULT_TCP_LOGGING_PORT))
             host, sep, port = server.partition(":")
             handler = SocketHandler(host, int(port))
-            
+
         level = pymel.confirmBox("Logging","Log Level:", *logLevelNames)
         if not level:
             return
@@ -120,5 +120,4 @@ class LoggingMenu(pymel.Menu):
         #self.menuLoggerTree = pymel.menuItem(p=self, l="Logger Tree", sm=True, aob=True)
         self.refreshLoggingMenu()
         #self.menuLoggerTree.postMenuCommand(self.refreshLoggingMenu)
-        
-        
+

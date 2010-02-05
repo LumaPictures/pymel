@@ -32,7 +32,7 @@ def _loads(filename):
         return buffer
     finally:
         file.close()
-        
+
 def load(filename):
     """
     Load a compressed pickle from disk

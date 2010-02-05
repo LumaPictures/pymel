@@ -34,16 +34,16 @@ def p_external_declaration(t):
 def p_function_definition(t):
     '''function_definition :  function_declarator function_specifiers_opt ID LPAREN function_arg_list_opt RPAREN group'''
     #t[0] = assemble(t, 'p_function_definition')
-    
+
     # add to the ordered list of procs
     t.lexer.proc_list.append( t[3] )
-    
+
     # global proc
     if t[1]:
         #print "adding global"
         t.lexer.global_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[5] }
         #t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
-        
+
     # local proc gets prefixed with underscore
     else:
         #print "adding local"
@@ -62,7 +62,7 @@ def p_function_declarator(t):
     else:
         #print "global proc"
         t[0] = True
-        
+
 def p_type_specifier(t):
     '''type_specifier : INT
                       | FLOAT
@@ -72,7 +72,7 @@ def p_type_specifier(t):
                       '''
     #print "type_specifier"
     t[0] = t[1]
-    
+
 # function-specifiers
 def p_function_specifiers_opt(t):
     '''function_specifiers_opt : type_specifier
@@ -87,9 +87,9 @@ def p_function_specifiers_opt(t):
     else:
         t[0] = t[1] + '[]'
     #t[0] = assemble(t, 'p_function_specifiers_opt')
-    
 
-    
+
+
 def p_function_arg(t):
     '''function_arg : type_specifier VAR
                     | type_specifier VAR LBRACKET RBRACKET'''
@@ -98,11 +98,11 @@ def p_function_arg(t):
         t[0] = ( t[1], t[2] )
     else:
         t[0] = ( t[1]+'[]', t[2])
-    
+
 def p_function_arg_list(t):
     '''function_arg_list : function_arg
                         | function_arg_list COMMA function_arg'''
-                            
+
     #t[0] = assemble(t, 'p_function_arg_list')
     if len(t)>2:
         t[0] = t[1] + [t[3]]
@@ -113,12 +113,12 @@ def p_function_arg_list(t):
 def p_function_arg_list_opt(t):
     '''function_arg_list_opt : function_arg_list
                         |  empty'''
-                            
+
     #t[0] = assemble(t, 'p_function_arg_list_opt')
     if not t[1]:
         t[0] = []
     else:
-        t[0] = t[1]    
+        t[0] = t[1]
 
 
 
@@ -130,10 +130,10 @@ def p_declaration_specifiers(t):
         t[0] = ( None, t[1] )
     else:
         t[0] = ( t[1], t[2] )
-           
 
 
-        
+
+
 def p_group_list_opt(t):
     '''group_list_opt : group_list
                 | empty
@@ -161,14 +161,14 @@ def p_group(t):
 #    else:
 #        print "adding brackets", t[2]
 #        t[0] = t[2]
-        
+
 #def p_element_list_opt(t):
 #    '''element_list_opt : element_list
 #                | empty
 #                '''
 #    print "empty"
 #    t[0] = t[1]
-        
+
 def p_element_list(t):
     '''element_list : element
                 | element_list element

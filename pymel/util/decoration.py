@@ -3,7 +3,7 @@
 def decorated(origFunc, newFunc, decoration=None):
     """
     Copies the original function's name/docs/signature to the new function, so that the docstrings
-    contain relevant information again. 
+    contain relevant information again.
     Most importantly, it adds the original function signature to the docstring of the decorating function,
     as well as a comment that the function was decorated. Supports nested decorations.
     """
@@ -16,7 +16,7 @@ def decorated(origFunc, newFunc, decoration=None):
         except TypeError:
             newFunc.__doc__ = "\n"
         if origFunc.__doc__:
-            newFunc.__doc__ += origFunc.__doc__ 
+            newFunc.__doc__ += origFunc.__doc__
     else:
         newFunc.__doc__ = origFunc.__doc__
     if decoration:
@@ -37,17 +37,17 @@ def decorator(func):
     return decoratorFunc
 
 
-       
+
 def interface_wrapper( doer, args=[], varargs=None, varkw=None, defaults=None ):
     """
     A wrapper which allows factories to programatically create functions with
     precise input arguments, instead of using the argument catch-all:
-    
+
         >>> def f( *args, **kwargs ): #doctest: +SKIP
         ...     pass
 
     The inputs args, varargs, varkw, and defaults match the outputs of inspect.getargspec
-    
+
     :param doer: the function to be wrapped.
     :param args: a list of strings to be used as argument names, in proper order
     :param defaults: a list of default values for the arguments. must be less than or equal
@@ -55,10 +55,10 @@ def interface_wrapper( doer, args=[], varargs=None, varkw=None, defaults=None ):
         the second-to-last with the second-to-last and so on ( see inspect.getargspec ). Arguments
         which pair with a default become keyword arguments.
     """
-    
+
 
     # TODO: ensure doer has only an *args parameter
-    
+
     name = doer.__name__
     storageName = doer.__name__ + '_interfaced'
     g = { storageName : doer }
@@ -68,7 +68,7 @@ def interface_wrapper( doer, args=[], varargs=None, varkw=None, defaults=None ):
     else:
         ndefaults = len(defaults)
     offset = len(args) - ndefaults
-    
+
     if offset < 0:
         raise TypeError, "The number of defaults cannot exceed the number of arguments"
     for i, arg in enumerate(args):
@@ -81,15 +81,15 @@ def interface_wrapper( doer, args=[], varargs=None, varkw=None, defaults=None ):
             kwargs.append( '%s=%s' % (arg, defaultStr ) )
         else:
             kwargs.append( str(arg) )
-            
+
     if varargs:
         kwargs.append( '*' + varargs )
     elif varkw:
         kwargs.append( '**' + varkw )
-        
-    defStr = """def %s( %s ): 
+
+    defStr = """def %s( %s ):
         return %s(%s)""" % (name, ','.join(kwargs), storageName, ','.join(args) )
-     
+
     exec( defStr ) in g
 
     func = g[name]

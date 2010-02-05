@@ -1,43 +1,43 @@
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 # Condition objects - used for chaining together tests that yield True/False results
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class Condition(object):
     """
     Used to chain together objects for conditional testing.
     """
     class NO_DATA(Exception): pass
-    
+
     def __init__(self, value=None):
         self.value = value
-        
+
     def eval(self, data=NO_DATA):
         return bool(self.value)
-    
+
     def __or__(self, other):
         return Or(self, other)
     def __ror(self, other):
         return Or(other, self)
-    
+
     def __and__(self, other):
         return And(self, other)
     def __rand__(self, other):
         return And(other, self)
-    
+
     def __invert__(self):
         return Inverse(self)
-    
+
     def __nonzero__(self):
         return self.eval()
 
 Always = Condition(True)
 
 Never = Condition(False)
-    
+
 class Inverse(Condition):
     def __init__(self, toInvert):
         self.toInvert = toInvert
-        
+
     def eval(self, data=Condition.NO_DATA):
         return not self.toInvert.eval(data)
 
@@ -65,11 +65,11 @@ class AndOrAbstract(Condition):
 
     def __str__(self):
         return "(%s)" % self._strJoiner.join([str(x) for x in self.args])
-        
+
 class And(AndOrAbstract):
     _breakEarly = False
     _strJoiner = ' and '
 
 class Or(AndOrAbstract):
     _breakEarly = True
-    _strJoiner = ' or '    
+    _strJoiner = ' or '

@@ -121,18 +121,18 @@ class EnumValue(object):
     def __repr__(self):
         if self.__doc:
             return "EnumValue(%r, %r, %r, %r, %r)" % (
-                self.__enumtype._name,                      
+                self.__enumtype._name,
                 self.__index,
                 self.__key,
                 self.__doc,
             )
         else:
             return "EnumValue(%r, %r, %r)" % (
-                self.__enumtype._name,  
+                self.__enumtype._name,
                 self.__index,
                 self.__key,
             )
-        
+
 
     def __hash__(self):
         return hash(self.__index)
@@ -158,7 +158,7 @@ class EnumValue(object):
             if isinstance(other, basestring):
                 result=cmp(self.key, other)
             elif isinstance(other, int):
-                result=cmp(self.index, other)   
+                result=cmp(self.index, other)
             else:
                 result = NotImplemented
 
@@ -181,10 +181,10 @@ class Enum(object):
         else:
             keygen = enumerate( keys )
             values = [None] * len(keys)
-            
+
         value_type= kwargs.get('value_type', EnumValue)
         #keys = tuple(keys)
-        
+
         docs = {}
         keyDict = {}
         for val, key in keygen:
@@ -209,10 +209,10 @@ class Enum(object):
 
     def __repr__(self):
         return '%s(\n%s)' % (self.__class__.__name__, ',\n'.join([ repr(v) for v in self.values()]))
-           
+
     def __str__(self):
         return '%s%s' % (self.__class__.__name__, self.keys())
-        
+
     def __setattr__(self, name, value):
         raise EnumImmutableError(name)
 
@@ -244,12 +244,12 @@ class Enum(object):
             except EnumValueCompareError, e:
                 is_member = False
         return is_member
-    
+
     def getIndex(self, key):
         """
         get an index value from a key. this method always returns an index. if a valid index is passed instead of a key, the index will
         be returned unchanged.  this is useful when you need an index, but are not certain whether you are starting with a key or an index.
-        
+
             >>> units = Enum('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.getIndex('inches')
             1
@@ -276,12 +276,12 @@ class Enum(object):
                 return self._keys[str(key)]
             except:
                 raise ValueError, "invalid enumerator key: %r" % key
-    
+
     def getKey(self, index):
         """
         get a key value from an index. this method always returns a key. if a valid key is passed instead of an index, the key will
         be returned unchanged.  this is useful when you need a key, but are not certain whether you are starting with a key or an index.
-        
+
             >>> units = Enum('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.getKey(2)
             'feet'
@@ -296,7 +296,7 @@ class Enum(object):
               ...
             ValueError: invalid enumerator key: 'hectares'
         """
- 
+
         if isinstance(index, int):
             # got an index: retrieving key
             try:
@@ -308,16 +308,16 @@ class Enum(object):
             if str(index) in self._keys:
                 return index
             else:
-                raise ValueError, "invalid enumerator key: %r" % index 
+                raise ValueError, "invalid enumerator key: %r" % index
 
-    
+
     def values(self):
         "return a list of `EnumValue`s"
         if operator.isMappingType(self._values):
             return tuple([ self._values[k] for k in sorted(self._values.keys()) ])
         else:
             return self._values
-    
+
     def keys(self):
         "return a list of keys as strings"
         if operator.isMappingType(self._values):

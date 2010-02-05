@@ -1,10 +1,10 @@
 import os, sys, re
 import versions
 import internal as _internal
-_logger = _internal.getLogger(__name__) 
+_logger = _internal.getLogger(__name__)
 from pymel.util import path as _path
 
-    
+
 sep = os.path.pathsep
 
 # A source command that will search for the Python script "file" in the specified path
@@ -15,7 +15,7 @@ def source (file, searchPath=None, recurse=False) :
     filepath = unicode(file)
     filename = os.path.basename(filepath)
     dirname = os.path.dirname(filepath)
-    
+
     if searchPath is None :
         searchPath=sys.path
     if isinstance(searchPath, basestring ):
@@ -73,7 +73,7 @@ def getMayaLocation(version=None):
             else :
                 _logger.warn("No Maya found for version %s" % version )
                 loc = None
-                
+
     return loc
 
 def executeDeferred(func):
@@ -81,22 +81,22 @@ def executeDeferred(func):
     This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this
     function does a simple check to see if we're in batch or interactive mode.  In interactive it runs maya.utils.executeDeferred,
     and if we're in batch mode, it just executes the function.
-    
+
     Use this function in your userSetup.py file if:
         1. you are importing pymel there
         2. you want to execute some code that relies on maya.cmds
         3. you want your userSetup.py to work in both interactive and standalone mode
-    
+
     Example userSetup.py file::
-    
+
         from pymel.all import *
         def delayedStartup():
            print "executing a command"
            pymel.about(apiVersion=1)
         mayautils.executeDeferred( delayedStartup )
-       
+
     Takes a single parameter which should be a callable function.
-    
+
     """
     import maya.utils
     import maya.OpenMaya
@@ -109,30 +109,30 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
     """
     Given a path or list of paths, recurses through directories appending to the MAYA_SCRIPT_PATH
     environment variable
-    
+
     :Parameters:
         roots
-            a single path or list of paths to recurse. if left to its default, will use the current 
+            a single path or list of paths to recurse. if left to its default, will use the current
             MAYA_SCRIPT_PATH values
-            
+
         verobse : bool
             verbose on or off
-            
+
         excludeRegex : str
             string to be compiled to a regular expression of paths to skip.  This regex only needs to match
             the folder name
-        
+
     """
-    
+
     regex = '[.]|(obsolete)'
 
     if excludeRegex:
-        assert isinstance(excludeRegex, basestring), "please pass a regular expression as a string" 
+        assert isinstance(excludeRegex, basestring), "please pass a regular expression as a string"
         regex = regex + '|' + excludeRegex
-    
+
     includeRegex =  "(?!(" + regex + "))" # add a negative lookahead assertion
-        
-    
+
+
 
 
 
@@ -141,13 +141,13 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
             rootVars = list(roots)
         else:
             rootVars = [roots]
-    ##  else expand the whole  environment  currently set 
+    ##  else expand the whole  environment  currently set
     else:
         scriptPath = os.environ["MAYA_SCRIPT_PATH"]
         rootVars = scriptPath.split(os.path.pathsep)
-        
+
     varList = rootVars[:]
-    
+
     _logger.debug("Recursing Maya script path")
     _logger.debug( "Only directories which match %s will be traversed" % includeRegex )
     for rootVar in rootVars:
@@ -157,13 +157,13 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
             # TODO: fix walkdirs so we can pass our regular expression directly to it. this will prevent us from descending into directories whose parents have failed
             for f in root.walkdirs( errors=errors, regex=includeRegex ):
                 try:
-                    if len(f.files("*.mel")):            
+                    if len(f.files("*.mel")):
                         if f not in varList:
                             _logger.debug("Appending script path directory %s" % f)
                             varList.append( str(f) )
-                        
+
                 except OSError: pass
-    
+
     if varList > rootVars:
         os.environ["MAYA_SCRIPT_PATH"] = os.path.pathsep.join( varList )
         _logger.info("Added %d directories to Maya script path" % (len(varList) - len(rootVars)) )

@@ -28,26 +28,26 @@ tokens = reserved + (
     # Literals (identifier, integer constant, float constant, string constant, char const)
     'ID', 'VAR', 'ICONST', 'FCONST', 'SCONST',
     #'LOBJECT', 'ROBJECT',
-    
+
     # Operators (+,-,*,/,%,^,<<,>>, ||, &&, !, <, <=, >, >=, ==, !=)
     'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
-    'NOT', 'CROSS', 
+    'NOT', 'CROSS',
     'LOR', 'LAND',
     'LT', 'LE', 'GT', 'GE', 'EQ', 'NE',
-    
+
     # Assignment (=, *=, /=, %=, +=, -=, ^=)
     'EQUALS', 'TIMESEQUAL', 'DIVEQUAL', 'MODEQUAL', 'PLUSEQUAL', 'MINUSEQUAL',
-    'CROSSEQUAL', 
+    'CROSSEQUAL',
 
     # Vector Component
     'COMPONENT',
-    
+
     # Increment/decrement (++,--)
     'PLUSPLUS', 'MINUSMINUS',
 
     # Conditional operator (?)
     'CONDOP',
-    
+
     # Delimeters ( ) [ ] { } , . ; :
     'LPAREN', 'RPAREN',
     'LBRACKET', 'RBRACKET',
@@ -55,10 +55,10 @@ tokens = reserved + (
     'COMMA', 'SEMI', 'COLON',
     'CAPTURE',
     'LVEC', 'RVEC',
-    
+
     # Comments
     'COMMENT', 'COMMENT_BLOCK',
-    
+
     # Ellipsis (..)
     'ELLIPSIS',
     )
@@ -72,7 +72,7 @@ def t_NEWLINE(t):
     t.lexer.lineno += t.value.count("\n")
 
 
-        
+
 # Operators
 t_PLUS               = r'\+'
 t_MINUS            = r'-'
@@ -126,17 +126,17 @@ t_COLON               = r':'
 reserved_map = { }
 for r in reserved:
     reserved_map[r.lower()] = r
-    
+
 #print reserved_map
 
 id_state = None
 suspend_depth = 0
 
-            
+
 def t_LPAREN(t):
     r'\('
     return t
-    
+
 def t_RPAREN(t):
     r'\)'
     return t
@@ -156,15 +156,15 @@ def t_LBRACKET(t):
 def t_RBRACKET(t):
     r'\]'
     return t
-        
+
 def t_CAPTURE(t):
     r'`'
     return t
-    
+
 def t_SEMI(t):
     r';'
     return t
-    
+
 def t_VAR(t):
     r'\$[A-Za-z_][\w_]*'
     return t
@@ -187,33 +187,33 @@ def t_ID(t):
     #r'[A-Za-z_|]([\w_\.:|]|(\[\d+\]))*|\.\.'
     #r'[A-Za-z_|][\w_\.:|]*(?:[\w_]|(?:\[\d+\]))+|[A-Za-z_]|\.\.'
     # '(%(id)s)*([.|](%(id)s)+)*[.|]?*|\.\.' % {'id': '[A-Za-z_][\w:]*(\[\d+\])?'}
-    
+
     #   |    :    .     idName        [0]
     #r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
     #   |    :    .     idName        [0] or [$var]
     #r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[(\d+)|(\$[A-Za-z_][\w_]*)\])?)+)+)+?|\.\.'
-    
+
     #r'[A-Za-z_][\w]*'
     r'([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?'
     t.type = reserved_map.get(t.value,"ID")
     return t
 
 #def t_OBJECT(t):
-#    
+#
 #    #   |    :    .     idName        [0]
 #    #r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
-#    
+#
 #    #r'[A-Za-z_][\w]|\.\.'
 #    r'([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?'
-#    return t    
-    
+#    return t
+
 # Integer literal
 #t_ICONST = r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
 t_ICONST = r'(0x[a-fA-F0-9]*)|\d+'
 
 # Floating literal
 #t_FCONST = r'((\d+)?(\.\d+)(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?' # does not allow  1.
-t_FCONST = r'(((\d+\.)(\d+)?|(\d+)?(\.\d+))(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?' 
+t_FCONST = r'(((\d+\.)(\d+)?|(\d+)?(\.\d+))(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?'
 
 # String literal
 #t_SCONST = r'\"([^\\\n]|(\\.))*?\"' # does not allow \ for spanning multiple lines
@@ -225,14 +225,14 @@ t_SCONST = r'"([^\\\n]|(\\.)|\\\n)*?"'
 def t_COMMENT_BLOCK(t):
     r'/\*(.|\n)*?\*/|/\*(.|\n)*?$'
     #r'/\*(.|\n)*?\*/'
-    
+
     #r'/\*(.|\n)*?\*/|/\*(.|\n)*?$'
     # the second half of this regex is for matching block comments that
     # are terminated by the end of the file instead of by */
-    
+
     #t.lineno += t.value.count('\n')
     return t
-    
+
 def t_COMMENT(t):
     r'//.*'
     #t.lineno += t.value.count('\n')
@@ -240,22 +240,22 @@ def t_COMMENT(t):
 
 #def t_INVALID(t):
 #    r'[.~\|\'"]'
-#    # these symbols cannot be used on their own, 
+#    # these symbols cannot be used on their own,
 #    # without this entry, they would simply be ignored rather than raising an error
 #    return t
-    
+
 #def t_error(t):
 #    #print "Illegal character %s" % repr(t.value[0])
 #    t.lexer.skip(1)
 
 #def t_error(t):
 #    return t
-    
+
 #lexer = lex.lex(optimize=1)
 #lexer = lex.lex()
 if __name__ == "__main__":
     lex.runmain(lexer)
 
-    
+
 
 

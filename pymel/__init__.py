@@ -1,7 +1,7 @@
 
 # copyright Chad Dombrova    chadd@luma-pictures.com
 # created at luma pictures   www.luma-pictures.com
- 
+
 """
 *******************************
           PyMEL
@@ -17,7 +17,7 @@ customizing them to operate in a more succinct and intuitive way.
     Special Thanks
 =======================================
 
-Special thanks to those studios with the foresight to support an open-source project of this nature:  Luma Pictures, 
+Special thanks to those studios with the foresight to support an open-source project of this nature:  Luma Pictures,
 Attitude Studio, and ImageMovers Digital.
 
 """

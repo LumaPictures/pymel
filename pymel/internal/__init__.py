@@ -5,7 +5,7 @@ from plogging import getLogger
 from startup import *
 #from envparse import *
 #from version import *
-#assert mayaInit() 
+#assert mayaInit()
 #from pwarnings import *
 #import plogging
 #from plogging import getLogger
