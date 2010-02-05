@@ -8,7 +8,7 @@ Created from the ansi c example included with ply, which is based on the grammar
 
 
 
-import sys, os, re, os.path, tempfile
+import sys, os, re, os.path, tempfile, string
 import mellex
 
 try:
@@ -19,6 +19,7 @@ except ImportError:
     import ply.lex
 
 from pymel.util import unescape
+from pymel.util.utilitytypes import TwoWayDict
 import pymel
 import pymel.util as util
 import pymel.internal.factories as factories
@@ -137,14 +138,14 @@ def format_fopen(x, t):
 
 
 def format_source(x, t):
-    import pdb
-    pdb.set_trace()
     script = eval(x[0])
     name = os.path.splitext( os.path.basename(script) )[0]
     #print "formatting source", name
-    moduleName, returnType = _melProc_to_pyModule( t, name )
+    moduleName = _melObj_to_pyModule( name )
     if moduleName:
-        return "import " + moduleName
+        if moduleName not in t.lexer.imported_modules:
+            t.lexer.imported_modules.add(moduleName)
+        return ''
     else:
         return '%smel.source(%s)' % (t.lexer.pymel_namespace, x[0] )
              
@@ -291,12 +292,23 @@ mel_type_to_python_type = {
 tag = '# script created by pymel.tools.mel2py'
 
 
+def pythonizeName(name):
+    alphaNumeric = string.ascii_letters + string.digits
+    chars = []
+    for char in name:
+        if char not in alphaNumeric:
+            chars.append('_')
+        else:
+            chars.append(char)
+    if chars[0] in string.digits:
+        # Since python treats names starting with '_' as
+        # somewhat special, use another character...
+        chars.insert(0, 'n')
+    return ''.join(chars)
 
 def getModuleBasename( script ):
     name = os.path.splitext( os.path.basename(script) )[0]
-    name = name.replace( '.', '_')
-    name = name.replace( '-', '_')
-    return name
+    return pythonizeName(name)
 
 def findModule( moduleName ):
     for f in sys.path:
@@ -351,47 +363,20 @@ def fileInlist( file, fileList ):
         except OSError: pass
     return False
 
-def _melScript_to_pyModuleName( t, script ):
+def _melObj_to_pyModule( script ):
     """
-    Given a path to a mel script, returns the python module name that this would be
-    translated to.
-    
-    It does no checks on whether this mel script is being translated or not.
-    """
-    
-    
-
-def _melScript_to_pyModule( t, script ):
-    """
-    Return the module name this mel script will be converted to.
+    Return the module name this mel script / procedure will be converted to / found in.
     
     If the mel script is not being translated, returns None.
     """
-    
-    # if root_module is set to None that means we are doing a string conversion, and not a file conversion
-    # we don't need to find out the current or future python module.  just use pymel.mel
-    if t.lexer.root_module in [ None, '__main__']:
-        return None
-    
-    global batchData
-    
-    try:
-        return batchData.proc_to_module[procedure]
-        
-    except KeyError:
-        # if the file currently being parsed is not being translated, then this parsing is just for information gathering.
-        # no need to recursively parse any further
-        if t.lexer.root_module not in batchData.currentModules:
-            #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
-            batchData.proc_to_module[procedure] = (None, None)
-            return None, None
-        
-        result = mel.whatIs( procedure )
-        buf = result.split( ': ' )
-        if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
-            translating = melfile in batchData.currentModules.values()
-            if not translating:
-                return None, None
+    result = mel.whatIs( script )
+    buf = result.split( ': ' )
+    if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
+        melfile = util.path( buf[1].lstrip() )
+        melfile = melfile.canonicalpath()
+        if batchData.currentModules.has_value(melfile):
+            return batchData.currentModules.get_key(melfile)
+    return None
                         
 def _melProc_to_pyModule( t, procedure ):
     """
@@ -407,58 +392,20 @@ def _melProc_to_pyModule( t, procedure ):
     
     try:
         return batchData.proc_to_module[procedure]
-        
     except KeyError:
         # if the file currently being parsed is not being translated, then this parsing is just for information gathering.
         # no need to recursively parse any further
         if t.lexer.root_module not in batchData.currentModules:
             #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
-            batchData.proc_to_module[procedure] = (None, None)
-            return None, None
+            moduleName = None
+        else:
+            moduleName = _melObj_to_pyModule( procedure )
         
-        result = mel.whatIs( procedure )
-        buf = result.split( ': ' )
-        if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
-            translating = melfile in batchData.currentModules.values()
-            if not translating:
-                return None, None
-                
-            melfile = util.path( buf[1].lstrip() )
-            melfile = melfile.realpath()
-            
-            moduleName = getModuleBasename( melfile )
-            
-#            if moduleName == t.lexer.root_module:
-#                print 'Module name cannot equal root_module:', moduleName, procedure, melfile in batchData.currentFiles, procedure in t.lexer.global_procs, procedure in t.lexer.local_procs
-#                #print "global procs:", t.lexer.global_procs
-#                raise ValueError, 'Module name cannot equal root_module: %s' % moduleName
-#                
-#
-#            
-#            print "%s not seen yet: parsing %s. current module: %s" % ( procedure, melfile, t.lexer.root_module )
-#            cbParser = MelParser()
-#            cbParser.build( rootModule = moduleName, 
-#                            pymelNamespace=t.lexer.pymel_namespace, 
-#                            verbosity=t.lexer.verbose
-#                            )
-#            
-#            converted = cbParser.parse( melfile.bytes() )
-#            batchData.scriptPath_to_parser[melfile] = cbParser
-#            
-#            if translating:
-#                batchData.scriptPath_to_moduleText[melfile] = converted
-#            else:
-#                moduleName = None
-#                
-#            for proc, procInfo in cbParser.lexer.global_procs.items():
-#                assert proc in batchData.proc_to_module
-#                #batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
-#            
-#            return batchData.proc_to_module[procedure]
-
+        if moduleName is not None:
             #print "%s not seen yet: scanning %s" % ( procedure, melfile )
             cbParser = MelScanner()
             cbParser.build()
+            melfile = batchData.currentModules[moduleName]
             try:
                 proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
             except lex.LexError:
@@ -468,15 +415,11 @@ def _melProc_to_pyModule( t, procedure ):
             for proc, procInfo in global_procs.items():
                 #print proc, procInfo
                 batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
-            if procedure in batchData.proc_to_module:
-                return batchData.proc_to_module[procedure]
-            
-        #print "could not find script for procedure: %s" % procedure
-        batchData.proc_to_module[procedure] = (None, None)
-        return None, None
 
-        
-
+        if procedure not in batchData.proc_to_module:
+            #print "could not find script for procedure: %s" % procedure
+            batchData.proc_to_module[procedure] = (None, None)
+        return batchData.proc_to_module[procedure]
         
     
 def format_command(command, args, t):
@@ -746,11 +689,15 @@ class BatchData(object):
     """ """
     __metaclass__ = util.Singleton
     
-    def __init__(self):
-        self.currentModules = {}
+    def __init__(self, **kwargs):
+        self.currentModules = TwoWayDict()
         self.proc_to_module = {}
         self.scriptPath_to_parser = {}
         self.scriptPath_to_moduleText = {}
+        self.basePackage = None
+        self.outputDir = None
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
 global batchData
 batchData = BatchData()

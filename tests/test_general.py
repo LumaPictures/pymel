@@ -163,11 +163,12 @@ class testCase_mayaSetAttr(unittest.TestCase):
         cmds.setAttr( 'node.stringAttr', 'one', type='string' )
         assert cmds.getAttr( 'node.stringAttr' )        == u'one'
     
-    def test_matrix(self):
-        # matrix
-        # Fails in versions < 2011
-        cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
-        assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] 
+    if versions.current() >= versions.v2011:
+        def test_matrix(self):
+            # matrix
+            # Fails in versions < 2011
+            cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
+            assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] 
     
     def test_sphere(self):
         # non-numeric: can't get
@@ -827,7 +828,20 @@ for cmdName in ('''aimConstraint geometryConstraint normalConstraint
     # try to run it as a test!
     del globals()['constraintTest']
         
+class test_commands(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.dependNode = cmds.createNode('displayLayer')
+        self.group = cmds.group('persp')
         
+    def test_duplicate(self):
+        # make sure that we get proper dag nodes, even when the result will contain non-unique names
+        self.assert_( duplicate(self.group) )
+        
+        # ensure it works with depend nodes too
+        self.assert_( duplicate(self.dependNode) )
+        
+           
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
