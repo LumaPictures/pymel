@@ -900,7 +900,7 @@ def makeEditFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=
             
             
 def editflag( cmdName, flag ):
-    """query flag decorator"""
+    """edit flag decorator"""
     def edit_decorator(method):
         wrappedMelFunc = makeEditFlagMethod(  method, flag, method.__name__, cmdName=cmdName )
         wrappedMelFunc.__module__ = method.__module__
