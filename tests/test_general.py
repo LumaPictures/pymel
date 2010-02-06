@@ -163,11 +163,12 @@ class testCase_mayaSetAttr(unittest.TestCase):
         cmds.setAttr( 'node.stringAttr', 'one', type='string' )
         assert cmds.getAttr( 'node.stringAttr' )        == u'one'
     
-    def test_matrix(self):
-        # matrix
-        # Fails in versions < 2011
-        cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
-        assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] 
+    if versions.current() >= versions.v2011:
+        def test_matrix(self):
+            # matrix
+            # Fails in versions < 2011
+            cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
+            assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] 
     
     def test_sphere(self):
         # non-numeric: can't get

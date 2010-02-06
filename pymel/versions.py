@@ -34,7 +34,7 @@ def parseVersionStr(versionStr, extension=False):
     # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
 
     # NOTE: we're using the same regular expression (parseVersionStr) to parse both the crazy human readable
-    # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid 
+    # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid
     # the regular expression might be getting unwieldy
 
     ma = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
@@ -80,15 +80,15 @@ def flavor():
     except AttributeError:
         raise RuntimeError, "This method cannot be used until maya is fully initialized"
 
-def isUnlimited(): 
+def isUnlimited():
     return flavor() == 'Unlimited'
 
 
-def isComplete(): 
+def isComplete():
     return flavor() == 'Complete'
 
 
-def isRenderNode(): 
+def isRenderNode():
     return flavor() == 'Render'
 
 

@@ -25,7 +25,7 @@ A tree module that can wrap either pure python tree implementation or the networ
 >>> myForest = Tree(1, 2, 3)
 >>> for top in myForest.tops():
 ...     print top.value
-... 
+...
 1
 2
 3
@@ -59,17 +59,17 @@ networkxLoad = False
 #    except :
 #        _logger.info("Library 'networkx' not present")
 #        networkxLoad = False
-#    
+#
 #if networkxLoad :
 #    _logger.info("Trees module will use networkx library")
 #else :
 #    _logger.info("Trees module will use pure python implementation")
-      
+
 #Utility
 
 def isSequence(x):
     return type(x) is list or type(x) is tuple
-              
+
 def isTree(x):
     return (type(type(x)) is MetaTree)
 
@@ -88,12 +88,12 @@ def isMutableTree(x):
 # decorator to identify mutable methods (that are only valid for mutable trees)
 def mutabletree(f) :
     f.mutabletree = True
-    return f  
-        
-# to create Tree classes    
+    return f
+
+# to create Tree classes
 class MetaTree(type):
     """ This metaclass defines the type of all 'tree' classes """
-    
+
     class PyTree :
         """Core methods for pure python trees implementation"""
         # these are the methods depending on implementation
@@ -103,7 +103,7 @@ class MetaTree(type):
         _value = None
         # the storage for subtrees, must be an iterable (and ordered if you want to have siblings order)
         # can be immutable or mutable
-        _subtrees = None       
+        _subtrees = None
 
         # Conversion to correct storage for subtrees
         def _toSubtree(cls, subtrees):
@@ -112,14 +112,14 @@ class MetaTree(type):
             if subtrees :
                 return cls.TreeType(subtrees)
             else :
-                return None       
+                return None
         _toSubtree = classmethod(_toSubtree)
-        
+
         def __nonzero__(self) :
             try:
                 return (self._value is not None or self._subtrees is not None)
             except :
-                return False 
+                return False
         def isElement(self):
             if self :
                 return (self._value is not None and self._subtrees is None)
@@ -129,11 +129,11 @@ class MetaTree(type):
             if self :
                 return (self._subtrees is not None)
             else :
-                return False                                           
+                return False
         # by default only define get methods, set will be defined if the data type is mutable
         # and properties than can be either read only or read-write will be (re)defined accordingly at class creation
         # we always return trees / elements which value an be read from the value property
-        
+
         # to be bound to properties
         def _get_value(self):
             return self._value
@@ -141,16 +141,16 @@ class MetaTree(type):
         @mutabletree
         def _set_value(self, value):
             if value is not None :
-                self._value = value               
+                self._value = value
         def _get_parent(self) :
             if self._pRef :
-                # can remove 
+                # can remove
                 if not self._pRef() is self :
                     return self._pRef()
                 else :
                     raise RuntimeError, "Loop detected in tree %r on parent of %s", (self, self._get_value())
         # only for mutable
-        @mutabletree         
+        @mutabletree
         def _set_parent(self, parent) :
             if parent is None :
                 # unparenting
@@ -174,7 +174,7 @@ class MetaTree(type):
                     self._pRef = None
             elif isinstance(parent, self.__class__) :
                 if not parent is self :
-                    # first unparent nicely if needed                    
+                    # first unparent nicely if needed
                     if self._pRef is not None :
                         if self._pRef() is parent :
                             # what the fuss then ?
@@ -195,7 +195,7 @@ class MetaTree(type):
                         if parent._subtrees is None :
                             parent._subtrees = [s]
                         else :
-                            # should not happen if the usual methods are used 
+                            # should not happen if the usual methods are used
                             for c in iter(parent._subtrees) :
                                 if c is s :          # not == of course
                                     raise RuntimeError, "Self was already present in the childs of parent?"
@@ -205,11 +205,11 @@ class MetaTree(type):
                         p = parent._get_parent()
                         self._pRef = weak.ref(p)
                         self._value = parent._value
-                        self._subtrees = parent._subtrees                          
+                        self._subtrees = parent._subtrees
                 else :
                     raise RuntimeError, "Setting self parent to itself would create a loop in tree %r" % self
             else :
-                raise TypeError, "Can only reparent self to same type '%s' than self, not to '%s'" % (type(self), type(parent))                                                  
+                raise TypeError, "Can only reparent self to same type '%s' than self, not to '%s'" % (type(self), type(parent))
         def _get_next(self) :
             try :
                 return self.siblings().next()
@@ -249,23 +249,23 @@ class MetaTree(type):
                                             parent._subtrees.remove(self)
                                             try :
                                                 j = parent._subtrees.index(next)
-                                            except ValueError :   
+                                            except ValueError :
                                                 raise ValueError, "Provided next element '%s' is not a sibling of self '%s'" % (next.value, self.value)
                                             parent._subtrees.insert(j, self)
                                 # if self was not found, something is very wrong
-                                raise RuntimeError, u"Invalid tree, parent of self '%s' does not have self in its subtrees" % self.value           
+                                raise RuntimeError, u"Invalid tree, parent of self '%s' does not have self in its subtrees" % self.value
                     else :
-                        raise RuntimeError, u"Invalid tree, parent of self '%s' has an empty subtrees list" % self.value                    
+                        raise RuntimeError, u"Invalid tree, parent of self '%s' has an empty subtrees list" % self.value
                 else :
                     raise RuntimeError, u"Invalid tree, parent of self '%s' has an empty subtrees list" % self.value
-            raise ValueError, "Self has no parent, we can't change it's order in the list of its siblings, having none"        
+            raise ValueError, "Self has no parent, we can't change it's order in the list of its siblings, having none"
         # methods (for both mutable and immutable)
         def childs(self):
             """ Returns an iterator on all childs of self, or an empty iterator if self has no childs """
             if self._subtrees :
                 return iter(self._subtrees)
             else :
-                return iter(self.__class__.TreeType())              
+                return iter(self.__class__.TreeType())
         def siblings (self):
             """ Returns an iterator on self siblings, not including self and starting with self next sibling,
                 if self has no siblings (self has no parent or is unique child) then returns an empty iterator """
@@ -295,7 +295,7 @@ class MetaTree(type):
                 else :
                     for subtree in self.childs():
                         for tree in subtree.__iter__():
-                            yield tree                
+                            yield tree
         #To allow pickling (will leave weak refs out and rebuild the object on unpickling from the preorder list of elements)
         def __reduce__(self):
             return (self.__class__, tuple(self) )
@@ -321,14 +321,14 @@ class MetaTree(type):
                 return False
         def __ne__(self, other):
             return not self.__eq__(other)
-        # compare using only top value (if compare is defined for value type) or all values ?  
+        # compare using only top value (if compare is defined for value type) or all values ?
         def __contains__(self, element):
             """Returns True if element is in the tree, False otherwise."""
             if isTree(element) :
                 for sub in self.breadth():
                     if element == sub:
                         return True
-                return False          
+                return False
             else :
                 for sub in self.breadth():
                     if element == sub.value:
@@ -342,7 +342,7 @@ class MetaTree(type):
                     if parent is other :
                         return True
                     parent = parent.parent
-            return False        
+            return False
         # get and __getitem
         # get the matching subtree to that subtree or element,
         # not that it can return a tuple if same element/subtree is present more than once in tree
@@ -362,12 +362,12 @@ class MetaTree(type):
                 raise KeyError, "No  match for %s in Tree" % value
             else :
                 raise KeyError, "More than one match for %s in Tree (%i found)" % (value, l)
-            
+
         def get(self, value, default=tuple()):
             """ Identical to the __getitem__ method but will return a default value instead of raising KeyError
                 if nor result is found """
             result = []
-            # explore breadth first so that closest items are found faster            
+            # explore breadth first so that closest items are found faster
             if isTree(value) :
                 # do a faster check in case value is a subtree of self
                 if value.issubtree(self) :
@@ -393,7 +393,7 @@ class MetaTree(type):
                                         found.append(c)
                             result = found
                         else :
-                            break                                       
+                            break
             else :
                 for e in self.breadth() :
                     if value == e.value :
@@ -401,14 +401,14 @@ class MetaTree(type):
             if not result :
                 return default
             else :
-                return tuple(result)        
+                return tuple(result)
         # methods only for mutable : remove, __delitem__, add
         # remove
-        @mutabletree       
+        @mutabletree
         def remove(self, element):
             """ Remove element from self, along with everything under it, will raise an exception if element is not in self """
             # TODO : only handle case where element is subtree of self here and let caller handle search for subtree from value
-            self[element]._set_parent(None)    
+            self[element]._set_parent(None)
         # delete method
         @mutabletree
         def __delitem__(self, element) :
@@ -418,7 +418,7 @@ class MetaTree(type):
                 raise ValueError, "Tree does not contain element '%s'" % element
             sub._set_parent(None)
             del sub
-   
+
         # methods only for mutable
         @mutabletree
         def add(self, element, parent=None, next=None):
@@ -437,7 +437,7 @@ class MetaTree(type):
                         # if self is not already a forest, make it one
                         subs = None
                         if self._subtrees is not None :
-                            subs = list(iter(self._subtrees))                        
+                            subs = list(iter(self._subtrees))
                         selfchild = self.__class__()
                         selfchild._pRef = weak.ref(self)
                         selfchild._set_value(value)
@@ -454,7 +454,7 @@ class MetaTree(type):
             else :
                 # parent must be actually a subtree of self, not a subtree of another tree that happens to be equal in value
                 parent = self[parent]
-            element._set_parent(parent) 
+            element._set_parent(parent)
 
         def __cmp__(self, other):
             return cmp(self.value, other.value)
@@ -465,8 +465,8 @@ class MetaTree(type):
                 for subTree in self._subtrees:
                     subTree.sort(*args)
                 self._subtrees.sort(*args)
-                
-        # set and __setitem__  
+
+        # set and __setitem__
 
         # Changed to not allow sequences to follow each other, as it was too
         # ambiguous/confusing, and ikely not what the user intended - ie, if
@@ -504,31 +504,31 @@ class MetaTree(type):
         # >>> print tree1.formatted()
         # >>> tree2 = Tree(1, ('a','b'), 3, 4)
         # >>> print tree2.formatted()
-                
+
         # init, this can be overriden in class definition
         def __init__(self, *args, **kwargs):
             """
             Initializer - non-sequences are values, sequeneces are children of previous value.
-            
+
             The args represent tree nodes, where a node is specified by either another tree
             object, or a non sequence representing the value of that node, optionally followed
             by a sequence representing the children of that node.
-            
+
             Values cannot be None, and when specifying the elements in a child sequence, they
             must fit the same rules for valid tree nodes given above.
-            
+
             Invalid arguments (ie, two sequences following each other) will raise a ValueError.
-            
+
             If there is only one node (ie, only one non-sequence arg, optionally followed by
             a list of children), then a tree is returned, with the single node as it's
             single root.
 
             If there are multiple nodes, then a forest is returned, with each node
             representing a root.
-            
+
             For speed and ease of use, if there is only a single argument, and it is a sequence,
             it is the same as though we had unpacked the sequence:
-            
+
             >>> list = (1,('a','b'))
             >>> Tree(list) == Tree(*list)
             True
@@ -580,10 +580,10 @@ class MetaTree(type):
             +: root4
             |--: kid1
             \--: kid2
-              
+
             This means that giving multiple forrest objects will effectively merge
             them into a larger forest:
-            
+
             >>> forrest1 = Tree(1, 2)
             >>> forrest1.view()
             -: 1
@@ -603,14 +603,14 @@ class MetaTree(type):
             -: foo
             <BLANKLINE>
             -: bar
-            
+
             Trying to give 2 sequences in a row results in a ValueError:
-            
+
             >>> Tree('root1', (1,2), (3,4))
             Traceback (most recent call last):
               ...
             ValueError: Child sequence must immediately follow a non-sequence value when initializing a tree
-            
+
             Similarly, trying to use 'None' as a tree value gives an error:
             >>> Tree(None, (1,2))
             Traceback (most recent call last):
@@ -623,10 +623,10 @@ class MetaTree(type):
                 pRef = weak.ref(parent)
             else :
                 pRef = None
-                
+
             if len(args) == 1 and isSequence(args[0]):
                 args = args[0]
-                
+
             roots = []
             previousWasValue = False
             for arg in args :
@@ -635,16 +635,16 @@ class MetaTree(type):
                     # we need to do a shallow copy if it's not the same tree type, or not already a subtree of self
                     if isinstance(arg, self.__class__) and arg.parent is self :
                         avalue = arg.value
-                        if avalue : 
+                        if avalue :
                             roots += [arg]                                        # one item in childs : the subtree
                         else :
                             roots += [c for c in arg.childs()]                    # all childs of subtree in childs
-                    else :                    
+                    else :
                         avalue = arg.value
-                        if avalue : 
+                        if avalue :
                             roots += [self.__class__(avalue, tuple(c for c in arg.childs()), parent=self)]     # one item in childs : the subtree
                         else :
-                            roots += [self.__class__(c, parent=self) for c in arg.childs()]                    # all childs of subtree in childs             
+                            roots += [self.__class__(c, parent=self) for c in arg.childs()]                    # all childs of subtree in childs
                 elif isSequence(arg) :
                     # we use sequences to encapsulate childs
 
@@ -653,7 +653,7 @@ class MetaTree(type):
                     if not previousWasValue:
                         raise ValueError('Child sequence must immediately follow a non-sequence value when initializing a tree')
 
-                    childs = []                    
+                    childs = []
                     d = {'parent':self}
                     sub = self.__class__(*arg, **d)
                     if sub.value :
@@ -663,10 +663,10 @@ class MetaTree(type):
                     # add resulting childs if any
                     if childs :
                         # parent to previous entry, childs are already self.__class__ copies
-                        # coming from a sequence expansion                  
+                        # coming from a sequence expansion
                         for c in childs :
                             c._pRef = weak.ref(roots[-1])
-                        roots[-1]._subtrees = self.__class__._toSubtree(childs)                 
+                        roots[-1]._subtrees = self.__class__._toSubtree(childs)
                 elif arg is not None :
                     isValue = True
                     # argument at top level is a root
@@ -679,14 +679,14 @@ class MetaTree(type):
                     raise ValueError, "None cannot be a tree element"
                 previousWasValue = isValue
 
-                
+
             if not roots :
                 self._pRef = None
                 self._value = None
-                self._subtrees = None                 
+                self._subtrees = None
             elif len(roots) == 1 :
                 # we don't need the None root if the tree is not a forest
-                self._pRef = pRef               
+                self._pRef = pRef
                 self._value = roots[0]._value               # roots is filled with copies so not need to copy again
                 self._subtrees = roots[0]._subtrees
             else :
@@ -704,8 +704,8 @@ class MetaTree(type):
         # To the PyTree methods an index that for each of the subtree elements (as keys)
         # keeps a weak references to the subtree
         _index = weak.WeakValueDictionary()
-        
-        # unique key based on top element value, by default just return element value 
+
+        # unique key based on top element value, by default just return element value
         # but can be overriden. For instance use long name instead of just short name for a a node
         # will allow to store a hierarchy of Maya nodes with duplicate names
         def _get_key(self):
@@ -715,7 +715,7 @@ class MetaTree(type):
             pass
 
         # _set_parent must update the index of the parent
-        @mutabletree         
+        @mutabletree
         def _set_parent(self, parent) :
             oldparent = self.parent
             super(IndexedPyTree, self)._set_parent(parent)
@@ -746,7 +746,7 @@ class MetaTree(type):
 #                return False
 #        def __ne__(self, other):
 #            return not self.__eq__(other)
-#        # compare using only top value (if compare is defined for value type) or all values ?  
+#        # compare using only top value (if compare is defined for value type) or all values ?
 #        def __contains__(self, element):
 #            """Returns True if element is in the tree, False otherwise."""
 #            if self :
@@ -754,14 +754,14 @@ class MetaTree(type):
 #                    element = self.__class__(element)
 #                return self._index.has_key(element._get_key())
 #            else :
-#                return False                    
+#                return False
 #        # identity, not equivalence test
 #        def issubtree(self, other) :
 #            if isinstance(other, self.__class__) :
 #                key = self._get_key()
 #                if other._index.has_key(key) :
 #                    return other._index[key] is self
-#            return False        
+#            return False
         # get and __getitem
         # get the matching subtree to that subtree or element, will be redefined in the case of an indexed tree
         # not that it can return a tuple if same element/subtree is present more than once in tree
@@ -781,12 +781,12 @@ class MetaTree(type):
                 raise KeyError, "No  match for %s in Tree" % value
             else :
                 raise KeyError, "More than one match for %s in Tree (%i found)" % (value, l)
-            
+
         def get(self, value, default=tuple()):
             """ Identical to the __getitem__ method but will return a default value instead of raising KeyError
                 if nor result is found """
             result = []
-            # use index for faster find            
+            # use index for faster find
             if isTree(value) :
                 # do a faster check in case value is a subtree of self
                 if value.issubtree(self) :
@@ -812,7 +812,7 @@ class MetaTree(type):
                                         found.append(c)
                             result = found
                         else :
-                            break                                       
+                            break
             else :
                 for e in self.breadth() :
                     if value == e.value :
@@ -820,20 +820,20 @@ class MetaTree(type):
             if not result :
                 return default
             else :
-                return tuple(result)                     
+                return tuple(result)
 
 
-                                 
+
     class NxTree :
         """ Core methods for trees based on the networkx library, these trees are indexed by implementation (name of an element must be unique) """
-        
-                
+
+
     # now the methods for an immutable tree, not depending on implementation
     class ImTree :
         """The methods for an immutable Tree class."""
-        
+
         # Iterators all returns trees/elements, use the value property to get value
-        # note: inorder traversal could be defined for binary trees          
+        # note: inorder traversal could be defined for binary trees
         def preorder(self):
             """The standard preorder traversal iterator."""
             if self:
@@ -849,17 +849,17 @@ class MetaTree(type):
                     for tree in subtree.postorder():
                         yield tree
                 yield self
-            
+
         def breadth(self):
             """Breadth first traversal of a tree."""
             if self:
-                yield self      
+                yield self
                 deq = deque(x for x in self.childs())
                 while deq :
                     arg = deq.popleft()
                     yield arg
                     for a in arg.childs() :
-                        deq.append (a)     
+                        deq.append (a)
 
         def child (self, index=0):
             """ Returns nth child (by default first), is it exists """
@@ -867,7 +867,7 @@ class MetaTree(type):
                 childs = [k for k in self.childs()]
                 return childs[index]
             except :
-                return None      
+                return None
         def parents (self):
             """Returns an iterator on path from element to top root, starting with first parent, empty iterator means self is root"""
             #parents = []
@@ -903,14 +903,14 @@ class MetaTree(type):
                 tops = [k for k in self.tops()]
                 return tops[index]
             except :
-                return None                                                       
+                return None
         def depth (self) :
             """Depth of self, the distance to self's root"""
             parents = self.parents()
             depth = 0
             for p in parents :
                 depth += 1
-            return depth        
+            return depth
         def leaves(self):
             """ Get an iterator on all leaves under self """
             for elem in self.preorder() :
@@ -929,7 +929,7 @@ class MetaTree(type):
                 else :
                     for c in arg.childs() :
                         deq.append((c, level+1))
-                        
+
         # Comparison, contains, etc
         #Number of elements in the tree.
         def size(self):
@@ -939,33 +939,33 @@ class MetaTree(type):
                 ret += 1
             return ret
         # use it for len(self)
-        __len__ = size            
+        __len__ = size
         def height(self):
             """ Get maximum downward depth (distance from element to furthest leaf downwards of it) of the tree """
-            max_depth=0   
+            max_depth=0
             deq = deque((self,0))
             while deq :
                 arg, level = deq.popleft()
                 if arg.value :
-                    level += 1                
+                    level += 1
                 if not arg.isElement() :
                     for a in arg.childs() :
                         deq.append ((a, level))
                 else :
                     if level > max_depth :
                         max_depth = level
-            return max_depth                   
-        
+            return max_depth
+
         # this can be redefined for trees where the uniqueness of the elements can allow a more efficient search
         def _pathIter (self, element, depth=0, found=None, down=False, up=False):
-            # test if we have a hit            
+            # test if we have a hit
             if self == element :
                 return ((self,), 0)
             # abort if a path of length 'found' that is not more than depth+! has been found,
             # as we will explore parent or childs of self, shortest path we can still
             # hope to find in this branch is of length depth+1
             if found is not None and not abs(found) > abs(depth) + 1 :
-                return ((), None)            
+                return ((), None)
             # else keep searching
             seekup = None
             seekdown = None
@@ -994,10 +994,10 @@ class MetaTree(type):
                                 break
                 # finally down distance is the best down distance found amongst childs
                 dirdown = bestdirdown
-            
+
             # retain shortest path and direction
             if dirup is not None and dirdown is not None:
-                # for equal distance, prefer up                
+                # for equal distance, prefer up
                 if abs(dirup) <= abs(dirdown) :
                     path = seekup
                     direction = dirup
@@ -1016,9 +1016,9 @@ class MetaTree(type):
                 # not found
                 path = ()
                 direction = None
-                
+
             return (path, direction)
-        
+
         # note it's not a true iterator as anyway we need to build handle lists to find shortest path first
         def path (self, element=None, **kwargs):
             """ Returns an iterator of the path to specified element if found, including starting element,
@@ -1026,7 +1026,7 @@ class MetaTree(type):
                 For trees where duplicate values are allowed, shortest path to an element of this value is returned.
                 element can be an ancestor or a descendant of self, if no element is specified, will return path from self's root to self
                 up keyword set to True means it will search ascendants(parent and parents of parent) self for element, default is False
-                down keyword set to True means it will search descendants(childs and childs of childs) of self for element, default is False 
+                down keyword set to True means it will search descendants(childs and childs of childs) of self for element, default is False
                 If neither up nor down is specified, will search both directions
                 order keyword defines in what order the path will be returned and can be set to 'top', 'bottom' or 'self', order by default is 'top'
                 'top' means path will be returned from ancestor to descendant
@@ -1042,7 +1042,7 @@ class MetaTree(type):
                 up = kwargs.get("up", False)
                 down = kwargs.get("down", False)
                 if not (up or down) :
-                    up = down = True                    
+                    up = down = True
                 path, direction = self._pathIter(element, depth=0, found=None, up=up, down=down)
             # in what order to return path
             # default : by hierarchy order, top to down, but can be returned start (self) to end (element)
@@ -1053,36 +1053,36 @@ class MetaTree(type):
                         path = tuple(reversed(path))
                 elif order is 'bottom' :
                     if direction > 0 :
-                        path = tuple(reversed(path))                              
+                        path = tuple(reversed(path))
                 elif order is 'self' :
                     path = tuple(path)
                 else :
-                   raise ValueError, "Unknown order '%s'" % order 
+                   raise ValueError, "Unknown order '%s'" % order
             return iter(path)
-                                                       
+
         def dist (self, element, **kwargs):
             """ Returns distance from self to element, 0 means self==element, None if no path exists
                 up keyword set to True means it will search ascendants(parent and parents of parent) self for element, default is False
-                down keyword set to True means it will search descendants(childs and childs of childs) of self for element, default is False 
+                down keyword set to True means it will search descendants(childs and childs of childs) of self for element, default is False
                 If neither up nor down is specified, will search both directions
                 signed keyword set to true means returns negative distance when element is upwards self, positive when it's downwards """
             up = kwargs.get("up", False)
             down = kwargs.get("down", False)
             signed = kwargs.get("signed", False)
             if not (up or down) :
-                up = down = True               
+                up = down = True
             path,direction = self._pathIter (element, depth=0, found=None, down=down, up=up)
             if not signed :
                 direction = abs(direction)
             return direction
- 
+
          # TODO: make it match new __init__
         # - use [] for child lists, () for value/children pairs
         # make str, unicode, repr
         # str, unicode, represent
         def _strIter(self):
             res = ""
-            value = self.value           
+            value = self.value
             if value is not None:
                 res = "'%s'" % str(value)
             temp = [sub._strIter() for sub in self.childs()]
@@ -1103,7 +1103,7 @@ class MetaTree(type):
 
         def _unicodeIter(self):
             res = u""
-            value = self.value      
+            value = self.value
             if value :
                 res = u"'%s'" % unicode(value)
             temp = [sub._unicodeIter() for sub in self.childs()]
@@ -1138,14 +1138,14 @@ class MetaTree(type):
                 return "%s(%s)" % (self.__class__.__name__, self._reprIter())
             else:
                 return "()"
-    
+
 
         def formatted(self, returnList=False):
             """ Returns an indented string representation of the tree """
             # Changed print character from '>', so that doctest doesn't get
             # confused!
             # ...also made it a little prettier
-            
+
             hasBranchChar = "|-"  # Ideally, would look like '+' with no left arm
             noBranchChar = "| "
             endBranchChar = "\-"  # Ideally, would look ike '+' with no left or bottom arm
@@ -1158,14 +1158,14 @@ class MetaTree(type):
                 value = self.value
 
                 children = tuple(self.childs())
-                
+
                 if value is not None:
                     if children:
                         valuePrefix = hasChildrenChar
                     else:
                         valuePrefix = noChildrenChar
                     lines.append(valuePrefix + str(value))
-                    
+
                 for childNum, child in enumerate(children):
                     childLines = child.formatted(returnList=True)
                     if len(childLines)>0:
@@ -1186,11 +1186,11 @@ class MetaTree(type):
                     if value is None and childNum < (len(children) - 1):
                         # if we have a forest, add a treeSep between trees
                         lines.append(treeSep)
-                    
+
             if returnList:
                 return lines
             else:
-                return "\n".join(lines)    
+                return "\n".join(lines)
 
         def view(self):
             """
@@ -1202,15 +1202,15 @@ class MetaTree(type):
             """ Returns an detailed representation of the tree fro debug purposes"""
             if self :
                 parent = self.parent
-                pvalue = None                
+                pvalue = None
                 if parent :
                     pvalue = parent.value
                 next = self.next
-                nvalue = None                
+                nvalue = None
                 if next :
-                    nvalue = next.value                    
+                    nvalue = next.value
                 result = u">"*depth+u"r:%r<%i>" % (self.value, id(self))
-                if parent : 
+                if parent :
                     result += ", p:%r<%i>" % (pvalue, id(parent))
                 else :
                     result += ", p:None"
@@ -1218,11 +1218,11 @@ class MetaTree(type):
                     result += ", n:%r<%i>" % (nvalue, id(next))
                 else :
                     result += ", n:None"
-                result += "\n"                  
+                result += "\n"
                 for a in self.childs() :
                     result += a.debug(depth+1)
                 return result
-                
+
         def copy(self, cls = None):
             """ Shallow copy of a tree.
                 An extra class argument can be given to copy with a different
@@ -1237,16 +1237,16 @@ class MetaTree(type):
                 return cls(*subtrees)
             else:
                 return cls()
-            
+
         # TODO : isParent (tree, other), isChild(tree, other), inter, union, substraction ?
 
-    # now the methods for an mutable tree, not depending on implementation       
+    # now the methods for an mutable tree, not depending on implementation
     class MuTree :
         """Additionnal methods for a Mutable Tree class."""
 
         # Edit methods that are defined for mutable trees
         def __setitem__(self, element, value):
-            pass       
+            pass
 
 
         def graft(self, element, parent=None, next=None):
@@ -1256,30 +1256,30 @@ class MetaTree(type):
                 if parent is None will be grafted at top level of self, besides any existing root(s).
                 If next is specified, self will be grafted before next in the list of parent's childs,
                 if next is not in parent's childs, will raise an exception,
-                if next is None, self will be grafted as last child under parent. """   
-            self.add(element, parent, next)                                                        
-    
+                if next is None, self will be grafted as last child under parent. """
+            self.add(element, parent, next)
+
         def prune(self, element) :
             """ Ungrafts element from self, with everything under it """
             element = self[element]
             self.remove(element)
-        
+
         def pop(self, element) :
             """ Delete top node of self and reparent all it's subtrees under it's current parent.
                 If self was a root all it's subtrees become separate trees of a forest under the 'None' root.
                 self will now have the new parent as top node """
             element = self[element]
-            parent = element.parent       
+            parent = element.parent
             for c in element.childs() :
                 self.graft(c, parent)
-            self.remove(element)         
-           
-        # TODO: reroot, in-place intersection, union, sub etc  
+            self.remove(element)
+
+        # TODO: reroot, in-place intersection, union, sub etc
         def reroot(self, element) :
             """ Reroot self so that element is self new top node """
-            pass    
-                     
-            
+            pass
+
+
     # class creation using the method of the above class to populate a new class depending on
     # class creation options (mutable, indexed, etc)
     def __new__(mcl, classname, bases, classdict):
@@ -1302,8 +1302,8 @@ class MetaTree(type):
         if mutable :
             treeType = list
         else :
-            treeType = tuple            
-        # check base classes          
+            treeType = tuple
+        # check base classes
         newbases = []
         for base in bases :
             if type(base) == MetaTree :
@@ -1313,11 +1313,11 @@ class MetaTree(type):
                 if treeType == None or (not mutable and mubase) or (not indexed and inbase) :
                     treeType = base._TreeType
                     mutable = mubase
-                    indexed = inbase                   
+                    indexed = inbase
             # if we need to filter base classes ?
             newbases.append(base)
 
-        # if we couldn't determine a tree type from keywords or base classes, raise an exception                
+        # if we couldn't determine a tree type from keywords or base classes, raise an exception
         if not treeType :
             raise TypeError, "Tree classes must derive from another Tree class, or an iterable type that defines __init__, __iter__ and __nonzero__ at least"
         # store the type of iterable used to represent the class subtrees
@@ -1336,26 +1336,26 @@ class MetaTree(type):
             if networkxLoad :
                 BaseCoreClass = [MetaTree.NxTree]
             else :
-                BaseCoreClass = [MetaTree.PyTree, MetaTree.IndexedPyTree]                      
+                BaseCoreClass = [MetaTree.PyTree, MetaTree.IndexedPyTree]
         # build core directory form the core base class methods
         for c in BaseCoreClass :
             for k in c.__dict__.keys() :
-                # drawback of organising methods in "fake" classes is we get an unneeded entries, like __module__          
+                # drawback of organising methods in "fake" classes is we get an unneeded entries, like __module__
                 if k not in ('__module__') :
-                    coredict[k] = c.__dict__[k]                              
+                    coredict[k] = c.__dict__[k]
         # use methods of core implementation that are relevant to this type of trees
         for k in coredict :
             m = coredict[k]
             if mutable or not hasattr(m, 'mutabletree') :
                 newdict[k] = coredict[k]
-        
-        # set properties read only or read-write depending on the available methods   
+
+        # set properties read only or read-write depending on the available methods
         newdict['value'] = property(newdict.get('_get_value', None), newdict.get('_set_value', None), None, """ Value of the top element of that tree """)
         newdict['parent'] = property(newdict.get('_get_parent', None), newdict.get('_set_parent', None), None, """ The parent tree of that tree, or None if tree isn't a subtree """)
-        newdict['next'] = property(newdict.get('_get_next', None), newdict.get('_set_next', None), None, """ Next tree in the siblings order, or None is self doesn't have siblings """)          
+        newdict['next'] = property(newdict.get('_get_next', None), newdict.get('_set_next', None), None, """ Next tree in the siblings order, or None is self doesn't have siblings """)
         if indexed :
-            newdict['key'] = property(newdict.get('_get_key', None), newdict.get('_set_key', None), None, """ Unique key of the element for indexed trees """)          
-            
+            newdict['key'] = property(newdict.get('_get_key', None), newdict.get('_set_key', None), None, """ Unique key of the element for indexed trees """)
+
         # upper level methods, depending on type of tree
         # only restriction is you cannot override core methods
         basedict = dict(MetaTree.ImTree.__dict__)
@@ -1363,10 +1363,10 @@ class MetaTree(type):
             # add the mutable methods
             mutabledict = dict(MetaTree.MuTree.__dict__)
             basedict.update(basedict, **mutabledict)
-            
-        # update with methods declared at class definition       
+
+        # update with methods declared at class definition
         basedict.update(basedict, **classdict)
-        # methods that must be defined here depending on the preceding 
+        # methods that must be defined here depending on the preceding
 
         # add  methods unless they clash with core methods
         for k in basedict :
@@ -1377,12 +1377,12 @@ class MetaTree(type):
                     warnings.warn("Can't override core method or property %s in Trees (trying to create class '%s')" % (k, classname))
             else :
                 newdict[k] = basedict[k]
-                
+
         # set class tree type
         newdict['_TreeType'] = treeType
         # delegate rest of the work to type.__new__
         return super(MetaTree, mcl).__new__(mcl, classname, newbases, newdict)
- 
+
     # will get called after __new__
 #    def __init__(cls, name, bases, classdict) :
 #        print cls
@@ -1390,49 +1390,49 @@ class MetaTree(type):
 #        print bases
 #        print classdict
 
-                 
+
     #To get info on the kind of tree class that was created
     def __get_TreeType(cls):
         return cls._TreeType
     TreeType = property(__get_TreeType, None, None, "The type used for internal tree storage for that tree class.")
-    
+
     def __repr__(cls):
-        return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType)  
+        return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
 
     def __str__(cls):
-        return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType) 
+        return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
 
     def __unicode__(cls):
-        return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType) 
+        return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
 
 # derive from one of these as needed
 class FrozenTree(object):
-    __metaclass__ =  MetaTree            
+    __metaclass__ =  MetaTree
     mutable = False
     indexed = False
-                    
+
 class Tree(object):
     __metaclass__ =  MetaTree
     mutable = True
     indexed = False
-    
+
 class IndexedFrozenTree(object):
-    __metaclass__ =  MetaTree            
+    __metaclass__ =  MetaTree
     mutable = False
     indexed = True
-                   
+
 class IndexedTree(object):
     __metaclass__ =  MetaTree
     mutable = True
-    indexed = True    
+    indexed = True
 
 def treeFromDict (arg):
     """
     This function will build a tree from the provided dictionnary of child:parent relations :
-        where each key represent an element and each key value represent the parent of that element, allows to build Trees form 
+        where each key represent an element and each key value represent the parent of that element, allows to build Trees form
         cmp(a,b): returns True if a is a direct child of b, False else.
         All elements must be present in the dictionnary keys, with root elements having None as value/parent
-    """    
+    """
     if isinstance(arg, dict) :
         def isChildFn (a, b):
             return arg.get(a, None) == b
@@ -1447,7 +1447,7 @@ def treeFromChildLink (isExactChildFn, *args):
     """
     This function will build a tree from the provided sequence and a comparison function in the form:
         cmp(a,b): returns True if a is a direct child of b, False else
-        
+
         >>> lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'b', 'a', 'bb', 'ab', 'bab', 'bba']
         >>> def isDirectChild(s1, s2) :
         ...     return s1.startswith(s2) and len(s1)==len(s2)+1
@@ -1470,12 +1470,12 @@ def treeFromChildLink (isExactChildFn, *args):
         >>> # A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
         >>>
         >>> def isChild(s1, s2) :
-        ...     return s1.startswith(s2) 
+        ...     return s1.startswith(s2)
         >>> failedTree = treeFromChildLink (isChild, *lst)
         Traceback (most recent call last):
             ...
         ValueError: A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: 'isChild'
-    """    
+    """
     deq = deque()
     for arg in args :
         deq.append(Tree(arg))
@@ -1485,11 +1485,11 @@ def treeFromChildLink (isExactChildFn, *args):
         it+=1
         #print "iteration %i deq= %s, lst= %s"% (it, deq, lst)
         c = deq.popleft()
-        hasParent = False        
+        hasParent = False
         for p in list(deq)+lst :
             pars = filter(lambda x:isExactChildFn(c.top().value, x.value), p.preorder())
             for pr in pars :
-                #print "%s is child of %s" % (c, pr)                        
+                #print "%s is child of %s" % (c, pr)
                 if not hasParent :
                     pr.graft(c, pr)
                     hasParent = True
@@ -1500,15 +1500,15 @@ def treeFromChildLink (isExactChildFn, *args):
         if not hasParent :
             #print "%s has not parent, it goes to the list as root" % str(c)
             lst.append(c)
-    
+
     # print "final list %s" % str(lst)
     return Tree(*lst)
 
 def treeFromIsChild(isChildFn, *elements):
     """
     This function will build a tree from the provided sequence and a comparison function in the form:
-        isChildFn(c,p): returns True if c is a child of p (direct or indirect), False otherwise 
-    
+        isChildFn(c,p): returns True if c is a child of p (direct or indirect), False otherwise
+
     The comparison function must satisfy the following conditions for all a, b, and c in the tree:
         isChildFn(a,a) == False
             (an object is not a child of itself)
@@ -1516,7 +1516,7 @@ def treeFromIsChild(isChildFn, *elements):
             (indirect children are inherited)
         if isChildFn(a,b) AND isChildFn(a,c), then isChildFn(b,c) OR isChildFn(c,b) OR b==c
             (if a child has two distinct parents, then one must be the parent of the other)
-            
+
     If any member of elements is itself a Tree, then it will be treated as a subtree (or subtrees, in the
     case of a forest) to be merged into the returned tree structure; for every root in such a subtree,
     the structure below the root will be unaltered, though the entire subtree itself may be parented to
@@ -1524,7 +1524,7 @@ def treeFromIsChild(isChildFn, *elements):
 
     >>> lst = ['aab', 'aba', 'aa', 'ba', 'bbb', 'a', 'b', 'bb', 'ab', 'bab', 'bba']
     >>> def isChild(s1, s2) :
-    ...     return s1.startswith(s2) 
+    ...     return s1.startswith(s2)
     >>> a = treeFromIsChild (isChild, *lst)
     >>> a.sort()
     >>> print a.formatted()
@@ -1542,9 +1542,9 @@ def treeFromIsChild(isChildFn, *elements):
       \--: bbb
     """
     newTree = Tree()
-    
+
     unordered = deque()
-    
+
     # First, check for subtrees
     for element in elements:
         if isTree(element):
@@ -1552,12 +1552,12 @@ def treeFromIsChild(isChildFn, *elements):
                 newTree.add(subTree)
         else:
             unordered.append(element)
-    
+
     # Then, go through unordered, making the subtrees rooted at each element
     while unordered:
         root = unordered.pop()
         children = deque()
-        
+
         # iterate over a copy of unordered, since we're modifying it
         index = 0
         for val in deque(unordered):
@@ -1569,21 +1569,21 @@ def treeFromIsChild(isChildFn, *elements):
                 # delete an element... if we do delete an element,
                 # our old index points at the next element already
                 index += 1
-                
+
         # Then check the subtrees, to see which are children of our root...
         for subTree in list(newTree.tops()):
             if isChildFn(subTree.value, root):
                 children.append(subTree)
                 newTree.remove(subTree)
-                
+
         # ...then use recursion to make a new subTree with our new root
-        newTree.add(root) 
+        newTree.add(root)
         newSubTree = newTree.top(-1)
         assert(newSubTree.value == root)
         #treeFromIsChild(isChildFn, *children).parent = newSubTree
         childForest = treeFromIsChild(isChildFn, *children)
         childForest.parent = newSubTree
-        
+
     return newTree
 #
 #class DirTree(Tree):
@@ -1593,14 +1593,14 @@ def treeFromIsChild(isChildFn, *elements):
 #    def __init__(self, dir=None):
 #        """
 #        Creates a DirTree rooted at the given directory
-#        
+#
 #        Can be initialized by passing in a single argument, which
 #        if supplied, must be a path to a directory that exists
-#        on the filesystem. 
+#        on the filesystem.
 #
 #        If the given directory does not exist on the filesystem,
 #        a ValueError is raised.
-#        
+#
 #        >>> myDirTree = DirTree()
 #        >>> myDirTree.value = 'root'
 #        >>> myDirTree.add('foo')
@@ -1614,9 +1614,9 @@ def treeFromIsChild(isChildFn, *elements):
 #        """
 #        if not os.path.isdir(dir):
 #            raise ValueError("%s is not a valid directory" % dir)
-#            
+#
 #        super(DirTree, self).__init__()
-#        
+#
 #        if dir:
 #            basename = ""
 #            while not basename and dir:
@@ -1627,7 +1627,7 @@ def treeFromIsChild(isChildFn, *elements):
 #                if os.path.isdir(path):
 #                    subTree = _pymelDirTree_recurse(path)
 #                    self.add(subTree)
-#    
+#
 #    def dirPath(self, *args, **kwargs):
 #        """
 #        Returns a string representing the directory path from the root to this element.
@@ -1638,4 +1638,4 @@ def treeFromIsChild(isChildFn, *elements):
 # unit test with doctest
 if __name__ == '__main__' :
     import doctest
-    doctest.testmod()                     
+    doctest.testmod()

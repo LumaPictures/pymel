@@ -13,7 +13,7 @@ from utilitytypes import ProxyUnicode
 def isIterable( obj ):
     """
     Returns True if an object is iterable and not a string or ProxyUnicode type, otherwise returns False.
-    
+
     :rtype: bool"""
     if isinstance(obj,basestring): return False
     elif isinstance(obj,ProxyUnicode): return False
@@ -26,7 +26,7 @@ def isIterable( obj ):
 def isScalar(obj):
     """
     Returns True if an object is a number or complex type, otherwise returns False.
-    
+
     :rtype: bool"""
     return operator.isNumberType(obj) and not isinstance(obj,complex)
 
@@ -34,7 +34,7 @@ def isScalar(obj):
 def isNumeric(obj):
     """
     Returns True if an object is a number type, otherwise returns False.
-    
+
     :rtype: bool
     """
     return operator.isNumberType(obj)
@@ -42,7 +42,7 @@ def isNumeric(obj):
 def isSequence( obj ):
     """
     same as `operator.isSequenceType`
-    
+
     :rtype: bool"""
     return operator.isSequenceType(obj)
 
@@ -51,67 +51,67 @@ def isMapping( obj ):
     Returns True if an object is a mapping (dictionary) type, otherwise returns False.
 
     same as `operator.isMappingType`
-    
+
     :rtype: bool"""
     return operator.isMappingType(obj)
 
 clsname = lambda x:type(x).__name__
-   
+
 def convertListArgs( args ):
     if len(args) == 1 and isIterable(args[0]):
         return tuple(args[0])
-    return args     
+    return args
 
-         
+
 def expandArgs( *args, **kwargs ) :
-    """ 
+    """
     'Flattens' the arguments list: recursively replaces any iterable argument in *args by a tuple of its
     elements that will be inserted at its place in the returned arguments.
-    
+
     By default will return elements depth first, from root to leaves.  Set postorder or breadth to control order.
-    
+
     :Keywords:
         depth : int
             will specify the nested depth limit after which iterables are returned as they are
-            
+
         type
             for type='list' will only expand lists, by default type='all' expands any iterable sequence
-            
+
         postorder : bool
              will return elements depth first, from leaves to roots
 
         breadth : bool
             will return elements breadth first, roots, then first depth level, etc.
-            
+
     For a nested list represent trees::
-    
+
         a____b____c
         |    |____d
         e____f
         |____g
-                                        
+
     preorder(default) :
-    
+
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1 )
         ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] )
         ('a', 'b', 'c', 'd', 'e', 'f', 'g')
-        
+
     postorder :
-    
+
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1)
         ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True)
         ('c', 'd', 'b', 'a', 'f', 'g', 'e')
-        
+
     breadth :
-    
+
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True)
         ('a', 'e', 'b', ['c', 'd'], 'f', 'g')
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], breadth=True)
         ('a', 'e', 'b', 'f', 'g', 'c', 'd')
-        
-        
+
+
     Note that with default depth (unlimited) and order (preorder), if passed a pymel Tree
     result will be the equivalent of doing a preorder traversal : [k for k in iter(theTree)] """
 
@@ -125,14 +125,14 @@ def expandArgs( *args, **kwargs ) :
         def _expandArgsTest(arg): return isIterable(arg)
     else :
         raise ValueError, "unknown expand type=%s" % str(tpe)
-       
+
     if postorder :
         return postorderArgs (limit, _expandArgsTest, *args)
     elif breadth :
         return breadthArgs (limit, _expandArgsTest, *args)
     else :
         return preorderArgs (limit, _expandArgsTest, *args)
-             
+
 def preorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ returns a list of a preorder expansion of args """
     stack = [(x,0) for x in args]
@@ -143,7 +143,7 @@ def preorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
             stack += [(x,level+1) for x in arg]
         else :
             result.appendleft(arg)
-    
+
     return tuple(result)
 
 def postorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
@@ -167,9 +167,9 @@ def postorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
                     stack.append((arg, level))
         while stack :
             result.append(stack.pop()[0])
-    
+
         return tuple(result)
-    
+
 def breadthArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ returns a list of a breadth first expansion of args """
     deq = _deque((x,0) for x in args)
@@ -183,59 +183,59 @@ def breadthArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
             result.append(arg)
 
     return tuple(result)
-      
+
 # Same behavior as expandListArg but implemented as an Python iterator, the recursieve approach
-# will be more memory efficient, but slower         
+# will be more memory efficient, but slower
 def iterateArgs( *args, **kwargs ) :
     """ Iterates through all arguments list: recursively replaces any iterable argument in *args by a tuple of its
     elements that will be inserted at its place in the returned arguments.
-    
+
     By default will return elements depth first, from root to leaves.  Set postorder or breadth to control order.
-    
+
     :Keywords:
         depth : int
             will specify the nested depth limit after which iterables are returned as they are
-            
+
         type
             for type='list' will only expand lists, by default type='all' expands any iterable sequence
-            
+
         postorder : bool
              will return elements depth first, from leaves to roots
 
         breadth : bool
             will return elements breadth first, roots, then first depth level, etc.
-            
+
     For a nested list represent trees::
-    
+
         a____b____c
         |    |____d
         e____f
         |____g
-        
+
     preorder(default) :
-    
+
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1 ))
         ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] ))
         ('a', 'b', 'c', 'd', 'e', 'f', 'g')
-        
+
     postorder :
-    
+
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1 ))
         ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True))
         ('c', 'd', 'b', 'a', 'f', 'g', 'e')
-         
+
     breadth :
-    
+
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True))
         ('a', 'e', 'b', ['c', 'd'], 'f', 'g')
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], breadth=True))
         ('a', 'e', 'b', 'f', 'g', 'c', 'd')
-       
+
     Note that with default depth (-1 for unlimited) and order (preorder), if passed a pymel Tree
     result will be the equivalent of using a preorder iterator : iter(theTree) """
-    
+
     tpe = kwargs.get('type', 'all')
     limit = kwargs.get('limit', sys.getrecursionlimit())
     postorder = kwargs.get('postorder', False)
@@ -246,7 +246,7 @@ def iterateArgs( *args, **kwargs ) :
         def _iterateArgsTest(arg): return isIterable(arg)
     else :
         raise ValueError, "unknown expand type=%s" % str(tpe)
-           
+
     if postorder :
         for arg in postorderIterArgs (limit, _iterateArgsTest, *args) :
             yield arg
@@ -256,7 +256,7 @@ def iterateArgs( *args, **kwargs ) :
     else :
         for arg in preorderIterArgs (limit, _iterateArgsTest, *args) :
             yield arg
-            
+
 def preorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a preorder expansion of args """
     if limit :
@@ -287,7 +287,7 @@ def postorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) 
     else :
         for arg in args :
             yield arg
-    
+
 def breadthIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a breadth first expansion of args """
     deq = _deque((x,0) for x in args)
@@ -329,7 +329,7 @@ def postorder( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     else :
         for arg in iterable :
             yield arg
-    
+
 def breadth( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     """ iterator doing a breadth first expansion of args """
     deq = _deque((x,0) for x in iterable)
@@ -340,7 +340,7 @@ def breadth( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
                 deq.append ((a, level+1))
         else :
             yield arg
-                   
+
 def listForNone( res ):
     "returns an empty list when the result is None"
     if res is None:
@@ -352,18 +352,18 @@ def listForNone( res ):
 def pairIter(sequence):
     '''
     Returns an iterator over every 2 items of sequence.
-    
+
     ie, [x for x in pairIter([1,2,3,4])] == [(1,2), (3,4)]
-    
+
     If sequence has an odd number of items, the last item will not be returned in a pair.
     '''
     theIter = iter(sequence)
     return itertools.izip(theIter,theIter)
-   
+
 def reorder( x, indexList=[], indexDict={} ):
     """
-    Reorder a list based upon a list of positional indices and/or a dictionary of fromIndex:toIndex. 
-    
+    Reorder a list based upon a list of positional indices and/or a dictionary of fromIndex:toIndex.
+
         >>> l = ['zero', 'one', 'two', 'three', 'four', 'five', 'six']
         >>> reorder( l, [1, 4] ) # based on positional indices: 0-->1, 1-->4
         ['one', 'four', 'zero', 'two', 'three', 'five', 'six']
@@ -372,7 +372,7 @@ def reorder( x, indexList=[], indexDict={} ):
         >>> reorder( l, [1, 4], {5:6} )  # remapping via dictionary: move the value at index 5 to index 6
         ['one', 'four', 'zero', 'two', 'three', 'six', 'five']
     """
-    
+
     x = list(x)
     num = len(x)
     popCount = 0
@@ -394,8 +394,8 @@ def reorder( x, indexList=[], indexDict={} ):
             val = indexValDict[i]
         except KeyError:
             val = x.pop(0)
-        newlist.append( val ) 
-    return newlist 
+        newlist.append( val )
+    return newlist
 
 
 def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
@@ -404,7 +404,7 @@ def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
     True, then if to_dict contains a list, from_dict can contain a dictionary with int
     keys which can be used to sparsely update the list".
     """
-     
+
     if allowDictToListMerging and isinstance(to_dict, list ):
         contains = lambda key: isinstance(key,int) and key in range(len(to_dict))
         isList = True
@@ -425,16 +425,16 @@ def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
             to_dict[key] = from_val
 
 def setCascadingDictItem( dict, keys, value ):
-    
+
     currentDict = dict
     for key in keys[:-1]:
         if key not in currentDict:
             currentDict[key] = {}
         currentDict = currentDict[key]
-    currentDict[keys[-1]] = value                
+    currentDict[keys[-1]] = value
 
 def getCascadingDictItem( dict, keys, default={} ):
-    
+
     currentDict = dict
     for key in keys[:-1]:
         if isMapping(currentDict) and key not in currentDict:
@@ -443,7 +443,7 @@ def getCascadingDictItem( dict, keys, default={} ):
     try:
         return currentDict[keys[-1]]
     except KeyError:
-        return default 
+        return default
 
 def sequenceToSlices( intList, sort=True ):
     """convert a sequence of integers into a tuple of slice objects"""
@@ -461,8 +461,8 @@ def sequenceToSlices( intList, sort=True ):
             curr = int(curr)
             thisStep = curr - lastVal
             #assert thisStep > 0, "cannot have duplicate values. pass a set to be safe"
-            
-#            print 
+
+#            print
 #            print "%s -> %s" % (lastVal, curr)
 #            print "thisStep", thisStep
 #            print "lastStep", lastStep
@@ -470,7 +470,7 @@ def sequenceToSlices( intList, sort=True ):
 #            print "lastVal", lastVal
 #            print (start, stop, step)
 #            print slices
-            
+
             if lastStep is None:
                 # we're here bc the last iteration was the beginning of a new slice
                 pass
@@ -497,29 +497,29 @@ def sequenceToSlices( intList, sort=True ):
                     else:
                         newslice = slice(start, stop+1 )
                         start = lastVal
-                    
+
 #                print "adding", newslice
-                slices.append( newslice )   
+                slices.append( newslice )
                 # start the new
-                
+
                 stop = None
                 step = None
-                
-            
+
+
             lastStep = thisStep
-            
-            
+
+
             stop = lastVal
             lastVal = curr
-        
+
         if step is not None:
-            # end the old slice  
+            # end the old slice
             if step == 1:
                 newslice = slice(start, lastVal+1, None)
             else:
                 newslice = slice(start, lastVal+1, step)
-                        
-            #print "adding", newslice 
+
+            #print "adding", newslice
             slices.append( newslice )
         else:
 
@@ -530,8 +530,8 @@ def sequenceToSlices( intList, sort=True ):
                 slices.append( slice(start, start+1 ) )
                 if lastStep is not None:
                     slices.append( slice(lastVal, lastVal+1 ) )
-                
-    return slices    
+
+    return slices
 
 def izip_longest(*args, **kwds):
     # izip_longest('ABCD', 'xy', fillvalue='-') --> Ax By C- D-

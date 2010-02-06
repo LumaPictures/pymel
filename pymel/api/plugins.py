@@ -37,7 +37,7 @@ def _loadPlugin():
     thisFile = _pluginFile()
     if not maya.cmds.pluginInfo( thisFile, query=1, loaded=1 ):
         maya.cmds.loadPlugin( thisFile )
-        
+
 def _unloadPlugin():
     thisFile = _pluginFile()
     if maya.cmds.pluginInfo( thisFile, query=1, loaded=1 ):
@@ -53,17 +53,17 @@ class Command(mpx.MPxCommand):
     registeredCommands = []
     def __init__(self):
         mpx.MPxCommand.__init__(self)
-                
+
     @classmethod
     def creator(cls):
         return mpx.asMPxPtr( cls() )
-    
+
     @classmethod
     def register(cls, object=None):
         """
         by default the command will be registered to a dummy plugin provided by pymel.
-        
-        If you 
+
+        If you
         if using from within a plugin's initializePlugin or uninitializePlugin callback, pass along the
         MObject given to these functions
         """
@@ -76,7 +76,7 @@ class Command(mpx.MPxCommand):
             plugin.registerCommand( cls.__name__, cls.creator, cls.createSyntax )
         else:
             plugin.registerCommand( cls.__name__, cls.creator )
-    
+
     @classmethod
     def deregister(cls, object=None):
         """
@@ -88,8 +88,8 @@ class Command(mpx.MPxCommand):
             cls.registeredCommands.pop(cls.__name__)
         else:
             plugin = mpx.MFnPlugin(object)
-        plugin.deregisterCommand( cls.__name__ ) 
-  
+        plugin.deregisterCommand( cls.__name__ )
+
 # allow this file to be loaded as its own dummy plugin
 # Initialize the script plug-in
 def initializePlugin(mobject):
@@ -98,10 +98,10 @@ def initializePlugin(mobject):
 
 # Uninitialize the script plug-in
 def uninitializePlugin(mobject):
-    
+
     #print "getmodule", inspect.getmodule( None )
     #mod = _pluginModule()
-    
+
     #when uninitializePlugin is called it is execfile'd which changes the module in which this code runs.
     #we need to get the correct module first
 
@@ -122,7 +122,7 @@ def uninitializePlugin(mobject):
 #        registeredCommands = registeredCommands
 #    except:
 #        pass
-# 
+#
 #_repoplulate()
 
 

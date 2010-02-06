@@ -24,10 +24,10 @@ moduleNameShortToLong = {
 #: these are commands which need to be manually added to the list parsed from the docs
 moduleCommandAdditions = {
     'windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
-    'general' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
+    'general' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr',
                  'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
 }
-    
+
 #: secondary flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
 #: because the maya docs do not specify in any parsable way which flags are secondary modifiers, we must maintain this dictionary.
 #: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
@@ -43,8 +43,8 @@ secondaryFlags = {
     'file' : ( ( 'loadAllDeferred', False, ['open'] ),
                ( 'loadNoReferences', False, ['open', 'i', 'reference', 'loadReference'] ),
                ( 'loadReferenceDepth', None, ['open', 'i', 'reference', 'loadReference'] ),
-               ( 'force',           False, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 
-                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
+               ( 'force',           False, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim',
+                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),
                ( 'constructionHistory', True, ['exportSelected'] ),
                ( 'channels',         True, ['exportSelected'] ),
                ( 'constraints',      True, ['exportSelected'] ),
@@ -69,8 +69,8 @@ secondaryFlags = {
                ( 'preserveReferences',  False, ['i', 'exportAll', 'exportSelected'] ),
                ( 'preSaveScript', None, ['save'] ),
                ( 'postSaveScript', None, ['save'] ),
-               ( 'type', None, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 
-                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ), 
+               ( 'type', None, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim',
+                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),
              ),
     'joint' : ( ( 'absolute',     True, ['position'] ),
                 ( 'relative',     True, ['position'] ) )
@@ -78,71 +78,71 @@ secondaryFlags = {
 
 
 
-UI_COMMANDS ="""attrColorSliderGrp        attrControlGrp           
-                attrEnumOptionMenu        attrEnumOptionMenuGrp    
-                attrFieldGrp              attrFieldSliderGrp       
-                attrNavigationControlGrp  attributeMenu            
-                colorIndexSliderGrp       colorSliderButtonGrp     
-                colorSliderGrp            columnLayout             
-                colorEditor               floatField               
-                floatFieldGrp             floatScrollBar           
-                floatSlider               floatSlider2             
-                floatSliderButtonGrp      floatSliderGrp           
-                frameLayout               iconTextButton           
-                iconTextCheckBox          iconTextRadioButton      
-                iconTextRadioCollection   iconTextScrollList       
-                iconTextStaticLabel       intField                 
-                intFieldGrp               intScrollBar             
-                intSlider                 intSliderGrp             
-                paneLayout                panel                    
-                radioButton               radioButtonGrp           
-                radioCollection           radioMenuItemCollection  
-                symbolButton              symbolCheckBox           
-                textCurves                textField                
-                textFieldButtonGrp        textFieldGrp             
-                text                      textScrollList           
-                toolButton                toolCollection           
-                window                    blendShapeEditor         
-                blendShapePanel           button                   
-                checkBox                  checkBoxGrp              
-                confirmDialog             fontDialog               
-                formLayout                menu                     
-                menuBarLayout             menuEditor               
-                menuItem                  menuSet                  
-                promptDialog              scrollField              
-                scrollLayout              scriptedPanel            
-                scriptedPanelType         shelfButton              
-                shelfLayout               shelfTabLayout           
-                tabLayout                 outlinerEditor           
-                optionMenu                outlinerPanel            
-                optionMenuGrp             animCurveEditor          
-                animDisplay               separator                
-                visor                     layout                   
-                layoutDialog              layerButton              
-                hyperGraph                hyperPanel               
-                hyperShade                rowColumnLayout          
-                rowLayout                 renderLayerButton        
-                renderWindowEditor        glRenderEditor           
-                scriptTable               keyframeStats            
-                keyframeOutliner          canvas                   
-                channelBox                gradientControl          
-                gradientControlNoAttr     gridLayout               
-                messageLine               popupMenu                
-                modelEditor               modelPanel               
-                helpLine                  hardwareRenderPanel      
-                image                     nodeIconButton           
-                commandLine               progressBar              
-                defaultLightListCheckBox  exclusiveLightCheckBox   
-                shellField                clipSchedulerOutliner    
-                clipEditor                deviceEditor             
-                devicePanel               dynRelEdPanel            
-                dynRelEditor              dynPaintEditor           
-                nameField                 cmdScrollFieldExecuter   
-                cmdScrollFieldReporter    cmdShell                 
+UI_COMMANDS ="""attrColorSliderGrp        attrControlGrp
+                attrEnumOptionMenu        attrEnumOptionMenuGrp
+                attrFieldGrp              attrFieldSliderGrp
+                attrNavigationControlGrp  attributeMenu
+                colorIndexSliderGrp       colorSliderButtonGrp
+                colorSliderGrp            columnLayout
+                colorEditor               floatField
+                floatFieldGrp             floatScrollBar
+                floatSlider               floatSlider2
+                floatSliderButtonGrp      floatSliderGrp
+                frameLayout               iconTextButton
+                iconTextCheckBox          iconTextRadioButton
+                iconTextRadioCollection   iconTextScrollList
+                iconTextStaticLabel       intField
+                intFieldGrp               intScrollBar
+                intSlider                 intSliderGrp
+                paneLayout                panel
+                radioButton               radioButtonGrp
+                radioCollection           radioMenuItemCollection
+                symbolButton              symbolCheckBox
+                textCurves                textField
+                textFieldButtonGrp        textFieldGrp
+                text                      textScrollList
+                toolButton                toolCollection
+                window                    blendShapeEditor
+                blendShapePanel           button
+                checkBox                  checkBoxGrp
+                confirmDialog             fontDialog
+                formLayout                menu
+                menuBarLayout             menuEditor
+                menuItem                  menuSet
+                promptDialog              scrollField
+                scrollLayout              scriptedPanel
+                scriptedPanelType         shelfButton
+                shelfLayout               shelfTabLayout
+                tabLayout                 outlinerEditor
+                optionMenu                outlinerPanel
+                optionMenuGrp             animCurveEditor
+                animDisplay               separator
+                visor                     layout
+                layoutDialog              layerButton
+                hyperGraph                hyperPanel
+                hyperShade                rowColumnLayout
+                rowLayout                 renderLayerButton
+                renderWindowEditor        glRenderEditor
+                scriptTable               keyframeStats
+                keyframeOutliner          canvas
+                channelBox                gradientControl
+                gradientControlNoAttr     gridLayout
+                messageLine               popupMenu
+                modelEditor               modelPanel
+                helpLine                  hardwareRenderPanel
+                image                     nodeIconButton
+                commandLine               progressBar
+                defaultLightListCheckBox  exclusiveLightCheckBox
+                shellField                clipSchedulerOutliner
+                clipEditor                deviceEditor
+                devicePanel               dynRelEdPanel
+                dynRelEditor              dynPaintEditor
+                nameField                 cmdScrollFieldExecuter
+                cmdScrollFieldReporter    cmdShell
                 nameField                 palettePort """.split()
-    
+
 #: creation commands whose names do not match the type of node they return require this dict
-#: to resolve which command the class should wrap 
+#: to resolve which command the class should wrap
 nodeTypeToNodeCommand = {
     #'failed'            : 'clip',
     #'failed'            : 'clipSchedule',
@@ -185,7 +185,7 @@ util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'ar
 
 
 def getCmdInfoBasic( command ):
-    typemap = {    
+    typemap = {
              'string'  : unicode,
              'length'  : float,
              'float'   : float,
@@ -199,7 +199,7 @@ def getCmdInfoBasic( command ):
     flags = {}
     shortFlags = {}
     removedFlags = {}
-    try:     
+    try:
         lines = cmds.help( command ).split('\n')
     except RuntimeError:
         pass
@@ -212,87 +212,87 @@ def getCmdInfoBasic( command ):
         if lines:
             lines.pop(0) # 'Flags'
             #_logger.debug(lines)
-            
+
             for line in lines:
                 line = line.replace( '(Query Arg Mandatory)', '' )
                 line = line.replace( '(Query Arg Optional)', '' )
                 tokens = line.split()
-                
+
                 try:
                     tokens.remove('(multi-use)')
                 except:
                     pass
                 #_logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
-                    
-                    
+
+
                     args = [ typemap.get(x.lower(), util.uncapitalize(x) ) for x in tokens[2:] ]
                     numArgs = len(args)
-                    
+
                     # lags with no args in mel require a boolean val in python
                     if numArgs == 0:
                         args = bool
-                        # numArgs will stay at 0, which is the number of mel arguments.  
+                        # numArgs will stay at 0, which is the number of mel arguments.
                         # this flag should be renamed to numMelArgs
                         #numArgs = 1
                     elif numArgs == 1:
                         args = args[0]
-                          
+
                     longname = str(tokens[1][1:])
                     shortname = str(tokens[0][1:])
 
-                    
-                    if longname in keyword.kwlist:                       
-                        removedFlags[ longname ] = shortname 
+
+                    if longname in keyword.kwlist:
+                        removedFlags[ longname ] = shortname
                         longname = shortname
                     elif shortname in keyword.kwlist:
-                        removedFlags[ shortname ] = longname 
+                        removedFlags[ shortname ] = longname
                         shortname = longname
                     #sometimes the longname is empty, so we'll use the shortname for both
                     elif longname == '':
                         longname = shortname
-                        
+
                     flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, 'docstring' : '' }
                     shortFlags[shortname] = longname
-        
+
     #except:
     #    pass
         #_logger.debug("could not retrieve command info for", command)
     res = { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
     if removedFlags:
-        res['removedFlags'] = removedFlags 
+        res['removedFlags'] = removedFlags
     return res
 
 def getCmdInfo( command, version='8.5', python=True ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
-    besides most use keyword args that we need the precise meaning of ( if they can be be used with 
+    besides most use keyword args that we need the precise meaning of ( if they can be be used with
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
     from parsers import CommandDocParser, mayaDocsLocation
-    
+
     basicInfo = getCmdInfoBasic(command)
-    
+
     try:
         docloc = mayaDocsLocation(version)
         if python:
             docloc = os.path.join( docloc , 'CommandsPython/%s.html' % (command) )
         else:
             docloc = os.path.join( docloc , 'Commands/%s.html' % (command) )
-            
-        f = open( docloc )    
+
+        f = open( docloc )
         parser = CommandDocParser(command)
         parser.feed( f.read() )
-        f.close()    
+        f.close()
 
         example = parser.example
         example = example.rstrip()
         if python:
             pass
-        
+
         # start with basic info, gathered using mel help command, then update with info parsed from docs
         # we copy because we need access to the original basic info below
         flags = basicInfo['flags'].copy()
         flags.update( parser.flags )
-        
+
         if command in secondaryFlags:
             for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
                 #_logger.debug(command, "2nd", secondaryFlag)
@@ -305,16 +305,16 @@ def getCmdInfo( command, version='8.5', python=True ):
                         flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
                     else:
                         flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
-        
-                         
+
+
         # add shortname lookup
         #_logger.debug((command, sorted( basicInfo['flags'].keys() )))
         #_logger.debug((command, sorted( flags.keys() )))
-        
+
         # args and numArgs is more reliable from mel help command than from parsed docs,
-        # so, here we put that back in place and create shortflags. 
-        
-        
+        # so, here we put that back in place and create shortflags.
+
+
         for flag, flagData in flags.items():
             try:
                 basicFlagData = basicInfo['flags'][flag]
@@ -323,37 +323,37 @@ def getCmdInfo( command, version='8.5', python=True ):
             except KeyError: pass
 
         shortFlags = basicInfo['shortFlags']
-        res = { 'flags': flags, 
-                'shortFlags': shortFlags, 
-                'description' : parser.description, 
+        res = { 'flags': flags,
+                'shortFlags': shortFlags,
+                'description' : parser.description,
                 'example': example }
         try:
             res['removedFlags'] = basicInfo['removedFlags']
         except KeyError: pass
         return res
-    
-    
+
+
     except IOError:
         #_logger.debug("could not find docs for %s" % command)
         return basicInfo
-        
+
         #raise IOError, "cannot find maya documentation directory"
 
 def fixCodeExamples(style='maya', force=False):
     """cycle through all examples from the maya docs, replacing maya.cmds with pymel and inserting pymel output.
-    
+
     NOTE: this can only be run from gui mode
-    WARNING: back up your preferences before running 
-    
-    TODO: auto backup and restore of maya prefs 
+    WARNING: back up your preferences before running
+
+    TODO: auto backup and restore of maya prefs
     """
-    
+
     manipOptions = cmds.manipOptions( q=1, handleSize=1, scale=1 )
     animOptions = []
     animOptions.append( cmds.animDisplay( q=1, timeCode=True ) )
     animOptions.append( cmds.animDisplay( q=1, timeCodeOffset=True )  )
     animOptions.append( cmds.animDisplay( q=1, modelUpdate=True ) )
-    
+
     openWindows = cmds.lsUI(windows=True)
     examples = startup.loadCache('mayaCmdsExamples', useVersion=True)
     processedExamples = startup.loadCache('mayaCmdsExamples', useVersion=False)
@@ -371,33 +371,33 @@ def fixCodeExamples(style='maya', force=False):
         if not force and command in processedExamples:
             _logger.info("%s: already completed. skipping." % command)
             continue
-        
+
         _logger.info("Starting command %s", command)
-        
+
         # change from cmds to pymel
         reg = re.compile(r'\bcmds\.')
         example = reg.sub( 'pm.', example )
         #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
-        
+
         lines = example.split('\n')
         if len(lines)==1:
             _logger.info("removing empty example for command %s", command)
             examples.pop(command)
             continue
-        
+
         if style == 'doctest' :
             DOC_TEST_SKIP = ' #doctest: +SKIP'
         else:
             DOC_TEST_SKIP = ''
-        
-        lines[0] = 'import pymel.core as pm' + DOC_TEST_SKIP 
+
+        lines[0] = 'import pymel.core as pm' + DOC_TEST_SKIP
         #lines.insert(1, 'pm.newFile(f=1) #fresh scene')
         # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
         cmds.file(new=1,f=1)
-        
+
         newlines = []
         statement = []
-        
+
         # narrowed down the commands that cause maya to crash to these prefixes
         if re.match( '(dis)|(dyn)|(poly)', command) :
             evaluate = False
@@ -405,7 +405,7 @@ def fixCodeExamples(style='maya', force=False):
             evaluate = False
         else:
             evaluate = True
-        
+
         # gives a little leniency for where spaces are placed in the result line
         resultReg = re.compile('# Result:\s*(.*) #$')
         try: # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
@@ -444,22 +444,22 @@ def fixCodeExamples(style='maya', force=False):
                                 except (Exception, TypeError), e:
                                     _logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
                                     evaluate = False
-                    if style == 'doctest':                     
-                        if line.startswith(' ') or line.startswith('\t'):       
+                    if style == 'doctest':
+                        if line.startswith(' ') or line.startswith('\t'):
                             newlines.append('    ... ' + line  )
                         else:
                             newlines.append('    >>> ' + line + DOC_TEST_SKIP )
-                
+
                         if res is not None:
                             newlines.append( '    ' + repr(res) )
                     else:
                         newlines.append('    ' + line )
                         if res is not None:
                             newlines.append( '    # Result: %r #' % (res,) )
-                    
+
             if evaluate:
                 _logger.info("successful evaluation! %s", command)
-                          
+
             example = '\n'.join( newlines )
             processedExamples[command] = example
         except Exception, e:
@@ -468,18 +468,18 @@ def fixCodeExamples(style='maya', force=False):
         else:
             # write out after each success so that if we crash we don't have to start from scratch
             startup.writeCache(processedExamples, 'mayaCmdsExamples', 'the Maya commands examples', useVersion=False)
-        
+
         # cleanup opened windows
         for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
             try: cmds.deleteUI(ui, window=True)
             except:pass
 
     _logger.info("Done Fixing Examples")
-    
+
     # restore manipulators and anim options
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
-   
+
     #startup.writeCache('mayaCmdsExamples', examples, 'the Maya commands examples')
 
 
@@ -509,21 +509,21 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     dangerousCmds = ['doBlur', 'pointOnPolyConstraint']
     if funcName in dangerousCmds:
         return cmdInfo
-    
+
     def _formatCmd( cmd, args, kwargs ):
         args = [ x.__repr__() for x in args ]
-        kwargs = [ '%s=%s' % (key, val.__repr__()) for key, val in kwargs.items() ]                   
+        kwargs = [ '%s=%s' % (key, val.__repr__()) for key, val in kwargs.items() ]
         return '%s( %s )' % ( cmd, ', '.join( args+kwargs ) )
-    
+
     def _objectToType( result ):
         "convert a an instance or list of instances to a python type or list of types"
         if isinstance(result, list):
             return [ type(x) for x in result ]
         else:
             return type(result)
-    
+
     _castList = [float, int, bool]
-    
+
 #    def _listIsCastable(resultType):
 #        "ensure that all elements are the same type and that the types are castable"
 #        try:
@@ -531,38 +531,38 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 #            return typ in _castList and all([ x == typ for x in resultType ])
 #        except IndexError:
 #            return False
-    
+
     module = cmds
-    
+
 
     _logger.info(funcName.center( 50, '='))
-    
+
     if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
         _logger.debug("skipping")
         return cmdInfo
-        
+
     try:
         func = getattr(module, funcName)
     except AttributeError:
         _logger.warning("could not find function %s in modules %s" % (funcName, module.__name__))
         return cmdInfo
-    
+
     # get the current list of objects in the scene so we can cleanup later, after we make nodes
-    allObjsBegin = set( cmds.ls(l=1) )  
+    allObjsBegin = set( cmds.ls(l=1) )
     try:
-        
+
         # Attempt to create the node
         cmds.select(cl=1)
-              
+
         # the arglist passed from creation to general testing
         args = []
         constrObj = None
         if nodeCmd:
-            
+
             #------------------
             # CREATION
             #------------------
-            
+
             # compile the args list for node creation
             if funcName.endswith( 'onstraint'):
                 # special treatment for constraints because they need two objects passed to the function
@@ -572,10 +572,10 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 createArgs = [constrObj,c]
             else:
                 createArgs = []
-                
+
             # run the function
             obj = func(*createArgs)
-            
+
             if isinstance(obj, list):
                 _logger.debug("Return %s", obj)
                 if len(obj) == 1:
@@ -584,38 +584,38 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 elif not obj:
                     raise ValueError, "returned object is an empty list"
                 obj = obj[-1]
-                
-                
+
+
             if obj is None:
                 #emptyFunctions.append( funcName )
                 raise ValueError, "Returned object is None"
-            
+
             elif not cmds.objExists( obj ):
                 raise ValueError, "Returned object %s is Invalid" % obj
-         
+
             args = [obj]
-                
+
     except (TypeError,RuntimeError, ValueError), msg:
         _logger.debug("failed creation: %s", msg)
-        
+
     else:
-        
+
         #------------------
         # TESTING
         #------------------
-            
-        #(func, args, data) = cmdList[funcName]    
+
+        #(func, args, data) = cmdList[funcName]
         #(usePyNode, baseClsName, nodeName)
         flags = cmdInfo['flags']
 
         hasQueryFlag = flags.has_key( 'query' )
         hasEditFlag = flags.has_key( 'edit' )
-        
+
         for flag in sorted(flags.keys()):
-            flagInfo = flags[flag]            
+            flagInfo = flags[flag]
             if flag in ['query', 'edit']:
                 continue
-            
+
             assert flag != 'ype', "%s has bad flag" % funcName
 
             # special case for constraints
@@ -623,7 +623,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 flagargs = [constrObj] + args
             else:
                 flagargs = args
-                
+
             try:
                 modes = flagInfo['modes']
                 testModes = False
@@ -633,23 +633,23 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 flagInfo['modes'] = []
                 modes = []
                 testModes = True
-            
+
             # QUERY
             val = None
             argtype = flagInfo['args']
-            
+
             if 'query' in modes or testModes == True:
                 if hasQueryFlag:
                     kwargs = {'query':True, flag:True}
                 else:
                     kwargs = { flag:True }
-                    
+
                 cmd = _formatCmd(funcName, flagargs, kwargs)
                 try:
                     val = func( *flagargs, **kwargs )
                     #_logger.debug(val)
                     resultType = _objectToType(val)
-                    
+
                     # ensure symmetry between edit and query commands:
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
@@ -659,14 +659,14 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                             _logger.info("%s, %s: query flag return values need unpacking" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             val = val[0]
-                            
+
                         # [int] --> bool
                         elif argtype in _castList and isinstance( resultType, list) and len(resultType) ==1 and resultType[0] in _castList:
                             _logger.info("%s, %s: query flag return values need unpacking and casting" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             flagInfo['resultNeedsCasting'] = True
                             val = argtype(val[0])
-                            
+
                         # int --> bool
                         elif argtype in _castList and resultType in _castList:
                             _logger.info("%s, %s: query flag return values need casting" % (funcName, flag))
@@ -681,15 +681,15 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                             _logger.info('\tactual type:    %s', resultType)
                             # value is no good. reset to None, so that a default will be generated for edit
                             val = None
-                    
+
                     else:
                         _logger.debug(cmd)
                         _logger.debug("\tsucceeded")
                         _logger.debug('\tresult: %s', val.__repr__())
                         _logger.debug('\tresult type:    %s', resultType)
-                        
+
                 except TypeError, msg:
-                    # flag is no longer supported                         
+                    # flag is no longer supported
                     if str(msg).startswith( 'Invalid flag' ):
                         #if verbose:
                         _logger.info("removing flag %s %s %s", funcName, flag, msg)
@@ -701,7 +701,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         _logger.info(cmd)
                         _logger.info("\t" + str(msg).rstrip('\n'))
                     val = None
-                    
+
                 except RuntimeError, msg:
                     _logger.info(cmd)
                     _logger.info("\t" + str(msg).rstrip('\n') )
@@ -713,14 +713,14 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         flagInfo['modes'].append('query')
             # EDIT
             if 'edit' in modes or testModes == True:
-                
+
                 #_logger.debug("Args:", argtype)
                 try:
                     # we use the value returned from query above as defaults for putting back in as edit args
-                    # but if the return was empty we need to produce something to test on.  
+                    # but if the return was empty we need to produce something to test on.
                     # NOTE: this is just a guess
                     if val is None:
-                        
+
                         if isinstance(argtype, list):
                             val = []
                             for typ in argtype:
@@ -740,8 +740,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                             else:
                                 # edit only, ensure that bool args are True
                                 val = argtype(1)
-                                  
-                    kwargs = {'edit':True, flag:val}              
+
+                    kwargs = {'edit':True, flag:val}
                     cmd = _formatCmd(funcName, args, kwargs)
                     val = func( *args, **kwargs )
                     _logger.debug(cmd)
@@ -749,10 +749,10 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     #_logger.debug('\t%s', val.__repr__())
                     #_logger.debug('\t%s %s', argtype, type(val))
                     #_logger.debug("SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype']))
-                except TypeError, msg:                                                        
+                except TypeError, msg:
                     if str(msg).startswith( 'Invalid flag' ):
                         #if verbose:
-                        # flag is no longer supported  
+                        # flag is no longer supported
                         _logger.info("removing flag %s %s %s", funcName, flag, msg)
                         shortname = flagInfo['shortname']
                         flagInfo.pop(flag,None)
@@ -772,14 +772,14 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 else:
                     if 'edit' not in flagInfo['modes']:
                         flagInfo['modes'].append('edit')
-    
+
     # cleanup
     allObjsEnd = set( cmds.ls(l=1) )
     newObjs = list(allObjsEnd.difference(  allObjsBegin ) )
     if newObjs:
-        cmds.delete( newObjs ) 
+        cmds.delete( newObjs )
     return cmdInfo
-  
+
 def _getNodeHierarchy( version=None ):
     """
     parse node hierarchy from docs and return as a list of 3-value tuples:
@@ -791,43 +791,43 @@ def _getNodeHierarchy( version=None ):
     nodeHierarchyTree = trees.IndexedTree(parser.parse())
     return [ (x.key, tuple( [y.key for y in x.parents()]), tuple( [y.key for y in x.childs()] ) ) \
              for x in nodeHierarchyTree.preorder() ]
-   
+
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
-    
+
     # With extension can't get docs on unix 64
     # path is
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
     long_version = versions.installName()
-    
+
     data = startup.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
-    
+
     if data is not None:
         cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = data
-    
-    else: # or not isinstance(cmdlist,list):        
+
+    else: # or not isinstance(cmdlist,list):
         cmdlist = {}
         _logger.info("Rebuilding the list of Maya commands...")
-        
+
         nodeHierarchy = _getNodeHierarchy(long_version)
         nodeFunctions = [ x[0] for x in nodeHierarchy ]
         nodeFunctions += nodeTypeToNodeCommand.values()
-        
+
         #nodeHierarchyTree = trees.IndexedTree(nodeHierarchy)
         uiClassList = UI_COMMANDS
         nodeCommandList = []
         for moduleName, longname in moduleNameShortToLong.items():
             moduleNameShortToLong[moduleName] = getModuleCommandList( longname, long_version )
-                        
+
         tmpCmdlist = inspect.getmembers(cmds, callable)
         cmdlist = {}
         #moduleCmds = defaultdict(list)
         moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
         moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
-    
-        for funcName, data in tmpCmdlist :     
+
+        for funcName, data in tmpCmdlist :
             # determine to which module this function belongs
             module = None
             if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
@@ -843,17 +843,17 @@ def buildCachedData() :
                     if funcName in commands:
                         module = moduleName
                         break
-                if module is None:    
+                if module is None:
                     if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
                         module = 'runtime'
                     else:
                         module = 'other'
- 
+
             cmdInfo = {}
-            
+
             if module:
                 moduleCmds[module].append(funcName)
-            
+
             if module != 'runtime':
                 cmdInfo = getCmdInfo(funcName, long_version)
 
@@ -863,22 +863,22 @@ def buildCachedData() :
                         cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=True, verbose=True  )
                     #elif module != 'context':
                     #    cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=True  )
-                
+
             cmdInfo['type'] = module
             flags = getCallbackFlags(cmdInfo)
             if flags:
                 cmdInfo['callbackFlags'] = flags
-            
+
             cmdlist[funcName] = cmdInfo
-            
-            
+
+
 #            # func, args, (usePyNode, baseClsName, nodeName)
 #            # args = dictionary of command flags and their data
 #            # usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
 #            # baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
 #            # nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
 #            try:
-#                cmdlist[funcName] = args, pymelCmdsList[funcName] )        
+#                cmdlist[funcName] = args, pymelCmdsList[funcName] )
 #            except KeyError:
 #                # context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
 #                if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
@@ -888,13 +888,13 @@ def buildCachedData() :
 
         # split the cached data for lazy loading
         cmdDocList = {}
-        examples = {} 
+        examples = {}
         for cmdName, cmdInfo in cmdlist.iteritems():
             try:
                 examples[cmdName] = cmdInfo.pop('example')
             except KeyError:
                 pass
-            
+
             newCmdInfo = {}
             if 'description' in cmdInfo:
                 newCmdInfo['description'] = cmdInfo.pop('description')
@@ -903,27 +903,27 @@ def buildCachedData() :
                 for flag, flagInfo in cmdInfo['flags'].iteritems():
                     newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
                 newCmdInfo['flags'] = newFlagInfo
-            
+
             if newCmdInfo:
                 cmdDocList[cmdName] = newCmdInfo
-         
-        startup.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 
+
+        startup.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds),
                               'mayaCmdsList', 'the list of Maya commands',compressed=True )
-        
-        startup.writeCache( cmdDocList, 
+
+        startup.writeCache( cmdDocList,
                               'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
-    
-        startup.writeCache( examples, 
+
+        startup.writeCache( examples,
                               'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
 
     # corrections that are always made, to both loaded and freshly built caches
-    
+
     util.mergeCascadingDicts( cmdlistOverrides, cmdlist )
     # add in any nodeCommands added after cache rebuild
     nodeCommandList = set(nodeCommandList).union(nodeTypeToNodeCommand.values())
     nodeCommandList = sorted( nodeCommandList )
-    
-    
+
+
     for module, funcNames in moduleCommandAdditions.iteritems():
         for funcName in funcNames:
             currModule = cmdlist[funcName]['type']

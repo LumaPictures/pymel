@@ -26,11 +26,11 @@ isInitializing = False
 # Setting this to False will make finalize() do nothing
 finalizeEnabled = True
 _finalizeFinished = False
-    
+
 # tells whether this maya package has been modified to work with pymel
 pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
 
-                    
+
 def _moduleJoin(*args):
     """
     Joins with the base pymel directory.
@@ -49,14 +49,14 @@ def mayaStartupHasRun():
 def refreshEnviron():
     """
     copy the shell environment into python's environment, as stored in os.environ
-    """ 
-    exclude = ['SHLVL'] 
-    
+    """
+    exclude = ['SHLVL']
+
     if os.name == 'posix':
         cmd = '/usr/bin/env'
     else:
         cmd = 'set'
-        
+
     cmdOutput = shellOutput(cmd)
     #print "ENV", cmdOutput
     # use splitlines rather than split('\n') for better handling of different
@@ -68,7 +68,7 @@ def refreshEnviron():
             if not var.startswith('_') and var not in exclude:
                     os.environ[var] = val
 
-    
+
 
 def getMayaAppDir():
     app_dir = os.environ.get('MAYA_APP_DIR',None)
@@ -77,7 +77,7 @@ def getMayaAppDir():
             app_dir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
             if app_dir is None:
                 return
-            
+
             # Vista or newer... version() returns "6.x.x"
             if int(platform.version().split('.')[0]) > 5:
                 app_dir = os.path.join( app_dir, 'Documents')
@@ -87,12 +87,12 @@ def getMayaAppDir():
             app_dir = os.environ.get('HOME',None)
             if app_dir is None:
                 return
-            
+
         if platform.system() == 'Darwin':
-            app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )    
+            app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )
         else:
             app_dir = os.path.join( app_dir, 'maya' )
-            
+
     return app_dir
 
 def setupFormatting():
@@ -109,10 +109,10 @@ def setupFormatting():
 #    due to a bug in maya.app.commands many functions do not return any value the first time they are run,
 #    especially in standalone mode.  this function forces the loading of all dynamic libraries, which is
 #    a very fast and memory-efficient process, which begs the question: why bother dynamically loading?
-#    
+#
 #    this function can only be run after maya.standalone is initialized
 #    """
-#            
+#
 #    commandListPath = os.path.realpath( os.environ[ 'MAYA_LOCATION' ] )
 #    commandListPath = os.path.join( commandListPath, libdir, 'commandList' )
 #
@@ -130,36 +130,36 @@ def setupFormatting():
 # returns True if Maya is available, False either
 def mayaInit(forversion=None) :
     """ Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
-    it is possible to pass the desired Maya version number to define which Maya to initialize 
-    
-    
+    it is possible to pass the desired Maya version number to define which Maya to initialize
+
+
     Part of the complexity of initializing maya in standalone mode is that maya does not populate os.environ when
     parsing Maya.env.  If we initialize normally, the env's are available via maya (via the shell), but not in python
     via os.environ.
-    
+
     Note: the following example assumes that MAYA_SCRIPT_PATH is not set in your shell environment prior to launching
     python or mayapy.
-    
+
     >>> import maya.standalone            #doctest: +SKIP
     >>> maya.standalone.initialize()      #doctest: +SKIP
     >>> import maya.mel as mm             #doctest: +SKIP
-    >>> print mm.eval("getenv MAYA_SCRIPT_PATH")    #doctest: +SKIP 
+    >>> print mm.eval("getenv MAYA_SCRIPT_PATH")    #doctest: +SKIP
     /Network/Servers/sv-user.luma-pictures.com/luma .....
     >>> import os                         #doctest: +SKIP
     >>> 'MAYA_SCRIPT_PATH' in os.environ  #doctest: +SKIP
     False
-    
+
     The solution lies in `refreshEnviron`, which copies the environment from the shell to os.environ after maya.standalone
     initializes.
-    
+
     :rtype: bool
     :return: returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
-    
+
     """
     setupFormatting()
-    
+
     global isInitializing
-    
+
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
 
     try :
@@ -169,18 +169,18 @@ def mayaInit(forversion=None) :
         return False
     except:
         pass
-    
+
     # for use with pymel compatible maya package
     os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
-                
+
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
     sep = os.path.pathsep
-             
+
     if not sys.modules.has_key('maya.standalone'):
         try :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
-            
+
             if versions.current() < versions.v2009:
                 refreshEnviron()
 
@@ -191,7 +191,7 @@ def mayaInit(forversion=None) :
         from maya.cmds import about
     except Exception, e:
         raise e, str(e) + ": maya.standalone was successfully initialized, but pymel failed to import maya.cmds"
-    
+
     # return True, meaning we had to initialize maya standalone
     isInitializing = True
     return True
@@ -200,8 +200,8 @@ def initMEL():
     if 'PYMEL_SKIP_MEL_INIT' in os.environ or pymel_options.get( 'skip_mel_init', False ) :
         _logger.info( "Skipping MEL initialization" )
         return
-    
-    _logger.debug( "initMEL" )        
+
+    _logger.debug( "initMEL" )
     mayaVersion = versions.installName()
     appDir = getMayaAppDir()
     if appDir is None:
@@ -215,7 +215,7 @@ def initMEL():
 
     # TODO : use cmds.internalVar to get paths
     # got this startup sequence from autodesk support
-    startup = [   
+    startup = [
         #'defaultRunTimeCommands.mel',  # sourced automatically
         #os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
         'createPreferencesOptVars.mel',
@@ -250,17 +250,17 @@ def initMEL():
                     #lang.mel.source( f.encode(encoding)  )
                     import maya.mel
                     maya.mel.eval( 'source "%s"' % f.encode(encoding) )
-            
+
     except Exception, e:
         _logger.error( "could not perform Maya initialization sequence: failed on %s: %s" % ( f, e) )
-        
+
     try:
         # make sure it exists
         res = maya.mel.eval('whatIs "userSetup.mel"')
         if res != 'Unknown':
             maya.mel.eval( 'source "userSetup.mel"')
     except RuntimeError: pass
-    
+
     _logger.debug("done running mel files")
 
 
@@ -271,7 +271,7 @@ def _makeAEProc(modname, classname, procname):
     d['__name__'] = __name__
     import maya.mel as mm
     mm.eval( contents % d )
-      
+
 def _aeLoader(modname, classname, nodename):
     mod = __import__(modname, globals(), locals(), [classname], -1)
     try:
@@ -281,7 +281,7 @@ def _aeLoader(modname, classname, nodename):
         print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
         import traceback
         traceback.print_exc()
-        
+
 def initAE():
     try:
         pkg = __import__('AETemplates')
@@ -291,9 +291,9 @@ def initAE():
         import traceback
         traceback.print_exc()
         return
-    
+
     from pymel.core.uitypes import AETemplate
-    
+
     if hasattr(pkg, '__path__'):
         completed = []
         for pth in pkg.__path__:
@@ -308,7 +308,7 @@ def initAE():
         try:
             nodeType = obj.nodeType()
         except:
-            continue 
+            continue
         else:
             _makeAEProc( 'AETemplates', name, 'AE'+nodeType+'Template')
 
@@ -331,21 +331,21 @@ def finalize():
     elif state == om.MGlobal.kInteractive:
         initAE()
     _finalizeFinished = True
-                       
+
 # Fix for non US encodings in Maya
 def encodeFix():
     if mayaInit() :
         from maya.cmds import about
-        
+
         mayaEncode = about(cs=True)
         pyEncode = sys.getdefaultencoding()     # Encoding tel que defini par sitecustomize
         if mayaEncode != pyEncode :             # s'il faut redefinir l'encoding
             #reload (sys)                       # attention reset aussi sys.stdout et sys.stderr
-            #sys.setdefaultencoding(newEncode) 
+            #sys.setdefaultencoding(newEncode)
             #del sys.setdefaultencoding
             #print "# Encoding changed from '"+pyEncode+'" to "'+newEncode+"' #"
             if not about(b=True) :              # si pas en batch, donc en mode UI, redefinir stdout et stderr avec encoding Maya
-                import maya.utils    
+                import maya.utils
                 try :
                     import maya.app.baseUI
                     # Replace sys.stdin with a GUI version that will request input from the user
@@ -366,7 +366,7 @@ def _load(filename):
         res = pickle.load(file)
         return res
 
-                 
+
 def loadCache( filePrefix, description='', useVersion=True, compressed=True):
     if useVersion:
         short_version = shortName()
@@ -380,10 +380,10 @@ def loadCache( filePrefix, description='', useVersion=True, compressed=True):
     else:
         newPath += '.bin'
         func = _load
-        
+
     if description:
         description = ' ' + description
-  
+
     #_logger.info("Loading%s from '%s'" % ( description, newPath ))
 
     try:
@@ -392,14 +392,14 @@ def loadCache( filePrefix, description='', useVersion=True, compressed=True):
         _logger.error("Unable to load%s from '%s': %s" % (description, newPath, e))
 
 
- 
+
 def writeCache( data, filePrefix, description='', useVersion=True, compressed=True):
-    
+
     if useVersion:
         short_version = shortName()
     else:
         short_version = ''
-    
+
     newPath = _moduleJoin( 'cache', filePrefix+short_version )
     if compressed:
         newPath += '.zip'
@@ -407,17 +407,17 @@ def writeCache( data, filePrefix, description='', useVersion=True, compressed=Tr
     else:
         newPath += '.bin'
         func = _dump
-        
+
     if description:
         description = ' ' + description
-    
+
     _logger.info("Saving%s to '%s'" % ( description, newPath ))
-    
+
     try :
         func( data, newPath, 2)
     except Exception, e:
         _logger.error("Unable to write%s to '%s': %s" % (description, newPath, e))
-             
+
 
 def getConfigFile():
     return plogging.getConfigFile()
@@ -427,14 +427,14 @@ def parsePymelConfig():
 
     types = { 'skip_mel_init' : 'boolean' }
     defaults = {'skip_mel_init' : 'off' }
-    
+
     config = ConfigParser.ConfigParser(defaults)
     config.read( getConfigFile() )
-    
+
     d = {}
     for option in config.options('pymel'):
-        getter = getattr( config, 'get' + types.get(option, '') ) 
+        getter = getattr( config, 'get' + types.get(option, '') )
         d[option] = getter( 'pymel', option )
     return d
 
-pymel_options = parsePymelConfig() 
+pymel_options = parsePymelConfig()

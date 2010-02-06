@@ -29,7 +29,7 @@ def namedtuple(typename, field_names, docAppend="", verbose=False):
     Point(x=100, y=22)
 
     """
-    
+
     docAppend = docAppend.encode('string_escape')
 
     # Parse and validate the field names.  Validation serves two purposes,
@@ -57,7 +57,7 @@ def namedtuple(typename, field_names, docAppend="", verbose=False):
     # def __getnewargs__(self):
     # return tuple(self)
     # instead of __reduce__ to provide unpickling capabilities
-    
+
     numfields = len(field_names)
     argtxt = repr(field_names).replace("'", "")[1:-1]   # tuple repr without parens or quotes
     reprtxt = ', '.join('%s=%%r' % name for name in field_names)
