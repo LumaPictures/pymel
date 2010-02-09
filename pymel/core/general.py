@@ -2481,11 +2481,40 @@ class Attribute(PyNode):
     def setEnums(self, enumList):
         cmds.addAttr( self, e=1, en=":".join(enumList) )
 
-    def getEnums(self):
+
+    def getEnums(self, asDict=False):
         """
-        :rtype: `unicode` list
+        :rtype: `util.enum.EnumDict`
+
+        >>> addAttr( "persp", ln='numbers', at='enum', enumName="zero:one:two:thousand=1000:three")
+        >>> at = Attribute('persp.numbers')
+        >>> numbers = at.numbers.getEnum()
+        >>> numbers
+        EnumDict({u'one': 1, u'thousand': 1000, u'three': 1001, u'two': 2, u'zero': 0})
+        >>> numbers[1]
+        u'one'
+        >>> numbers['thousand']
+        1000
+
         """
-        return cmds.addAttr( self, q=1, en=1 ).split(':')
+        enum_list = cmds.attributeQuery(self.name(includeNode=False),
+                                        node=self.node().name(),
+                                        listEnum=True)[0].split(':')
+
+        enum_dict = {}
+        index = 0
+        for enum in enum_list:
+            try:
+                name, value = enum.split(u'=')
+                index = int(value)
+                enum = name
+            except:
+                pass
+            enum_dict[enum] = index
+            index += 1
+
+        return _util.enum.EnumDict(enum_dict)
+
 
     # getting and setting
     set = setAttr
