@@ -13,6 +13,7 @@ import sys, os, re, itertools, inspect
 import pymel.internal.pmcmds as cmds
 import pymel.util as _util
 import pymel.internal.factories as _factories
+import pymel.internal.pwarnings as _warnings
 import pymel.api as _api
 import pymel.versions as _versions
 import datatypes
@@ -2981,6 +2982,7 @@ class Attribute(PyNode):
             pass
     siblings = getSiblings
 
+    @_warnings.deprecated('use Attribute.getParent instead', 'Attribute')
     def firstParent(self):
         "deprecated: use getParent instead"
 
