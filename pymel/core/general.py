@@ -142,7 +142,9 @@ Modifications:
 def select(*args, **kwargs):
     """
 Modifications:
-  - passing an empty list no longer causes an error. instead, the selection is cleared
+  - passing an empty list no longer causes an error.
+      instead, the selection is cleared if the selection mod is replace (the default);
+      otherwise, it does nothing
 
     """
 
@@ -150,6 +152,12 @@ Modifications:
         cmds.select(*args, **kwargs)
     except TypeError, msg:
         if args == ([],):
+            for modeFlag in ('add', 'af', 'addFirst',
+                             'r', 'replace', 'd', 'deselect',
+                             'tgl', 'toggle'):
+                if kwargs.get(modeFlag, False):
+                    return
+            # The mode is replace, clear the selection
             cmds.select(cl=True)
         else:
             raise TypeError, msg
