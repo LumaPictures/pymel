@@ -310,7 +310,7 @@ Modifications:
             if pyattr.isCompound():
                 return [child.get() for child in pyattr.getChildren() ]
             elif pyattr.isMulti():
-                return [attr[i].get() for i in range(pyattr.size())]
+                return [attr[i].get() for i in range(pyattr.numElements())]
             # re-raise error
             raise
         except AttributeError:
@@ -2449,8 +2449,8 @@ class Attribute(PyNode):
         """
         The number of elements in an array attribute. Raises an error if this is not an array Attribute
 
-        Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
-        value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
+        Be aware that ``getAttr(..., size=1)`` does not always produce the expected value. It is recommend
+        that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
 
             >>> from pymel.core import *
             >>> f=newFile(f=1) #start clean
