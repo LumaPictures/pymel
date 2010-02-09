@@ -1488,6 +1488,21 @@ class PyNode(_util.ProxyUnicode):
                             #print "PLUG or COMPONENT", res
                             attrNode = PyNode(res[0])
                             argObj = res[1]
+
+                            # There are some names which are both components and
+                            #    attributes: ie, scalePivot / rotatePivot
+                            # toApiObject (and MSelectionList) will return the
+                            #    component in these ambigious cases; therefore,
+                            #    if we're explicitly trying to make an Attribute - ie,
+                            #        Attribute('myCube.scalePivot')
+                            #    ... make sure to cast it to one in these cases
+                            if issubclass(cls, Attribute) and \
+                                    isinstance(argObj, _api.MObject) and \
+                                    _api.MFnComponent().hasObj(argObj) and \
+                                    '.' in name:
+                                attrName = name.split('.', 1)[1]
+                                if attrNode.hasAttr(attrName):
+                                    return attrNode.attr(attrName)
                         # DependNode Plug
                         elif isinstance(res,_api.MPlug):
                             attrNode = PyNode(res.node())
