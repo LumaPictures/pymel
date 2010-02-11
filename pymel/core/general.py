@@ -19,7 +19,6 @@ import pymel.versions as _versions
 import datatypes
 import logging
 from maya.cmds import about as _about
-import maya.cmds as _mc
 _logger = logging.getLogger(__name__)
 
 
@@ -1041,7 +1040,7 @@ Modifications:
     """
     addShape = kwargs.pop('addShape', False)
     kwargs.pop('rr', None)
-    kwargs['returnRootsOnly'] = bool(_mc.ls(dag=1,*args))
+    kwargs['returnRootsOnly'] = bool(cmds.ls(dag=1,*args))
 
     if not addShape:
         return map(PyNode, cmds.duplicate( *args, **kwargs ) )
