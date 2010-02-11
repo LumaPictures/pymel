@@ -318,7 +318,7 @@ Modifications:
             if pyattr.isCompound():
                 return [child.get() for child in pyattr.getChildren() ]
             elif pyattr.isMulti():
-                return [attr[i].get() for i in range(pyattr.numElements())]
+                return [pyattr[i].get() for i in range(pyattr.numElements())]
             # re-raise error
             raise
         except AttributeError:
