@@ -2,7 +2,7 @@
 Functions for creating UI elements, as well as their class counterparts.
 """
 
-import re, sys, functools
+import re, sys, functools, traceback
 
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds
@@ -178,9 +178,19 @@ def getPanel(*args, **kwargs):
 
 class CallbackError(Exception): pass
 
+class BaseCallback(object):
+    """
+    Base class for callbacks.
+    """
+    def __init__(self,func,*args,**kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.traceback = traceback.format_stack()
+
 if _versions.current() >= _versions.v2009:
 
-    class Callback(object):
+    class Callback(BaseCallback):
         """
         Enables deferred function evaluation with 'baked' arguments.
         Useful where lambdas won't work...
@@ -201,12 +211,6 @@ if _versions.current() >= _versions.v2009:
                     label = "Add " + str(rigger),
                     c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
         """
-
-        def __init__(self,func,*args,**kwargs):
-            self.func = func
-            self.args = args
-            self.kwargs = kwargs
-
         def __call__(self,*args):
             cmds.undoInfo(openChunk=1)
             try:
@@ -225,12 +229,15 @@ if _versions.current() >= _versions.v2009:
             kwargsFinal.update(kwargs)
             cmds.undoInfo(openChunk=1)
             try:
-                return self.func(*self.args + args, **kwargsFinal)
+                try:
+                    return self.func(*self.args + args, **kwargsFinal)
+                except Exception, e:
+                    raise _factories.CallbackError(self.func, e)                
             finally:
                 cmds.undoInfo(closeChunk=1)
 else:
 
-    class Callback(object):
+    class Callback(BaseCallback):
         """
         Enables deferred function evaluation with 'baked' arguments.
         Useful where lambdas won't work...
@@ -247,11 +254,6 @@ else:
                     label = "Add " + str(rigger),
                     c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
         """
-
-        def __init__(self,func,*args,**kwargs):
-            self.func = func
-            self.args = args
-            self.kwargs = kwargs
 
         # This implementation of the Callback object uses private members
         # to store static call information so that the call can be made through
