@@ -592,7 +592,7 @@ class AETemplate(object):
     def nodeName(self):
         return self._nodeName
 
-    @staticmethod
+    @classmethod
     def nodeType(cls):
         if cls._nodeType:
             return cls._nodeType
@@ -601,7 +601,7 @@ class AETemplate(object):
             if m:
                 return m.groups()[0]
             else:
-                raise ValueError, "You must either name your AETemplate subclass of the form 'AE<nodeType>Template' or set the '_nodeType' class attribute"
+                raise ValueError("You must either name your AETemplate subclass of the form 'AE<nodeType>Template' or set the '_nodeType' class attribute")
     @classmethod
     def controlValue(cls, nodeName, control):
         return cmds.editorTemplate(queryControl=(nodeName,control))
@@ -618,8 +618,6 @@ class AETemplate(object):
             sel = cmds.ls(sl=1)
             cmds.select(cl=True)
             cmds.deleteUI(form)
-        aeScript = "AE" + nodeType + "Template.mel"
-        _mm.eval("source \"" + aeScript + "\"")
 
         if exists:
             cmds.select(sel)

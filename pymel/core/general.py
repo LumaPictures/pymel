@@ -266,6 +266,7 @@ Modifications:
   - casts vectorArrays from a flat array of floats to an array of Vectors
   - when getting a multi-attr, maya would raise an error, but pymel will return a list of values for the multi-attr
   - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
+  - added support for getting message attributes
     """
     def listToMat( l ):
         return datatypes.Matrix(
@@ -318,8 +319,16 @@ Modifications:
             if pyattr.isCompound():
                 return [child.get() for child in pyattr.getChildren() ]
             elif pyattr.isMulti():
+                if pyattr.type() == 'message':
+                    return pyattr.listConnections()
                 return [pyattr[i].get() for i in range(pyattr.numElements())]
             # re-raise error
+            elif pyattr.type() == 'message':
+                connects = pyattr.listConnections()
+                if connects:
+                    return connects[0]
+                else:
+                    return None
             raise
         except AttributeError:
             if default is not None:
