@@ -176,8 +176,6 @@ def getPanel(*args, **kwargs):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
-class CallbackError(Exception): pass
-
 class BaseCallback(object):
     """
     Base class for callbacks.
@@ -217,7 +215,7 @@ if _versions.current() >= _versions.v2009:
                 try:
                     return self.func(*self.args, **self.kwargs)
                 except Exception, e:
-                    raise _factories.CallbackError(self.func, e)
+                    raise _factories.CallbackError(self, e)
             finally:
                 cmds.undoInfo(closeChunk=1)
 
@@ -232,7 +230,7 @@ if _versions.current() >= _versions.v2009:
                 try:
                     return self.func(*self.args + args, **kwargsFinal)
                 except Exception, e:
-                    raise _factories.CallbackError(self.func, e)                
+                    raise _factories.CallbackError(self, e)                
             finally:
                 cmds.undoInfo(closeChunk=1)
 else:
@@ -269,7 +267,7 @@ else:
             try:
                 mel.python("%s.Callback._doCall()" % thisModuleCmd)
             except Exception, e:
-                raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
+                raise _factories.CallbackError(self.func, e)   
             return Callback._callData
 
     class CallbackWithArgs(Callback):
@@ -280,7 +278,7 @@ else:
             try:
                 mel.python("%s.Callback._doCall()" % thisModuleCmd)
             except Exception, e:
-                raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
+                raise _factories.CallbackError(self.func, e)
             return Callback._callData
 
 

@@ -479,21 +479,31 @@ class CallbackError(RuntimeError):
         import traceback
         self.callback = callback
         self.origException = origException
-        # Should be called withing an except clause, so
+        # Should be called within an except clause, so
         # this will give us what we want
         self.origMsg = traceback.format_exc()
         try:
             callbackStr = " %r" % self.callback
         except Exception:
             callbackStr = ''
-        if hasattr(callback, '__name__'):
-            callbackStr += ' - %s' % callback.__name__
-        if hasattr(callback, '__module__'):
-            callbackStr += ' - module %s' % callback.__module__
-        if hasattr(callback, 'func_code'):
-            callbackStr += ' - %s, line %d' % (callback.func_code.co_filename, callback.func_code.co_firstlineno)
+        if hasattr(callback, 'traceback') and hasattr(callback, 'func'):
+            # callback is a windows.Callback object...
+            func = callback.func
+            callbackTraceback = '\nCallback creation traceback:\n%s' % callback.traceback
+        else:
+            # callback is just a function..
+            func = callback
+            callbackTraceback = ''
+        if hasattr(func, '__name__'):
+            callbackStr += ' - %s' % func.__name__
+        if hasattr(func, '__module__'):
+            callbackStr += ' - module %s' % func.__module__
+        if hasattr(func, 'func_code'):
+            callbackStr += ' - %s, line %d' % (func.func_code.co_filename, func.func_code.co_firstlineno)
+        if callbackTraceback:
+            callbackStr += callbackTraceback
 
-        newmsg = "Error executing callback%s - original message:\n%s\n" % (callbackStr, self.origMsg)
+        newmsg = "Error executing callback%s\n\nOriginal message:\n%s\n" % (callbackStr, self.origMsg)
         super(CallbackError, self).__init__(newmsg)
 
 def fixCallbacks(inFunc, commandFlags, funcName=None ):
