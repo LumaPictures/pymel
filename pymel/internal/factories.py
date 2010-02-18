@@ -75,6 +75,23 @@ def toPyUI(res):
     if res is not None:
         import pymel.core.uitypes
         return pymel.core.uitypes.PyUI(res)
+    
+def toPyType(moduleName, objectName):
+    """
+    Returns a function which casts it's single argument to
+    an object with the given name in the given module (name).
+    
+    The module / object are given as strings, so that the module
+    may be imported when the function is called, to avoid
+    making factories dependent on, say, pymel.core.general or
+    pymel.core.uitypes
+    """
+    def toGivenClass(res):
+        __import__
+        if res is not None:
+            return cls(res)
+    toGivenClass.__name__ = 'to%s' % util.capitalize(objectName)
+    toGivenClass.__doc__ = "returns a %s object" % objectName
 
 def toPyNodeList(res):
     "returns a list of PyNode objects"
@@ -94,6 +111,17 @@ def toPyUIList(res):
     import pymel.core.uitypes
     return [ pymel.core.uitypes.PyUI(x) for x in res ]
 
+def toPyTypeList(cls):
+    """
+    Returns a function which casts the members of it's iterable
+    argument to the given class.
+    """
+    def toGivenClassList(res):
+        if res is None:
+            return []
+        return [ cls(x) for x in res ]
+    toGivenClass.__name__ = 'to%sList' % util.capitalize(cls.__name__)
+    toGivenClass.__doc__ = "returns a list of %s objects" % cls.__name__
 
 class Flag(Condition):
     def __init__(self, longName, shortName, truthValue=True):
@@ -131,7 +159,7 @@ simpleCommandWraps = {
     'listAttr'          : [ (util.listForNone, Always) ],
     'instance'          : [ (toPyNodeList, Always) ],
 
-    'getPanel'          : [ ( toPyUI,
+    'getPanel'          : [ ( toPyType(,
                               Flag('containing', 'c', None) |
                               Flag('underPointer', 'up') |
                               Flag('withFocus', 'wf')),
