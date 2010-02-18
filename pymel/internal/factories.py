@@ -87,11 +87,18 @@ def toPyType(moduleName, objectName):
     pymel.core.uitypes
     """
     def toGivenClass(res):
-        __import__
+        # Use the 'from moduleName import objectName' form of
+        # __import__, because that guarantees it returns the
+        # 'bottom' module (ie, myPackage.myModule, NOT myPackage),
+        # note that __import__ doesn't actually insert objectName into
+        # the locals... which we don't really want anyway 
+        module = __import__(moduleName, globals(), locals(), [objectName], -1)
+        cls = getattr(module, objectName)
         if res is not None:
             return cls(res)
     toGivenClass.__name__ = 'to%s' % util.capitalize(objectName)
     toGivenClass.__doc__ = "returns a %s object" % objectName
+    return toGivenClass
 
 def toPyNodeList(res):
     "returns a list of PyNode objects"
@@ -111,17 +118,20 @@ def toPyUIList(res):
     import pymel.core.uitypes
     return [ pymel.core.uitypes.PyUI(x) for x in res ]
 
-def toPyTypeList(cls):
+def toPyTypeList(moduleName, objectName):
     """
     Returns a function which casts the members of it's iterable
     argument to the given class.
     """
     def toGivenClassList(res):
+        module = __import__(moduleName, globals(), locals(), [objectName], -1)
+        cls = getattr(module, objectName)        
         if res is None:
             return []
         return [ cls(x) for x in res ]
-    toGivenClass.__name__ = 'to%sList' % util.capitalize(cls.__name__)
-    toGivenClass.__doc__ = "returns a list of %s objects" % cls.__name__
+    toGivenClassList.__name__ = 'to%sList' % util.capitalize(objectName)
+    toGivenClassList.__doc__ = "returns a list of %s objects" % objectName
+    return toGivenClassList
 
 class Flag(Condition):
     def __init__(self, longName, shortName, truthValue=True):
@@ -159,11 +169,12 @@ simpleCommandWraps = {
     'listAttr'          : [ (util.listForNone, Always) ],
     'instance'          : [ (toPyNodeList, Always) ],
 
-    'getPanel'          : [ ( toPyType(,
+    'getPanel'          : [ ( toPyType('pymel.core.uitypes', 'Panel'),
                               Flag('containing', 'c', None) |
-                              Flag('underPointer', 'up') |
-                              Flag('withFocus', 'wf')),
-                            ( toPyUIList, ~Flag('typeOf', 'to', None) )
+                                Flag('underPointer', 'up') |
+                                Flag('withFocus', 'wf')),
+                            ( toPyTypeList('pymel.core.uitypes', 'Panel'),
+                              ~Flag('typeOf', 'to', None) )
                           ],
 
     'textScrollList'    : [ ( util.listForNone,
