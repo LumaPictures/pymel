@@ -1463,6 +1463,13 @@ def openFile( filepath, **kwargs ):
 def renameFile( *args, **kwargs ):
     return Path(cmds.file(rename=args[0]))
 
+@_factories.addMelDocs('file', 'save')
+def saveFile(**kwargs ):
+    kwargs.pop('s', None)
+    kwargs['save'] = True
+    return Path(cmds.file(**kwargs))
+
+
 def saveAs(newname, **kwargs):
     cmds.file( rename=newname )
     kwargs['save']=True
