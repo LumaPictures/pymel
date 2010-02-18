@@ -94,6 +94,9 @@ def feof( fileid ):
 
 @_factories.addMelDocs( 'file', 'sceneName')
 def sceneName():
+    # We don't just use cmds.file(q=1, sceneName=1)
+    # because it was sometimes returning an empty string,
+    # even when there was a valid file
     name = Path(_OpenMaya.MFileIO.currentFile())
     if name.basename() == untitledFileName() and \
             cmds.file(q=1, sceneName=1) == '':
