@@ -1332,7 +1332,7 @@ class ReferenceEdit(str):
 
 def _correctPath(path):
     # make paths absolute
-    if not os.path.isabs(path) and path != 'untitled':
+    if not os.path.isabs(path) and path != '' and path != untitledFileName():
         path = os.path.normpath(cmds.workspace(q=1,fullName=1) + '/' + path)
     return path
 
@@ -1439,8 +1439,13 @@ def importFile( filepath, **kwargs ):
 
 @_factories.createflag('file', 'newFile')
 def newFile( **kwargs ):
-    res = cmds.file( **kwargs)
-    return res
+    """
+Modifications:
+    - returns empty string, for consistency with sceneName()
+      ...if you wish to know the untitled scenen name, use untitledFileName()
+    """
+    cmds.file( **kwargs)
+    return ''
 
 @_factories.createflag('file', 'open')
 def openFile( filepath, **kwargs ):
