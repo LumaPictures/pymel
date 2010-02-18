@@ -82,7 +82,7 @@ class PyUI(unicode):
                 # find the long name
                 if '|' not in name and not issubclass(newcls,
                                                 (Window,
-                                                 dynModule.Panel,
+                                                 Panel,
                                                  dynModule.ScriptedPanel,
                                                  dynModule.RadioCollection,
                                                  dynModule.ToolCollection)):
@@ -149,6 +149,13 @@ class PyUI(unicode):
     @classmethod
     def exists(cls, name):
         return cls.__melcmd__( name, exists=True )
+
+class Panel(PyUI):
+    """pymel panel class"""
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    # note that we're not actually customizing anything, but
+    # we're declaring it here because other classes will have this
+    # as their base class, so we need to make sure it exists first
 
 class Layout(PyUI):
     def __enter__(self):
@@ -693,7 +700,6 @@ class AETemplate(object):
 dynModule = _util.LazyLoadModule(__name__, globals())
 
 def _createUIClasses():
-
     for funcName in _factories.uiClassList:
         # Create Class
         classname = _util.capitalize(funcName)
@@ -702,6 +708,8 @@ def _createUIClasses():
         except KeyError:
             if classname.endswith('Layout'):
                 bases = (Layout,)
+            elif classname.endswith('Panel'):
+                bases = (Panel,)                
             else:
                 bases = (PyUI,)
             dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}) )
