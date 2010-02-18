@@ -42,6 +42,7 @@ import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.internal.pmcmds as cmds
+import maya.mel as _mel
 
 _logger = _internal.getLogger(__name__)
 
@@ -93,7 +94,17 @@ def feof( fileid ):
 
 @_factories.addMelDocs( 'file', 'sceneName')
 def sceneName():
-    return Path( _OpenMaya.MFileIO.currentFile() )
+    name = Path(_OpenMaya.MFileIO.currentFile())
+    if name.basename() == untitledFileName() and \
+            cmds.file(q=1, sceneName=1) == '':
+        return Path()
+    return name
+
+def untitledFileName():
+    """
+    Obtain the base filename used for untitled scenes. In localized environments, this string will contain a translated value.
+    """
+    return _mel.eval('untitledFileName()')
 
 def undoInfo(*args, **kwargs):
     """
