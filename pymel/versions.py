@@ -8,7 +8,7 @@ Class for storing apiVersions, which are the best method for comparing versions.
     The current version is later than Maya 2008
 """
 
-import re
+import re, platform
 from maya.OpenMaya import MGlobal  as _MGlobal
 
 def parseVersionStr(versionStr, extension=False):
@@ -44,10 +44,11 @@ def parseVersionStr(versionStr, extension=False):
         version += "-"+ma.group('ext')
     return version
 
+_is64 = platform.architecture()[0] == '64bit'
 _current = _MGlobal.apiVersion()
 _fullName = _MGlobal.mayaVersion()
-_installName = parseVersionStr(_fullName, extension=True)
 _shortName = parseVersionStr(_fullName, extension=False)
+_installName = _shortName + ('-x64' if _is64 else '')
 
 
 v85        = 200700
@@ -72,6 +73,9 @@ def installName():
 
 def shortName():
     return _shortName
+
+def is64bit():
+    return _is64
 
 def flavor():
     import maya.cmds
