@@ -21,6 +21,8 @@ removed deprecated and inapplicable string methods from ProxiUnicode, base of al
 removed Smart Layout Creator in favor of 'with' statement support
 DagNode.getParent() no longer accepts keyword arguments
 Renamed UI base class to PyUI
+sceneName() now returns an empty string - or more exactly, a Path class for an empty string, Path() - when the scene is untitled
+	this makes it conform more to cmds.file(q=1, sceneName=1) 
 
 FEATURES
 

@@ -2,7 +2,7 @@
 Functions for creating UI elements, as well as their class counterparts.
 """
 
-import re, sys, functools
+import re, sys, functools, traceback
 
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds
@@ -176,11 +176,19 @@ def getPanel(*args, **kwargs):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
-class CallbackError(Exception): pass
+class BaseCallback(object):
+    """
+    Base class for callbacks.
+    """
+    def __init__(self,func,*args,**kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.traceback = traceback.format_stack()
 
 if _versions.current() >= _versions.v2009:
 
-    class Callback(object):
+    class Callback(BaseCallback):
         """
         Enables deferred function evaluation with 'baked' arguments.
         Useful where lambdas won't work...
@@ -201,19 +209,13 @@ if _versions.current() >= _versions.v2009:
                     label = "Add " + str(rigger),
                     c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
         """
-
-        def __init__(self,func,*args,**kwargs):
-            self.func = func
-            self.args = args
-            self.kwargs = kwargs
-
         def __call__(self,*args):
             cmds.undoInfo(openChunk=1)
             try:
                 try:
                     return self.func(*self.args, **self.kwargs)
                 except Exception, e:
-                    raise _factories.CallbackError(self.func, e)
+                    raise _factories.CallbackError(self, e)
             finally:
                 cmds.undoInfo(closeChunk=1)
 
@@ -225,12 +227,15 @@ if _versions.current() >= _versions.v2009:
             kwargsFinal.update(kwargs)
             cmds.undoInfo(openChunk=1)
             try:
-                return self.func(*self.args + args, **kwargsFinal)
+                try:
+                    return self.func(*self.args + args, **kwargsFinal)
+                except Exception, e:
+                    raise _factories.CallbackError(self, e)                
             finally:
                 cmds.undoInfo(closeChunk=1)
 else:
 
-    class Callback(object):
+    class Callback(BaseCallback):
         """
         Enables deferred function evaluation with 'baked' arguments.
         Useful where lambdas won't work...
@@ -248,11 +253,6 @@ else:
                     c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
         """
 
-        def __init__(self,func,*args,**kwargs):
-            self.func = func
-            self.args = args
-            self.kwargs = kwargs
-
         # This implementation of the Callback object uses private members
         # to store static call information so that the call can be made through
         # a mel call, thus making the entire function call undoable
@@ -267,7 +267,7 @@ else:
             try:
                 mel.python("%s.Callback._doCall()" % thisModuleCmd)
             except Exception, e:
-                raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
+                raise _factories.CallbackError(self.func, e)   
             return Callback._callData
 
     class CallbackWithArgs(Callback):
@@ -278,7 +278,7 @@ else:
             try:
                 mel.python("%s.Callback._doCall()" % thisModuleCmd)
             except Exception, e:
-                raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
+                raise _factories.CallbackError(self.func, e)
             return Callback._callData
 
 

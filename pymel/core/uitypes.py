@@ -82,7 +82,7 @@ class PyUI(unicode):
                 # find the long name
                 if '|' not in name and not issubclass(newcls,
                                                 (Window,
-                                                 dynModule.Panel,
+                                                 Panel,
                                                  dynModule.ScriptedPanel,
                                                  dynModule.RadioCollection,
                                                  dynModule.ToolCollection)):
@@ -149,6 +149,13 @@ class PyUI(unicode):
     @classmethod
     def exists(cls, name):
         return cls.__melcmd__( name, exists=True )
+
+class Panel(PyUI):
+    """pymel panel class"""
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    # note that we're not actually customizing anything, but
+    # we're declaring it here because other classes will have this
+    # as their base class, so we need to make sure it exists first
 
 class Layout(PyUI):
     def __enter__(self):
@@ -592,7 +599,7 @@ class AETemplate(object):
     def nodeName(self):
         return self._nodeName
 
-    @staticmethod
+    @classmethod
     def nodeType(cls):
         if cls._nodeType:
             return cls._nodeType
@@ -601,7 +608,7 @@ class AETemplate(object):
             if m:
                 return m.groups()[0]
             else:
-                raise ValueError, "You must either name your AETemplate subclass of the form 'AE<nodeType>Template' or set the '_nodeType' class attribute"
+                raise ValueError("You must either name your AETemplate subclass of the form 'AE<nodeType>Template' or set the '_nodeType' class attribute")
     @classmethod
     def controlValue(cls, nodeName, control):
         return cmds.editorTemplate(queryControl=(nodeName,control))
@@ -618,8 +625,6 @@ class AETemplate(object):
             sel = cmds.ls(sl=1)
             cmds.select(cl=True)
             cmds.deleteUI(form)
-        aeScript = "AE" + nodeType + "Template.mel"
-        _mm.eval("source \"" + aeScript + "\"")
 
         if exists:
             cmds.select(sel)
@@ -695,7 +700,6 @@ class AETemplate(object):
 dynModule = _util.LazyLoadModule(__name__, globals())
 
 def _createUIClasses():
-
     for funcName in _factories.uiClassList:
         # Create Class
         classname = _util.capitalize(funcName)
@@ -704,6 +708,8 @@ def _createUIClasses():
         except KeyError:
             if classname.endswith('Layout'):
                 bases = (Layout,)
+            elif classname.endswith('Panel'):
+                bases = (Panel,)                
             else:
                 bases = (PyUI,)
             dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}) )

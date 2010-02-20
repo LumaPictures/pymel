@@ -75,6 +75,30 @@ def toPyUI(res):
     if res is not None:
         import pymel.core.uitypes
         return pymel.core.uitypes.PyUI(res)
+    
+def toPyType(moduleName, objectName):
+    """
+    Returns a function which casts it's single argument to
+    an object with the given name in the given module (name).
+    
+    The module / object are given as strings, so that the module
+    may be imported when the function is called, to avoid
+    making factories dependent on, say, pymel.core.general or
+    pymel.core.uitypes
+    """
+    def toGivenClass(res):
+        # Use the 'from moduleName import objectName' form of
+        # __import__, because that guarantees it returns the
+        # 'bottom' module (ie, myPackage.myModule, NOT myPackage),
+        # note that __import__ doesn't actually insert objectName into
+        # the locals... which we don't really want anyway 
+        module = __import__(moduleName, globals(), locals(), [objectName], -1)
+        cls = getattr(module, objectName)
+        if res is not None:
+            return cls(res)
+    toGivenClass.__name__ = 'to%s' % util.capitalize(objectName)
+    toGivenClass.__doc__ = "returns a %s object" % objectName
+    return toGivenClass
 
 def toPyNodeList(res):
     "returns a list of PyNode objects"
@@ -94,6 +118,20 @@ def toPyUIList(res):
     import pymel.core.uitypes
     return [ pymel.core.uitypes.PyUI(x) for x in res ]
 
+def toPyTypeList(moduleName, objectName):
+    """
+    Returns a function which casts the members of it's iterable
+    argument to the given class.
+    """
+    def toGivenClassList(res):
+        module = __import__(moduleName, globals(), locals(), [objectName], -1)
+        cls = getattr(module, objectName)        
+        if res is None:
+            return []
+        return [ cls(x) for x in res ]
+    toGivenClassList.__name__ = 'to%sList' % util.capitalize(objectName)
+    toGivenClassList.__doc__ = "returns a list of %s objects" % objectName
+    return toGivenClassList
 
 class Flag(Condition):
     def __init__(self, longName, shortName, truthValue=True):
@@ -131,11 +169,12 @@ simpleCommandWraps = {
     'listAttr'          : [ (util.listForNone, Always) ],
     'instance'          : [ (toPyNodeList, Always) ],
 
-    'getPanel'          : [ ( toPyUI,
+    'getPanel'          : [ ( toPyType('pymel.core.uitypes', 'Panel'),
                               Flag('containing', 'c', None) |
-                              Flag('underPointer', 'up') |
-                              Flag('withFocus', 'wf')),
-                            ( toPyUIList, ~Flag('typeOf', 'to', None) )
+                                Flag('underPointer', 'up') |
+                                Flag('withFocus', 'wf')),
+                            ( toPyTypeList('pymel.core.uitypes', 'Panel'),
+                              ~Flag('typeOf', 'to', None) )
                           ],
 
     'textScrollList'    : [ ( util.listForNone,
@@ -479,21 +518,31 @@ class CallbackError(RuntimeError):
         import traceback
         self.callback = callback
         self.origException = origException
-        # Should be called withing an except clause, so
+        # Should be called within an except clause, so
         # this will give us what we want
         self.origMsg = traceback.format_exc()
         try:
             callbackStr = " %r" % self.callback
         except Exception:
             callbackStr = ''
-        if hasattr(callback, '__name__'):
-            callbackStr += ' - %s' % callback.__name__
-        if hasattr(callback, '__module__'):
-            callbackStr += ' - module %s' % callback.__module__
-        if hasattr(callback, 'func_code'):
-            callbackStr += ' - %s, line %d' % (callback.func_code.co_filename, callback.func_code.co_firstlineno)
+        if hasattr(callback, 'traceback') and hasattr(callback, 'func'):
+            # callback is a windows.Callback object...
+            func = callback.func
+            callbackTraceback = '\nCallback creation traceback:\n%s' % callback.traceback
+        else:
+            # callback is just a function..
+            func = callback
+            callbackTraceback = ''
+        if hasattr(func, '__name__'):
+            callbackStr += ' - %s' % func.__name__
+        if hasattr(func, '__module__'):
+            callbackStr += ' - module %s' % func.__module__
+        if hasattr(func, 'func_code'):
+            callbackStr += ' - %s, line %d' % (func.func_code.co_filename, func.func_code.co_firstlineno)
+        if callbackTraceback:
+            callbackStr += callbackTraceback
 
-        newmsg = "Error executing callback%s - original message:\n%s\n" % (callbackStr, self.origMsg)
+        newmsg = "Error executing callback%s\n\nOriginal message:\n%s\n" % (callbackStr, self.origMsg)
         super(CallbackError, self).__init__(newmsg)
 
 def fixCallbacks(inFunc, commandFlags, funcName=None ):

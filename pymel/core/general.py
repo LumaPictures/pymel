@@ -13,12 +13,12 @@ import sys, os, re, itertools, inspect
 import pymel.internal.pmcmds as cmds
 import pymel.util as _util
 import pymel.internal.factories as _factories
+import pymel.internal.pwarnings as _warnings
 import pymel.api as _api
 import pymel.versions as _versions
 import datatypes
 import logging
 from maya.cmds import about as _about
-import maya.cmds as _mc
 _logger = logging.getLogger(__name__)
 
 
@@ -141,7 +141,9 @@ Modifications:
 def select(*args, **kwargs):
     """
 Modifications:
-  - passing an empty list no longer causes an error. instead, the selection is cleared
+  - passing an empty list no longer causes an error.
+      instead, the selection is cleared if the selection mod is replace (the default);
+      otherwise, it does nothing
 
     """
 
@@ -149,6 +151,12 @@ Modifications:
         cmds.select(*args, **kwargs)
     except TypeError, msg:
         if args == ([],):
+            for modeFlag in ('add', 'af', 'addFirst',
+                             'r', 'replace', 'd', 'deselect',
+                             'tgl', 'toggle'):
+                if kwargs.get(modeFlag, False):
+                    return
+            # The mode is replace, clear the selection
             cmds.select(cl=True)
         else:
             raise TypeError, msg
@@ -258,6 +266,7 @@ Modifications:
   - casts vectorArrays from a flat array of floats to an array of Vectors
   - when getting a multi-attr, maya would raise an error, but pymel will return a list of values for the multi-attr
   - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
+  - added support for getting message attributes
     """
     def listToMat( l ):
         return datatypes.Matrix(
@@ -310,8 +319,16 @@ Modifications:
             if pyattr.isCompound():
                 return [child.get() for child in pyattr.getChildren() ]
             elif pyattr.isMulti():
-                return [attr[i].get() for i in range(pyattr.size())]
+                if pyattr.type() == 'message':
+                    return pyattr.listConnections()
+                return [pyattr[i].get() for i in range(pyattr.numElements())]
             # re-raise error
+            elif pyattr.type() == 'message':
+                connects = pyattr.listConnections()
+                if connects:
+                    return connects[0]
+                else:
+                    return None
             raise
         except AttributeError:
             if default is not None:
@@ -1032,7 +1049,7 @@ Modifications:
     """
     addShape = kwargs.pop('addShape', False)
     kwargs.pop('rr', None)
-    kwargs['returnRootsOnly'] = bool(_mc.ls(dag=1,*args))
+    kwargs['returnRootsOnly'] = bool(cmds.ls(dag=1,*args))
 
     if not addShape:
         return map(PyNode, cmds.duplicate( *args, **kwargs ) )
@@ -1488,6 +1505,21 @@ class PyNode(_util.ProxyUnicode):
                             #print "PLUG or COMPONENT", res
                             attrNode = PyNode(res[0])
                             argObj = res[1]
+
+                            # There are some names which are both components and
+                            #    attributes: ie, scalePivot / rotatePivot
+                            # toApiObject (and MSelectionList) will return the
+                            #    component in these ambigious cases; therefore,
+                            #    if we're explicitly trying to make an Attribute - ie,
+                            #        Attribute('myCube.scalePivot')
+                            #    ... make sure to cast it to one in these cases
+                            if issubclass(cls, Attribute) and \
+                                    isinstance(argObj, _api.MObject) and \
+                                    _api.MFnComponent().hasObj(argObj) and \
+                                    '.' in name:
+                                attrName = name.split('.', 1)[1]
+                                if attrNode.hasAttr(attrName):
+                                    return attrNode.attr(attrName)
                         # DependNode Plug
                         elif isinstance(res,_api.MPlug):
                             attrNode = PyNode(res.node())
@@ -2434,8 +2466,8 @@ class Attribute(PyNode):
         """
         The number of elements in an array attribute. Raises an error if this is not an array Attribute
 
-        Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
-        value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
+        Be aware that ``getAttr(..., size=1)`` does not always produce the expected value. It is recommend
+        that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
 
             >>> from pymel.core import *
             >>> f=newFile(f=1) #start clean
@@ -2966,6 +2998,7 @@ class Attribute(PyNode):
             pass
     siblings = getSiblings
 
+    @_warnings.deprecated('use Attribute.getParent instead', 'Attribute')
     def firstParent(self):
         "deprecated: use getParent instead"
 

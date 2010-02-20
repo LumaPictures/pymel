@@ -42,6 +42,7 @@ import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.internal.pmcmds as cmds
+import maya.mel as _mel
 
 _logger = _internal.getLogger(__name__)
 
@@ -94,7 +95,20 @@ def feof( fileid ):
 
 @_factories.addMelDocs( 'file', 'sceneName')
 def sceneName():
-    return Path( _OpenMaya.MFileIO.currentFile() )
+    # We don't just use cmds.file(q=1, sceneName=1)
+    # because it was sometimes returning an empty string,
+    # even when there was a valid file
+    name = Path(_OpenMaya.MFileIO.currentFile())
+    if name.basename() == untitledFileName() and \
+            cmds.file(q=1, sceneName=1) == '':
+        return Path()
+    return name
+
+def untitledFileName():
+    """
+    Obtain the base filename used for untitled scenes. In localized environments, this string will contain a translated value.
+    """
+    return _mel.eval('untitledFileName()')
 
 def undoInfo(*args, **kwargs):
     """
@@ -1319,7 +1333,7 @@ class ReferenceEdit(str):
 
 def _correctPath(path):
     # make paths absolute
-    if not os.path.isabs(path) and path != 'untitled':
+    if not os.path.isabs(path) and path != '' and path != untitledFileName():
         path = os.path.normpath(cmds.workspace(q=1,fullName=1) + '/' + path)
     return path
 
@@ -1426,8 +1440,13 @@ def importFile( filepath, **kwargs ):
 
 @_factories.createflag('file', 'newFile')
 def newFile( **kwargs ):
-    res = cmds.file( **kwargs)
-    return res
+    """
+Modifications:
+    - returns empty string, for consistency with sceneName()
+      ...if you wish to know the untitled scenen name, use untitledFileName()
+    """
+    cmds.file( **kwargs)
+    return ''
 
 @_factories.createflag('file', 'open')
 def openFile( filepath, **kwargs ):
@@ -1444,6 +1463,13 @@ def openFile( filepath, **kwargs ):
 @_factories.addMelDocs('file', 'rename')
 def renameFile( *args, **kwargs ):
     return Path(cmds.file(rename=args[0]))
+
+@_factories.addMelDocs('file', 'save')
+def saveFile(**kwargs ):
+    kwargs.pop('s', None)
+    kwargs['save'] = True
+    return Path(cmds.file(**kwargs))
+
 
 def saveAs(newname, **kwargs):
     cmds.file( rename=newname )

@@ -263,7 +263,7 @@ def initAE():
         return
 
     from pymel.core.uitypes import AETemplate
-
+    _logger.debug('Found AETemplates module')
     if hasattr(pkg, '__path__'):
         completed = []
         for pth in pkg.__path__:
@@ -277,7 +277,8 @@ def initAE():
     for name, obj in inspect.getmembers(pkg, lambda x: inspect.isclass(x) and issubclass(x,AETemplate) ):
         try:
             nodeType = obj.nodeType()
-        except:
+        except ValueError:
+            _logger.debug("could not determine node type for " + name)
             continue
         else:
             _makeAEProc( 'AETemplates', name, 'AE'+nodeType+'Template')

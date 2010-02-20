@@ -1,5 +1,5 @@
 """
-To use python attribute editor templates, first create a python package or maodule named
+To use python attribute editor templates, first create a python package or module named
 'AETemplates'. 
 
 When a attribute editor template is requested by Maya, pymel will look for an `uitypes.AETemplate` subclass to 
@@ -7,7 +7,7 @@ create the layout for the desired node type. Here's what it looks for to find a 
   1. a `uitypes.AETemplate` subclass whose name matches the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate )
   2. if ``AETemplates`` is a package with sub-modules, it will look for a sub-module with a name that 
       matches the convention: ``AE<nodeType>Template`` that contains a `uitypes.AETemplate` class of the same name ( ex. AETemplates.AElambertTemplate.AElambertTemplate )
-  3. any `uitypes.AETemplate` subclass which has its _nodeName class attribute set to the name the desired node type.
+  3. any `uitypes.AETemplate` subclass which has its _nodeName class attribute set to the name of the desired node type.
   
 The example below demonstrates the simplest case, which is the first. It provides a layout for the mib_amb_occlusion mental ray shader.
 """
