@@ -1,4 +1,4 @@
-import os, sys, re
+import os, sys, re, platform
 import versions
 import internal as _internal
 _logger = _internal.getLogger(__name__)
@@ -76,6 +76,50 @@ def getMayaLocation(version=None):
 
     return loc
 
+def getMayaAppDir(versioned=False):
+    """
+    Determine the Maya application directory, first by checking MAYA_APP_DIR, then by
+    trying OS-specific defaults.
+    
+    if versioned is True, the current Maya version including '-x64' suffix, if applicable, will be appended.
+    """ 
+    appDir = os.environ.get('MAYA_APP_DIR',None)
+    if appDir is None :
+        if os.name == 'nt':
+            appDir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
+            if appDir is None:
+                return
+
+            # Vista or newer... version() returns "6.x.x"
+            if int(platform.version().split('.')[0]) > 5:
+                appDir = os.path.join( appDir, 'Documents')
+            else:
+                appDir = os.path.join( appDir, 'My Documents')
+        else:
+            appDir = os.environ.get('HOME',None)
+            if appDir is None:
+                return
+
+        if platform.system() == 'Darwin':
+            appDir = os.path.join( appDir, 'Library/Preferences/Autodesk/maya' )
+        else:
+            appDir = os.path.join( appDir, 'maya' )
+    
+    if versioned and appDir:
+        appDir = os.path.join(appDir, versions.installName())
+    
+    return appDir
+
+def getUserPrefsDir():
+    appDir = getMayaAppDir(versioned=True)
+    if appDir:
+        return os.path.join(appDir, 'prefs')
+
+def getUserScriptsDir():
+    appDir = getMayaAppDir(versioned=True)
+    if appDir:
+        return os.path.join(appDir, 'scripts')
+    
 def executeDeferred(func):
     """
     This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this

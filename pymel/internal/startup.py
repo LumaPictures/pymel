@@ -3,14 +3,15 @@ Maya-related functions, which are useful to both `api` and `core`, including `ma
 that maya is initialized in standalone mode.
 """
 from __future__ import with_statement
-import re, os.path, sys, platform, glob, inspect
+import os.path, sys, glob, inspect
 import maya
 import maya.OpenMaya as om
 import maya.utils
 
 from pymel.util import picklezip, shellOutput
 import pymel.versions as versions
-from pymel.versions import parseVersionStr, shortName, installName
+from pymel.mayautils import getUserPrefsDir
+from pymel.versions import shortName, installName
 import plogging
 
 _logger = plogging.getLogger(__name__)
@@ -67,33 +68,6 @@ def refreshEnviron():
             var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
             if not var.startswith('_') and var not in exclude:
                     os.environ[var] = val
-
-
-
-def getMayaAppDir():
-    app_dir = os.environ.get('MAYA_APP_DIR',None)
-    if app_dir is None :
-        if os.name == 'nt':
-            app_dir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
-            if app_dir is None:
-                return
-
-            # Vista or newer... version() returns "6.x.x"
-            if int(platform.version().split('.')[0]) > 5:
-                app_dir = os.path.join( app_dir, 'Documents')
-            else:
-                app_dir = os.path.join( app_dir, 'My Documents')
-        else:
-            app_dir = os.environ.get('HOME',None)
-            if app_dir is None:
-                return
-
-        if platform.system() == 'Darwin':
-            app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )
-        else:
-            app_dir = os.path.join( app_dir, 'maya' )
-
-    return app_dir
 
 def setupFormatting():
     import pprint
@@ -203,15 +177,11 @@ def initMEL():
 
     _logger.debug( "initMEL" )
     mayaVersion = versions.installName()
-    appDir = getMayaAppDir()
-    if appDir is None:
+    prefsDir = getUserPrefsDir()
+    if prefsDir is None:
         _logger.error( "could not initialize user preferences: MAYA_APP_DIR not set" )
-        prefsDir = None
-    else:
-        prefsDir = os.path.realpath(os.path.join( appDir, mayaVersion, 'prefs' ))
-        if not os.path.isdir(prefsDir):
-            prefsDir = None
-            _logger.error( "could not initialize user preferences: %s does not exist" % prefsDir  )
+    elif not os.path.isdir(prefsDir):
+        _logger.error( "could not initialize user preferences: %s does not exist" % prefsDir  )
 
     # TODO : use cmds.internalVar to get paths
     # got this startup sequence from autodesk support
