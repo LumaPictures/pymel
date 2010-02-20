@@ -8,7 +8,7 @@ Class for storing apiVersions, which are the best method for comparing versions.
     The current version is later than Maya 2008
 """
 
-import re, platform
+import re, struct
 from maya.OpenMaya import MGlobal  as _MGlobal
 
 def parseVersionStr(versionStr, extension=False):
@@ -44,7 +44,17 @@ def parseVersionStr(versionStr, extension=False):
         version += "-"+ma.group('ext')
     return version
 
-_is64 = platform.architecture()[0] == '64bit'
+def bitness():
+    """
+    The bitness of python running inside Maya as an int.
+    
+    note that platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
+    even when Maya is running in 32-bit mode. The struct technique
+    is more reliable.
+    """
+    return struct.calcsize("P") * 8
+
+_is64 = bitness() == 64
 _current = _MGlobal.apiVersion()
 _fullName = _MGlobal.mayaVersion()
 _shortName = parseVersionStr(_fullName, extension=False)
