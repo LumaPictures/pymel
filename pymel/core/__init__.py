@@ -1,15 +1,14 @@
 "The primary module for maya commands and node classes"
 
-#import pymel._internal as _internal
-
 import sys
 import pymel as _pymel
 _pymel.core = sys.modules[__name__]
 import pymel.versions as _versions
+import pymel.internal.startup as _startup
 import pymel.internal as _internal
 
 # will check for the presence of an initilized Maya / launch it
-_internal.mayaInit()
+_startup.mayaInit()
 
 import pymel.internal.factories as _factories
 import pymel.internal.pmcmds as _pmcmds
@@ -38,7 +37,7 @@ import uitypes as ui
 import runtime
 
 # initialize MEL
-_internal.finalize()
+_startup.finalize()
 
 import maya.cmds as cmds
 

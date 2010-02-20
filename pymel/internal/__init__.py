@@ -2,7 +2,6 @@
 and are able to be defined before maya.standalone is initialized.
 """
 from plogging import getLogger
-from startup import *
 #from envparse import *
 #from version import *
 #assert mayaInit()
