@@ -26,7 +26,7 @@ except:
 isInitializing = False
 # Setting this to False will make finalize() do nothing
 finalizeEnabled = True
-_finalizeFinished = False
+_finalizeCalled = False
 
 # tells whether this maya package has been modified to work with pymel
 pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
@@ -141,7 +141,7 @@ def mayaInit(forversion=None) :
         # if this succeeded, we're initialized
         isInitializing = False
         return False
-    except:
+    except ImportError:
         pass
 
     # for use with pymel compatible maya package
@@ -285,9 +285,12 @@ def initAE():
 
 def finalize():
     global finalizeEnabled
-    global _finalizeFinished
-    if not finalizeEnabled or _finalizeFinished:
+    global _finalizeCalled
+    if not finalizeEnabled or _finalizeCalled:
         return
+    # Set this to true HERE, as in running userSetup.py,
+    # we could end up in here again, inside the initial finalize...
+    _finalizeCalled = True
     state = om.MGlobal.mayaState()
     if state == om.MGlobal.kLibraryApp: # mayapy only
         global isInitializing
@@ -301,7 +304,6 @@ def finalize():
         initMEL()
     elif state == om.MGlobal.kInteractive:
         initAE()
-    _finalizeFinished = True
 
 # Fix for non US encodings in Maya
 def encodeFix():
