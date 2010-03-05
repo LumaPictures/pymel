@@ -528,7 +528,7 @@ class CallbackError(RuntimeError):
         if hasattr(callback, 'traceback') and hasattr(callback, 'func'):
             # callback is a windows.Callback object...
             func = callback.func
-            callbackTraceback = '\nCallback creation traceback:\n%s' % callback.traceback
+            callbackTraceback = ('\nCallback creation traceback:\n%s' % ''.join(callback.traceback))
         else:
             # callback is just a function..
             func = callback
