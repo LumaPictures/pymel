@@ -1218,7 +1218,6 @@ class Array(object):
         """ Checks provided shape and size vs class shape, dim and size,
             returns provided shape, dim and size if valid or
             class's default shape, dim, size tuple if they exist and none are provided """
-
         # check if class has fixed shape or dimensions
         cls_shape = cls_ndim = cls_size = None
         try :
@@ -1580,9 +1579,6 @@ class Array(object):
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
 
-        # for new default size to 0 if not specified or class constant
-        if size is None and not shape :
-            size = 0
         shape, ndim, size = cls._expandshape(shape, ndim, size)
 
         # default value is set here (0 or [] for Arrays)
