@@ -1579,10 +1579,14 @@ class Array(object):
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
 
+        cls_size = getattr(cls, 'size', None)
         # for new default size to 0 if not specified or class constant
-        if size is None and not shape and not hasattr(cls, 'size'):
+        if size is None and not shape and (not cls_size or
+                                           inspect.ismethod(cls_size) or
+                                           inspect.isdatadescriptor(cls_size)):
             size = 0
 
+        
         shape, ndim, size = cls._expandshape(shape, ndim, size)
 
         # default value is set here (0 or [] for Arrays)
