@@ -682,13 +682,26 @@ Modifications:
         the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
         this puts the pairs in the order that disconnectAttr and connectAttr expect.
   - added ability to pass a list of types
+  - if we have a connection such as:
+         mySphereShape.attr1 => myCubeShape.attr2
+    then maya.cmds.listConnections, with plugs=False, will return myCubeTransform as the destination
+    for mySphereShape.attr1, NOT myCubeShape.  (With plugs=True, it returns myCubeShape.attr2 as
+    expected).  This version will return myCubeShape, even if plugs=False, as would be expected...
 
     :rtype: `PyNode` list
     """
+    # store the original value for plugs, then force it to True,
+    # so we don't get the transform returned when connecting to a shape...
+    plugs = kwargs.pop('plugs', kwargs.pop('p', False)) 
+    kwargs['plugs'] = True
+    
     def makePairs(l):
         if l is None:
             return []
-        return [(PyNode(a), PyNode(b)) for (a, b) in _util.pairIter(l)]
+        if plugs:
+            return [(PyNode(a), PyNode(b)) for (a, b) in _util.pairIter(l)]
+        else:
+            return [(PyNode(a).node(), PyNode(b).node()) for (a, b) in _util.pairIter(l)]
 
     # group the core functionality into a funcion, so we can call in a loop when passed a list of types
     def doIt(**kwargs):
@@ -717,7 +730,10 @@ Modifications:
             return makePairs( cmds.listConnections( *args,  **kwargs ) )
 
         else:
-            return map(PyNode, _util.listForNone(cmds.listConnections( *args,  **kwargs )) )
+            result = map(PyNode, _util.listForNone(cmds.listConnections( *args,  **kwargs )) )
+            if not plugs:
+                result = [x.node() for x in result]
+            return result
 
     # if passed a list of types, concatenate the resutls
     # NOTE: there may be duplicate results if a leaf type and it's parent are both passed: ex.  animCurve and animCurveTL
