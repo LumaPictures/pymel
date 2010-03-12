@@ -77,34 +77,34 @@ class DependNode( general.PyNode ):
             except general.MayaObjectError:
                 _logger.warn( "object %s no longer exists" % self._name )
         return self._name
-#
-#    def shortName(self):
-#        """
-#        This produces the same results as `DependNode.name` and is included to simplify looping over lists
-#        of nodes that include both Dag and Depend nodes.
-#
-#        :rtype: `unicode`
-#        """
-#        return self.name()
-#
-#    def longName(self):
-#        """
-#        This produces the same results as `DependNode.name` and is included to simplify looping over lists
-#        of nodes that include both Dag and Depend nodes.
-#
-#        :rtype: `unicode`
-#        """
-#        return self.name()
-#
-#    def nodeName(self):
-#        """
-#        This produces the same results as `DependNode.name` and is included to simplify looping over lists
-#        of nodes that include both Dag and Depend nodes.
-#
-#        :rtype: `unicode`
-#        """
-#        return self.name()
-#
+
+    def shortName(self):
+        """
+        This produces the same results as `DependNode.name` and is included to simplify looping over lists
+        of nodes that include both Dag and Depend nodes.
+
+        :rtype: `unicode`
+        """
+        return self.name()
+
+    def longName(self):
+        """
+        This produces the same results as `DependNode.name` and is included to simplify looping over lists
+        of nodes that include both Dag and Depend nodes.
+
+        :rtype: `unicode`
+        """
+        return self.name()
+
+    def nodeName(self):
+        """
+        This produces the same results as `DependNode.name` and is included to simplify looping over lists
+        of nodes that include both Dag and Depend nodes.
+
+        :rtype: `unicode`
+        """
+        return self.name()
+
     #rename = rename
     def rename( self, name ):
         """
