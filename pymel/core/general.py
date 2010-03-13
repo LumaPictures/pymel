@@ -576,6 +576,18 @@ Modifications:
             bool        bool
             Vector      double3
   - when querying dataType, the dataType is no longer returned as a list
+  - when editing hasMinValue, hasMaxValue, hasSoftMinValue, or hasSoftMaxValue the passed boolean value was ignored
+    and the command instead behaved as a toggle.  The behavior is now more intuitive::
+        >>> addAttr('persp', ln=='test', at='double', k=1)
+        >>> addAttr('persp.test', query=1, hasMaxValue=True)
+        False
+        >>> addAttr('persp.test', edit=1, hasMaxValue=False)
+        >>> addAttr('persp.test', query=1, hasMaxValue=True)
+        False
+        >>> addAttr('persp.test', edit=1, hasMaxValue=True)
+        >>> addAttr('persp.test', query=1, hasMaxValue=True)
+        True
+
     """
     at = kwargs.pop('attributeType', kwargs.pop('at', None ))
     if at is not None:
@@ -591,6 +603,17 @@ Modifications:
         except KeyError:
             kwargs['at'] = at
 
+    if kwargs.get( 'e', kwargs.get('edit',False) ):
+            for editArg, value in kwargs.iteritems():
+                if editArg not in ('e', 'edit') and value:
+                    break
+            if editArg in ('hasMinValue', 'hnv', 'hasMaxValue', 'hxv', 'hasSoftMinValue', 'hsn', 'hasSoftMaxValue', 'hsx'):
+                # bugfix: hasM*Value works as a toggle, regardless of whether you specify True or False
+                if bool(value) != bool(cmds.addAttr(*args, **{'query':True, editArg:True})):
+                    return cmds.addAttr(*args, **kwargs)
+                else:
+                    # otherwise, don't do anything, bc the value is already correct
+                    return
     # MObject stringify Fix
     #args = map(unicode, args)
     res = cmds.addAttr( *args, **kwargs )
@@ -612,7 +635,7 @@ Modifications:
             if isinstance(node, Attribute):
                 node = node.node()
             res = node.attr(res)
-
+                
 #    else:
 #        # attempt to gather Attributes we just made
 #        # this is slightly problematic because compound attributes are invalid
@@ -2943,14 +2966,14 @@ class Attribute(PyNode):
             pass
         elif newMin is None:
             if limitType == 'hard':
-                cmds.addAttr(self, edit=1, hasMinValue=False)
+                addAttr(self, edit=1, hasMinValue=False)
             else:
-                cmds.addAttr(self, edit=1, hasSoftMinValue=False)
+                addAttr(self, edit=1, hasSoftMinValue=False)
         else:
             if limitType == 'hard':
-                cmds.addAttr(self, edit=1, minValue=newMin)
+                addAttr(self, edit=1, minValue=newMin)
             else:
-                cmds.addAttr(self, edit=1, softMinValue=newMin)
+                addAttr(self, edit=1, softMinValue=newMin)
 
 
         # MAX
@@ -2959,14 +2982,14 @@ class Attribute(PyNode):
             pass
         elif newMax is None:
             if limitType == 'hard':
-                cmds.addAttr(self, edit=1, hasMaxValue=False)
+                addAttr(self, edit=1, hasMaxValue=False)
             else:
-                cmds.addAttr(self, edit=1, hasSoftMaxValue=False)
+                addAttr(self, edit=1, hasSoftMaxValue=False)
         else:
             if limitType == 'hard':
-                cmds.addAttr(self, edit=1, maxValue=newMax)
+                addAttr(self, edit=1, maxValue=newMax)
             else:
-                cmds.addAttr(self, edit=1, softMaxValue=newMax)
+                addAttr(self, edit=1, softMaxValue=newMax)
 
 
 #        # set the value to be what it used to be
