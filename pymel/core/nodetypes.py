@@ -2345,7 +2345,8 @@ class SelectionSet( _api.MSelectionList):
         # Go from most specific to least - plug, dagPath, dependNode
         try:
             self.apicls.getPlug( self, index, plug )
-        except RuntimeError:
+            assert not plug.isNull()
+        except (RuntimeError, AssertionError):
             try:
                 self.apicls.getDagPath( self, index, dag, comp )
             except RuntimeError:
