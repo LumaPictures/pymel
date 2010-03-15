@@ -615,11 +615,13 @@ def LazyLoadModule(name, contents):
                 # than one object, cache the created object so the exact
                 # same one will be returned
                 if not hasattr(self, 'newobj'):
+                    # use the callback to create the object that will replace us
                     self.newobj = self.creator(*self.args, **self.kwargs)
                     if isinstance(obj, types.ModuleType) and hasattr(self.newobj, '__module__'):
                         self.newobj.__module__ = obj.__name__
                 #print "Lazy-loaded object:", self.name
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
+                # overwrite ourselves with the newly created object
                 setattr( obj, self.name, self.newobj)
                 return self.newobj
 

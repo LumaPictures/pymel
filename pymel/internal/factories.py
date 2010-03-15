@@ -2781,7 +2781,7 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
 #
 #
 def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName):
-    #_logger.info( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
+    #_logger.debug( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
     try:
         ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
     except AttributeError:
@@ -2844,8 +2844,10 @@ def removePyNode( dynModule, mayaType ):
     PyNodeType = pyNodeNamesToPyNodes.pop( pyNodeTypeName, None )
     PyNodeParentType = pyNodeTypesHierarchy.pop( PyNodeType, None )
     pyNodesToMayaTypes.pop(PyNodeType,None)
+    #_logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
     dynModule.__dict__.pop(pyNodeTypeName,None)
-    dynModule.__class__.__dict__.pop(pyNodeTypeName,None)
+    # delete the lazy loader too, so it does not regenerate the object
+    delattr(dynModule.__class__,pyNodeTypeName)
     apicache.removeMayaType( mayaType )
 
 def registerVirtualClass( cls, nameRequired=False ):

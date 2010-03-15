@@ -530,6 +530,9 @@ class FileInfo( object ):
 
     def __setitem__(self, item, value):
         cmds.fileInfo( item, value )
+        
+    def __delitem__(self, item):
+        cmds.fileInfo( remove=item )
 
     def __call__(self, *args, **kwargs):
         if kwargs.get('query', kwargs.get('q', False) ):

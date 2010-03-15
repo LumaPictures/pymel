@@ -499,7 +499,6 @@ class ApiCache(object):
             - apiCache.apiEnumsToMayaTypes
         """
 
-
         if apiType is not 'kInvalid' :
 
             apiEnum = getattr( api.MFn, apiType )
@@ -545,11 +544,14 @@ class ApiCache(object):
             apiType = self.mayaTypesToApiTypes.pop( mayaType, None )
         except KeyError: pass
         else:
-            types = self.apiTypesToMayaTypes[apiType]
-            types.pop( mayaType, None )
-            if not types:
-                self.apiTypesToMayaTypes.pop(apiType)
-                self.apiTypesToApiEnums.pop(apiType)
+            # due to lazy loading we are not guaranteed to have an entry
+            if apiType in self.apiTypesToMayaTypes:
+                types = self.apiTypesToMayaTypes[apiType]
+                _logger.debug('removeMayaType %s: %s' % (mayaType, types))
+                types.pop( mayaType, None )
+                if not types:
+                    self.apiTypesToMayaTypes.pop(apiType)
+                    self.apiTypesToApiEnums.pop(apiType)
 
     def build(self, rebuildAllButClassInfo=False):
         """

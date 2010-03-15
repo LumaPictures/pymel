@@ -1,6 +1,6 @@
 import sys, os, inspect, unittest
 #from testingutils import setupUnittestModule
-from pymel.all import *
+from pymel.core import *
 import pymel.core.nodetypes as nodetypes
 #import pymel
 import pymel.internal.factories as _factories
@@ -841,7 +841,24 @@ class test_commands(unittest.TestCase):
         # ensure it works with depend nodes too
         self.assert_( duplicate(self.dependNode) )
         
-           
+class test_plugins(unittest.TestCase):
+    def test01_load(self):
+        loadPlugin('Fur')
+        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__dict__ )
+        # lazer loader exists
+        self.assert_( 'FurGlobals' in pymel.core.nodetypes.__class__.__dict__ )
+        # after accessing, the lazy loader should generate the class
+        pymel.core.nodetypes.FurGlobals
+        self.assert_( 'FurGlobals' in pymel.core.nodetypes.__dict__ )
+        
+    def test1_unload(self):
+        unloadPlugin('Fur')
+        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__dict__ )
+        # after accessing, the lazy loader should generate the class
+        self.assertRaises(AttributeError, getattr, pymel.core.nodetypes, 'FurGlobals')
+        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__dict__ )
+        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__class__.__dict__ )
+        
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
