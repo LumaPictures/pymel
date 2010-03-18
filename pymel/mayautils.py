@@ -149,7 +149,7 @@ def executeDeferred(func):
     else:
         func()
 
-def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn'):
+def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn', prepend=False):
     """
     Given a path or list of paths, recurses through directories appending to the MAYA_SCRIPT_PATH
     environment variable
@@ -202,16 +202,20 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
             for f in root.walkdirs( errors=errors, regex=includeRegex ):
                 try:
                     if len(f.files("*.mel")):
+                        f = str(f)
                         if f not in varList:
-                            _logger.debug("Appending script path directory %s" % f)
-                            varList.append( str(f) )
+                            if prepend:
+                                _logger.debug("Prepending script path directory %s" % f)
+                                varList.insert(0, f)
+                            else:
+                                _logger.debug("Appending script path directory %s" % f)
+                                varList.append(f)
 
                 except OSError: pass
 
-    if varList > rootVars:
+    if len(varList) > len(rootVars):
         os.environ["MAYA_SCRIPT_PATH"] = os.path.pathsep.join( varList )
         _logger.info("Added %d directories to Maya script path" % (len(varList) - len(rootVars)) )
-
     else:
         _logger.info("Maya script path recursion did not find any paths to add")
 
