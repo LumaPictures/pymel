@@ -574,23 +574,72 @@ class UITemplate(object):
     def exists(name):
         return cmds.uiTemplate( name, exists=True )
 
+class AELoader(type):
+    _loaded = []
+    def __new__(cls, classname, bases, classdict):
+        newcls = super(AELoader, cls).__new__(cls, classname, bases, classdict)
+        try:
+             nodeType = newcls.nodeType()
+        except ValueError:
+             _logger.debug("could not determine node type for " + classname)
+        else:
+             modname = classdict['__module__']
+             template = 'AE'+nodeType+'Template'
+             cls.makeAEProc(modname, classname, template)
+             if template not in cls._loaded:
+                 cls._loaded.append(template)
+        return newcls
+    
+    @staticmethod
+    def makeAEProc(modname, classname, procname):
+        _logger.info("making AE loader procedure: %s" % procname)
+        contents = '''global proc %(procname)s( string $nodeName ){
+        python("import %(__name__)s;%(__name__)s.AELoader.load('%(modname)s','%(classname)s','" + $nodeName + "')");}'''
+        d = locals().copy()
+        d['__name__'] = __name__
+        import maya.mel as mm
+        mm.eval( contents % d )
+
+    @staticmethod
+    def load(modname, classname, nodename):
+        mod = __import__(modname, globals(), locals(), [classname], -1)
+        try:
+            cls = getattr(mod,classname)
+            cls(nodename)
+        except Exception:
+            print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
+            import traceback
+            traceback.print_exc()
+
+    @classmethod
+    def loadedTemplates(cls):
+        "Return the names of the loaded templates"
+        return cls._loaded
+    
 class AETemplate(object):
     """
-    To use python attribute editor templates, first create a python package named
-    'AETemplates'. To do this:
-      1. create a directory 'AETemplates'
-      2. inside, create an empty file '__init__.py'
-      3. ensure that the directory above 'AETemplates' is on the ``PYTHONPATH``
+    To create an Attribute Editor template using python, do the following:
+     	1. create a subclass of `uitypes.AETemplate`
+    	2. set its ``_nodeType`` class attribute to the name of the desired node type, or name the class using the
+    convention ``AE<nodeType>Template``
+    	3. import the module
 
-    Python `AETemplate` sub-classes will be found and paired with node types if they match one of the
-    three following conventions:
-      1. there is a sub-module of ``AETemplates`` which contains a class with the same name, both of which match
-        the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate.AElambertTemplate )
-      2. the ``AETemplates`` module contains an `AETemplate` subclass whose name matches the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate )
-      3. the ``AETemplates`` module contains an `AETemplate` subclass which has its _nodeName class attribute set to the name of a valid node type.
+    Be sure to import the module before opening the Atrribute Editor for the node types in question.  
+
+    As a convenience, PyMEL will automatically import the module ``AETemplates``, if it exists.  If ``AETemplates``
+    is a package, it will also import its sub-packages.
+
+    To check which templates are loaded using python::
+
+    	from pymel.core.uitypes import AELoader
+    	AELoader.loadedTemplates()
+
+    The example below demonstrates the simplest case, which is the first. It provides a layout for the mib_amb_occlusion 
+    mental ray shader.
     """
 
-
+    __metaclass__ = AELoader
+    
     _nodeType = None
     def __init__(self, nodeName):
         self._nodeName = nodeName
@@ -604,7 +653,7 @@ class AETemplate(object):
         if cls._nodeType:
             return cls._nodeType
         else:
-            m = re.match('AE(.*)Template$', cls.__name__)
+            m = re.match('AE(.+)Template$', cls.__name__)
             if m:
                 return m.groups()[0]
             else:
@@ -617,6 +666,7 @@ class AETemplate(object):
         return cmds.editorTemplate(queryLabel=(nodeName,control))
     @classmethod
     def reload(cls):
+        "Reload the template. Beware, this reloads the module in which the template exists!"
         nodeType = cls.nodeType()
         form = "AttrEd" + nodeType + "FormLayout"
         exists = cmds.control(form, exists=1) and cmds.formLayout(form, q=1, ca=1)
