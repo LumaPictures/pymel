@@ -1812,7 +1812,7 @@ class PyNode(_util.ProxyUnicode):
     # Name Info and Manipulation
     #-----------------------------------------
 
-    def stripNamespace(self, levels=0):
+    def stripNamespace(self, *args, **kwargs):
         """
         Returns the object's name with its namespace removed.  The calling instance is unaffected.
         The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
@@ -1821,18 +1821,7 @@ class PyNode(_util.ProxyUnicode):
         :rtype: `other.NameParser`
 
         """
-        import other
-        nodes = []
-        for x in self.split('|'):
-            y = x.split('.')
-            z = y[0].split(':')
-            if levels:
-                y[0] = ':'.join( z[min(len(z)-1,levels):] )
-
-            else:
-                y[0] = z[-1]
-            nodes.append( '.'.join( y ) )
-        return other.NameParser( '|'.join( nodes) )
+        return other.NameParser(self).stripNamespace(*args, **kwargs)
 
     def swapNamespace(self, prefix):
         """Returns the object's name with its current namespace replaced with the provided one.
