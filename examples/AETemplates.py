@@ -5,12 +5,17 @@ To create an Attribute Editor template using python, do the following:
 convention ``AE<nodeType>Template``
 	3. import the module
 
-Be sure to import the module before opening the Atrribute Editor for the node types in question.  
+AETemplates which do not meet one of the two requirements listed in step 2 will be ignored.  To ensure that your
+Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
 
-As a convenience, PyMEL will automatically import the module ``AETemplates``, if it exists.  If ``AETemplates``
-is a package, it will also import its sub-packages.
+    import AETemplates
+    AETemplates.AEmib_amb_occlusionTemplate.nodeType()  
 
-To check which templates are loaded using python::
+As a convenience, when pymel is imported it will automatically import the module ``AETemplates``, if it exists,
+thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel 
+or modules containing your ``AETemplate`` classes before opening the Atrribute Editor for the node types in question.
+
+To check which python templates are loaded::
 
 	from pymel.core.uitypes import AELoader
 	print AELoader.loadedTemplates()
