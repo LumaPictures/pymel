@@ -232,7 +232,6 @@ def py2melProc( function, returnType=None, procName=None, evaluateInputs=True, a
                                                             ','.join(melCompile) )
     _functionStore[repr(function)] = function
 
-    print procDef
     _mm.eval( procDef )
     return procName
 #--------------------------------------------------------
