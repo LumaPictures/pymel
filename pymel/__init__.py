@@ -23,11 +23,11 @@ Attitude Studio, and ImageMovers Digital.
 """
 
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 
 import sys
-assert sys.version_info > (2,5), "pymel versions 1.0 is compatible with Maya2008/python2.5 or later"
+assert sys.version_info > (2,5), "pymel version 1.0 is compatible with Maya2008/python2.5 or later"
 
 #import internal.plogging as plogging
 
