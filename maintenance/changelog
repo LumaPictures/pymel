@@ -1,1 +1,3 @@
-git log --reverse --pretty=format:%s $1..$2 > CHANGELOG
+#!/bin/bash
+echo "adding changes from $1 to $2 to CHANGELOG"
+git log --reverse --pretty=format:%s $1..$2 >> CHANGELOG
