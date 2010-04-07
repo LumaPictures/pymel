@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# maintenance/release
-cd `dirname $0`
+cd `dirname $0` 
+mtnc=`pwd` 
+# pwd is now maintenance
 if [ -d release ];
 then
 	echo ""
@@ -9,7 +10,30 @@ else
 	mkdir release
 fi
 
-cd release
+
+# run in root of pymel dev
+cd ../ && mayapy -c "import pymel;import re;print 'current version is', pymel.__version__;assert pymel.__version__ == re.split('[a-z]','$1')[0]"
+if [ $? -gt 0 ]; then
+	echo "ERROR: current pymel version is not $1"
+	exit 1
+fi
+
+cd $mtnc
+
+echo "checking completion stubs"
+cd ../extras/completion/py && python -c "import pymel;assert pymel.__version__ == None"
+if [ $? -gt 0 ]; then
+	echo "ERROR: python completion stubs are not working"
+	exit 1
+fi
+
+#if [ ! -d ../extras/completion/pi ]; then
+#	echo "ERROR: wing completion stubs do not exist"
+#fi
+
+exit
+
+cd cd $mtnc/release
 
 VER=$1
 RELEASE=pymel-$1
