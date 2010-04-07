@@ -8,7 +8,7 @@ import maya
 import maya.OpenMaya as om
 import maya.utils
 
-from pymel.util import picklezip, shellOutput, subpackages
+from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron
 import pymel.versions as versions
 from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName
@@ -46,28 +46,6 @@ def mayaStartupHasRun():
     Returns True if maya.app.startup has run, False otherwise.
     """
     return 'maya.app.startup.gui' in sys.modules or 'maya.app.startup.batch' in sys.modules
-
-def refreshEnviron():
-    """
-    copy the shell environment into python's environment, as stored in os.environ
-    """
-    exclude = ['SHLVL']
-
-    if os.name == 'posix':
-        cmd = '/usr/bin/env'
-    else:
-        cmd = 'set'
-
-    cmdOutput = shellOutput(cmd)
-    #print "ENV", cmdOutput
-    # use splitlines rather than split('\n') for better handling of different
-    # newline characters on various os's
-    for line in cmdOutput.splitlines():
-        # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
-        if '=' in line:
-            var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
-            if not var.startswith('_') and var not in exclude:
-                    os.environ[var] = val
 
 def setupFormatting():
     import pprint

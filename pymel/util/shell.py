@@ -1,7 +1,7 @@
 import os, subprocess
 from arguments import isIterable as _isIterable
 
-__all__ = [ 'appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv', 'executableOutput', 'shellOutput' ]
+__all__ = [ 'appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv', 'refreshEnviron', 'executableOutput', 'shellOutput' ]
 
 # TODO : expand environment variables when testing if it already exists in the list
 def appendEnv( env, value ):
@@ -61,7 +61,27 @@ def putEnv( env, value ):
         value = os.path.pathsep.join(value)
     os.environ[env] = value
 
+def refreshEnviron():
+    """
+    copy the shell environment into python's environment, as stored in os.environ
+    """
+    exclude = ['SHLVL']
 
+    if os.name == 'posix':
+        cmd = '/usr/bin/env'
+    else:
+        cmd = 'set'
+
+    cmdOutput = shellOutput(cmd)
+    #print "ENV", cmdOutput
+    # use splitlines rather than split('\n') for better handling of different
+    # newline characters on various os's
+    for line in cmdOutput.splitlines():
+        # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
+        if '=' in line:
+            var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
+            if not var.startswith('_') and var not in exclude:
+                    os.environ[var] = val
 
 def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True, **kwargs):
     """Will return the text output of running the given executable with the given arguments.
