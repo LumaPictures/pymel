@@ -31,8 +31,6 @@ fi
 #	echo "ERROR: wing completion stubs do not exist"
 #fi
 
-exit
-
 cd cd $mtnc/release
 
 VER=$1
