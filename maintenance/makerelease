@@ -31,7 +31,7 @@ fi
 #	echo "ERROR: wing completion stubs do not exist"
 #fi
 
-cd cd $mtnc/release
+cd $mtnc/release
 
 VER=$1
 RELEASE=pymel-$1
