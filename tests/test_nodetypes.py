@@ -99,7 +99,12 @@ class testCase_attribs(unittest.TestCase):
     def test_comparisonOtherObject(self):
         self.assertNotEqual(self.newAttrs['compound'], self.sphere1)
 
-     
+    def test_add_delete(self):
+        PyNode('persp').addAttr('foo')
+        self.assert_( PyNode('persp').hasAttr('foo') )
+        PyNode('persp').deleteAttr('foo')
+        self.assert_(  not PyNode('persp').hasAttr('foo') )
+
 def testInvertibles():
     classList = getFundamentalTypes()
     for pynodeName in classList:

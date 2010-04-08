@@ -22,7 +22,8 @@ added core.system.saveFile()
 added pymel.versions.is64bit()
 added new directory helpers to mayautils: getMayaAppDir(), getUserPrefsDir(), and getUserScriptsDir()
 added DependNode.longName(), DependNode.shortName(), and DependNode.nodeName() for easy looping through mixed lists of DependNodes and DagNodes
-added FileInfo.__delitem__ 
+added FileInfo.__delitem__()
+added DependNode.deleteAttr()
 
 ----------------------------------
 Bugfixes
