@@ -53,26 +53,27 @@ Non-Backward Compatible Changes
 
 - pymel no longer has 'everything' in namespace - use ``pymel.all`` for this
 - ``pymel.core.nodetypes`` now moved to it's own namespace
-- ``pymel.mayahook.Version`` functionality moved to ``pymel.versions`` module
-    - to compare versions, instead of Version class, use, for example, ``pymel.versions.current()`` >= ``pymel.versions.v2008``
-    - ``pymel.mayahook.mayautils.getMayaVersion()`` / ``getMayaVersion(extension=True)`` replaced with ``pymel.versions.installName()``
-    - ``pymel.mayahook.mayautils.getMayaVersion(extension=True)`` replaced with ``pymel.versions.shortName()``
+- ``pymel.mayahook.Version`` functionality moved to ``pymel.versions`` module. to compare versions, instead of Version class, use, for example, ``pymel.versions.current()`` >= ``pymel.versions.v2008``
+- ``pymel.mayahook.mayautils.getMayaVersion()`` / ``getMayaVersion(extension=True)`` replaced with ``pymel.versions.installName()``
+- ``pymel.mayahook.mayautils.getMayaVersion(extension=True)`` replaced with ``pymel.versions.shortName()``
 - removed 0_7_compatibility_mode
-- removed deprecated methods: 
-    - ``Attribute``: ``__setattr__``, ``size``
-    - ``Camera``: ``getFov``, ``setFov``, ``getFilmAspect``
-    - ``Mesh``: ``vertexCount``, ``edgeCount``, ``faceCount``, ``uvcoordCount``, ``triangleCount``
-    - ``SelectSet``: ``issubset``, ``issuperset``, ``update``
-    - Mesh components: ``toEdges``, ``toFaces``, ``toVertices``
-- removed deprecated and inapplicable string methods from ProxiUnicode, base of all PyNodes: 
-    - ``__contains__,  __len__, __mod__, __rmod__, __mul__, __rmod__, __rmul__``
-    - ``expandtabs, translate, decode, encode, splitlines, capitalize, swapcase, title, isalnum, isalpha, isdigit, isspace, istitle, zfill``
+
+- removed deprecated and inapplicable string methods from , base of all PyNodes: 
+
 - removed Smart Layout Creator in favor of 'with' statement support
 - ``DagNode.getParent()`` no longer accepts keyword arguments
 - Renamed ``UI`` base class to ``PyUI``
-- ``sceneName()`` now returns a Path class for an empty string when the scene is untitled
-    - this makes it conform more to ``cmds.file(q=1, sceneName=1)``
+- ``sceneName()`` now returns a Path class for an empty string when the scene is untitled. this makes it conform more to ``cmds.file(q=1, sceneName=1)``
 - replaced listNamespace with listNamespace_new from 0.9 line
+
+removed deprecated methods
+--------------------------
+- ``Attribute``: ``__setattr__``, ``size``
+- ``Camera``: ``getFov``, ``setFov``, ``getFilmAspect``
+- ``Mesh``: ``vertexCount``, ``edgeCount``, ``faceCount``, ``uvcoordCount``, ``triangleCount``
+- ``SelectSet``: ``issubset``, ``issuperset``, ``update``
+- Mesh components: ``toEdges``, ``toFaces``, ``toVertices``
+- ``ProxiUnicode``: ``__contains__,  __len__, __mod__, __rmod__, __mul__, __rmod__, __rmul__, expandtabs, translate, decode, encode, splitlines, capitalize, swapcase, title, isalnum, isalpha, isdigit, isspace, istitle, zfill``
 
 ----------------------------------
 Features
@@ -108,22 +109,24 @@ Changes
 - changes to allow ``myCube.vtx[1,3,5]``
 - commands wrapped by pmcmds that raise a standard TypeError for a non-existent object will now raise a MayaObjectError
 - simplified getParent code on Attribute and DagNode to improve function signatures.
-- commands wrapped to return PyNodes:
-    - ``skinCluster(q=1, geometry=1)``
-    - ``addAttr(q=1, geometry=1)``
-    - ``addDynamic()``
-    - ``addPP()``
-    - ``constraint()``
-    - ``animLayer()``
-    - ``annnotate()``
-    - ``arclen()``
-    - ``art3dPaintCtx()``
-    - ``artAttrCtx()``
-    - ``modelEditor(q=1,camera=1)``
-    - ``dimensionShape()``
 - fixed a bug with ``ls(editable=1)``
 - fixed a bug with ObjectSets containing DagNodes
 - callbacks: extra debug information is printed in tracebacks
+
+commands wrapped to return PyNodes
+----------------------------------
+- ``skinCluster(q=1, geometry=1)``
+- ``addAttr(q=1, geometry=1)``
+- ``addDynamic()``
+- ``addPP()``
+- ``constraint()``
+- ``animLayer()``
+- ``annnotate()``
+- ``arclen()``
+- ``art3dPaintCtx()``
+- ``artAttrCtx()``
+- ``modelEditor(q=1,camera=1)``
+- ``dimensionShape()``
 
 ----------------------------------
 Additions
@@ -143,17 +146,19 @@ Additions
 - added ``SkinCluster.setWeights()``
 - added ``AnimCurve.addKeys()``
 - added regex flag to ls command
-- added support for attribute aliases:
-    - ``DependNode.attr()`` now casts aliases to Attributes properly (PyNode already does)
-    - added ``DependNode.listAliases()``
-    - added 'alias' keyword to ``DependNode.listAttr()``
-    - added ``Attribute.setAlias()``, ``Attribute.getAlias()``
 - added ``FileInfo.get()``
 - added ``util.common.subpackages()`` function for walking package modules
 - added ``util.conditions.Condition`` class for creating object-oriented condition testing
 - ``pymel.conf``: added a fileLogger
 - added ``Path.canonicalpath()`` and ``Path.samepath()``
 - mel2py: added command-line flags, ability to recurse
+
+added support for attribute aliases
+-----------------------------------
+- ``DependNode.attr()`` now casts aliases to Attributes properly (PyNode already does)
+- added ``DependNode.listAliases()``
+- added 'alias' keyword to ``DependNode.listAttr()``
+- added ``Attribute.setAlias()``, ``Attribute.getAlias()``
 
 ----------------------------------
 Bugfixes
@@ -187,11 +192,13 @@ Changes and Additions
 - added functionality to ``pymel.tools.py2mel`` for dynamically creating MEL commands based on python functions/classes
 - added a new module ``pymel.api.plugins`` for working with api plugins in a more reasonable and automated fashion
 - updated eclipse integration documentation
-- easy_install improvements
-    - setup now copies over a readline library for 2010 OSX using ``readline.so`` from toxik which is more compatible
-    - changed ipymel to be part of the default install instead of an extra package
-    - fixed interpreter path of ipymel and other executable scripts on OSX
-    - setup now detects and fixes invalid python installations on Linux which previously caused ``distutils`` and thus ``setup.py`` to fail
+
+easy_install improvements
+-------------------------
+- setup now copies over a readline library for 2010 OSX using ``readline.so`` from toxik which is more compatible
+- changed ipymel to be part of the default install instead of an extra package
+- fixed interpreter path of ipymel and other executable scripts on OSX
+- setup now detects and fixes invalid python installations on Linux which previously caused ``distutils`` and thus ``setup.py`` to fail
 
 
 ----------------------------------
