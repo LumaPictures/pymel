@@ -35,7 +35,7 @@ rm -rfd $RELEASE/maintainence
 
 echo "copying docs"
 rm -rfd $RELEASE/docs
-cp -r $SOURCE/docs/build/html $RELEASE/docs
+cp -r $SOURCE/docs/build/0.9 $RELEASE/docs
 
 echo "zipping"
 zip -rq $RELEASE.zip $RELEASE
