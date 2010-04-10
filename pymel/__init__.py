@@ -1456,7 +1456,7 @@ Attitude Studio, and ImageMovers Digital.
 """
 
 
-__version__ = '0.9.2'
+__version__ = '0.9.3'
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 # not maya dependant
 #import util
