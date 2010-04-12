@@ -1,4 +1,19 @@
 ==================================
+Version 1.0.2
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+
+- rolled back ``listConnections()`` change from 1.0.1
+- fixed a bug where ``nt.Conditions()`` created a script condition
+
+commands wrapped to return PyNodes
+----------------------------------
+- ``container()``
+
+==================================
 Version 1.0.1
 ==================================
 
