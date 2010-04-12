@@ -172,7 +172,8 @@ nodeTypeToNodeCommand = {
     'skinPercent'       : 'skinCluster',
     'file'              : None, # prevent File node from using cmds.file
     'nurbsSurface'      : 'surface',
-    'annotationShape'   : 'annotate'
+    'annotationShape'   : 'annotate',
+    'condition'         : None, # prevent Condition node from using cmds.condition (which is for script conditions)
 }
 
 
