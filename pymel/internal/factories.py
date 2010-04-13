@@ -2805,7 +2805,36 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
     pyNodeNamesToPyNodes[pyNodeTypeName] = PyNodeType
     return PyNodeType
 
+def addCustomPyNode(dynModule, mayaType):
+    """
+    create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
+    
+    This function is used for creating PyNodes via plugins, where the nodes parent's might be abstract
+    types not yet created by pymel.  also, this function ensures that the newly created node types are
+    added to pymel.all, if that module has been imported.
+     
+    """
+    inheritance = getInheritance( mayaType )
+
+    if not util.isIterable(inheritance):
+        _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
+    else:
+        #__logger.debug(mayaType, inheritance)
+        #__logger.debug("adding new node:", mayaType, apiEnum, inheritence)
+        # some nodes in the hierarchy for this node might not exist, so we cycle through all
+        parent = 'dependNode'
+
+        for node in inheritance:
+            nodeName = addPyNode( dynModule, node, parent )
+            parent = node
+            if 'pymel.all' in sys.modules:
+                # getattr forces loading of Lazy object
+                setattr( sys.modules['pymel.all'], nodeName, getattr(dynModule,nodeName) )
+                            
 def addPyNode( dynModule, mayaType, parentMayaType ):
+    """
+    create a PyNode type for a maya node.
+    """
 
     #_logger.debug("addPyNode adding %s->%s on dynModule %s" % (mayaType, parentMayaType, dynModule))
     # unicode is not liked by metaNode

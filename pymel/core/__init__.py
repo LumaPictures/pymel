@@ -111,26 +111,11 @@ def _pluginLoaded( *args ):
             _pluginData[pluginName]['dependNodes'] = mayaTypes
             for mayaType in mayaTypes:
                 _logger.debug("Adding node: %s..." % mayaType)
-                inheritance = _factories.getInheritance( mayaType )
-
-                if not util.isIterable(inheritance):
-                    _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
-                else:
-                    #__logger.debug(mayaType, inheritance)
-                    #__logger.debug("adding new node:", mayaType, apiEnum, inheritence)
-                    # some nodes in the hierarchy for this node might not exist, so we cycle through all
-                    parent = 'dependNode'
-
-                    for node in inheritance:
-                        nodeName = _factories.addPyNode( nodetypes, node, parent )
-                        parent = node
-                        if 'pymel.all' in sys.modules:
-                            # getattr forces loading of Lazy object
-                            setattr( sys.modules['pymel.all'], nodeName, getattr(nodetypes,nodeName) )
+                _factories.addCustomPyNode(nodetypes, mayaType)
 
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
         if _api.MFileIO.isReadingFile() or ( _versions.current() >= _versions.v2008 and _api.MFileIO.isOpeningFile() ):
-            #__logger.debug("pymel: Installing temporary plugin-loaded callback")
+            _logger.debug("Installing temporary plugin-loaded callback")
             id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
             _pluginData[pluginName]['callbackId'] = id
             # scriptJob not respected in batch mode, had to use _api
