@@ -13,9 +13,18 @@ commands wrapped to return PyNodes
 - ``container()``
 
 ----------------------------------
+Additions
+----------------------------------
+
+- added functions for converting strings to PyQt objects: ``toQtObject()``, ``toQtLayout()``, ``toQtControl()``, ``toQtMenuItem()``, ``toQtWindow()``
+- added method for converting PyMEL UI objects to PyQt objects: ``UI.asQtObject()``
+
+----------------------------------
 Bugfixes
 ----------------------------------
+
 - fixed a bug where ``nt.Conditions()`` created a script condition
+
 
 ==================================
 Version 1.0.1
