@@ -435,6 +435,11 @@ class DependNode( general.PyNode ):
         kwargs['longName'] = attr
         return general.addAttr( unicode(self), **kwargs )
 
+    @_factories.addMelDocs('deleteAttr')
+    def deleteAttr( self, attr, *args, **kwargs ):
+        # for now, using strings is better, because there is no MPlug support
+        return general.deleteAttr( "%s.%s" % (self, attr), *args,  **kwargs )
+
     @_factories.addMelDocs('connectAttr')
     def connectAttr( self, attr, destination, **kwargs ):
         # for now, using strings is better, because there is no MPlug support

@@ -99,7 +99,12 @@ class testCase_attribs(unittest.TestCase):
     def test_comparisonOtherObject(self):
         self.assertNotEqual(self.newAttrs['compound'], self.sphere1)
 
-     
+    def test_add_delete(self):
+        PyNode('persp').addAttr('foo')
+        self.assert_( PyNode('persp').hasAttr('foo') )
+        PyNode('persp').deleteAttr('foo')
+        self.assert_(  not PyNode('persp').hasAttr('foo') )
+
 def testInvertibles():
     classList = getFundamentalTypes()
     for pynodeName in classList:
@@ -1543,13 +1548,15 @@ class testCase_sets(TestCaseExtended):
         cmds.file(new=1, f=1)
         self.cube = polyCube()[0]
         self.sphere = sphere()[0]
-
+        self.set = sets()
     def assertSetSelect(self, setClass, *items): 
         """
-        Generator function which tests the given set type by: 
-        selects the items, saves the list of the selected items, makes a set
-        from the selected items, selects the items in the set, then compares
-        the results to the initial selection.
+        Generator function which tests the given set type. 
+        It first selects the items, saves the list of the selected items, and makes a set
+        from the selected items. Then it
+            - selects the items in the set 
+            - calls set.members()
+        and compares each of the results to the initial selection.
         """
         select(items)
         initialSel = cmds.ls(sl=1)
@@ -1559,6 +1566,12 @@ class testCase_sets(TestCaseExtended):
             mySet = SelectionSet(initialSel)
         self.assertNoError(select, mySet)
         self.assertIteration(initialSel, cmds.ls(sl=1),
+                             orderMatters=False)
+        if issubclass(setClass, ObjectSet):
+            myList = mySet.members()
+        else:
+            myList = list(mySet)
+        self.assertIteration(initialSel, myList,
                              orderMatters=False)
         
     def test_ObjectSet_singleObject(self):
@@ -1585,6 +1598,9 @@ class testCase_sets(TestCaseExtended):
     def test_SelectionSet_mixedObjectsComponents(self):
         self.assertSetSelect(SelectionSet, self.cube.edges[4:6], self.sphere)
 
+    def test_SelectionSet_nestedSets(self):
+        self.assertSetSelect(SelectionSet, self.set)
+        
 #class testCase_0_7_compatabilityMode(unittest.TestCase):
 #    # Just used to define a value that we know won't be stored in
 #    # 0_7_compatability mode...

@@ -3,7 +3,7 @@ import pymel.util as _util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
-import pymel.versions as versions
+import pymel.versions as _versions
 import maya.mel as _mm
 _logger = _internal.getLogger(__name__)
 
@@ -27,6 +27,94 @@ def _resolveUIFunc(name):
 
     raise ValueError, "%r is not a known ui type" % name
 
+if _versions.current() >= _versions.v2011:
+
+    def toQtObject(mayaName):
+        """
+        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction. 
+        If the object does not exist, returns None
+        
+        When using this function you don't need to specify whether UI type is a control, layout, 
+        window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
+        this should always be correct, however, if you only have the short name of the UI object,
+        consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findControl(mayaName)
+        if ptr is None:
+            ptr = mui.MQtUtil.findLayout(mayaName)
+            if ptr is None:
+                ptr = mui.MQtUtil.findMenuItem(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtcore.QObject)
+        
+    def toQtControl(mayaName):
+        """
+        Given the name of a May UI control, return the corresponding QWidget. 
+        If the object does not exist, returns None
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findControl(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QWidget)
+        
+    def toQtLayout(mayaName):
+        """
+        Given the name of a May UI control, return the corresponding QWidget. 
+        If the object does not exist, returns None
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findLayout(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QWidget)
+    
+    def toQtWindow(mayaName):
+        """
+        Given the name of a May UI control, return the corresponding QWidget. 
+        If the object does not exist, returns None
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findWindow(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QWidget)
+        
+    def toQtMenuItem(mayaName):
+        """
+        Given the name of a May UI menuItem, return the corresponding QAction. 
+        If the object does not exist, returns None
+        
+        This only works for menu items. for Menus, use toQtControl or toQtObject
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findMenuItem(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QAction)
+        
 class PyUI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
@@ -122,7 +210,7 @@ class PyUI(unicode):
         return u"ui.%s('%s')" % (self.__class__.__name__, self)
     def parent(self):
         buf = unicode(self).split('|')[:-1]
-        if len(buf)==2 and buf[0] == buf[1] and versions.current() < versions.v2011:
+        if len(buf)==2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
             # pre-2011, windows with menus can have a strange name:
             # ex.  window1|window1|menu1
             buf = buf[:1]
@@ -150,6 +238,9 @@ class PyUI(unicode):
     def exists(cls, name):
         return cls.__melcmd__( name, exists=True )
 
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtControl
+        
 class Panel(PyUI):
     """pymel panel class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -215,13 +306,16 @@ class Layout(PyUI):
         if children:
             for child in self.getChildArray():
                 cmds.deleteUI(child)
-
+    
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtLayout
+        
 # customized ui classes
 class Window(Layout):
     """pymel window class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
 
-#    if versions.current() < versions.v2011:
+#    if _versions.current() < _versions.v2011:
 #        # don't set
 #        def __enter__(self):
 #            return self
@@ -261,6 +355,9 @@ class Window(Layout):
         return None
     getParent = parent
 
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtWindow
+    
 class FormLayout(Layout):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
@@ -475,7 +572,10 @@ class SubMenuItem(Menu):
 
     def getItalicized(self):
         return cmds.menuItem(self,query=True,italicized=True)
-
+    
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtMenuItem
+        
 class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = cmds.menuItem

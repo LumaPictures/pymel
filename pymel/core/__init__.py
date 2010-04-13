@@ -78,7 +78,7 @@ def _pluginLoaded( *args ):
     if commands:
         _pluginData[pluginName]['commands'] = commands
         for funcName in commands:
-            _logger.debug("Adding command: %s..." % funcName)
+            _logger.debug("Adding command: %s" % funcName)
             #__logger.debug("adding new command:", funcName)
             _factories.cmdlist[funcName] = _factories.cmdcache.getCmdInfoBasic( funcName )
             _pmcmds.addWrappedCmd(funcName)
@@ -110,7 +110,7 @@ def _pluginLoaded( *args ):
 
             _pluginData[pluginName]['dependNodes'] = mayaTypes
             for mayaType in mayaTypes:
-                _logger.debug("Adding node: %s..." % mayaType)
+                _logger.debug("Adding node: %s" % mayaType)
                 _factories.addCustomPyNode(nodetypes, mayaType)
 
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
@@ -148,7 +148,7 @@ def _pluginUnloaded(*args):
         # Commands
         commands = data.pop('commands', [])
         if commands:
-            _logger.info("Removing commands: %s", ', '.join( commands ))
+            _logger.debug("Removing commands: %s", ', '.join( commands ))
             for command in commands:
                 try:
                     _pmcmds.removeWrappedCmd(command)
