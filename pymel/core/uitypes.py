@@ -575,24 +575,34 @@ class UITemplate(object):
         return cmds.uiTemplate( name, exists=True )
 
 class AELoader(type):
+    """
+    Metaclass used by `AETemplate` class to create wrapping and loading mechanisms when an AETemplate instance is created
+    """
     _loaded = []
     def __new__(cls, classname, bases, classdict):
         newcls = super(AELoader, cls).__new__(cls, classname, bases, classdict)
         try:
-             nodeType = newcls.nodeType()
+            nodeType = newcls.nodeType()
         except ValueError:
-             _logger.debug("could not determine node type for " + classname)
+            _logger.debug("could not determine node type for " + classname)
         else:
-             modname = classdict['__module__']
-             template = 'AE'+nodeType+'Template'
-             cls.makeAEProc(modname, classname, template)
-             if template not in cls._loaded:
-                 cls._loaded.append(template)
+            modname = classdict['__module__']
+            if modname == '__builtin__':
+                # since the module is __builtin__ our AE was probably included in the body of a scripted
+                # plugin, which is called by maya in a strange way ( execfile? ).
+                # give it a real home so we can load it later.
+                mod = sys.modules['__builtin__']
+                setattr( mod, classname, newcls )
+
+            template = 'AE'+nodeType+'Template'
+            cls.makeAEProc(modname, classname, template)
+            if template not in cls._loaded:
+                cls._loaded.append(template)
         return newcls
     
     @staticmethod
     def makeAEProc(modname, classname, procname):
-        _logger.info("making AE loader procedure: %s" % procname)
+        _logger.debug("making AE loader procedure: %s" % procname)
         contents = '''global proc %(procname)s( string $nodeName ){
         python("import %(__name__)s;%(__name__)s.AELoader.load('%(modname)s','%(classname)s','" + $nodeName + "')");}'''
         d = locals().copy()
