@@ -13,7 +13,9 @@ import pymel.versions as _versions
 from language import mel, melGlobals
 from system import Path as _Path
 import uitypes as _uitypes
-
+if _versions.current() >= _versions.v2011:
+    from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+    
 _logger = _internal.getLogger(__name__)
 
 _thisModule = sys.modules[__name__]
@@ -827,19 +829,3 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 def getMainProgressBar():
     return _uitypes.ProgressBar(melGlobals['gMainProgressBar'])
 
-if _versions.current() >= _versions.v2011:
-
-    def toPyQtWidget(mayaName):
-        """
-        Given the name of a maya gui element, return the corresponding PyQt object. If the object
-        does not exist returns None
-        """
-        import maya.OpenMayaUI as mui
-        import sip
-        import PyQt4.QtCore as qtcore
-        import PyQt4.QtGui as qtgui
-        ptr = mui.MQtUtil.findControl(unicode(mayaName))
-        if ptr is None:
-            ptr = mui.MQtUtil.findLayout(unicode(mayaName))
-        if ptr is not None:
-            return sip.wrapinstance(long(ptr), qtcore.QObject)
