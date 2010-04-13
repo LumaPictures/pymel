@@ -21,11 +21,13 @@ fi
 cd $mtnc
 
 echo "checking completion stubs"
-cd ../extras/completion/py && python -c "import pymel;assert pymel.__version__ == None"
+cd $mtnc/../extras/completion/py && python -c "import pymel;assert pymel.__version__ == None"
 if [ $? -gt 0 ]; then
 	echo "ERROR: python completion stubs are not working"
 	exit 1
 fi
+
+find $mtnc/../extras/ -type f -name '*.pyc' -exec rm {} \;
 
 #if [ ! -d ../extras/completion/pi ]; then
 #	echo "ERROR: wing completion stubs do not exist"
