@@ -47,11 +47,10 @@ def parseVersionStr(versionStr, extension=False):
 def bitness():
     """
     The bitness of python running inside Maya as an int.
-    
-    note that platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
-    even when Maya is running in 32-bit mode. The struct technique
-    is more reliable.
     """
+    # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
+    # even when Maya is running in 32-bit mode. The struct technique
+    # is more reliable.
     return struct.calcsize("P") * 8
 
 _is64 = bitness() == 64

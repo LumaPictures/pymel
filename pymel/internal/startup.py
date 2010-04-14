@@ -8,7 +8,7 @@ import maya
 import maya.OpenMaya as om
 import maya.utils
 
-from pymel.util import picklezip, shellOutput
+from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron
 import pymel.versions as versions
 from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName
@@ -46,28 +46,6 @@ def mayaStartupHasRun():
     Returns True if maya.app.startup has run, False otherwise.
     """
     return 'maya.app.startup.gui' in sys.modules or 'maya.app.startup.batch' in sys.modules
-
-def refreshEnviron():
-    """
-    copy the shell environment into python's environment, as stored in os.environ
-    """
-    exclude = ['SHLVL']
-
-    if os.name == 'posix':
-        cmd = '/usr/bin/env'
-    else:
-        cmd = 'set'
-
-    cmdOutput = shellOutput(cmd)
-    #print "ENV", cmdOutput
-    # use splitlines rather than split('\n') for better handling of different
-    # newline characters on various os's
-    for line in cmdOutput.splitlines():
-        # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
-        if '=' in line:
-            var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
-            if not var.startswith('_') and var not in exclude:
-                    os.environ[var] = val
 
 def setupFormatting():
     import pprint
@@ -233,61 +211,27 @@ def initMEL():
 
     _logger.debug("done running mel files")
 
-
-def _makeAEProc(modname, classname, procname):
-    contents = '''global proc %(procname)s( string $nodeName ){
-    python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(classname)s','" + $nodeName + "')");}'''
-    d = locals().copy()
-    d['__name__'] = __name__
-    import maya.mel as mm
-    mm.eval( contents % d )
-
-def _aeLoader(modname, classname, nodename):
-    mod = __import__(modname, globals(), locals(), [classname], -1)
-    try:
-        f = getattr(mod,classname)
-        f(nodename)
-    except Exception:
-        print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
-        import traceback
-        traceback.print_exc()
-
 def initAE():
     try:
         pkg = __import__('AETemplates')
     except ImportError:
-        return
+        return False
     except Exception:
         import traceback
         traceback.print_exc()
-        return
-
-    from pymel.core.uitypes import AETemplate
-    _logger.debug('Found AETemplates module')
-    if hasattr(pkg, '__path__'):
-        completed = []
-        for pth in pkg.__path__:
-            realpath = os.path.realpath(pth)
-            if realpath not in completed:
-                files = glob.glob( os.path.join(realpath,'AE*Template.py'))
-                for fname in files:
-                    name = os.path.basename(fname)[:-3]
-                    _makeAEProc( 'AETemplates.'+name, name, name)
-                completed.append(realpath)
-    for name, obj in inspect.getmembers(pkg, lambda x: inspect.isclass(x) and issubclass(x,AETemplate) ):
-        try:
-            nodeType = obj.nodeType()
-        except ValueError:
-            _logger.debug("could not determine node type for " + name)
-            continue
-        else:
-            _makeAEProc( 'AETemplates', name, 'AE'+nodeType+'Template')
+        return False
+    else:
+        # import subpackages
+        for data in subpackages(pkg):
+            pass
+    return True
 
 def finalize():
     global finalizeEnabled
     global _finalizeCalled
     if not finalizeEnabled or _finalizeCalled:
         return
+    _logger.debug('finalizing')
     # Set this to true HERE, as in running userSetup.py,
     # we could end up in here again, inside the initial finalize...
     _finalizeCalled = True

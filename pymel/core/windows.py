@@ -13,7 +13,9 @@ import pymel.versions as _versions
 from language import mel, melGlobals
 from system import Path as _Path
 import uitypes as _uitypes
-
+if _versions.current() >= _versions.v2011:
+    from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+    
 _logger = _internal.getLogger(__name__)
 
 _thisModule = sys.modules[__name__]
@@ -826,5 +828,4 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
 def getMainProgressBar():
     return _uitypes.ProgressBar(melGlobals['gMainProgressBar'])
-
 

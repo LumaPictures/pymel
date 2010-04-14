@@ -133,6 +133,11 @@ def toPyTypeList(moduleName, objectName):
     toGivenClassList.__doc__ = "returns a list of %s objects" % objectName
     return toGivenClassList
 
+def raiseError(typ, *args):
+    def f(res):
+        raise typ(*args)
+    return f
+
 class Flag(Condition):
     def __init__(self, longName, shortName, truthValue=True):
         """
@@ -226,7 +231,7 @@ simpleCommandWraps = {
                                 Flag('affectedLayers', 'afl') |
                                 Flag('parent', 'p')) )
                           ],
-    'annotate'          : [ ( lambda x: toPyNode(x.strip()), Always ) ],
+    'annotate'          : [ ( lambda res: toPyNode(res.strip()), Always ) ],
     'arclen'            : [ ( toPyNode, Flag(' constructionHistory', 'ch') ) ],
     'art3dPaintCtx'     : [ ( splitToPyNodeList,
                               Flag('query', 'q') &
@@ -236,6 +241,21 @@ simpleCommandWraps = {
     'artAttrCtx'        : [ ( splitToPyNodeList,
                               Flag('query', 'q') &
                                 Flag('paintNodeArray', 'pna') )
+                          ],
+    'container'        : [ ( toPyNodeList,
+                              Flag('query', 'q') &
+                                (Flag('nodeList', 'nl') |
+                                 Flag('connectionList', 'cl') ) ),
+                           ( toPyNode,
+                              Flag('query', 'q') &
+                                (Flag('findContainer', 'fc') |
+                                 Flag('asset', 'a') ) ),
+                           ( lambda res: [(toPyNode(res[i]),res[i+1]) for i in range(0, len(res), 2)],
+                              Flag('query', 'q') &
+                                Flag('bindAttr', 'ba') & ~(Flag('publishName', 'pn') | Flag('publishAsParent', 'pap') | Flag('publishAsChild', 'pac')) ),
+                           ( raiseError( ValueError, 'In query mode bindAttr can *only* be used with the publishName, publishAsParent and publishAsChild flags'),
+                              Flag('query', 'q') &
+                                Flag('unbindAttr', 'ua') & ~(Flag('publishName', 'pn') | Flag('publishAsParent', 'pap') | Flag('publishAsChild', 'pac'))),
                           ],
 }
 #---------------------------------------------------------------

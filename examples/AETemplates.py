@@ -1,15 +1,27 @@
 """
-To use python attribute editor templates, first create a python package or module named
-'AETemplates'. 
+To create an Attribute Editor template using python, do the following:
+ 	1. create a subclass of `uitypes.AETemplate`
+	2. set its ``_nodeType`` class attribute to the name of the desired node type, or name the class using the
+convention ``AE<nodeType>Template``
+	3. import the module
 
-When a attribute editor template is requested by Maya, pymel will look for an `uitypes.AETemplate` subclass to 
-create the layout for the desired node type. Here's what it looks for to find a match:
-  1. a `uitypes.AETemplate` subclass whose name matches the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate )
-  2. if ``AETemplates`` is a package with sub-modules, it will look for a sub-module with a name that 
-      matches the convention: ``AE<nodeType>Template`` that contains a `uitypes.AETemplate` class of the same name ( ex. AETemplates.AElambertTemplate.AElambertTemplate )
-  3. any `uitypes.AETemplate` subclass which has its _nodeName class attribute set to the name of the desired node type.
-  
-The example below demonstrates the simplest case, which is the first. It provides a layout for the mib_amb_occlusion mental ray shader.
+AETemplates which do not meet one of the two requirements listed in step 2 will be ignored.  To ensure that your
+Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
+
+    import AETemplates
+    AETemplates.AEmib_amb_occlusionTemplate.nodeType()  
+
+As a convenience, when pymel is imported it will automatically import the module ``AETemplates``, if it exists,
+thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel 
+or modules containing your ``AETemplate`` classes before opening the Atrribute Editor for the node types in question.
+
+To check which python templates are loaded::
+
+	from pymel.core.uitypes import AELoader
+	print AELoader.loadedTemplates()
+
+The example below demonstrates the simplest case, which is the first. It provides a layout for the mib_amb_occlusion 
+mental ray shader.
 """
     
 from pymel.core import *

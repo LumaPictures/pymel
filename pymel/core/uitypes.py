@@ -3,7 +3,7 @@ import pymel.util as _util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
-import pymel.versions as versions
+import pymel.versions as _versions
 import maya.mel as _mm
 _logger = _internal.getLogger(__name__)
 
@@ -27,6 +27,94 @@ def _resolveUIFunc(name):
 
     raise ValueError, "%r is not a known ui type" % name
 
+if _versions.current() >= _versions.v2011:
+
+    def toQtObject(mayaName):
+        """
+        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction. 
+        If the object does not exist, returns None
+        
+        When using this function you don't need to specify whether UI type is a control, layout, 
+        window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
+        this should always be correct, however, if you only have the short name of the UI object,
+        consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findControl(mayaName)
+        if ptr is None:
+            ptr = mui.MQtUtil.findLayout(mayaName)
+            if ptr is None:
+                ptr = mui.MQtUtil.findMenuItem(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtcore.QObject)
+        
+    def toQtControl(mayaName):
+        """
+        Given the name of a May UI control, return the corresponding QWidget. 
+        If the object does not exist, returns None
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findControl(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QWidget)
+        
+    def toQtLayout(mayaName):
+        """
+        Given the name of a May UI control, return the corresponding QWidget. 
+        If the object does not exist, returns None
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findLayout(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QWidget)
+    
+    def toQtWindow(mayaName):
+        """
+        Given the name of a May UI control, return the corresponding QWidget. 
+        If the object does not exist, returns None
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findWindow(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QWidget)
+        
+    def toQtMenuItem(mayaName):
+        """
+        Given the name of a May UI menuItem, return the corresponding QAction. 
+        If the object does not exist, returns None
+        
+        This only works for menu items. for Menus, use toQtControl or toQtObject
+        
+        .. note:: Requires PyQt
+        """
+        import maya.OpenMayaUI as mui
+        import sip
+        import PyQt4.QtCore as qtcore
+        import PyQt4.QtGui as qtgui
+        ptr = mui.MQtUtil.findMenuItem(mayaName)
+        if ptr is not None:
+            return sip.wrapinstance(long(ptr), qtgui.QAction)
+        
 class PyUI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
@@ -122,7 +210,7 @@ class PyUI(unicode):
         return u"ui.%s('%s')" % (self.__class__.__name__, self)
     def parent(self):
         buf = unicode(self).split('|')[:-1]
-        if len(buf)==2 and buf[0] == buf[1] and versions.current() < versions.v2011:
+        if len(buf)==2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
             # pre-2011, windows with menus can have a strange name:
             # ex.  window1|window1|menu1
             buf = buf[:1]
@@ -150,6 +238,9 @@ class PyUI(unicode):
     def exists(cls, name):
         return cls.__melcmd__( name, exists=True )
 
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtControl
+        
 class Panel(PyUI):
     """pymel panel class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -215,13 +306,16 @@ class Layout(PyUI):
         if children:
             for child in self.getChildArray():
                 cmds.deleteUI(child)
-
+    
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtLayout
+        
 # customized ui classes
 class Window(Layout):
     """pymel window class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
 
-#    if versions.current() < versions.v2011:
+#    if _versions.current() < _versions.v2011:
 #        # don't set
 #        def __enter__(self):
 #            return self
@@ -261,6 +355,9 @@ class Window(Layout):
         return None
     getParent = parent
 
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtWindow
+    
 class FormLayout(Layout):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
@@ -475,7 +572,10 @@ class SubMenuItem(Menu):
 
     def getItalicized(self):
         return cmds.menuItem(self,query=True,italicized=True)
-
+    
+    if _versions.current() >= _versions.v2011:
+        asQtObject = toQtMenuItem
+        
 class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = cmds.menuItem
@@ -574,23 +674,74 @@ class UITemplate(object):
     def exists(name):
         return cmds.uiTemplate( name, exists=True )
 
+class AELoader(type):
+    _loaded = []
+    def __new__(cls, classname, bases, classdict):
+        newcls = super(AELoader, cls).__new__(cls, classname, bases, classdict)
+        try:
+             nodeType = newcls.nodeType()
+        except ValueError:
+             _logger.debug("could not determine node type for " + classname)
+        else:
+             modname = classdict['__module__']
+             template = 'AE'+nodeType+'Template'
+             cls.makeAEProc(modname, classname, template)
+             if template not in cls._loaded:
+                 cls._loaded.append(template)
+        return newcls
+    
+    @staticmethod
+    def makeAEProc(modname, classname, procname):
+        _logger.info("making AE loader procedure: %s" % procname)
+        contents = '''global proc %(procname)s( string $nodeName ){
+        python("import %(__name__)s;%(__name__)s.AELoader.load('%(modname)s','%(classname)s','" + $nodeName + "')");}'''
+        d = locals().copy()
+        d['__name__'] = __name__
+        import maya.mel as mm
+        mm.eval( contents % d )
+
+    @staticmethod
+    def load(modname, classname, nodename):
+        mod = __import__(modname, globals(), locals(), [classname], -1)
+        try:
+            cls = getattr(mod,classname)
+            cls(nodename)
+        except Exception:
+            print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
+            import traceback
+            traceback.print_exc()
+
+    @classmethod
+    def loadedTemplates(cls):
+        "Return the names of the loaded templates"
+        return cls._loaded
+    
 class AETemplate(object):
     """
-    To use python attribute editor templates, first create a python package named
-    'AETemplates'. To do this:
-      1. create a directory 'AETemplates'
-      2. inside, create an empty file '__init__.py'
-      3. ensure that the directory above 'AETemplates' is on the ``PYTHONPATH``
+    To create an Attribute Editor template using python, do the following:
+     	1. create a subclass of `uitypes.AETemplate`
+    	2. set its ``_nodeType`` class attribute to the name of the desired node type, or name the class using the
+    convention ``AE<nodeType>Template``
+    	3. import the module
 
-    Python `AETemplate` sub-classes will be found and paired with node types if they match one of the
-    three following conventions:
-      1. there is a sub-module of ``AETemplates`` which contains a class with the same name, both of which match
-        the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate.AElambertTemplate )
-      2. the ``AETemplates`` module contains an `AETemplate` subclass whose name matches the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate )
-      3. the ``AETemplates`` module contains an `AETemplate` subclass which has its _nodeName class attribute set to the name of a valid node type.
+    AETemplates which do not meet one of the two requirements listed in step 2 will be ignored.  To ensure that your
+    Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
+
+        import AETemplates
+        AETemplates.AEmib_amb_occlusionTemplate.nodeType()  
+
+    As a convenience, when pymel is imported it will automatically import the module ``AETemplates``, if it exists,
+    thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel 
+    or modules containing your ``AETemplate`` classes before opening the Atrribute Editor for the node types in question.
+
+    To check which python templates are loaded::
+
+    	from pymel.core.uitypes import AELoader
+    	print AELoader.loadedTemplates()
     """
 
-
+    __metaclass__ = AELoader
+    
     _nodeType = None
     def __init__(self, nodeName):
         self._nodeName = nodeName
@@ -604,7 +755,7 @@ class AETemplate(object):
         if cls._nodeType:
             return cls._nodeType
         else:
-            m = re.match('AE(.*)Template$', cls.__name__)
+            m = re.match('AE(.+)Template$', cls.__name__)
             if m:
                 return m.groups()[0]
             else:
@@ -617,6 +768,7 @@ class AETemplate(object):
         return cmds.editorTemplate(queryLabel=(nodeName,control))
     @classmethod
     def reload(cls):
+        "Reload the template. Beware, this reloads the module in which the template exists!"
         nodeType = cls.nodeType()
         form = "AttrEd" + nodeType + "FormLayout"
         exists = cmds.control(form, exists=1) and cmds.formLayout(form, q=1, ca=1)

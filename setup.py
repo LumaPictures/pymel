@@ -207,7 +207,18 @@ def main():
     else: # windows
         set_default_script_location()
 
-                
+    classifiers = """\
+Development Status :: 5 - Production/Stable
+Intended Audience :: Developers
+License :: OSI Approved :: New BSD
+Programming Language :: Python
+Topic :: Games/Entertainment
+Topic :: Visual FX/Animation
+Operating System :: Microsoft :: Windows
+Operating System :: Unix
+Operating System :: MacOS
+"""
+           
     try:
         setup(name='pymel',
               version='1.0.0',
@@ -221,6 +232,11 @@ def main():
               author='Chad Dombrova',
               author_email='chadrik@gmail.com',
               url='http://code.google.com/p/pymel/',
+              platforms = ['any'],
+              license='http://www.opensource.org/licenses/bsd-license.php',
+              classifiers=filter(None, classifiers.split("\n")),
+              keywords=['maya', 'mel', '3d', 'graphics', 'games', 'VFX', 'CG', 'animation'],
+              
               packages=['pymel','pymel.api', 'pymel.core', 'pymel.internal', 'pymel.tools', 'pymel.tools.mel2py', 'pymel.util',
                         'maya', 'maya.app', 'maya.app.startup', 'pymel.cache' ],
               entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main' },
