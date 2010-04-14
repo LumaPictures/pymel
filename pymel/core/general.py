@@ -708,11 +708,20 @@ Modifications:
 
     :rtype: `PyNode` list
     """
+    # We need to force casting to Attribute, as opposed to just Pynode,
+    # if we are returning plugs, because PyNode will prefer component
+    # objects over attributes when there is amibiguity - ie,
+    # PyNode('myNode.rotatePivot') will give a component
+    plugs = kwargs.get('plugs', kwargs.get('p', False))
+    if plugs:
+        CastObj = Attribute
+    else:
+        CastObj = PyNode
 
     def makePairs(l):
         if l is None:
             return []
-        return [(PyNode(a), PyNode(b)) for (a, b) in _util.pairIter(l)]
+        return [(CastObj(a), CastObj(b)) for (a, b) in _util.pairIter(l)]
 
     # group the core functionality into a funcion, so we can call in a loop when passed a list of types
     def doIt(**kwargs):
@@ -741,7 +750,7 @@ Modifications:
             return makePairs( cmds.listConnections( *args,  **kwargs ) )
 
         else:
-            return map(PyNode, _util.listForNone(cmds.listConnections( *args,  **kwargs )) )
+            return map(CastObj, _util.listForNone(cmds.listConnections( *args,  **kwargs )) )
 
     # if passed a list of types, concatenate the resutls
     # NOTE: there may be duplicate results if a leaf type and it's parent are both passed: ex.  animCurve and animCurveTL
