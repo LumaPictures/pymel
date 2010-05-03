@@ -15,7 +15,7 @@ import inspect
 import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
 import maya.cmds
-
+from collections import defaultdict
 
 
 global registered
@@ -102,6 +102,7 @@ class LocatorNode(mpx.MPxLocatorNode):
     _typeName = None
     _typeId = None
     _type = mpx.MPxNode.kLocatorNode
+    _callbacks = defaultdict(list)
     def __init__(self):
         mpx.MPxLocatorNode.__init__(self)
 
@@ -137,7 +138,19 @@ class LocatorNode(mpx.MPxLocatorNode):
             import pymel.core.nodetypes as nodetypes
             import pymel.internal.factories as factories
             factories.addCustomPyNode(nodetypes, name)
-
+        # callbacks
+        for cbname, reg in [ 
+                    ('timeChanged', om.MDGMessage.addTimeChangeCallback),
+                    ('forcedUpdate', om.MDGMessage.addForceUpdateCallback),
+                    ('nodeAdded', om.MDGMessage.addNodeAddedCallback),
+                    ('nodeRemoved', om.MDGMessage.addNodeRemovedCallback),
+                    #('connectionMade', om.MDGMessage.addConnectionCallback), # conflicts with MPxNode.connectionMade
+                    ('preConnectionMade', om.MDGMessage.addPreConnectionCallback)]:
+            if hasattr(cls, cbname):
+                cb = getattr(cls, cbname)
+                # TODO: assert cb is a classmethod, maybe check number of inputs too
+                cls._callbacks[name].append(reg(cb, cls._typeName))
+                
     @classmethod
     def deregister(cls, plugin=None):
         """
@@ -146,13 +159,15 @@ class LocatorNode(mpx.MPxLocatorNode):
         """
         global registered
         _getPlugin(plugin).deregisterNode( cls._typeId )
+        name = cls._typeName if cls._typeName else cls.__name__
         if plugin is None:
             registered.pop(cls)
-            name = cls._typeName if cls._typeName else cls.__name__
             import pymel.core.nodetypes as nodetypes
             import pymel.internal.factories as factories
             factories.removePyNode(nodetypes, name)
-                     
+        for id in cls._callbacks.pop(name):
+            om.MMessage.removeCallback(id)
+                 
 # allow this file to be loaded as its own dummy plugin
 # Initialize the script plug-in
 def initializePlugin(mobject):
