@@ -262,13 +262,27 @@ class Layout(PyUI):
 
     getChildren = children
 
+    # TODO: add depth firt and breadth first options
     def walkChildren(self):
+        """
+        recursively yield all children of this layout
+        """
         for child in self.children():
             yield child
             if hasattr(child, 'walkChildren'):
                 for subChild in child.walkChildren():
                     yield subChild
 
+    def findChild(self, shortName, recurse=False):
+        if recurse:
+            for child in self.walkChildren():
+                if child.shortName() == shortName:
+                    return child
+        else:
+            for child in self.children():
+                if child.shortName() == shortName:
+                    return child
+        
     def addChild(self, uiType, name=None, **kwargs):
         if isinstance(uiType, basestring):
             uiType = getattr(dynModule, uiType)
@@ -871,7 +885,7 @@ def _createUIClasses():
         try:
             cls = dynModule[classname]
         except KeyError:
-            if classname.endswith('Layout'):
+            if classname.endswith('Layout') or classname.endswith('Grp'):
                 bases = (Layout,)
             elif classname.endswith('Panel'):
                 bases = (Panel,)                
