@@ -43,9 +43,9 @@ def pythonToMel(arg):
         { key1 : val1, key2 : val2 }  -- >  ( key1, val1, key2, val2 )
 
     """
+    if arg is True or arg is False:
+        return str(arg).lower()
     if util.isNumeric(arg):
-        if arg is True or arg is False:
-            arg = int(arg) 
         return str(arg)
     if isinstance(arg, datatypes.Vector):
         return '<<%f,%f,%f>>' % ( arg[0], arg[1], arg[2] )
