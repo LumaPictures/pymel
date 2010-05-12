@@ -258,7 +258,10 @@ class Layout(PyUI):
 
     def children(self):
         #return [ PyUI( self.name() + '|' + x) for x in self.__melcmd__(self, q=1, childArray=1) ]
-        return [ PyUI( self.name() + '|' + x) for x in cmds.layout(self, q=1, childArray=1) ]
+        kids = cmds.layout(self, q=1, childArray=1)
+        if kids:
+            return [ PyUI( self.name() + '|' + x) for x in kids ]
+        return []
 
     getChildren = children
 
