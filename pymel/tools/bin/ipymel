@@ -1,4 +1,4 @@
-#!/bin/env mayapy
+#!/usr/bin/env mayapy
 """IPython -- An enhanced Interactive Python
 
 This is the IPython startup wrapper script, modified to work with maya and pymel.
