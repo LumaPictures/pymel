@@ -607,6 +607,7 @@ class UITemplate(object):
     """
     from pymel.core import *
 
+    # force deletes the template if it already exists
     template = ui.UITemplate( 'ExampleTemplate', force=True )
 
     template.define( button, width=100, height=40, align='left' )
@@ -630,10 +631,13 @@ class UITemplate(object):
                         button( label='Blue' )
     """
     def __init__(self, name=None, force=False):
-        if name and force and cmds.uiTemplate( name, exists=True ):
-            cmds.deleteUI( name, uiTemplate=True )
+        if name and cmds.uiTemplate( name, exists=True ):
+            if force:
+                cmds.deleteUI( name, uiTemplate=True )
+            else:
+                self._name = name
+                return
         args = [name] if name else []
-
         self._name = cmds.uiTemplate( *args )
 
     def __repr__(self):
@@ -777,9 +781,8 @@ class AETemplate(object):
             sel = cmds.ls(sl=1)
             cmds.select(cl=True)
             cmds.deleteUI(form)
-
-        if exists:
-            cmds.select(sel)
+            if sel:
+                cmds.select(sel)
         reload(sys.modules[cls.__module__])
 
     def addControl(self, control, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
@@ -901,7 +904,8 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
             name = cmds.textFieldButtonGrp( name, *args, **kwargs)
 
             def setPathCB(name):
-                f = promptForPath()
+                import windows
+                f = windows.promptForPath()
                 if f:
                     cmds.textFieldButtonGrp( name, e=1, text=f)
 
