@@ -179,13 +179,13 @@ class Namespace(str):
 
     def splitAll(self):
         return self.strip(":").split(":")
-
+    
     def shortName(self):
         return self.splitAll()[-1]
 
     def getParent(self):
         if (str(self)!=":"):
-            return self.__class__(self.splitAll()[:-1])
+            return self.__class__(':'.join(self.splitAll()[:-1]))
 
     def ls(self, pattern="*", **kwargs):
         return general.ls(self + pattern, **kwargs)
