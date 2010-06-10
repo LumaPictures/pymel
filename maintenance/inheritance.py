@@ -1,6 +1,6 @@
 import maya.cmds as cmds
+import pymel.api as api
 import pymel.internal.cmdcache as cmdcache
-import pymel.core as pm
 import pymel.internal.apicache as apicache
     
 lsTypes = cmds.ls(nodeTypes=1)
@@ -39,24 +39,29 @@ for nodeType in realTypes:
 dagMod.doIt()
 dgMod.doIt()
 
+nodeDict = {}
 mfnDag = api.MFnDagNode()
 mfnDep = api.MFnDependencyNode()
 dagTypes = set()
 depTypes = set()
 for nodeType, mobj in mobjDict.iteritems():
-    mobj.
-    
+    if mfnDag.hasObj(mobj):
+        dagTypes.add(nodeType)
+        mfnDag.setObject(mobj)
+        nodeDict[nodeType] = mfnDag.fullPathName()
+    else:
+        depTypes.add(nodeType)
+        mfnDep.setObject(mobj)
+        nodeDict[nodeType] = mfnDep.name()
+        
 
-nodeDict = {}
-for nodeType in realTypes:
-    result = cmds.createNode(nodeType)
-    nodeDict[nodeType] = result
+    
+#nodeDict = {}
+#for nodeType in realTypes:
+#    result = cmds.createNode(nodeType)
+#    nodeDict[nodeType] = result
     
 assert len(nodeDict) == len(realTypes)
-
-pynodeDict = {}
-for nodeType, node in nodeDict.iteritems():
-    pynodeDict[nodeType] = pm.PyNode(node)
 
 inheritances = {}
 badInheritances = {}
