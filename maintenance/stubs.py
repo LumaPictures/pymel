@@ -81,13 +81,28 @@ class StubDoc(Doc):
         if desc:
             result += result + self.docstring(desc)
 
-        classes = []
+        untraversedClasses = []
         for key, value in inspect.getmembers(object, inspect.isclass):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
             if (all is not None
                 or (inspect.getmodule(value) or object) is object):
                 if visiblename(key, all):
-                    classes.append((key, value))
+                    untraversedClasses.append((key, value))
+        # A visible class may have a non-visible baseClass from this module,
+        # which will still need to be included if the module is to import
+        # correctly - ie,
+        # class _AbstractClass(object): pass
+        # class InheritedClass(_AbstractClass): pass
+        classes = []
+        while untraversedClasses:
+            key, childClass = untraversedClasses.pop()
+            classes.append( (key, childClass) )
+            for parentClass in childClass.__bases__:
+                if (inspect.getmodule(parentClass) or object) is object:
+                    newTuple = (parentClass.__name__, parentClass)
+                    if newTuple not in classes and newTuple not in untraversedClasses:
+                        untraversedClasses.append( newTuple )
+                    
         funcs = []
         for key, value in inspect.getmembers(object, inspect.isroutine):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
