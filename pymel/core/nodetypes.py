@@ -1040,7 +1040,7 @@ class DagNode(Entity):
         """
         #pass
         try:
-            return [ x for x in self.getParent().getChildren() if x != self]
+            return [ x for x in self.getParent().getChildren(**kwargs) if x != self]
         except:
             return []
 
