@@ -1838,6 +1838,7 @@ class PyNode(_util.ProxyUnicode):
         :rtype: `other.NameParser`
 
         """
+        import other
         return other.NameParser(self).stripNamespace(*args, **kwargs)
 
     def swapNamespace(self, prefix):

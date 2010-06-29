@@ -60,15 +60,48 @@ class NameParser(unicode):
         """
 
         nodes = []
-        for x in self.split('|'):
-            y = x.split('.')
-            z = y[0].split(':')
+        for dagElem in self.split('|'):
+            attrSplit = dagElem.split('.')
+            spaceSplit = attrSplit[0].split(':')
             if levels:
-                y[0] = ':'.join( z[min(len(z)-1,levels):] )
-
+                attrSplit[0] = ':'.join( spaceSplit[min(len(spaceSplit)-1,levels):] )
             else:
-                y[0] = z[-1]
-            nodes.append( '.'.join( y ) )
+                attrSplit[0] = spaceSplit[-1]
+            nodes.append( '.'.join( attrSplit ) )
+        return self.__class__( '|'.join( nodes) )
+    
+    def stripGivenNamespace(self, namespace, partial=True):
+        """
+        Returns a new instance of the object with any occurrences of the given namespace removed.  The calling instance is unaffected.
+        The given namespace may end with a ':', or not.
+        If partial is True (the default), and the given namespace has parent namespaces (ie, 'one:two:three'),
+        then any occurrences of any parent namespaces are also stripped - ie, 'one' and 'one:two' would
+        also be stripped.  If it is false, only namespaces
+    
+            >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar')
+            AttributeName('top|middle|extra:guy.spangle')
+            
+            >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar', partial=False)
+            AttributeName('top|foo:middle|extra:guy.spangle')
+        """
+        prefixSplit = namespace.rstrip(':').split(':')
+
+        nodes = []
+        for dagElem in self.split('|'):
+            attrSplit = dagElem.split('.')
+            spaceSplit = attrSplit[0].split(':')
+            if partial:
+                for toStrip in prefixSplit:
+                    if spaceSplit[0] == toStrip:
+                        spaceSplit.pop(0)
+                    else:
+                        break
+            else:
+                if spaceSplit[:len(prefixSplit)] == prefixSplit:
+                    spaceSplit = spaceSplit[len(prefixSplit):]
+                attrSplit[0] = spaceSplit[-1]
+            attrSplit[0] = ':'.join( spaceSplit )
+            nodes.append( '.'.join( attrSplit ) )
         return self.__class__( '|'.join( nodes) )
 
     def swapNamespace(self, prefix):

@@ -1040,7 +1040,7 @@ class DagNode(Entity):
         """
         #pass
         try:
-            return [ x for x in self.getParent().getChildren() if x != self]
+            return [ x for x in self.getParent().getChildren(**kwargs) if x != self]
         except:
             return []
 
@@ -1106,6 +1106,21 @@ class DagNode(Entity):
             if len( sg.attr('displacementShader').inputs() ):
                 return True
         return False
+    
+    def hide(self):
+        self.visibility.set(0)
+
+    def show(self):
+        self.visibility.set(1)
+        
+    def isVisible(self):
+        if not self.attr('visibility').get():
+            return False
+        parent = self.getParent()
+        if not parent:
+            return True
+        else:
+            return parent.isVisible()
 
     def setObjectColor( self, color=None ):
         """This command sets the dormant wireframe color of the specified objects to an integer
@@ -1345,12 +1360,6 @@ class Transform(DagNode):
 #    def _setTranslate(self, val):
 #        return self.__setattr__("translate", val)
 #    translate = property( _getTranslate , _setTranslate )
-
-    def hide(self):
-        self.visibility.set(0)
-
-    def show(self):
-        self.visibility.set(1)
 
     def getShape( self, **kwargs ):
         """

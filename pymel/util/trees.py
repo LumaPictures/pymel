@@ -1,6 +1,11 @@
 """
 A tree module that can wrap either pure python tree implementation or the networkx library if present
 
+########################################################################
+WARNING: this module may be removed in the future, or radically altered.
+We do NOT recommend using it in external code...
+########################################################################
+
 >>> # Create a tree from nested sequences:
 >>> myTree = Tree('a', ('ab', 'aa', 3, {}))
 >>> print myTree
