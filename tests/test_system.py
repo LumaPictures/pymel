@@ -1,4 +1,6 @@
-import unittest, tempfile
+import unittest
+import tempfile
+import shutil
 from pymel.all import *
 
 class testCase_references(unittest.TestCase):
@@ -11,7 +13,9 @@ class testCase_references(unittest.TestCase):
         print "sphere file"
 #        cmds.file(new=1, f=1)
         newFile(f=1)
-        polySphere()
+        sphere = polySphere()
+        # We will use this to test failed ref edits...
+        addAttr(ln='zombieAttr')
         self.sphereFile = saveAs( os.path.join( self.temp, 'sphere.ma' ), f=1 )
         
         # create cube file
@@ -53,8 +57,17 @@ class testCase_references(unittest.TestCase):
         self.sphereRef1.exportSelectedAnim( os.path.join( self.temp, 'selRefAnim.ma' ), force=1 )
         self.sphereRef1.remove()
         self.sphereRef2.importContents()
+
+    def test_failedRefEdits(self):
+        # Animate the zombieAttr
+        zombie = PyNode('sphere1:pSphere1').attr('zombieAttr')
+        zombie.setKey(t=1, v=1)
+        zombie.setKey(t=2, v=2)
+        zombie.setKey(t=3, v=4)
+        zombie.
         
     def tearDown(self):
+        shutil.rmtree(self.temp)
         newFile(f=1)
         
 class testCase_fileInfo(unittest.TestCase):
