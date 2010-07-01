@@ -375,7 +375,8 @@ class DependNode( general.PyNode ):
 #                                        except TypeError: pass
 #                                        else:break
                     if isinstance( token, nameparse.NameIndex ):
-                        result = result.elementByLogicalIndex( token.value )
+                        if token.value != -1:
+                            result = result.elementByLogicalIndex( token.value )
                 return general.Attribute( self.__apiobject__(), result )
             else:
                 try:
