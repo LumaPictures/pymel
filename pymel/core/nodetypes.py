@@ -1060,7 +1060,19 @@ class DagNode(Entity):
             if parent is 'None', world=True is automatically set
         """
         if args and args[-1] is None:
-            kwargs['world']=True
+            if not kwargs.get('w', kwargs.get('world', True)):
+                raise ValueError('No parent given, but parent to world explicitly set to False')
+            if 'world' in kwargs:
+                del kwargs['world']
+            kwargs['w']=True
+
+        # if you try to parent to the current parent, maya errors...
+        # check for this and return if that's the case
+        currentParent = self.getParent()
+        if ( (currentParent is None and kwargs.get('w', False))
+            or currentParent == args[-1]):
+            return self 
+        
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
 
     def addChild( self, child, **kwargs ):
@@ -1145,6 +1157,11 @@ class DagNode(Entity):
 class Shape(DagNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     def getTransform(self): pass
+    
+    def setParent(self, *args, **kwargs):
+        if 'shape' not in kwargs and 's' not in kwargs:
+            kwargs['s'] = True
+        super(Shape, self).setParent(*args, **kwargs)
 #class Joint(Transform):
 #    pass
 
