@@ -228,10 +228,9 @@ class ApiCache(object):
 
         return _makeDgModGhostObject(mayaType, dagMod, dgMod)
 
-    # check if a an API type herits from another
     # it can't b e done for "virtual" types (in self.reservedApiTypes)
     def _hasFn(self, apiType, dagMod, dgMod, parentType=None) :
-        """ Get the Maya API type from the name of a Maya type """
+        """Check if an API type inherits from another"""
         if parentType is None :
             parentType = 'kBase'
         # Reserved we can't determine it as we can't create the node, all we can do is check if it's
@@ -253,7 +252,7 @@ class ApiCache(object):
 
     # Filter the given API type list to retain those that are parent of apiType
     # can pass a list of types to check for being possible parents of apiType
-    # or a dictionnary of types:node to speed up testing
+    # or a dictionary of types:node to speed up testing
     def _parentFn(self, apiType, dagMod, dgMod, *args, **kwargs) :
         """ Checks the given API type list, or API type:MObject dictionnary to return the first parent of apiType """
         if not kwargs :

@@ -15,7 +15,7 @@ class testCase_references(unittest.TestCase):
         newFile(f=1)
         sphere = polySphere()
         # We will use this to test failed ref edits...
-        addAttr(ln='zombieAttr')
+        addAttr(sphere, ln='zombieAttr')
         self.sphereFile = saveAs( os.path.join( self.temp, 'sphere.ma' ), f=1 )
         
         # create cube file
@@ -59,16 +59,33 @@ class testCase_references(unittest.TestCase):
         self.sphereRef2.importContents()
 
     def test_failedRefEdits(self):
-        # Animate the zombieAttr
-        zombie = PyNode('sphere1:pSphere1').attr('zombieAttr')
-        zombie.setKey(t=1, v=1)
-        zombie.setKey(t=2, v=2)
-        zombie.setKey(t=3, v=4)
-        zombie.
+        # Animate the zombieAttrs
+        for transform in [x.getParent() for x in ls(type='mesh')]:
+            try:
+                zombie = transform.attr('zombieAttr')
+            except MayaAttributeError:
+                continue
+            zombie.setKey(t=1, v=1)
+            zombie.setKey(t=2, v=2)
+            zombie.setKey(t=3, v=4)
+        self.masterFile = saveAs( os.path.join( self.temp, 'master.ma' ), f=1 )
+        
+        openFile(self.sphereFile, f=1)
+        SCENE.pSphere1.zombieAttr.delete()
+        saveFile(f=1)
+        
+        # deleting the attr should give some failed ref edits...
+        openFile(self.masterFile, f=1)
+        
+        refNodes=[ref for ref in listReferences(recursive=True) if ref.isLoaded()]
+        for ref in refNodes:
+               print ref, len(referenceQuery(ref.refNode,successfulEdits=False,failedEdits=True,es=True))
+               print ref, len(cmds.referenceQuery(str(ref.refNode),successfulEdits=False,failedEdits=True,es=True))
+               print ref, len(ref.getReferenceEdits(failedEdits=True))        
         
     def tearDown(self):
-        shutil.rmtree(self.temp)
         newFile(f=1)
+        shutil.rmtree(self.temp, ignore_errors =True)
         
 class testCase_fileInfo(unittest.TestCase):
     def setUp(self):

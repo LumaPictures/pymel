@@ -8,6 +8,7 @@
 *.egg-info
 /build
 /dist
+/extras/completion
 ._*
 *.tmproj
 *~

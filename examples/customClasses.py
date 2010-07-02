@@ -39,7 +39,7 @@ class CustomJointBase(Joint):
         PyMEL code should not be used inside the callback, only API and maya.cmds. 
         """
         # obj is either an MObject or an MDagPath, depending on whether this class is a subclass of DependNode or DagNode, respectively.
-        # we use MFnDependencyNode below because it works with either and we onl need to test attribute existence.
+        # we use MFnDependencyNode below because it works with either and we only need to test attribute existence.
         fn = api.MFnDependencyNode(obj)
         try:
             # NOTE: MFnDependencyNode.hasAttribute fails if the attribute does not exist, so we have to try/except it.
