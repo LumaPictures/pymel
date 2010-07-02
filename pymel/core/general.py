@@ -1231,7 +1231,6 @@ Modifications
     'isIntersecting', 'ii',
     'isMember', 'im',
     'split', 'sp',
-    'noWarnings', 'nw',
     'addElement', 'add',
     'include', 'in',
     'remove', 'rm',
