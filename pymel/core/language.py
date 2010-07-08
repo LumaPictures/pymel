@@ -43,9 +43,9 @@ def pythonToMel(arg):
         { key1 : val1, key2 : val2 }  -- >  ( key1, val1, key2, val2 )
 
     """
+    if arg is True or arg is False:
+        return str(arg).lower()
     if util.isNumeric(arg):
-        if arg is True or arg is False:
-            arg = int(arg) 
         return str(arg)
     if isinstance(arg, datatypes.Vector):
         return '<<%f,%f,%f>>' % ( arg[0], arg[1], arg[2] )
@@ -372,12 +372,16 @@ class OptionVarList(tuple):
         return self
 
     def __init__(self, val, key):
-        tuple.__init__(self, val)
+        # tuple's init is object.__init__, which takes no args...
+        #tuple.__init__(self, val)
         self.key = key
+        
+    def __setitem__(self, key, val):
+        raise TypeError, '%s object does not support item assignment - try casting to a list, and assigning the whole list to the optionVar' % self.__class__.__name__
 
 
     def appendVar( self, val ):
-        """ values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
+        """values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
         """
 
         if isinstance( val, basestring):

@@ -282,7 +282,10 @@ Modifications:
         return vecRes
 
     # stringify fix
-    attr = unicode(attr)
+    if isinstance(attr, Attribute):
+        attr = attr.name(placeHolderIndices=False)
+    else:
+        attr = unicode(attr)
 
     try:
         res = cmds.getAttr( attr, **kwargs)
@@ -1228,7 +1231,6 @@ Modifications
     'isIntersecting', 'ii',
     'isMember', 'im',
     'split', 'sp',
-    'noWarnings', 'nw',
     'addElement', 'add',
     'include', 'in',
     'remove', 'rm',
@@ -1838,6 +1840,7 @@ class PyNode(_util.ProxyUnicode):
         :rtype: `other.NameParser`
 
         """
+        import other
         return other.NameParser(self).stripNamespace(*args, **kwargs)
 
     def swapNamespace(self, prefix):
@@ -2150,6 +2153,15 @@ class Attribute(PyNode):
         try:
             return self.node().__apimdagpath__()
         except AttributeError: pass
+        
+    def __apimattr__(self) :
+        "Return the MFnAttribute for this attribute, if it is valid"
+        try:
+            if 'MFnAttribute' not in self.__apiobjects__:
+                self.__apiobjects__['MFnAttribute'] = _api.MFnAttribute(self.__apimobject__())
+            return self.__apiobjects__['MFnAttribute']
+        except Exception:
+            raise MayaAttributeError
 
 
 #    def __init__(self, attrName):
@@ -2298,11 +2310,35 @@ class Attribute(PyNode):
         """
         return not self.__eq__(other)
 
-    def name(self, includeNode=True, longName=True, fullAttrPath=False, fullDagPath=False):
+    def name(self, includeNode=True, longName=True, fullAttrPath=False,
+             fullDagPath=False, placeHolderIndices=True):
         """ Returns the name of the attribute (plug)
+
+            >>> tx = SCENE.persp.t.tx
+            >>> tx.name()
+            u'persp.translateX'
+            >>> tx.name(includeNode=False)
+            u'translateX'
+            >>> tx.name(longName=False)
+            u'tx'
+            >>> tx.name(fullAttrPath=True, includeNode=False)
+            u'translate.translateX'
+            
+            >>> vis = SCENE.perspShape.visibility
+            >>> vis.name()
+            u'perspShape.visibility'
+            >>> vis.name(fullDagPath=True)
+            u'perspShape.visibility'
+            
+            >>> og = SCENE.persp.instObjGroups.objectGroups
+            >>> og.name()
+            u'persp.instObjGroups[-1].objectGroups'
+            >>> og.name(placeHolderIndices=False)
+            u'persp.instObjGroups.objectGroups'
 
         :rtype: `unicode`
         """
+                    
         obj = self.__apimplug__()
         if obj:
             name = ''
@@ -2316,13 +2352,16 @@ class Attribute(PyNode):
                 name += '.'
 
 
-            return name + obj.partialName(    False, #includeNodeName
-                                              True, #includeNonMandatoryIndices
-                                              True, #includeInstancedIndices
-                                              False, #useAlias
-                                              fullAttrPath, #useFullAttributePath
-                                              longName #useLongNames
-                                            )
+            name += obj.partialName(    False, #includeNodeName
+                                        True, #includeNonMandatoryIndices
+                                        True, #includeInstancedIndices
+                                        False, #useAlias
+                                        fullAttrPath, #useFullAttributePath
+                                        longName #useLongNames
+                                    )
+            if not placeHolderIndices:
+                name  = name.replace('[-1]', '')
+            return name
         raise MayaObjectError(self._name)
 
 
@@ -2416,7 +2455,31 @@ class Attribute(PyNode):
         :rtype: `unicode`
         """
         return self.plugNode().name()
-
+    
+    def attrName( self, longName=False ):
+        """Just the name of the attribute for this plug
+        
+        This will have no indices, no parent attributes, etc...
+        This is suitable for use with cmds.attributeQuery
+    
+            >>> at = SCENE.persp.instObjGroups.objectGroups
+            >>> at.name()
+            u'persp.instObjGroups[-1].objectGroups'
+            >>> at.attrName()
+            u'og'            
+            >>> at.attrName(longName=True)
+            u'objectGroups'
+        """
+        # Need to implement this with MFnAttribute - anything
+        # with MPlug will have the [-1]...
+        attr = self.__apimattr__()
+        if longName:
+            name = attr.name()
+        else:
+            name = attr.shortName()
+        if includeNode:
+            name = self.nodeName() + '.' + name
+        return name
 
     def array(self):
         """
@@ -2758,7 +2821,7 @@ class Attribute(PyNode):
 
         :rtype: `unicode`
         """
-        return cmds.getAttr(self, type=True)
+        return cmds.getAttr(self.name(placeHolderIndices=False), type=True)
 
 
     def lock(self):
@@ -2775,7 +2838,7 @@ class Attribute(PyNode):
 
         :rtype: `bool`
         """
-        return cmds.getAttr(self, settable=True)
+        return cmds.getAttr(self.name(placeHolderIndices=False), settable=True)
 
     # attributeQuery info methods
     def isHidden(self):
@@ -2784,7 +2847,7 @@ class Attribute(PyNode):
 
         :rtype: `bool`
         """
-        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), hidden=True)
+        return cmds.attributeQuery(self.attrName(), node=self.node(), hidden=True)
 
     def isConnectable(self):
         """
@@ -2792,7 +2855,7 @@ class Attribute(PyNode):
 
         :rtype: `bool`
         """
-        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), connectable=True)
+        return cmds.attributeQuery(self.attrName(), node=self.node(), connectable=True)
 
 
     isMulti = _factories.wrapApiMethod( _api.MPlug, 'isArray', 'isMulti' )

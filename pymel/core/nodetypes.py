@@ -375,7 +375,8 @@ class DependNode( general.PyNode ):
 #                                        except TypeError: pass
 #                                        else:break
                     if isinstance( token, nameparse.NameIndex ):
-                        result = result.elementByLogicalIndex( token.value )
+                        if token.value != -1:
+                            result = result.elementByLogicalIndex( token.value )
                 return general.Attribute( self.__apiobject__(), result )
             else:
                 try:
@@ -1040,7 +1041,7 @@ class DagNode(Entity):
         """
         #pass
         try:
-            return [ x for x in self.getParent().getChildren() if x != self]
+            return [ x for x in self.getParent().getChildren(**kwargs) if x != self]
         except:
             return []
 
@@ -1059,7 +1060,19 @@ class DagNode(Entity):
             if parent is 'None', world=True is automatically set
         """
         if args and args[-1] is None:
-            kwargs['world']=True
+            if not kwargs.get('w', kwargs.get('world', True)):
+                raise ValueError('No parent given, but parent to world explicitly set to False')
+            if 'world' in kwargs:
+                del kwargs['world']
+            kwargs['w']=True
+
+        # if you try to parent to the current parent, maya errors...
+        # check for this and return if that's the case
+        currentParent = self.getParent()
+        if ( (currentParent is None and kwargs.get('w', False))
+            or currentParent == args[-1]):
+            return self 
+        
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
 
     def addChild( self, child, **kwargs ):
@@ -1106,6 +1119,21 @@ class DagNode(Entity):
             if len( sg.attr('displacementShader').inputs() ):
                 return True
         return False
+    
+    def hide(self):
+        self.visibility.set(0)
+
+    def show(self):
+        self.visibility.set(1)
+        
+    def isVisible(self):
+        if not self.attr('visibility').get():
+            return False
+        parent = self.getParent()
+        if not parent:
+            return True
+        else:
+            return parent.isVisible()
 
     def setObjectColor( self, color=None ):
         """This command sets the dormant wireframe color of the specified objects to an integer
@@ -1129,6 +1157,11 @@ class DagNode(Entity):
 class Shape(DagNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     def getTransform(self): pass
+    
+    def setParent(self, *args, **kwargs):
+        if 'shape' not in kwargs and 's' not in kwargs:
+            kwargs['s'] = True
+        super(Shape, self).setParent(*args, **kwargs)
 #class Joint(Transform):
 #    pass
 
@@ -1345,12 +1378,6 @@ class Transform(DagNode):
 #    def _setTranslate(self, val):
 #        return self.__setattr__("translate", val)
 #    translate = property( _getTranslate , _setTranslate )
-
-    def hide(self):
-        self.visibility.set(0)
-
-    def show(self):
-        self.visibility.set(1)
 
     def getShape( self, **kwargs ):
         """

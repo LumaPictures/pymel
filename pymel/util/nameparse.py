@@ -230,7 +230,7 @@ class AttrSepParser(Parser):
 
 class NameIndexParser(Parser):
     """ A Parser for attribute or component name indexes, in the form [<int number>] """
-    t_Index  = r'\[[0-9]+\]'
+    t_Index  = r'\[(?:[0-9]+|-1)\]'
 
     start = 'NameIndex'
     def p_index(self, p):
