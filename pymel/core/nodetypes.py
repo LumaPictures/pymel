@@ -1271,8 +1271,7 @@ class Transform(DagNode):
             res = DependNode.__getattr__(self,attr)
         except AttributeError, e:
             # Functions via shape inheritance , and then, implicitly, Attributes
-            shape = self.getShape()
-            if shape:
+            for shape in self.getShapes():
                 try:
                     return getattr(shape,attr)
                 except AttributeError: pass
