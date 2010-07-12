@@ -403,7 +403,7 @@ class EnumDict(utilitytypes.EquivalencePairs):
 #        raise EnumImmutableError(index)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self)
+        return "%s(%s)" % (self.__class__.__name__, super(EnumDict, self).__repr__())
 
     def value(self, key):
         """

@@ -23,12 +23,15 @@ class testCase_references(unittest.TestCase):
         newFile(f=1)
         polyCube()
         createReference( self.sphereFile, namespace='sphere' )
+        PyNode('sphere:pSphere1').attr('translateX').set(2)
         self.cubeFile = saveAs( os.path.join( self.temp, 'cube.ma' ), f=1 )
         
         print "master file"
         newFile(f=1)
         self.sphereRef1 = createReference( self.sphereFile, namespace='sphere1' )
+        PyNode('sphere1:pSphere1').attr('translateX').set(4)
         self.sphereRef2 = createReference( self.sphereFile, namespace='sphere2' )
+        PyNode('sphere2:pSphere1').attr('translateX').set(6)
         self.cubeRef1 = createReference( self.cubeFile, namespace='cube1' )
 
     def test_basic_file_cmds(self):
@@ -58,7 +61,15 @@ class testCase_references(unittest.TestCase):
         self.sphereRef1.remove()
         self.sphereRef2.importContents()
 
-    def test_failedRefEdits(self):
+    def test_file_reference_creation(self):
+        for ref in listReferences(recursive=True):
+            self.assertEqual(ref, FileReference(PyNode(ref.refNode)))
+            self.assertEqual(ref, FileReference(str(ref.refNode)))
+            self.assertEqual(ref, FileReference(Path(ref.withCopyNumber())))
+            self.assertEqual(ref, FileReference(str(ref.withCopyNumber())))
+            self.assertEqual(ref, FileReference(namespace=ref.namespace))
+
+    def test_failed_ref_edits(self):
         # Animate the zombieAttrs
         for transform in [x.getParent() for x in ls(type='mesh')]:
             try:
@@ -77,11 +88,12 @@ class testCase_references(unittest.TestCase):
         # deleting the attr should give some failed ref edits...
         openFile(self.masterFile, f=1)
         
-        refNodes=[ref for ref in listReferences(recursive=True) if ref.isLoaded()]
-        for ref in refNodes:
-               print ref, len(referenceQuery(ref.refNode,successfulEdits=False,failedEdits=True,es=True))
-               print ref, len(cmds.referenceQuery(str(ref.refNode),successfulEdits=False,failedEdits=True,es=True))
-               print ref, len(ref.getReferenceEdits(failedEdits=True))        
+        sphereRefs = [x for x in listReferences(recursive=True)
+                      if x.path.endswith('sphere.ma')]
+        for ref in sphereRefs:
+            print "testing failed ref edits on: %s" % ref
+            self.assertEqual(1, len(referenceQuery(ref,successfulEdits=False,failedEdits=True,es=True)))
+            self.assertEqual(1, len(cmds.referenceQuery(str(ref.refNode), successfulEdits=False,failedEdits=True,es=True)))
         
     def tearDown(self):
         newFile(f=1)
