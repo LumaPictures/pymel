@@ -2870,6 +2870,8 @@ class Attribute(PyNode):
 
         :rtype: `bool`
         """
+        if not self.node().exists():
+            return False
 
         if self.isElement():
             arrayExists = self.array().exists()
