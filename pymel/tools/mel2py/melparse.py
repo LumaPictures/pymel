@@ -178,7 +178,8 @@ proc_remap = {
         'size'                     : ('int',    lambda x, t: 'len(%s)'             % (', '.join(x)) ),
         'print'                    : ( None ,   lambda x, t: 'print %s'             % (x[0]) ),
         'clear'                    : ( None ,   lambda x, t: '%s=[]'                 % (x[0]) ),
-        'eval'                    : ( None ,   lambda x, t: '%smel.eval(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
+        'eval'                     : ( None ,   lambda x, t: '%smel.eval(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
+        'python'                   : ( None ,   lambda x, t: '%spython(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
         'sort'                    : ( None ,   lambda x, t: 'sorted(%s)'            % (x[0]) ),
         'source'                : ( None ,      format_source ),
         # error handling
@@ -637,11 +638,15 @@ def format_command(command, args, t):
         elif command == 'eval' or command in melCmdFlagList:
             command = '%smel.%s' % (t.lexer.pymel_namespace, command)
 
-        # ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
-        elif command == 'python':
-            return 'eval(%s)' % args[0]
-            #args = map( lambda x: x.strip('"'), args[0].split(' + ') )
-            #return ''.join(args)
+#        # ironically, the python command is a nightmare to convert to pure
+#        # python - we need a return value, which means we can't use 'exec', but
+#        # we need to be able to execute arbitrary statements, like imports,
+#        # which means we can't use eval.
+#        # So, just use the maya.cmds.python command...
+#        elif command == 'python':
+#            return 'eval(%s)' % args[0]
+#            #args = map( lambda x: x.strip('"'), args[0].split(' + ') )
+#            #return ''.join(args)
 
         # cycle through our kwargs and format them
         for flag, value in kwargs.items():
