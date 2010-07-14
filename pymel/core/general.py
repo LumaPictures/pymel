@@ -2807,12 +2807,16 @@ class Attribute(PyNode):
         return cmds.isDirty(self, **kwargs)
 
     def affects( self, **kwargs ):
-        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-            cmds.affects( self.plugAttr(), self.node()  ) )
+        rawResult = cmds.affects( self.plugAttr(), self.node() )
+        if not rawResult:
+            return []
+        return [Attribute( '%s.%s' % ( self.node(), x )) for x in rawResult]
 
     def affected( self, **kwargs ):
-        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-            cmds.affects( self.plugAttr(), self.node(), by=True  ))
+        rawResult = cmds.affects( self.plugAttr(), self.node(), by=True  )
+        if not rawResult:
+            return []
+        return [Attribute( '%s.%s' % ( self.node(), x )) for x in rawResult]
 
     # getAttr info methods
     def type(self):
