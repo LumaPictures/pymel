@@ -2456,7 +2456,7 @@ class Attribute(PyNode):
         """
         return self.plugNode().name()
     
-    def attrName( self, longName=False ):
+    def attrName( self, longName=False, includeNode=False ):
         """Just the name of the attribute for this plug
         
         This will have no indices, no parent attributes, etc...
