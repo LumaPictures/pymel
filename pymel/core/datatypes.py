@@ -535,9 +535,9 @@ class Vector(VectorN) :
         try :
             res = self.apicls.__mul__(self, other)
             assert res is not NotImplemented
-        except :
+        except Exception:
             res = super(Vector, self).__mul__(other)
-        if util.isNumeric(res) :
+        if util.isNumeric(res) or res is NotImplemented:
             return res
         else :
             return self.__class__._convert(res)
@@ -2663,6 +2663,27 @@ _factories.ApiTypeRegister.register( 'MTime', Time, inCast=lambda x: Time(x)._da
 _factories.ApiTypeRegister.register( 'MDistance', Distance, outCast=lambda instance, result: Distance(result,'centimeters').asUIUnit())
 _factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, result: Angle(result,'radians').asUIUnit())
 
+
+#_floatUpConvertDict = {_api.MFloatArray:_api.MDoubleArray,
+#                       _api.MFloatMatrix:_api.MMatrix,
+#                       _api.MFloatPoint:_api.MPoint,
+#                       _api.MFloatPointArray:_api.MPointArray,
+#                       _api.MFloatVector:_api.MVector,
+#                       _api.MFloatVectorArray:_api.MVectorArray,
+#                       FloatMatrix:Matrix,
+#                       FloatPoint:Point,
+#                       FloatVector:Vector
+#                       }
+#def _floatUpConvert(input):
+#    """Will convert various Float* objects to their corresponding double object
+#    
+#    ie, api.MFloatMatrix => api.MMatrix, FloatPoint => Point
+#    """
+#    newClass = _floatUpConvertDict.get(input.__class__)
+#    if newClass:
+#        return newClass(input)
+#    else:
+#        return input
 
 def getPlugValue( plug ):
     """given an MPlug, get its value as a pymel-style object"""
