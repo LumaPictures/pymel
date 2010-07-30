@@ -1085,6 +1085,12 @@ class EquivalencePairs(TwoWayDict):
     def __contains__(self, key):
         return (dict.__contains__(self, key) or
                 key in self._reverse)
+        
+    def get(self, key, d=None):
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return d
 
 def alias(origAttrName):
     """

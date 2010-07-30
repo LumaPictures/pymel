@@ -2456,7 +2456,7 @@ class Attribute(PyNode):
         """
         return self.plugNode().name()
     
-    def attrName( self, longName=False ):
+    def attrName( self, longName=False, includeNode=False ):
         """Just the name of the attribute for this plug
         
         This will have no indices, no parent attributes, etc...
@@ -2807,12 +2807,16 @@ class Attribute(PyNode):
         return cmds.isDirty(self, **kwargs)
 
     def affects( self, **kwargs ):
-        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-            cmds.affects( self.plugAttr(), self.node()  ) )
+        rawResult = cmds.affects( self.plugAttr(), self.node() )
+        if not rawResult:
+            return []
+        return [Attribute( '%s.%s' % ( self.node(), x )) for x in rawResult]
 
     def affected( self, **kwargs ):
-        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-            cmds.affects( self.plugAttr(), self.node(), by=True  ))
+        rawResult = cmds.affects( self.plugAttr(), self.node(), by=True  )
+        if not rawResult:
+            return []
+        return [Attribute( '%s.%s' % ( self.node(), x )) for x in rawResult]
 
     # getAttr info methods
     def type(self):
@@ -2870,6 +2874,8 @@ class Attribute(PyNode):
 
         :rtype: `bool`
         """
+        if not self.node().exists():
+            return False
 
         if self.isElement():
             arrayExists = self.array().exists()

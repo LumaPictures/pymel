@@ -740,157 +740,157 @@ listReferences.__doc__ += iterReferences.__doc__
 def getReferences(parentReference=None, recursive=False):
     return dict( iterReferences( parentReference=parentReference, recursive=recursive, namespaces=True, refNodes=False ) )
 
-@decorator
-def suspendReferenceUpdates(func):
-    def suspendedRefUpdateFunc(*args, **kw):
-        ReferenceCache.deferReferenceUpdates(True)
-        try:
-            ret = func(*args, **kw)
-        finally:
-            ReferenceCache.deferReferenceUpdates(False)
-        return ret
-    return suspendedRefUpdateFunc
-
-class ReferenceCache(object):
-    """
-    For the sake of speeding up the process of identifying File References in the scene
-    and properly associating with their respective namespace/reference-node/fullpath,
-    a set of API callbacks is set-up which triggers a file-reference cache refresh.
-
-    This callback mechanism can be suspended temporarily, which is useful when a process
-    needs to change the state of several references at once (loading/unloading, adding/removing).
-    Use the 'deferReferenceUpdates' function or the 'suspendReferenceUpdates' decorator
-    """
-
-    _deferReferenceUpdates = False
-    _callbacks = []
-    _allFiles = []
-    byNamespace = {}
-    byRefNode = {}
-    byFullPath = {}
-    callbacksEnabled = False
-
-    @classmethod
-    def deferReferenceUpdates(cls, state):
-        if state:
-            msg = "SUSPENDING "
-        else:
-            msg = "Enabling"
-        _logger.debug("%s Reference Updates" % (msg))
-        cls._deferReferenceUpdates = state
-
-
-    @classmethod
-    def refresh(cls):
-
-        import general
-        import other
-
-        cls.byNamespace.clear()
-        cls.byRefNode.clear()
-        cls.byFullPath.clear()
-
-        def getRefs(reference=None, currNamespace='' ):
-            res = []
-            args = []
-            if reference is not None:
-                args.append(reference)
-
-            resolved = cmds.file(  q=1, reference=1, *args )
-            unresolved = cmds.file( q=1, reference=1, unresolvedName=1, *args )
-
-            assert len(resolved) == len(unresolved)
-
-            for ref, unresolvedRef in zip( resolved, unresolved ):
-                row = []
-                # we cannot reliably get refNode in a nested reference scenario, but it's ok
-                # we can get the refFile directly from refNode using MFileIO.getReferenceFileByNode()
-                # so there's no real need to keep a dictionary
-
-                namespace = cmds.file( ref, q=1, namespace=1)
-                fullNamespace = currNamespace + namespace
-                row.append( ref )
-                row.append( unresolvedRef )
-                #row.append( refNode )
-                res.append( row )
-                row.append( fullNamespace )
-
-                res += getRefs(ref, fullNamespace + ':' )
-
-            return res
-
-        refData = getRefs()
-        _logger.info("Refreshing %s references..." % len(refData))
-
-        for path, unresolvedPath, namespace in refData:
-
-            #fr = ( fullpath, unresolvedPath )
-
-            _logger.debug("Found %s" % path)
-            #refNode = general.PyNode( refNode )
-            data = ( path, unresolvedPath )
-            # The FileReference Object is inserted into the dictionray under multiple keys
-            # so that it can be easily found using a full-namespace, a reference-node name, or a filepath
-            cls.byNamespace[namespace] = data
-            #cls.byRefNode[refNode] = data
-            cls.byFullPath[path.replace("/","\\")] = data
-            cls.byFullPath[path.replace("\\","/")] = data
-
-    @classmethod
-    def _getAllFileReferences(cls):
-        ret =  [v for (k,v) in cls.byNamspace.iteritems() ]
-        if not ret:
-            cls.refresh()
-            ret =  [v for (k,v) in cls.byNamspace.iteritems()]
-        return ret
-
-    @classmethod
-    def setupFileReferenceCallbacks(cls):
-        cls.callbacksEnabled = True
-
-        def refererencesUpdated(*args):
-            if cls._deferReferenceUpdates:
-                return
-            cls.refresh()
-
-        messages = ['kAfterReference', 'kAfterRemoveReference', 'kAfterImportReference', 'kAfterExportReference', 'kSceneUpdate']
-        for msg in messages:
-            _logger.debug("Setting up File-Reference Callback: %s" % msg)
-            cb = _OpenMaya.MSceneMessage.addCallback(getattr(_OpenMaya.MSceneMessage,msg), refererencesUpdated, None)
-            if hasattr(cb, 'disown'):
-                cb.disown()     # suppresses those swig 'memory leak' warnings
-            cls._callbacks.append(cb)
-
-    @classmethod
-    def getPaths(cls, path=None, namespace=None):
-
-        # there's no guarantee that:
-        #  the namespace has not changed since the last cache refresh
-        #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
-        if not cls.callbacksEnabled or namespace:
-            # force refresh (only need to try once)
-            attempts=1
-            cls.refresh()
-        else:
-            # try twice (refresh if failed the first time)
-            attempts = 2
-
-        while attempts:
-            try:
-                if path:
-                    resolvedPath, unresolvedPath = cls.byFullPath[path]
-#                elif refnode:
-#                    refnode = general.PyNode(refnode)
-#                    data = ReferenceCache.byRefNode[refnode]
-                elif namespace:
-                    resolvedPath, unresolvedPath = cls.byNamespace[namespace]
-
-                return resolvedPath, unresolvedPath
-            except KeyError:
-                attempts -= 1
-                if attempts:
-                    ReferenceCache.refresh()
-        raise ValueError("Could not find FileReference (args: %s)" % [path, namespace])
+#@decorator
+#def suspendReferenceUpdates(func):
+#    def suspendedRefUpdateFunc(*args, **kw):
+#        ReferenceCache.deferReferenceUpdates(True)
+#        try:
+#            ret = func(*args, **kw)
+#        finally:
+#            ReferenceCache.deferReferenceUpdates(False)
+#        return ret
+#    return suspendedRefUpdateFunc
+#
+#class ReferenceCache(object):
+#    """
+#    For the sake of speeding up the process of identifying File References in the scene
+#    and properly associating with their respective namespace/reference-node/fullpath,
+#    a set of API callbacks is set-up which triggers a file-reference cache refresh.
+#
+#    This callback mechanism can be suspended temporarily, which is useful when a process
+#    needs to change the state of several references at once (loading/unloading, adding/removing).
+#    Use the 'deferReferenceUpdates' function or the 'suspendReferenceUpdates' decorator
+#    """
+#
+#    _deferReferenceUpdates = False
+#    _callbacks = []
+#    _allFiles = []
+#    byNamespace = {}
+#    byRefNode = {}
+#    byFullPath = {}
+#    callbacksEnabled = False
+#
+#    @classmethod
+#    def deferReferenceUpdates(cls, state):
+#        if state:
+#            msg = "SUSPENDING "
+#        else:
+#            msg = "Enabling"
+#        _logger.debug("%s Reference Updates" % (msg))
+#        cls._deferReferenceUpdates = state
+#
+#
+#    @classmethod
+#    def refresh(cls):
+#
+#        import general
+#        import other
+#
+#        cls.byNamespace.clear()
+#        cls.byRefNode.clear()
+#        cls.byFullPath.clear()
+#
+#        def getRefs(reference=None, currNamespace='' ):
+#            res = []
+#            args = []
+#            if reference is not None:
+#                args.append(reference)
+#
+#            resolved = cmds.file(  q=1, reference=1, *args )
+#            unresolved = cmds.file( q=1, reference=1, unresolvedName=1, *args )
+#
+#            assert len(resolved) == len(unresolved)
+#
+#            for ref, unresolvedRef in zip( resolved, unresolved ):
+#                row = []
+#                # we cannot reliably get refNode in a nested reference scenario, but it's ok
+#                # we can get the refFile directly from refNode using MFileIO.getReferenceFileByNode()
+#                # so there's no real need to keep a dictionary
+#
+#                namespace = cmds.file( ref, q=1, namespace=1)
+#                fullNamespace = currNamespace + namespace
+#                row.append( ref )
+#                row.append( unresolvedRef )
+#                #row.append( refNode )
+#                res.append( row )
+#                row.append( fullNamespace )
+#
+#                res += getRefs(ref, fullNamespace + ':' )
+#
+#            return res
+#
+#        refData = getRefs()
+#        _logger.info("Refreshing %s references..." % len(refData))
+#
+#        for path, unresolvedPath, namespace in refData:
+#
+#            #fr = ( fullpath, unresolvedPath )
+#
+#            _logger.debug("Found %s" % path)
+#            #refNode = general.PyNode( refNode )
+#            data = ( path, unresolvedPath )
+#            # The FileReference Object is inserted into the dictionray under multiple keys
+#            # so that it can be easily found using a full-namespace, a reference-node name, or a filepath
+#            cls.byNamespace[namespace] = data
+#            #cls.byRefNode[refNode] = data
+#            cls.byFullPath[path.replace("/","\\")] = data
+#            cls.byFullPath[path.replace("\\","/")] = data
+#
+#    @classmethod
+#    def _getAllFileReferences(cls):
+#        ret =  [v for (k,v) in cls.byNamspace.iteritems() ]
+#        if not ret:
+#            cls.refresh()
+#            ret =  [v for (k,v) in cls.byNamspace.iteritems()]
+#        return ret
+#
+#    @classmethod
+#    def setupFileReferenceCallbacks(cls):
+#        cls.callbacksEnabled = True
+#
+#        def refererencesUpdated(*args):
+#            if cls._deferReferenceUpdates:
+#                return
+#            cls.refresh()
+#
+#        messages = ['kAfterReference', 'kAfterRemoveReference', 'kAfterImportReference', 'kAfterExportReference', 'kSceneUpdate']
+#        for msg in messages:
+#            _logger.debug("Setting up File-Reference Callback: %s" % msg)
+#            cb = _OpenMaya.MSceneMessage.addCallback(getattr(_OpenMaya.MSceneMessage,msg), refererencesUpdated, None)
+#            if hasattr(cb, 'disown'):
+#                cb.disown()     # suppresses those swig 'memory leak' warnings
+#            cls._callbacks.append(cb)
+#
+#    @classmethod
+#    def getPaths(cls, path=None, namespace=None):
+#
+#        # there's no guarantee that:
+#        #  the namespace has not changed since the last cache refresh
+#        #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
+#        if not cls.callbacksEnabled or namespace:
+#            # force refresh (only need to try once)
+#            attempts=1
+#            cls.refresh()
+#        else:
+#            # try twice (refresh if failed the first time)
+#            attempts = 2
+#
+#        while attempts:
+#            try:
+#                if path:
+#                    resolvedPath, unresolvedPath = cls.byFullPath[path]
+##                elif refnode:
+##                    refnode = general.PyNode(refnode)
+##                    data = ReferenceCache.byRefNode[refnode]
+#                elif namespace:
+#                    resolvedPath, unresolvedPath = cls.byNamespace[namespace]
+#
+#                return resolvedPath, unresolvedPath
+#            except KeyError:
+#                attempts -= 1
+#                if attempts:
+#                    ReferenceCache.refresh()
+#        raise ValueError("Could not find FileReference (args: %s)" % [path, namespace])
 
 class FileReference(object):
     """
@@ -900,7 +900,7 @@ class FileReference(object):
     the namespace and refNode properties. The namespace property can also be used to change the namespace
     of the reference.
 
-    Use listRefences command to return a list of references as instances of the FileReference class.
+    Use listReferences command to return a list of references as instances of the FileReference class.
 
     It is important to note that instances of this class will have their copy number stripped off
     and stored in an internal variable upon creation.  This is to maintain compatibility with the numerous methods
@@ -919,16 +919,20 @@ class FileReference(object):
 #    in general, since almost all the internal queries use the refNode,
 #    there should be little need for the paths, except for displaying to the user.
 
-    def __init__(self, pathOrRefNode=None, namespace=None, refnode=None, unresolvedPath=None):
+    def __init__(self, pathOrRefNode=None, namespace=None, refnode=None):
         import general, nodetypes
         self._refNode = None
         if pathOrRefNode:
-            if isinstance(pathOrRefNode, (basestring,Path)) and '.' in pathOrRefNode:
+            if isinstance(pathOrRefNode, (basestring,Path)):
+                try:
                     self._refNode = general.PyNode( cmds.referenceQuery( str(pathOrRefNode), referenceNode=1 ) )
-            elif isinstance( pathOrRefNode, nodetypes.Reference ):
-                self._refNode = pathOrRefNode
-            else:
-                self._refNode = general.PyNode( pathOrRefNode )
+                except RuntimeError:
+                    pass
+            if not self._refNode:
+                if isinstance( pathOrRefNode, nodetypes.Reference ):
+                    self._refNode = pathOrRefNode
+                else:
+                    self._refNode = general.PyNode( pathOrRefNode )
 
         elif namespace:
             namespace = namespace.rstrip(':')
@@ -992,7 +996,7 @@ class FileReference(object):
         return self.withCopyNumber()
 
     def __repr__(self):
-        return u'%s(%r, %r)' % ( self.__class__.__name__, unicode(self.refNode), self.withCopyNumber() )
+        return u'%s(%r, refNode=%r)' % ( self.__class__.__name__, self.withCopyNumber(), unicode(self.refNode) )
 
     def __str__(self):
         return self.withCopyNumber()
@@ -1049,7 +1053,7 @@ class FileReference(object):
         return Path(path)
 
     def withCopyNumber(self):
-        """return the with the copy number at the end"""
+        """return the path with the copy number at the end"""
         # the file path is subject to change
         path = cmds.referenceQuery( self.refNode, filename=1 )
         return path
@@ -1193,18 +1197,31 @@ class FileReference(object):
 def referenceQuery(*args, **kwargs):
     """When queried for 'es/editStrings', returned a list of ReferenceEdit objects"""
     if kwargs.get("editStrings", kwargs.get("es")):
-        from general import PyNode, MayaNodeError
+        from general import PyNode, MayaNodeError, MayaAttributeError
 
-        try:
-            target = PyNode(args[0])
-            if target.type()=='reference':
-                fr = FileReference(refnode=target)
+        fr = None
+        if isinstance(args[0], FileReference):
+            fr = args[0]
+        else:
+            target = None
+            try:
+                target = PyNode(args[0])
+            except (MayaNodeError, MayaAttributeError):
+                pass
+            
+            if target:
+                if target.type()=='reference':
+                    fr = FileReference(refnode=target)
+                else:
+                    fr = target.referenceFile()
             else:
-                fr = target.referenceFile()
-        except MayaNodeError:
-            target = Path(target)
-            if target.isfile():
-                fr = FileReference(path=target)
+                target = Path(args[0])
+                if target.isfile():
+                    fr = FileReference(target)
+                
+            if not isinstance(fr, FileReference):
+                # Last ditch - just try casting to a FileReference
+                fr = FileReference(args[0])
 
         failedEdits = kwargs.pop('failedEdits', kwargs.pop('fld', None))
         successfulEdits = kwargs.pop('successfulEdits', kwargs.pop('scs', None))
@@ -1217,13 +1234,17 @@ def referenceQuery(*args, **kwargs):
 
         allEdits = []
         for mode in modes:
-            edits = cmds.referenceQuery(fr,
+            #print "cmds.referenceQuery(%r, failedEdits=%r, successfulEdits=%r, **%r)" % (fr.refNode, not mode, mode, kwargs)
+            edits = cmds.referenceQuery(fr.refNode,
                                         failedEdits = not mode,
                                         successfulEdits = mode,
                                         **kwargs)
             allEdits.extend(ReferenceEdit(edit, fr, mode) for edit in edits)
         return allEdits
     else:
+        if isinstance(args[0], FileReference):
+            args = list(args)
+            args[0] = args[0].refNode
         return cmds.referenceQuery(*args, **kwargs)
 
 import general, other
