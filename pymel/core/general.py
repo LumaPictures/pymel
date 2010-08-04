@@ -2860,6 +2860,11 @@ class Attribute(PyNode):
         :rtype: `bool`
         """
         return cmds.attributeQuery(self.attrName(), node=self.node(), connectable=True)
+    def isUsedAsColor(self):
+        """
+        attributeQuery -usedAsColor
+        """
+        return cmds.attributeQuery(self.attrName(), node=self.node(),uac=True)
 
 
     isMulti = _factories.wrapApiMethod( _api.MPlug, 'isArray', 'isMulti' )
