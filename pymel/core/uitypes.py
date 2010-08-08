@@ -511,6 +511,14 @@ class PopupMenu(PyUI):
 
     def __exit__(self, type, value, traceback):
         p = self.parent()
+        #Ensure we set the parent back to a layout not some ui element
+        # like say a button which does not accept children
+        while not isinstance(p,Layout):
+            p = p.parent()
+        #However we want to be careful not to attach to a rowGroupLayout(textFieldButtonGrp etc)
+        # in this case set the parent to the rowGroupLayout's parent
+        if cmds.objectTypeUI(p) == u'rowGroupLayout':
+            p = p.parent()
         cmds.setParent(p)
         return p
 
