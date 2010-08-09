@@ -1000,6 +1000,13 @@ Modifications:
     return [PyNode(x) for x in res] #, ['transform']*len(res) )
 
 
+def listSets(*args, **kwargs):
+    '''
+Modifications:
+  - returns wrapped classes
+  :rtype: `PyNode` list
+    '''
+    return [PyNode(x) for x in _util.listForNone(cmds.listSets( *args,  **kwargs ))]
 
 #-----------------------
 #  Objects
@@ -1888,7 +1895,6 @@ class PyNode(_util.ProxyUnicode):
 
 
 
-
 #    def attr(self, attr):
 #        """access to attribute of a node. returns an instance of the Attribute class for the
 #        given attribute."""
@@ -1917,6 +1923,17 @@ class PyNode(_util.ProxyUnicode):
 
     def deselect( self ):
         self.select( deselect=1 )
+
+    def listSets(self, *args, **kwargs):
+        '''
+        Returns list of sets this object belongs
+
+        listSets -o $this
+
+        :rtype: 'PyNode' list
+        '''
+        return listSets(o=self, *args, **kwargs)
+
 
     listConnections = listConnections
 
@@ -2860,6 +2877,11 @@ class Attribute(PyNode):
         :rtype: `bool`
         """
         return cmds.attributeQuery(self.attrName(), node=self.node(), connectable=True)
+    def isUsedAsColor(self):
+        """
+        attributeQuery -usedAsColor
+        """
+        return cmds.attributeQuery(self.attrName(), node=self.node(),uac=True)
 
 
     isMulti = _factories.wrapApiMethod( _api.MPlug, 'isArray', 'isMulti' )
