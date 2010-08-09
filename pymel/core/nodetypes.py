@@ -1065,12 +1065,16 @@ class DagNode(Entity):
             if 'world' in kwargs:
                 del kwargs['world']
             kwargs['w']=True
+        elif 'world' in kwargs:
+            # Standardize on 'w', for easier checking later
+            kwargs['w'] = kwargs['world']
+            del kwargs['world']
 
         # if you try to parent to the current parent, maya errors...
         # check for this and return if that's the case
         currentParent = self.getParent()
         if ( (currentParent is None and kwargs.get('w', False))
-            or currentParent == args[-1]):
+            or (args and currentParent == args[-1]) ):
             return self 
         
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
