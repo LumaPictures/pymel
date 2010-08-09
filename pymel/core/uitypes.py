@@ -514,6 +514,8 @@ class PopupMenu(PyUI):
 
     def __exit__(self, type, value, traceback):
         p = self.parent()
+        if not cmds.layout(p, exists=True): #usualy parent is a control, which
+            p = p.parent()                  #cant be set as parent
         cmds.setParent(p)
         return p
 
@@ -549,6 +551,8 @@ class Menu(PyUI):
 
     def __exit__(self, type, value, traceback):
         p = self.parent()
+        if not cmds.layout(p, exists=True):
+            p = p.parent()
         cmds.setParent(p)
         return p
 
