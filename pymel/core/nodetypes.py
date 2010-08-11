@@ -1027,6 +1027,8 @@ class DagNode(Entity):
         """
         see also `childAtIndex`
 
+        for flags, see pymel.core.general.listRelatives
+
         :rtype: `DagNode` list
         """
         kwargs['children'] = True
@@ -1036,6 +1038,8 @@ class DagNode(Entity):
 
     def getSiblings(self, **kwargs ):
         """
+        for flags, see pymel.core.general.listRelatives
+
         :rtype: `DagNode` list
         """
         #pass
@@ -1046,6 +1050,8 @@ class DagNode(Entity):
 
     def listRelatives(self, **kwargs ):
         """
+        for flags, see pymel.core.general.listRelatives
+
         :rtype: `PyNode` list
         """
         return general.listRelatives( self, **kwargs)
