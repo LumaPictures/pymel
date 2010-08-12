@@ -896,8 +896,6 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         if create:
             kwargs.pop('bl', None)
             kwargs['buttonLabel'] = 'Browse'
-            kwargs.pop('bl', None)
-            kwargs['buttonLabel'] = 'Browse'
             kwargs.pop('bc', None)
             kwargs.pop('buttonCommand', None)
 
@@ -927,8 +925,6 @@ class FolderButtonGrp( PathButtonGrp ):
     def __new__(cls, name=None, create=False, *args, **kwargs):
 
         if create:
-            kwargs.pop('bl', None)
-            kwargs['buttonLabel'] = 'Browse'
             kwargs.pop('bl', None)
             kwargs['buttonLabel'] = 'Browse'
             kwargs.pop('bc', None)
