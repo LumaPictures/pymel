@@ -399,6 +399,14 @@ def pathButtonGrp( name=None, *args, **kwargs ):
 
     return _uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs )
 
+def folderButtonGrp( name=None, *args, **kwargs ):
+    if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
+        create = True
+    else:
+        create = False
+
+    return _uitypes.FolderButtonGrp( name=name, create=create, *args, **kwargs )
+
 def vectorFieldGrp( *args, **kwargs ):
     return _uitypes.VectorFieldGrp( *args, **kwargs )
 

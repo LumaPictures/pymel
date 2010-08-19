@@ -528,8 +528,15 @@ class PopupMenu(PyUI):
 
     def __exit__(self, type, value, traceback):
         p = self.parent()
-        if not cmds.layout(p, exists=True): #usualy parent is a control, which
-            p = p.parent()                  #cant be set as parent
+        #Ensure we set the parent back to a layout not some ui element
+        # like say a button which does not accept children
+        if not cmds.layout(p, exists=True):
+            p = p.parent()
+        
+        #However we want to be careful not to attach to a rowGroupLayout(textFieldButtonGrp etc)
+        # in this case set the parent to the rowGroupLayout's parent
+        if cmds.objectTypeUI(p) == u'rowGroupLayout':
+            p = p.parent()
         cmds.setParent(p)
         return p
 
@@ -565,7 +572,14 @@ class Menu(PyUI):
 
     def __exit__(self, type, value, traceback):
         p = self.parent()
+        #Ensure we set the parent back to a layout not some ui element
+        # like say a button which does not accept children
         if not cmds.layout(p, exists=True):
+            p = p.parent()
+            
+        #However we want to be careful not to attach to a rowGroupLayout(textFieldButtonGrp etc)
+        # in this case set the parent to the rowGroupLayout's parent
+        if cmds.objectTypeUI(p) == u'rowGroupLayout':
             p = p.parent()
         cmds.setParent(p)
         return p
@@ -927,8 +941,6 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         if create:
             kwargs.pop('bl', None)
             kwargs['buttonLabel'] = 'Browse'
-            kwargs.pop('bl', None)
-            kwargs['buttonLabel'] = 'Browse'
             kwargs.pop('bc', None)
             kwargs.pop('buttonCommand', None)
 
@@ -938,7 +950,7 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
                 import windows
                 f = windows.promptForPath()
                 if f:
-                    cmds.textFieldButtonGrp( name, e=1, text=f)
+                    cmds.textFieldButtonGrp( name, e=1, text=f, forceChangeCommand=True)
 
             import windows
             cb = windows.Callback( setPathCB, name )
@@ -946,13 +958,36 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
 
         return dynModule.TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
 
-    def setPath(self, path):
-        self.setText( path )
+    def setPath(self, path, **kwargs):
+        kwargs['forceChangeCommand'] = kwargs.pop('fcc',kwargs.pop('forceChangeCommand',True))
+        self.setText( path , **kwargs )
 
     def getPath(self):
         import system
         return system.Path( self.getText() )
 
+class FolderButtonGrp( PathButtonGrp ):
+    def __new__(cls, name=None, create=False, *args, **kwargs):
+
+        if create:
+            kwargs.pop('bl', None)
+            kwargs['buttonLabel'] = 'Browse'
+            kwargs.pop('bc', None)
+            kwargs.pop('buttonCommand', None)
+
+            name = cmds.textFieldButtonGrp( name, *args, **kwargs)
+
+            def setPathCB(name):
+                import windows
+                f = windows.promptForFolder()
+                if f:
+                    cmds.textFieldButtonGrp( name, e=1, text=f, forceChangeCommand=True)
+
+            import windows
+            cb = windows.Callback( setPathCB, name )
+            cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
+
+        return dynModule.TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
 
 # most of the keys here are names that are only used in certain circumstances
 _uiTypesToCommands = {
