@@ -44,6 +44,8 @@ def pythonToMel(arg):
         { key1 : val1, key2 : val2 }  -- >  ( key1, val1, key2, val2 )
 
     """
+    if arg is None:
+        return ''
     if arg is True or arg is False:
         return str(arg).lower()
     if util.isNumeric(arg):
@@ -85,17 +87,22 @@ def pythonToMelCmd(command, *args, **kwargs):
             flags = _cmdcache.cmdlist[command]['flags']
             shortFlags = _cmdcache.cmdlist[command]['shortFlags']
         else:
-            # Make a dummy flags dict - basically, just assume that q / e
-            # are bool flags with no args... 
-            flags = {'query':{'args': bool,
-                              'longname': 'query',
-                              'numArgs': 0,
-                              'shortname': 'q'},
-                     'edit': {'args': bool,
-                              'longname': 'edit',
-                              'numArgs': 0,
-                              'shortname': 'e'}}
-            shortFlags = {'q':'query', 'e':'edit'}
+#            # Make a dummy flags dict - basically, just assume that q / e
+#            # are bool flags with no args... 
+#            flags = {'query':{'args': bool,
+#                              'longname': 'query',
+#                              'numArgs': 0,
+#                              'shortname': 'q'},
+#                     'edit': {'args': bool,
+#                              'longname': 'edit',
+#                              'numArgs': 0,
+#                              'shortname': 'e'}}
+#            shortFlags = {'q':'query', 'e':'edit'}
+            # Changed my mind - decided it's safest for unknown commands to 
+            # make no assumptions.  If they want a flag that takes no args,
+            # they can use arg=None...
+            flags = {}
+            shortFlags = {} 
         for key, val in kwargs.iteritems():
             flagInfo = None
             if key in flags:
