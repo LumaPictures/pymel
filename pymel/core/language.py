@@ -11,6 +11,7 @@ import maya.cmds as _mc
 import pymel.util as util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
+import pymel.internal.cmdcache as _cmdcache
 import pymel.api as _api
 import datatypes
 
@@ -71,6 +72,49 @@ def pythonToMel(arg):
     # we cannot simply test if arg is an instance of basestring because PyNodes are not
     return '"%s"' % cmds.encodeString(str(arg))
 
+def pythonToMelCmd(command, *args, **kwargs):
+    '''Given a mel command name, and a set of python args / kwargs, return
+    a mel string used to call the given command. 
+    '''
+    strArgs = [pythonToMel(arg) for arg in args]
+
+    if kwargs:
+        # keyword args trigger us to format as a command rather than a procedure
+        strFlags = []
+        if command in _cmdcache.cmdlist:
+            flags = _cmdcache.cmdlist[command]['flags']
+            shortFlags = _cmdcache.cmdlist[command]['shortFlags']
+        else:
+            # Make a dummy flags dict - basically, just assume that q / e
+            # are bool flags with no args... 
+            flags = {'query':{'args': bool,
+                              'longname': 'query',
+                              'numArgs': 0,
+                              'shortname': 'q'},
+                     'edit': {'args': bool,
+                              'longname': 'edit',
+                              'numArgs': 0,
+                              'shortname': 'e'}}
+            shortFlags = {'q':'query', 'e':'edit'}
+        for key, val in kwargs.iteritems():
+            flagInfo = None
+            if key in flags:
+                flagInfo = flags[key]
+            elif key in shortFlags:
+                flagInfo = flags[shortFlags[key]]
+            if (flagInfo and issubclass(flagInfo.get('args'), bool)
+                         and flagInfo.get('numArgs') == 0):
+                # we have a boolean argument that takes no args!
+                # doing something like '-q 1' will raise an error, just
+                # do '-q' 
+                strFlags.append('-%s' % key)
+            else:
+                strFlags.append('-%s %s' % ( key, pythonToMel(val) ))
+        cmdStr = '%s %s %s' % ( command, ' '.join( strFlags ), ' '.join( strArgs ) )
+    else:
+        # procedure
+        cmdStr = '%s(%s)' % ( command, ','.join( strArgs ) )
+    return cmdStr
 
 def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
     """
@@ -657,16 +701,7 @@ class Mel(object):
                 raise AttributeError, "object has no attribute '%s'" % command
 
         def _call(*args, **kwargs):
-
-            strArgs = [pythonToMel(arg) for arg in args]
-
-            if kwargs:
-                # keyword args trigger us to format as a command rather than a procedure
-                strFlags = [ '-%s %s' % ( key, pythonToMel(val) ) for key, val in kwargs.items() ]
-                cmd = '%s %s %s' % ( command, ' '.join( strFlags ), ' '.join( strArgs ) )
-            else:
-                # procedure
-                cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
+            cmd = pythonToMelCmd(command, *args, **kwargs)
 
             try:
                 self.__class__.proc = command
