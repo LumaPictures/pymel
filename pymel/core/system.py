@@ -141,7 +141,7 @@ class Namespace(str):
         ns = cmds.namespace(add=name)
         return cls(ns)
 
-    def __new__(cls, namespace, create=False):
+    def __new__(cls, namespace="", create=False):
         namespace = ":" + namespace.strip(":")
         if not cmds.namespace(exists=namespace):
             if not create:
@@ -255,19 +255,47 @@ class Namespace(str):
         cmds.namespace(removeNamespace=self)
 
 
-def listNamespaces_old():
+    @property
+    def fileReference(self):
+        return FileReference(namespace=unicode(self))
+
+    @property
+    def _(self):
+        """
+        Nested Namespaces:
+        
+        ns = Namespace()
+        print ns._.foo._.bar.ls(type='joint')    # joints under ':foo:bar'
+        """
+        return NamespaceTree(self)
+
+class NamespaceTree():
     """
-    Deprecated
-    Returns a list of the namespaces of referenced files.
-    REMOVE In Favor of listReferences('dict') ?"""
-    try:
-        return [ cmds.file( x, q=1, namespace=1) for x in cmds.file( q=1, reference=1)  ]
-    except:
-        return []
+    Allows namespace traversal using attribute-access dictionary-access syntax
+    
+    nt = NamespaceTree()
+    
+    nt['foo']._.['bar']    -->    ":foo:bar"
+    nt.foo._.bar           -->    ":foo:bar"
+    
+    (see the '_' attribute in class Namespace) 
+    """
+
+    def __init__(self, root=None):
+        """
+        @param root: The root Namespace for this NamespaceTree
+        """
+        self.root = Namespace() if not root else root
+
+    def __getattr__(self, subns):
+        return Namespace(self.root + subns)
+    
+    __getitem__ = __getattr__
+
 
 def listNamespaces(root=None, recursive=False, internal=False):
     """Returns a list of the namespaces in the scene"""
-    return Namespace(root or ":").listNamespaces(recursive, internal)
+    return Namespace(root).listNamespaces(recursive, internal)
 
 
 def namespaceInfo(*args, **kwargs):
