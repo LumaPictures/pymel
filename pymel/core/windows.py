@@ -216,8 +216,13 @@ if _versions.current() >= _versions.v2009:
             try:
                 try:
                     return self.func(*self.args, **self.kwargs)
-                except Exception, e:
-                    raise _factories.CallbackError(self, e)
+                except:
+                    # not sure what CallbackError is for - it make the traceback unclear
+                    #raise _factories.CallbackError(self, e)    
+                    
+                    # this method tweaks the traceback so that it 'skips' the callback object
+                    t,v,tb = sys.exc_info()
+                    raise t,v,tb.tb_next                    
             finally:
                 cmds.undoInfo(closeChunk=1)
 
@@ -231,8 +236,10 @@ if _versions.current() >= _versions.v2009:
             try:
                 try:
                     return self.func(*self.args + args, **kwargsFinal)
-                except Exception, e:
-                    raise _factories.CallbackError(self, e)                
+                except:
+                    # this method tweaks the traceback so that it 'skips' the callback object
+                    t,v,tb = sys.exc_info()
+                    raise t,v,tb.tb_next                    
             finally:
                 cmds.undoInfo(closeChunk=1)
 else:
