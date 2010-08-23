@@ -19,7 +19,7 @@ from collections import defaultdict
 
 
 global registered
-registered = []
+registered = {}
 
 def _pluginModule():
     return inspect.getmodule( lambda: None )
@@ -55,13 +55,13 @@ def _getPlugin(object=None):
         plugin = object
     else:
         raise TypeError('expected an MFnPlugin instance or an MObject that can be cast to an MFnPlugin')
-    return plugin    
-            
+    return plugin
+
 class Command(mpx.MPxCommand):
     _name = None
     def __init__(self):
         mpx.MPxCommand.__init__(self)
-    
+
     @classmethod
     def create(cls):
         return mpx.asMPxPtr( cls() )
@@ -69,7 +69,7 @@ class Command(mpx.MPxCommand):
     @classmethod
     def createSyntax(cls):
         return om.MSyntax()
-    
+
     @classmethod
     def register(cls, plugin=None):
         """
@@ -83,7 +83,7 @@ class Command(mpx.MPxCommand):
         mplugin = _getPlugin(plugin)
         mplugin.registerCommand( name, cls.create, cls.createSyntax )
         if plugin is None:
-            registered.append( cls )
+            registered[cls] = None
 
     @classmethod
     def deregister(cls, plugin=None):
@@ -112,15 +112,15 @@ class LocatorNode(mpx.MPxLocatorNode):
             return cls._name
         else:
             return cls.__name__
-    
+
     @classmethod
     def create(cls):
         return mpx.asMPxPtr( cls() )
-    
+
     @classmethod
     def initialize(cls):
         return
-    
+
     @classmethod
     def register(cls, plugin=None):
         """
@@ -134,12 +134,12 @@ class LocatorNode(mpx.MPxLocatorNode):
         mplugin = _getPlugin(plugin)
         mplugin.registerNode( name, cls._typeId, cls.create, cls.initialize, cls._type )
         if plugin is None:
-            registered.append( cls )
+            registered[cls] = None
             import pymel.core.nodetypes as nodetypes
             import pymel.internal.factories as factories
             factories.addCustomPyNode(nodetypes, name)
         # callbacks
-        for cbname, reg in [ 
+        for cbname, reg in [
                     ('timeChanged', om.MDGMessage.addTimeChangeCallback),
                     ('forcedUpdate', om.MDGMessage.addForceUpdateCallback),
                     ('nodeAdded', om.MDGMessage.addNodeAddedCallback),
@@ -150,7 +150,7 @@ class LocatorNode(mpx.MPxLocatorNode):
                 cb = getattr(cls, cbname)
                 # TODO: assert cb is a classmethod, maybe check number of inputs too
                 cls._callbacks[name].append(reg(cb, cls._typeName))
-                
+
     @classmethod
     def deregister(cls, plugin=None):
         """
@@ -167,7 +167,7 @@ class LocatorNode(mpx.MPxLocatorNode):
             factories.removePyNode(nodetypes, name)
         for id in cls._callbacks.pop(name):
             om.MMessage.removeCallback(id)
-                 
+
 # allow this file to be loaded as its own dummy plugin
 # Initialize the script plug-in
 def initializePlugin(mobject):
@@ -188,10 +188,10 @@ def uninitializePlugin(mobject):
     mod = sys.modules['pymel.api.plugins']
 
     plugin = mpx.MFnPlugin(mobject)
-    for obj in mod.Command.registered:
+    for obj in registered:
         print "deregistering", obj.name()
         obj.deregisterCommand(plugin)
-    registered = []
+    registered = {}
 
 #def _repoplulate():
 #    print "repopulate"
