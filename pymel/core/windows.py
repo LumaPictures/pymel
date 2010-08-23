@@ -413,7 +413,7 @@ def vectorFieldGrp( *args, **kwargs ):
 
 def uiTemplate(name=None, force=False, exists=None):
     if exists:
-        return cmds.uiTemplate(name, exists)
+        return cmds.uiTemplate(name, exists=1)
     else:
         return _uitypes.UITemplate(name=name, force=force)
 
