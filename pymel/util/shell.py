@@ -83,7 +83,8 @@ def refreshEnviron():
             if not var.startswith('_') and var not in exclude:
                     os.environ[var] = val
 
-def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True, **kwargs):
+def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
+                     returnCode=False, **kwargs):
     """Will return the text output of running the given executable with the given arguments.
 
     This is just a convenience wrapper for subprocess.Popen, so the exeAndArgs argment
@@ -100,6 +101,9 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
             if True, and the output from the executable contains a final newline,
             it is removed from the return value
             Note: the newline that is stripped is the one given by os.linesep, not \\n
+            
+        returnCode: bool
+            if True, the return will be a tuple, (output, returnCode)
 
     kwargs are passed onto subprocess.Popen
 
@@ -123,9 +127,12 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
 
     if convertNewlines:
         cmdOutput = cmdOutput.replace(os.linesep, '\n')
+    if returnCode:
+        return cmdOutput, cmdProcess.returncode
     return cmdOutput
 
-def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True, **kwargs):
+def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
+                returnCode=False, **kwargs):
     """Will return the text output of running a given shell command.
 
     :Parameters:
@@ -137,6 +144,9 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True, *
             if True, and the output from the executable contains a final newline,
             it is removed from the return value
             Note: the newline that is stripped is the one given by os.linesep, not \\n
+            
+        returnCode: bool
+            if True, the return will be a tuple, (output, returnCode)
 
     With default arguments, behaves like commands.getoutput(shellCommand),
     except it works on windows as well.
@@ -156,4 +166,6 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True, *
     kwargs['shell'] = True
     kwargs['convertNewlines'] = convertNewlines
     kwargs['stripTrailingNewline'] = stripTrailingNewline
+    kwargs['returnCode'] = returnCode
+ 
     return executableOutput(shellCommand, **kwargs)
