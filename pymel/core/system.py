@@ -250,6 +250,8 @@ class Namespace(str):
                     n.unlock()
                 general.delete(toDelete)
 
+    def move(self, other, force=False):
+        cmds.namespace(moveNamespace=(self, other), force=force)
 
     def remove(self, haltOnError=True):
         self.clean(haltOnError=haltOnError)
