@@ -211,15 +211,41 @@ class Namespace(str):
             if recursive:
                 childNamespaces = []
                 for ns in namespaces:
-                    try:
-                        childNamespaces.extend(ns.listNamespaces(recursive, internal))
-                    except: pass
+                    childNamespaces.extend(ns.listNamespaces(recursive, internal))
                 namespaces.extend(childNamespaces)
         finally:
             curNS.setCurrent()
 
         return namespaces
 
+    def listNodes(self, recursive=False, internal=False):
+        curNS = Namespace.getCurrent()
+
+        self.setCurrent()
+        try:
+            nodes = []
+            names = cmds.namespaceInfo(listOnlyDependencyNodes=True, dagPath=True)
+            if not names:
+                names = []
+            for name in names:
+                try:
+                    nodes.append(general.PyNode(name))
+                except MayaNodeError:
+                    # some ui objects/tools - like '|CubeCompass' -
+                    # get returned... so just ignore any nodes we can't create
+                    pass
+                    
+            if recursive:
+                namespaces = self.listNamespaces(recursive=False, internal=internal)
+
+                for ns in namespaces:
+                    nodes.extend(ns.listNodes(recursive=recursive,
+                                                  internal=internal))
+        finally:
+            curNS.setCurrent()
+
+        return nodes
+    
     def setCurrent(self):
         cmds.namespace(set=self)
 
