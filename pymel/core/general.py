@@ -1856,7 +1856,8 @@ class PyNode(_util.ProxyUnicode):
 
         :rtype: `other.NameParser`
         """
-        return self.stripNamespace().addPrefix( prefix+':' )
+        import other
+        return other.NameParser(self).swapNamespace(prefix)
 
     def namespaceList(self):
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list
@@ -1883,16 +1884,7 @@ class PyNode(_util.ProxyUnicode):
         :rtype: `other.NameParser`
         """
         import other
-        name = self
-        leadingSlash = False
-        if name.startswith('|'):
-            name = name[1:]
-            leadingSlash = True
-        name =  '|'.join( map( lambda x: prefix+x, name.split('|') ) )
-        if leadingSlash:
-            name = '|' + name
-        return other.NameParser(name)
-
+        return other.NameParser(self).addPrefix(prefix)
 
 
 #    def attr(self, attr):

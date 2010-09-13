@@ -219,28 +219,23 @@ class Namespace(str):
         return namespaces
 
     def listNodes(self, recursive=False, internal=False):
+        import general
         curNS = Namespace.getCurrent()
 
         self.setCurrent()
         try:
-            nodes = []
-            names = cmds.namespaceInfo(listOnlyDependencyNodes=True, dagPath=True)
-            if not names:
-                names = []
-            for name in names:
-                try:
-                    nodes.append(general.PyNode(name))
-                except MayaNodeError:
-                    # some ui objects/tools - like '|CubeCompass' -
-                    # get returned... so just ignore any nodes we can't create
-                    pass
-                    
-            if recursive:
-                namespaces = self.listNamespaces(recursive=False, internal=internal)
-
-                for ns in namespaces:
-                    nodes.extend(ns.listNodes(recursive=recursive,
-                                                  internal=internal))
+            if not internal:
+                nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True,
+                                      recurse=False)
+                if recursive:
+                    namespaces = self.listNamespaces(recursive=False, internal=internal)
+    
+                    for ns in namespaces:
+                        nodes.extend(ns.listNodes(recursive=recursive,
+                                                      internal=internal))
+            else:
+                nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True,
+                                      recurse=recursive)
         finally:
             curNS.setCurrent()
 
@@ -307,14 +302,31 @@ Modifications:
     - returns an empty list when the result is None
     - returns wrapped classes for listOnlyDependencyNodes
     """
-    if kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) ):
+    pyNodeWrap = kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) )
+    if pyNodeWrap:
+        kwargs.pop('dp', False)
         kwargs['dagPath'] = True
-        res = cmds.namespaceInfo(*args, **kwargs)
+
+    res = cmds.namespaceInfo(*args, **kwargs)
+    
+    if any( kwargs.get(x, False) for x in ('ls', 'listNamespace',
+                                           'lod', 'listOnlyDependencyNodes',
+                                           'lon', 'listOnlyNamespaces') ):
         res = _util.listForNone(res)
-        return [general.PyNode(x) for x in res ]
-
-    return cmds.namespaceInfo(*args, **kwargs)
-
+        
+    if pyNodeWrap:
+        import general
+        nodes = []
+        for x in res:
+            try:
+                nodes.append(general.PyNode(x))
+            except general.MayaNodeError:
+                # some ui objects/tools - like '|CubeCompass' -
+                # get returned... so just ignore any nodes we can't create
+                pass
+        res = nodes
+    
+    return res
 
 #-----------------------------------------------
 #  Translator Class
