@@ -133,7 +133,7 @@ Modifications:
 #===============================================================================
 # Namespace
 #===============================================================================
-class Namespace(str):
+class Namespace(unicode):
 
     @classmethod
     def getCurrent(cls):
@@ -158,14 +158,14 @@ class Namespace(str):
                     cmds.namespace(set=part)
                 current.setCurrent()
 
-        self = str.__new__(cls, namespace)
+        self = super(Namespace, cls).__new__(cls, namespace)
         return self
 
     def __repr__(self):
-        return "%s('%s')" % (self.__class__.__name__, self)
+        return "%s(%s)" % (self.__class__.__name__, super(Namespace, self).__repr__())
 
     def __add__(self, other):
-        return "%s:%s" % (self, other.lstrip(":"))
+        return "%s:%s" % (self.rstrip(':'), other.lstrip(":"))
 
     def __cmp__(self, other):
         return cmp(self.strip(":"), str(other).strip(":"))
@@ -184,7 +184,7 @@ class Namespace(str):
         return self.splitAll()[-1]
 
     def getParent(self):
-        if (str(self)!=":"):
+        if (unicode(self)!=u":"):
             return self.__class__(':'.join(self.splitAll()[:-1]))
 
     def ls(self, pattern="*", **kwargs):
