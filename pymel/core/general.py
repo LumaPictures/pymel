@@ -2537,8 +2537,11 @@ class Attribute(PyNode):
         If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
         See `Attribute.__iter__`.
         """
-
-        return cmds.listAttr(self.array(), multi=True)
+        if self.isElement():
+            arrayAttr = self.array()
+        else:
+            arrayAttr = self
+        return cmds.listAttr(arrayAttr, multi=True)
 
 #    def item(self):
 #        try:

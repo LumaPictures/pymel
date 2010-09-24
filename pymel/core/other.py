@@ -30,7 +30,7 @@ class NameParser(unicode):
         return self
 
     def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self)
+        return u"%s(%s)" % (self.__class__.__name__, super(NameParser, self).__repr__())
 
     #def __unicode__(self):
     #    return u"%s" % self
