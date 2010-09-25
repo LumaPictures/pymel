@@ -70,6 +70,7 @@ v2009_EXT1 = 200904
 v2009_SP1A = 200906
 v2010      = 201000
 v2011      = 201100
+v2011_HOTFIX3 = 201103
 
 def current():
     return _current
