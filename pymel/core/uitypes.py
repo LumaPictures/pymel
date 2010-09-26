@@ -539,6 +539,7 @@ class OptionMenu(PyUI):
 
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """
+        print 'fasjfklafja'
         if title:
             cmds.menuItem(l=title, en=0, parent=self)
         for item in items:
@@ -549,6 +550,37 @@ class OptionMenu(PyUI):
         for t in self.getItemListLong() or []:
             cmds.deleteUI(t)
     addItems = addMenuItems
+    
+class OptionMenuGrp(OptionMenu):
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    def __enter__(self):
+        cmds.setParent(self,menu=True)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        p = self.parent()
+        #Ensure we set the parent back to a layout not some ui element
+        # like say a button which does not accept children
+        if not cmds.layout(p, exists=True):
+            p = p.parent()
+            
+        #However we want to be careful not to attach to a rowGroupLayout(textFieldButtonGrp etc)
+        # in this case set the parent to the rowGroupLayout's parent
+        if cmds.objectTypeUI(p) == u'rowGroupLayout':
+            p = p.parent()
+        cmds.setParent(p)
+        return p
+    
+    def addMenuItems( self, items, title=None):
+        """ Add the specified item list to the OptionMenu, with an optional 'title' item """
+        print 'name: %s'%self.name()
+        if title:
+            cmds.menuItem(l=title, en=0, parent=self.name()+'|OptionMenu')
+        for item in items:
+            cmds.menuItem(l=item, parent=self.name()+'|OptionMenu')
+            
+    addItems = addMenuItems
+
 
 class Menu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
