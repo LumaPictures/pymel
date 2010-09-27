@@ -1865,12 +1865,32 @@ class TransformationMatrix(Matrix):
     def _setTranslate(self, value):
         self.setTranslation ( Vector(value), _api.MSpace.kTransform )
     translate = property(_getTranslate, _setTranslate, None, "The translation expressed in this TransformationMatrix, in transform space")
+
+    def rotation(self) :
+        return Quaternion(self.apicls.rotation(self))
     def _getRotate(self):
-        return Quaternion(self.rotation())
+        return self.rotation()
     def _setRotate(self, value):
         q = Quaternion(value)
         self.setRotationQuaternion(q.x, q.y, q.z, q.w)
-    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this TransformationMatrix, in transform space")
+    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this TransformationMatrix as quaternion, in transform space")
+
+    
+    def eulerRotation(self):
+        return EulerRotation(self.apicls.eulerRotation(self))
+    def _getEuler(self):
+        return self.eulerRotation()
+    def _setEuler(self, value):
+        self.rotateTo(EulerRotation(value))
+    euler = property(_getEuler, _getEuler, None, "The rotation expressed in this TransformationMatrix as an euler rotation, in transform space")
+
+    # The apicls getRotation needs a "RotationOrder &" object, which is
+    # impossible to make in python...
+    # So instead, wrap eulerRotation
+    def getRotation(self):
+        return self.eulerRotation()
+#    def setRotation(self, *args
+
     def _getScale(self):
         # need to keep a ref to the MScriptUtil alive until
         # all pointers aren't needed...
@@ -1888,8 +1908,6 @@ class TransformationMatrix(Matrix):
         self.setScale ( p, _api.MSpace.kTransform)
     scale = property(_getScale, _setScale, None, "The scale expressed in this TransformationMatrix, in transform space")
 
-    def rotation(self) :
-        return self.apicls.rotation(self)
 
 
 class EulerRotation(Array):
