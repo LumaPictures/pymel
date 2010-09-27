@@ -573,7 +573,6 @@ class OptionMenuGrp(OptionMenu):
     
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """
-        print 'name: %s'%self.name()
         if title:
             cmds.menuItem(l=title, en=0, parent=self.name()+'|OptionMenu')
         for item in items:
