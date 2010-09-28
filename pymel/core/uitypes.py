@@ -554,7 +554,7 @@ class OptionMenu(PyUI):
 class OptionMenuGrp(OptionMenu):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def __enter__(self):
-        cmds.setParent(self,menu=True)
+        cmds.setParent(self,menu=False)
         return self
 
     def __exit__(self, type, value, traceback):
