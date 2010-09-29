@@ -183,7 +183,12 @@ class test_PMTypes(unittest.TestCase):
         self.u = datatypes.Vector.xAxis
         self.v = datatypes.Vector.yAxis
         self.w = self.u + self.v
-        self.assertEqual(self.w,Vector([1.0, 1.0, 0.0]))
+        self.assertEqual(self.w,datatypes.Vector([1.0, 1.0, 0.0]))
+        
+        self.u = datatypes.Vector.xAxis
+        self.assertEquals(self.u + 2,datatypes.Vector([3.0, 2.0, 2.0]))
+        self.assertEquals(2 + self.u,datatypes.Vector([3.0, 2.0, 2.0]))
+        self.assertEquals((self.u + [0.01, 0.01, 0.01]), datatypes.Vector([1.01, 0.01, 0.01]))        
 
     def testMVectorPoint_add(self):
         self.u = datatypes.Vector.xAxis
@@ -205,17 +210,6 @@ class test_PMTypes(unittest.TestCase):
         self.u = datatypes.Vector.xAxis
         self.w = self.u + datatypes.VectorN(1, 2, 3, 4)
         self.assertEquals(self.w, datatypes.VectorN([2.0, 2.0, 3.0, 4])) 
-
-    def testMVector_add(self):
-        self.u = datatypes.Vector.xAxis
-        self.assertEquals(self.u + 2,datatypes.Vector([3.0, 2.0, 2.0]))
-        self.assertEquals(2 + self.u,datatypes.Vector([3.0, 2.0, 2.0]))
-        self.assertEquals((self.u + [0.01, 0.01, 0.01]), datatypes.Vector([1.01, 0.01, 0.01]))
-
-    def testMPoint_add(self):
-        self.p = datatypes.Point(1, 2, 3, 1)
-        self.assertEquals(self.p + 2, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
-        self.assertEquals(2 + self.p, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
 
     def testMVector_length(self):  
         self.u = datatypes.Vector(1, 2, 3)
@@ -343,24 +337,6 @@ class test_PMTypes(unittest.TestCase):
     def testMPoint_hasAttr(self):
         self.assertTrue(hasattr(datatypes.Point,'data'))
 
-    def testMPoint_instance(self):
-        self.p = datatypes.Point()
-        self.assertEquals(self.p, datatypes.Point([0.0, 0.0, 0.0]))
-        self.assert_("<maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at" in repr(self.p.data))
-
-        self.p = datatypes.Point(1,2,3)
-        self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
-
-        self.q = api.MPoint(p)
-        self.assertEquals(self.q, [1.0, 2.0, 3.0]) # TODO figure out what the heezy is going on here
-
-        self.v = datatypes.Vector(self.p)
-        self.assertEquals(self.p, self.v) # TODO : Point and Vector
-        self.assertEquals(self.v, datatypes.Vector([1.0, 2.0, 3.0]))
-
-        self.V = datatypes.VectorN(self.p)
-        self.assertEquals(self.V, datatypes.VectorN([1.0, 2.0317, 3.0, 1.0]))
-
     def testMPoint_list(self):
         self.p = datatypes.Point(1,2,3)
         self.assertEquals(list(self.p),[1.0, 2.0, 3.0] )
@@ -468,6 +444,22 @@ class test_PMTypes(unittest.TestCase):
         self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
 
     def testMPoint_instance(self):
+        self.p = datatypes.Point()
+        self.assertEquals(self.p, datatypes.Point([0.0, 0.0, 0.0]))
+        self.assert_("<maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at" in repr(self.p.data))
+
+        self.p = datatypes.Point(1,2,3)
+        self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
+
+        self.v = datatypes.Vector(self.p)
+        self.assertNotEqual(self.p, self.v)
+        self.assertTrue(self.p.isEquivalent(self.v))
+        self.assertTrue(self.v.isEquivalent(self.p))
+        self.assertEquals(self.v, datatypes.Vector([1.0, 2.0, 3.0]))
+
+        self.V = datatypes.VectorN(self.p)
+        self.assertEquals(self.V, datatypes.VectorN([1.0, 2.0, 3.0, 1.0]))
+        
         # Point from MVector
         self.p = datatypes.Point(api.MVector(1, 2, 3))
         self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
@@ -513,6 +505,10 @@ class test_PMTypes(unittest.TestCase):
 
 
     def testMPoint_add(self):
+        self.p = datatypes.Point(1, 2, 3, 1)
+        self.assertEquals(self.p + 2, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
+        self.assertEquals(2 + self.p, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
+
         #reset vals
         self.p = datatypes.Point(1, 2, 3)
 
@@ -891,14 +887,22 @@ class test_PMTypes(unittest.TestCase):
         self.assertTrue(isinstance(self.m, datatypes.Array))
         self.assertTrue(isinstance(self.m, api.MMatrix))
 
-    def testMatrix_False_Instances(self) :
-        def MatrixSetTest1(): 
-            self.m.shape = (4,4) # TODO should fail
-        def MatrixSetTest2(): 
-            self.m.shape = 2
-
-        self.failUnlessRaises(ValueError, MatrixSetTest1)
-        self.failUnlessRaises(ValueError, MatrixSetTest2)
+    def testMatrix_False_Instances(self) : 
+        def Matrix_fromRange_Test(): 
+            self.m = datatypes.Matrix(range(20)) # TODO should fail
+            self.m.formated()
+        #   cannot initialize a Matrix of shape (4, 4) from list of 20,  
+        #   would cause truncation errors, use an explicit resize or trim"     
+        self.failUnlessRaises(TypeError, Matrix_fromRange_Test)
+        
+#        self.m = datatypes.Matrix()
+#        def MatrixSetTest1(): 
+#            self.m.shape = (4,4) # TODO should fail
+#        def MatrixSetTest2(): 
+#            self.m.shape = 2
+#
+#        self.failUnlessRaises(ValueError, MatrixSetTest1)
+#        self.failUnlessRaises(ValueError, MatrixSetTest2)
 
     def testMatrix_formated(self) :
         self.m = datatypes.Matrix()
@@ -957,14 +961,6 @@ class test_PMTypes(unittest.TestCase):
         self.m = datatypes.Matrix(self.m, a30=10)
         self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [10.0, 2.0, 3.0, 1.0]]')
 
-
-    def testMatrix_False_Instances(self) : 
-        def Matrix_fromRange_Test(): 
-            self.m = datatypes.Matrix(range(20)) # TODO should fail
-            self.m.formated()
-        #   cannot initialize a Matrix of shape (4, 4) from list of 20,  
-        #   would cause truncation errors, use an explicit resize or trim"     
-        self.failUnlessRaises(TypeError, Matrix_fromRange_Test)
 
     def testMatrix_Trimmed(self):
         self.m = datatypes.Matrix.identity
