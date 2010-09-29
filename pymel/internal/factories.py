@@ -6,6 +6,7 @@ from operator import itemgetter
 import pymel.util as util
 from pymel.util.conditions import Always, Condition
 import pymel.api as api
+import pymel.versions as versions
 from startup import loadCache
 import plogging as plogging
 import cmdcache
@@ -567,32 +568,36 @@ class CallbackError(RuntimeError):
 
 def fixCallbacks(inFunc, commandFlags, funcName=None ):
     """
-    When a user provides a custom callback functions for a UI elements, such as a checkBox, when the callback is trigger it is passed
-    a string instead of a real python values. For example, a checkBox changeCommand returns the string 'true' instead of
-    the python boolean True. This function wraps UI commands to correct the problem and also adds an extra flag
-    to all commands with callbacks called 'passSelf'.  When set to True, an instance of the calling UI class will be passed
-    as the first argument.
+    Prior to maya 2011, when a user provides a custom callback functions for a
+    UI elements, such as a checkBox, when the callback is triggered it is passed
+    a string instead of a real python values.
+    
+    For example, a checkBox changeCommand returns the string 'true' instead of
+    the python boolean True. This function wraps UI commands to correct the
+    problem and also adds an extra flag to all commands with callbacks called
+    'passSelf'.  When set to True, an instance of the calling UI class will be
+    passed as the first argument.
 
     if inFunc has been renamed, pass a funcName to lookup command info in apicache.cmdlist
     """
 
-    if funcName is None:
+    if not funcName:
         funcName = inFunc.__name__
 
     if not commandFlags:
         #commandFlags = []
         return inFunc
 
-    # wrap ui callback commands to ensure that the correct types are returned.
-    # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
-    if funcName.startswith('float'):
-        argCorrector = float
-    elif funcName.startswith('int'):
-        argCorrector = int
-    elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
-        argCorrector = lambda x: x == 'true'
-    else:
-        argCorrector = None
+    argCorrector = None
+    if versions.current() < versions.v2011:
+        # wrap ui callback commands to ensure that the correct types are returned.
+        # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
+        if funcName.startswith('float'):
+            argCorrector = float
+        elif funcName.startswith('int'):
+            argCorrector = int
+        elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
+            argCorrector = lambda x: x == 'true'
 
 
     # need to define a seperate var here to hold
@@ -638,10 +643,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
 
         return beforeUiFunc(*args, **kwargs)
 
-    if funcName:
-        newUiFunc.__name__ = funcName
-    else:
-        newUiFunc.__name__ = inFunc.__name__
+    newUiFunc.__name__ = funcName
     newUiFunc.__module__ = inFunc.__module__
     newUiFunc.__doc__ = inFunc.__doc__
 

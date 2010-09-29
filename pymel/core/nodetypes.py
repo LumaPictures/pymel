@@ -396,16 +396,7 @@ class DependNode( general.PyNode ):
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
             raise general.MayaAttributeError( '%s.%s' % (self, attr) )
 
-    def hasAttr( self, attr):
-        """
-        check if the node has the given maya attribute.
-        :rtype: `bool`
-        """
-        try :
-            self.attr(attr)
-            return True
-        except AttributeError:
-            return False
+    hasAttr = general.hasAttr
 
     @_factories.addMelDocs('setAttr')
     def setAttr( self, attr, *args, **kwargs):

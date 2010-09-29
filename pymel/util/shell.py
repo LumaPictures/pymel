@@ -84,7 +84,7 @@ def refreshEnviron():
                     os.environ[var] = val
 
 def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
-                     returnCode=False, **kwargs):
+                     returnCode=False, input=None, **kwargs):
     """Will return the text output of running the given executable with the given arguments.
 
     This is just a convenience wrapper for subprocess.Popen, so the exeAndArgs argment
@@ -102,8 +102,11 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
             it is removed from the return value
             Note: the newline that is stripped is the one given by os.linesep, not \\n
             
-        returnCode: bool
+        returnCode : bool
             if True, the return will be a tuple, (output, returnCode)
+            
+        input : string
+            if non-none, a string that will be sent to the stdin of the executable
 
     kwargs are passed onto subprocess.Popen
 
@@ -118,9 +121,12 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
 
     kwargs.setdefault('stdout', subprocess.PIPE)
     kwargs.setdefault('stderr', subprocess.STDOUT)
+    
+    if input:
+        kwargs.setdefault('stdin', subprocess.PIPE)
 
     cmdProcess = subprocess.Popen(exeAndArgs, **kwargs)
-    cmdOutput = cmdProcess.communicate()[0]
+    cmdOutput = cmdProcess.communicate(input=input)[0]
 
     if stripTrailingNewline and cmdOutput.endswith(os.linesep):
         cmdOutput = cmdOutput[:-len(os.linesep)]
@@ -132,7 +138,7 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
     return cmdOutput
 
 def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
-                returnCode=False, **kwargs):
+                returnCode=False, input=None, **kwargs):
     """Will return the text output of running a given shell command.
 
     :Parameters:
@@ -147,6 +153,9 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
             
         returnCode: bool
             if True, the return will be a tuple, (output, returnCode)
+
+        input : string
+            if non-none, a string that will be sent to the stdin of the executable
 
     With default arguments, behaves like commands.getoutput(shellCommand),
     except it works on windows as well.
@@ -167,5 +176,6 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
     kwargs['convertNewlines'] = convertNewlines
     kwargs['stripTrailingNewline'] = stripTrailingNewline
     kwargs['returnCode'] = returnCode
+    kwargs['input'] = input
  
     return executableOutput(shellCommand, **kwargs)
