@@ -1873,8 +1873,11 @@ class TransformationMatrix(Matrix):
     def _setRotate(self, value):
         q = Quaternion(value)
         self.setRotationQuaternion(q.x, q.y, q.z, q.w)
-    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this TransformationMatrix as quaternion, in transform space")
+    rotate = property(_getRotate, _setRotate, None, "The quaternion rotation expressed in this TransformationMatrix, in transform space")
 
+    def rotateTo(self, value):
+        '''Rotate to the given quaternion rotation'''
+        self._setRotate(value)
     
     def eulerRotation(self):
         return EulerRotation(self.apicls.eulerRotation(self))
@@ -1882,7 +1885,8 @@ class TransformationMatrix(Matrix):
         return self.eulerRotation()
     def _setEuler(self, value):
         self.rotateTo(EulerRotation(value))
-    euler = property(_getEuler, _getEuler, None, "The rotation expressed in this TransformationMatrix as an euler rotation, in transform space")
+    euler = property(_getEuler, _getEuler, None, "The euler rotation expressed in this TransformationMatrix, in transform space")
+
 
     # The apicls getRotation needs a "RotationOrder &" object, which is
     # impossible to make in python...
