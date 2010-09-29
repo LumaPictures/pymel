@@ -135,7 +135,7 @@ def mayaInit(forversion=None) :
 
             if versions.current() < versions.v2009:
                 refreshEnviron()
-
+                
         except ImportError, e:
             raise e, str(e) + ": pymel was unable to intialize maya.standalone"
 
@@ -246,8 +246,34 @@ def finalize():
             import maya.app.startup.basic
             maya.app.startup.basic.executeUserSetup()
         initMEL()
+        #fixMayapy2011SegFault()
     elif state == om.MGlobal.kInteractive:
         initAE()
+
+
+# Have all the checks inside here, in case people want to insert this in their
+# userSetup... it's currently not always on
+def fixMayapy2011SegFault():
+    if versions.current() >= versions.v2011:
+        import platform
+        if platform.system() == 'Linux':
+            if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
+                # In maya 2011, once maya has been initialized, if you try
+                # to do a 'normal' sys.exit, it will crash with a segmentation
+                # fault..
+                # do a 'hard' os._exit to avoid this
+                # note that this will essentially lose any exit error code
+                # ... but since it seg faults anyway, and the seg fault
+                # would raise it's own error code, we lose it anyway... 
+                def hardExit():
+                    try:
+                        print "pymel: hard exiting to avoid mayapy crash..."
+                    except Exception:
+                        pass
+                    import os
+                    os._exit(0)
+                import atexit
+                atexit.register(hardExit)
 
 # Fix for non US encodings in Maya
 def encodeFix():
