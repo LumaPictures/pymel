@@ -14,6 +14,15 @@ from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName
 import plogging
 
+
+# There are FOUR different ways maya might be started, all of which are
+# subtly different, that need to be considered / tested:
+#
+# 1) Normal gui
+# 2) maya -prompt
+# 3) Render
+# 4) mayapy (or just straight up python)
+
 _logger = plogging.getLogger(__name__)
 try:
     import cPickle as pickle
@@ -43,9 +52,20 @@ def _moduleJoin(*args):
 
 def mayaStartupHasRun():
     """
-    Returns True if maya.app.startup has run, False otherwise.
+    Returns True if maya.app.startup has already finished, False otherwise.
     """
     return 'maya.app.startup.gui' in sys.modules or 'maya.app.startup.batch' in sys.modules
+
+def mayaStartupHasStarted():
+    """
+    Returns True if maya.app.startup has begun running, False otherwise.
+    
+    It's possible that maya.app.startup is in the process of running (ie,
+    in maya.app.startup.basic, calling executeUserSetup) - unlike mayaStartup,
+    this will attempt to detect if this is the case.
+    """
+    return hasattr(maya, 'stringTable')
+
 
 def setupFormatting():
     import pprint
@@ -114,21 +134,23 @@ def mayaInit(forversion=None) :
 
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
 
+    aboutExists = False
     try :
         from maya.cmds import about
+        aboutExists = True
+    except ImportError:
+        pass
+    
+    if aboutExists and mayaStartupHasStarted():        
         # if this succeeded, we're initialized
         isInitializing = False
         return False
-    except ImportError:
-        pass
 
+    _logger.debug( "startup.initialize running" )
     # for use with pymel compatible maya package
     os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
 
-    # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
-    sep = os.path.pathsep
-
-    if not sys.modules.has_key('maya.standalone'):
+    if not aboutExists and not sys.modules.has_key('maya.standalone'):
         try :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
@@ -143,6 +165,16 @@ def mayaInit(forversion=None) :
         from maya.cmds import about
     except Exception, e:
         raise e, str(e) + ": maya.standalone was successfully initialized, but pymel failed to import maya.cmds"
+
+    if not mayaStartupHasRun():
+        _logger.debug( "running maya.app.startup" )
+        # If we're in 'maya -prompt' mode, and a plugin loads pymel, then we
+        # can have a state where maya.standalone has been initialized, but
+        # the python startup code hasn't yet been run...
+        if about(batch=True):
+            import maya.app.startup.batch
+        else:
+            import maya.app.startup.gui
 
     # return True, meaning we had to initialize maya standalone
     isInitializing = True
@@ -235,16 +267,18 @@ def finalize():
     # Set this to true HERE, as in running userSetup.py,
     # we could end up in here again, inside the initial finalize...
     _finalizeCalled = True
+
+    global isInitializing
+    if pymelMayaPackage and isInitializing:
+        # this module is not encapsulated into functions, but it should already
+        # be imported, so it won't run again
+        assert 'maya.app.startup.basic' in sys.modules, \
+            "something is very wrong. maya.app.startup.basic should be imported by now"
+        import maya.app.startup.basic
+        maya.app.startup.basic.executeUserSetup()
+
     state = om.MGlobal.mayaState()
     if state == om.MGlobal.kLibraryApp: # mayapy only
-        global isInitializing
-        if pymelMayaPackage and isInitializing:
-            # this module is not encapsulated into functions, but it should already
-            # be imported, so it won't run again
-            assert 'maya.app.startup.basic' in sys.modules, \
-                "something is very wrong. maya.app.startup.basic should be imported by now"
-            import maya.app.startup.basic
-            maya.app.startup.basic.executeUserSetup()
         initMEL()
         #fixMayapy2011SegFault()
     elif state == om.MGlobal.kInteractive:
@@ -291,6 +325,7 @@ def encodeFix():
                 import maya.utils
                 try :
                     import maya.app.baseUI
+                    import codecs
                     # Replace sys.stdin with a GUI version that will request input from the user
                     sys.stdin = codecs.getreader(mayaEncode)(maya.app.baseUI.StandardInput())
                     # Replace sys.stdout and sys.stderr with versions that can output to Maya's GUI
