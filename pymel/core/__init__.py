@@ -36,9 +36,6 @@ import uitypes as ui
 
 import runtime
 
-# initialize MEL
-_startup.finalize()
-
 import maya.cmds as cmds
 
 # these modules are imported anyway so they should not be a performance hit
@@ -232,6 +229,10 @@ def _installCallbacks():
 
 _installCallbacks()
 
+# run userSetup.py / initialize MEL...
+# ...userStartup.py / .mel may try to add plugins and then use their commands /
+# nodes with pymel... so do the plugin stuff first
+_startup.finalize()
 
 
 
