@@ -113,9 +113,9 @@ def _patchfn(basefn) :
                         if s >= maxsize :
                             # for equal sizes give preferences to Array subtypes for conversion
                             if issubclass(t, Array) or s > maxsize :
-                               maxarg = args[i]
-                               maxsize = maxarg.size
-                               maxtype = t
+                                maxarg = args[i]
+                                maxsize = maxarg.size
+                                maxtype = t
                 if maxsize > 0 :
                     try :
                         for i in xrange(ln) :

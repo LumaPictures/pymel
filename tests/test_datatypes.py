@@ -715,6 +715,7 @@ class test_PMTypes(unittest.TestCase):
         locQ = datatypes.Point([1.0, 2.0, 3.0, 1.0])
         
         self.assertEquals(datatypes.bWeights(self.r, datatypes.Point.origin, locP, locQ), (0.0, 0.5, 0.5))
+        self.assertEquals(datatypes.bWeights((.5,0,0), (0,0,0),(1,0,0),(1,1,0),(0,1,0)), (.5, .5, 0, 0))
 
     def testMPoint_round(self):
         self.p = datatypes.Point([0.33333, 0.66666, 1.333333, 0.33333])
@@ -871,6 +872,26 @@ class test_PMTypes(unittest.TestCase):
         self.assertEquals((self.d - self.c), datatypes.Color([1.75, 0.5, -0.5, 0.25]))
         #print "end tests Color" - TODO go through classes and make sure all methods are represented
 
+#===============================================================================
+# Euler Tests
+#===============================================================================
+    def testEuler_units(self):
+        oldUnit = datatypes.Angle.getUIUnit()
+        try:
+            datatypes.Angle.setUIUnit('degrees')
+            inDegrees = [10,20,30]
+            eDeg = datatypes.EulerRotation(inDegrees)
+            self.assertEquals(eDeg, datatypes.EulerRotation(inDegrees, unit='degrees'))
+            eRad = datatypes.EulerRotation(eDeg)
+            eRad.unit = 'radians'
+            self.assertEquals(eDeg, eRad)
+            inRadians = [datatypes.Angle(x, unit='degrees').asRadians() for x in inDegrees]
+            eRad2 = datatypes.EulerRotation(inRadians, unit='radians')
+            self.assertEqual(eRad2, eDeg)
+            self.assertNotEqual(eRad2.x, eDeg.x)
+            self.assertEqual(list(eDeg), [datatypes.Angle(x, unit='radians').asDegrees() for x in eRad2])
+        finally:
+            datatypes.Angle.setUIUnit(oldUnit)
 
 ################################################################## 
 ## MMatrix tests 
@@ -1187,7 +1208,19 @@ class test_PMTypes(unittest.TestCase):
         self.m.rotate = self.q
         last = datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
         self.assert_(self.m.isEquivalent(last))
-        
+
+        self.t = datatypes.Matrix()
+        self.q = datatypes.Quaternion(1, 2, 3, 0.5)
+        self.t.rotate = self.q
+        last = datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
+        self.assert_(self.t.isEquivalent(last))
+    
+    def testMTransformationMatrix_rotateTo(self):
+        self.t = datatypes.TransformationMatrix()
+        self.t.rotateTo([1, 2, 3, 0.5])
+        last = datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
+        self.assert_(self.t.isEquivalent(last))
+    
     def testMTransformationMatrix_formatted(self):    
         self.m = datatypes.TransformationMatrix()
         self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')

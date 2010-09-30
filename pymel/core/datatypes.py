@@ -1866,18 +1866,28 @@ class TransformationMatrix(Matrix):
         self.setTranslation ( Vector(value), _api.MSpace.kTransform )
     translate = property(_getTranslate, _setTranslate, None, "The translation expressed in this TransformationMatrix, in transform space")
 
-    def rotation(self) :
-        return Quaternion(self.apicls.rotation(self))
     def _getRotate(self):
-        return self.rotation()
+        return Quaternion(self.apicls.rotation(self))
     def _setRotate(self, value):
-        q = Quaternion(value)
-        self.setRotationQuaternion(q.x, q.y, q.z, q.w)
+        self.rotateTo(Quaternion(value))
     rotate = property(_getRotate, _setRotate, None, "The quaternion rotation expressed in this TransformationMatrix, in transform space")
 
     def rotateTo(self, value):
-        '''Rotate to the given quaternion rotation'''
-        self._setRotate(value)
+        '''Set to the given rotation (and result self)
+        
+        Value may be either a Quaternion, EulerRotation object, or a list of
+        floats; if it is floats, if it has length 4 it is interpreted as
+        a Quaternion; if 3, as a EulerRotation.
+        '''
+        if not isinstance(value, (Quaternion, EulerRotation,
+                              _api.MQuaternion, _api.MEulerRotation)):
+            if len(value) == 3:
+                value = EulerRotation(value)
+            elif len(value) == 4:
+                value = Quaternion(value)
+            else:
+                raise ValueError('arg to rotateTo must be a Quaternion, EulerRotation, or an iterable of 3 or 4 floats')
+        return self.__class__(self.apicls.rotateTo(self, value))
     
     def eulerRotation(self):
         return EulerRotation(self.apicls.eulerRotation(self))
@@ -1893,7 +1903,8 @@ class TransformationMatrix(Matrix):
     # So instead, wrap eulerRotation
     def getRotation(self):
         return self.eulerRotation()
-#    def setRotation(self, *args
+    def setRotation(self, *args):
+        self.rotateTo(EulerRotation(*args))
 
     def _getScale(self):
         # need to keep a ref to the MScriptUtil alive until
@@ -1979,6 +1990,12 @@ class EulerRotation(Array):
         cls = self.__class__
         self.unit = None
         if args :
+            # After processing, we want to have args be in a format such that
+            # we may do:
+            # apicls.assign(*args)
+            # This means that either:
+            #   args is a list/tuple of 
+            
             # allow both forms for arguments
             if len(args)==1 and hasattr(args[0], '__iter__'):
                 if isinstance(args[0], self.apicls):
@@ -1989,25 +2006,31 @@ class EulerRotation(Array):
                     # this is not a nice fix, but the only way i can see until Autodesk fixes this bug
                     if len(args)==4:
                         args = list(args)[:3]
-            # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
-            if hasattr(args, 'rotate') :
-                euler = _api.MEulerRotation()
-                euler.assign(args.rotate)
-                args = euler
-                self.unit = 'radians'
-            elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue) ) :
-                # allow to initialize directly from 3 rotations and a rotation order as string
-                args = (args[0], args[1], args[2], cls.RotationOrder.getIndex(args[3]))
 
-            elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
-                # some special init cases are allowed by the api class, want to authorize
-                # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
-                args = (float(args[1]), Vector(args[0]))
+            # TransformationMatrix, Quaternion, EulerRotation api classes can convert to an Euler rotation directly
+            if hasattr(args, 'eulerRotation') :
+                args = args.eulerRotation()
+                self.unit = 'radians'
+            else:
+                rotate = getattr(args, 'rotate', None)
+                if rotate is not None and not callable(rotate):
+                    euler = _api.MEulerRotation()
+                    euler.assign(args.rotate)
+                    args = euler
+                    self.unit = 'radians'
+                elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue) ) :
+                    # allow to initialize directly from 3 rotations and a rotation order as string
+                    args = (args[0], args[1], args[2], cls.RotationOrder.getIndex(args[3]))
+    
+                elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
+                    # some special init cases are allowed by the api class, want to authorize
+                    # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
+                    args = (float(args[1]), Vector(args[0]))
 
             # shortcut when a direct api init is possible
             try :
                 self.assign(args)
-            except :
+            except Exception:
                 super(Array, self).__init__(*args)
 
         if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :
@@ -2254,6 +2277,7 @@ class EulerRotation(Array):
 #        except :
 #            return NotImplemented
 
+
 class Quaternion(Matrix):
     apicls = _api.MQuaternion
     shape = (4,)
@@ -2275,20 +2299,19 @@ class Quaternion(Matrix):
     def __init__(self, *args, **kwargs):
         """ __init__ method for Quaternion """
         cls = self.__class__
-        self.unit = None
+        
         if args :
             # allow both forms for arguments
             if len(args)==1 and hasattr(args[0], '__iter__') :
                 args = args[0]
-                if isinstance(args[0], self.apicls):
-                    self.unit = 'radians'
 
+            rotate = getattr(args, 'rotate', None)
             # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
-            if hasattr(args, 'rotate') :
+            if rotate is not None and not callable(rotate):
                 args = args.rotate
                 self.unit = 'radians'
 
-            elif len(args) == 4 and ( isinstance(args[3], basestring) or isinstance(args[3], int) ): # isinstance(args[3], EulerRotation.RotationOrder) ) :
+            elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue)): # isinstance(args[3], EulerRotation.RotationOrder) ) :
                 quat = _api.MQuaternion()
                 quat.assign(EulerRotation(*args, **kwargs))
                 args = quat
@@ -2299,7 +2322,6 @@ class Quaternion(Matrix):
                 # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
                 args = (float(args[1]), Vector(args[0]))
             # shortcut when a direct api init is possible
-
 
             try :
                 self.assign(args)
@@ -2322,12 +2344,6 @@ class Quaternion(Matrix):
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
 
-#        # units handling, convert to radians for internal handling
-        if self.unit is None:
-            self.unit = kwargs.get('unit', Angle.getUIUnit() )
-#        if self.unit is not None and self.unit != 'radians':
-#            self.assign([Angle(self._getitem(i), self.unit).asUnit('radians') for i in range(3) ])
-
    # set properties for easy acces to translation / rotation / scale of a MMatrix or derived class
     # some of these will only yield dependable results if MMatrix is a MTransformationMatrix and some
     # will always be zero for some classes (ie only rotation has a value on a MQuaternion
@@ -2342,7 +2358,7 @@ class Quaternion(Matrix):
     rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Quaternion, in transform space")
     def _getScale(self):
         return Vector(1.0, 1.0, 1.0)
-    scale = property(_getScale, None, None, "The scale expressed in this Quaternion, which is always (1.0, 1.0, 1.0")
+    scale = property(_getScale, None, None, "The scale expressed in this Quaternion, which is always (1.0, 1.0, 1.0)")
 
     # overloads for assign and get though standard way should be to use the data property
     # to access stored values
@@ -2372,13 +2388,7 @@ class Quaternion(Matrix):
         return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
 
     def __getitem__(self,i):
-        res = self._getitem(i)
-        if i == 3:
-            return res
-        if hasattr(res, '__iter__'):
-            return [ Angle( x, 'radians' ).asUnit(self.unit) for x in res ]
-
-        return Angle( res, 'radians' ).asUnit(self.unit)
+        return self._getitem(i)
 
     # faster to override __getitem__ cause we know Quaternion only has one dimension
     def _getitem(self, i):
@@ -2402,7 +2412,6 @@ class Quaternion(Matrix):
                     res = self.apicls.__getitem__(self, i)
                 else :
                     res = list(self)[i]
-                # 4th component is not unitized
                 return res
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
