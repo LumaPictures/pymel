@@ -1214,6 +1214,56 @@ class test_PMTypes(unittest.TestCase):
         self.t.rotate = self.q
         last = datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
         self.assert_(self.t.isEquivalent(last))
+        
+    def testMTransformationMatrix_rotation(self):
+        tm = datatypes.TransformationMatrix()
+        self.assertEqual(tm.getRotation(), datatypes.EulerRotation(0,0,0) )
+        tm.setRotation(90,0,0, 'XYZ')
+        last = datatypes.Matrix([[1,0,0,0], [0,0,1,0], [0,-1,0,0], [0,0,0,1]])
+        self.assertTrue(tm.isEquivalent(last))
+        self.assertEqual(tm.getRotation, datatypes.EulerRotation(90,0,0, 'XYZ'))
+        tm.setRotation(10,20,30, 'XYZ')
+        last = dt.Matrix([[0.81379768134937369, 0.46984631039295421, -0.34202014332566871, 0.0,],
+                   [-0.44096961052988248, 0.8825641192593856, 0.16317591116653482, 0.0,],
+                   [0.37852230636979256, 0.018028311236297268, 0.92541657839832336, 0.0,],
+                   [0.0, 0.0, 0.0, 1.0]])
+        self.assertTrue(tm.isEquivalent(last))
+        tm.setRotation(10,20,30, 'YZX')
+        last = dt.Matrix([0.81379768134937369,
+                         0.52209946381304628,
+                         -0.25523613325019773,
+                         0.0,
+                         -0.49999999999999994,
+                         0.85286853195244317,
+                         0.15038373318043533,
+                         0.0,
+                         0.29619813272602386,
+                         0.0052361332501977423,
+                         0.95511216570526569,
+                         0.0,
+                         0.0,
+                         0.0,
+                         0.0,
+                         1.0])
+        self.assertTrue(tm.isEquivalent(last))
+        tm.setRotation(10,20,30, 'ZYX')
+        last = dt.Matrix([0.81379768134937369,
+                         0.54383814248232565,
+                         -0.2048741287028622,
+                         0.0,
+                         -0.46984631039295427,
+                         0.82317294464550095,
+                         0.31879577759716787,
+                         0.0,
+                         0.34202014332566871,
+                         -0.16317591116653482,
+                         0.92541657839832336,
+                         0.0,
+                         0.0,
+                         0.0,
+                         0.0,
+                         1.0])
+        self.assertTrue(tm.isEquivalent(last))
     
     def testMTransformationMatrix_rotateTo(self):
         self.t = datatypes.TransformationMatrix()
