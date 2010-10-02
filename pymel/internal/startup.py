@@ -292,6 +292,7 @@ def fixMayapy2011SegFault():
         import platform
         if platform.system() == 'Linux':
             if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
+                import atexit
                 # In maya 2011, once maya has been initialized, if you try
                 # to do a 'normal' sys.exit, it will crash with a segmentation
                 # fault..
@@ -300,13 +301,17 @@ def fixMayapy2011SegFault():
                 # ... but since it seg faults anyway, and the seg fault
                 # would raise it's own error code, we lose it anyway... 
                 def hardExit():
+                    # run all the other exit handlers registered with 
+                    # atexit, then hard exit... this is easy, because
+                    # atexit._run_exitfuncs pops funcs off the stack as it goes...
+                    # so all we need to do is call it again
+                    atexit._run_exitfuncs()
                     try:
                         print "pymel: hard exiting to avoid mayapy crash..."
                     except Exception:
                         pass
                     import os
                     os._exit(0)
-                import atexit
                 atexit.register(hardExit)
 
 # Fix for non US encodings in Maya
