@@ -892,6 +892,30 @@ class test_PMTypes(unittest.TestCase):
             self.assertEqual(list(eDeg), [datatypes.Angle(x, unit='radians').asDegrees() for x in eRad2])
         finally:
             datatypes.Angle.setUIUnit(oldUnit)
+            
+    def testEuler_rotationOrder(self):
+        rot = datatypes.EulerRotation(10,20,30, 'XYZ')
+        self.assertEqual(rot.order, 'XYZ')
+        rot.order = 'ZYX'
+        self.assertEqual(rot.order, 'ZYX')
+        other = datatypes.EulerRotation(10,20,30, 'ZYX')
+        self.assertEqual(other.order, 'ZYX')
+        self.assertEqual(rot, datatypes.EulerRotation(10,20,30, 'ZYX'))
+        rot.assign( (6,7,8) )
+        self.assertEqual(rot.order, 'ZYX')
+        
+    def testEuler_setItem(self):
+        rot = datatypes.EulerRotation(10,20,30, 'XYZ')
+        self.assertAlmostEqual(rot.y, 20)
+        rot.y = 50
+        self.assertAlmostEqual(rot.y, 50)
+        self.assertAlmostEqual(rot.z, 30)
+        rot['z'] = 60
+        self.assertAlmostEqual(rot.z, 60)
+        self.assertAlmostEqual(rot.x, 10)
+        rot[0] = 70
+        self.assertAlmostEqual(rot.x, 70)
+
 
 ################################################################## 
 ## MMatrix tests 
@@ -1221,7 +1245,7 @@ class test_PMTypes(unittest.TestCase):
         tm.setRotation(90,0,0, 'XYZ')
         last = datatypes.Matrix([[1,0,0,0], [0,0,1,0], [0,-1,0,0], [0,0,0,1]])
         self.assertTrue(tm.isEquivalent(last))
-        self.assertEqual(tm.getRotation, datatypes.EulerRotation(90,0,0, 'XYZ'))
+        self.assertEqual(tm.getRotation(), datatypes.EulerRotation(90,0,0, 'XYZ'))
         tm.setRotation(10,20,30, 'XYZ')
         last = dt.Matrix([[0.81379768134937369, 0.46984631039295421, -0.34202014332566871, 0.0,],
                    [-0.44096961052988248, 0.8825641192593856, 0.16317591116653482, 0.0,],
