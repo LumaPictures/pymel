@@ -1770,13 +1770,13 @@ apiUndo = ApiUndo()
 
 class ApiUndoItem(object):
     """A simple class that reprsents an undo item to be undone or redone."""
-    __slots__ = ['_setter', '_reo_args', '_undo_args' ]
+    __slots__ = ['_setter', '_redo_args', '_undo_args' ]
     def __init__(self, setter, redoArgs, undoArgs):
         self._setter = setter
-        self._reo_args = redoArgs
+        self._redo_args = redoArgs
         self._undo_args = undoArgs
     def redoIt(self):
-        self._setter(*self._reo_args)
+        self._setter(*self._redo_args)
 
     def undoIt(self):
         self._setter(*self._undo_args)

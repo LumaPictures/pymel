@@ -183,7 +183,12 @@ class test_PMTypes(unittest.TestCase):
         self.u = datatypes.Vector.xAxis
         self.v = datatypes.Vector.yAxis
         self.w = self.u + self.v
-        self.assertEqual(self.w,Vector([1.0, 1.0, 0.0]))
+        self.assertEqual(self.w,datatypes.Vector([1.0, 1.0, 0.0]))
+        
+        self.u = datatypes.Vector.xAxis
+        self.assertEquals(self.u + 2,datatypes.Vector([3.0, 2.0, 2.0]))
+        self.assertEquals(2 + self.u,datatypes.Vector([3.0, 2.0, 2.0]))
+        self.assertEquals((self.u + [0.01, 0.01, 0.01]), datatypes.Vector([1.01, 0.01, 0.01]))        
 
     def testMVectorPoint_add(self):
         self.u = datatypes.Vector.xAxis
@@ -205,17 +210,6 @@ class test_PMTypes(unittest.TestCase):
         self.u = datatypes.Vector.xAxis
         self.w = self.u + datatypes.VectorN(1, 2, 3, 4)
         self.assertEquals(self.w, datatypes.VectorN([2.0, 2.0, 3.0, 4])) 
-
-    def testMVector_add(self):
-        self.u = datatypes.Vector.xAxis
-        self.assertEquals(self.u + 2,datatypes.Vector([3.0, 2.0, 2.0]))
-        self.assertEquals(2 + self.u,datatypes.Vector([3.0, 2.0, 2.0]))
-        self.assertEquals((self.u + [0.01, 0.01, 0.01]), datatypes.Vector([1.01, 0.01, 0.01]))
-
-    def testMPoint_add(self):
-        self.p = datatypes.Point(1, 2, 3, 1)
-        self.assertEquals(self.p + 2, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
-        self.assertEquals(2 + self.p, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
 
     def testMVector_length(self):  
         self.u = datatypes.Vector(1, 2, 3)
@@ -343,24 +337,6 @@ class test_PMTypes(unittest.TestCase):
     def testMPoint_hasAttr(self):
         self.assertTrue(hasattr(datatypes.Point,'data'))
 
-    def testMPoint_instance(self):
-        self.p = datatypes.Point()
-        self.assertEquals(self.p, datatypes.Point([0.0, 0.0, 0.0]))
-        self.assert_("<maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at" in repr(self.p.data))
-
-        self.p = datatypes.Point(1,2,3)
-        self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
-
-        self.q = api.MPoint(p)
-        self.assertEquals(self.q, [1.0, 2.0, 3.0]) # TODO figure out what the heezy is going on here
-
-        self.v = datatypes.Vector(self.p)
-        self.assertEquals(self.p, self.v) # TODO : Point and Vector
-        self.assertEquals(self.v, datatypes.Vector([1.0, 2.0, 3.0]))
-
-        self.V = datatypes.VectorN(self.p)
-        self.assertEquals(self.V, datatypes.VectorN([1.0, 2.0317, 3.0, 1.0]))
-
     def testMPoint_list(self):
         self.p = datatypes.Point(1,2,3)
         self.assertEquals(list(self.p),[1.0, 2.0, 3.0] )
@@ -468,6 +444,22 @@ class test_PMTypes(unittest.TestCase):
         self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
 
     def testMPoint_instance(self):
+        self.p = datatypes.Point()
+        self.assertEquals(self.p, datatypes.Point([0.0, 0.0, 0.0]))
+        self.assert_("<maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at" in repr(self.p.data))
+
+        self.p = datatypes.Point(1,2,3)
+        self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
+
+        self.v = datatypes.Vector(self.p)
+        self.assertNotEqual(self.p, self.v)
+        self.assertTrue(self.p.isEquivalent(self.v))
+        self.assertTrue(self.v.isEquivalent(self.p))
+        self.assertEquals(self.v, datatypes.Vector([1.0, 2.0, 3.0]))
+
+        self.V = datatypes.VectorN(self.p)
+        self.assertEquals(self.V, datatypes.VectorN([1.0, 2.0, 3.0, 1.0]))
+        
         # Point from MVector
         self.p = datatypes.Point(api.MVector(1, 2, 3))
         self.assertEquals(self.p, datatypes.Point([1.0, 2.0, 3.0]))
@@ -513,6 +505,10 @@ class test_PMTypes(unittest.TestCase):
 
 
     def testMPoint_add(self):
+        self.p = datatypes.Point(1, 2, 3, 1)
+        self.assertEquals(self.p + 2, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
+        self.assertEquals(2 + self.p, datatypes.Point([3.0, 4.0, 5.0, 1.0]))
+
         #reset vals
         self.p = datatypes.Point(1, 2, 3)
 
@@ -719,6 +715,7 @@ class test_PMTypes(unittest.TestCase):
         locQ = datatypes.Point([1.0, 2.0, 3.0, 1.0])
         
         self.assertEquals(datatypes.bWeights(self.r, datatypes.Point.origin, locP, locQ), (0.0, 0.5, 0.5))
+        self.assertEquals(datatypes.bWeights((.5,0,0), (0,0,0),(1,0,0),(1,1,0),(0,1,0)), (.5, .5, 0, 0))
 
     def testMPoint_round(self):
         self.p = datatypes.Point([0.33333, 0.66666, 1.333333, 0.33333])
@@ -875,6 +872,50 @@ class test_PMTypes(unittest.TestCase):
         self.assertEquals((self.d - self.c), datatypes.Color([1.75, 0.5, -0.5, 0.25]))
         #print "end tests Color" - TODO go through classes and make sure all methods are represented
 
+#===============================================================================
+# Euler Tests
+#===============================================================================
+    def testEuler_units(self):
+        oldUnit = datatypes.Angle.getUIUnit()
+        try:
+            datatypes.Angle.setUIUnit('degrees')
+            inDegrees = [10,20,30]
+            eDeg = datatypes.EulerRotation(inDegrees)
+            self.assertEquals(eDeg, datatypes.EulerRotation(inDegrees, unit='degrees'))
+            eRad = datatypes.EulerRotation(eDeg)
+            eRad.unit = 'radians'
+            self.assertEquals(eDeg, eRad)
+            inRadians = [datatypes.Angle(x, unit='degrees').asRadians() for x in inDegrees]
+            eRad2 = datatypes.EulerRotation(inRadians, unit='radians')
+            self.assertEqual(eRad2, eDeg)
+            self.assertNotEqual(eRad2.x, eDeg.x)
+            self.assertEqual(list(eDeg), [datatypes.Angle(x, unit='radians').asDegrees() for x in eRad2])
+        finally:
+            datatypes.Angle.setUIUnit(oldUnit)
+            
+    def testEuler_rotationOrder(self):
+        rot = datatypes.EulerRotation(10,20,30, 'XYZ')
+        self.assertEqual(rot.order, 'XYZ')
+        rot.order = 'ZYX'
+        self.assertEqual(rot.order, 'ZYX')
+        other = datatypes.EulerRotation(10,20,30, 'ZYX')
+        self.assertEqual(other.order, 'ZYX')
+        self.assertEqual(rot, datatypes.EulerRotation(10,20,30, 'ZYX'))
+        rot.assign( (6,7,8) )
+        self.assertEqual(rot.order, 'ZYX')
+        
+    def testEuler_setItem(self):
+        rot = datatypes.EulerRotation(10,20,30, 'XYZ')
+        self.assertAlmostEqual(rot.y, 20)
+        rot.y = 50
+        self.assertAlmostEqual(rot.y, 50)
+        self.assertAlmostEqual(rot.z, 30)
+        rot['z'] = 60
+        self.assertAlmostEqual(rot.z, 60)
+        self.assertAlmostEqual(rot.x, 10)
+        rot[0] = 70
+        self.assertAlmostEqual(rot.x, 70)
+
 
 ################################################################## 
 ## MMatrix tests 
@@ -891,14 +932,22 @@ class test_PMTypes(unittest.TestCase):
         self.assertTrue(isinstance(self.m, datatypes.Array))
         self.assertTrue(isinstance(self.m, api.MMatrix))
 
-    def testMatrix_False_Instances(self) :
-        def MatrixSetTest1(): 
-            self.m.shape = (4,4) # TODO should fail
-        def MatrixSetTest2(): 
-            self.m.shape = 2
-
-        self.failUnlessRaises(ValueError, MatrixSetTest1)
-        self.failUnlessRaises(ValueError, MatrixSetTest2)
+    def testMatrix_False_Instances(self) : 
+        def Matrix_fromRange_Test(): 
+            self.m = datatypes.Matrix(range(20)) # TODO should fail
+            self.m.formated()
+        #   cannot initialize a Matrix of shape (4, 4) from list of 20,  
+        #   would cause truncation errors, use an explicit resize or trim"     
+        self.failUnlessRaises(TypeError, Matrix_fromRange_Test)
+        
+#        self.m = datatypes.Matrix()
+#        def MatrixSetTest1(): 
+#            self.m.shape = (4,4) # TODO should fail
+#        def MatrixSetTest2(): 
+#            self.m.shape = 2
+#
+#        self.failUnlessRaises(ValueError, MatrixSetTest1)
+#        self.failUnlessRaises(ValueError, MatrixSetTest2)
 
     def testMatrix_formated(self) :
         self.m = datatypes.Matrix()
@@ -957,14 +1006,6 @@ class test_PMTypes(unittest.TestCase):
         self.m = datatypes.Matrix(self.m, a30=10)
         self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [10.0, 2.0, 3.0, 1.0]]')
 
-
-    def testMatrix_False_Instances(self) : 
-        def Matrix_fromRange_Test(): 
-            self.m = datatypes.Matrix(range(20)) # TODO should fail
-            self.m.formated()
-        #   cannot initialize a Matrix of shape (4, 4) from list of 20,  
-        #   would cause truncation errors, use an explicit resize or trim"     
-        self.failUnlessRaises(TypeError, Matrix_fromRange_Test)
 
     def testMatrix_Trimmed(self):
         self.m = datatypes.Matrix.identity
@@ -1191,7 +1232,69 @@ class test_PMTypes(unittest.TestCase):
         self.m.rotate = self.q
         last = datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
         self.assert_(self.m.isEquivalent(last))
+
+        self.t = datatypes.Matrix()
+        self.q = datatypes.Quaternion(1, 2, 3, 0.5)
+        self.t.rotate = self.q
+        last = datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
+        self.assert_(self.t.isEquivalent(last))
         
+    def testMTransformationMatrix_rotation(self):
+        tm = datatypes.TransformationMatrix()
+        self.assertEqual(tm.getRotation(), datatypes.EulerRotation(0,0,0) )
+        tm.setRotation(90,0,0, 'XYZ')
+        last = datatypes.Matrix([[1,0,0,0], [0,0,1,0], [0,-1,0,0], [0,0,0,1]])
+        self.assertTrue(tm.isEquivalent(last))
+        self.assertEqual(tm.getRotation(), datatypes.EulerRotation(90,0,0, 'XYZ'))
+        tm.setRotation(10,20,30, 'XYZ')
+        last = dt.Matrix([[0.81379768134937369, 0.46984631039295421, -0.34202014332566871, 0.0,],
+                   [-0.44096961052988248, 0.8825641192593856, 0.16317591116653482, 0.0,],
+                   [0.37852230636979256, 0.018028311236297268, 0.92541657839832336, 0.0,],
+                   [0.0, 0.0, 0.0, 1.0]])
+        self.assertTrue(tm.isEquivalent(last))
+        tm.setRotation(10,20,30, 'YZX')
+        last = dt.Matrix([0.81379768134937369,
+                         0.52209946381304628,
+                         -0.25523613325019773,
+                         0.0,
+                         -0.49999999999999994,
+                         0.85286853195244317,
+                         0.15038373318043533,
+                         0.0,
+                         0.29619813272602386,
+                         0.0052361332501977423,
+                         0.95511216570526569,
+                         0.0,
+                         0.0,
+                         0.0,
+                         0.0,
+                         1.0])
+        self.assertTrue(tm.isEquivalent(last))
+        tm.setRotation(10,20,30, 'ZYX')
+        last = dt.Matrix([0.81379768134937369,
+                         0.54383814248232565,
+                         -0.2048741287028622,
+                         0.0,
+                         -0.46984631039295427,
+                         0.82317294464550095,
+                         0.31879577759716787,
+                         0.0,
+                         0.34202014332566871,
+                         -0.16317591116653482,
+                         0.92541657839832336,
+                         0.0,
+                         0.0,
+                         0.0,
+                         0.0,
+                         1.0])
+        self.assertTrue(tm.isEquivalent(last))
+    
+    def testMTransformationMatrix_rotateTo(self):
+        self.t = datatypes.TransformationMatrix()
+        self.t.rotateTo([1, 2, 3, 0.5])
+        last = datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
+        self.assert_(self.t.isEquivalent(last))
+    
     def testMTransformationMatrix_formatted(self):    
         self.m = datatypes.TransformationMatrix()
         self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
