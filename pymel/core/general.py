@@ -1856,7 +1856,8 @@ class PyNode(_util.ProxyUnicode):
 
         :rtype: `other.NameParser`
         """
-        return self.stripNamespace().addPrefix( prefix+':' )
+        import other
+        return other.NameParser(self).swapNamespace(prefix)
 
     def namespaceList(self):
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list
@@ -1883,16 +1884,7 @@ class PyNode(_util.ProxyUnicode):
         :rtype: `other.NameParser`
         """
         import other
-        name = self
-        leadingSlash = False
-        if name.startswith('|'):
-            name = name[1:]
-            leadingSlash = True
-        name =  '|'.join( map( lambda x: prefix+x, name.split('|') ) )
-        if leadingSlash:
-            name = '|' + name
-        return other.NameParser(name)
-
+        return other.NameParser(self).addPrefix(prefix)
 
 
 #    def attr(self, attr):
@@ -2545,8 +2537,11 @@ class Attribute(PyNode):
         If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
         See `Attribute.__iter__`.
         """
-
-        return cmds.listAttr(self.array(), multi=True)
+        if self.isElement():
+            arrayAttr = self.array()
+        else:
+            arrayAttr = self
+        return cmds.listAttr(arrayAttr, multi=True)
 
 #    def item(self):
 #        try:

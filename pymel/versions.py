@@ -60,16 +60,19 @@ _shortName = parseVersionStr(_fullName, extension=False)
 _installName = _shortName + ('-x64' if _is64 else '')
 
 
-v85        = 200700
-v85_SP1    = 200701
-v2008      = 200800
-v2008_SP1  = 200806
-v2008_EXT2 = 200806
-v2009      = 200900
-v2009_EXT1 = 200904
-v2009_SP1A = 200906
-v2010      = 201000
-v2011      = 201100
+v85           = 200700
+v85_SP1       = 200701
+v2008         = 200800
+v2008_SP1     = 200806
+v2008_EXT2    = 200806
+v2009         = 200900
+v2009_EXT1    = 200904
+v2009_SP1A    = 200906
+v2010         = 201000
+v2011         = 201100
+v2011_HOTFIX1 = 201101
+v2011_HOTFIX2 = 201102
+v2011_HOTFIX3 = 201103
 
 def current():
     return _current

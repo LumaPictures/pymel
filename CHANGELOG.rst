@@ -1,4 +1,16 @@
 ==================================
+Version 1.0.3
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+- ``setParent`` now returns PyUI objects when queried
+- ``setParent`` now returns None object instead of 'NONE' string
+- ``menu(q=1, itemArray=1)`` now returns [] instead of None
+
+
+==================================
 Version 1.0.2
 ==================================
 

@@ -417,9 +417,27 @@ def uiTemplate(name=None, force=False, exists=None):
     else:
         return _uitypes.UITemplate(name=name, force=force)
 
+def setParent(*args, **kwargs):
+    """
+Modifications
+  - returns None object instead of the string 'NONE'
+    """
+    result = cmds.setParent(*args, **kwargs)
+    if kwargs.get('query', False) or kwargs.get('q', False):
+        if result == 'NONE':
+            result = None
+        else:
+            result = _uitypes.PyUI(result)
+    return result
+
 def currentParent():
     "shortcut for ``ui.PyUI(setParent(q=1))`` "
-    return _uitypes.PyUI(cmds.setParent(q=1))
+    
+    return setParent(q=1)
+
+def currentMenuParent():
+    "shortcut for ``ui.PyUI(setParent(q=1, menu=1))`` "
+    return setParent(q=1, menu=1)
 
 # fix a bug it becomes impossible to create a menu after setParent has been called
 def menu(*args, **kwargs):
@@ -441,7 +459,13 @@ Modifications
             name = _findLongName(name, 'menu')
         return name.rsplit('|',1)[0]
 
-    return cmds.menu(*args, **kwargs)
+    result = cmds.menu(*args, **kwargs)
+
+    if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
+            and ( kwargs.get('itemArray', False) or kwargs.get('ia', False) ) \
+            and result is None:
+        result = []
+    return result
 
 def _createClassCommands():
 

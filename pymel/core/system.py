@@ -133,7 +133,7 @@ Modifications:
 #===============================================================================
 # Namespace
 #===============================================================================
-class Namespace(str):
+class Namespace(unicode):
 
     @classmethod
     def getCurrent(cls):
@@ -158,14 +158,14 @@ class Namespace(str):
                     cmds.namespace(set=part)
                 current.setCurrent()
 
-        self = str.__new__(cls, namespace)
+        self = super(Namespace, cls).__new__(cls, namespace)
         return self
 
     def __repr__(self):
-        return "%s('%s')" % (self.__class__.__name__, self)
+        return "%s(%s)" % (self.__class__.__name__, super(Namespace, self).__repr__())
 
     def __add__(self, other):
-        return "%s:%s" % (self, other.lstrip(":"))
+        return "%s:%s" % (self.rstrip(':'), other.lstrip(":"))
 
     def __cmp__(self, other):
         return cmp(self.strip(":"), str(other).strip(":"))
@@ -184,7 +184,7 @@ class Namespace(str):
         return self.splitAll()[-1]
 
     def getParent(self):
-        if (str(self)!=":"):
+        if (unicode(self)!=u":"):
             return self.__class__(':'.join(self.splitAll()[:-1]))
 
     def ls(self, pattern="*", **kwargs):
@@ -211,15 +211,36 @@ class Namespace(str):
             if recursive:
                 childNamespaces = []
                 for ns in namespaces:
-                    try:
-                        childNamespaces.extend(ns.listNamespaces(recursive, internal))
-                    except: pass
+                    childNamespaces.extend(ns.listNamespaces(recursive, internal))
                 namespaces.extend(childNamespaces)
         finally:
             curNS.setCurrent()
 
         return namespaces
 
+    def listNodes(self, recursive=False, internal=False):
+        import general
+        curNS = Namespace.getCurrent()
+
+        self.setCurrent()
+        try:
+            if not internal:
+                nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True,
+                                      recurse=False)
+                if recursive:
+                    namespaces = self.listNamespaces(recursive=False, internal=internal)
+    
+                    for ns in namespaces:
+                        nodes.extend(ns.listNodes(recursive=recursive,
+                                                      internal=internal))
+            else:
+                nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True,
+                                      recurse=recursive)
+        finally:
+            curNS.setCurrent()
+
+        return nodes
+    
     def setCurrent(self):
         cmds.namespace(set=self)
 
@@ -250,6 +271,8 @@ class Namespace(str):
                     n.unlock()
                 general.delete(toDelete)
 
+    def move(self, other, force=False):
+        cmds.namespace(moveNamespace=(self, other), force=force)
 
     def remove(self, haltOnError=True):
         self.clean(haltOnError=haltOnError)
@@ -279,14 +302,31 @@ Modifications:
     - returns an empty list when the result is None
     - returns wrapped classes for listOnlyDependencyNodes
     """
-    if kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) ):
+    pyNodeWrap = kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) )
+    if pyNodeWrap:
+        kwargs.pop('dp', False)
         kwargs['dagPath'] = True
-        res = cmds.namespaceInfo(*args, **kwargs)
+
+    res = cmds.namespaceInfo(*args, **kwargs)
+    
+    if any( kwargs.get(x, False) for x in ('ls', 'listNamespace',
+                                           'lod', 'listOnlyDependencyNodes',
+                                           'lon', 'listOnlyNamespaces') ):
         res = _util.listForNone(res)
-        return [general.PyNode(x) for x in res ]
-
-    return cmds.namespaceInfo(*args, **kwargs)
-
+        
+    if pyNodeWrap:
+        import general
+        nodes = []
+        for x in res:
+            try:
+                nodes.append(general.PyNode(x))
+            except general.MayaNodeError:
+                # some ui objects/tools - like '|CubeCompass' -
+                # get returned... so just ignore any nodes we can't create
+                pass
+        res = nodes
+    
+    return res
 
 #-----------------------------------------------
 #  Translator Class
