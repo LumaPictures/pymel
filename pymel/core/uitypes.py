@@ -612,13 +612,11 @@ class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = 'menuItem'
     def __enter__(self):
-        cmds.setParent(self,menu=True)
+        SubMenuItem(self).__enter__()
         return self
 
     def __exit__(self, type, value, traceback):
-        p = self.parent()
-        cmds.setParent(p,menu=True)
-        return p
+        return SubMenuItem(self).__exit__(type, value, traceback)
 
 def MenuItem(name=None, create=False, **kwargs):
     if PyUI._isBeingCreated(name, create, kwargs):
