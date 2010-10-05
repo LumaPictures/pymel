@@ -8,6 +8,13 @@ Changes
 - ``setParent`` now returns PyUI objects when queried
 - ``setParent`` now returns None object instead of 'NONE' string
 - ``menu(q=1, itemArray=1)`` now returns [] instead of None
+- UI classes that have 'with' statement support now set parent back to previous
+  'with' object if there are nested with statements; if not in a nested with
+  statement, resets parent back to UI element's parent (or more precisely, the
+  first element that is not a rowGroupLayout element)
+- 'Unit' support for Quaternion objects is now removed (as it doesn't make
+  any sense)
+- ``with OptionMenuGrp()`` will set parent menu properly
 
 
 ==================================
