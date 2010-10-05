@@ -145,6 +145,45 @@ class TestWithStatement(unittest.TestCase):
             self.assertEqual(pm.currentParent(), cl)
         self.assertEqual(pm.currentParent(), self.win)
         
+    def test_windowExit(self):
+        self.assertEqual(pm.currentParent(), self.win)
+        newWin = ui.Window()
+        try: 
+            with newWin:
+                self.assertEqual(pm.currentParent(), newWin)
+                with pm.formLayout() as fl:
+                    self.assertEqual(pm.currentParent(), fl)
+                self.assertEqual(pm.currentParent(), newWin)
+            self.assertTrue(pm.currentParent() in (None, newWin, fl))
+        finally:
+            pm.deleteUI(newWin, window=True)
+            
+        otherWin = ui.Window()
+        # try NOT using with statement, to make sure the last newWin
+        # statement's exit popped it off the stack correctly
+        try:
+            with pm.formLayout() as fl:
+                self.assertEqual(pm.currentParent(), fl)
+            self.assertEqual(pm.currentParent(), otherWin)
+        finally:
+            pm.deleteUI(otherWin, window=True)
+
+class TestTextScrollList(unittest.TestCase):
+    def setUp(self):
+        cmds.setParent(None, menu=1)
+        self.win = cmds.window()
+    def tearDown(self):
+        cmds.deleteUI(self.win, window=True)
+
+    def test_selectItemEmptyList(self):
+        with ui.Window(self.win):
+            with pm.formLayout():
+                tsl = pm.textScrollList()
+                tsl.extend(['a','b','c'])
+        # Make sure this is NOT None
+        self.assertEqual(tsl.getSelectItem(), [])
+    
+        
 if not pm.about(batch=1):
     for key, obj in globals().items():
         if isinstance(obj, unittest.TestCase):

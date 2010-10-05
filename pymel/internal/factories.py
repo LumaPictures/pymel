@@ -776,18 +776,6 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 
     if funcName in simpleCommandWraps:
         # simple wraps: we only do these for functions which have not been manually customized
-        # data structure looks like:
-        #'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
-        #                        ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
-
-        #'getPanel'          : [ ( toPyUI,
-        #                          ( [('containing', 'c')],
-        #                            [('underPointer', 'up')]
-        #                            [('withFocus', 'wf')] ) ),
-        #                        ( util.listForNone,
-        #                          ( [('typeOf', 'to')] ) ),
-        #                        ( toPyUIList, None )
-        #                      ],
         wraps = simpleCommandWraps[funcName]
         beforeSimpleWrap = newFunc
         def simpleWrapFunc(*args, **kwargs):
