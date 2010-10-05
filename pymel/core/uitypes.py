@@ -262,11 +262,12 @@ class Layout(PyUI):
         global _withParentStack
         _withParentStack.pop()
         if _withParentStack:
-            cmds.setParent(_withParentStack[-1])
+            parent = _withParentStack[-1]
         else:
             parent = self.pop()
             while parent and cmds.objectTypeUI(parent) == u'rowGroupLayout':
                 parent = parent.pop()
+        cmds.setParent(parent)
 
     def children(self):
         #return [ PyUI( self.name() + '|' + x) for x in self.__melcmd__(self, q=1, childArray=1) ]
