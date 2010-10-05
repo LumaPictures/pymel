@@ -337,6 +337,7 @@ class Window(Layout):
 #            return self
 
     def __exit__(self, type, value, traceback):
+        super(Window, self).__exit__(type, value, traceback)
         self.show()
 
     def show(self):
