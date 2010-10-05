@@ -296,26 +296,34 @@ class ClassFrame(object):
         setParent(tab) # column
         unpairedCol = columnLayout(visible=False )
         tab.setTabLabel( [unpairedCol, 'Unpaired'] )
-        # For some reason, on linux, the unpairedCol height is wrong...
-        # track + set it ourselves
-        unpairedHeight = 10 # a little extra buffer...
-        rowSpace = unpairedCol.getRowSpacing()
         for methodName in sorted( self.classInfo.keys() ):
             setParent(unpairedCol)
             if methodName not in usedMethods:
                 count += self.rows[methodName].buildUI(filter)
-                unpairedHeight += self.rows[methodName].frame.getHeight() + rowSpace
-        unpairedCol.setHeight(unpairedHeight)
+
         
         #self.form.attachForm( self.frame, 'left', 2)
         #self.form.attachForm( self.frame, 'right', 2)
         #self.form.attachForm( self.frame, 'top', 2)
         #self.form.attachForm( self.frame, 'bottom', 2)
         unpairedCol.setVisible(True)
+
+        # For some reason, on linux, the unpairedCol height is wrong...
+        # track + set it ourselves
+        # ...also, we need to do it AFTER making the column visible, or else
+        # we get totally wrong values
+        unpairedHeight = 10 # a little extra buffer...
+        rowSpace = unpairedCol.getRowSpacing()
+        for child in unpairedCol.children():
+            unpairedHeight += child.getHeight()
+            unpairedHeight += rowSpace
+        unpairedCol.setHeight(unpairedHeight)
+        
         setParent('..') # column
         setParent('..') # frame
         setParent('..') # tab
         #print self.frame, count
+        
         return self.frame
     
 
@@ -438,6 +446,7 @@ class MethodRow(object):
         #print className, self.methodName, melMethods
         isOverloaded = len(self.methodInfoList)>1
         self.frame = frameLayout( w=FRAME_WIDTH, labelVisible=False, collapsable=False)
+        print "building row for %s - %s" % (self.methodName, self.frame)
         col = columnLayout()
         
         enabledArray = []
