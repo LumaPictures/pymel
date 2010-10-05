@@ -17,6 +17,8 @@ from pymel.all import *
 import pymel.internal.factories as factories
 import logging
 logger = logging.getLogger(__name__)
+if logger.level == logging.NOTSET:
+    logger.setLevel(logging.INFO)
 
 FRAME_WIDTH = 800
 VERBOSE = True
@@ -446,7 +448,7 @@ class MethodRow(object):
         #print className, self.methodName, melMethods
         isOverloaded = len(self.methodInfoList)>1
         self.frame = frameLayout( w=FRAME_WIDTH, labelVisible=False, collapsable=False)
-        print "building row for %s - %s" % (self.methodName, self.frame)
+        logger.debug("building row for %s - %s" % (self.methodName, self.frame))
         col = columnLayout()
         
         enabledArray = []
@@ -937,6 +939,7 @@ def cacheResults():
         doCacheResults()
         
 def doCacheResults():
+    import pymel.internal.apicache as apicache
     print "---"
     print "adding manual defaults"
     setManualDefaults()
@@ -944,10 +947,8 @@ def doCacheResults():
     # update apiClasIfno with the sparse data stored in apiClassOverrides
     util.mergeCascadingDicts( factories.apiClassOverrides, factories.apiClassInfo, allowDictToListMerging=True )
     print "saving api cache"
-    api.saveApiCache()
+    apicache.saveApiCache()
     print "saving bridge"
-    api.saveApiToMelBridge()
-        
-    
+    apicache.saveApiToMelBridge()
     print "---"
 
