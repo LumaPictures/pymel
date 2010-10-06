@@ -446,7 +446,7 @@ class Vector(VectorN) :
             Equivalence test """
         try :
             return bool(self.apicls.__eq__(self, other))
-        except :
+        except Exception:
             return bool(super(Vector, self).__eq__(other))
     def __ne__(self, other):
         """ u.__ne__(v) <==> u != v
@@ -462,7 +462,7 @@ class Vector(VectorN) :
             adds v to every component of u if v is a scalar """
         try :
             return self.__class__._convert(self.apicls.__add__(self, other))
-        except :
+        except Exception:
             return self.__class__._convert(super(Vector, self).__add__(other))
     def __radd__(self, other) :
         """ u.__radd__(v) <==> v+u
@@ -470,14 +470,14 @@ class Vector(VectorN) :
             adds v to every component of u if v is a scalar """
         try :
             return self.__class__._convert(self.apicls.__radd__(self, other))
-        except :
+        except Exception:
             return self.__class__._convert(super(Vector, self).__radd__(other))
     def __iadd__(self, other):
         """ u.__iadd__(v) <==> u += v
             In place addition of u and v, see __add__ """
         try :
             return self.__class__(self.__add__(other))
-        except :
+        except Exception:
             return NotImplemented
     def __sub__(self, other) :
         """ u.__sub__(v) <==> u-v
@@ -485,7 +485,7 @@ class Vector(VectorN) :
             substract v to every component of u if v is a scalar """
         try :
             return self.__class__._convert(self.apicls.__sub__(self, other))
-        except :
+        except Exception:
             return self.__class__._convert(super(Vector, self).__sub__(other))
     def __rsub__(self, other) :
         """ u.__rsub__(v) <==> v-u
@@ -493,14 +493,14 @@ class Vector(VectorN) :
             replace every component c of u by v-c if v is a scalar """
         try :
             return self.__class__._convert(self.apicls.__rsub__(self, other))
-        except :
+        except Exception:
             return self.__class__._convert(super(Vector, self).__rsub__(other))
     def __isub__(self, other):
         """ u.__isub__(v) <==> u -= v
             In place substraction of u and v, see __sub__ """
         try :
             return self.__class__(self.__sub__(other))
-        except :
+        except Exception:
             return NotImplemented
     def __div__(self, other):
         """ u.__div__(v) <==> u/v
@@ -508,7 +508,7 @@ class Vector(VectorN) :
             divide every component of u by v if v is a scalar """
         try :
             return self.__class__._convert(self.apicls.__div__(self, other))
-        except :
+        except Exception:
             return self.__class__._convert(super(Vector, self).__div__(other))
     def __rdiv__(self, other):
         """ u.__rdiv__(v) <==> v/u
@@ -516,14 +516,14 @@ class Vector(VectorN) :
             invert every component of u and multiply it by v if v is a scalar """
         try :
             return self.__class__._convert(self.apicls.__rdiv__(self, other))
-        except :
+        except Exception:
             return self.__class__._convert(super(Vector, self).__rdiv__(other))
     def __idiv__(self, other):
         """ u.__idiv__(v) <==> u /= v
             In place division of u by v, see __div__ """
         try :
             return self.__class__(self.__div__(other))
-        except :
+        except Exception:
             return NotImplemented
     # action depends on second object type
     def __mul__(self, other) :
@@ -2118,6 +2118,9 @@ class EulerRotation(Array):
     def __contains__(self, value):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()
+
+    def __len__(self):
+        return self.apicls.__len__(self)
 
     # common operators without an api equivalent are herited from VectorN
 

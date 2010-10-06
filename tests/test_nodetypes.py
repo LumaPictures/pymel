@@ -4,6 +4,7 @@ import re
 import platform
 
 from pymel.all import *
+import pymel.core as pm
 from maintenance.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
 import pymel.internal.factories as factories
@@ -1646,6 +1647,22 @@ class testCase_apiArgConversion(unittest.TestCase):
         """
         mesh = polyCube()[0].getShape()
         self.assertEqual(mesh.getEdgeVertices(2), [4,5])
+
+class testCase_Mesh(unittest.TestCase):
+    def test_emptyMeshOps(self):
+        mesh = pm.createNode('mesh')
+        for comp in (mesh.vtx, mesh.faces, mesh.edges):
+            self.assertEqual(len(comp), 0)
+            self.assertEqual(bool(comp), False)
+        self.assertEqual(mesh.numColorSets(), 0)
+        self.assertEqual(mesh.numFaceVertices(), 0)
+        self.assertEqual(mesh.numNormals(), 0)
+        self.assertEqual(mesh.numUVSets(), 0)
+        self.assertEqual(mesh.numUVs(), 0)
+        self.assertEqual(mesh.numFaces(), 0)
+        self.assertEqual(mesh.numVertices(), 0)
+        self.assertEqual(mesh.numEdges(), 0)
+
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
