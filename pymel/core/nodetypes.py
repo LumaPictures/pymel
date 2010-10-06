@@ -2261,6 +2261,41 @@ class Mesh(SurfaceShape):
             args.append(colorSet)
         return mfn.numColors(*args)
 
+# Unfortunately, objects that don't yet have any mesh data - ie, if you do
+# createNode('mesh') - can't be fed into MFnMesh (even though it is a mesh
+# node).  This means that all the methods wrapped from MFnMesh won't be
+# usable in this case.  While it might make sense for some methods - ie,
+# editing methods like collapseEdges - to fail in this situation, some
+# basic methods like numVertices should still be usable.  Therefore,
+# we override some of these with the mel versions (which still work...)
+
+def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
+                                   resultName=None, defaultVal=0):
+    if baseMethodName is None:
+        baseMethodName = '_' + apiMethodName
+    if resultName is None:
+        resultName = apiMethodName
+
+    baseMethod = getattr(Mesh, baseMethodName)
+
+    @_factories.addApiDocs( _api.MFnMesh, apiMethodName )        
+    def methodWrapForEmptyMesh(self, *args, **kwargs):
+        # If we have an empty mesh, we will get an MFnDagNode...
+        mfn = self.__apimfn__()
+        if not isinstance(mfn, _api.MFnMesh):
+            return defaultVal
+        return baseMethod(self, *args, **kwargs)
+    methodWrapForEmptyMesh.__name__ = resultName
+    return methodWrapForEmptyMesh
+
+for apiMethodName in '''numColorSets
+                    numFaceVertices
+                    numNormals
+                    numUVSets
+                    numUVs'''.split():
+    wrappedFunc = _makeApiMethodWrapForEmptyMesh(apiMethodName)
+    setattr(Mesh, wrappedFunc.__name__, wrappedFunc)
+
 class Subdiv(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
 
