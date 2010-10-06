@@ -164,7 +164,7 @@ Modifications:
 
 
 # TODO: make it handle multiple objects, like original command
-def move(obj, *args, **kwargs):
+def move(*args, **kwargs):
     """
 Modifications:
   - allows any iterable object to be passed as first argument::
@@ -173,9 +173,15 @@ Modifications:
 
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
     """
+    obj = None
+    if args and isinstance(args[0], (basestring, PyNode)):
+        obj = args[0]
+        args = args[1:]
+        
     if len(args) == 1 and _util.isIterable(args[0]):
         args = tuple(args[0])
-    args = args + (obj,)
+    if obj is not None:
+        args = args + (obj,)
     return cmds.move(*args, **kwargs)
 
 def scale(obj, *args, **kwargs):
