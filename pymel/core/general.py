@@ -3396,6 +3396,12 @@ class Component( PyNode ):
             return False
         return self.__apicomponent__().isEqual( other.__apicomponent__().object() )
 
+    def __nonzero__(self):
+        """
+        :rtype: `bool`
+        """
+        return bool(len(self))
+
     def __str__(self):
         return str(self.name())
 
@@ -3946,7 +3952,8 @@ class DiscreteComponent( DimensionedComponent ):
                 mayaArrays.append(self._pyArrayToMayaArray(dimIndices))
             mfnComp = self._mfncompclass(handle.object())
             mfnComp.setComplete(False)
-            mfnComp.addElements(*mayaArrays)
+            if mayaArrays:
+                mfnComp.addElements(*mayaArrays)
             return handle
         else:
             return super(DiscreteComponent, self)._makeIndexedComponentHandle(indices)

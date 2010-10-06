@@ -2212,6 +2212,17 @@ class Mesh(SurfaceShape):
                             'vtxFace'   : general.MeshVertexFace,
                             'faceVerts' : general.MeshVertexFace}
 
+    # Unfortunately, objects that don't yet have any mesh data - ie, if you do
+    # createNode('mesh') - can't be fed into MFnMesh (even though it is a mesh
+    # node).  This means that all the methods wrapped from MFnMesh won't be
+    # usable in this case.  While it might make sense for some methods - ie,
+    # editing methods like collapseEdges - to fail in this situation, some
+    # basic methods like numVertices should still be usable.  Therefore,
+    # we override some of these with the mel versions (which still work...)
+    numVertices = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'numVertices' )
+    numEdges = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'numEdges' )
+    numFaces = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'face', 'numFaces' )
+
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
     numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
     numSelectedFaces = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'faceComponent', 'numSelectedFaces' )
@@ -2241,10 +2252,14 @@ class Mesh(SurfaceShape):
 
     @_factories.addApiDocs( _api.MFnMesh, 'numColors' )
     def numColors(self, colorSet=None):
+        mfn = self.__apimfn__()
+        # If we have an empty mesh, we will get an MFnDagNode...
+        if not isinstance(mfn, _api.MFnMesh):
+            return 0
         args = []
         if colorSet:
             args.append(colorSet)
-        return self.__apimfn__().numColors(*args)
+        return mfn.numColors(*args)
 
 class Subdiv(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
