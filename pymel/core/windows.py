@@ -465,7 +465,10 @@ Modifications
             and ( kwargs.get('parent', False) or kwargs.get('p', False) ):
         name = unicode(args[0])
         if '|' not in name:
-            name = _findLongName(name, 'menu')
+            try:
+                name = _findLongName(name, 'menu')
+            except ValueError:
+                name = _findLongName(name, 'popupMenu')
         return name.rsplit('|',1)[0]
 
     result = cmds.menu(*args, **kwargs)

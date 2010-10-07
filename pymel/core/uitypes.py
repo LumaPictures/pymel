@@ -178,6 +178,8 @@ class PyUI(unicode):
                     try:
                         if issubclass(newcls,Layout):
                             parent = windows.layout(name, q=1, p=1)
+                        elif issubclass(newcls,OptionMenu):
+                            parent = windows.optionMenu(name, q=1, p=1)
                         elif issubclass(newcls,Menu):
                             parent = windows.menu(name, q=1, p=1)
                         else:
@@ -578,7 +580,7 @@ class Menu(PyUI):
 class PopupMenu(Menu):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
-class OptionMenu(Menu):
+class OptionMenu(PopupMenu):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
     def addMenuItems( self, items, title=None):
