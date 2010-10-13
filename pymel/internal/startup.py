@@ -292,26 +292,62 @@ def fixMayapy2011SegFault():
         import platform
         if platform.system() == 'Linux':
             if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
-                import atexit
-                # In maya 2011, once maya has been initialized, if you try
+                # In linux maya 2011, once maya has been initialized, if you try
                 # to do a 'normal' sys.exit, it will crash with a segmentation
                 # fault..
                 # do a 'hard' os._exit to avoid this
-                # note that this will essentially lose any exit error code
-                # ... but since it seg faults anyway, and the seg fault
-                # would raise it's own error code, we lose it anyway... 
+                
+                # note that, since there is no built-in support to tell from
+                # within atexit functions what the exit code is, we cannot
+                # guarantee returning the "correct" exit code... for instance,
+                # if someone does:
+                #    raise SystemExit(300)
+                # we will instead return a 'normal' exit code of 0
+                # ... but in general, the return code is a LOT more reliable now,
+                # since it used to ALWAYS return non-zero... 
+                
+                import sys
+                import atexit
+                
+                # First, wrap sys.exit to store the exit code...
+                _orig_exit = sys.exit
+                
+                # This is just in case anybody else needs to access the
+                # original exit function...
+                if not hasattr('sys', '_orig_exit'):
+                    sys._orig_exit = _orig_exit
+                def exit(status):
+                    sys._exit_status = status
+                    _orig_exit(status)
+                sys.exit = exit
+
                 def hardExit():
                     # run all the other exit handlers registered with 
                     # atexit, then hard exit... this is easy, because
                     # atexit._run_exitfuncs pops funcs off the stack as it goes...
                     # so all we need to do is call it again
+                    import sys
                     atexit._run_exitfuncs()
                     try:
                         print "pymel: hard exiting to avoid mayapy crash..."
                     except Exception:
                         pass
                     import os
-                    os._exit(0)
+                    import sys
+
+                    exitStatus = getattr(sys, '_exit_status', None)
+                    if exitStatus is None:
+                        last_value = getattr(sys, 'last_value', None)
+                        if last_value is not None:
+                            if isinstance(last_value, SystemExit):
+                                try:
+                                    exitStatus = last_value.args[0]  
+                                except Exception: pass
+                            if exitStatus is None:
+                                exitStatus = 1
+                    if exitStatus is None:
+                        exitStatus = 0
+                    os._exit(exitStatus)
                 atexit.register(hardExit)
 
 # Fix for non US encodings in Maya
