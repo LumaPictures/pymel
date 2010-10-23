@@ -36,9 +36,6 @@ import uitypes as ui
 
 import runtime
 
-# initialize MEL
-_startup.finalize()
-
 import maya.cmds as cmds
 
 # these modules are imported anyway so they should not be a performance hit
@@ -94,7 +91,11 @@ def _pluginLoaded( *args ):
                 _logger.warning("exception: %s" % str(msg) )
 
     # Nodes
-    mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
+    try:
+        mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
+    except:
+        _logger.error("Failed to get depend nodes list from %s", pluginName)
+        mayaTypes = None
     #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1)
     if mayaTypes :
 
@@ -217,6 +218,10 @@ def _installCallbacks():
 
 _installCallbacks()
 
+# run userSetup.py / initialize MEL...
+# ...userStartup.py / .mel may try to add plugins and then use their commands /
+# nodes with pymel... so do the plugin stuff first
+_startup.finalize()
 
 
 

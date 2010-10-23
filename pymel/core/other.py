@@ -30,7 +30,7 @@ class NameParser(unicode):
         return self
 
     def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self)
+        return u"%s(%s)" % (self.__class__.__name__, super(NameParser, self).__repr__())
 
     #def __unicode__(self):
     #    return u"%s" % self
@@ -107,7 +107,9 @@ class NameParser(unicode):
     def swapNamespace(self, prefix):
         """Returns a new instance of the object with its current namespace replaced with the provided one.
         The calling instance is unaffected."""
-        return self.__class__.addPrefix( self.stripNamespace(), prefix+':' )
+        if not prefix.endswith(':'):
+            prefix += ':'
+        return self.__class__.addPrefix( self.stripNamespace(), prefix)
 
     def namespaceList(self):
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list"""
@@ -131,7 +133,6 @@ class NameParser(unicode):
         if leadingSlash:
             name = '|' + name
         return self.__class__( name )
-
 
     def attr(self, attr):
         """access to AttributeName of a node. returns an instance of the AttributeName class for the

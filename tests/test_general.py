@@ -1,7 +1,11 @@
 import sys, os, inspect, unittest
 #from testingutils import setupUnittestModule
 from pymel.core import *
-import pymel.core.nodetypes as nodetypes
+import pymel.core as pm 
+import pymel.versions as versions
+import pymel.internal.factories as factories
+import pymel.core.datatypes as dt
+import pymel.core.nodetypes as nt
 #import pymel
 import pymel.internal.factories as _factories
 #import maya.cmds as cmds
@@ -375,8 +379,8 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 #        import pymel.examples.example2
         
     def test_classCreation(self):
-        self.newobjs.append( Joint() )
-        self.newobjs.append( Transform() )
+        self.newobjs.append( nt.Joint() )
+        self.newobjs.append( nt.Transform() )
 
 
      
@@ -671,7 +675,7 @@ class testCase_duplicateShape(unittest.TestCase):
             
             # As of Maya 2009, shapeCompare doesn't handle subdivs, and always
             #    returns 1 for curves
-            if not isinstance(origShape, (Subdiv, NurbsCurve)):
+            if not isinstance(origShape, (nt.Subdiv, nt.NurbsCurve)):
                 if shapeCompare(origShape, shapeDup) != 0:
                     self.fail("shapes do not compare equal: %r, %r)" %
                               (origShape, shapeDup))
@@ -705,7 +709,7 @@ class test_PyNodeWraps(unittest.TestCase):
         j1 = cmds.joint(p=(0,0,-1))
         cmds.joint(p=(0,0,1))
         skin = skinCluster(cube, j1)[0]
-        self.assertPyNodes(skin.getGeometry(), DependNode)
+        self.assertPyNodes(skin.getGeometry(), nt.DependNode)
         
     def test_addDynamic(self):
         # Create an emitter
@@ -844,21 +848,34 @@ class test_commands(unittest.TestCase):
 class test_plugins(unittest.TestCase):
     def test01_load(self):
         loadPlugin('Fur')
-        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__dict__ )
+        self.assert_( 'FurGlobals' not in nt.__dict__ )
         # lazer loader exists
-        self.assert_( 'FurGlobals' in pymel.core.nodetypes.__class__.__dict__ )
+        self.assert_( 'FurGlobals' in nt.__class__.__dict__ )
         # after accessing, the lazy loader should generate the class
-        pymel.core.nodetypes.FurGlobals
-        self.assert_( 'FurGlobals' in pymel.core.nodetypes.__dict__ )
+        nt.FurGlobals
+        self.assert_( 'FurGlobals' in nt.__dict__ )
         
     def test1_unload(self):
         unloadPlugin('Fur')
-        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__dict__ )
+        self.assert_( 'FurGlobals' not in nt.__dict__ )
         # after accessing, the lazy loader should generate the class
-        self.assertRaises(AttributeError, getattr, pymel.core.nodetypes, 'FurGlobals')
-        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__dict__ )
-        self.assert_( 'FurGlobals' not in pymel.core.nodetypes.__class__.__dict__ )
-        
+        self.assertRaises(AttributeError, getattr, nt, 'FurGlobals')
+        self.assert_( 'FurGlobals' not in nt.__dict__ )
+        self.assert_( 'FurGlobals' not in nt.__class__.__dict__ )
+
+class test_move(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def test_relativeMove(self):
+        cube = pm.polyCube()[0]
+        pm.move(1,0,0, xyz=True, r=1)
+        self.assertEqual(cube.getTranslation(), dt.Vector(1,0,0))
+        pm.move(0,1,0, xyz=True, r=1)
+        self.assertEqual(cube.getTranslation(), dt.Vector(1,1,0))
+        pm.move(0,0,1, xyz=True, r=1)
+        self.assertEqual(cube.getTranslation(), dt.Vector(1,1,1))
+
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)

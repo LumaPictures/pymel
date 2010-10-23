@@ -4,6 +4,7 @@ _pymel.all = sys.modules[__name__]
 
 import internal
 import internal.startup
+doFinalize = internal.startup.finalizeEnabled
 internal.startup.finalizeEnabled = False
 import internal.plogging as plogging
 import internal.factories as factories
@@ -41,5 +42,5 @@ import maya.cmds as cmds
 
 # Run delayed finalize now, so that if userSetup imports all,
 # it has access to everything it should
-internal.startup.finalizeEnabled = True
+internal.startup.finalizeEnabled = doFinalize
 internal.startup.finalize()

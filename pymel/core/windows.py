@@ -12,9 +12,11 @@ import pymel.versions as _versions
 
 from language import mel, melGlobals
 from system import Path as _Path
-import uitypes as _uitypes
-if _versions.current() >= _versions.v2011:
-    from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+# Don't import uitypes  - we want to finish setting up the commands in this
+# module before creating the uitypes classes; this way, the methods on the
+# uitypes classes can use the functions from THIS module, and inherit things
+# like simpleCommandWraps, etc
+#import uitypes as _uitypes
     
 _logger = _internal.getLogger(__name__)
 
@@ -73,7 +75,8 @@ Modified:
   - long defaults to True
   - if no type is passed, defaults to all known types
     """
-    return [ _uitypes.PyUI(x) for x in _lsUI( **kwargs ) ]
+    import uitypes
+    return [ uitypes.PyUI(x) for x in _lsUI( **kwargs ) ]
 
 scriptTableCmds = {}
 
@@ -83,6 +86,7 @@ Maya Bug Fix:
     - fixed getCellCmd to work with python functions, previously only worked with mel callbacks
         IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
     """
+    import uitypes    
     cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',None) )
     cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
 
@@ -129,7 +133,7 @@ Maya Bug Fix:
 
     if kwargs:
         cmds.scriptTable( uiName, e=1, **kwargs)
-    return _uitypes.ScriptTable(uiName)
+    return uitypes.ScriptTable(uiName)
 
 def getPanel(*args, **kwargs):
     typeOf = kwargs.pop('typeOf', kwargs.pop('to', None) )
@@ -392,34 +396,57 @@ def showsHourglass(func):
 
 
 def pathButtonGrp( name=None, *args, **kwargs ):
+    import uitypes    
     if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
         create = True
     else:
         create = False
 
-    return _uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs )
+    return uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs )
 
 def folderButtonGrp( name=None, *args, **kwargs ):
+    import uitypes    
     if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
         create = True
     else:
         create = False
 
-    return _uitypes.FolderButtonGrp( name=name, create=create, *args, **kwargs )
+    return uitypes.FolderButtonGrp( name=name, create=create, *args, **kwargs )
 
 def vectorFieldGrp( *args, **kwargs ):
-    return _uitypes.VectorFieldGrp( *args, **kwargs )
+    import uitypes
+    return uitypes.VectorFieldGrp( *args, **kwargs )
 
 
 def uiTemplate(name=None, force=False, exists=None):
+    import uitypes    
     if exists:
-        return cmds.uiTemplate(name, exists)
+        return cmds.uiTemplate(name, exists=1)
     else:
-        return _uitypes.UITemplate(name=name, force=force)
+        return uitypes.UITemplate(name=name, force=force)
+
+def setParent(*args, **kwargs):
+    """
+Modifications
+  - returns None object instead of the string 'NONE'
+    """
+    import uitypes    
+    result = cmds.setParent(*args, **kwargs)
+    if kwargs.get('query', False) or kwargs.get('q', False):
+        if result == 'NONE':
+            result = None
+        else:
+            result = uitypes.PyUI(result)
+    return result
 
 def currentParent():
     "shortcut for ``ui.PyUI(setParent(q=1))`` "
-    return _uitypes.PyUI(cmds.setParent(q=1))
+    
+    return setParent(q=1)
+
+def currentMenuParent():
+    "shortcut for ``ui.PyUI(setParent(q=1, menu=1))`` "
+    return setParent(q=1, menu=1)
 
 # fix a bug it becomes impossible to create a menu after setParent has been called
 def menu(*args, **kwargs):
@@ -438,20 +465,28 @@ Modifications
             and ( kwargs.get('parent', False) or kwargs.get('p', False) ):
         name = unicode(args[0])
         if '|' not in name:
-            name = _findLongName(name, 'menu')
+            try:
+                name = _findLongName(name, 'menu')
+            except ValueError:
+                name = _findLongName(name, 'popupMenu')
         return name.rsplit('|',1)[0]
 
-    return cmds.menu(*args, **kwargs)
+    result = cmds.menu(*args, **kwargs)
+
+    if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
+            and ( kwargs.get('itemArray', False) or kwargs.get('ia', False) ) \
+            and result is None:
+        result = []
+    return result
 
 def _createClassCommands():
-
-
     def createCallback( classname ):
         """
         create a callback that will trigger lazyLoading
         """
         def callback(*args, **kwargs):
-            res = getattr(_uitypes, classname)(*args, **kwargs)
+            import uitypes
+            res = getattr(uitypes, classname)(*args, **kwargs)
             return res
         return callback
 
@@ -479,13 +514,12 @@ def _createOtherCommands():
             if sys.modules[__name__] != _thisModule:
                 setattr( sys.modules[__name__], funcName, func )
 
-
 _createClassCommands()
 _createOtherCommands()
 
-
 def autoLayout(*args, **kwargs):
-    return _uitypes.AutoLayout(*args, **kwargs)
+    import uitypes
+    return uitypes.AutoLayout(*args, **kwargs)
 
 autoLayout.__doc__ = formLayout.__doc__
 
@@ -650,6 +684,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         win.show()
 
     """
+    import uitypes
 
     def makeGetter( ctrl, methodName, num ):
         def getter( ):
@@ -676,7 +711,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     floatFieldArgs = ['precision', 'pre']
     verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
 
-    if _uitypes.PyUI._isBeingCreated(name, create, kwargs):
+    if uitypes.PyUI._isBeingCreated(name, create, kwargs):
         assert dataType, "You must pass a dataType when creating a new control"
         if not isinstance(dataType, basestring):
             try:
@@ -726,7 +761,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
                 kwargs['label'] = label
                 kwargs['labelArray' + str(numberOfControls) ] = labelArray
 
-        ctrl = _uitypes.CheckBoxGrp( name, create, **kwargs )
+        ctrl = uitypes.CheckBoxGrp( name, create, **kwargs )
 
         if numberOfControls > 1:
             getter = makeGetter(ctrl, 'getValue', numberOfControls)
@@ -750,14 +785,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
 
-            ctrl = _uitypes.IntSliderGrp( name, create, **kwargs )
+            ctrl = uitypes.IntSliderGrp( name, create, **kwargs )
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider and float kwargs
             for arg in fieldSliderArgs + floatFieldArgs + verticalArgs:
                 kwargs.pop(arg, None)
-            ctrl = _uitypes.IntFieldGrp( name, create, **kwargs )
+            ctrl = uitypes.IntFieldGrp( name, create, **kwargs )
 
             getter = ctrl.getValue1
             setter = ctrl.setValue1
@@ -776,14 +811,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             # turn the field on by default
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
-            ctrl = _uitypes.FloatSliderGrp( name, create, **kwargs )
+            ctrl = uitypes.FloatSliderGrp( name, create, **kwargs )
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider kwargs
             for arg in fieldSliderArgs + verticalArgs:
                 kwargs.pop(arg, None)
-            ctrl = _uitypes.FloatFieldGrp( name, create, **kwargs )
+            ctrl = uitypes.FloatFieldGrp( name, create, **kwargs )
             getter = ctrl.getValue1
             setter = ctrl.setValue1
         #if hasDefault: ctrl.setValue1( float(default) )
@@ -810,14 +845,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         # remove field/slider kwargs
         for arg in fieldSliderArgs + floatFieldArgs + verticalArgs:
             kwargs.pop(arg, None)
-        ctrl = _uitypes.TextFieldGrp( name, create, **kwargs )
+        ctrl = uitypes.TextFieldGrp( name, create, **kwargs )
         getter = ctrl.getText
         setter = ctrl.setText
         #if hasDefault: ctrl.setText( str(default) )
     else:
         raise TypeError, "Unsupported dataType: %s" % dataType
 #        else:
-#            ctrl = _uitypes.TextFieldGrp( l=labelStr )
+#            ctrl = uitypes.TextFieldGrp( l=labelStr )
 #            getter = makeEvalGetter( ctrl.getText )
 #            #setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setText( default.__repr__() )
@@ -835,54 +870,10 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
 
 def getMainProgressBar():
-    return _uitypes.ProgressBar(melGlobals['gMainProgressBar'])
+    import uitypes
+    return uitypes.ProgressBar(melGlobals['gMainProgressBar'])
 
-
-class MainProgressBar(_uitypes.ProgressBar):
-    '''Context manager for main progress bar
-
-    If an exception occur after beginProgress() but before endProgress() maya
-    gui becomes unresponsive. Use this class to escape this behavior.
-
-     :Parameters:
-        minValue : int
-            Minimum or startingvalue of progress indicatior. If the progress
-            value is less than the minValue, the progress value will be set 
-            to the minimum.  Default value is 0
-
-        maxValue : int
-            The maximum or endingvalue of the progress indicator. If the
-            progress value is greater than the maxValue, the progress value
-            will be set to the maximum. Default value is 100.
-
-        interuruptable : bool
-            Set to True if the isCancelled flag should respond to attempts to
-            cancel the operation. Setting this to true will put make the help
-            line display message to the user indicating that they can cancel
-            the operation.
-
-    Here's an example:
-
-    .. python::
-        with MainProgressBar(0,20,True) as bar:
-            bar.setStatus('Calculating...')
-            for i in range(0,20):
-                bar.setProgress(i)
-                if bar.getIsCancelled():
-                    break
-    '''
-    def __new__(cls, minValue=0, maxValue=100, interruptable=True):
-        bar = _uitypes.ProgressBar.__new__( 
-            cls, melGlobals['gMainProgressBar'], create=False)
-        bar.setMinValue(minValue)
-        bar.setMaxValue(maxValue)
-        bar.setIsInterruptable(interruptable)
-        return bar
-
-    def __enter__(self):
-        self.beginProgress()
-        return self
-
-    def __exit__(self, *args):
-        self.endProgress()
-
+# Now that we've actually created all the functions, it should be safe to import
+# uitypes...
+if _versions.current() >= _versions.v2011:
+    from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow

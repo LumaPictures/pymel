@@ -164,7 +164,7 @@ Modifications:
 
 
 # TODO: make it handle multiple objects, like original command
-def move(obj, *args, **kwargs):
+def move(*args, **kwargs):
     """
 Modifications:
   - allows any iterable object to be passed as first argument::
@@ -173,9 +173,15 @@ Modifications:
 
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
     """
+    obj = None
+    if args and isinstance(args[0], (basestring, PyNode)):
+        obj = args[0]
+        args = args[1:]
+        
     if len(args) == 1 and _util.isIterable(args[0]):
         args = tuple(args[0])
-    args = args + (obj,)
+    if obj is not None:
+        args = args + (obj,)
     return cmds.move(*args, **kwargs)
 
 def scale(obj, *args, **kwargs):
@@ -1856,7 +1862,8 @@ class PyNode(_util.ProxyUnicode):
 
         :rtype: `other.NameParser`
         """
-        return self.stripNamespace().addPrefix( prefix+':' )
+        import other
+        return other.NameParser(self).swapNamespace(prefix)
 
     def namespaceList(self):
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list
@@ -1883,16 +1890,7 @@ class PyNode(_util.ProxyUnicode):
         :rtype: `other.NameParser`
         """
         import other
-        name = self
-        leadingSlash = False
-        if name.startswith('|'):
-            name = name[1:]
-            leadingSlash = True
-        name =  '|'.join( map( lambda x: prefix+x, name.split('|') ) )
-        if leadingSlash:
-            name = '|' + name
-        return other.NameParser(name)
-
+        return other.NameParser(self).addPrefix(prefix)
 
 
 #    def attr(self, attr):
@@ -2545,8 +2543,11 @@ class Attribute(PyNode):
         If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
         See `Attribute.__iter__`.
         """
-
-        return cmds.listAttr(self.array(), multi=True)
+        if self.isElement():
+            arrayAttr = self.array()
+        else:
+            arrayAttr = self
+        return cmds.listAttr(arrayAttr, multi=True)
 
 #    def item(self):
 #        try:
@@ -3401,6 +3402,12 @@ class Component( PyNode ):
             return False
         return self.__apicomponent__().isEqual( other.__apicomponent__().object() )
 
+    def __nonzero__(self):
+        """
+        :rtype: `bool`
+        """
+        return bool(len(self))
+
     def __str__(self):
         return str(self.name())
 
@@ -3951,7 +3958,8 @@ class DiscreteComponent( DimensionedComponent ):
                 mayaArrays.append(self._pyArrayToMayaArray(dimIndices))
             mfnComp = self._mfncompclass(handle.object())
             mfnComp.setComplete(False)
-            mfnComp.addElements(*mayaArrays)
+            if mayaArrays:
+                mfnComp.addElements(*mayaArrays)
             return handle
         else:
             return super(DiscreteComponent, self)._makeIndexedComponentHandle(indices)

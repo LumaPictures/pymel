@@ -280,6 +280,9 @@ class DependNode( general.PyNode ):
 
     def shadingGroups(self):
         """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes
+        
+        Also see listSets(type=1)
+        
         :rtype: `DependNode` list
         """
         return self.future(type='shadingEngine')
@@ -396,16 +399,7 @@ class DependNode( general.PyNode ):
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
             raise general.MayaAttributeError( '%s.%s' % (self, attr) )
 
-    def hasAttr( self, attr):
-        """
-        check if the node has the given maya attribute.
-        :rtype: `bool`
-        """
-        try :
-            self.attr(attr)
-            return True
-        except AttributeError:
-            return False
+    hasAttr = general.hasAttr
 
     @_factories.addMelDocs('setAttr')
     def setAttr( self, attr, *args, **kwargs):
@@ -2221,6 +2215,17 @@ class Mesh(SurfaceShape):
                             'vtxFace'   : general.MeshVertexFace,
                             'faceVerts' : general.MeshVertexFace}
 
+    # Unfortunately, objects that don't yet have any mesh data - ie, if you do
+    # createNode('mesh') - can't be fed into MFnMesh (even though it is a mesh
+    # node).  This means that all the methods wrapped from MFnMesh won't be
+    # usable in this case.  While it might make sense for some methods - ie,
+    # editing methods like collapseEdges - to fail in this situation, some
+    # basic methods like numVertices should still be usable.  Therefore,
+    # we override some of these with the mel versions (which still work...)
+    numVertices = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'numVertices' )
+    numEdges = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'numEdges' )
+    numFaces = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'face', 'numFaces' )
+
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
     numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
     numSelectedFaces = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'faceComponent', 'numSelectedFaces' )
@@ -2250,10 +2255,49 @@ class Mesh(SurfaceShape):
 
     @_factories.addApiDocs( _api.MFnMesh, 'numColors' )
     def numColors(self, colorSet=None):
+        mfn = self.__apimfn__()
+        # If we have an empty mesh, we will get an MFnDagNode...
+        if not isinstance(mfn, _api.MFnMesh):
+            return 0
         args = []
         if colorSet:
             args.append(colorSet)
-        return self.__apimfn__().numColors(*args)
+        return mfn.numColors(*args)
+
+# Unfortunately, objects that don't yet have any mesh data - ie, if you do
+# createNode('mesh') - can't be fed into MFnMesh (even though it is a mesh
+# node).  This means that all the methods wrapped from MFnMesh won't be
+# usable in this case.  While it might make sense for some methods - ie,
+# editing methods like collapseEdges - to fail in this situation, some
+# basic methods like numVertices should still be usable.  Therefore,
+# we override some of these with the mel versions (which still work...)
+
+def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
+                                   resultName=None, defaultVal=0):
+    if baseMethodName is None:
+        baseMethodName = '_' + apiMethodName
+    if resultName is None:
+        resultName = apiMethodName
+
+    baseMethod = getattr(Mesh, baseMethodName)
+
+    @_factories.addApiDocs( _api.MFnMesh, apiMethodName )        
+    def methodWrapForEmptyMesh(self, *args, **kwargs):
+        # If we have an empty mesh, we will get an MFnDagNode...
+        mfn = self.__apimfn__()
+        if not isinstance(mfn, _api.MFnMesh):
+            return defaultVal
+        return baseMethod(self, *args, **kwargs)
+    methodWrapForEmptyMesh.__name__ = resultName
+    return methodWrapForEmptyMesh
+
+for apiMethodName in '''numColorSets
+                    numFaceVertices
+                    numNormals
+                    numUVSets
+                    numUVs'''.split():
+    wrappedFunc = _makeApiMethodWrapForEmptyMesh(apiMethodName)
+    setattr(Mesh, wrappedFunc.__name__, wrappedFunc)
 
 class Subdiv(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
