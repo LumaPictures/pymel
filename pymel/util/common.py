@@ -111,6 +111,10 @@ def interpreterBits():
 
     :rtype: `int`
     """
+    # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
+    # even when Maya is running in 32-bit mode. The struct technique
+    # is more reliable.
+    return struct.calcsize("P") * 8    
     return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
 
 def subpackages(packagemod):
