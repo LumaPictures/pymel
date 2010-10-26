@@ -273,13 +273,14 @@ class ClassFrame(object):
         
         tab = tabLayout()
         
-        
+        #print "apiClassName:", self.apiClassName
         invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
         usedMethods = []
         
         pairedCol = columnLayout(visible=False )
         tab.setTabLabel( [pairedCol, 'Paired'] )
         for setMethod, getMethod in invertibles:
+            #print "paired methods:", setMethod, getMethod
             setParent(pairedCol) # column
             frame = frameLayout(labelVisible=False, collapsable=False, width = FRAME_WIDTH)
             col2 = columnLayout()
@@ -848,7 +849,10 @@ def getClassHierarchy( className ):
         try:
             pymelClass = getattr(core.datatypes, className)
         except AttributeError:
-            logger.warning( "could not find class %s" % (className) )
+            try:
+                pymelClass = getattr(core.general, className)
+            except AttributeError:
+                logger.warning( "could not find class %s" % (className) )
     
     if pymelClass:
             

@@ -2885,6 +2885,9 @@ class Attribute(PyNode):
         return cmds.attributeQuery(self.attrName(), node=self.node(),uac=True)
 
 
+    def indexMatters(self):
+        return self.__apimattr__().indexMatters()
+
     isMulti = _factories.wrapApiMethod( _api.MPlug, 'isArray', 'isMulti' )
 
 
