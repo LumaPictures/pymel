@@ -591,6 +591,19 @@ class Env(object):
     def setMaxTime( self, val ):
         cmds.playbackOptions( maxTime=val )
     maxTime = property( getMaxTime, setMaxTime )
+    
+    def getAnimStartTime( self ):
+        return cmds.playbackOptions( q=1, animationStartTime=1 )
+    def setAnimStartTime( self, val ):
+        cmds.playbackOptions( animationStartTime=val )
+    animStartTime = property(getAnimStartTime, setAnimStartTime)
+
+    def getAnimEndTime( self ):
+        return cmds.playbackOptions( q=1, animationEndTime=1 )
+    def setAnimEndTime( self, val ):
+        cmds.playbackOptions( animationEndTime=val )
+    animEndTime = property(getAnimEndTime, setAnimEndTime)
+
 
 env = Env()
 
