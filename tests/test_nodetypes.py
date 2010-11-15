@@ -649,7 +649,7 @@ class testCase_components(unittest.TestCase):
                           'kSetGroupComponent',
                           'kDynParticleSetComponent',
                           )
-        compTypesDict = apicache.getComponentTypes()
+        compTypesDict = factories.getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)

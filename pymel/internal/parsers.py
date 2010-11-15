@@ -355,11 +355,13 @@ class CommandModuleDocParser(HTMLParser):
 class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
-    def __init__(self, apiModule, version=None, verbose=False):
+    
+    def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple):
         version = versions.installName() if version is None else version
         self.apiModule = apiModule
         self.verbose = verbose
         self.docloc = mayaDocsLocation('2009' if version=='2008' else version)
+        self.enumClas = enumClass
         if not os.path.isdir(self.docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
 
@@ -487,14 +489,14 @@ class ApiDocParser(object):
 
         # the enum is on another class
         if '::' in type:
-            type = self.apiModule.Enum( type.split( '::') )
+            type = self.enumClass( type.split( '::') )
 
         # the enum is on this class
         elif type in self.enums:
-            type = self.apiModule.Enum( [self.apiClassName, type] )
+            type = self.enumClass( [self.apiClassName, type] )
 
         elif type[0].isupper() and 'Ptr' not in type and not hasattr( self.apiModule, type ) and type not in otherTypes+missingTypes+notTypes:
-            type = self.apiModule.Enum( [self.apiClassName, type] )
+            type = self.enumClass( [self.apiClassName, type] )
             if type not in self.badEnums:
                 self.badEnums.append(type)
                 _logger.warn( "Suspected Bad Enum: %s", type )
@@ -506,7 +508,7 @@ class ApiDocParser(object):
 
         if default is None: return default
 
-        if isinstance( type, self.apiModule.Enum ):
+        if isinstance( type, self.enumClass ):
 
             # the enum is on another class
             if '::' in default:
@@ -515,7 +517,7 @@ class ApiDocParser(object):
             else:
                 enumConst = default
 
-            return self.apiModule.Enum([type[0], type[1], enumConst])
+            return self.enumClass([type[0], type[1], enumConst])
 
         return default
 
