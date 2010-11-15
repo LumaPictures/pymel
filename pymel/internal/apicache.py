@@ -450,8 +450,7 @@ class ApiCache(object):
                     self.apiTypesToApiClasses[ current ] = MFnClass
                     self.apiTypeHierarchy[ current ] = parent
 
-        if not self.apiClassInfo:
-            self._buildApiClassInfo()
+        self._buildApiClassInfo()
 
         # print self.apiTypeHierarchy.keys()
         # Fixes for types that don't have a MFn by faking a node creation and testing it
@@ -552,17 +551,10 @@ class ApiCache(object):
                     self.apiTypesToMayaTypes.pop(apiType)
                     self.apiTypesToApiEnums.pop(apiType)
 
-    def build(self, rebuildAllButClassInfo=False):
+    def build(self):
         """
         Used to rebuild api cache, either by loading from a cache file, or rebuilding from scratch.
-
-        Set 'rebuildAllButClassInfo' to True to force rebuilding of all info BUT self.apiClassInfo -
-        this is useful for versions < 2009, as these versions cannot parse the api docs; by setting
-        this to False, you can rebuild all other api information.
         """
-
-        # Need to initialize this to possibly pass into _buildself.apiTypeHierarchy, if rebuildAllButClassInfo
-        self.apiClassInfo = None
 
         data = startup.loadCache( 'mayaApi', 'the API cache', compressed=True )
 
@@ -578,23 +570,32 @@ class ApiCache(object):
             self.apiTypesToApiClasses = data[5]
             self.apiTypeHierarchy = data[6]
             self.apiClassInfo = data[7]
-
-
-            if not rebuildAllButClassInfo:
-                # Note that even if rebuildAllButClassInfo, we still want to load
-                # the cache file, in order to grab self.apiClassInfo
-                return
-
-
+        else:
+            self.rebuild()
+            return
+    
+    def rebuild(self):
+        """Rebuild the api cache from scratch
+        
+        Unlike 'build', this does not attempt to load a cache file, but always
+        rebuilds it by parsing the docs, etc.
+        """
         _logger.info( "Rebuilding the API Caches..." )
+        
+        # In the normal course of things, rebuild is only called by build,
+        # and build calls _buildMayaReservedTypes, so it won't usualy need to
+        # be called from inside here...
+        # ...however, for debugging, etc, it can be handy to force a rebuild
+        # of the cache, without bothering to call build(), so I'm sticking
+        # this check in here to make rebuild 'self-sufficient'
+        if not ( getattr(self, 'reservedMayaTypes', None)
+                 and getattr(self, 'reservedApiTypes', None) ):
+            self._buildMayaReservedTypes()
 
         # fill out the data structures
         self._buildApiTypesList()
         #self.apiTypesToApiEnums, self.apiTypesToApiClasses = self._buildApiTypesList()
         #_buildMayaTypesList()
-
-        if not rebuildAllButClassInfo:
-            self.apiClassInfo = None
 
         self._buildApiTypeHierarchy()
 
@@ -606,9 +607,7 @@ class ApiCache(object):
                                self.apiTypesToApiEnums, self.apiEnumsToApiTypes,
                                self.mayaTypesToApiTypes,
                                self.apiTypesToApiClasses, self.apiTypeHierarchy, self.apiClassInfo ),
-                               'mayaApi', 'the API cache' )
-
-        return
+                               'mayaApi', 'the API cache' )            
 
     def caches(self):
         return (self.reservedMayaTypes, self.reservedApiTypes,
@@ -734,7 +733,7 @@ def removeMayaType(mayaType):
 _start = time.time()
 
 apiCache = ApiCache()
-apiCache.build(rebuildAllButClassInfo=False)
+apiCache.build()
 
 (reservedMayaTypes, reservedApiTypes, apiTypesToApiEnums, apiEnumsToApiTypes,
 mayaTypesToApiTypes, apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo) = apiCache.caches()
