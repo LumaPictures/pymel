@@ -380,23 +380,15 @@ class ApiCache(object):
     def _buildApiClassInfo(self):
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
-#        try:
         parser = ApiDocParser(api)
-#        except IOError, msg:
-#            _logger.warn( "failed to find docs for current version: %s", name )
 
         for name, obj in inspect.getmembers( api, lambda x: type(x) == type and x.__name__.startswith('M') ):
             if not name.startswith( 'MPx' ):
-
                 try:
-                    try:
-                        info = parser.parse(name)
-                        self.apiClassInfo[ name ] = info
-                    except IOError:
-                        _logger.warn( "failed to parse docs: %s", name )
-
-                except (ValueError,IndexError), msg:
-                    _logger.warn( "failed %s %s" % ( name, msg ) )
+                    info = parser.parse(name)
+                    self.apiClassInfo[ name ] = info
+                except (IOError, ValueError,IndexError), e:
+                    _logger.warn( "failed to parse docs for %r:\n%s" % (name, e) )
 
     # Build a dictionnary of api types and parents to represent the MFn class hierarchy
     def _buildApiTypeHierarchy(self) :
