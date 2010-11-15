@@ -4,6 +4,8 @@ as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `Attrib
 """
 
 import re
+import inspect
+
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 _factories.createFunctions( __name__ )
@@ -451,24 +453,36 @@ class DagNodeName(DependNodeName):
 
 
 def _getParserClass(strObj):
-    strObj = unicode(strObj)
-
-    if '.' in strObj:
-        newcls = AttributeName
-            # Return Component Arrays ======================================================
-            #            attr = obj.array().plugAttr()
-            #            if attr in ["f","vtx","e","map"]:
-            #                comps = getattr(Mesh(obj.node()), attr)
-            #                return comps.__getitem__(obj.item(asSlice=1))
-            #            else:
-            #                return obj
-            #===============================================================================
-
-
-    elif '|' in strObj:
-        newcls = DagNodeName
+    # First, see if strObj is actually a PyNode - in that case, get the class
+    # based off the node...
+    mro = set([cls.__name__ for cls in inspect.getmro(type(strObj))])
+    # doing string comparison so we don't have to import core.general/nodetypes
+    if 'PyNode' in mro:
+        if 'DagNode' in mro:
+            newcls = DagNodeName
+        elif 'Attribute' in mro: 
+            newcls = AttributeName
+        else:
+            newcls = DependNodeName
     else:
-        newcls = DependNodeName
+        strObj = unicode(strObj)
+    
+        if '.' in strObj:
+            newcls = AttributeName
+                # Return Component Arrays ======================================================
+                #            attr = obj.array().plugAttr()
+                #            if attr in ["f","vtx","e","map"]:
+                #                comps = getattr(Mesh(obj.node()), attr)
+                #                return comps.__getitem__(obj.item(asSlice=1))
+                #            else:
+                #                return obj
+                #===============================================================================
+    
+    
+        elif '|' in strObj:
+            newcls = DagNodeName
+        else:
+            newcls = DependNodeName
     return newcls
 
 

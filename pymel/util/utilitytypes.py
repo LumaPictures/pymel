@@ -1122,8 +1122,29 @@ def alias(origAttrName):
     def setter(self, value):
         setattr(self, origAttrName, value)
 
-    setter.__name__ = "seet_" + origAttrName
+    setter.__name__ = "set_" + origAttrName
     return property(getter, setter)
+
+class propertycache(object):
+    '''Class for creating properties where the value is initially calculated then stored.
+    
+    Intended for use as a descriptor, ie:
+
+    class MyClass(object):
+        @propertycache
+        def aValue(self):
+            return calcValue()
+    c = MyClass()
+    c.aValue
+    
+    '''
+    def __init__(self, func):
+        self.func = func
+        self.name = func.__name__
+    def __get__(self, ownerInstance, ownerCls=None):
+        result = self.func(ownerInstance)
+        setattr(ownerInstance, self.name, result)
+        return result
 
 # unit test with doctest
 if __name__ == '__main__' :

@@ -520,7 +520,7 @@ class DependNode( general.PyNode ):
 
         :rtype: `unicode`
         """
-        return other.NameParser(self.name()).stripNum()
+        return other.NameParser(self).stripNum()
 
     def extractNum(self):
         """Return the trailing numbers of the node name. If no trailing numbers are found
@@ -532,7 +532,7 @@ class DependNode( general.PyNode ):
 
         :rtype: `unicode`
         """
-        return other.NameParser(self.name()).extractNum()
+        return other.NameParser(self).extractNum()
 
     def nextUniqueName(self):
         """Increment the trailing number of the object until a unique name is found
@@ -541,7 +541,7 @@ class DependNode( general.PyNode ):
 
         :rtype: `unicode`
         """
-        return other.NameParser(self.name()).nextUniqueName()
+        return other.NameParser(self).nextUniqueName()
 
     def nextName(self):
         """Increment the trailing number of the object by 1
@@ -554,7 +554,7 @@ class DependNode( general.PyNode ):
 
         :rtype: `unicode`
         """
-        return other.NameParser(self.name()).nextName()
+        return other.NameParser(self).nextName()
 
     def prevName(self):
         """Decrement the trailing number of the object by 1
@@ -563,7 +563,7 @@ class DependNode( general.PyNode ):
 
         :rtype: `unicode`
         """
-        return other.NameParser(self.name()).prevName()
+        return other.NameParser(self).prevName()
 
     @classmethod
     def registerVirtualSubClass( cls, nameRequired=False ):

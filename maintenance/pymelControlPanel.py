@@ -260,7 +260,7 @@ class ClassFrame(object):
         with frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
                             width = FRAME_WIDTH) as self.frame:
                             #labelAlign='top')
-            
+    
             with tabLayout() as tab:
 
                 invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
@@ -856,7 +856,8 @@ def getClassHierarchy( className ):
                     apiClassName = None
                     
             yield cls.__name__, apiClassName    
-
+    else:
+        logger.warning( "could not find class %s" % (className) )
                
 
 

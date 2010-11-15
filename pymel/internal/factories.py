@@ -2790,15 +2790,19 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
 ##            for x in sorted( pyMembers.difference( allFnMembers ) ): _logger.info('    ', x)
 #
 #
-def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName):
+def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs=None):
     #_logger.debug( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
     try:
         ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
     except AttributeError:
         #_logger.info("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
         return
+    
+    classDict = {'__melnode__':mayaType}
+    if extraAttrs:
+        classDict.update(extraAttrs)
     try:
-        PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
+        PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), classDict)
     except TypeError, msg:
         # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
         #_logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
@@ -2815,7 +2819,7 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
     pyNodeNamesToPyNodes[pyNodeTypeName] = PyNodeType
     return PyNodeType
 
-def addCustomPyNode(dynModule, mayaType):
+def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
     
@@ -2835,13 +2839,13 @@ def addCustomPyNode(dynModule, mayaType):
         parent = 'dependNode'
 
         for node in inheritance:
-            nodeName = addPyNode( dynModule, node, parent )
+            nodeName = addPyNode( dynModule, node, parent, extraAttrs=extraAttrs )
             parent = node
             if 'pymel.all' in sys.modules:
                 # getattr forces loading of Lazy object
                 setattr( sys.modules['pymel.all'], nodeName, getattr(dynModule,nodeName) )
                             
-def addPyNode( dynModule, mayaType, parentMayaType ):
+def addPyNode( dynModule, mayaType, parentMayaType, extraAttrs=None ):
     """
     create a PyNode type for a maya node.
     """
@@ -2856,7 +2860,7 @@ def addPyNode( dynModule, mayaType, parentMayaType ):
     except KeyError:
         #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
         dynModule[pyNodeTypeName] = ( addPyNodeCallback,
-                                   ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName ) )
+                                   ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs ) )
 #    else:
 #        if not pyNodeTypeName in dynModule.__dict__:
 #            api.addMayaType( mayaType )

@@ -110,7 +110,7 @@ class LoggingMenu(pymel.Menu):
     def __init__(self, name=None, parent=None):
         self.postMenuCommand(self.refresh)
 
-    def refresh(self):
+    def refresh(self, *args):
         refreshLoggerHierarchy()
         self.deleteAllItems(1)
 #        if logging.root.handlers:
