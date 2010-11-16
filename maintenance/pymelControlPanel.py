@@ -260,7 +260,7 @@ class ClassFrame(object):
         with frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
                             width = FRAME_WIDTH) as self.frame:
                             #labelAlign='top')
-            
+
             with tabLayout() as tab:
 
                 invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
@@ -319,6 +319,7 @@ class ClassFrame(object):
                 unpairedForm.attachForm( unpairedScroll, 'left', 5 )
                 unpairedForm.attachForm( unpairedScroll, 'right', 5 )
                 unpairedForm.attachForm( unpairedScroll, 'bottom', 5 )
+
         return self.frame
     
 
@@ -836,7 +837,22 @@ def getApiClassName( className ):
         logger.warning( "could not find class %s" % (className) )
        
 def getClassHierarchy( className ):
+<<<<<<< HEAD:maintenance/pymelControlPanel.py
     pymelClass = _getClass(className)
+=======
+    pymelClass = None
+    try:
+        pymelClass = getattr(core.nodetypes, className)
+    except AttributeError:
+        try:
+            pymelClass = getattr(core.datatypes, className)
+        except AttributeError:
+            try:
+                pymelClass = getattr(core.general, className)
+            except AttributeError:
+                logger.warning( "could not find class %s" % (className) )
+    
+>>>>>>> 87048985f69ca5558b65f601a4a21a27d5625841:maintenance/pymelControlPanel.py
     if pymelClass:
             
         mro = list( inspect.getmro(pymelClass) )
