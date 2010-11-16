@@ -409,6 +409,8 @@ def loadCache( filePrefix, description='', useVersion=True, compressed=True):
         return func(newPath)
     except Exception, e:
         _logger.error("Unable to load%s from '%s': %s" % (description, newPath, e))
+        import traceback
+        _logger.debug(traceback.format_exc())
 
 
 
