@@ -11,10 +11,11 @@ It controls:
 
 
 """
- 
+from __future__ import with_statement
 import inspect, re, os
 from pymel.all import *
 import pymel.internal.factories as factories
+from pymel.internal.apicache import saveApiCache, saveApiToMelBridge
 import logging
 logger = logging.getLogger(__name__)
 if logger.level == logging.NOTSET:
@@ -35,48 +36,37 @@ class PymelControlPanel(object):
     def buildUI(self):
         self.win = window(title='Pymel Control Panel')
         
-        self.pane = paneLayout(configuration='vertical3', paneSize=([1,20,100], [3,20,100]) )
-        
-        # Lef Column: Api Classes
-        self.classScrollList = textScrollList('apiClassList')
-        setParent('..')
+        with paneLayout(configuration='vertical3', paneSize=([1,20,100], [3,20,100]) ) as self.pane:
+            # Lef Column: Api Classes
+            self.classScrollList = textScrollList('apiClassList')
         
         # Center Column: Api Methods
-        apiForm = formLayout()
-        scroll = scrollLayout()
-        #apiMethodForm = formLayout()
-        #self.apiMethodCol = columnLayout('apiMethodCol', rowSpacing=12)
-        self.apiMethodCol = tabLayout('apiMethodCol')
-        #apiMethodForm.attachForm( self.apiMethodCol, 'top', 2 )
-        #apiMethodForm.attachForm( self.apiMethodCol, 'bottom', 2 )
-        #apiMethodForm.attachForm( self.apiMethodCol, 'right', 2 )
-        #apiMethodForm.attachForm( self.apiMethodCol, 'left', 2 )
-        
-        setParent('..') # column
-        #setParent('..') # form
-        setParent('..') # scroll
-        status = helpLine(h=60)
-        setParent('..') # form
-        
+        with formLayout() as apiForm:
+            #with scrollLayout() as scroll:
+            with tabLayout('apiMethodCol') as self.apiMethodCol:
+                pass
+            status = helpLine(h=60)
+
+        apiForm.attachForm( self.apiMethodCol, 'top', 5 )
+        apiForm.attachForm( self.apiMethodCol, 'left', 5 )
+        apiForm.attachForm( self.apiMethodCol, 'right', 5 )
+        apiForm.attachControl( self.apiMethodCol, 'bottom', 5, status )
+        apiForm.attachPosition( status, 'bottom', 5, 20 )
         apiForm.attachForm( status, 'bottom', 5 )
         apiForm.attachForm( status, 'left', 5 )
         apiForm.attachForm( status, 'right', 5 )
-        apiForm.attachForm( scroll, 'top', 5 )
-        apiForm.attachForm( scroll, 'left', 5 )
-        apiForm.attachForm( scroll, 'right', 5 )
-        apiForm.attachControl( scroll, 'bottom', 5, status )
         
         # Right Column: Mel Methods
-        melForm = formLayout()
+        with formLayout() as melForm:
         
-        label1 = text( label='Unassigned Mel Methods' )
-        self.unassignedMelMethodLister = textScrollList()
-        
-        label2 = text( label='Assigned Mel Methods' )
-        self.assignedMelMethodLister = textScrollList()
-
-        label3 = text( label='Disabled Mel Methods' )
-        self.disabledMelMethodLister = textScrollList()
+            label1 = text( label='Unassigned Mel Methods' )
+            self.unassignedMelMethodLister = textScrollList()
+            
+            label2 = text( label='Assigned Mel Methods' )
+            self.assignedMelMethodLister = textScrollList()
+    
+            label3 = text( label='Disabled Mel Methods' )
+            self.disabledMelMethodLister = textScrollList()
         
         melForm.attachForm( label1, 'top', 5 )
         melForm.attachForm( label1, 'left', 5 )
@@ -267,66 +257,69 @@ class ClassFrame(object):
         
         count = 0
         #self.form = formLayout()
-        self.frame = frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
-                            width = FRAME_WIDTH)
+        with frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
+                            width = FRAME_WIDTH) as self.frame:
                             #labelAlign='top')
-        
-        tab = tabLayout()
-        
-        #print "apiClassName:", self.apiClassName
-        invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
-        usedMethods = []
-        
-        pairedCol = columnLayout(visible=False )
-        tab.setTabLabel( [pairedCol, 'Paired'] )
-        for setMethod, getMethod in invertibles:
-            #print "paired methods:", setMethod, getMethod
-            setParent(pairedCol) # column
-            frame = frameLayout(labelVisible=False, collapsable=False, width = FRAME_WIDTH)
-            col2 = columnLayout()
-            pairCount = 0
-            pairCount += self.rows[setMethod].buildUI(filter)
-            pairCount += self.rows[getMethod].buildUI(filter)
-            usedMethods += [setMethod, getMethod]
-            if pairCount == 0:
-                #deleteUI(col2)
-                frame.setVisible(False)
-                frame.setHeight(1)
-            count += pairCount
-        
-        pairedCol.setVisible(True)
-        
-        setParent(tab) # column
-        unpairedCol = columnLayout(visible=False )
-        tab.setTabLabel( [unpairedCol, 'Unpaired'] )
-        for methodName in sorted( self.classInfo.keys() ):
-            setParent(unpairedCol)
-            if methodName not in usedMethods:
-                count += self.rows[methodName].buildUI(filter)
 
-        
-        #self.form.attachForm( self.frame, 'left', 2)
-        #self.form.attachForm( self.frame, 'right', 2)
-        #self.form.attachForm( self.frame, 'top', 2)
-        #self.form.attachForm( self.frame, 'bottom', 2)
-        unpairedCol.setVisible(True)
+            with tabLayout() as tab:
 
-        # For some reason, on linux, the unpairedCol height is wrong...
-        # track + set it ourselves
-        # ...also, we need to do it AFTER making the column visible, or else
-        # we get totally wrong values
-        unpairedHeight = 10 # a little extra buffer...
-        rowSpace = unpairedCol.getRowSpacing()
-        for child in unpairedCol.children():
-            unpairedHeight += child.getHeight()
-            unpairedHeight += rowSpace
-        unpairedCol.setHeight(unpairedHeight)
-        
-        setParent('..') # column
-        setParent('..') # frame
-        setParent('..') # tab
-        #print self.frame, count
-        
+                invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
+                usedMethods = []
+                with formLayout() as pairdForm:
+                    tab.setTabLabel( [pairdForm, 'Paired'] )
+                    with scrollLayout() as pairedScroll:
+                        with columnLayout(visible=False, adjustableColumn=True) as pairedCol:
+                            
+                            for setMethod, getMethod in invertibles:
+                                setParent(pairedCol) # column
+                                frame = frameLayout(label = '%s / %s' % (setMethod, getMethod),
+                                                    labelVisible=True, collapsable=True, 
+                                                    collapse=True, width = FRAME_WIDTH)
+                                col2 = columnLayout()
+                                pairCount = 0
+                                pairCount += self.rows[setMethod].buildUI(filter)
+                                pairCount += self.rows[getMethod].buildUI(filter)
+                                usedMethods += [setMethod, getMethod]
+                                if pairCount == 0:
+                                    #deleteUI(col2)
+                                    frame.setVisible(False)
+                                    frame.setHeight(1)
+                                count += pairCount
+                            pairedCol.setVisible(True)
+                pairdForm.attachForm( pairedScroll, 'top', 5 )
+                pairdForm.attachForm( pairedScroll, 'left', 5 )
+                pairdForm.attachForm( pairedScroll, 'right', 5 )
+                pairdForm.attachForm( pairedScroll, 'bottom', 5 )
+
+                with formLayout() as unpairedForm:
+                    tab.setTabLabel( [unpairedForm, 'Unpaired'] )
+                    with scrollLayout() as unpairedScroll:
+                        with columnLayout(visible=False ) as unpairedCol:
+                            # For some reason, on linux, the unpairedCol height is wrong...
+                            # track + set it ourselves
+                            unpairedHeight = 10 # a little extra buffer...
+                            #rowSpace = unpairedCol.getRowSpacing()
+                            for methodName in sorted( self.classInfo.keys() ):
+                                setParent(unpairedCol)
+                                if methodName not in usedMethods:
+                                    frame = frameLayout(label = methodName,
+                                                        labelVisible=True, collapsable=True, 
+                                                        collapse=True, width = FRAME_WIDTH)
+                                    col2 = columnLayout()
+                                    count += self.rows[methodName].buildUI(filter)
+                                    unpairedHeight += self.rows[methodName].frame.getHeight()# + rowSpace
+                            unpairedCol.setHeight(unpairedHeight)
+                            
+                            #self.form.attachForm( self.frame, 'left', 2)
+                            #self.form.attachForm( self.frame, 'right', 2)
+                            #self.form.attachForm( self.frame, 'top', 2)
+                            #self.form.attachForm( self.frame, 'bottom', 2)
+                            unpairedCol.setVisible(True)
+                unpairedForm.attachForm( unpairedScroll, 'top', 5 )
+                unpairedForm.attachForm( unpairedScroll, 'left', 5 )
+                unpairedForm.attachForm( unpairedScroll, 'right', 5 )
+                unpairedForm.attachForm( unpairedScroll, 'bottom', 5 )
+
         return self.frame
     
 
@@ -814,16 +807,16 @@ class MethodRow(object):
         type = str(type)
         return type == 'MVector' or type.startswith('double')
 
-def getApiClassName( className ):
-    pymelClass = None
-    try:
-        pymelClass = getattr(core.nodetypes, className)
-    except AttributeError:
+def _getClass(className):
+    for module in [core.nodetypes, core.datatypes, core.general]:
         try:
-            pymelClass = getattr(core.datatypes, className)
+            pymelClass = getattr(module, className)
+            return pymelClass
         except AttributeError:
-            logger.warning( "could not find class %s" % (className) )
-    
+            pass
+
+def getApiClassName( className ):
+    pymelClass = _getClass(className)
     if pymelClass:
             
         apiClass = None
@@ -839,21 +832,12 @@ def getApiClassName( className ):
             except KeyError:
                 #print "could not determine api class for", cls.__name__
                 apiClassName = None
-        return apiClassName           
-            
+        return apiClassName
+    else:
+        logger.warning( "could not find class %s" % (className) )
+       
 def getClassHierarchy( className ):
-    pymelClass = None
-    try:
-        pymelClass = getattr(core.nodetypes, className)
-    except AttributeError:
-        try:
-            pymelClass = getattr(core.datatypes, className)
-        except AttributeError:
-            try:
-                pymelClass = getattr(core.general, className)
-            except AttributeError:
-                logger.warning( "could not find class %s" % (className) )
-    
+    pymelClass = _getClass(className)
     if pymelClass:
             
         mro = list( inspect.getmro(pymelClass) )
