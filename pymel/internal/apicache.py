@@ -4,6 +4,7 @@
 import sys, inspect, time, os.path
 
 import pymel.api as api
+import pymel.versions as versions
 from pymel.util import expandArgs
 import pymel.util as _util
 import startup
@@ -11,27 +12,26 @@ import plogging as _plogging
 
 _logger = _plogging.getLogger(__name__)
 
-__all__ = ['reservedMayaTypes', 'reservedApiTypes', 'apiTypesToApiEnums', 'apiEnumsToApiTypes',
-'mayaTypesToApiTypes', 'apiTypesToApiClasses', 'apiTypeHierarchy', 'apiClassInfo',
-'apiToMelData', 'apiClassOverrides']
-
 class Enum(tuple):
     def __str__(self): return '.'.join( [str(x) for x in self] )
     def __repr__(self): return repr(str(self))
     def pymelName(self, forceType=None):
+        import pymel.internal.factories as factories
         parts = list(self)
         if forceType:
             parts[0] = forceType
         else:
             mfn = getattr( api, self[0] )
-            mayaTypeDict = apiCache.apiEnumsToMayaTypes[ mfn().type() ]
+            mayaTypeDict = factories.apiEnumsToMayaTypes[ mfn().type() ]
             parts[0] = _util.capitalize( mayaTypeDict.keys()[0] )
 
         return '.'.join( [str(x) for x in parts] )
-
-api.Enum = Enum
-# prevent auto-completion generator from getting confused
-api.Enum.__module__ = 'pymel.api'
+    
+if versions.current() < versions.v2012:
+    # Before 2012, api had Enum, and when we unpickle the caches, it will
+    # need to be there... could rebuild the caches (like I had to do with
+    # mayaApiMelBridge) but don't really want to...
+    api.Enum = Enum
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
@@ -76,102 +76,78 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         return None
 
 
-def saveApiCache():
-    startup.writeCache( ( apiCache.reservedMayaTypes, apiCache.reservedApiTypes,
-                           apiCache.apiTypesToApiEnums, apiCache.apiEnumsToApiTypes,
-                           apiCache.mayaTypesToApiTypes,
-                           apiCache.apiTypesToApiClasses, apiCache.apiTypeHierarchy, apiCache.apiClassInfo ),
-                        'mayaApi', 'the API cache' )
-
-def loadApiToMelBridge():
-
-    data = startup.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
-    if data is not None:
-        # maya 8.5 fix: convert dict to defaultdict
-        bridge, overrides = data
-        bridge = _util.defaultdict(dict, bridge)
-        return bridge, overrides
-
-    # no bridge cache exists. create default
-    bridge = _util.defaultdict(dict)
-
-    # no api overrides exist. create default
-    overrides = {}
-
-    return bridge, overrides
-
-def saveApiToMelBridge():
-    # maya 8.5 fix: convert defaultdict to dict
-    bridge = dict(apiToMelData)
-    startup.writeCache( (bridge,apiClassOverrides), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
-
-
-apiToMelData, apiClassOverrides = loadApiToMelBridge()
-
 class ApiCache(object):
-
-    # Maya static info :
-    # Initializes various static look-ups to speed up Maya types conversions
-    apiClassInfo = {}
-    apiTypesToApiEnums = {}
-    apiEnumsToApiTypes = {}
-
-    apiTypesToApiClasses = {}
-
-    # Reserved Maya types and API types that need a special treatment (abstract types)
-    # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
-    # strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
-    reservedMayaTypes = {}
-    reservedApiTypes = {}
-
-    # some handy aliases / shortcuts easier to remember and use than actual Maya type name
-    shortMayaTypes = {'all':'base', 'valid':'base', 'any':'base', 'node':'dependNode', 'dag':'dagNode', \
-                    'deformer':'geometryFilter', 'weightedDeformer':'weightGeometryFilter', 'geometry':'geometryShape', \
-                    'surface':'surfaceShape', 'revolved':'revolvedPrimitive', 'deformable':'deformableShape', \
-                    'curve':'curveShape' }
-
-
-    #: Lookup of currently existing Maya types as keys with their corresponding API type as values.
-    #: Not a read only (static) dict as these can change (if you load a plugin)
-    mayaTypesToApiTypes = {}
-
-    #: Lookup of currently existing Maya API types as keys with their corresponding Maya type as values.
-    #: Not a read only (static) dict as these can change (if you load a plugin)
-    #: In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )
-    apiTypesToMayaTypes = {}
-
-    #: lookup tables for a direct conversion between Maya type to their MFn::Types enum
-    mayaTypesToApiEnums = {}
-
-    #: lookup tables for a direct conversion between API type to their MFn::Types enum
-    apiEnumsToMayaTypes = {}
-
-
-    # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
-    # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
-
-
-    #: Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
-    #: to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
-    #: didn't follow latest Maya types additions...
-    reservedApiHierarchy = { 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
-                        'kConstraint':'kTransform', 'kField':'kTransform', \
-                        'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
-                        'kDimension':'kShape', \
-                        'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
-                        'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
-                        'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
-                        'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
-                        'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
-                        'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
-                        'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
-                        'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
-                        'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
-                        'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
-                        'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
-                        'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' }
-
-    apiTypeHierarchy = {}
+    API_CACHE_NAMES = '''reservedMayaTypes reservedApiTypes apiTypesToApiEnums
+                       apiEnumsToApiTypes mayaTypesToApiTypes
+                       apiTypesToApiClasses apiTypeHierarchy apiClassInfo'''.split()
+                       
+    MEL_BRIDGE_CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
+    
+    # These conversion dictionaries are not stored in caches, but recreated
+    # dynamically every time
+    CONVERSION_DICT_NAMES = '''apiTypesToMayaTypes mayaTypesToApiEnums
+                            apiEnumsToMayaTypes'''.split()
+    
+    def __init__(self):
+        # Maya static info :
+        # Initializes various static look-ups to speed up Maya types conversions
+        self.apiClassInfo = {}
+        self.apiTypesToApiEnums = {}
+        self.apiEnumsToApiTypes = {}
+    
+        self.apiTypesToApiClasses = {}
+    
+        # Reserved Maya types and API types that need a special treatment (abstract types)
+        # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
+        # strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
+        self.reservedMayaTypes = {}
+        self.reservedApiTypes = {}
+    
+        #: Lookup of currently existing Maya types as keys with their corresponding API type as values.
+        #: Not a read only (static) dict as these can change (if you load a plugin)
+        self.mayaTypesToApiTypes = {}
+    
+        #: Lookup of currently existing Maya API types as keys with their corresponding Maya type as values.
+        #: Not a read only (static) dict as these can change (if you load a plugin)
+        #: In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )
+        self.apiTypesToMayaTypes = {}
+    
+        #: lookup tables for a direct conversion between Maya type to their MFn::Types enum
+        self.mayaTypesToApiEnums = {}
+    
+        #: lookup tables for a direct conversion between API type to their MFn::Types enum
+        self.apiEnumsToMayaTypes = {}
+    
+    
+        # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
+        # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
+    
+    
+        #: Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
+        #: to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
+        #: didn't follow latest Maya types additions...
+        self.reservedApiHierarchy = { 
+                'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
+                'kConstraint':'kTransform', 'kField':'kTransform', \
+                'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
+                'kDimension':'kShape', \
+                'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
+                'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
+                'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
+                'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
+                'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
+                'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
+                'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
+                'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
+                'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
+                'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
+                'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
+                'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' }
+    
+        self.apiTypeHierarchy = {}
+        
+        self.apiToMelData = _util.defaultdict(dict)
+        self.apiClassOverrides = {}
 
     def _buildMayaReservedTypes(self):
         """
@@ -321,6 +297,9 @@ class ApiCache(object):
     def _createNodes(self, dagMod, dgMod, *args) :
         """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
             can be used only as long as dagMod and dgMod are not deleted"""
+            
+        # Put in a debug, because this can be crashy
+        _logger.debug("Starting ApiCache._createNodes...")
 
         result = {}
         mayaResult = {}
@@ -342,6 +321,10 @@ class ApiCache(object):
                     result[apiType] = obj
                 else:
                     unableToCreate.add(mayaType)
+
+        # Put in a debug, because this can be crashy
+        _logger.debug("...finished ApiCache._createNodes")
+        
         return result, mayaResult, unableToCreate
 
     # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
@@ -378,25 +361,19 @@ class ApiCache(object):
     #    print "Updated Maya types list in %.2f sec" % elapsed
 
     def _buildApiClassInfo(self):
+        _logger.debug("Starting ApiCache._buildApiClassInfo...") 
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
-#        try:
-        parser = ApiDocParser(api)
-#        except IOError, msg:
-#            _logger.warn( "failed to find docs for current version: %s", name )
+        parser = ApiDocParser(api, enumClass=Enum)
 
         for name, obj in inspect.getmembers( api, lambda x: type(x) == type and x.__name__.startswith('M') ):
             if not name.startswith( 'MPx' ):
-
                 try:
-                    try:
-                        info = parser.parse(name)
-                        self.apiClassInfo[ name ] = info
-                    except IOError:
-                        _logger.warn( "failed to parse docs: %s", name )
-
-                except (ValueError,IndexError), msg:
-                    _logger.warn( "failed %s %s" % ( name, msg ) )
+                    info = parser.parse(name)
+                    self.apiClassInfo[ name ] = info
+                except (IOError, ValueError,IndexError), e:
+                    _logger.warn( "failed to parse docs for %r:\n%s" % (name, e) )
+        _logger.debug("...finished ApiCache._buildApiClassInfo")
 
     # Build a dictionnary of api types and parents to represent the MFn class hierarchy
     def _buildApiTypeHierarchy(self) :
@@ -408,6 +385,9 @@ class ApiCache(object):
         in an apiClassInfo, you can rebuild all other api information.  If left at the default value
         of 'None', then it will be rebuilt using the apiDocParser.
         """
+        # Put in a debug, because this can be crashy
+        _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")        
+        
         def _MFnType(x) :
             if x == api.MFnBase :
                 return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
@@ -450,14 +430,14 @@ class ApiCache(object):
                     self.apiTypesToApiClasses[ current ] = MFnClass
                     self.apiTypeHierarchy[ current ] = parent
 
-        if not self.apiClassInfo:
-            self._buildApiClassInfo()
+        self._buildApiClassInfo()
 
         # print self.apiTypeHierarchy.keys()
         # Fixes for types that don't have a MFn by faking a node creation and testing it
         # Make it faster by pre-creating the nodes used to test
         dagMod = api.MDagModifier()
         dgMod = api.MDGModifier()
+
         #nodeDict = self._createNodes(dagMod, dgMod, *self.apiTypesToApiEnums.keys())
         nodeDict, mayaDict, unableToCreate = self._createNodes( dagMod, dgMod, *allMayaTypes )
         if len(unableToCreate) > 0:
@@ -486,8 +466,9 @@ class ApiCache(object):
 
         # print self.apiTypeHierarchy.keys()
         # make a Tree from that child:parent dictionnary
+        _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
-    def addMayaType(self, mayaType, apiType=None):
+    def addMayaType(self, mayaType, apiType=None, updateObj=None):
         """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
 
             - apiCache.mayaTypesToApiTypes
@@ -496,6 +477,9 @@ class ApiCache(object):
             - apiCache.apiEnumsToApiTypes
             - apiCache.mayaTypesToApiEnums
             - apiCache.apiEnumsToMayaTypes
+            
+        if updateObj is given, this instance will first be updated from it,
+        before the mayaType is added.
         """
 
         if apiType is not 'kInvalid' :
@@ -520,7 +504,7 @@ class ApiCache(object):
             else:
                 self.apiEnumsToMayaTypes[apiEnum][mayaType] = None
 
-    def removeMayaType(self, mayaType):
+    def removeMayaType(self, mayaType, updateObj=None):
         """ Remove a type from the MayaTypes lists.
 
             - apiCache.mayaTypesToApiTypes
@@ -529,6 +513,9 @@ class ApiCache(object):
             - apiCache.apiEnumsToApiTypes
             - apiCache.mayaTypesToApiEnums
             - apiCache.apiEnumsToMayaTypes
+            
+        if updateObj is given, this instance will first be updated from it,
+        before the mayaType is added.
         """
         try:
             apiEnum = self.mayaTypesToApiEnums.pop( mayaType )
@@ -552,17 +539,10 @@ class ApiCache(object):
                     self.apiTypesToMayaTypes.pop(apiType)
                     self.apiTypesToApiEnums.pop(apiType)
 
-    def build(self, rebuildAllButClassInfo=False):
+    def build(self):
         """
         Used to rebuild api cache, either by loading from a cache file, or rebuilding from scratch.
-
-        Set 'rebuildAllButClassInfo' to True to force rebuilding of all info BUT self.apiClassInfo -
-        this is useful for versions < 2009, as these versions cannot parse the api docs; by setting
-        this to False, you can rebuild all other api information.
         """
-
-        # Need to initialize this to possibly pass into _buildself.apiTypeHierarchy, if rebuildAllButClassInfo
-        self.apiClassInfo = None
 
         data = startup.loadCache( 'mayaApi', 'the API cache', compressed=True )
 
@@ -578,168 +558,99 @@ class ApiCache(object):
             self.apiTypesToApiClasses = data[5]
             self.apiTypeHierarchy = data[6]
             self.apiClassInfo = data[7]
-
-
-            if not rebuildAllButClassInfo:
-                # Note that even if rebuildAllButClassInfo, we still want to load
-                # the cache file, in order to grab self.apiClassInfo
-                return
-
-
+        else:
+            self.rebuild()
+        self.loadApiToMelBridge()
+    
+    def rebuild(self):
+        """Rebuild the api cache from scratch
+        
+        Unlike 'build', this does not attempt to load a cache file, but always
+        rebuilds it by parsing the docs, etc.
+        """
         _logger.info( "Rebuilding the API Caches..." )
+        
+        # In the normal course of things, rebuild is only called by build,
+        # and build calls _buildMayaReservedTypes, so it won't usualy need to
+        # be called from inside here...
+        # ...however, for debugging, etc, it can be handy to force a rebuild
+        # of the cache, without bothering to call build(), so I'm sticking
+        # this check in here to make rebuild 'self-sufficient'
+        if not ( getattr(self, 'reservedMayaTypes', None)
+                 and getattr(self, 'reservedApiTypes', None) ):
+            self._buildMayaReservedTypes()
 
         # fill out the data structures
         self._buildApiTypesList()
         #self.apiTypesToApiEnums, self.apiTypesToApiClasses = self._buildApiTypesList()
         #_buildMayaTypesList()
 
-        if not rebuildAllButClassInfo:
-            self.apiClassInfo = None
-
         self._buildApiTypeHierarchy()
 
         # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
         _logger.info( 'merging in dictionary of manual api overrides')
-        _util.mergeCascadingDicts( apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
+        _util.mergeCascadingDicts( self.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
+        
+        self.saveApiCache()
 
-        startup.writeCache( ( self.reservedMayaTypes, self.reservedApiTypes,
-                               self.apiTypesToApiEnums, self.apiEnumsToApiTypes,
-                               self.mayaTypesToApiTypes,
-                               self.apiTypesToApiClasses, self.apiTypeHierarchy, self.apiClassInfo ),
-                               'mayaApi', 'the API cache' )
+    def loadApiToMelBridge(self):
+        data = startup.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
+        if data is not None:
+            # maya 8.5 fix: convert dict to defaultdict
+            self.apiToMelData, self.apiClassOverrides = data
+            self.apiToMelData = _util.defaultdict(dict, self.apiToMelData)
+    
+        return self.apiToMelData, self.apiClassOverrides
 
-        return
+    def update(self, obj, cacheNames=None):
+        '''Update all the various data from the given object, which should
+        either be a dictionary or an object with the caches stored in attributes
+        on it.
+        '''
+        if cacheNames is None:
+            cacheNames = self.API_CACHE_NAMES + self.MEL_BRIDGE_CACHE_NAMES + self.CONVERSION_DICT_NAMES
+            
+        if isinstance(obj, dict):
+            for cacheName in cacheNames:
+                setattr(self, cacheName, obj[cacheName])
+        else:
+            for cacheName in cacheNames:
+                setattr(self, cacheName, getattr(obj, cacheName))
+        
 
+    def _saveCaches(self, cacheFile, cacheDesc, cacheNames, obj=None, **kwargs):
+        if obj is not None:
+            self.update(obj, cacheNames)
+        caches = tuple( getattr(self, x) for x in cacheNames )
+        startup.writeCache( caches, cacheFile, cacheDesc, **kwargs )
+        
+    def saveApiCache(self, obj=None):
+        '''Saves the mayaApi cache
+        
+        Will optionally update the caches from the given object (which may be
+        a dictionary, or an object with the caches stored in attributes on it)
+        before saving
+        '''
+        self._saveCaches('mayaApi', 'the API cache', self.API_CACHE_NAMES)
+
+
+    def saveApiToMelBridge(self, obj=None):
+        '''Saves the apiToMelData cache
+        
+        Will optionally update the caches from the given object (which may be
+        a dictionary, or an object with the caches stored in attributes on it)
+        before saving
+        '''
+        self._saveCaches('mayaApiMelBridge', 'the api-mel bridge',
+                         self.MEL_BRIDGE_CACHE_NAMES, useVersion=False)
+        
     def caches(self):
-        return (self.reservedMayaTypes, self.reservedApiTypes,
-                               self.apiTypesToApiEnums, self.apiEnumsToApiTypes,
-                               self.mayaTypesToApiTypes,
-                               self.apiTypesToApiClasses, self.apiTypeHierarchy, self.apiClassInfo )
+        return tuple( getattr(self, x) for x in self.API_CACHE_NAMES )
+    
+    def melBridgeCaches(self):
+        return tuple( getattr(self, x) for x in self.MEL_BRIDGE_CACHE_NAMES )
+    
+    def conversionDicts(self):
+        return tuple( getattr(self, x) for x in self.CONVERSION_DICT_NAMES )
 
 
-def toApiTypeStr( obj ):
-    if isinstance( obj, int ):
-        return apiCache.apiEnumsToApiTypes.get( obj, None )
-    elif isinstance( obj, basestring ):
-        return apiCache.mayaTypesToApiTypes.get( obj, None)
-
-def toApiTypeEnum( obj ):
-    try:
-        return apiCache.apiTypesToApiEnums[obj]
-    except KeyError:
-        return apiCache.mayaTypesToApiEnums.get(obj,None)
-
-def toMayaType( obj ):
-    if isinstance( obj, int ):
-        return apiCache.apiEnumsToMayaTypes.get( obj, None )
-    elif isinstance( obj, basestring ):
-        return apiCache.apiTypesToMayaTypes.get( obj, None)
-
-def toApiFunctionSet( obj ):
-    if isinstance( obj, basestring ):
-        try:
-            return apiCache.apiTypesToApiClasses[ obj ]
-        except KeyError:
-            return apiCache.apiTypesToApiClasses.get( apiCache.mayaTypesToApiTypes.get( obj, None ) )
-
-    elif isinstance( obj, int ):
-        try:
-            return apiCache.apiTypesToApiClasses[ apiCache.apiEnumsToApiTypes[ obj ] ]
-        except KeyError:
-            return
-
-def isValidMayaType (arg):
-    return mayaTypesToApiTypes.has_key(arg)
-
-# get the API type from a maya type
-def mayaTypeToApiType(mayaType) :
-    """ Get the Maya API type from the name of a Maya type """
-    try:
-        return apiCache.mayaTypesToApiTypes[mayaType]
-    except KeyError:
-        apiType = 'kInvalid'
-        # Reserved types must be treated specially
-        if apiCache.reservedMayaTypes.has_key(mayaType) :
-            # It's an abstract type
-            apiType = apiCache.reservedMayaTypes[mayaType]
-        else :
-            # we create a dummy object of this type in a dgModifier
-            # as the dgModifier.doIt() method is never called, the object
-            # is never actually created in the scene
-            obj = api.MObject()
-            dagMod = api.MDagModifier()
-            dgMod = api.MDGModifier()
-            obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
-            if api.isValidMObject(obj):
-                apiType = obj.apiTypeStr()
-        return apiType
-
-def getComponentTypes():
-    # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
-    # and there's also a kMeshVtxFaceComponent (which does)??
-    mfnCompBase = api.MFnComponent()
-    mfnCompTypes = (api.MFnSingleIndexedComponent(),
-                    api.MFnDoubleIndexedComponent(),
-                    api.MFnTripleIndexedComponent())
-    # Maya 2008 and before didn't haveMFnUint64SingleIndexedComponent
-    if hasattr(api.MFn, 'kUint64SingleIndexedComponent'):
-        mfnCompTypes += (api.MFnUint64SingleIndexedComponent(),)
-
-    componentTypes = {}
-    for compType in mfnCompTypes + (mfnCompBase,):
-        componentTypes[compType.type()] = []
-
-    for apiEnum in apiCache.apiEnumsToApiTypes:
-        if mfnCompBase.hasObj(apiEnum):
-            for compType in mfnCompTypes:
-                if compType.hasObj(apiEnum):
-                    break
-            else:
-                compType = mfnCompBase
-            componentTypes[compType.type()].append(apiEnum)
-
-    return componentTypes
-
-
-def addMayaType(mayaType, apiType=None):
-    """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
-
-        - apiCache.mayaTypesToApiTypes
-        - apiCache.apiTypesToMayaTypes
-        - apiCache.apiTypesToApiEnums
-        - apiCache.apiEnumsToApiTypes
-        - apiCache.mayaTypesToApiEnums
-        - apiCache.apiEnumsToMayaTypes
-    """
-
-
-    if apiType is None:
-        apiType = mayaTypeToApiType(mayaType)
-    apiCache.addMayaType(mayaType, apiType)
-
-def removeMayaType(mayaType):
-    """ Remove a type from the MayaTypes lists.
-
-        - apiCache.mayaTypesToApiTypes
-        - apiCache.apiTypesToMayaTypes
-        - apiCache.apiTypesToApiEnums
-        - apiCache.apiEnumsToApiTypes
-        - apiCache.mayaTypesToApiEnums
-        - apiCache.apiEnumsToMayaTypes
-    """
-    apiCache.removeMayaType(mayaType)
-
-#-------------------------------------------------------------------------------------
-
-_start = time.time()
-
-apiCache = ApiCache()
-apiCache.build(rebuildAllButClassInfo=False)
-
-(reservedMayaTypes, reservedApiTypes, apiTypesToApiEnums, apiEnumsToApiTypes,
-mayaTypesToApiTypes, apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo) = apiCache.caches()
-
-_elapsed = time.time() - _start
-_logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
-
-#-------------------------------------------------------------------------------------

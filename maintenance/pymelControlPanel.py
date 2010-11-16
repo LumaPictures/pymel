@@ -260,7 +260,7 @@ class ClassFrame(object):
         with frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
                             width = FRAME_WIDTH) as self.frame:
                             #labelAlign='top')
-    
+
             with tabLayout() as tab:
 
                 invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
@@ -927,7 +927,6 @@ def cacheResults():
         doCacheResults()
         
 def doCacheResults():
-    import pymel.internal.apicache as apicache
     print "---"
     print "adding manual defaults"
     setManualDefaults()
@@ -935,8 +934,8 @@ def doCacheResults():
     # update apiClasIfno with the sparse data stored in apiClassOverrides
     util.mergeCascadingDicts( factories.apiClassOverrides, factories.apiClassInfo, allowDictToListMerging=True )
     print "saving api cache"
-    saveApiCache()
+    factories._apiCacheInst.saveApiCache(factories)
     print "saving bridge"
-    saveApiToMelBridge()
+    factories._apiCacheInst.saveApiToMelBridge(factories)
     print "---"
 
