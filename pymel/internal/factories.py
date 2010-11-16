@@ -27,7 +27,7 @@ _logger = plogging.getLogger(__name__)
 _start = time.time()
 
 _apiCacheInst = apicache.ApiCache()
-_apiCacheInst.build(rebuildAllButClassInfo=False)
+_apiCacheInst.build()
 
 # Should we 'automate' this, using setattr and ApiCache.API_CACHE_NAMES?
 # leaving it 'manual' for now, as it makes it easier to find out where these

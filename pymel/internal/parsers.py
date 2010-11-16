@@ -361,7 +361,7 @@ class ApiDocParser(object):
         self.apiModule = apiModule
         self.verbose = verbose
         self.docloc = mayaDocsLocation('2009' if version=='2008' else version)
-        self.enumClas = enumClass
+        self.enumClass = enumClass
         if not os.path.isdir(self.docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
 
