@@ -4,6 +4,7 @@
 import sys, inspect, time, os.path
 
 import pymel.api as api
+import pymel.versions as versions
 from pymel.util import expandArgs
 import pymel.util as _util
 import startup
@@ -25,6 +26,13 @@ class Enum(tuple):
             parts[0] = _util.capitalize( mayaTypeDict.keys()[0] )
 
         return '.'.join( [str(x) for x in parts] )
+    
+if versions.current() < versions.v2012:
+    # Before 2012, api had Enum, and when we unpickle the caches, it will
+    # need to be there...
+    api.Enum = Enum
+    # prevent auto-completion generator from getting confused
+    api.Enum.__module__ = 'pymel.api'
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
@@ -623,12 +631,12 @@ class ApiCache(object):
         self._saveCaches('mayaApiMelBridge', 'the api-mel bridge', self.MEL_BRIDGE_CACHE_NAMES)
         
     def caches(self):
-        return tuple( getattr(x) for x in self.API_CACHE_NAMES )
+        return tuple( getattr(self, x) for x in self.API_CACHE_NAMES )
     
     def melBridgeCaches(self):
-        return tuple( getattr(x) for x in self.MEL_BRIDGE_CACHE_NAMES )
+        return tuple( getattr(self, x) for x in self.MEL_BRIDGE_CACHE_NAMES )
     
     def conversionDicts(self):
-        return tuple( getattr(x) for x in self.CONVERSION_DICT_NAMES )
+        return tuple( getattr(self, x) for x in self.CONVERSION_DICT_NAMES )
 
 
