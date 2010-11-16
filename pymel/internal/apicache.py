@@ -29,10 +29,9 @@ class Enum(tuple):
     
 if versions.current() < versions.v2012:
     # Before 2012, api had Enum, and when we unpickle the caches, it will
-    # need to be there...
+    # need to be there... could rebuild the caches (like I had to do with
+    # mayaApiMelBridge) but don't really want to...
     api.Enum = Enum
-    # prevent auto-completion generator from getting confused
-    api.Enum.__module__ = 'pymel.api'
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
@@ -298,6 +297,9 @@ class ApiCache(object):
     def _createNodes(self, dagMod, dgMod, *args) :
         """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
             can be used only as long as dagMod and dgMod are not deleted"""
+            
+        # Put in a debug, because this can be crashy
+        _logger.debug("Starting ApiCache._createNodes...")
 
         result = {}
         mayaResult = {}
@@ -319,6 +321,10 @@ class ApiCache(object):
                     result[apiType] = obj
                 else:
                     unableToCreate.add(mayaType)
+
+        # Put in a debug, because this can be crashy
+        _logger.debug("...finished ApiCache._createNodes")
+        
         return result, mayaResult, unableToCreate
 
     # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
@@ -355,6 +361,7 @@ class ApiCache(object):
     #    print "Updated Maya types list in %.2f sec" % elapsed
 
     def _buildApiClassInfo(self):
+        _logger.debug("Starting ApiCache._buildApiClassInfo...") 
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
         parser = ApiDocParser(api, enumClass=Enum)
@@ -366,6 +373,7 @@ class ApiCache(object):
                     self.apiClassInfo[ name ] = info
                 except (IOError, ValueError,IndexError), e:
                     _logger.warn( "failed to parse docs for %r:\n%s" % (name, e) )
+        _logger.debug("...finished ApiCache._buildApiClassInfo")
 
     # Build a dictionnary of api types and parents to represent the MFn class hierarchy
     def _buildApiTypeHierarchy(self) :
@@ -377,6 +385,9 @@ class ApiCache(object):
         in an apiClassInfo, you can rebuild all other api information.  If left at the default value
         of 'None', then it will be rebuilt using the apiDocParser.
         """
+        # Put in a debug, because this can be crashy
+        _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")        
+        
         def _MFnType(x) :
             if x == api.MFnBase :
                 return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
@@ -426,6 +437,7 @@ class ApiCache(object):
         # Make it faster by pre-creating the nodes used to test
         dagMod = api.MDagModifier()
         dgMod = api.MDGModifier()
+
         #nodeDict = self._createNodes(dagMod, dgMod, *self.apiTypesToApiEnums.keys())
         nodeDict, mayaDict, unableToCreate = self._createNodes( dagMod, dgMod, *allMayaTypes )
         if len(unableToCreate) > 0:
@@ -454,6 +466,7 @@ class ApiCache(object):
 
         # print self.apiTypeHierarchy.keys()
         # make a Tree from that child:parent dictionnary
+        _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
     def addMayaType(self, mayaType, apiType=None, updateObj=None):
         """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
@@ -605,11 +618,11 @@ class ApiCache(object):
                 setattr(self, cacheName, getattr(obj, cacheName))
         
 
-    def _saveCaches(self, cacheFile, cacheDesc, cacheNames, obj=None):
+    def _saveCaches(self, cacheFile, cacheDesc, cacheNames, obj=None, **kwargs):
         if obj is not None:
             self.update(obj, cacheNames)
         caches = tuple( getattr(self, x) for x in cacheNames )
-        startup.writeCache( caches, cacheFile, cacheDesc )
+        startup.writeCache( caches, cacheFile, cacheDesc, **kwargs )
         
     def saveApiCache(self, obj=None):
         '''Saves the mayaApi cache
@@ -628,7 +641,8 @@ class ApiCache(object):
         a dictionary, or an object with the caches stored in attributes on it)
         before saving
         '''
-        self._saveCaches('mayaApiMelBridge', 'the api-mel bridge', self.MEL_BRIDGE_CACHE_NAMES)
+        self._saveCaches('mayaApiMelBridge', 'the api-mel bridge',
+                         self.MEL_BRIDGE_CACHE_NAMES, useVersion=False)
         
     def caches(self):
         return tuple( getattr(self, x) for x in self.API_CACHE_NAMES )
