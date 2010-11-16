@@ -48,7 +48,7 @@ def mayaDocsLocation(version=None):
     # Want the docs for a different version, or maya isn't initialized yet
     if not docLocation or not os.path.isdir(docLocation):
         docLocation = getMayaLocation(version) # use original version
-        if docLocation is None :
+        if docLocation is None and version is not None:
             docLocation = getMayaLocation(None)
             _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation) )
 
