@@ -190,35 +190,48 @@ class ApiCache(startup.MayaCache):
 
     
     SUB_CACHE_TYPES = [ApiMelBridgeCache]
+    SUB_CACHE_ATTRS = ['_' + cacheType.NAME for cacheType in SUB_CACHE_TYPES]
     
-    def _make_item_property(self, name, cache):
-        def _get_item():
-            getattr(cache, name)
+    def _make_item_property(name, cacheAttr):
+        def _get_item(self):
+            cache = getattr(self, cacheAttr)
+            return getattr(cache, name)
+            
         _get_item.__name__ = '_get_%s' % name
 
-        def _set_item(val):
+        def _set_item(self, val):
+            cache = getattr(self, cacheAttr)
             setattr(cache, name, val)
         _set_item.__name__ = '_set_%s' % name
 
-        setattr(self, _get_item.__name__, _get_item)
-        setattr(self, _set_item.__name__, _set_item)
-        setattr(self, name, property(_get_item, _set_item))
+        return _get_item, _set_item, property(_get_item, _set_item)
+
+    for cacheType, cacheName in zip(SUB_CACHE_TYPES, SUB_CACHE_ATTRS):
+        # make properties for each of the sub-cache's sub-items
+        for itemName in cacheType.CACHE_NAMES:
+            getter, setter, prop = _make_item_property(itemName, cacheName)
+            # can't do setattr, because we don't have a class object yet...
+            # and can't modify locals()...
+            # and properties MUST be defined inside class, so when the class
+            # is created, the magic is set up...
+            # so only way to do this seems to be to use exec
+            exec "%s = getter" % getter.__name__
+            exec "%s = setter" % setter.__name__
+            exec "%s = prop" % itemName
+
+    # done with _make_item_property now - don't want it to become a method...
+    del _make_item_property
         
     def __init__(self):
         super(ApiCache, self).__init__()
-        for cacheType in self.SUB_CACHE_TYPES:
-            # Initialize and store in attributes the sub-caches
-            cacheAttr = '_' + cacheType.NAME
+        for cacheType, cacheAttr in zip(self.SUB_CACHE_TYPES, self.SUB_CACHE_ATTRS):
+            # Initialize the sub-caches
             subCache = cacheType()
             setattr(self, cacheAttr, subCache)
-
-            # make properties for each of the sub-cache's sub-items
-            for itemName in subCache.CACHE_NAMES:
-                self._make_item_property(itemName, subCache)
         
         for name in self.EXTRA_GLOBAL_NAMES:
             self.initVal(name)
-            
+                        
         self._buildMayaReservedTypes()
 
 
