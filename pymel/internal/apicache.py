@@ -99,7 +99,7 @@ class ApiCache(startup.MayaCache):
     COMPRESSED = True
     USE_VERSION = True
     CACHE_NAMES = '''apiTypesToApiEnums apiEnumsToApiTypes mayaTypesToApiTypes
-                   apiTypesToApiClasses apiTypeHierarchy apiClassInfo'''.split()
+                   apiTypesToApiClasses apiClassInfo'''.split()
 
 
     EXTRA_GLOBAL_NAMES = '''reservedMayaTypes reservedApiTypes
@@ -135,34 +135,6 @@ class ApiCache(startup.MayaCache):
 
     # lookup tables for a direct conversion between API type to their MFn::Types enum
     # self.apiEnumsToMayaTypes
-
-
-    # Cache API types hierarchy, using MFn classes hierarchy and additional trials
-    # self.apiTypeHierarchy
-
-    # Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
-    # to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
-    # didn't follow latest Maya types additions...
-    # Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
-    # to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
-    # didn't follow latest Maya types additions...
-    RESERVED_API_HIERARCY = { 
-            'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
-            'kConstraint':'kTransform', 'kField':'kTransform', \
-            'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
-            'kDimension':'kShape', \
-            'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
-            'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
-            'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
-            'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
-            'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
-            'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
-            'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
-            'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
-            'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
-            'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
-            'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
-            'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' }
 
     RESERVED_TYPES = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
                 'entity':'kDependencyNode', \
@@ -231,9 +203,6 @@ class ApiCache(startup.MayaCache):
         
         for name in self.EXTRA_GLOBAL_NAMES:
             self.initVal(name)
-                        
-        self._buildMayaReservedTypes()
-
 
     def _getMObject(self, nodeType, dagMod, dgMod) :
         """ Returns a queryable MObject from a given apiType or mayaType"""
@@ -252,96 +221,6 @@ class ApiCache(startup.MayaCache):
             return None
 
         return _makeDgModGhostObject(mayaType, dagMod, dgMod)
-
-    # it can't b e done for "virtual" types (in self.reservedApiTypes)
-    def _hasFn(self, apiType, dagMod, dgMod, parentType=None) :
-        """Check if an API type inherits from another"""
-        if parentType is None :
-            parentType = 'kBase'
-        # Reserved we can't determine it as we can't create the node, all we can do is check if it's
-        # in the self.RESERVED_API_HIERARCY
-        if self.reservedApiTypes.has_key(apiType) :
-            return self.RESERVED_API_HIERARCY.get(apiType, None) == parentType
-        # Need the MFn::Types enum for the parentType
-        if self.apiTypesToApiEnums.has_key(parentType) :
-            typeInt = self.apiTypesToApiEnums[parentType]
-        else :
-            return False
-        # print "need creation for %s" % apiType
-        obj = self._getMObject(apiType, dagMod, dgMod, parentType)
-        if api.isValidMObject(obj) :
-            return obj.hasFn(typeInt)
-        else :
-            return False
-
-
-    # Filter the given API type list to retain those that are parent of apiType
-    # can pass a list of types to check for being possible parents of apiType
-    # or a dictionary of types:node to speed up testing
-    def _parentFn(self, apiType, dagMod, dgMod, *args, **kwargs) :
-        """ Checks the given API type list, or API type:MObject dictionary to return the first parent of apiType """
-        if not kwargs :
-            if not args :
-                args = ('kBase', )
-            kwargs = dict( (args[k], None) for k in args )
-        else :
-            for k in args :
-                if not kwargs.has_key(k) :
-                    kwargs[k] = None
-        # Reserved we can't determine it as we can't create the node, all we can do is check if it's
-        # in the self.RESERVED_API_HIERARCY
-        if self.reservedApiTypes.has_key(apiType) :
-            p = self.RESERVED_API_HIERARCY.get(apiType, None)
-            if p is not None :
-                for t in kwargs.keys() :
-                    if p == t :
-                        return t
-            return None
-
-        result = None
-        obj = kwargs.get(apiType, None)
-        if not api.isValidMObject(obj) :
-            # print "need creation for %s" % apiType
-            obj = self._getMObject(apiType, dagMod, dgMod)
-        if api.isValidMObject(obj) :
-            if not kwargs.get(apiType, None) :
-                kwargs[apiType] = obj          # update it if we had to create
-            parents = []
-            for t in kwargs.keys() :
-                # Need the MFn::Types enum for the parentType
-                if t != apiType :
-                    if self.apiTypesToApiEnums.has_key(t) :
-                        ti = self.apiTypesToApiEnums[t]
-                        if obj.hasFn(ti) :
-                            parents.append(t)
-            # problem is the MObject.hasFn method returns True for all ancestors, not only first one
-            if len(parents) :
-                if len(parents) > 1 :
-                    for p in parents :
-                        if self.apiTypesToApiEnums.has_key(p) :
-                            ip = self.apiTypesToApiEnums[p]
-                            isFirst = True
-                            for q in parents :
-                                if q != p :
-                                    stored = kwargs.get(q, None)
-                                    if not stored :
-                                        if self.reservedApiTypes.has_key(q) :
-                                            isFirst = not self.RESERVED_API_HIERARCY.get(q, None) == p
-                                        else :
-                                            stored = self._getMObject(q, dagMod, dgMod)
-                                            if not kwargs.get(q, None) :
-                                                kwargs[q] = stored          # update it if we had to create
-                                    if stored :
-                                        isFirst = not stored.hasFn(ip)
-                                if not isFirst :
-                                    break
-                            if isFirst :
-                                result = p
-                                break
-                else :
-                    result = parents[0]
-
-        return result
 
     def _createNodes(self, dagMod, dgMod, *args) :
         """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
@@ -383,12 +262,6 @@ class ApiCache(startup.MayaCache):
         
         return result, mayaResult, unableToCreate
 
-    # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
-    # TODO : fix that, doesn't accept the Singleton base it seems
-    # class self.apiTypeHierarchy(FrozenTree) :
-    #    """ Hierarchy Tree of all API Types """
-    #    __metaclass__ = Singleton
-
     def _buildApiTypesList(self):
         """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with
         an existing api type"""
@@ -407,8 +280,8 @@ class ApiCache(startup.MayaCache):
         
         if not force and (getattr(self, 'reservedMayaTypes', None)  
                           and getattr(self, 'reservedApiTypes', None) ):
-            return
-        
+            return        
+
         # no known api types: these do not have valid api types, so we add them in to avoid querying them on each load
         invalidReservedTypes = {'deformableShape' : 'kInvalid', 'controlPoint' : 'kInvalid'}
 
@@ -456,11 +329,6 @@ class ApiCache(startup.MayaCache):
     def _buildApiTypeHierarchy(self) :
         """
         Used to rebuild api info from scratch.
-
-        Set 'apiClassInfo' to a valid apiClassInfo structure to disable rebuilding of apiClassInfo
-        - this is useful for versions < 2009, as these versions cannot parse the api docs; by passing
-        in an apiClassInfo, you can rebuild all other api information.  If left at the default value
-        of 'None', then it will be rebuilt using the apiDocParser.
         """
         # Put in a debug, because this can be crashy
         _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")        
@@ -495,21 +363,20 @@ class ApiCache(startup.MayaCache):
         # all of maya OpenMaya api is now imported in module api's namespace
         MFnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
         MFnTree = inspect.getclasstree( [x[1] for x in MFnClasses] )
-        self.apiTypeHierarchy = {}
 
-        for x in expandArgs(MFnTree, type='list') :
-            MFnClass = x[0]
+        for MFnClass, bases in expandArgs(MFnTree, type='list') :
             current = _MFnType(MFnClass)
-            if current and current != 'kInvalid' and len(x[1]) > 0:
+            if current and current != 'kInvalid' and len(bases) > 0:
                 #Check that len(x[1]) > 0 because base python 'object' will have no parents...
-                parent = _MFnType(x[1][0])
+                assert len(bases) == 1
+                parent = _MFnType(bases[0])
                 if parent:
                     self.apiTypesToApiClasses[ current ] = MFnClass
-                    self.apiTypeHierarchy[ current ] = parent
+                else:
+                    print "debug info - MFnClass %s gave MFnType %s, but could not determine type of parent class %s" % (MFnClass, MFnType, parent)
 
         self._buildApiClassInfo()
 
-        # print self.apiTypeHierarchy.keys()
         # Fixes for types that don't have a MFn by faking a node creation and testing it
         # Make it faster by pre-creating the nodes used to test
         dagMod = api.MDagModifier()
@@ -523,25 +390,6 @@ class ApiCache(startup.MayaCache):
             self.mayaTypesToApiTypes[mayaType] = apiType
             self.addMayaType( mayaType, apiType )
 
-        # Fix? some MFn results are not coherent with the hierarchy presented in the docs :
-        self.apiTypeHierarchy.pop('kWire', None)
-        self.apiTypeHierarchy.pop('kBlendShape', None)
-        self.apiTypeHierarchy.pop('kFFD', None)
-        for k in self.apiTypesToApiEnums.keys() :
-            if k not in self.apiTypeHierarchy.keys() :
-                #print "%s not in self.apiTypeHierarchy, looking for parents" % k
-                #startParent = time.time()
-                p = self._parentFn(k, dagMod, dgMod, **nodeDict)
-                #endParent = time.time()
-                if p :
-                    #print "Found parent: %s in %.2f sec" % (p, endParent-startParent)
-                    self.apiTypeHierarchy[k] = p
-                else :
-                    #print "Found none in %.2f sec" % (endParent-startParent)
-                    pass
-
-        # print self.apiTypeHierarchy.keys()
-        # make a Tree from that child:parent dictionnary
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
     def addMayaType(self, mayaType, apiType=None, updateObj=None):
@@ -624,14 +472,13 @@ class ApiCache(startup.MayaCache):
         self._buildMayaReservedTypes(force=False)
         self._mayaApiMelBridge.build()
 
-
     def _load(self):
         data = super(ApiCache, self)._load()
         # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
         # even though they weren't used...
-        if len(data) != len(self.CACHE_NAMES):
-            if versions.current() < versions.v2012:
-                data = data[2:]
+        if data is not None and len(data) != len(self.CACHE_NAMES):
+            if len(data) == 8 and versions.current() < versions.v2012:
+                data = data[2:6] + data[7:]
             else:
                 # we need to rebuild, return None
                 data = None
@@ -667,11 +514,3 @@ class ApiCache(startup.MayaCache):
     
     def extraDicts(self):
         return tuple( getattr(self, x) for x in self.EXTRA_GLOBAL_NAMES )
-    
-class AllApiCache(startup.MayaCache):
-    '''Not a real MayaCache, but has the same interface, and handles loading
-    of the api and mel-bridge caches
-    '''
-
-
-
