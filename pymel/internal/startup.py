@@ -8,7 +8,7 @@ import maya
 import maya.OpenMaya as om
 import maya.utils
 
-from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron
+from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron, namedtuple
 import pymel.versions as versions
 from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName
@@ -376,6 +376,10 @@ def encodeFix():
                     _logger.debug("Unable to import maya.app.baseUI")
 
 
+#===============================================================================
+# Cache utilities
+#===============================================================================
+
 def _dump( data, filename, protocol = -1):
     with open(filename, mode='wb') as file:
         pickle.dump( data, file, protocol)
@@ -439,6 +443,143 @@ def writeCache( data, filePrefix, description='', useVersion=True, compressed=Tr
     except Exception, e:
         _logger.error("Unable to write%s to '%s': %s" % (description, newPath, e))
 
+class MayaCache(object):
+    '''Used to store various maya information
+    
+    ie, api / cmd data parsed from docs
+    '''
+    # override these
+    NAME = 'THE_BASE_FILENAME'
+    DESC = 'purpose of this cache'
+    COMPRESSED = True
+    # whether to use the version when writing out the cache
+    USE_VERSION = True
+    
+    # override this with a list of names
+    CACHE_NAMES = ['DUMMY_NAME']
+
+    # Set this to the initialization contructor for each cache item;
+    # if a given cache name is not present in ITEM_TYPES, DEFAULT_TYPE is
+    # used
+    # These are the types that the contents will 'appear' to be to the end user
+    # (ie, the types returned by contents).
+    # If the value needs to be converted before pickling, specify an entry
+    # in STORAGE_TYPES
+    # Both should be constructors which can either take no arguments, or
+    # a single argument to initialize an instance.
+    ITEM_TYPES = {}
+    STORAGE_TYPES = {}
+    DEFAULT_TYPE = dict
+    
+    def __init__(self):
+        for name in self.CACHE_NAMES:
+            self.initVal(name)
+            
+    def initVal(self, name):
+        itemType = self.itemType(name)
+        if itemType is None:
+            val = None
+        else:
+            val = itemType()
+        setattr(self, name, val)
+            
+    def itemType(self, name):
+        return self.ITEM_TYPES.get(name, self.DEFAULT_TYPE)
+    
+    def build(self):
+        """
+        Used to rebuild cache, either by loading from a cache file, or rebuilding from scratch.
+        """
+        data = self.load()
+        if data is None:
+            self.rebuild()
+            self.save
+    
+    # override this...
+    def rebuild(self):
+        """Rebuild cache from scratch
+        
+        Unlike 'build', this does not attempt to load a cache file, but always
+        rebuilds it by parsing the docs, etc.
+        """
+        pass
+    
+    def update(self, obj, cacheNames=None):
+        '''Update all the various data from the given object, which should
+        either be a dictionary, a list or tuple with the right number of items,
+        or an object with the caches stored in attributes on it.
+        '''
+        if cacheNames is None:
+            cacheNames = self.CACHE_NAMES
+            
+        if isinstance(obj, dict):
+            for key, val in obj:
+                if key not in cacheNames:
+                    raise KeyError('given item %r not found items to update - %s' % (key, cacheNames)) 
+                setattr(self, key, val)
+        elif isinstance(obj, (list, tuple)):
+            if len(obj) != len(cacheNames):
+                raise KeyError('given item had %d items, not %d' % (len(obj), len(cacheNames)))
+            for newVal, name in zip(obj, cacheNames):
+                setattr(self, name, newVal)
+        else:
+            for cacheName in cacheNames:
+                setattr(self, cacheName, getattr(obj, cacheName))
+    
+    def _load(self):
+        return loadCache( self.NAME, self.DESC, compressed=self.COMPRESSED,
+                           useVersion=self.USE_VERSION)
+    
+    def load(self):
+        '''Attempts to load the data from the cache on file.
+        
+        If it succeeds, it will update itself, and return the loaded items;
+        if it fails, it will return None
+        '''
+        data = self._load()
+        if data is not None:
+            data = list(data)
+            # if STORAGE_TYPES, need to convert back from the storage type to
+            # the 'normal' type
+            if self.STORAGE_TYPES:
+                for name in self.STORAGE_TYPES:
+                    index = self.CACHE_NAMES.index(name)
+                    val = data[index]
+                    val = self.itemType(name)(val)
+                    data[index] = val 
+            data = tuple(data)
+            self.update(data)
+        return data
+    
+    def save(self, obj=None):
+        '''Saves the cache
+        
+        Will optionally update the caches from the given object (which may be
+        a dictionary, or an object with the caches stored in attributes on it)
+        before saving
+        '''
+        if obj is not None:
+            self.update(obj)
+        data = self.contents()
+        if self.STORAGE_TYPES:
+            newData = []
+            for name, val in zip(self.CACHE_NAMES, data):
+                if name in self.STORAGE_TYPES:
+                    val = self.STORAGE_TYPES[name](val)
+                newData.append(val)
+            data = tuple(newData)
+                            
+        writeCache(data, self.NAME,
+                   self.DESC, compressed=self.COMPRESSED,
+                   useVersion=self.USE_VERSION)            
+            
+    # was called 'caches' 
+    def contents(self):
+        return tuple( getattr(self, x) for x in self.CACHE_NAMES )
+        
+#===============================================================================
+# Config stuff
+#===============================================================================
 
 def getConfigFile():
     return plogging.getConfigFile()

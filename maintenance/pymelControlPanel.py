@@ -15,7 +15,6 @@ from __future__ import with_statement
 import inspect, re, os
 from pymel.all import *
 import pymel.internal.factories as factories
-from pymel.internal.apicache import saveApiCache, saveApiToMelBridge
 import logging
 logger = logging.getLogger(__name__)
 if logger.level == logging.NOTSET:
@@ -932,10 +931,10 @@ def doCacheResults():
     setManualDefaults()
     print "merging dictionaries"
     # update apiClasIfno with the sparse data stored in apiClassOverrides
-    util.mergeCascadingDicts( factories.apiClassOverrides, factories.apiClassInfo, allowDictToListMerging=True )
+    factories.mergeApiClassOverrides()
     print "saving api cache"
-    factories._apiCacheInst.saveApiCache(factories)
+    factories.saveApiCache()
     print "saving bridge"
-    factories._apiCacheInst.saveApiToMelBridge(factories)
+    factories.saveApiMelBridgeCache()
     print "---"
 

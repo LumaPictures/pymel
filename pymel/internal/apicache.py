@@ -76,115 +76,151 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         return None
 
 
-class ApiCache(object):
-    API_CACHE_NAMES = '''reservedMayaTypes reservedApiTypes apiTypesToApiEnums
-                       apiEnumsToApiTypes mayaTypesToApiTypes
-                       apiTypesToApiClasses apiTypeHierarchy apiClassInfo'''.split()
-                       
-    MEL_BRIDGE_CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
+def _defaultdictdict(cls, val=None):
+    if val is None:
+        return _util.defaultdict(dict)
+    else:
+        return _util.defaultdict(dict, val)
+                   
+class ApiMelBridgeCache(startup.MayaCache):
+    NAME = 'mayaApiMelBridge'
+    DESC = 'the API-MEL bridge' 
+    COMPRESSED = True
+    USE_VERSION = False
+    CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
     
-    # These conversion dictionaries are not stored in caches, but recreated
-    # dynamically every time
-    CONVERSION_DICT_NAMES = '''apiTypesToMayaTypes mayaTypesToApiEnums
+    CACHE_TYPES = {'apiToMelData':_defaultdictdict}
+    STORAGE_TYPES = {'apiToMelData':dict}
+
+
+class ApiCache(startup.MayaCache):
+    NAME = 'mayaApi'
+    DESC = 'the API cache'
+    COMPRESSED = True
+    USE_VERSION = True
+    CACHE_NAMES = '''apiTypesToApiEnums apiEnumsToApiTypes mayaTypesToApiTypes
+                   apiTypesToApiClasses apiTypeHierarchy apiClassInfo'''.split()
+
+
+    EXTRA_GLOBAL_NAMES = '''reservedMayaTypes reservedApiTypes
+                            apiTypesToMayaTypes mayaTypesToApiEnums
                             apiEnumsToMayaTypes'''.split()
+                            
+    # Descriptions of various elements:
+    # Maya static info :
+    # Initializes various static look-ups to speed up Maya types conversions
+    # self.apiClassInfo
+    # self.apiTypesToApiEnums = {}
+    # self.apiEnumsToApiTypes = {}
+
+    # self.apiTypesToApiClasses
+
+    # Reserved Maya types and API types that need a special treatment (abstract types)
+    # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
+    # strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
+    # self.reservedMayaTypes
+    # self.reservedApiTypes
+
+    # Lookup of currently existing Maya types as keys with their corresponding API type as values.
+    # Not a read only (static) dict as these can change (if you load a plugin)
+    # self.mayaTypesToApiTypes
+
+    # Lookup of currently existing Maya API types as keys with their corresponding Maya type as values.
+    # Not a read only (static) dict as these can change (if you load a plugin)
+    # In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )
+    # self.apiTypesToMayaTypes
+
+    # lookup tables for a direct conversion between Maya type to their MFn::Types enum
+    # self.mayaTypesToApiEnums
+
+    # lookup tables for a direct conversion between API type to their MFn::Types enum
+    # self.apiEnumsToMayaTypes
+
+
+    # Cache API types hierarchy, using MFn classes hierarchy and additional trials
+    # self.apiTypeHierarchy
+
+    # Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
+    # to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
+    # didn't follow latest Maya types additions...
+    # Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
+    # to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
+    # didn't follow latest Maya types additions...
+    RESERVED_API_HIERARCY = { 
+            'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
+            'kConstraint':'kTransform', 'kField':'kTransform', \
+            'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
+            'kDimension':'kShape', \
+            'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
+            'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
+            'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
+            'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
+            'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
+            'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
+            'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
+            'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
+            'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
+            'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
+            'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
+            'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' }
+
+    RESERVED_TYPES = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
+                'entity':'kDependencyNode', \
+                'constraint':'kConstraint', 'field':'kField', \
+                'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter', \
+                'dimensionShape':'kDimension', \
+                'abstractBaseCreate':'kCreate', 'polyCreator':'kPolyCreator', \
+                'polyModifier':'kMidModifier', 'subdModifier':'kSubdModifier', \
+                'curveInfo':'kCurveInfo', 'curveFromSurface':'kCurveFromSurface', \
+                'surfaceShape': 'kSurface', 'revolvedPrimitive':'kRevolvedPrimitive', 'plane':'kPlane', 'curveShape':'kCurve', \
+                'animCurve': 'kAnimCurve', 'resultCurve':'kResultCurve', 'cacheBase':'kCacheBase', 'filter':'kFilter',
+                'blend':'kBlend', 'ikSolver':'kIkSolver', \
+                'light':'kLight', 'renderLight':'kLight', 'nonAmbientLightShapeNode':'kNonAmbientLight', 'nonExtendedLightShapeNode':'kNonExtendedLight', \
+                'texture2d':'kTexture2d', 'texture3d':'kTexture3d', 'textureEnv':'kTextureEnv', \
+                'primitive':'kPrimitive', 'reflect':'kReflect', 'smear':'kSmear', \
+                'plugin':'kPlugin', 'THdependNode':'kPluginDependNode', 'THlocatorShape':'kPluginLocatorNode', 'pluginData':'kPluginData', \
+                'THdeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
+                'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
+                # creating these 2 crash Maya
+                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip',
+
+                'dynBase': 'kDynBase', 'polyPrimitive': 'kPolyPrimitive','nParticle': 'kNParticle', 'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry',
+    }
+
+
     
-    def __init__(self):
-        # Maya static info :
-        # Initializes various static look-ups to speed up Maya types conversions
-        self.apiClassInfo = {}
-        self.apiTypesToApiEnums = {}
-        self.apiEnumsToApiTypes = {}
+    SUB_CACHE_TYPES = [ApiMelBridgeCache]
     
-        self.apiTypesToApiClasses = {}
-    
-        # Reserved Maya types and API types that need a special treatment (abstract types)
-        # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
-        # strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
-        self.reservedMayaTypes = {}
-        self.reservedApiTypes = {}
-    
-        #: Lookup of currently existing Maya types as keys with their corresponding API type as values.
-        #: Not a read only (static) dict as these can change (if you load a plugin)
-        self.mayaTypesToApiTypes = {}
-    
-        #: Lookup of currently existing Maya API types as keys with their corresponding Maya type as values.
-        #: Not a read only (static) dict as these can change (if you load a plugin)
-        #: In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )
-        self.apiTypesToMayaTypes = {}
-    
-        #: lookup tables for a direct conversion between Maya type to their MFn::Types enum
-        self.mayaTypesToApiEnums = {}
-    
-        #: lookup tables for a direct conversion between API type to their MFn::Types enum
-        self.apiEnumsToMayaTypes = {}
-    
-    
-        # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
-        # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
-    
-    
-        #: Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
-        #: to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
-        #: didn't follow latest Maya types additions...
-        self.reservedApiHierarchy = { 
-                'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
-                'kConstraint':'kTransform', 'kField':'kTransform', \
-                'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
-                'kDimension':'kShape', \
-                'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
-                'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
-                'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
-                'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
-                'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
-                'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
-                'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
-                'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
-                'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
-                'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
-                'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
-                'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' }
-    
-        self.apiTypeHierarchy = {}
+    def _make_item_property(self, name, cache):
+        def _get_item():
+            getattr(cache, name)
+        _get_item.__name__ = '_get_%s' % name
+
+        def _set_item(val):
+            setattr(cache, name, val)
+        _set_item.__name__ = '_set_%s' % name
+
+        setattr(self, _get_item.__name__, _get_item)
+        setattr(self, _set_item.__name__, _set_item)
+        setattr(self, name, property(_get_item, _set_item))
         
-        self.apiToMelData = _util.defaultdict(dict)
-        self.apiClassOverrides = {}
+    def __init__(self):
+        super(ApiCache, self).__init__()
+        for cacheType in self.SUB_CACHE_TYPES:
+            # Initialize and store in attributes the sub-caches
+            cacheAttr = '_' + cacheType.NAME
+            subCache = cacheType()
+            setattr(self, cacheAttr, subCache)
 
-    def _buildMayaReservedTypes(self):
-        """
-        Build a list of Maya reserved types.
-        These cannot be created directly from the API, thus the dgMod trick to find the corresponding Maya type won't work
-        """
+            # make properties for each of the sub-cache's sub-items
+            for itemName in subCache.CACHE_NAMES:
+                self._make_item_property(itemName, subCache)
+        
+        for name in self.EXTRA_GLOBAL_NAMES:
+            self.initVal(name)
+            
+        self._buildMayaReservedTypes()
 
-        reservedTypes = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
-                    'entity':'kDependencyNode', \
-                    'constraint':'kConstraint', 'field':'kField', \
-                    'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter', \
-                    'dimensionShape':'kDimension', \
-                    'abstractBaseCreate':'kCreate', 'polyCreator':'kPolyCreator', \
-                    'polyModifier':'kMidModifier', 'subdModifier':'kSubdModifier', \
-                    'curveInfo':'kCurveInfo', 'curveFromSurface':'kCurveFromSurface', \
-                    'surfaceShape': 'kSurface', 'revolvedPrimitive':'kRevolvedPrimitive', 'plane':'kPlane', 'curveShape':'kCurve', \
-                    'animCurve': 'kAnimCurve', 'resultCurve':'kResultCurve', 'cacheBase':'kCacheBase', 'filter':'kFilter',
-                    'blend':'kBlend', 'ikSolver':'kIkSolver', \
-                    'light':'kLight', 'renderLight':'kLight', 'nonAmbientLightShapeNode':'kNonAmbientLight', 'nonExtendedLightShapeNode':'kNonExtendedLight', \
-                    'texture2d':'kTexture2d', 'texture3d':'kTexture3d', 'textureEnv':'kTextureEnv', \
-                    'primitive':'kPrimitive', 'reflect':'kReflect', 'smear':'kSmear', \
-                    'plugin':'kPlugin', 'THdependNode':'kPluginDependNode', 'THlocatorShape':'kPluginLocatorNode', 'pluginData':'kPluginData', \
-                    'THdeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
-                    'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
-                    # creating these 2 crash Maya
-                    'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip',
-
-                    'dynBase': 'kDynBase', 'polyPrimitive': 'kPolyPrimitive','nParticle': 'kNParticle', 'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry',
-        }
-        # no known api types: these do not have valid api types, so we add them in to avoid querying them on each load
-        invalidReservedTypes = {'deformableShape' : 'kInvalid', 'controlPoint' : 'kInvalid'}
-
-        # filter to make sure all these types exist in current version (some are Maya2008 only)
-        self.reservedMayaTypes = dict( (item[0], item[1]) for item in filter(lambda i:i[1] in self.apiTypesToApiEnums, reservedTypes.iteritems()) )
-        self.reservedMayaTypes.update(invalidReservedTypes)
-        # build reverse dict
-        self.reservedApiTypes = dict( (item[1], item[0]) for item in self.reservedMayaTypes.iteritems() )
 
     def _getMObject(self, nodeType, dagMod, dgMod) :
         """ Returns a queryable MObject from a given apiType or mayaType"""
@@ -210,9 +246,9 @@ class ApiCache(object):
         if parentType is None :
             parentType = 'kBase'
         # Reserved we can't determine it as we can't create the node, all we can do is check if it's
-        # in the self.reservedApiHierarchy
+        # in the self.RESERVED_API_HIERARCY
         if self.reservedApiTypes.has_key(apiType) :
-            return self.reservedApiHierarchy.get(apiType, None) == parentType
+            return self.RESERVED_API_HIERARCY.get(apiType, None) == parentType
         # Need the MFn::Types enum for the parentType
         if self.apiTypesToApiEnums.has_key(parentType) :
             typeInt = self.apiTypesToApiEnums[parentType]
@@ -230,7 +266,7 @@ class ApiCache(object):
     # can pass a list of types to check for being possible parents of apiType
     # or a dictionary of types:node to speed up testing
     def _parentFn(self, apiType, dagMod, dgMod, *args, **kwargs) :
-        """ Checks the given API type list, or API type:MObject dictionnary to return the first parent of apiType """
+        """ Checks the given API type list, or API type:MObject dictionary to return the first parent of apiType """
         if not kwargs :
             if not args :
                 args = ('kBase', )
@@ -240,9 +276,9 @@ class ApiCache(object):
                 if not kwargs.has_key(k) :
                     kwargs[k] = None
         # Reserved we can't determine it as we can't create the node, all we can do is check if it's
-        # in the self.reservedApiHierarchy
+        # in the self.RESERVED_API_HIERARCY
         if self.reservedApiTypes.has_key(apiType) :
-            p = self.reservedApiHierarchy.get(apiType, None)
+            p = self.RESERVED_API_HIERARCY.get(apiType, None)
             if p is not None :
                 for t in kwargs.keys() :
                     if p == t :
@@ -277,7 +313,7 @@ class ApiCache(object):
                                     stored = kwargs.get(q, None)
                                     if not stored :
                                         if self.reservedApiTypes.has_key(q) :
-                                            isFirst = not self.reservedApiHierarchy.get(q, None) == p
+                                            isFirst = not self.RESERVED_API_HIERARCY.get(q, None) == p
                                         else :
                                             stored = self._getMObject(q, dagMod, dgMod)
                                             if not kwargs.get(q, None) :
@@ -296,7 +332,14 @@ class ApiCache(object):
 
     def _createNodes(self, dagMod, dgMod, *args) :
         """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
-            can be used only as long as dagMod and dgMod are not deleted"""
+            can be used only as long as dagMod and dgMod are not deleted
+            
+            returns result, mayaResult, unableToCreate
+            
+            where:
+                result is a dict mapping from an apiType to an MObject of that type
+                mayaResult is a dict mapping from mayaType to apiType
+                unableToCreate is a set of mayaTypes that we were unable to make"""
             
         # Put in a debug, because this can be crashy
         _logger.debug("Starting ApiCache._createNodes...")
@@ -340,6 +383,22 @@ class ApiCache(object):
 
         self.apiTypesToApiEnums = dict( inspect.getmembers(api.MFn, lambda x:type(x) is int))
         self.apiEnumsToApiTypes = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
+
+
+    def _buildMayaReservedTypes(self):
+        """
+        Build a list of Maya reserved types.
+        These cannot be created directly from the API, thus the dgMod trick to find the corresponding Maya type won't work
+        """
+
+        # no known api types: these do not have valid api types, so we add them in to avoid querying them on each load
+        invalidReservedTypes = {'deformableShape' : 'kInvalid', 'controlPoint' : 'kInvalid'}
+
+        # filter to make sure all these types exist in current version (some are Maya2008 only)
+        self.reservedMayaTypes = dict( (item[0], item[1]) for item in filter(lambda i:i[1] in self.apiTypesToApiEnums, self.RESERVED_TYPES.iteritems()) )
+        self.reservedMayaTypes.update(invalidReservedTypes)
+        # build reverse dict
+        self.reservedApiTypes = dict( (item[1], item[0]) for item in self.reservedMayaTypes.iteritems() )
 
 
     ## Initialises MayaTypes for a faster later access
@@ -438,7 +497,6 @@ class ApiCache(object):
         dagMod = api.MDagModifier()
         dgMod = api.MDGModifier()
 
-        #nodeDict = self._createNodes(dagMod, dgMod, *self.apiTypesToApiEnums.keys())
         nodeDict, mayaDict, unableToCreate = self._createNodes( dagMod, dgMod, *allMayaTypes )
         if len(unableToCreate) > 0:
             _logger.warn("Unable to create the following nodes: %s" % ", ".join(unableToCreate))
@@ -471,12 +529,12 @@ class ApiCache(object):
     def addMayaType(self, mayaType, apiType=None, updateObj=None):
         """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
 
-            - apiCache.mayaTypesToApiTypes
-            - apiCache.apiTypesToMayaTypes
-            - apiCache.apiTypesToApiEnums
-            - apiCache.apiEnumsToApiTypes
-            - apiCache.mayaTypesToApiEnums
-            - apiCache.apiEnumsToMayaTypes
+            - mayaTypesToApiTypes
+            - apiTypesToMayaTypes
+            - apiTypesToApiEnums
+            - apiEnumsToApiTypes
+            - mayaTypesToApiEnums
+            - apiEnumsToMayaTypes
             
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
@@ -495,8 +553,8 @@ class ApiCache(object):
                 self.apiTypesToMayaTypes[apiType][mayaType] = defType
 
             # these are static and are build elsewhere
-            #apiCache.apiTypesToApiEnums[apiType] = apiEnum
-            #apiCache.apiTypesToApiClasses[apiEnum] = apiType
+            #self.apiTypesToApiEnums[apiType] = apiEnum
+            #self.apiTypesToApiClasses[apiEnum] = apiType
 
             self.mayaTypesToApiEnums[mayaType] = apiEnum
             if not self.apiEnumsToMayaTypes.has_key(apiEnum) :
@@ -507,12 +565,12 @@ class ApiCache(object):
     def removeMayaType(self, mayaType, updateObj=None):
         """ Remove a type from the MayaTypes lists.
 
-            - apiCache.mayaTypesToApiTypes
-            - apiCache.apiTypesToMayaTypes
-            - apiCache.apiTypesToApiEnums
-            - apiCache.apiEnumsToApiTypes
-            - apiCache.mayaTypesToApiEnums
-            - apiCache.apiEnumsToMayaTypes
+            - mayaTypesToApiTypes
+            - apiTypesToMayaTypes
+            - apiTypesToApiEnums
+            - apiEnumsToApiTypes
+            - mayaTypesToApiEnums
+            - apiEnumsToMayaTypes
             
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
@@ -543,25 +601,21 @@ class ApiCache(object):
         """
         Used to rebuild api cache, either by loading from a cache file, or rebuilding from scratch.
         """
+        self._mayaApiMelBridge.build()
+        super(ApiCache, self).build()
 
-        data = startup.loadCache( 'mayaApi', 'the API cache', compressed=True )
+    def _load(self):
+        data = super(ApiCache, self)._load()
+        # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
+        # even though they weren't used...
+        if len(data) != len(self.CACHE_NAMES):
+            if versions.current() < versions.v2012:
+                data = data[2:]
+            else:
+                # we need to rebuild, return None
+                data = None
+        return data
 
-        self._buildMayaReservedTypes()
-
-        if data is not None:
-
-            #self.reservedMayaTypes = data[0]
-            #self.reservedApiTypes = data[1]
-            self.apiTypesToApiEnums = data[2]
-            self.apiEnumsToApiTypes = data[3]
-            self.mayaTypesToApiTypes = data[4]
-            self.apiTypesToApiClasses = data[5]
-            self.apiTypeHierarchy = data[6]
-            self.apiClassInfo = data[7]
-        else:
-            self.rebuild()
-        self.loadApiToMelBridge()
-    
     def rebuild(self):
         """Rebuild the api cache from scratch
         
@@ -582,75 +636,29 @@ class ApiCache(object):
 
         # fill out the data structures
         self._buildApiTypesList()
-        #self.apiTypesToApiEnums, self.apiTypesToApiClasses = self._buildApiTypesList()
         #_buildMayaTypesList()
 
         self._buildApiTypeHierarchy()
 
         # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
         _logger.info( 'merging in dictionary of manual api overrides')
-        _util.mergeCascadingDicts( self.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
+        self._mergeClassOverrides()
         
         self.saveApiCache()
 
-    def loadApiToMelBridge(self):
-        data = startup.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
-        if data is not None:
-            # maya 8.5 fix: convert dict to defaultdict
-            self.apiToMelData, self.apiClassOverrides = data
-            self.apiToMelData = _util.defaultdict(dict, self.apiToMelData)
+    def _mergeClassOverrides(self):
+        _util.mergeCascadingDicts( self.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
+        
+    def melBridgeContents(self):
+        return self._mayaApiMelBridge.contents()
     
-        return self.apiToMelData, self.apiClassOverrides
-
-    def update(self, obj, cacheNames=None):
-        '''Update all the various data from the given object, which should
-        either be a dictionary or an object with the caches stored in attributes
-        on it.
-        '''
-        if cacheNames is None:
-            cacheNames = self.API_CACHE_NAMES + self.MEL_BRIDGE_CACHE_NAMES + self.CONVERSION_DICT_NAMES
-            
-        if isinstance(obj, dict):
-            for cacheName in cacheNames:
-                setattr(self, cacheName, obj[cacheName])
-        else:
-            for cacheName in cacheNames:
-                setattr(self, cacheName, getattr(obj, cacheName))
-        
-
-    def _saveCaches(self, cacheFile, cacheDesc, cacheNames, obj=None, **kwargs):
-        if obj is not None:
-            self.update(obj, cacheNames)
-        caches = tuple( getattr(self, x) for x in cacheNames )
-        startup.writeCache( caches, cacheFile, cacheDesc, **kwargs )
-        
-    def saveApiCache(self, obj=None):
-        '''Saves the mayaApi cache
-        
-        Will optionally update the caches from the given object (which may be
-        a dictionary, or an object with the caches stored in attributes on it)
-        before saving
-        '''
-        self._saveCaches('mayaApi', 'the API cache', self.API_CACHE_NAMES)
-
-
-    def saveApiToMelBridge(self, obj=None):
-        '''Saves the apiToMelData cache
-        
-        Will optionally update the caches from the given object (which may be
-        a dictionary, or an object with the caches stored in attributes on it)
-        before saving
-        '''
-        self._saveCaches('mayaApiMelBridge', 'the api-mel bridge',
-                         self.MEL_BRIDGE_CACHE_NAMES, useVersion=False)
-        
-    def caches(self):
-        return tuple( getattr(self, x) for x in self.API_CACHE_NAMES )
+    def extraDicts(self):
+        return tuple( getattr(self, x) for x in self.EXTRA_GLOBAL_NAMES )
     
-    def melBridgeCaches(self):
-        return tuple( getattr(self, x) for x in self.MEL_BRIDGE_CACHE_NAMES )
-    
-    def conversionDicts(self):
-        return tuple( getattr(self, x) for x in self.CONVERSION_DICT_NAMES )
+class AllApiCache(startup.MayaCache):
+    '''Not a real MayaCache, but has the same interface, and handles loading
+    of the api and mel-bridge caches
+    '''
+
 
 

@@ -6,7 +6,9 @@ import sys, codecs, os, os.path, re, platform
 
 from collections import *
 
-from namedtuple import namedtuple
+# If we're using python < 2.6, collections doesn't have namedtuple
+if 'namedtuple' not in globals():
+    from namedtuple import namedtuple
 from common import *
 from arguments import *
 from utilitytypes import *

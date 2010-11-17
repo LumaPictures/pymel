@@ -12,8 +12,7 @@ import pymel.versions as versions
 from startup import loadCache
 import plogging as plogging
 import cmdcache
-from cmdcache import *
-import apicache as apicache
+import apicache
 import pmcmds
 import maya.cmds as cmds
 import maya.mel as mm
@@ -21,39 +20,65 @@ import maya.mel as mm
 
 _logger = plogging.getLogger(__name__)
 
-# Initialize the caches
+# Initialize the cache globals
 
-#-------------------------------------------------------------------------------------
-_start = time.time()
+# Though the global variables and the attributes on _apiCacheInst SHOULD
+# always point to the same objects - ie,
+#    _apiCacheInst.apiClassInfo is apiClassInfo
+# should be true, I'm paranoid they will get out of sync, so I'm
+# treating _apiCacheInst as though it ISN'T in sync, and needs to be updated
+# whenever we interact with it... 
 
-_apiCacheInst = apicache.ApiCache()
-_apiCacheInst.build()
+def loadApiCache():
+    _start = time.time()
+    
+    global _apiCacheInst
+    
+    _apiCacheInst = apicache.ApiCache()
+    _apiCacheInst.build()
+    _setApiCacheGlobals()
+    
+    _elapsed = time.time() - _start
+    _logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
+    
+def _setApiCacheGlobals():
+    global _apiCacheInst
+    
+    for names, values in [ (_apiCacheInst.CACHE_NAMES, _apiCacheInst.contents()),
+                           (_apiCacheInst._mayaApiMelBridge.CACHE_NAMES,
+                                _apiCacheInst.melBridgeContents()),
+                           (_apiCacheInst.EXTRA_GLOBAL_NAMES,
+                                _apiCacheInst.extraDicts()) ]:
+        for name, val in zip(names, values):
+            globals()[name] = val
+    
+def loadCmdCache():
+    _start = time.time()
+    
+    global cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds
+    
+    cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
+    
+    if time:
+        _elapsed = time.time() - _start
+        _logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
 
-# Should we 'automate' this, using setattr and ApiCache.API_CACHE_NAMES?
-# leaving it 'manual' for now, as it makes it easier to find out where these
-# come from by browsing the code...
-(reservedMayaTypes, reservedApiTypes, apiTypesToApiEnums, apiEnumsToApiTypes,
-mayaTypesToApiTypes, apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo) = _apiCacheInst.caches()
-
-apiToMelData, apiClassOverrides =  _apiCacheInst.melBridgeCaches()
-
-apiTypesToMayaTypes, mayaTypesToApiEnums, apiEnumsToMayaTypes = _apiCacheInst.conversionDicts()
-
-_elapsed = time.time() - _start
-_logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
-
-#-------------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------------
-_start = time.time()
-
-cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
-
-_elapsed = time.time() - _start
-_logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
-
-#-------------------------------------------------------------------------------------
+def saveApiCache():
+    global _apiCacheInst
+    _apiCacheInst.save(globals())
+    
+def saveApiMelBridgeCache():
+    global _apiCacheInst
+    _apiCacheInst._mayaApiMelBridge.save(globals())
+    
+def mergeApiClassOverrides():
+    _apiCacheInst.update(globals())
+    _apiCacheInst._mayaApiMelBridge.update(globals())
+    _apiCacheInst._mergeClassOverrides()
+    _setApiCacheGlobals()
+    
+loadApiCache()
+loadCmdCache()
 
 
 #---------------------------------------------------------------
@@ -2911,9 +2936,9 @@ def addMayaType(mayaType, apiType=None):
     if apiType is None:
         apiType = mayaTypeToApiType(mayaType)
         
-    # The objects on _apiCachInst and in factories SHOULD
-    # always be the same... but I'm paranoid, so I use updateObj
+    global _apiCacheInst
     _apiCacheInst.addMayaType(mayaType, apiType, globals())
+    _setApiCacheGlobals()
 
 def removeMayaType(mayaType):
     """ Remove a type from the MayaTypes lists.
@@ -2925,9 +2950,9 @@ def removeMayaType(mayaType):
         - mayaTypesToApiEnums
         - apiEnumsToMayaTypes
     """
-    # The objects on _apiCachInst and in factories SHOULD
-    # always be the same... but I'm paranoid, so I use updateObj
+    global _apiCacheInst
     _apiCacheInst.removeMayaType(mayaType, globals())
+    _setApiCacheGlobals()
 
 
 def registerVirtualClass( cls, nameRequired=False ):

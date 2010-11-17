@@ -8,8 +8,6 @@ import pymel.mayautils as mayautils
 import startup
 _logger = plogging.getLogger(__name__)
 
-__all__ = [ 'cmdlist', 'nodeHierarchy', 'uiClassList', 'nodeCommandList', 'moduleCmds' ]
-
 moduleNameShortToLong = {
     'modeling'   : 'Modeling',
     'rendering'  : 'Rendering',
@@ -793,6 +791,16 @@ def _getNodeHierarchy( version=None ):
     return [ (x.key, tuple( [y.key for y in x.parents()]), tuple( [y.key for y in x.childs()] ) ) \
              for x in nodeHierarchyTree.preorder() ]
 
+class CmdCache(object):
+    def __init__(self):
+        self.cmdlist = {}
+        self.nodeHierarchy = []
+        self.uiClassList = []
+        self.nodeCommandList = []
+        self.moduleCmds = {}
+        
+    
+
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
 
@@ -809,7 +817,6 @@ def buildCachedData() :
         cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = data
 
     else: # or not isinstance(cmdlist,list):
-        cmdlist = {}
         _logger.info("Rebuilding the list of Maya commands...")
 
         nodeHierarchy = _getNodeHierarchy(long_version)
@@ -823,7 +830,7 @@ def buildCachedData() :
             moduleNameShortToLong[moduleName] = getModuleCommandList( longname, long_version )
 
         tmpCmdlist = inspect.getmembers(cmds, callable)
-        cmdlist = {}
+
         #moduleCmds = defaultdict(list)
         moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
         moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
@@ -934,5 +941,3 @@ def buildCachedData() :
                 moduleCmds[currModule].pop(id)
                 moduleCmds[module].append(funcName)
     return (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds)
-
-cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()
