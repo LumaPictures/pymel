@@ -398,12 +398,17 @@ class ApiCache(startup.MayaCache):
         self.apiEnumsToApiTypes = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
 
 
-    def _buildMayaReservedTypes(self):
+    def _buildMayaReservedTypes(self, force=False):
         """
         Build a list of Maya reserved types.
         These cannot be created directly from the API, thus the dgMod trick to find the corresponding Maya type won't work
         """
-
+        # Must have already built apiTypesToApiEnums
+        
+        if not force and (getattr(self, 'reservedMayaTypes', None)  
+                          and getattr(self, 'reservedApiTypes', None) ):
+            return
+        
         # no known api types: these do not have valid api types, so we add them in to avoid querying them on each load
         invalidReservedTypes = {'deformableShape' : 'kInvalid', 'controlPoint' : 'kInvalid'}
 
@@ -614,8 +619,11 @@ class ApiCache(startup.MayaCache):
         """
         Used to rebuild api cache, either by loading from a cache file, or rebuilding from scratch.
         """
-        self._mayaApiMelBridge.build()
         super(ApiCache, self).build()
+        # If we loaded from cache, we still need to rebuild the reserved types
+        self._buildMayaReservedTypes(force=False)
+        self._mayaApiMelBridge.build()
+
 
     def _load(self):
         data = super(ApiCache, self)._load()
@@ -636,20 +644,12 @@ class ApiCache(startup.MayaCache):
         rebuilds it by parsing the docs, etc.
         """
         _logger.info( "Rebuilding the API Caches..." )
-        
-        # In the normal course of things, rebuild is only called by build,
-        # and build calls _buildMayaReservedTypes, so it won't usualy need to
-        # be called from inside here...
-        # ...however, for debugging, etc, it can be handy to force a rebuild
-        # of the cache, without bothering to call build(), so I'm sticking
-        # this check in here to make rebuild 'self-sufficient'
-        if not ( getattr(self, 'reservedMayaTypes', None)
-                 and getattr(self, 'reservedApiTypes', None) ):
-            self._buildMayaReservedTypes()
 
         # fill out the data structures
         self._buildApiTypesList()
         #_buildMayaTypesList()
+        
+        self._buildMayaReservedTypes(force=True)
 
         self._buildApiTypeHierarchy()
 
