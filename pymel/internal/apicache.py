@@ -504,7 +504,7 @@ class ApiCache(startup.MayaCache):
         _logger.info( 'merging in dictionary of manual api overrides')
         self._mergeClassOverrides()
         
-        self.saveApiCache()
+        self.save()
 
     def _mergeClassOverrides(self):
         _util.mergeCascadingDicts( self.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
