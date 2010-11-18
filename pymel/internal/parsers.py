@@ -446,12 +446,28 @@ class ApiDocParser(object):
         """remove all common prefixes from list of enum values"""
         if len(enumDict) > 1:
             enumList = enumDict.keys()
-            splitEnums = [ [ y for y in re.split( '([A-Z0-9][a-z0-9]*)', x ) if y ] for x in enumList ]
-            splitEnumsCopy = splitEnums[:]
-            for partList in zip( *splitEnumsCopy ):
+            capitalizedRe =  re.compile('([A-Z0-9][a-z0-9]*)')
+            
+            # We first aim to remove all similar 'camel-case-group' prefixes, ie:
+            # if our enums look like:
+            #    kFooBar
+            #    kFooSomeThing
+            #    kFooBunnies
+            # we want to get Bar, SomeThing, Bunnies
+            
+            # {'kFooBar':0, 'kFooSomeThing':1} 
+            #     => [['k', 'Foo', 'Some', 'Thing'], ['k', 'Foo', 'Bar']]
+            splitEnums = [ [ y for y in capitalizedRe.split( x ) if y ] for x in enumList ]
+            
+            # [['k', 'Invalid'], ['k', 'Pre', 'Transform']]
+            #     => [('k', 'k'), ('Foo', 'Foo'), ('Some', 'Bar')]
+            splitZip = zip( *splitEnums )
+            for partList in splitZip:
                 if  tuple([partList[0]]*len(partList)) == partList:
                     [ x.pop(0) for x in splitEnums ]
                 else: break
+            # splitEnums == [['Some', 'Thing'], ['Bar']]    
+            
             joinedEnums = [ util.uncapitalize(''.join(x), preserveAcronymns=True ) for x in splitEnums]
             for i, enum in enumerate(joinedEnums):
                 if _iskeyword(enum):
@@ -465,7 +481,7 @@ class ApiDocParser(object):
                     #print enumList
                     #break
 
-            pymelEnumDict = dict( [ (k2,enumDict[k1]) for k1, k2 in zip( enumList, joinedEnums ) ] )
+            pymelEnumDict = dict( (new,enumDict[orig]) for orig, new in zip( enumList, joinedEnums ) )
 
             #print "enums", joinedEnums
             return pymelEnumDict
@@ -649,7 +665,7 @@ class ApiDocParser(object):
                     for val, pyval in zip(enumValues,pymelEnumList):
                         enumDocs[pyval] = enumDocs[val]
 
-                    enumInfo = {'values' : util.Enum(self.currentMethod, enumValues),
+                    enumInfo = {'values' : util.Enum(self.currentMethod, enumValues, multiKeys=True),
                                 'valueDocs' : enumDocs,
 
                                   #'doc' : methodDoc
@@ -658,7 +674,7 @@ class ApiDocParser(object):
                     #print enumList
 
                     self.enums[self.currentMethod] = enumInfo
-                    self.pymelEnums[self.currentMethod] = util.Enum(self.currentMethod, pymelEnumList)
+                    self.pymelEnums[self.currentMethod] = util.Enum(self.currentMethod, pymelEnumList, multiKeys=True)
 
                 except AttributeError, msg:
                     _logger.error( "FAILED ENUM: %s", msg )

@@ -58,7 +58,7 @@ __license__ = "Choice of GPL or Python license"
 __url__ = "http://cheeseshop.python.org/pypi/enum/"
 __version__ = "0.4.3"
 
-import operator
+import operator
 
 class EnumException(Exception):
     """ Base class for all exceptions in this module """
@@ -90,6 +90,15 @@ class EnumImmutableError(TypeError, EnumException):
 
     def __str__(self):
         return "Enumeration does not allow modification"
+    
+class EnumBadDefaultKeyError(ValueError, EnumException):
+    """ Raised when a supplied default key for a value was not present """
+    def __init__(self, val, key):
+        self.val = val
+        self.key = key
+
+    def __str__(self):
+        return "Given default key %s for index %s not present in keys" % (self.key, self.val)
 
 class EnumValue(object):
     """ A specific value of an enumerated type """
@@ -164,36 +173,101 @@ class EnumValue(object):
 
         return result
 
-
+# Modified to support multiple keys for the same value
 class Enum(object):
     """ Enumerated type """
 
     def __init__(self, name, keys, **kwargs):
-        """ Create an enumeration instance """
+        """ Create an enumeration instance
+
+        :Parameters:
+        name : `string`
+            The name of this enumeration
+        keys : `dict` from `string` to `int`, or iterable of keys
+            The keys for the enumeration; if this is a dict, it should map
+            from key to it's value (ie, from string to int)
+            Otherwise, it should be an iterable of keys, where their index
+            within the iterable is their value -ie, passing either of these
+            would give the same result:
+                {'Red':0,'Green':1,'Blue':2}
+                ('Red', 'Green', 'Blue')
+        multiKeys : `bool` 
+            Defaults to False
+            If True, allows multiple keys per value - ie,
+                Enum('Names', {'Bob':0,'Charles':1,'Chuck':1}, multiKeys=True)
+            When looking up a key from a value, a single key is always returned
+            - see defaultKeys for a discussion of which key this is.
+            When multiKeys is enabled, the length of keys and values may not be
+            equal.
+            If False (default), then the end result enum will always have a
+            one-to-one key / value mapping; if multiple keys are supplied for a
+            a single value, then which key is used is indeterminate (an error
+            will not be raised).
+        defaultKeys : `dict` from `int` to `string`
+            If given, should be a map from values to the 'default' key to
+            return for that value when using methods like getKey(index)
+            This will only be used if the value actually has multiple keys
+            mapping to it, and in this case, the specified default key must be
+            present within keys (if not, a EnumBadDefaultKeyError is raised).
+            If there are multiple keys for a given value, and no defaultKey is
+            provided, which one is used is undefined.
+        """
 
         if not keys:
             raise EnumEmptyError()
 
+        defaultKeys = kwargs.pop('defaultKeys', {})
+        multiKeys = kwargs.pop('multiKeys', False)
+
+        # Keys for which there are multiple keys mapping to the same
+        # value, but are not the default key for that value 
+        extraKeys = {}
+        
         if operator.isMappingType(keys):
-            reverse = dict( [ (v,k) for k,v in keys.items() ] )
+            if not multiKeys:
+                reverse = dict( [ (v,k) for k,v in keys.items() ] )
+            else:
+                reverse = dict()
+                for key, val in keys.iteritems():
+                    reverse.setdefault(val, []).append(key)
+                for val, keyList in reverse.iteritems():
+                    if len(keyList) == 1:
+                        defaultKey = keyList[0]
+                    else:
+                        if val in defaultKeys:
+                            defaultKey = defaultKeys[val]
+                            if defaultKey not in keyList:
+                                raise EnumBadDefaultKeyError(val, defaultKey)
+                        else:
+                            defaultKey = keyList[0]
+                        for multiKey in keyList:
+                            if multiKey != defaultKey:
+                                extraKeys[key] = val
+                    reverse[val] = defaultKey
             keygen = [ ( v, reverse[v]) for v in sorted(reverse.keys()) ]
             values = {}
         else:
             keygen = enumerate( keys )
             values = [None] * len(keys)
-
+            
         value_type= kwargs.get('value_type', EnumValue)
         #keys = tuple(keys)
 
         docs = {}
+        def getDocs(key):
+            if isinstance(key, (tuple, list)) and len(key)==2:
+                key, doc = key
+                docs[val]=doc
+            else:
+                doc = None
+            return key, doc
+        
         keyDict = {}
         for val, key in keygen:
             #print val, key
             kwargs = {}
-            if isinstance(key, tuple) or isinstance(key, list) and len(key)==2:
-                key, doc = key
-                docs[val]=doc
-                kwargs['doc'] = doc
+            key, doc = getDocs(key)
+            kwargs['doc'] = doc
             value = value_type(self, val, key, **kwargs)
             values[val] = value
             keyDict[key] = val
@@ -201,6 +275,11 @@ class Enum(object):
                 super(Enum, self).__setattr__(key, value)
             except TypeError, e:
                 raise EnumBadKeyError(key)
+        
+        for key, val in extraKeys.iteritems():
+            # throw away any docs for the extra keys
+            key, _ = getDocs(key)
+            keyDict[key] = val
 
         super(Enum, self).__setattr__('_keys', keyDict)
         super(Enum, self).__setattr__('_values', values)
@@ -239,10 +318,12 @@ class Enum(object):
         if isinstance(value, basestring):
             is_member = (value in self._keys)
         else:
-            try:
-                is_member = (value in self._values)
-            except EnumValueCompareError, e:
-                is_member = False
+            # EnumValueCompareError was never defined... 
+#            try:
+#                is_member = (value in self._values)
+#            except EnumValueCompareError:
+#                is_member = False
+            is_member = (value in self._values)
         return is_member
 
     def getIndex(self, key):
