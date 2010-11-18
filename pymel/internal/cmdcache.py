@@ -582,6 +582,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     cmdInfo['resultNeedsUnpacking'] = True
                 elif not obj:
                     raise ValueError, "returned object is an empty list"
+                objTransform = obj[0]
                 obj = obj[-1]
 
 
@@ -598,7 +599,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         _logger.debug("failed creation: %s", msg)
 
     else:
-
+        objType = cmds.objectType(obj)
         #------------------
         # TESTING
         #------------------
@@ -609,6 +610,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
         hasQueryFlag = flags.has_key( 'query' )
         hasEditFlag = flags.has_key( 'edit' )
+
+        anyNumRe = re.compile('\d+')
 
         for flag in sorted(flags.keys()):
             flagInfo = flags[flag]
@@ -645,6 +648,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
                 cmd = _formatCmd(funcName, flagargs, kwargs)
                 try:
+                    _logger.debug(cmd)
                     val = func( *flagargs, **kwargs )
                     #_logger.debug(val)
                     resultType = _objectToType(val)
@@ -682,7 +686,6 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                             val = None
 
                     else:
-                        _logger.debug(cmd)
                         _logger.debug("\tsucceeded")
                         _logger.debug('\tresult: %s', val.__repr__())
                         _logger.debug('\tresult type:    %s', resultType)
@@ -742,11 +745,43 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
                     kwargs = {'edit':True, flag:val}
                     cmd = _formatCmd(funcName, args, kwargs)
-                    val = func( *args, **kwargs )
                     _logger.debug(cmd)
+
+                    # some commands will either delete or rename a node, ie:
+                    #     spaceLocator(e=1, name=...)
+                    #     container(e=1, removeContainer=True )
+                    # ...which will then make subsequent cmds fail.
+                    # To get around this, we need to undo the cmd.
+                    try:
+                        cmds.undoInfo(openChunk=True)
+                        editResult = func( *args, **kwargs )
+                    finally:
+                        cmds.undoInfo(closeChunk=True)
+
+                    if not cmds.objExists(obj):
+                        # cmds.camera(e=1, name=...) does weird stuff - it
+                        # actually renames the parent transform, even if you give
+                        # the name of the shape... which means the shape
+                        # then gets a second 'Shape1' tacked at the end...
+                        # ...and in addition, undo is broken as well.
+                        # So we need a special case for this, where we rename...
+                        if objType == 'camera' and flag == 'name':
+                            _logger.info('\t(Undoing camera rename)')
+                            renamePattern = anyNumRe.sub('*', obj)
+                            possibleRenames = cmds.ls(renamePattern, type=objType)
+                            possibleRenames = [x for x in possibleRenames
+                                               if x not in allObjsBegin]
+                            # newName might not be the exact same as our original,
+                            # but as long as it's the same maya type, and isn't
+                            # one of the originals, it shouldn't matter...
+                            newName = possibleRenames[-1]
+                            cmds.rename(newName, obj)
+                        else:
+                            _logger.info('\t(Undoing cmd)')
+                            cmds.undo()
                     _logger.debug("\tsucceeded")
-                    #_logger.debug('\t%s', val.__repr__())
-                    #_logger.debug('\t%s %s', argtype, type(val))
+                    #_logger.debug('\t%s', editResult.__repr__())
+                    #_logger.debug('\t%s %s', argtype, type(editResult))
                     #_logger.debug("SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype']))
                 except TypeError, msg:
                     if str(msg).startswith( 'Invalid flag' ):
@@ -791,7 +826,10 @@ def _getNodeHierarchy( version=None ):
     return [ (x.key, tuple( [y.key for y in x.parents()]), tuple( [y.key for y in x.childs()] ) ) \
              for x in nodeHierarchyTree.preorder() ]
 
-class CmdCache(object):
+class CmdCache(startup.MayaCache):
+    CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList nodeCommandList moduleCmds'''
+    
+    
     def __init__(self):
         self.cmdlist = {}
         self.nodeHierarchy = []
@@ -801,143 +839,145 @@ class CmdCache(object):
         
     
 
-def buildCachedData() :
-    """Build and save to disk the list of Maya Python commands and their arguments"""
-
-    # With extension can't get docs on unix 64
-    # path is
-    # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
-    # and not
-    # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    long_version = versions.installName()
-
-    data = startup.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
-
-    if data is not None:
-        cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = data
-
-    else: # or not isinstance(cmdlist,list):
-        _logger.info("Rebuilding the list of Maya commands...")
-
-        nodeHierarchy = _getNodeHierarchy(long_version)
-        nodeFunctions = [ x[0] for x in nodeHierarchy ]
-        nodeFunctions += nodeTypeToNodeCommand.values()
-
-        #nodeHierarchyTree = trees.IndexedTree(nodeHierarchy)
-        uiClassList = UI_COMMANDS
-        nodeCommandList = []
-        for moduleName, longname in moduleNameShortToLong.items():
-            moduleNameShortToLong[moduleName] = getModuleCommandList( longname, long_version )
-
-        tmpCmdlist = inspect.getmembers(cmds, callable)
-
-        #moduleCmds = defaultdict(list)
-        moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
-        moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
-
-        for funcName, data in tmpCmdlist :
-            # determine to which module this function belongs
-            module = None
-            if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
+    # haven't truly ported this over to startup.MayaCache yet... on todo list
+    def buildCachedData(self) :
+        """Build and save to disk the list of Maya Python commands and their arguments"""
+    
+        # With extension can't get docs on unix 64
+        # path is
+        # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
+        # and not
+        # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
+        
+        long_version = versions.installName()
+        
+        data = startup.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
+    
+        if data is not None:
+            self.cmdlist,self.nodeHierarchy,self.uiClassList,self.nodeCommandList,self.moduleCmds = data
+    
+        else: # or not isinstance(self.cmdlist,list):
+            _logger.info("Rebuilding the list of Maya commands...")
+    
+            self.nodeHierarchy = _getNodeHierarchy(long_version)
+            nodeFunctions = [ x[0] for x in self.nodeHierarchy ]
+            nodeFunctions += nodeTypeToNodeCommand.values()
+    
+            #nodeHierarchyTree = trees.IndexedTree(self.nodeHierarchy)
+            self.uiClassList = UI_COMMANDS
+            self.nodeCommandList = []
+            for moduleName, longname in moduleNameShortToLong.items():
+                moduleNameShortToLong[moduleName] = getModuleCommandList( longname, long_version )
+    
+            tmpCmdlist = inspect.getmembers(cmds, callable)
+    
+            #self.moduleCmds = defaultdict(list)
+            self.moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
+            self.moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
+    
+            for funcName, data in tmpCmdlist :
+                # determine to which module this function belongs
                 module = None
-            elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
-                module = 'context'
-            #elif funcName in uiClassList:
-            #    module = 'uiClass'
-            #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
-            #    module = 'node'
-            else:
-                for moduleName, commands in moduleNameShortToLong.iteritems():
-                    if funcName in commands:
-                        module = moduleName
-                        break
-                if module is None:
-                    if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
-                        module = 'runtime'
-                    else:
-                        module = 'other'
-
-            cmdInfo = {}
-
-            if module:
-                moduleCmds[module].append(funcName)
-
-            if module != 'runtime':
-                cmdInfo = getCmdInfo(funcName, long_version)
-
-                if module != 'windows':
-                    if funcName in nodeFunctions:
-                        nodeCommandList.append(funcName)
-                        cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=True, verbose=True  )
-                    #elif module != 'context':
-                    #    cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=True  )
-
-            cmdInfo['type'] = module
-            flags = getCallbackFlags(cmdInfo)
-            if flags:
-                cmdInfo['callbackFlags'] = flags
-
-            cmdlist[funcName] = cmdInfo
-
-
-#            # func, args, (usePyNode, baseClsName, nodeName)
-#            # args = dictionary of command flags and their data
-#            # usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
-#            # baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
-#            # nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
-#            try:
-#                cmdlist[funcName] = args, pymelCmdsList[funcName] )
-#            except KeyError:
-#                # context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
-#                if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
-#                     cmdlist[funcName] = (funcName, args, (False, None, None) )
-#                else:
-#                    cmdlist[funcName] = (funcName, args, () )
-
-        # split the cached data for lazy loading
-        cmdDocList = {}
-        examples = {}
-        for cmdName, cmdInfo in cmdlist.iteritems():
-            try:
-                examples[cmdName] = cmdInfo.pop('example')
-            except KeyError:
-                pass
-
-            newCmdInfo = {}
-            if 'description' in cmdInfo:
-                newCmdInfo['description'] = cmdInfo.pop('description')
-            newFlagInfo = {}
-            if 'flags' in cmdInfo:
-                for flag, flagInfo in cmdInfo['flags'].iteritems():
-                    newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
-                newCmdInfo['flags'] = newFlagInfo
-
-            if newCmdInfo:
-                cmdDocList[cmdName] = newCmdInfo
-
-        startup.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds),
-                              'mayaCmdsList', 'the list of Maya commands',compressed=True )
-
-        startup.writeCache( cmdDocList,
-                              'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
-
-        startup.writeCache( examples,
-                              'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
-
-    # corrections that are always made, to both loaded and freshly built caches
-
-    util.mergeCascadingDicts( cmdlistOverrides, cmdlist )
-    # add in any nodeCommands added after cache rebuild
-    nodeCommandList = set(nodeCommandList).union(nodeTypeToNodeCommand.values())
-    nodeCommandList = sorted( nodeCommandList )
-
-
-    for module, funcNames in moduleCommandAdditions.iteritems():
-        for funcName in funcNames:
-            currModule = cmdlist[funcName]['type']
-            if currModule != module:
-                cmdlist[funcName]['type'] = module
-                id = moduleCmds[currModule].index(funcName)
-                moduleCmds[currModule].pop(id)
-                moduleCmds[module].append(funcName)
-    return (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds)
+                if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
+                    module = None
+                elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
+                    module = 'context'
+                #elif funcName in self.uiClassList:
+                #    module = 'uiClass'
+                #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+                #    module = 'node'
+                else:
+                    for moduleName, commands in moduleNameShortToLong.iteritems():
+                        if funcName in commands:
+                            module = moduleName
+                            break
+                    if module is None:
+                        if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
+                            module = 'runtime'
+                        else:
+                            module = 'other'
+    
+                cmdInfo = {}
+    
+                if module:
+                    self.moduleCmds[module].append(funcName)
+    
+                if module != 'runtime':
+                    cmdInfo = getCmdInfo(funcName, long_version)
+    
+                    if module != 'windows':
+                        if funcName in nodeFunctions:
+                            self.nodeCommandList.append(funcName)
+                            cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=True, verbose=True  )
+                        #elif module != 'context':
+                        #    cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=True  )
+    
+                cmdInfo['type'] = module
+                flags = getCallbackFlags(cmdInfo)
+                if flags:
+                    cmdInfo['callbackFlags'] = flags
+    
+                self.cmdlist[funcName] = cmdInfo
+    
+    
+    #            # func, args, (usePyNode, baseClsName, nodeName)
+    #            # args = dictionary of command flags and their data
+    #            # usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
+    #            # baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
+    #            # nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
+    #            try:
+    #                self.cmdlist[funcName] = args, pymelCmdsList[funcName] )
+    #            except KeyError:
+    #                # context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
+    #                if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
+    #                     self.cmdlist[funcName] = (funcName, args, (False, None, None) )
+    #                else:
+    #                    self.cmdlist[funcName] = (funcName, args, () )
+    
+            # split the cached data for lazy loading
+            cmdDocList = {}
+            examples = {}
+            for cmdName, cmdInfo in self.cmdlist.iteritems():
+                try:
+                    examples[cmdName] = cmdInfo.pop('example')
+                except KeyError:
+                    pass
+    
+                newCmdInfo = {}
+                if 'description' in cmdInfo:
+                    newCmdInfo['description'] = cmdInfo.pop('description')
+                newFlagInfo = {}
+                if 'flags' in cmdInfo:
+                    for flag, flagInfo in cmdInfo['flags'].iteritems():
+                        newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
+                    newCmdInfo['flags'] = newFlagInfo
+    
+                if newCmdInfo:
+                    cmdDocList[cmdName] = newCmdInfo
+    
+            startup.writeCache( (self.cmdlist,self.nodeHierarchy,self.uiClassList,self.nodeCommandList,self.moduleCmds),
+                                  'mayaCmdsList', 'the list of Maya commands',compressed=True )
+    
+            startup.writeCache( cmdDocList,
+                                  'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
+    
+            startup.writeCache( examples,
+                                  'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
+    
+        # corrections that are always made, to both loaded and freshly built caches
+    
+        util.mergeCascadingDicts( cmdlistOverrides, self.cmdlist )
+        # add in any nodeCommands added after cache rebuild
+        self.nodeCommandList = set(self.nodeCommandList).union(nodeTypeToNodeCommand.values())
+        self.nodeCommandList = sorted( self.nodeCommandList )
+    
+    
+        for module, funcNames in moduleCommandAdditions.iteritems():
+            for funcName in funcNames:
+                currModule = self.cmdlist[funcName]['type']
+                if currModule != module:
+                    self.cmdlist[funcName]['type'] = module
+                    id = self.moduleCmds[currModule].index(funcName)
+                    self.moduleCmds[currModule].pop(id)
+                    self.moduleCmds[module].append(funcName)
+        return (self.cmdlist,self.nodeHierarchy,self.uiClassList,self.nodeCommandList,self.moduleCmds)

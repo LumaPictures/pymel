@@ -55,13 +55,24 @@ def _setApiCacheGlobals():
 def loadCmdCache():
     _start = time.time()
     
+    global _cmdCacheInst
+    
     global cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds
     
-    cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
+    _cmdCacheInst = cmdcache.CmdCache()
+    #_cmdCacheInst.build()
+    #_setCmdCacheGlobals()
+    cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = _cmdCacheInst.buildCachedData()
     
-    if time:
-        _elapsed = time.time() - _start
-        _logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
+    _elapsed = time.time() - _start
+    _logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
+
+#def _setCmdCacheGlobals():
+#    global _cmdCacheInst
+#    
+#    for name, val in zip(_cmdCacheInst.CACHE_NAMES, _apiCacheInst.contents():
+#        globals()[name] = val
+
 
 def saveApiCache():
     global _apiCacheInst
