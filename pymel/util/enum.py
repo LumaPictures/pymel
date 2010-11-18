@@ -281,6 +281,9 @@ class Enum(object):
             key, _ = getDocs(key)
             keyDict[key] = val
 
+        if not operator.isMappingType(values):
+            values = tuple(values)
+
         super(Enum, self).__setattr__('_keys', keyDict)
         super(Enum, self).__setattr__('_values', values)
         super(Enum, self).__setattr__('_docs', docs)
@@ -401,10 +404,13 @@ class Enum(object):
 
     def keys(self):
         "return a list of keys as strings"
-        if operator.isMappingType(self._values):
-            return tuple([ self._values[k].key for k in sorted(self._values.keys()) ])
-        else:
-            return tuple([ v.key for v in self._values ])
+        if not hasattr(self, '_keyStrings'):
+            if operator.isMappingType(self._values):
+                keyStrings = tuple([ self._values[k].key for k in sorted(self._values.keys()) ])
+            else:
+                keyStrings = tuple([ v.key for v in self._values ])
+            super(Enum, self).__setattr__('_keyStrings', keyStrings)
+        return self._keyStrings
 
 import utilitytypes
 class EnumDict(utilitytypes.EquivalencePairs):
