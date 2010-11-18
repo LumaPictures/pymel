@@ -659,8 +659,6 @@ class ApiDocParser(object):
                         else:
                             enumDocs[enumKey] = str(docItem.contents[0]).strip()
 
-                    #self.enums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(enumList) ] )
-                    #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )
                     pymelEnumList = self.getPymelEnums( enumValues )
                     for val, pyval in zip(enumValues,pymelEnumList):
                         enumDocs[pyval] = enumDocs[val]

@@ -80,7 +80,7 @@ class EnumBadKeyError(TypeError, EnumException):
         self.key = key
 
     def __str__(self):
-        return "Enumeration keys must be strings: %s" % (self.key,)
+        return "Enumeration keys must be strings: %r" % (self.key,)
 
 class EnumImmutableError(TypeError, EnumException):
     """ Raised when attempting to modify an Enum """
@@ -242,7 +242,7 @@ class Enum(object):
                             defaultKey = keyList[0]
                         for multiKey in keyList:
                             if multiKey != defaultKey:
-                                extraKeys[key] = val
+                                extraKeys[multiKey] = val
                     reverse[val] = defaultKey
             keygen = [ ( v, reverse[v]) for v in sorted(reverse.keys()) ]
             values = {}
