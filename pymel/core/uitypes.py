@@ -116,6 +116,14 @@ if _versions.current() >= _versions.v2011:
             return sip.wrapinstance(long(ptr), qtgui.QAction)
         
 class PyUI(unicode):
+    """
+    Pymel UI object
+    """
+    
+    # keeps track of the stack of parent UIs, instead of relying on maya's setParent command
+    # this allows unifying all ui element creation to use the 'parent' flag consistently.
+    parentsStack = []
+    
     def __new__(cls, name=None, create=False, **kwargs):
         """
         Provides the ability to create the PyUI Element when creating a class::
@@ -125,6 +133,7 @@ class PyUI(unicode):
             n.__repr__()
             # Result: Window('myWindow')
         """
+        
 
         if cls is PyUI:
             try:
@@ -164,6 +173,9 @@ class PyUI(unicode):
 
         if not newcls is PyUI:
             if cls._isBeingCreated(name, create, kwargs):
+                parent = kwargs.pop('p',None) or kwargs.pop('parent',None) or (cls.parentsStack and cls.parentsStack[-1])
+                if parent:
+                    kwargs['parent'] = parent
                 name = newcls.__melcmd__(name, **kwargs)
                 _logger.debug("PyUI: created... %s" % name)
             else:
@@ -184,10 +196,11 @@ class PyUI(unicode):
                             parent = windows.control(name, q=1, p=1)
                         if parent:
                             name = parent + '|' + name
-
+                    except ValueError:
+                        pass    # menuItem not found
                     except RuntimeError:
                         # editors don't have a long name, so we keep the short name
-                        if name not in cmds.lsUI( long=True,editors=True):
+                        if name not in cmds.lsUI(long=True,editors=True):
                             raise
 
 
@@ -208,6 +221,7 @@ class PyUI(unicode):
 
     def __repr__(self):
         return u"ui.%s('%s')" % (self.__class__.__name__, self)
+    
     def parent(self):
         buf = unicode(self).split('|')[:-1]
         if len(buf)==2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
@@ -241,6 +255,15 @@ class PyUI(unicode):
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtControl
         
+    def __enter__(self):
+        self.parentsStack.append(self)
+        _logger.debug(">> UI Parent (%2d): %s" % (len(self.parentsStack),self))
+        return self
+    
+    def __exit__(self, type, value, tb):
+        self.parentsStack.remove(self)
+        _logger.debug("<< UI Parent (%2d): %s" % (len(self.parentsStack), (self.parentsStack and self.parentsStack[-1])))
+        
 class Panel(PyUI):
     """pymel panel class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -249,12 +272,6 @@ class Panel(PyUI):
     # as their base class, so we need to make sure it exists first
 
 class Layout(PyUI):
-    def __enter__(self):
-        self.makeDefault()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.pop()
 
     def children(self):
         #return [ PyUI( self.name() + '|' + x) for x in self.__melcmd__(self, q=1, childArray=1) ]
@@ -293,14 +310,6 @@ class Layout(PyUI):
         """
         cmds.setParent(self)
 
-    def pop(self):
-        """
-        set the default parent to the parent of this layout
-        """
-        p = self.parent()
-        cmds.setParent(p)
-        return p
-
     def clear(self):
         children = self.getChildArray()
         if children:
@@ -320,7 +329,8 @@ class Window(Layout):
 #        def __enter__(self):
 #            return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, *args):
+        super(Window, self).__exit__(*args)
         self.show()
 
     def show(self):
@@ -353,6 +363,7 @@ class Window(Layout):
 
     def parent(self):
         return None
+    
     getParent = parent
 
     if _versions.current() >= _versions.v2011:
@@ -476,9 +487,9 @@ class AutoLayout(FormLayout):
     AutoLayout behaves exactly like `FormLayout`, but will call redistribute automatically
     at the end of a 'with' statement block
     """
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, *args):
         self.redistribute()
-        self.pop()
+        super(AutoLayout, self).__exit__(*args)
 
 class TextScrollList(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -505,25 +516,9 @@ class TextScrollList(PyUI):
 
 class PopupMenu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    def __enter__(self):
-        cmds.setParent(self,menu=True)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        p = self.parent()
-        cmds.setParent(p)
-        return p
 
 class OptionMenu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    def __enter__(self):
-        cmds.setParent(self,menu=True)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        p = self.parent()
-        cmds.setParent(p)
-        return p
 
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """
@@ -540,14 +535,6 @@ class OptionMenu(PyUI):
 
 class Menu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    def __enter__(self):
-        cmds.setParent(self,menu=True)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        p = self.parent()
-        cmds.setParent(p)
-        return p
 
     def getItemArray(self):
         """ Modified to return pymel instances """
@@ -558,14 +545,6 @@ class Menu(PyUI):
             return []
 
 class SubMenuItem(Menu):
-    def __enter__(self):
-        cmds.setParent(self,menu=True)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        p = self.parent()
-        cmds.setParent(p,menu=True)
-        return p
 
     def getBoldFont(self):
         return cmds.menuItem(self,query=True,boldFont=True)
@@ -578,15 +557,6 @@ class SubMenuItem(Menu):
         
 class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    __melui__ = cmds.menuItem
-    def __enter__(self):
-        cmds.setParent(self,menu=True)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        p = self.parent()
-        cmds.setParent(p,menu=True)
-        return p
 
 def MenuItem(name=None, create=False, **kwargs):
     if PyUI._isBeingCreated(name, create, kwargs):
