@@ -44,9 +44,7 @@ def loadApiCache():
 def _setApiCacheGlobals():
     global _apiCacheInst
     
-    for names, values in [ (_apiCacheInst.CACHE_NAMES, _apiCacheInst.contents()),
-                           (_apiCacheInst._mayaApiMelBridge.CACHE_NAMES,
-                                _apiCacheInst.melBridgeContents()),
+    for names, values in [ (_apiCacheInst.cacheNames(), _apiCacheInst.contents()),
                            (_apiCacheInst.EXTRA_GLOBAL_NAMES,
                                 _apiCacheInst.extraDicts()) ]:
         for name, val in zip(names, values):
@@ -70,7 +68,7 @@ def loadCmdCache():
 #def _setCmdCacheGlobals():
 #    global _cmdCacheInst
 #    
-#    for name, val in zip(_cmdCacheInst.CACHE_NAMES, _apiCacheInst.contents():
+#    for name, val in zip(_cmdCacheInst.cacheNames(), _apiCacheInst.contents():
 #        globals()[name] = val
 
 
