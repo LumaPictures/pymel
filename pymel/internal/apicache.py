@@ -110,9 +110,8 @@ class ApiCache(startup.MayaCache):
     # Maya static info :
     # Initializes various static look-ups to speed up Maya types conversions
     # self.apiClassInfo
-    # self.apiTypesToApiEnums = {}
-    # self.apiEnumsToApiTypes = {}
-
+    # self.apiTypesToApiEnums
+    # self.apiEnumsToApiTypes
     # self.apiTypesToApiClasses
 
     # Reserved Maya types and API types that need a special treatment (abstract types)
