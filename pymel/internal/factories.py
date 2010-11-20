@@ -12,8 +12,7 @@ import pymel.versions as versions
 from startup import loadCache
 import plogging as plogging
 import cmdcache
-from cmdcache import *
-import apicache as apicache
+import apicache
 import pmcmds
 import maya.cmds as cmds
 import maya.mel as mm
@@ -21,39 +20,76 @@ import maya.mel as mm
 
 _logger = plogging.getLogger(__name__)
 
-# Initialize the caches
+# Initialize the cache globals
 
-#-------------------------------------------------------------------------------------
-_start = time.time()
+# Though the global variables and the attributes on _apiCacheInst SHOULD
+# always point to the same objects - ie,
+#    _apiCacheInst.apiClassInfo is apiClassInfo
+# should be true, I'm paranoid they will get out of sync, so I'm
+# treating _apiCacheInst as though it ISN'T in sync, and needs to be updated
+# whenever we interact with it... 
 
-_apiCacheInst = apicache.ApiCache()
-_apiCacheInst.build()
+def loadApiCache():
+    _start = time.time()
+    
+    global _apiCacheInst
+    
+    _apiCacheInst = apicache.ApiCache()
+    _apiCacheInst.build()
+    _setApiCacheGlobals()
+    
+    _elapsed = time.time() - _start
+    _logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
+    
+def _setApiCacheGlobals():
+    global _apiCacheInst
+    
+    for names, values in [ (_apiCacheInst.CACHE_NAMES, _apiCacheInst.contents()),
+                           (_apiCacheInst._mayaApiMelBridge.CACHE_NAMES,
+                                _apiCacheInst.melBridgeContents()),
+                           (_apiCacheInst.EXTRA_GLOBAL_NAMES,
+                                _apiCacheInst.extraDicts()) ]:
+        for name, val in zip(names, values):
+            globals()[name] = val
+    
+def loadCmdCache():
+    _start = time.time()
+    
+    global _cmdCacheInst
+    
+    global cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds
+    
+    _cmdCacheInst = cmdcache.CmdCache()
+    #_cmdCacheInst.build()
+    #_setCmdCacheGlobals()
+    cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = _cmdCacheInst.buildCachedData()
+    
+    _elapsed = time.time() - _start
+    _logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
 
-# Should we 'automate' this, using setattr and ApiCache.API_CACHE_NAMES?
-# leaving it 'manual' for now, as it makes it easier to find out where these
-# come from by browsing the code...
-(reservedMayaTypes, reservedApiTypes, apiTypesToApiEnums, apiEnumsToApiTypes,
-mayaTypesToApiTypes, apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo) = _apiCacheInst.caches()
-
-apiToMelData, apiClassOverrides =  _apiCacheInst.melBridgeCaches()
-
-apiTypesToMayaTypes, mayaTypesToApiEnums, apiEnumsToMayaTypes = _apiCacheInst.conversionDicts()
-
-_elapsed = time.time() - _start
-_logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
-
-#-------------------------------------------------------------------------------------
+#def _setCmdCacheGlobals():
+#    global _cmdCacheInst
+#    
+#    for name, val in zip(_cmdCacheInst.CACHE_NAMES, _apiCacheInst.contents():
+#        globals()[name] = val
 
 
-#-------------------------------------------------------------------------------------
-_start = time.time()
-
-cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
-
-_elapsed = time.time() - _start
-_logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
-
-#-------------------------------------------------------------------------------------
+def saveApiCache():
+    global _apiCacheInst
+    _apiCacheInst.save(globals())
+    
+def saveApiMelBridgeCache():
+    global _apiCacheInst
+    _apiCacheInst._mayaApiMelBridge.save(globals())
+    
+def mergeApiClassOverrides():
+    _apiCacheInst.update(globals())
+    _apiCacheInst._mayaApiMelBridge.update(globals())
+    _apiCacheInst._mergeClassOverrides()
+    _setApiCacheGlobals()
+    
+loadApiCache()
+loadCmdCache()
 
 
 #---------------------------------------------------------------
@@ -2626,207 +2662,8 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
                 newEntries.append(newcls)
                 apiEnumsToPyComponents[apienum] = newEntries
         return newcls
-#
-#def getValidApiMethods( apiClassName, api, verbose=False ):
-#
-#    validTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
-#
-#    try:
-#        methods = apiClassInfo[apiClassName]
-#    except KeyError:
-#        return []
-#
-#    validMethods = []
-#    for method, methodInfoList in methods.items():
-#        for methodInfo in methodInfoList:
-#            #_logger.debug(method, methodInfoList)
-#            if not methodInfo['outArgs']:
-#                returnType = methodInfo['returnType']
-#                if returnType in validTypes:
-#                    count = 0
-#                    types = []
-#                    for x in methodInfo['inArgs']:
-#                        type = methodInfo['argInfo'][x]['type']
-#                        #_logger.debug(x, type)
-#                        types.append( type )
-#                        if type in validTypes:
-#                            count+=1
-#                    if count == len( methodInfo['inArgs'] ):
-#                        if verbose:
-#                            _logger.info(('    %s %s(%s)' % ( returnType, method, ','.join( types ) )))
-#                        validMethods.append(method)
-#    return validMethods
-#
-#def readClassAnalysis( filename ):
-#    f = open(filename)
-#    info = {}
-#    currentClass = None
-#    currentSection = None
-#    for line in f.readlines():
-#        buf = line.split()
-#        if buf[0] == 'CLASS':
-#            currentClass = buf[1]
-#            info[currentClass] = {}
-#        elif buf[0].startswith('['):
-#            if currentSection in ['shared_leaf', 'api', 'pymel']:
-#                currentSection = buf.strip('[]')
-#                info[currentClass][currentSection] = {}
-#        else:
-#            n = len(buf)
-#            if n==2:
-#                info[currentClass][currentSection][buf[0]] = buf[1]
-#            elif n==1:
-#                pass
-#                #info[currentClass][currentSection][buf[0]] = None
-#            else:
-#                pass
-#    f.close()
-#    _logger.info(info)
-#    return info
-#
-#def fixClassAnalysis( filename ):
-#    f = open(filename)
-#    info = {}
-#    currentClass = None
-#    currentSection = None
-#    lines = f.readlines()
-#    for i, line in enumerate(lines):
-#        buf = line.split()
-#        if buf[0] == 'CLASS':
-#            currentClass = buf[1]
-#            info[currentClass] = {}
-#        elif buf[0].startswith('['):
-#            if currentSection in ['shared_leaf', 'api', 'pymel']:
-#                currentSection = buf.strip('[]')
-#                info[currentClass][currentSection] = {}
-#        else:
-#            isAutoNamed, nativeName, pymelName, failedAutoName = re.match( '([+])?\s+([a-zA-Z0-9]+)(?:\s([a-zA-Z0-9]+))?(?:\s([a-zA-Z0-9]+))?', line ).groups()
-#            if isAutoNamed and pymelName is None:
-#                pymelName = nativeName
-#            n = len(buf)
-#
-#            if n==2:
-#                info[currentClass][currentSection][buf[0]] = buf[1]
-#            elif n==1:
-#                pass
-#                #info[currentClass][currentSection][buf[0]] = None
-#            else:
-#                pass
-#    f.close()
-#    _logger.info(info)
-#    return info
 
-#
-#def analyzeApiClasses():
-#    for elem in apiTypeHierarchy.preorder():
-#        try:
-#            parent = elem.parent.key
-#        except:
-#            parent = None
-#        analyzeApiClass( elem.key, None )
-#
-#def analyzeApiClass( apiTypeStr ):
-#    try:
-#        mayaType = apiTypesToMayaTypes[ apiTypeStr ].keys()
-#        if util.isIterable(mayaType) and len(mayaType) == 1:
-#            mayaType = mayaType[0]
-#            pymelType = pyNodeNamesToPyNodes.get( util.capitalize(mayaType) , None )
-#        else:
-#            pymelType = None
-#    except KeyError:
-#        mayaType = None
-#        pymelType = None
-#        #_logger.debug("no Fn", elem.key, pymelType)
-#
-#    try:
-#        apiClass = apiTypesToApiClasses[ apiTypeStr ]
-#    except KeyError:
-#
-#        _logger.info("no Fn %s", apiTypeStr)
-#        return
-#
-#    apiClassName = apiClass.__name__
-#    parentApiClass = inspect.getmro( apiClass )[1]
-#
-#    _logger.info("CLASS %s %s", apiClassName, mayaType)
-#
-#    # get all pymelName lookups for this class and its bases
-#    pymelMethodNames = {}
-#    for cls in inspect.getmro( apiClass ):
-#        try:
-#            pymelMethodNames.update( apiClassInfo[cls.__name__]['pymelMethods'] )
-#        except KeyError: pass
-#    reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() )
-#
-#    allApiMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
-#    parentApiMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( parentApiClass, callable ) ])
-#    apiMembers = allApiMembers.difference( parentApiMembers )
-#
-#
-##
-##    else:
-##        if apiTypeParentStr:
-##            try:
-##                parentApiClass = apiTypesToApiClasses[elem.parent.key ]
-##                parentMembers = [ x[0] for x in inspect.getmembers( parentApiClass, callable ) ]
-##            except KeyError:
-##                parentMembers = []
-##        else:
-##            parentMembers = []
-##
-##        if pymelType is None: pymelType = pyNodeNamesToPyNodes.get( apiClass.__name__[3:] , None )
-##
-##        if pymelType:
-##            parentPymelType = pyNodeTypesHierarchy[ pymelType ]
-##            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
-##            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers and not x[0].startswith('_') ])
-##
-##            _logger.info("CLASS", apiClass.__name__, mayaType)
-##            parentApiClass = inspect.getmro( apiClass )[1]
-##            #_logger.debug(parentApiClass)
-##
-##            pymelMethodNames = {}
-##            # get all pymelName lookups for this class and its bases
-##            for cls in inspect.getmro( apiClass ):
-##                try:
-##                    pymelMethodNames.update( apiClassInfo[cls.__name__]['pymelMethods'] )
-##                except KeyError: pass
-##
-##            allFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
-##
-##            parentFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( parentApiClass, callable ) ])
-##            fnMembers = allFnMembers.difference( parentFnMembers )
-##
-##            reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() )
-##
-##            sharedCurrent = fnMembers.intersection( pyMembers )
-##            sharedOnAll = allFnMembers.intersection( pyMembers )
-##            sharedOnOther = allFnMembers.intersection( pyMembers.difference( sharedCurrent) )
-###            _logger.info("    [shared_leaf]")
-###            for x in sorted( sharedCurrent ):
-###                if x in reversePymelNames: _logger.info('    ', reversePymelNames[x], x )
-###                else: _logger.info('    ', x)
-##
-###            _logger.info("    [shared_all]")
-###            for x in sorted( sharedOnOther ):
-###                if x in reversePymelNames: _logger.info('    ', reversePymelNames[x], x )
-###                else: _logger.info('    ', x)
-##
-##            _logger.info("    [api]")
-##            for x in sorted( fnMembers ):
-##                if x in sharedCurrent:
-##                    prefix = '+   '
-###                elif x in sharedOnOther:
-###                    prefix = '-   '
-##                else:
-##                    prefix = '    '
-##                if x in reversePymelNames: _logger.info(prefix, reversePymelNames[x], x )
-##                else: _logger.info(prefix, x)
-##
-##            _logger.info("    [pymel]")
-##            for x in sorted( pyMembers.difference( allFnMembers ) ): _logger.info('    ', x)
-#
-#
+
 def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs=None):
     #_logger.debug( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
     try:
@@ -2898,25 +2735,6 @@ def addPyNode( dynModule, mayaType, parentMayaType, extraAttrs=None ):
         #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
         dynModule[pyNodeTypeName] = ( addPyNodeCallback,
                                    ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs ) )
-#    else:
-#        if not pyNodeTypeName in dynModule.__dict__:
-#            api.addMayaType( mayaType )
-#            _logger.info( "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName ) )
-#
-#
-#            PyNodeType = getattr( dynModule, pyNodeTypeName )
-#            try :
-#                ParentPyNode = inspect.getmro(PyNodeType)[1]
-#                #print "parent:", ParentPyNode, ParentPyNode.__name__
-#                if ParentPyNode.__name__ != parentPyNodeTypeName :
-#                    raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
-#            except :
-#                ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
-#            #_logger.debug("already exists:", pyNodeTypeName, )
-#            pyNodeTypesHierarchy[PyNodeType] = ParentPyNode
-#            pyNodesToMayaTypes[PyNodeType] = mayaType
-#            pyNodeNamesToPyNodes[pyNodeTypeName] = PyNodeType
-
     return pyNodeTypeName
 
 def removePyNode( dynModule, mayaType ):
@@ -2944,9 +2762,9 @@ def addMayaType(mayaType, apiType=None):
     if apiType is None:
         apiType = mayaTypeToApiType(mayaType)
         
-    # The objects on _apiCachInst and in factories SHOULD
-    # always be the same... but I'm paranoid, so I use updateObj
+    global _apiCacheInst
     _apiCacheInst.addMayaType(mayaType, apiType, globals())
+    _setApiCacheGlobals()
 
 def removeMayaType(mayaType):
     """ Remove a type from the MayaTypes lists.
@@ -2958,9 +2776,9 @@ def removeMayaType(mayaType):
         - mayaTypesToApiEnums
         - apiEnumsToMayaTypes
     """
-    # The objects on _apiCachInst and in factories SHOULD
-    # always be the same... but I'm paranoid, so I use updateObj
+    global _apiCacheInst
     _apiCacheInst.removeMayaType(mayaType, globals())
+    _setApiCacheGlobals()
 
 
 def registerVirtualClass( cls, nameRequired=False ):
