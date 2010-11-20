@@ -827,7 +827,7 @@ def _getNodeHierarchy( version=None ):
              for x in nodeHierarchyTree.preorder() ]
 
 class CmdCache(startup.MayaCache):
-    CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList nodeCommandList moduleCmds'''
+    _CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList nodeCommandList moduleCmds'''
     
     
     def __init__(self):

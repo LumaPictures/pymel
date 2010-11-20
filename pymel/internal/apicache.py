@@ -87,18 +87,18 @@ class ApiMelBridgeCache(startup.MayaCache):
     DESC = 'the API-MEL bridge' 
     COMPRESSED = True
     USE_VERSION = False
-    CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
+    _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
     
     CACHE_TYPES = {'apiToMelData':_defaultdictdict}
     STORAGE_TYPES = {'apiToMelData':dict}
 
 
-class ApiCache(startup.MayaCache):
+class ApiCache(startup.ParentCache):
     NAME = 'mayaApi'
     DESC = 'the API cache'
     COMPRESSED = True
     USE_VERSION = True
-    CACHE_NAMES = '''apiTypesToApiEnums apiEnumsToApiTypes mayaTypesToApiTypes
+    _CACHE_NAMES = '''apiTypesToApiEnums apiEnumsToApiTypes mayaTypesToApiTypes
                    apiTypesToApiClasses apiClassInfo'''.split()
 
 
@@ -161,47 +161,11 @@ class ApiCache(startup.MayaCache):
 
     
     SUB_CACHE_TYPES = [ApiMelBridgeCache]
-    SUB_CACHE_ATTRS = ['_' + cacheType.NAME for cacheType in SUB_CACHE_TYPES]
-    
-    def _make_item_property(name, cacheAttr):
-        def _get_item(self):
-            cache = getattr(self, cacheAttr)
-            return getattr(cache, name)
-            
-        _get_item.__name__ = '_get_%s' % name
-
-        def _set_item(self, val):
-            cache = getattr(self, cacheAttr)
-            setattr(cache, name, val)
-        _set_item.__name__ = '_set_%s' % name
-
-        return _get_item, _set_item, property(_get_item, _set_item)
-
-    for cacheType, cacheName in zip(SUB_CACHE_TYPES, SUB_CACHE_ATTRS):
-        # make properties for each of the sub-cache's sub-items
-        for itemName in cacheType.CACHE_NAMES:
-            getter, setter, prop = _make_item_property(itemName, cacheName)
-            # can't do setattr, because we don't have a class object yet...
-            # and can't modify locals()...
-            # and properties MUST be defined inside class, so when the class
-            # is created, the magic is set up...
-            # so only way to do this seems to be to use exec
-            exec "%s = getter" % getter.__name__
-            exec "%s = setter" % setter.__name__
-            exec "%s = prop" % itemName
-
-    # done with _make_item_property now - don't want it to become a method...
-    del _make_item_property
         
     def __init__(self):
         super(ApiCache, self).__init__()
-        for cacheType, cacheAttr in zip(self.SUB_CACHE_TYPES, self.SUB_CACHE_ATTRS):
-            # Initialize the sub-caches
-            subCache = cacheType()
-            setattr(self, cacheAttr, subCache)
-        
         for name in self.EXTRA_GLOBAL_NAMES:
-            self.initVal(name)
+            setattr(self, name, {})
 
     def _getMObject(self, nodeType, dagMod, dgMod) :
         """ Returns a queryable MObject from a given apiType or mayaType"""
@@ -469,13 +433,12 @@ class ApiCache(startup.MayaCache):
         super(ApiCache, self).build()
         # If we loaded from cache, we still need to rebuild the reserved types
         self._buildMayaReservedTypes(force=False)
-        self._mayaApiMelBridge.build()
 
     def _load(self):
         data = super(ApiCache, self)._load()
         # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
         # even though they weren't used...
-        if data is not None and len(data) != len(self.CACHE_NAMES):
+        if data is not None and len(data) != len(self._CACHE_NAMES):
             if len(data) == 8 and versions.current() < versions.v2012:
                 data = data[2:6] + data[7:]
             else:

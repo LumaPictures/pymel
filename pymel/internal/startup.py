@@ -447,16 +447,44 @@ class MayaCache(object):
     '''Used to store various maya information
     
     ie, api / cmd data parsed from docs
+    
+    To implement, create a subclass, which overrides at least the NAME, DESC, 
+    and _CACHE_NAMES attributes, and implements the rebuild method.
+    
+    Then to access data, you should initialize an instance, then call build;
+    build will load the data from the cache file if possible, or call rebuild
+    to build the data from scratch if not.  If the data had to be rebuilt,
+    a new file cache will be saved.
+    
+    The data may then be accessed through attributes on the instance, with
+    the names given in _CACHE_NAMES.
+    
+    >>> MayaNodeCache(MayaCache):
+    ...     NAME = 'mayaNodes'
+    ...     DESC = 'the maya nodes cache'
+    ...     COMPRESSED = False
+    ...     _CACHE_NAMES = ['nodeTypes']
+    ...     def rebuild(self):
+    ...         import maya.cmds
+    ...         self.nodeTypes = maya.cmds.allNodeTypes(includeAbstract=True)
+    >>> cacheInst = MyMayaCacheType()
+    >>> cacheInst.build()
+    >>> print cacheInst.nodeTypeNames
     '''
+    # Provides a front end for a pickled file, which should contain a
+    # tuple of items; each item in the tuple is associated with a name from
+    # _CACHE_NAMES
+    
     # override these
-    NAME = 'THE_BASE_FILENAME'
-    DESC = 'purpose of this cache'
+    NAME = ''   # ie, 'mayaApi'
+    DESC = ''   # ie, 'the API cache' - used in error messages, etc
     COMPRESSED = True
-    # whether to use the version when writing out the cache
+    
+    # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
     
-    # override this with a list of names
-    CACHE_NAMES = ['DUMMY_NAME']
+    # override this with a list of names for the items within the cache
+    _CACHE_NAMES = []
 
     # Set this to the initialization contructor for each cache item;
     # if a given cache name is not present in ITEM_TYPES, DEFAULT_TYPE is
@@ -472,8 +500,11 @@ class MayaCache(object):
     DEFAULT_TYPE = dict
     
     def __init__(self):
-        for name in self.CACHE_NAMES:
+        for name in self._CACHE_NAMES:
             self.initVal(name)
+            
+    def cacheNames(self):
+        return tuple(self._CACHE_NAMES)
             
     def initVal(self, name):
         itemType = self.itemType(name)
@@ -510,7 +541,7 @@ class MayaCache(object):
         or an object with the caches stored in attributes on it.
         '''
         if cacheNames is None:
-            cacheNames = self.CACHE_NAMES
+            cacheNames = self.cacheNames()
             
         if isinstance(obj, dict):
             for key, val in obj:
@@ -519,7 +550,7 @@ class MayaCache(object):
                 setattr(self, key, val)
         elif isinstance(obj, (list, tuple)):
             if len(obj) != len(cacheNames):
-                raise KeyError('given item had %d items, not %d' % (len(obj), len(cacheNames)))
+                raise ValueError('length of update object (%d) did not match length of cache names (%d)' % (len(obj), len(cacheNames)))
             for newVal, name in zip(obj, cacheNames):
                 setattr(self, name, newVal)
         else:
@@ -543,12 +574,12 @@ class MayaCache(object):
             # the 'normal' type
             if self.STORAGE_TYPES:
                 for name in self.STORAGE_TYPES:
-                    index = self.CACHE_NAMES.index(name)
+                    index = self._CACHE_NAMES.index(name)
                     val = data[index]
                     val = self.itemType(name)(val)
                     data[index] = val 
             data = tuple(data)
-            self.update(data)
+            self.update(data, cacheNames=self._CACHE_NAMES)
         return data
     
     def save(self, obj=None):
@@ -563,7 +594,7 @@ class MayaCache(object):
         data = self.contents()
         if self.STORAGE_TYPES:
             newData = []
-            for name, val in zip(self.CACHE_NAMES, data):
+            for name, val in zip(self._CACHE_NAMES, data):
                 if name in self.STORAGE_TYPES:
                     val = self.STORAGE_TYPES[name](val)
                 newData.append(val)
@@ -575,8 +606,160 @@ class MayaCache(object):
             
     # was called 'caches' 
     def contents(self):
-        return tuple( getattr(self, x) for x in self.CACHE_NAMES )
+        return tuple( getattr(self, x) for x in self.cacheNames() )
+
+class ParentCacheMetaClass(type):
+
+    def __new__(cls, name, bases, classdict):
+        # Set up properties to use for accessing the sub
+        for cacheType in classdict['SUB_CACHE_TYPES']:
+            for itemName in cacheType._CACHE_NAMES:
+                getter, setter, prop = cls._make_subcache_item_property(itemName, cacheType)
+                classdict[getter.__name__] = getter
+                classdict[setter.__name__] = setter
+                classdict[itemName] = property(getter, setter)
+        return super(ParentCacheMetaClass, cls).__new__(cls, name, bases, classdict)
         
+    @classmethod
+    def _make_subcache_item_property(cls, name, cacheType):
+        def _get_item(self):
+            cache = self._subCaches[cacheType]
+            return getattr(cache, name)
+            
+        _get_item.__name__ = '_get_%s' % name
+
+        def _set_item(self, val):
+            cache = self._subCaches[cacheType]
+            setattr(cache, name, val)
+        _set_item.__name__ = '_set_%s' % name
+
+        return _get_item, _set_item, property(_get_item, _set_item)
+
+
+class ParentCache(MayaCache):
+    '''Cache which may also act as an interface for other caches.
+    
+    The parent cache may act purely as an interface for other caches, or it may
+    also also have it's own physical cache file, in addtion to other sub caches.
+    '''
+    __metaclass__ = ParentCacheMetaClass
+    # Should be a list of classes which are subclasses of MayaCache;
+    # this cache will  
+    SUB_CACHE_TYPES = []
+    
+    # If this parentCache also has it's own physical cache file it writes out,
+    # then give the _CACHE_NAMES for that here; if it is empty, then it
+    # indicates this cache is purely an interface for other caches, and has no
+    # physical cache file associated with it.
+    # _CACHE_NAMES = []
+
+    def __init__(self):
+        self._subCaches = {}
+        self._attrToCache = {}
+        for cacheType in self.SUB_CACHE_TYPES:
+            # Initialize the sub-caches
+            subCache = cacheType()
+            self._subCaches[cacheType] = subCache
+            # set up properties
+            
+        for cache in self._selfAndSubs():
+            # initialze dict from attribute name to cache
+            for attr in cache._CACHE_NAMES:
+                self._attrToCache[attr] = cache
+        super(ParentCache, self).__init__()
+            
+    def _selfAndSubs(self):
+        return [self] + self._subCaches.values()
+            
+    def _cacheMethod(self, cache, methodName):
+        '''Finds the appropriate version of the given method to use with the
+        given cache, which may be self or a subcache.
+        
+        Necessary because we can't just use the ParentCache method for methods
+        we've overriden (because it would result in recursion) when the cache is
+        self, and we can't use this class's super implementation of the method
+        for subcaches (because the subcaches might themselves have overriden
+        the method).
+        '''
+        if cache is self:
+            return getattr(super(ParentCache, self), methodName)
+        else:
+            return getattr(cache, methodName)
+            
+    def cacheNames(self):
+        return sum( (self._cacheMethod(x, 'cacheNames')() for x in self._selfAndSubs()),
+                    () )
+            
+    def itemType(self, name):
+        return self._cacheMethod(self._attrToCache[name], 'itemType')(name)
+    
+    def build(self):
+        """
+        Used to rebuild cache, either by loading from a cache file, or rebuilding from scratch.
+        """
+        for cache in self._selfAndSubs():
+            self._cacheMethod(cache, 'build')()
+    
+    # When overriding rebuild, just rebuild the data for 'this' cache
+#    def rebuild(self):
+#        """Rebuild cache from scratch
+#        
+#        Unlike 'build', this does not attempt to load a cache file, but always
+#        rebuilds it by parsing the docs, etc.
+#        """
+#        pass
+    
+    def update(self, obj, cacheNames=None):
+        '''Update all the various data from the given object, which should
+        either be a dictionary, a list or tuple with the right number of items,
+        or an object with the caches stored in attributes on it.
+        '''
+        if cacheNames is None:
+            cacheNames = self.cacheNames()        
+        # Holds args / kwargs, by cache
+        updateObjByCache = {}
+        cacheNamesByCache = {}
+
+        if isinstance(obj, dict):
+            for key, val in obj:
+                cache = self._attrToCache[key]
+                updateObjByCache.setdefault(cache, {})[key] = val
+            for cache in self._selfAndSubs():
+                cacheNamesByCache[cache] = set(cacheNames).intersection(cache._CACHE_NAMES)
+
+        elif isinstance(obj, (list, tuple)):
+            if len(obj) != len(cacheNames):
+                raise ValueError('length of update object (%d) did not match length of cache names (%d)' % (len(obj), len(cacheNames)))
+            for newVal, name in zip(obj, cacheNames):
+                cache = self._attrToCache[name]
+                updateObjByCache.setdefault(cache, []).append(newVal)
+                cacheNamesByCache.setdefault(cache, []).append(name)
+        else:
+            for cache in self._selfAndSubs():
+                updateObjByCache[cache] = obj
+            for cacheName in cacheNames:
+                cache = self._attrToCache[cacheName]
+                cacheNamesByCache.setdefault(cache, []).append(cacheName)
+        caches = set(updateObjByCache)
+        caches.update(cacheNamesByCache)
+        for cache in caches:
+            self._cacheMethod(cache, 'update')(updateObjByCache[cache],
+                                               cacheNames=cacheNamesByCache[cache])
+    
+    def _load(self):
+        return loadCache( self.NAME, self.DESC, compressed=self.COMPRESSED,
+                           useVersion=self.USE_VERSION)
+    
+    def save(self, obj=None):
+        if obj is not None:
+            self.update(obj)
+        for cache in self._selfAndSubs():
+            self._cacheMethod(cache, 'save')()
+            
+    def contents(self):
+        return sum( (self._cacheMethod(x, 'contents')() for x in self._selfAndSubs()),
+                    () )
+                
 #===============================================================================
 # Config stuff
 #===============================================================================
