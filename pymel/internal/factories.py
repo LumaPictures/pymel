@@ -2718,8 +2718,6 @@ def addMayaType(mayaType, apiType=None):
 
         - mayaTypesToApiTypes
         - apiTypesToMayaTypes
-        - apiTypesToApiEnums
-        - apiEnumsToApiTypes
         - mayaTypesToApiEnums
         - apiEnumsToMayaTypes
     """
@@ -2735,8 +2733,6 @@ def removeMayaType(mayaType):
 
         - mayaTypesToApiTypes
         - apiTypesToMayaTypes
-        - apiTypesToApiEnums
-        - apiEnumsToApiTypes
         - mayaTypesToApiEnums
         - apiEnumsToMayaTypes
     """

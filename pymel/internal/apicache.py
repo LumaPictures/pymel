@@ -53,8 +53,6 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
 
     try:
         try :
-            # Try making it with dgMod FIRST - this way, we can avoid making an
-            # unneccessary transform if it is a DG node
             obj = dgMod.createNode ( mayaType )
         except RuntimeError:
             # DagNode
@@ -63,11 +61,8 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         else:
             # DependNode
             _logger.debug( "Made ghost DG node of type '%s'" % mayaType )
-#            dgMod.deleteNode(obj)
-    except:
-        obj = api.MObject()
-
-#    dagMod.deleteNode(parent)
+    except Exception:
+        obj = None
 
     if api.isValidMObject(obj) :
         return obj
@@ -102,9 +97,9 @@ class ApiCache(startup.ParentCache):
                    apiTypesToApiClasses apiClassInfo'''.split()
 
 
-    EXTRA_GLOBAL_NAMES = '''reservedMayaTypes reservedApiTypes
+    EXTRA_GLOBAL_NAMES = tuple('''reservedMayaTypes reservedApiTypes
                             apiTypesToMayaTypes mayaTypesToApiEnums
-                            apiEnumsToMayaTypes'''.split()
+                            apiEnumsToMayaTypes'''.split())
                             
     # Descriptions of various elements:
     # Maya static info :
@@ -168,9 +163,13 @@ class ApiCache(startup.ParentCache):
             setattr(self, name, {})
 
     def _getMObject(self, nodeType, dagMod, dgMod) :
-        """ Returns a queryable MObject from a given apiType or mayaType"""
+        """Returns a queryable MObject from a given apiType or mayaType
+        
+        be careful, as these MObjects can be used only as long as dagMod/dgMod
+        are not deleted
+        """
 
-        # cant create these nodes, some would crahs MAya also
+        # cant create these ( some are abstract, some crash Maya)
         if self.reservedApiTypes.has_key(nodeType) or self.reservedMayaTypes.has_key(nodeType) :
             return None
 
@@ -185,45 +184,38 @@ class ApiCache(startup.ParentCache):
 
         return _makeDgModGhostObject(mayaType, dagMod, dgMod)
 
-    def _createNodes(self, dagMod, dgMod, *args) :
-        """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
-            can be used only as long as dagMod and dgMod are not deleted
-            
-            returns result, mayaResult, unableToCreate
-            
-            where:
-                result is a dict mapping from an apiType to an MObject of that type
-                mayaResult is a dict mapping from mayaType to apiType
-                unableToCreate is a set of mayaTypes that we were unable to make"""
-            
+    def _buildMayaToApiInfo(self, mayaTypes):
+        # Fixes for types that don't have a MFn by faking a node creation and testing it
+        # Make it faster by pre-creating the nodes used to test
+        dagMod = api.MDagModifier()
+        dgMod = api.MDGModifier()
+
         # Put in a debug, because this can be crashy
-        _logger.debug("Starting ApiCache._createNodes...")
+        _logger.debug("Starting to create ghost nodes...")
 
-        result = {}
-        mayaResult = {}
-        unableToCreate = set()
+        unknownTypes = set()
 
-
-        for mayaType in args :
+        for mayaType in mayaTypes :
+            apiType = None
             if self.reservedMayaTypes.has_key(mayaType) :
                 apiType = self.reservedMayaTypes[mayaType]
-                #print "reserved", mayaType, apiType
-                mayaResult[mayaType] = apiType
-                result[apiType] = None
-
-            else :
+            else:
                 obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
                 if obj :
                     apiType = obj.apiTypeStr()
-                    mayaResult[mayaType] = apiType
-                    result[apiType] = obj
                 else:
-                    unableToCreate.add(mayaType)
+                    unknownTypes.add(mayaType)
+            if apiType is not None:
+                self.mayaTypesToApiTypes[mayaType] = apiType
 
         # Put in a debug, because this can be crashy
-        _logger.debug("...finished ApiCache._createNodes")
+        _logger.debug("...finished creating ghost nodes")
         
-        return result, mayaResult, unableToCreate
+        if len(unknownTypes) > 0:
+            _logger.warn("Unable to get maya-to-api type info for the following nodes: %s" % ", ".join(unknownTypes))
+
+        for mayaType, apiType in self.mayaTypesToApiTypes.iteritems() :
+            self.addMayaType( mayaType, apiType )
 
     def _buildApiTypesList(self):
         """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with
@@ -321,38 +313,22 @@ class ApiCache(startup.ParentCache):
                         maya.cmds.loadPlugin( x )
                     except RuntimeError: pass
 
-        allMayaTypes = self.reservedMayaTypes.keys() + maya.cmds.ls(nodeTypes=True)
-
         # all of maya OpenMaya api is now imported in module api's namespace
-        MFnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-        MFnTree = inspect.getclasstree( [x[1] for x in MFnClasses] )
-
-        for MFnClass, bases in expandArgs(MFnTree, type='list') :
-            current = _MFnType(MFnClass)
-            if current and current != 'kInvalid' and len(bases) > 0:
-                #Check that len(x[1]) > 0 because base python 'object' will have no parents...
-                assert len(bases) == 1
-                parent = _MFnType(bases[0])
-                if parent:
-                    self.apiTypesToApiClasses[ current ] = MFnClass
-                else:
-                    print "debug info - MFnClass %s gave MFnType %s, but could not determine type of parent class %s" % (MFnClass, MFnType, parent)
+        mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
+        for name, mfnClass in mfnClasses:
+            current = _MFnType(mfnClass)
+            if not current:
+                _logger.warning("MFnClass gave MFnType %s" % current)
+            elif current == 'kInvalid':
+                _logger.warning("MFnClass gave MFnType %s" % current)
+            else:
+                self.apiTypesToApiClasses[ current ] = mfnClass
 
         self._buildApiClassInfo()
 
-        # Fixes for types that don't have a MFn by faking a node creation and testing it
-        # Make it faster by pre-creating the nodes used to test
-        dagMod = api.MDagModifier()
-        dgMod = api.MDGModifier()
-
-        nodeDict, mayaDict, unableToCreate = self._createNodes( dagMod, dgMod, *allMayaTypes )
-        if len(unableToCreate) > 0:
-            _logger.warn("Unable to create the following nodes: %s" % ", ".join(unableToCreate))
-
-        for mayaType, apiType in mayaDict.items() :
-            self.mayaTypesToApiTypes[mayaType] = apiType
-            self.addMayaType( mayaType, apiType )
-
+        allMayaTypes = self.reservedMayaTypes.keys() + maya.cmds.ls(nodeTypes=True)
+        self._buildMayaToApiInfo(allMayaTypes)
+        
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
     def addMayaType(self, mayaType, apiType=None, updateObj=None):
@@ -360,8 +336,6 @@ class ApiCache(startup.ParentCache):
 
             - mayaTypesToApiTypes
             - apiTypesToMayaTypes
-            - apiTypesToApiEnums
-            - apiEnumsToApiTypes
             - mayaTypesToApiEnums
             - apiEnumsToMayaTypes
             
@@ -396,8 +370,6 @@ class ApiCache(startup.ParentCache):
 
             - mayaTypesToApiTypes
             - apiTypesToMayaTypes
-            - apiTypesToApiEnums
-            - apiEnumsToApiTypes
             - mayaTypesToApiEnums
             - apiEnumsToMayaTypes
             
@@ -412,7 +384,6 @@ class ApiCache(startup.ParentCache):
             enums.pop( mayaType, None )
             if not enums:
                 self.apiEnumsToMayaTypes.pop(apiEnum)
-                self.apiEnumsToApiTypes.pop(apiEnum)
         try:
             apiType = self.mayaTypesToApiTypes.pop( mayaType, None )
         except KeyError: pass
@@ -465,8 +436,6 @@ class ApiCache(startup.ParentCache):
         # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
         _logger.info( 'merging in dictionary of manual api overrides')
         self._mergeClassOverrides()
-        
-        self.save()
 
     def _mergeClassOverrides(self):
         _util.mergeCascadingDicts( self.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
