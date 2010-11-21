@@ -198,3 +198,74 @@ print "diff:"
 pprint(diff)
 print "-" * 60
 print
+
+
+#==============================================================================
+# Cache building comparison
+#==============================================================================
+
+
+import pymel.internal.apicache
+reload(pymel.internal.apicache)
+
+def dummyFunc(*args, **kwargs):pass
+
+old_save = pymel.internal.apicache.ApiCache.save
+old_buildClass = pymel.internal.apicache.ApiCache._buildApiClassInfo
+
+pymel.internal.apicache.ApiCache.save = dummyFunc
+pymel.internal.apicache.ApiCache._buildApiClassInfo = dummyFunc
+
+cache1 = pymel.internal.apicache.ApiCache()
+cache1.build()
+
+cache2 = pymel.internal.apicache.ApiCache()
+cache2.apiClassInfo = cache1.apiClassInfo
+cache2.rebuild()
+cache2._subCaches[pymel.internal.apicache.ApiMelBridgeCache].build()
+
+names = cache1.cacheNames() + cache1.EXTRA_GLOBAL_NAMES
+for name in names:
+    val1 = getattr(cache1, name)
+    val2 = getattr(cache2, name)
+    areEqual = val1 == val2
+    print "%s equal? %s" % (name,  areEqual ),
+    if not areEqual:
+        print "(%d, %d)" % (len(val1), len(val2)),
+    print
+
+dict1 = cache1.mayaTypesToApiTypes
+dict2 = cache2.mayaTypesToApiTypes
+v1 = set(dict1)
+v2 = set(dict2)
+both = v1 & v2
+only1 = v1 - both
+only2 = v2 - both
+print "both:", len(both)
+print "only1:", len(only1)
+print "only2:", len(only2)
+
+differences = {}
+for mayaType in both:
+    if dict1[mayaType] != dict2[mayaType]:
+        differences[mayaType] = (dict1[mayaType], dict2[mayaType])
+
+print "*" * 60
+print "different: (%d)" % len(differences)
+for key, val in differences:
+    print
+print "*" * 60
+print "only1: (%d)" % len(only1)
+for x in only1:
+    print x
+print "*" * 60
+print "only2: (%d)" % len(only2)
+for x in only2:
+    print x
+print "*" * 60
+
+import pymel.internal.factories
+len(pymel.internal.factories._apiCacheInst.apiTypesToMayaTypes)
+
+pymel.internal.apicache.ApiCache.save = old_save
+pymel.internal.apicache.ApiCache._buildApiClassInfo = old_buildClass
