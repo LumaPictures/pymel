@@ -75,7 +75,7 @@ def _defaultdictdict(cls, val=None):
     else:
         return _util.defaultdict(dict, val)
                    
-class ApiMelBridgeCache(startup.MayaCache):
+class ApiMelBridgeCache(startup.SubItemCache):
     NAME = 'mayaApiMelBridge'
     DESC = 'the API-MEL bridge' 
     COMPRESSED = True
@@ -359,11 +359,12 @@ class ApiCache(startup.ParentCache):
         # If we loaded from cache, we still need to rebuild the reserved types
         self._buildMayaReservedTypes(force=False)
 
-    def _load(self):
-        data = super(ApiCache, self)._load()
+    @classmethod
+    def read(cls):
+        data = super(ApiCache, cls).read()
         # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
         # even though they weren't used...
-        if data is not None and len(data) != len(self._CACHE_NAMES):
+        if data is not None and len(data) != len(cls._CACHE_NAMES):
             if len(data) == 8 and versions.current() < versions.v2012:
                 data = data[2:6] + data[7:]
             else:

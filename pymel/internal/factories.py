@@ -9,7 +9,6 @@ import pymel.util as util
 from pymel.util.conditions import Always, Condition
 import pymel.api as api
 import pymel.versions as versions
-from startup import loadCache
 import plogging as plogging
 import cmdcache
 import apicache
@@ -58,18 +57,17 @@ def loadCmdCache():
     global cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds
     
     _cmdCacheInst = cmdcache.CmdCache()
-    #_cmdCacheInst.build()
-    #_setCmdCacheGlobals()
-    cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = _cmdCacheInst.buildCachedData()
+    _cmdCacheInst.build()
+    _setCmdCacheGlobals()
     
     _elapsed = time.time() - _start
     _logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
 
-#def _setCmdCacheGlobals():
-#    global _cmdCacheInst
-#    
-#    for name, val in zip(_cmdCacheInst.cacheNames(), _apiCacheInst.contents():
-#        globals()[name] = val
+def _setCmdCacheGlobals():
+    global _cmdCacheInst
+    
+    for name, val in zip(_cmdCacheInst.cacheNames(), _cmdCacheInst.contents()):
+        globals()[name] = val
 
 
 def saveApiCache():
@@ -332,7 +330,7 @@ simpleCommandWraps = {
 #---------------------------------------------------------------
 
 if includeDocExamples:
-    examples = loadCache('mayaCmdsExamples', 'maya Command examples',useVersion=False )
+    examples = cmdcache.CmdProcessedExamplesCache.read()
     for cmd, example in examples.iteritems():
         cmdlist[cmd]['example'] = example
 
@@ -412,7 +410,7 @@ def loadCmdDocCache():
     global docCacheLoaded
     if docCacheLoaded:
         return
-    data = loadCache( 'mayaCmdsDocs', 'the Maya command documentation' )
+    data = cmdcache.CmdDocsCache.read()
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
 
