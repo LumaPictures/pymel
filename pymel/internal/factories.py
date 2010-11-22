@@ -2082,7 +2082,6 @@ def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoa
     return wrappedApiFunc
 
 def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True, origDocstring=''):
-
     apiClassName = apiClass.__name__
 
     argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
@@ -2706,7 +2705,6 @@ def addMayaType(mayaType, apiType=None):
     """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
 
         - mayaTypesToApiTypes
-        - apiTypesToMayaTypes
         - mayaTypesToApiEnums
         - apiEnumsToMayaTypes
     """
@@ -2721,7 +2719,6 @@ def removeMayaType(mayaType):
     """ Remove a type from the MayaTypes lists.
 
         - mayaTypesToApiTypes
-        - apiTypesToMayaTypes
         - mayaTypesToApiEnums
         - apiEnumsToMayaTypes
     """
@@ -2785,17 +2782,6 @@ def isValidPyNode (arg):
 def isValidPyNodeName (arg):
     return pyNodeNamesToPyNodes.has_key(arg)
 
-def toPyNodeClass( obj, default=None ):
-    if isinstance( obj, int ):
-        mayaType = apiEnumsToMayaTypes.get( obj, None )
-        return pyNodeNamesToPyNodes.get( util.capitalize(mayaType), default )
-    elif isinstance( obj, basestring ):
-        try:
-            return pyNodeNamesToPyNodes[ util.capitalize(obj) ]
-        except KeyError:
-            mayaType = apiTypesToMayaTypes.get( obj, None )
-            return pyNodeNamesToPyNodes.get( util.capitalize(mayaType), default )
-
 def toApiTypeStr( obj, default=None ):
     if isinstance( obj, int ):
         return apiEnumsToApiTypes.get( obj, default )
@@ -2812,14 +2798,6 @@ def toApiTypeEnum( obj, default=None ):
         return apiTypesToApiEnums[obj]
     except KeyError:
         return mayaTypesToApiEnums.get(obj, default)        
-
-def toMayaType( obj, default=None ):
-    if issubclass( obj, util.ProxyUnicode ):
-        return pyNodesToMayaTypes.get( obj, default )
-    if isinstance( obj, int ):
-        return apiEnumsToMayaTypes.get( obj, default )
-    elif isinstance( obj, basestring ):
-        return apiTypesToMayaTypes.get( obj, default)
     
 def toApiFunctionSet( obj ):
     if isinstance( obj, basestring ):

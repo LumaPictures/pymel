@@ -96,8 +96,7 @@ class ApiCache(startup.ParentCache):
 
 
     EXTRA_GLOBAL_NAMES = tuple('''reservedMayaTypes reservedApiTypes
-                            apiTypesToMayaTypes mayaTypesToApiEnums
-                            apiEnumsToMayaTypes'''.split())
+                            mayaTypesToApiEnums apiEnumsToMayaTypes'''.split())
                             
     # Descriptions of various elements:
     # Maya static info :
@@ -116,11 +115,6 @@ class ApiCache(startup.ParentCache):
     # Lookup of currently existing Maya types as keys with their corresponding API type as values.
     # Not a read only (static) dict as these can change (if you load a plugin)
     # self.mayaTypesToApiTypes
-
-    # Lookup of currently existing Maya API types as keys with their corresponding Maya type as values.
-    # Not a read only (static) dict as these can change (if you load a plugin)
-    # In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )
-    # self.apiTypesToMayaTypes
 
     # lookup tables for a direct conversion between Maya type to their MFn::Types enum
     # self.mayaTypesToApiEnums
@@ -160,28 +154,6 @@ class ApiCache(startup.ParentCache):
         for name in self.EXTRA_GLOBAL_NAMES:
             setattr(self, name, {})
 
-    def _getMObject(self, nodeType, dagMod, dgMod) :
-        """Returns a queryable MObject from a given apiType or mayaType
-        
-        be careful, as these MObjects can be used only as long as dagMod/dgMod
-        are not deleted
-        """
-
-        # cant create these ( some are abstract, some crash Maya)
-        if self.reservedApiTypes.has_key(nodeType) or self.reservedMayaTypes.has_key(nodeType) :
-            return None
-
-        if self.apiTypesToMayaTypes.has_key(nodeType) :
-            mayaType = self.apiTypesToMayaTypes[nodeType].keys()[0]
-            #apiType = nodeType
-        elif self.mayaTypesToApiTypes.has_key(nodeType) :
-            mayaType = nodeType
-            #apiType = self.mayaTypesToApiTypes[nodeType]
-        else :
-            return None
-
-        return _makeDgModGhostObject(mayaType, dagMod, dgMod)
-
     def _buildMayaToApiInfo(self, mayaTypes):
         # Fixes for types that don't have a MFn by faking a node creation and testing it
         # Make it faster by pre-creating the nodes used to test
@@ -218,7 +190,6 @@ class ApiCache(startup.ParentCache):
     def _buildApiTypesList(self):
         """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with
         an existing api type"""
-
 
         self.apiTypesToApiEnums = dict( inspect.getmembers(api.MFn, lambda x:type(x) is int))
         self.apiEnumsToApiTypes = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
@@ -278,8 +249,7 @@ class ApiCache(startup.ParentCache):
                     _logger.warn( "failed to parse docs for %r:\n%s" % (name, e) )
         _logger.debug("...finished ApiCache._buildApiClassInfo")
 
-    # Build a dictionnary of api types and parents to represent the MFn class hierarchy
-    def _buildApiTypeHierarchy(self) :
+    def _buildApiRelationships(self) :
         """
         Used to rebuild api info from scratch.
         """
@@ -333,7 +303,6 @@ class ApiCache(startup.ParentCache):
         """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
 
             - mayaTypesToApiTypes
-            - apiTypesToMayaTypes
             - mayaTypesToApiEnums
             - apiEnumsToMayaTypes
             
@@ -348,10 +317,6 @@ class ApiCache(startup.ParentCache):
             defType = self.reservedMayaTypes.has_key(mayaType)
 
             self.mayaTypesToApiTypes[mayaType] = apiType
-            if not self.apiTypesToMayaTypes.has_key(apiType) :
-                self.apiTypesToMayaTypes[apiType] = { mayaType : defType }
-            else :
-                self.apiTypesToMayaTypes[apiType][mayaType] = defType
 
             # these are static and are build elsewhere
             #self.apiTypesToApiEnums[apiType] = apiEnum
@@ -367,7 +332,6 @@ class ApiCache(startup.ParentCache):
         """ Remove a type from the MayaTypes lists.
 
             - mayaTypesToApiTypes
-            - apiTypesToMayaTypes
             - mayaTypesToApiEnums
             - apiEnumsToMayaTypes
             
@@ -385,15 +349,6 @@ class ApiCache(startup.ParentCache):
         try:
             apiType = self.mayaTypesToApiTypes.pop( mayaType, None )
         except KeyError: pass
-        else:
-            # due to lazy loading we are not guaranteed to have an entry
-            if apiType in self.apiTypesToMayaTypes:
-                types = self.apiTypesToMayaTypes[apiType]
-                _logger.debug('removeMayaType %s: %s' % (mayaType, types))
-                types.pop( mayaType, None )
-                if not types:
-                    self.apiTypesToMayaTypes.pop(apiType)
-                    self.apiTypesToApiEnums.pop(apiType)
 
     def build(self):
         """
@@ -429,7 +384,7 @@ class ApiCache(startup.ParentCache):
         
         self._buildMayaReservedTypes(force=True)
 
-        self._buildApiTypeHierarchy()
+        self._buildApiRelationships()
 
         # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
         _logger.info( 'merging in dictionary of manual api overrides')
