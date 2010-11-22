@@ -317,25 +317,30 @@ class DependNode( general.PyNode ):
         Note: this is still experimental.
         """
         if inspect.isclass(obj):
+            self = None
             cls = obj # keep things familiar
-            try:
-                nodeMfn = cls.__apiobjects__['MFn']
-            except KeyError:
-                cls.__apiobjects__['dagMod'] = _api.MDagModifier()
-                cls.__apiobjects__['dgMod'] = _api.MDGModifier()
-                # TODO: make something more reliable than uncapitalize
-                obj = _apicache._makeDgModGhostObject( _util.uncapitalize(cls.__name__),
-                                                                cls.__apiobjects__['dagMod'],
-                                                                cls.__apiobjects__['dgMod'] )
-                nodeMfn = cls.__apicls__(obj)
-                cls.__apiobjects__['MFn'] = nodeMfn
-
         else:
             self = obj # keep things familiar
-            nodeMfn = self.__apimfn__()
-
+            cls = type(obj)
+        
+        attributes = cls.__apiobjects__.setdefault('MFnAttributes', {})
+        attrObj = attributes.get(attr, None)
+        if not _api.isValidMObject(attrObj):
+            if self is None:
+                # We don't have an instance of the node, we need
+                # to make a ghost one...
+                dagMod = _api.MDagModifier()
+                dgMod = _api.MDGModifier()
+                nodeObj = _apicache._makeDgModGhostObject( cls.__melnode__,
+                                                           dagMod,
+                                                           dgMod )
+                nodeMfn = cls.__apicls__(obj)
+            else:
+                nodeMfn = self.__apimfn__()
+            attrObj = nodeMfn.attribute(attr)
+            attributes[attr] = attrObj
         # TODO: create a wrapped class for MFnAttribute
-        return _api.MFnAttribute( nodeMfn.attribute(attr) )
+        return _api.MFnAttribute( attrObj )
 
     def attr(self, attr):
         """
