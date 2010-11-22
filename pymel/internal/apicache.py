@@ -12,26 +12,24 @@ import plogging as _plogging
 
 _logger = _plogging.getLogger(__name__)
 
-class Enum(tuple):
+class ApiEnum(tuple):
     def __str__(self): return '.'.join( [str(x) for x in self] )
-    def __repr__(self): return repr(str(self))
-    def pymelName(self, forceType=None):
+    def __repr__(self):
+        return '%s( %s )' % (self.__class__.__name__, super(ApiEnum, self).__repr__())
+    def pymelName(self):
         import pymel.internal.factories as factories
         parts = list(self)
-        if forceType:
-            parts[0] = forceType
-        else:
-            mfn = getattr( api, self[0] )
-            mayaTypeDict = factories.apiEnumsToMayaTypes[ mfn().type() ]
-            parts[0] = _util.capitalize( mayaTypeDict.keys()[0] )
-
+        pymelName = factories.apiClassNameToPymelClassName(self[0])
+        if pymelName is not None:
+            parts[0] = pymelName
         return '.'.join( [str(x) for x in parts] )
     
 if versions.current() < versions.v2012:
     # Before 2012, api had Enum, and when we unpickle the caches, it will
     # need to be there... could rebuild the caches (like I had to do with
     # mayaApiMelBridge) but don't really want to...
-    api.Enum = Enum
+    api.Enum = ApiEnum
+    Enum = ApiEnum
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
@@ -269,7 +267,7 @@ class ApiCache(startup.ParentCache):
         _logger.debug("Starting ApiCache._buildApiClassInfo...") 
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
-        parser = ApiDocParser(api, enumClass=Enum)
+        parser = ApiDocParser(api, enumClass=ApiEnum)
 
         for name, obj in inspect.getmembers( api, lambda x: type(x) == type and x.__name__.startswith('M') ):
             if not name.startswith( 'MPx' ):

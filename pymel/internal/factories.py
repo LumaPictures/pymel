@@ -1631,12 +1631,12 @@ class ApiArgUtil(object):
             # the next arg has a default ( i.e. kwargs must always come after args )
 #            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
 #                (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
-#                    default = apicache.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
+#                    default = apicache.ApiEnum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
 
             else:
                 continue
 
-            if isinstance(default, apicache.Enum ):
+            if isinstance(default, apicache.ApiEnum ):
                 # convert enums from apiName to pymelName. the default will be the readable string name
                 apiClassName, enumName, enumValue = default
                 try:
@@ -2097,25 +2097,14 @@ def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True,
         "['one', 'two', 'three', ['1', '2', '3']]"
         to
         "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
-
-        Enums
-        this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
-        import api directly, we have to do a string name comparison
         """
         if not isinstance(type, list):
             pymelType = ApiTypeRegister.types.get(type,type)
         else:
             pymelType = type
 
-        if pymelType.__class__.__name__ == 'Enum':
-            try:
-                pymelType = pymelType.pymelName()
-            except:
-                try:
-                    pymelType = pymelType.pymelName( ApiTypeRegister.getPymelType( pymelType[0] ) )
-                except:
-                    pass
-                    #_logger.debug("Could not determine pymel name for %r" % repr(pymelType))
+        if isinstance(pymelType, apicache.ApiEnum):
+            pymelType = pymelType.pymelName()
 
         doc = repr(pymelType).replace("'", "`")
         if type in ApiTypeRegister.arrayItemTypes.keys():
@@ -2138,7 +2127,7 @@ def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True,
 
             docstring += S + '%s : %s\n' % (name, typeStr )
             docstring += S*2 + '%s\n' % (info['doc'])
-            if isinstance( type, apicache.Enum ):
+            if isinstance( type, apicache.ApiEnum ):
                 apiClassName, enumName = type
                 enumValues = apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
                 docstring += '\n' + S*2 + 'values: %s\n' % ', '.join( [ '%r' % x for x in enumValues if x not in ['invalid', 'last' ] ] )
@@ -2844,6 +2833,26 @@ def toApiFunctionSet( obj ):
             return apiTypesToApiClasses[ apiEnumsToApiTypes[ obj ] ]
         except KeyError:
             return
+
+def apiClassNameToPymelClassName(apiName, allowGuess=True):
+    '''Given the name of an api class, such as MFnTransform, MSpace, MAngle,
+    returns the name of the corresponding pymel class.
+    
+    If allowGuessing, and we cannot find a registered type that matches, will
+    try to do string parsing to guess the pymel name.
+    
+    Returns None if it was unable to determine the name.
+    '''
+    pymelName = apiClassNamesToPyNodeNames.get(apiName, None)
+    if pymelName is None:
+        if allowGuess:
+            try:
+                pymelName = ApiTypeRegister.getPymelType(apiName)
+            except Exception:
+                pass
+        else:
+            pymelName = ApiTypeRegister.types.get(apiName, None)
+    return pymelName
 
 # get the API type from a maya type
 def mayaTypeToApiType(mayaType) :
