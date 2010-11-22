@@ -2706,7 +2706,6 @@ def addMayaType(mayaType, apiType=None):
 
         - mayaTypesToApiTypes
         - mayaTypesToApiEnums
-        - apiEnumsToMayaTypes
     """
     if apiType is None:
         apiType = mayaTypeToApiType(mayaType)
@@ -2720,7 +2719,6 @@ def removeMayaType(mayaType):
 
         - mayaTypesToApiTypes
         - mayaTypesToApiEnums
-        - apiEnumsToMayaTypes
     """
     global _apiCacheInst
     _apiCacheInst.removeMayaType(mayaType, globals())

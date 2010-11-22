@@ -96,9 +96,10 @@ class ApiCache(startup.ParentCache):
 
 
     EXTRA_GLOBAL_NAMES = tuple('''reservedMayaTypes reservedApiTypes
-                            mayaTypesToApiEnums apiEnumsToMayaTypes'''.split())
+                            mayaTypesToApiEnums'''.split())
                             
     # Descriptions of various elements:
+    
     # Maya static info :
     # Initializes various static look-ups to speed up Maya types conversions
     # self.apiClassInfo
@@ -119,30 +120,54 @@ class ApiCache(startup.ParentCache):
     # lookup tables for a direct conversion between Maya type to their MFn::Types enum
     # self.mayaTypesToApiEnums
 
-    # lookup tables for a direct conversion between API type to their MFn::Types enum
-    # self.apiEnumsToMayaTypes
 
-    RESERVED_TYPES = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
-                'entity':'kDependencyNode', \
-                'constraint':'kConstraint', 'field':'kField', \
-                'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter', \
-                'dimensionShape':'kDimension', \
-                'abstractBaseCreate':'kCreate', 'polyCreator':'kPolyCreator', \
-                'polyModifier':'kMidModifier', 'subdModifier':'kSubdModifier', \
-                'curveInfo':'kCurveInfo', 'curveFromSurface':'kCurveFromSurface', \
-                'surfaceShape': 'kSurface', 'revolvedPrimitive':'kRevolvedPrimitive', 'plane':'kPlane', 'curveShape':'kCurve', \
-                'animCurve': 'kAnimCurve', 'resultCurve':'kResultCurve', 'cacheBase':'kCacheBase', 'filter':'kFilter',
-                'blend':'kBlend', 'ikSolver':'kIkSolver', \
-                'light':'kLight', 'renderLight':'kLight', 'nonAmbientLightShapeNode':'kNonAmbientLight', 'nonExtendedLightShapeNode':'kNonExtendedLight', \
-                'texture2d':'kTexture2d', 'texture3d':'kTexture3d', 'textureEnv':'kTextureEnv', \
-                'primitive':'kPrimitive', 'reflect':'kReflect', 'smear':'kSmear', \
-                'plugin':'kPlugin', 'THdependNode':'kPluginDependNode', 'THlocatorShape':'kPluginLocatorNode', 'pluginData':'kPluginData', \
-                'THdeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
-                'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
+    # TODO: may always need a manual map from reserved types to apiType,
+    # but may want to dynamically generate the list of abstract types
+    # (and possibly manipulators)?
+    # see maintenance/inheritance.py for sample of how to create list
+    # of abstract types
+    RESERVED_TYPES = { 'invalid':'kInvalid', 'base':'kBase',
+                'object':'kNamedObject',
+                'dependNode':'kDependencyNode', 'dagNode':'kDagNode',
+                'entity':'kDependencyNode',
+                'constraint':'kConstraint', 'field':'kField',
+                'geometryShape':'kGeometric', 'shape':'kShape',
+                'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter',
+                'dimensionShape':'kDimension',
+                'abstractBaseCreate':'kCreate', 'polyCreator':'kPolyCreator',
+                'polyModifier':'kMidModifier', 'subdModifier':'kSubdModifier',
+                'curveInfo':'kCurveInfo',
+                'curveFromSurface':'kCurveFromSurface',
+                'surfaceShape': 'kSurface',
+                'revolvedPrimitive':'kRevolvedPrimitive',
+                'plane':'kPlane', 'curveShape':'kCurve',
+                'animCurve': 'kAnimCurve',
+                'resultCurve':'kResultCurve', 'cacheBase':'kCacheBase',
+                'filter':'kFilter',
+                'blend':'kBlend', 'ikSolver':'kIkSolver',
+                'light':'kLight', 'renderLight':'kLight',
+                'nonAmbientLightShapeNode':'kNonAmbientLight',
+                'nonExtendedLightShapeNode':'kNonExtendedLight',
+                'texture2d':'kTexture2d', 'texture3d':'kTexture3d', 
+                'textureEnv':'kTextureEnv',
+                'primitive':'kPrimitive', 'reflect':'kReflect',
+                'smear':'kSmear',
+                'plugin':'kPlugin',
+                'THdependNode':'kPluginDependNode',
+                'THlocatorShape':'kPluginLocatorNode',
+                'pluginData':'kPluginData',
+                'THdeformer':'kPluginDeformerNode',
+                'pluginConstraint':'kPluginConstraintNode',
+                'unknown':'kUnknown', 'unknownDag':'kUnknownDag',
+                'unknownTransform':'kUnknownTransform',
+                'dynBase': 'kDynBase',
+                'polyPrimitive': 'kPolyPrimitive',
+                'nParticle': 'kNParticle',
+                'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry',
+
                 # creating these 2 crash Maya
-                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip',
-
-                'dynBase': 'kDynBase', 'polyPrimitive': 'kPolyPrimitive','nParticle': 'kNParticle', 'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry',
+                'xformManip':'kXformManip',
+                'moveVertexManip':'kMoveVertexManip',
     }
 
 
@@ -304,51 +329,27 @@ class ApiCache(startup.ParentCache):
 
             - mayaTypesToApiTypes
             - mayaTypesToApiEnums
-            - apiEnumsToMayaTypes
             
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
         """
 
         if apiType is not 'kInvalid' :
-
             apiEnum = getattr( api.MFn, apiType )
-
-            defType = self.reservedMayaTypes.has_key(mayaType)
-
             self.mayaTypesToApiTypes[mayaType] = apiType
-
-            # these are static and are build elsewhere
-            #self.apiTypesToApiEnums[apiType] = apiEnum
-            #self.apiTypesToApiClasses[apiEnum] = apiType
-
             self.mayaTypesToApiEnums[mayaType] = apiEnum
-            if not self.apiEnumsToMayaTypes.has_key(apiEnum) :
-                self.apiEnumsToMayaTypes[apiEnum] = { mayaType : None }
-            else:
-                self.apiEnumsToMayaTypes[apiEnum][mayaType] = None
 
     def removeMayaType(self, mayaType, updateObj=None):
         """ Remove a type from the MayaTypes lists.
 
             - mayaTypesToApiTypes
             - mayaTypesToApiEnums
-            - apiEnumsToMayaTypes
             
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
         """
-        try:
-            apiEnum = self.mayaTypesToApiEnums.pop( mayaType )
-        except KeyError: pass
-        else:
-            enums = self.apiEnumsToMayaTypes[apiEnum]
-            enums.pop( mayaType, None )
-            if not enums:
-                self.apiEnumsToMayaTypes.pop(apiEnum)
-        try:
-            apiType = self.mayaTypesToApiTypes.pop( mayaType, None )
-        except KeyError: pass
+        self.mayaTypesToApiEnums.pop( mayaType, None )
+        self.mayaTypesToApiTypes.pop( mayaType, None )
 
     def build(self):
         """
