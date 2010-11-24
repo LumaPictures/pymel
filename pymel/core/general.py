@@ -26,33 +26,35 @@ _logger = logging.getLogger(__name__)
 #       ...so we shouldn't always have to do it here as well?
 
 def _getPymelTypeFromObject(obj, name):
+    if obj.hasFn(_api.MFn.kDependencyNode):
+        fnDepend = _api.MFnDependencyNode( obj )
+        mayaType = fnDepend.typeName()
+        import nodetypes
+        pymelType = getattr( nodetypes, _util.capitalize(mayaType), nodetypes.DependNode )
+
+        if pymelType in _factories.virtualClass:
+            data = _factories.virtualClass[pymelType]
+            nodeName = name
+            for virtualCls, nameRequired in data:
+                if nameRequired and nodeName is None:
+                    nodeName = fnDepend.name()
+
+                if virtualCls._isVirtual(obj, nodeName):
+                    pymelType = virtualCls
+                    break
+    elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
-        if compTypes is not None:
-            if len(compTypes) == 1:
-                return compTypes[0]
-            else:
-                raise RuntimeError('Got an instance of a component with more than one possible PyNode type: %s' % obj.apiTypeStr())
-        else:
-            try:
-                fnDepend = _api.MFnDependencyNode( obj )
-                mayaType = fnDepend.typeName()
-                import nodetypes
-                pymelType = getattr( nodetypes, _util.capitalize(mayaType), nodetypes.DependNode )
-
-            except RuntimeError:
-                raise MayaNodeError
-
-            if pymelType in _factories.virtualClass:
-                data = _factories.virtualClass[pymelType]
-                nodeName = name
-                for virtualCls, nameRequired in data:
-                    if nameRequired and nodeName is None:
-                        nodeName = fnDepend.name()
-
-                    if virtualCls._isVirtual(obj, nodeName):
-                        pymelType = virtualCls
-                        break
-            return pymelType
+        if compTypes is None:
+            raise RuntimeError('Got an instance of a component which could not be mapped to a pymel class: %s' % obj.apiTypeStr())
+        if len(compTypes) != 1:
+            raise RuntimeError('Got an instance of a component with more than one possible PyNode type: %s' % obj.apiTypeStr())
+        pymelType = compTypes[0]
+    elif obj.hasFn(_api.MFn.kAttribute):
+        pymelType = AttributeDefaults
+    else:
+        raise RuntimeError('Could not determine pymel type for object of type %s' % obj.apiTypeStr())
+    
+    return pymelType
 
 def _getPymelType(arg, name) :
     """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
@@ -5065,6 +5067,9 @@ class AttributeDefaults(PyNode):
         try:
             return self.node().__apimdagpath__()
         except AttributeError: pass
+        
+    def name(self):
+        return self.__apimfn__().name()
 
 
 #-----------------------------------------------

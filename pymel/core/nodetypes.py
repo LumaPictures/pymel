@@ -339,8 +339,7 @@ class DependNode( general.PyNode ):
                 nodeMfn = self.__apimfn__()
             attrObj = nodeMfn.attribute(attr)
             attributes[attr] = attrObj
-        # TODO: create a wrapped class for MFnAttribute
-        return _api.MFnAttribute( attrObj )
+        return general.AttributeDefaults( attrObj )
 
     def attr(self, attr):
         """
