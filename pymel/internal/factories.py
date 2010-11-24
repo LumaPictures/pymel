@@ -32,9 +32,12 @@ def loadApiCache():
     _start = time.time()
     
     global _apiCacheInst
+    global _apiMelBridgeCacheInst
     
     _apiCacheInst = apicache.ApiCache()
     _apiCacheInst.build()
+    _apiMelBridgeCacheInst = apicache.ApiMelBridgeCache()
+    _apiMelBridgeCacheInst.build()
     _setApiCacheGlobals()
     
     _elapsed = time.time() - _start
@@ -42,8 +45,12 @@ def loadApiCache():
     
 def _setApiCacheGlobals():
     global _apiCacheInst
+    global _apiMelBridgeCacheInst
     
-    for names, values in [ (_apiCacheInst.cacheNames(), _apiCacheInst.contents()),
+    for names, values in [ (_apiCacheInst.cacheNames(),
+                                _apiCacheInst.contents()),
+                           (_apiMelBridgeCacheInst.cacheNames(),
+                                _apiMelBridgeCacheInst.contents()),
                            (_apiCacheInst.EXTRA_GLOBAL_NAMES,
                                 _apiCacheInst.extraDicts()) ]:
         for name, val in zip(names, values):
@@ -75,13 +82,15 @@ def saveApiCache():
     _apiCacheInst.save(globals())
     
 def saveApiMelBridgeCache():
-    global _apiCacheInst
-    _apiCacheInst._mayaApiMelBridge.save(globals())
+    global _apiMelBridgeCacheInst
+    _apiMelBridgeCacheInst.save(globals())
     
 def mergeApiClassOverrides():
+    global _apiCacheInst
+    global _apiMelBridgeCacheInst
     _apiCacheInst.update(globals())
-    _apiCacheInst._mayaApiMelBridge.update(globals())
-    _apiCacheInst._mergeClassOverrides()
+    _apiMelBridgeCacheInst.update(globals())
+    _apiCacheInst._mergeClassOverrides(_apiMelBridgeCacheInst)
     _setApiCacheGlobals()
     
 loadApiCache()

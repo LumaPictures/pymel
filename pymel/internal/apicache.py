@@ -23,7 +23,7 @@ class ApiEnum(tuple):
         if pymelName is not None:
             parts[0] = pymelName
         return '.'.join( [str(x) for x in parts] )
-    
+
 if versions.current() < versions.v2012:
     # Before 2012, api had Enum, and when we unpickle the caches, it will
     # need to be there... could rebuild the caches (like I had to do with
@@ -86,7 +86,7 @@ class ApiMelBridgeCache(startup.SubItemCache):
     STORAGE_TYPES = {'apiToMelData':dict}
 
 
-class ApiCache(startup.ParentCache):
+class ApiCache(startup.SubItemCache):
     NAME = 'mayaApi'
     DESC = 'the API cache'
     COMPRESSED = True
@@ -171,9 +171,6 @@ class ApiCache(startup.ParentCache):
     }
 
 
-    
-    SUB_CACHE_TYPES = [ApiMelBridgeCache]
-        
     def __init__(self):
         super(ApiCache, self).__init__()
         for name in self.EXTRA_GLOBAL_NAMES:
@@ -360,16 +357,17 @@ class ApiCache(startup.ParentCache):
         self._buildMayaReservedTypes(force=False)
 
     @classmethod
-    def read(cls):
+    def read(cls, raw=False):
         data = super(ApiCache, cls).read()
-        # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
-        # even though they weren't used...
-        if data is not None and len(data) != len(cls._CACHE_NAMES):
-            if len(data) == 8 and versions.current() < versions.v2012:
-                data = data[2:6] + data[7:]
-            else:
-                # we need to rebuild, return None
-                data = None
+        if not raw:
+            # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
+            # even though they weren't used...
+            if data is not None and len(data) != len(cls._CACHE_NAMES):
+                if len(data) == 8 and versions.current() < versions.v2012:
+                    data = data[2:6] + data[7:]
+                else:
+                    # we need to rebuild, return None
+                    data = None
         return data
 
     def rebuild(self):
@@ -392,8 +390,11 @@ class ApiCache(startup.ParentCache):
         _logger.info( 'merging in dictionary of manual api overrides')
         self._mergeClassOverrides()
 
-    def _mergeClassOverrides(self):
-        _util.mergeCascadingDicts( self.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
+    def _mergeClassOverrides(self, bridgeCache=None):
+        if bridgeCache is None:
+            bridgeCache = ApiMelBridgeCache()
+            bridgeCache.build()
+        _util.mergeCascadingDicts( bridgeCache.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
         
     def melBridgeContents(self):
         return self._mayaApiMelBridge.contents()
