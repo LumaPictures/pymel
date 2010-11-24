@@ -539,7 +539,7 @@ class SubItemCache(PymelCache):
         data = self.load()
         if data is None:
             self.rebuild()
-            self.save
+            self.save()
     
     # override this...
     def rebuild(self):
@@ -559,9 +559,7 @@ class SubItemCache(PymelCache):
             cacheNames = self.cacheNames()
             
         if isinstance(obj, dict):
-            for key, val in obj:
-                if key not in cacheNames:
-                    raise KeyError('given item %r not found items to update - %s' % (key, cacheNames)) 
+            for key, val in obj.iteritems():
                 setattr(self, key, val)
         elif isinstance(obj, (list, tuple)):
             if len(obj) != len(cacheNames):
@@ -755,11 +753,14 @@ class ParentCache(SubItemCache):
             self._cacheMethod(cache, 'update')(updateObjByCache[cache],
                                                cacheNames=cacheNamesByCache[cache])
     
-    def save(self, obj=None):
+    def save(self, obj=None, subs=False):
         if obj is not None:
             self.update(obj)
-        for cache in self._selfAndSubs():
-            self._cacheMethod(cache, 'save')()
+        if subs:
+            for cache in self._selfAndSubs():
+                self._cacheMethod(cache, 'save')()
+        else:
+            super(ParentCache, self).save()
             
     def contents(self):
         return sum( (self._cacheMethod(x, 'contents')() for x in self._selfAndSubs()),
