@@ -844,13 +844,10 @@ class CmdCache(startup.SubItemCache):
     DESC = 'the list of Maya commands'
     _CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList
                         nodeCommandList moduleCmds'''.split()
-    
-    def __init__(self):
-        self.cmdlist = {}
-        self.nodeHierarchy = []
-        self.uiClassList = []
-        self.nodeCommandList = []
-        self.moduleCmds = {}
+    CACHE_TYPES = {'nodeHierarchy':list,
+                   'uiClassList':list,
+                   'nodeCommandList':list,
+                   }
         
     def rebuild(self) :
         """Build and save to disk the list of Maya Python commands and their arguments"""
