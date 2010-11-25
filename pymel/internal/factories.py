@@ -21,6 +21,33 @@ _logger = plogging.getLogger(__name__)
 
 # Initialize the cache globals
 
+# Doing an initialization here mainly just for auto-completion, and to
+# see these variables are defined here when doing text searches; the values
+# are set inside loadApi/CmdCache
+
+# ApiCache
+apiTypesToApiEnums = None
+apiEnumsToApiTypes = None
+mayaTypesToApiTypes = None
+apiTypesToApiClasses = None
+apiClassInfo = None
+
+reservedMayaTypes = None
+reservedApiTypes = None
+mayaTypesToApiEnums = None
+           
+# ApiMelBridgeCache
+apiToMelData  = None
+apiClassOverrides = None
+
+# CmdCache
+cmdlist = None
+nodeHierarchy = None
+uiClassList = None
+nodeCommandList = None
+moduleCmds = None       
+
+
 # Though the global variables and the attributes on _apiCacheInst SHOULD
 # always point to the same objects - ie,
 #    _apiCacheInst.apiClassInfo is apiClassInfo
@@ -346,11 +373,8 @@ if includeDocExamples:
 #cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
 
 # FIXME
-#: stores a dcitionary of pymel classnames and their methods.  i'm not sure if the 'api' portion is being used any longer
-apiToMelMap = {
-               'mel' : util.defaultdict(list),
-               'api' : util.defaultdict(list)
-               }
+#: stores a dcitionary of pymel classnames to mel method names
+classToMelMap = util.defaultdict(list)
 
 def _getApiOverrideNameAndData(classname, pymelName):
     if apiToMelData.has_key( (classname,pymelName) ):
@@ -1944,7 +1968,6 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
         # create the function
         def wrappedApiFunc( self, *args ):
-
             do_args = []
             outTypeList = []
 
@@ -2430,7 +2453,6 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         #-------------------------
         melCmdName, infoCmd = cls.getMelCmd(classdict)
 
-
         classdict = {}
         try:
             cmdInfo = cmdlist[melCmdName]
@@ -2447,6 +2469,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             # add documentation
             classdict['__doc__'] = util.LazyDocString( (newcls, cls.docstring, (melCmdName,), {} ) )
             classdict['__melcmd__'] = staticmethod(func)
+            classdict['__melcmdname__'] = melCmdName
             classdict['__melcmd_isinfo__'] = infoCmd
 
             filterAttrs = ['name']+classdict.keys()
@@ -2469,7 +2492,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                     # query command
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
-                        apiToMelMap['mel'][classname].append( methodName )
+                        classToMelMap[classname].append( methodName )
 
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
@@ -2510,7 +2533,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         else:
                             methodName = flag
 
-                        apiToMelMap['mel'][classname].append( methodName )
+                        classToMelMap[classname].append( methodName )
 
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
@@ -2546,7 +2569,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         Deteremine if the passed method name exists on a parent class as a mel method
         """
         for classname in parentClassList:
-            if methodName in apiToMelMap['mel'][classname]:
+            if methodName in classToMelMap[classname]:
                 return True
         return False
 

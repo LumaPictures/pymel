@@ -118,8 +118,10 @@ class PymelControlPanel(object):
         menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
 
         popupMenu(parent=self.assignedMelMethodLister, button=3  )
-        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
-        
+        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.assignedMelMethodLister ) )
+
+        popupMenu(parent=self.disabledMelMethodLister, button=3  )
+        menuItem(l='enable', c=Callback( PymelControlPanel.enableMelMethod))        
         
         self.classScrollList.extend( self.classList )
         self.classScrollList.selectCommand( lambda: self.apiClassList_selectCB() )
@@ -139,13 +141,25 @@ class PymelControlPanel(object):
             self.disabledMelMethodLister.append( method  )
             #print clsname, method, factories.apiToMelData[ (clsname, method) ]
             factories.apiToMelData[ (clsname, method) ]['melEnabled'] = False
+
+    def enableMelMethod(self):
+        menu = self.disabledMelMethodLister
+        msel = menu.getSelectItem()
+        csel = self.classScrollList.getSelectItem()
+        if msel and csel:
+            method = msel[0]
+            clsname = csel[0]
+            menu.removeItem(method)
+            self.unassignedMelMethodLister.append( method  )
+            #print clsname, method, factories.apiToMelData[ (clsname, method) ]
+            factories.apiToMelData[ (clsname, method) ].pop('melEnabled')
        
     @staticmethod    
     def getMelMethods(className):
         """get all mel-derived methods for this class"""
         reg = re.compile('(.*[a-z])([XYZ])$')
         newlist = []
-        origlist = factories.apiToMelMap['mel'][className]
+        origlist = factories.classToMelMap[className]
         for method in origlist:
             m = reg.search(method)
             if m:
@@ -430,9 +444,9 @@ class MethodRow(object):
         if not self.data.has_key( 'melName' ):
             match = None
             for method in melMethods:
-                methreg = method.replace('*', '.{0,1}') + '$'
+                methreg = re.compile(method.replace('*', '.{0,1}') + '$')
                 #print self.methodName, methreg
-                if re.match( methreg, self.methodName ):
+                if methreg.match( self.methodName ):
                     match = str(method)
                     break
             if match:
