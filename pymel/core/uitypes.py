@@ -563,12 +563,14 @@ class Menu(PyUI):
         return cmds.setParent(self, m=1)
 
 class SubMenuItem(Menu):
+    
+    __melui__ = 'menuItem'
 
-    def getBoldFont(self):
-        return cmds.menuItem(self,query=True,boldFont=True)
-
-    def getItalicized(self):
-        return cmds.menuItem(self,query=True,italicized=True)
+#    def getBoldFont(self):
+#        return cmds.menuItem(self,query=True,boldFont=True)
+#
+#    def getItalicized(self):
+#        return cmds.menuItem(self,query=True,italicized=True)
     
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtMenuItem
@@ -699,9 +701,7 @@ class AELoader(type):
             cls = getattr(mod,classname)
             cls(nodename)
         except Exception:
-            print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
-            import traceback
-            traceback.print_exc()
+            _logger.exception("failed to load python attribute editor template '%s.%s'" % (modname, classname))
 
     @classmethod
     def loadedTemplates(cls):
