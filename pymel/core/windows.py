@@ -9,6 +9,7 @@ import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as _versions
+from pymel.util import decorator
 
 from language import mel, melGlobals
 from system import Path as _Path
@@ -186,7 +187,7 @@ class BaseCallback(object):
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.traceback = traceback.format_stack()
+        #self.traceback = traceback.format_stack()    - we don't need tracebacks unless there's an exception
 
 if _versions.current() >= _versions.v2009:
 
@@ -269,14 +270,18 @@ else:
         @staticmethod
         def _doCall():
             (func, args, kwargs) = Callback._callData
-            Callback._callData = func(*args, **kwargs)
-
+            Callback._tb = None
+            try:
+                Callback._callData = func(*args, **kwargs)
+            except:
+                Callback._tb = sys.exc_info()
+    
         def __call__(self,*args):
             Callback._callData = (self.func, self.args, self.kwargs)
-            try:
-                mel.python("%s.Callback._doCall()" % thisModuleCmd)
-            except Exception, e:
-                raise _factories.CallbackError(self.func, e)   
+            mel.python("%s.Callback._doCall()" % thisModuleCmd)
+            if self._tb:
+                t,v,tb = self._tb
+                raise t,v,tb.tb_next
             return Callback._callData
 
     class CallbackWithArgs(Callback):
@@ -284,10 +289,10 @@ else:
             kwargsFinal = self.kwargs.copy()
             kwargsFinal.update(kwargs)
             Callback._callData = (self.func, self.args + args, kwargsFinal)
-            try:
-                mel.python("%s.Callback._doCall()" % thisModuleCmd)
-            except Exception, e:
-                raise _factories.CallbackError(self.func, e)
+            mel.python("%s.Callback._doCall()" % thisModuleCmd)
+            if self._tb:
+                t,v,tb = self._tb
+                raise t,v,tb.tb_next
             return Callback._callData
 
 
@@ -383,6 +388,7 @@ def fileDialog(*args, **kwargs):
     if ret:
         return _Path( ret )
 
+@decorator
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
     def decoratedFunc(*args, **kwargs):
@@ -391,11 +397,49 @@ def showsHourglass(func):
             return func(*args, **kwargs)
         finally:
             cmds.waitCursor(st=False)
-    decoratedFunc.__doc__ = func.__doc__
-    decoratedFunc.__name__ = func.__name__
-    decoratedFunc.__module__ = func.__module__
     return decoratedFunc
 
+_lastException = None
+def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck script-editor for details", ignoredExecptiones=None):
+    """
+    Decorator - shows an information box to the user with any exception raised in a sub-routine.
+    Note - the exception is re-raised.
+    
+    @param title: The title of the message-box
+    @param message: The message in the message box, string-formatted with 'exc' as the exception object 
+
+    """
+    
+    if not ignoredExecptiones:
+        ignoredExecptiones = tuple()
+    else:
+        ignoredExecptiones = tuple(ignoredExecptiones)
+    if callable(title):
+        func = title
+        title = "Exception Caught"
+    else:
+        func = None
+    
+    @decorator
+    def decoratingFunc(func):
+        def decoratedFunc(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except ignoredExecptiones:
+                raise
+            except Exception, e:
+                global _lastException
+                if e is _lastException:
+                    return
+                else:
+                    _lastException = e
+                sys.excepthook(*sys.exc_info())
+                informBox(title, message % dict(exc=e))
+                raise
+        return decoratedFunc
+    if func:
+        return decoratingFunc(func)
+    return decoratingFunc
 
 
 def pathButtonGrp( name=None, *args, **kwargs ):
@@ -419,6 +463,66 @@ def uiTemplate(name=None, force=False, exists=None):
 def currentParent():
     "shortcut for ``ui.PyUI(setParent(q=1))`` "
     return _uitypes.PyUI(cmds.setParent(q=1))
+
+def textLayout(text, parent=None):
+    return _uitypes.TextLayout(text=text, parent=parent, create=True)
+
+def objectMenu(*args, **kwargs):
+    kwargs['create']=True
+    return _uitypes.ObjectMenu(*args, **kwargs)
+
+def objectScrollList(*args, **kwargs):
+    kwargs['create']=True
+    return _uitypes.ObjectScrollList(*args, **kwargs)
+
+def textWindow(title, text, size=(300,300)):
+    """
+    Convenience for creating a simple window with a scroll-field of text inside
+
+    @param title: The window title
+    @param text: The text to display 
+    @param size: A tuple of (xdim,ydim) to size the window
+    
+    """
+
+    self = window("TextWindow#",title=title)
+    self.main = textLayout(parent=self, text=text)
+    self.setWidthHeight(list(size or [300,300]))
+    self.setText = self.main.setText
+    self.show()
+    return self
+
+def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
+    """
+    A convenience for getting a label and a control (specified by uiFunc+kwargs),
+    in an adjustable horizontal layout.
+    It is also more controllable and aesthetically pleasing than the *Grp controls 
+    (textFieldGrp, optionMenuGrp, intFieldGrp, etc.)
+    
+    @param uiFunc: The function used to create the desired control
+    @param kwargs: keyword arguments, as a dictionary, to be passed to the uiFunc
+    @param align: how to align the text in the label ("left" or "right")
+    @param parent: The parent layout for this group of ui elements
+    @param ratios: the distribution of space for the label and the control. See 'FormLayout' 
+    
+    Example:
+        # create an optionMenu with no label of its own (l=""), and a separate "Options:" text element.
+        # The label will occupy the least space necessary, and the optionMenu will auto-adjust its size (ratios=[0,1]) 
+        labeledControl(label="Options:", uiFunc=pm.optionMenu, kwargs=dict(l=""), ratios=[0,1])
+    """
+    kw = dict(ratios=ratios)
+    if parent:
+        kw['parent']=parent
+    with horizontalLayout(**kw) as layout:
+        _logger.debug("layout: %r" % layout)
+        label = text(l=label,al=align)
+        control = uiFunc(**kwargs)
+            
+    if not isinstance(control,_uitypes.PyUI):
+        control = _uitypes.PyUI(control)
+    control.label = label 
+    control.layout = layout
+    return control        
 
 # fix a bug it becomes impossible to create a menu after setParent has been called
 def menu(*args, **kwargs):
@@ -494,6 +598,7 @@ def subMenuItem(*args, **kwargs):
     """
     kwargs['subMenu'] = True
     return menuItem(*args, **kwargs)
+
 
 
 #class ValueControlGrp( UI ):
