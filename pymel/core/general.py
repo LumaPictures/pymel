@@ -3051,7 +3051,8 @@ class Attribute(PyNode):
                 return plug.parent()
             except:
                 return None
-
+        if self.isElement():
+            self = self.array()
         res = _getParent(getAttrParent, self.__apimfn__(), generations)
         if res:
             return Attribute( self.node(), res )
