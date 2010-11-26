@@ -4,14 +4,15 @@ import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as _versions
+import windows as _windows
 import maya.mel as _mm
 _logger = _internal.getLogger(__name__)
 
 def _resolveUIFunc(name):
     if isinstance(name, basestring):
-        import windows
+
         try:
-            return getattr(windows,name)
+            return getattr(_windows,name)
         except AttributeError:
             try:
                 cls = getattr(dynModule,name)
@@ -120,10 +121,6 @@ class PyUI(unicode):
     Pymel UI object
     """
     
-    # keeps track of the stack of parent UIs, instead of relying on maya's setParent command
-    # this allows unifying all ui element creation to use the 'parent' flag consistently.
-    parentsStack = []
-    
     def __new__(cls, name=None, create=False, **kwargs):
         """
         Provides the ability to create the PyUI Element when creating a class::
@@ -173,9 +170,6 @@ class PyUI(unicode):
 
         if not newcls is PyUI:
             if cls._isBeingCreated(name, create, kwargs):
-                parent = kwargs.pop('p',None) or kwargs.pop('parent',None) or (cls.parentsStack and cls.parentsStack[-1])
-                if parent:
-                    kwargs['parent'] = parent
                 name = newcls.__melcmd__(name, **kwargs)
                 _logger.debug("PyUI: created... %s" % name)
             else:
@@ -186,14 +180,13 @@ class PyUI(unicode):
                                                  dynModule.ScriptedPanel,
                                                  dynModule.RadioCollection,
                                                  dynModule.ToolCollection)):
-                    import windows
                     try:
                         if issubclass(newcls,Layout):
-                            parent = windows.layout(name, q=1, p=1)
+                            parent = _windows.layout(name, q=1, p=1)
                         elif issubclass(newcls,Menu):
-                            parent = windows.menu(name, q=1, p=1)
+                            parent = _windows.menu(name, q=1, p=1)
                         else:
-                            parent = windows.control(name, q=1, p=1)
+                            parent = _windows.control(name, q=1, p=1)
                         if parent:
                             name = parent + '|' + name
                     except ValueError:
@@ -248,21 +241,29 @@ class PyUI(unicode):
     rename = _factories.functionFactory( 'renameUI', rename='rename' )
     type = _factories.functionFactory( 'objectTypeUI', rename='type' )
 
-    @classmethod
-    def exists(cls, name):
-        return cls.__melcmd__( name, exists=True )
+    #@classmethod
+    def exists(self):
+        return self.__class__.__melcmd__( str(self), exists=True )
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtControl
-        
+    
+    def setAsParent(self):
+        try:
+            return cmds.setParent(self)
+        except RuntimeError:
+            self.__class__._currentParent = self
+
+        return self
+    
     def __enter__(self):
-        self.parentsStack.append(self)
-        _logger.debug(">> UI Parent (%2d): %s" % (len(self.parentsStack),self))
+        self.__class__._previousParents = (cmds.setParent(q=1), cmds.setParent(q=1,m=1))
+        self.setAsParent()
         return self
     
     def __exit__(self, type, value, tb):
-        self.parentsStack.remove(self)
-        _logger.debug("<< UI Parent (%2d): %s" % (len(self.parentsStack), (self.parentsStack and self.parentsStack[-1])))
+        cmds.setParent(self.__class__._previousParents[0])
+        cmds.setParent(self.__class__._previousParents[1], m=1)
         
 class Panel(PyUI):
     """pymel panel class"""
@@ -513,13 +514,27 @@ class TextScrollList(PyUI):
         """select all items"""
         numberOfItems = self.getNumberOfItems()
         self.selectIndexedItems(range(1,numberOfItems+1))
+        
+    def getSelectIndexedItem(self):
+        """
+        Returns the current selection as list of indices.
+        Modified to returns empty list if nothing is selected.
+        """
+        return cmds.textScrollList(self, q=1, selectIndexedItem=True) or []        
 
 class PopupMenu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
+    
+    def setAsParent(self):
+        return cmds.setParent(self, m=1)
+    
 
 class OptionMenu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
+    def setAsParent(self):
+        return cmds.setParent(self, m=1)
+    
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """
         if title:
@@ -543,6 +558,9 @@ class Menu(PyUI):
             return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
         else:
             return []
+        
+    def setAsParent(self):
+        return cmds.setParent(self, m=1)
 
 class SubMenuItem(Menu):
 
@@ -874,13 +892,11 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
             name = cmds.textFieldButtonGrp( name, *args, **kwargs)
 
             def setPathCB(name):
-                import windows
-                f = windows.promptForPath()
+                f = _windows.promptForPath()
                 if f:
                     cmds.textFieldButtonGrp( name, e=1, text=f)
 
-            import windows
-            cb = windows.Callback( setPathCB, name )
+            cb = _windows.Callback( setPathCB, name )
             cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
 
         return dynModule.TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
@@ -891,6 +907,318 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
     def getPath(self):
         import system
         return system.Path( self.getText() )
+
+if sys.version_info > (2,6):
+    from pymel.util.utilitytypes import OldUserList as UserList
+else:
+    from UserList import UserList
+
+#@decorator
+def refreshing(func):
+    def dec(self, *x, **y):
+        sel = self.getSelected()
+        ret = func(self, *x, **y)
+        self.refresh(reselect=False)
+        self.select(sel)
+        return ret
+    return dec
+
+class ObjectScrollList(UserList, TextScrollList):
+    """
+    Create a dynamic Scroll-List from a simple object list.
+    Override or set the 'objectToString' function to a function that function that will return the string representation for an object.
+    """
+    
+    def __new__(cls, *args, **kwargs):
+        #kwargs['create'] = True
+        self = TextScrollList.__new__(cls, *args, **kwargs)
+        return self
+    
+    def __init__(self, *args, **kwargs):
+        initlist = kwargs.pop('initlist',None)
+        TextScrollList.__init__(self, *args,**kwargs)
+        UserList.__init__(self, initlist=initlist)
+        self.objectToIndices = {}
+
+        if self.getAllowMultiSelection():
+            self._converter = lambda l: l
+        else:
+            self._converter = lambda l: l and l[0] or None
+
+    __nonzero__ = lambda s: True
+    
+    objectToString = str
+
+    d = locals()
+    for fn in ['append', 'extend', 'insert', 'pop', 'remove', 'reverse', 'sort',
+               '__setslice__', '__delslice__', '__imul__', '__iadd__']:
+        func = refreshing(getattr(UserList,fn))
+        d[fn] = func
+    del d, func, fn
+
+    #================================================================================
+    
+    def refresh(self, items=None, reselect=True):
+        sel = reselect and self.getSelected()
+        if items:
+            if not hasattr(items, "__iter__"):
+                items = [items]
+            for o in items:
+                if o in self.objectToIndices:
+                    pos = self.objectToIndices[o][-1]
+                    self.removeIndexedItem(pos)
+                    self.appendPosition((pos, self.objectToString(o)))        
+        else:
+            self.removeAll(1)
+            self.objectToIndices.clear()
+            for i, o in enumerate(self.data):
+                TextScrollList.append(self, self.objectToString(o))
+                self.objectToIndices.setdefault(o,[]).append(i+1)
+        if sel and self.data: self.select(sel)
+        
+    def select(self, objects):
+        if not hasattr(objects,"__iter__"):
+            objects = [objects]
+        indices = [i for o in objects for i in self.objectToIndices.get(o,[])]
+        self.setSelectIndexedItem(indices)
+
+    @property
+    def selectedIndices(self):
+        return [i-1 for i in self.getSelectIndexedItem()]
+
+    def getSelected(self):
+        ret = [self[s] for s in self.selectedIndices]
+        return self._converter(ret)
+
+    def popSelected(self):
+        ret = [self.pop(i) for i in reversed(self.selectedIndices)]
+        ret.reverse()
+        return self._converter(ret)
+
+
+class ObjectMenu(UserList, OptionMenu):
+    """
+    Create a dynamic Option-Menu from a simple object list.
+    Override or set the 'objectToString' function to a function that function that will return the string representation for an object.
+    """    
+    def __init__(self, *args, **kwargs):
+        #kwargs['create'] = True
+        initlist = kwargs.pop('initlist',None)
+        OptionMenu.__init__(self, *args,**kwargs)
+        UserList.__init__(self, initlist=initlist)
+        self.title = None
+        self.objectToIndices = {}
+
+    def __new__(cls, *args, **kwargs):
+        #kwargs['create'] = True
+        self = OptionMenu.__new__(cls, *args, **kwargs)
+        return self
+
+    __nonzero__ = lambda s: True
+    objectToString = str
+
+    d = locals()
+    for fn in ['append', 'extend', 'insert', 'pop', 'remove', 'reverse', 'sort',
+               '__setslice__', '__delslice__', '__imul__', '__iadd__']:
+        func = refreshing(getattr(UserList,fn))
+        d[fn] = func
+    del d, func, fn
+
+    #================================================================================
+
+    def addMenuItems(self, items, title=None):
+        self.data.extend(items)
+        self.title = title
+        self.refresh()
+    
+    def refresh(self, reselect=False):
+        sel = reselect and self.getSelected()
+        self.clear()
+        offset = 1
+        if self.title:
+            menuItem(l = self.title, en = 0,parent = self)
+            offset += 1
+        self.objectToIndices.clear()
+        for i, o in enumerate(self.data):
+            menuItem(l = self.objectToString(o), parent = self)            
+            self.objectToIndices.setdefault(o,[]).append(i+offset)
+        if reselect: self.select(reselect)
+        
+    def select(self, object):
+        if object and object in self.objectToIndices:
+            self.setSelectIndexedItem(self.objectToIndices[object][-1])
+
+    def getSelected(self):
+        idx = self.getSelectIndexedItem()
+        if idx:
+            return self[idx-1]
+
+    def popSelected(self):
+        ret = self.pop(self.getSelectIndexedItem())
+        self.refresh()
+        return ret
+
+class ModalLayout(FormLayout):
+    """
+    A base class for creating Modal Dialog Boxes.
+    To launch the dialog box, call the 'prompt' class-method on the derived class. All paramters will be passed directly to the 'buildLayout' method,
+    which must be implemented on the derived class.
+    In order to return a result the derived class should call the 'returnValue' method with the value to return as it's only argument.
+    In order to cancel the dialog the derived class should call the 'cancel' method.
+    
+    Example:
+    
+        SLT= pm.SLT
+        class ExampleLayout(pm.ModalLayout):
+        
+            def buildLayout(self, *args, **kwargs):
+                SLT(pm.verticalLayout, 'topLayout', ratios=[0,1], childCreators=[
+                    SLT(pm.horizontalLayout, 'buttons', childCreators=[
+                        SLT(pm.button, label="All", c=pm.Callback(self.selected, all=True)),
+                        SLT(pm.button, label="Select", c=pm.Callback(self.selected)),
+                        SLT(pm.button, label="Cancel", c=pm.Callback(self.cancel)),
+                       ]),
+                    SLT(pm.ObjectScrollList, 'list', ams=True),
+                ]).create(parent=self, creation=self.__dict__)
+                self.list[:] = ['blue', 'red', 'green', 'white']
+        
+            @classmethod
+            def prompt(cls):
+                return super(ExampleLayout, cls).prompt("This is an Example", width=500, height=100)
+        
+            def selected(self, all=False):
+                if all:
+                    return self.returnValue(self.list.data)
+                self.returnValue(self.list.getSelected()) 
+                
+        print ExampleLayout.prompt()
+    """
+    value = None
+    def __new__(cls, *args):
+        p = core.setParent(q=True)
+        self = FormLayout.__new__(cls, p)
+        return self
+
+    def __init__(self, *args):
+        super(ModalLayout, self).__init__(spacing=0, orientation=FormLayout.VERTICAL)
+        kwargs = self.kwargs
+        args = self.args
+        self.buildLayout(*args, **kwargs)
+        self.redistribute()
+        if 'width' in kwargs:         self.setWidth(kwargs['width'])
+        if 'height' in kwargs:        self.setHeight(kwargs['height'])
+
+    def returnValue(self, value):
+        self.__class__.value = value
+        return cmds.layoutDialog(dismiss="True")
+
+    def cancel(self):
+        return cmds.layoutDialog(dismiss="")
+
+    @classmethod
+    def prompt(cls, title="Dialog Box", width=100, height=200, *args, **kwargs):
+        kwargs['width'] = width
+        kwargs['height'] = height
+        cls.args = args
+        cls.kwargs = kwargs
+        if not cmds.about(version=True).startswith("2008"):
+            ret = str(cmds.layoutDialog(title=title, ui=cls))
+        else:
+            sys._tmp_cls = cls
+            ret = str(cmds.layoutDialog(title=title, ui="""python("import sys; sys._tmp_cls()")"""))
+            del sys._tmp_cls
+        if ret:
+            return cls.value
+
+class _ListSelectLayout(FormLayout):
+    """This Layout Class is specifically designed to be used by the promptFromList function"""
+    args = None
+    selection = None
+    def __new__(cls, *args, **kwargs):
+        self = core.setParent(q=True)
+        self = FormLayout.__new__(cls, self)
+        return self
+    
+    def __init__(self):
+        (items, prompt, ok, cancel, default, allowMultiSelection, width, height, kwargs) = _ListSelectLayout.args
+        self.ams = allowMultiSelection
+        self.items = list(items)
+        kwargs.update(dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection))
+        SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), AutoLayout.redistribute, [
+            SLC("prompt", text, dict(l=prompt)),
+            SLC("selectionList", textScrollList, kwargs),
+            SLC("buttons", horizontalLayout, dict(ratios=[1,1]), AutoLayout.redistribute, [
+                SLC(None, button, dict(l=ok, c=self.returnSelection)),
+                SLC(None, button, dict(l=cancel, c=Callback(cmds.layoutDialog, dismiss=""))), 
+            ]),
+        ]).create(parent=self, creation=self.__dict__)
+
+        self.selectionList.append(map(str, self.items))
+        if default:
+            if not hasattr(default,"__iter__"):
+                default = [default]
+            for i in default:    
+                self.selectionList.setSelectItem(str(i))
+        
+        width  = width  or 150
+        height = height or 200
+        self.setWidth(width)
+        self.setHeight(height)
+        for side in ["top", "right", "left", "bottom"]:
+            self.attachForm(self.topLayout, side, 0)
+            self.topLayout.attachNone(self.buttons, "top")
+            self.topLayout.attachControl(self.selectionList, "bottom", 0, self.buttons)
+
+        
+    def returnSelection(self, *args):
+        _ListSelectLayout.selection = [self.items[i-1] for i in self.selectionList.getSelectIndexedItem() or []]
+        if _ListSelectLayout.selection:        
+            if not self.ams:
+                _ListSelectLayout.selection = _ListSelectLayout.selection[0]
+            return cmds.layoutDialog(dismiss=_ListSelectLayout.selection and "True" or "")
+
+if not cmds.about(version=True).startswith("2008"):
+    def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False, **kwargs):
+        """ Prompt the user to select items from a list of objects """
+        _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height, kwargs)
+        ret = str(cmds.layoutDialog(title=title, ui=_ListSelectLayout))
+        if ret:
+            return _ListSelectLayout.selection
+else:
+    def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False, **kwargs):
+        """ Prompt the user to select items from a list of objects """
+        _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height, kwargs)
+        ret = str(cmds.layoutDialog(title=title, ui="""python("import sys; sys.modules['%s']._ListSelectLayout()")""" % (__name__)))
+        if ret:
+            return _ListSelectLayout.selection
+
+class FrameLayout(Layout):
+    """pymel frame-layout class"""
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    # note that we're not actually customizing anything, but
+    # we're declaring it here because other classes will have this
+    # as their base class, so we need to make sure it exists first    
+
+class TextLayout(FrameLayout):
+    
+    def __new__(cls, name=None, create=False, parent=None, text=None):
+        if create:
+            self = _windows.frameLayout(labelVisible=bool(name), label=name or "Text Window", parent=parent)
+        return FrameLayout.__new__(cls, self)
+
+    def __init__(self, *args, **kwargs):
+        with _windows.verticalLayout() as self.topForm:
+            self.txtInfo =  _windows.scrollField(editable=False)
+        
+        self.setText(kwargs.get('text',""))
+        
+    def setText(self, text=""):
+        from pprint import pformat
+        if not isinstance(text, basestring):
+            text = pformat(text)
+        self.txtInfo.setText(text)
+        self.txtInfo.setInsertionPosition(1)
+        
 
 
 # most of the keys here are names that are only used in certain circumstances
