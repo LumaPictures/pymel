@@ -624,10 +624,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
 
     def newUiFunc( *args, **kwargs):
 
-        if len(args):
-            doPassSelf = kwargs.pop('passSelf', False)
-        else:
-            doPassSelf = False
+        doPassSelf = len(args) and kwargs.pop('passSelf', False)
 
         for key in commandFlags:
             try:
