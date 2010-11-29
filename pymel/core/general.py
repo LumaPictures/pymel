@@ -2483,7 +2483,7 @@ class Attribute(PyNode):
             >>> at.name()
             u'persp.instObjGroups[-1].objectGroups'
             >>> at.attrName()
-            u'og'            
+            u'og'
             >>> at.attrName(longName=True)
             u'objectGroups'
         """
@@ -2609,8 +2609,7 @@ class Attribute(PyNode):
         :rtype: `util.enum.EnumDict`
 
         >>> addAttr( "persp", ln='numbers', at='enum', enumName="zero:one:two:thousand=1000:three")
-        >>> at = Attribute('persp.numbers')
-        >>> numbers = at.numbers.getEnum()
+        >>> numbers = Attribute('persp.numbers').getEnum()
         >>> numbers
         EnumDict({u'one': 1, u'thousand': 1000, u'three': 1001, u'two': 2, u'zero': 0})
         >>> numbers[1]
