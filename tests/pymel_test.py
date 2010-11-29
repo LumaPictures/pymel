@@ -187,9 +187,19 @@ if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:
         #backupAndTest(sys.argv[1:])
         oldPath = os.getcwd()
+        thisDir = os.path.dirname(os.path.abspath(sys.argv[0]) )
+        noseArgs = sys.argv[1:]
+        if noseArgs:
+            # If we specified args, add thisDir to the python path - that way,
+            # we can do 'pymel_test test_general' in order to run just the tests
+            # in test_general
+            sys.path.append(thisDir)
+            pypath = os.environ['PYTHONPATH'].split(os.pathsep)
+            pypath.append(thisDir)
+            os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
         # make sure our cwd is the pymel project working directory
-        os.chdir( os.path.dirname( os.path.dirname(os.path.abspath(sys.argv[0]) ) ) )
-        nose_test(extraArgs=sys.argv[1:])
+        os.chdir( os.path.dirname( thisDir ) )
+        nose_test(extraArgs=noseArgs)
         os.chdir(oldPath)
     else:
         # Maya may take some time to shut down / finish writing to files - 
