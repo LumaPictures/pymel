@@ -48,9 +48,31 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
     noseArgv = "dummyArg0 --with-doctest -vv".split()
     if module is None:
         #module = 'pymel' # if you don't set a module, nose will search the cwd
-                    
-        exclusion = '^windows ^tools ^example1 ^testingutils ^pmcmds ^testPa ^maya ^maintenance ^pymel_test ^TestPymel ^testPassContribution$'
-        noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
+        excludes = '''^windows
+                    ^tools
+                    ^example1
+                    ^testingutils
+                    ^pmcmds
+                    ^testPa
+                    ^maya
+                    ^maintenance
+                    ^pymel_test
+                    ^TestPymel
+                    ^testPassContribution$'''.split()
+
+        # default inGui to false - if we are in gui, we should be able to query
+        # (definitively) that we are, but same may not be true from command line
+        inGui = False
+        try:
+            import maya.cmds
+            inGui = not maya.cmds.about(batch=1)
+        except Exception: pass
+
+        # if we're not in gui mode, disable the gui tests
+        if not inGui:
+            excludes.extend('^test_uitypes ^test_windows'.split())
+         
+        noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in excludes ] )  ]
            
     if inspect.ismodule(module):
         noseKwArgs['module']=module
@@ -189,14 +211,15 @@ if __name__ == '__main__':
         oldPath = os.getcwd()
         thisDir = os.path.dirname(os.path.abspath(sys.argv[0]) )
         noseArgs = sys.argv[1:]
-        if noseArgs:
-            # If we specified args, add thisDir to the python path - that way,
-            # we can do 'pymel_test test_general' in order to run just the tests
-            # in test_general
-            sys.path.append(thisDir)
-            pypath = os.environ['PYTHONPATH'].split(os.pathsep)
-            pypath.append(thisDir)
-            os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
+
+        # add thisDir to the python path - that way,
+        # we can do 'pymel_test test_general' in order to run just the tests
+        # in test_general
+        sys.path.append(thisDir)
+        pypath = os.environ['PYTHONPATH'].split(os.pathsep)
+        pypath.append(thisDir)
+        os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
+
         # make sure our cwd is the pymel project working directory
         os.chdir( os.path.dirname( thisDir ) )
         nose_test(extraArgs=noseArgs)
