@@ -151,6 +151,8 @@ class TestMMatrixSetAttr(unittest.TestCase):
             om.MMatrix.__setattr__ = self.fixedSetAttr
         
 class TestGroupUniqueness(unittest.TestCase):
+    '''Test to check whether cmds.group returns a unique name
+    '''
     def setUp(self):
         cmds.file(new=1, f=1)
         
