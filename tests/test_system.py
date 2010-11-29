@@ -67,7 +67,7 @@ class testCase_references(unittest.TestCase):
             self.assertEqual(ref, FileReference(str(ref.refNode)))
             self.assertEqual(ref, FileReference(Path(ref.withCopyNumber())))
             self.assertEqual(ref, FileReference(str(ref.withCopyNumber())))
-            self.assertEqual(ref, FileReference(namespace=ref.namespace))
+            self.assertEqual(ref, FileReference(namespace=ref.fullNamespace))
 
     def test_failed_ref_edits(self):
         # Animate the zombieAttrs
