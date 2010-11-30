@@ -54,7 +54,6 @@ class testCase_references(unittest.TestCase):
         refStack = []
         for ref in iterReferences(recursive=True):
             splitNS = ref.fullNamespace.split(':')
-            print splitNS
             if len(splitNS) <= len(refStack):
                 refStack = refStack[:len(splitNS) - 1]
             
@@ -67,7 +66,6 @@ class testCase_references(unittest.TestCase):
         refDepth = 0
         for ref in iterReferences(recursive=True, recurseType='breadth'):
             splitNS = ref.fullNamespace.split(':')
-            print splitNS
             thisDepth = len(splitNS)
             self.assertTrue(thisDepth >= refDepth)
             refDepth = thisDepth
