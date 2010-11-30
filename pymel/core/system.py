@@ -21,7 +21,7 @@ some of the new commands were changed slightly from their flag name to avoid nam
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
-    FileReference(u'testRN', u'.../test.ma')
+    FileReference(u'.../test.ma', refnode=u'testRN')
 
 Notice that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 
@@ -983,8 +983,10 @@ class FileReference(object):
                 if isinstance( pathOrRefNode, nodetypes.Reference ):
                     self._refNode = pathOrRefNode
                 else:
-                    self._refNode = general.PyNode( pathOrRefNode )
-
+                    try:
+                        self._refNode = general.PyNode( pathOrRefNode )
+                    except general.MayaObjectError:
+                        self._refNode = general.PyNode( cmds.file( pathOrRefNode, q=1, referenceNode=True) )
         elif namespace:
             namespace = namespace.rstrip(':')
             for iNamespace, iRefNode in iterReferences(namespaces=True, recursive=True, refNodes=True, references=False):
@@ -1047,7 +1049,7 @@ class FileReference(object):
         return self.withCopyNumber()
 
     def __repr__(self):
-        return u'%s(%r, refNode=%r)' % ( self.__class__.__name__, self.withCopyNumber(), unicode(self.refNode) )
+        return u'%s(%r, refnode=%r)' % ( self.__class__.__name__, self.withCopyNumber(), unicode(self.refNode) )
 
     def __str__(self):
         return self.withCopyNumber()
