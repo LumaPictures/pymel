@@ -674,8 +674,8 @@ class Path(pathClass):
 # FileReference
 #===============================================================================
 
-
-def iterReferences( parentReference=None, recursive=False, namespaces=False, refNodes=False, references=True ):
+def iterReferences( parentReference=None, recursive=False, namespaces=False,
+                    refNodes=False, references=True, recurseType='depth'):
     """
     returns references in the scene as a list of value tuples. The values in the tuples can be namespaces, refNodes (as PyNodes),
     and/or references (as FileReferences), and are controlled by their respective keywords.  If only one of the three options is True,
@@ -687,18 +687,26 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False, ref
     :param recursive: recursively determine all references and sub-references
     :type recursive: bool
 
+    :param recurseType: if recursing, whether to do a 'breadth' or 'depth'
+        first search; defaults to a 'depth' first
+    :type recurseType: string
 
     """
     import general
+    
+    validRecurseTypes = ('breadth', 'width')
+    if recurseType not in validRecurseTypes:
+        ValueError('%s was not an acceptable value for recurseType - must be one of %s' % (recurseType, ', '.join(validRecurseTypes)))
 
     if parentReference is None:
-        refs = zip( cmds.file( q=1, reference=1),
-                    cmds.file( q=1, reference=1, unresolvedName=1) )
+        refs = cmds.file(q=1, reference=1)
     else:
-        refs = zip( cmds.file( parentReference, q=1, reference=1),
-                    cmds.file( parentReference, q=1, reference=1, unresolvedName=1) )
+        refs = cmds.file(parentReference, q=1, reference=1)
+        
     #print "reference", parentReference
-    for ref, unresolvedRef in refs:
+    while refs:
+        #if recursive and recurseType == 'breadth':
+        ref = refs.pop(0)
         row = []
 
         refNode = cmds.file( ref, q=1, referenceNode=1)
@@ -716,13 +724,16 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False, ref
             row = tuple(row)
         yield row
         if recursive:
-            for x in iterReferences(parentReference=ref,
-                                    recursive=True,
-                                    namespaces=namespaces,
-                                    refNodes=refNodes,
-                                    references=references):
-                #print "yield sub"
-                yield x
+            if recurseType == 'depth':
+                for x in iterReferences(parentReference=ref,
+                                        recursive=True,
+                                        namespaces=namespaces,
+                                        refNodes=refNodes,
+                                        references=references):
+                    #print "yield sub"
+                    yield x
+            elif recurseType == 'breadth':
+                refs.extend(cmds.file(ref, q=1, reference=1))
         #print "for done"
     #print "done"
 
