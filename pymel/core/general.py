@@ -589,7 +589,7 @@ Modifications:
   - when querying dataType, the dataType is no longer returned as a list
   - when editing hasMinValue, hasMaxValue, hasSoftMinValue, or hasSoftMaxValue the passed boolean value was ignored
     and the command instead behaved as a toggle.  The behavior is now more intuitive::
-        >>> addAttr('persp', ln=='test', at='double', k=1)
+        >>> addAttr('persp', ln='test', at='double', k=1)
         >>> addAttr('persp.test', query=1, hasMaxValue=True)
         False
         >>> addAttr('persp.test', edit=1, hasMaxValue=False)
@@ -2337,7 +2337,7 @@ class Attribute(PyNode):
             >>> tx.name(includeNode=False)
             u'translateX'
             >>> tx.name(longName=False)
-            u'tx'
+            u'persp.tx'
             >>> tx.name(fullAttrPath=True, includeNode=False)
             u'translate.translateX'
             

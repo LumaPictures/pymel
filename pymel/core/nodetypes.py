@@ -554,7 +554,7 @@ class DependNode( general.PyNode ):
 
         >>> from pymel.core import *
         >>> SCENE.lambert1.nextName()
-        DependNodeName('lambert2')
+        DependNodeName(u'lambert2')
 
         :rtype: `unicode`
         """
