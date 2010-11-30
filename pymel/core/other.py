@@ -40,7 +40,7 @@ class NameParser(unicode):
     def __getattr__(self, attr):
         """
             >>> NameParser('foo:bar').spangle
-            AttributeName('foo:bar.spangle')
+            AttributeName(u'foo:bar.spangle')
 
         """
         if attr.startswith('__') and attr.endswith('__'):

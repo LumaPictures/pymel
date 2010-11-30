@@ -261,13 +261,7 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
         maya.utils.formatGuiException = myExceptCB
         
     """
-    # if we are passed a valid exception, the primary message will be the first
-    # element in its 'args' attribute
-    if hasattr(exceptionObject, 'args') and len(exceptionObject.args):
-        exceptionMsg = exceptionObject.args[0]
-    else:
-        exceptionMsg = ''
-    exceptionMsg = unicode(exceptionMsg).strip()
+    exceptionMsg = unicode(exceptionObject).strip()
     # format the exception
     excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
     # traceback may have failed to decode a unicode exception value
