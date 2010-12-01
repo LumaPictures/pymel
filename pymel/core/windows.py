@@ -13,9 +13,12 @@ from pymel.util import decorator
 
 from language import mel, melGlobals
 from system import Path as _Path
-import uitypes as _uitypes
-if _versions.current() >= _versions.v2011:
-    from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+from contextlib import contextmanager
+# Don't import uitypes  - we want to finish setting up the commands in this
+# module before creating the uitypes classes; this way, the methods on the
+# uitypes classes can use the functions from THIS module, and inherit things
+# like simpleCommandWraps, etc
+#import uitypes as _uitypes
     
 _logger = _internal.getLogger(__name__)
 
@@ -74,6 +77,7 @@ Modified:
   - long defaults to True
   - if no type is passed, defaults to all known types
     """
+    
     return [ _uitypes.PyUI(x) for x in _lsUI( **kwargs ) ]
 
 scriptTableCmds = {}
@@ -84,6 +88,7 @@ Maya Bug Fix:
     - fixed getCellCmd to work with python functions, previously only worked with mel callbacks
         IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
     """
+        
     cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',None) )
     cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
 
@@ -388,15 +393,28 @@ def fileDialog(*args, **kwargs):
     if ret:
         return _Path( ret )
 
+@contextmanager
+def hourglassShown():
+    """
+    Create a context where the hourglass is shown.
+    
+    Example:
+    
+        with hourglassShown():
+            for i in xrange(10):
+                print i
+    """
+    cmds.waitCursor(st=True)
+    yield
+    cmds.waitCursor(st=False)
+    
+
 @decorator
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
     def decoratedFunc(*args, **kwargs):
-        cmds.waitCursor(st=True)
-        try:
+        with hourglassShown():
             return func(*args, **kwargs)
-        finally:
-            cmds.waitCursor(st=False)
     return decoratedFunc
 
 _lastException = None
@@ -433,8 +451,8 @@ def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck scri
                     return
                 else:
                     _lastException = e
-                sys.excepthook(*sys.exc_info())
-                informBox(title, message % dict(exc=e))
+                from maya.utils import executeDeferred 
+                executeDeferred(informBox, title, message % dict(exc=e))
                 raise
         return decoratedFunc
     if func:
@@ -443,6 +461,7 @@ def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck scri
 
 
 def pathButtonGrp( name=None, *args, **kwargs ):
+        
     if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
         create = True
     else:
@@ -450,19 +469,49 @@ def pathButtonGrp( name=None, *args, **kwargs ):
 
     return _uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs )
 
+def folderButtonGrp( name=None, *args, **kwargs ):
+        
+    if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
+        create = True
+    else:
+        create = False
+
+    return _uitypes.FolderButtonGrp( name=name, create=create, *args, **kwargs )
+
 def vectorFieldGrp( *args, **kwargs ):
+    
     return _uitypes.VectorFieldGrp( *args, **kwargs )
 
 
 def uiTemplate(name=None, force=False, exists=None):
+        
     if exists:
-        return cmds.uiTemplate(name, exists)
+        return cmds.uiTemplate(name, exists=1)
     else:
         return _uitypes.UITemplate(name=name, force=force)
 
+def setParent(*args, **kwargs):
+    """
+Modifications
+  - returns None object instead of the string 'NONE'
+    """
+        
+    result = cmds.setParent(*args, **kwargs)
+    if kwargs.get('query', False) or kwargs.get('q', False):
+        if result == 'NONE':
+            result = None
+        else:
+            result = _uitypes.PyUI(result)
+    return result
+
 def currentParent():
     "shortcut for ``ui.PyUI(setParent(q=1))`` "
-    return _uitypes.PyUI(cmds.setParent(q=1))
+    
+    return setParent(q=1)
+
+def currentMenuParent():
+    "shortcut for ``ui.PyUI(setParent(q=1, menu=1))`` "
+    return setParent(q=1, menu=1)
 
 def textLayout(text, parent=None):
     return _uitypes.TextLayout(text=text, parent=parent, create=True)
@@ -541,19 +590,27 @@ Modifications
             and ( kwargs.get('parent', False) or kwargs.get('p', False) ):
         name = unicode(args[0])
         if '|' not in name:
-            name = _findLongName(name, 'menu')
+            try:
+                name = _findLongName(name, 'menu')
+            except ValueError:
+                name = _findLongName(name, 'popupMenu')
         return name.rsplit('|',1)[0]
 
-    return cmds.menu(*args, **kwargs)
+    result = cmds.menu(*args, **kwargs)
+
+    if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
+            and ( kwargs.get('itemArray', False) or kwargs.get('ia', False) ) \
+            and result is None:
+        result = []
+    return result
 
 def _createClassCommands():
-
-
     def createCallback( classname ):
         """
         create a callback that will trigger lazyLoading
         """
         def callback(*args, **kwargs):
+            
             res = getattr(_uitypes, classname)(*args, **kwargs)
             return res
         return callback
@@ -582,12 +639,11 @@ def _createOtherCommands():
             if sys.modules[__name__] != _thisModule:
                 setattr( sys.modules[__name__], funcName, func )
 
-
 _createClassCommands()
 _createOtherCommands()
 
-
 def autoLayout(*args, **kwargs):
+    
     return _uitypes.AutoLayout(*args, **kwargs)
 
 autoLayout.__doc__ = formLayout.__doc__
@@ -754,6 +810,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         win.show()
 
     """
+    
 
     def makeGetter( ctrl, methodName, num ):
         def getter( ):
@@ -939,5 +996,11 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
 
 def getMainProgressBar():
+    
     return _uitypes.ProgressBar(melGlobals['gMainProgressBar'])
 
+# Now that we've actually created all the functions, it should be safe to import
+# _uitypes...
+if _versions.current() >= _versions.v2011:
+    from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+import uitypes as _uitypes
