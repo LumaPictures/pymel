@@ -438,3 +438,108 @@ def _getParserClass(strObj):
     return newcls
 
 
+def find(node, searchOrder=("FN", "FNWN", "LN", "LNWN")):
+    """
+    Uses a 'best-match' algorithm to find a fully qualified node-name within the current scene.
+    Based on code presented by Rob Tesdahl, CafeFX, at the 2008 Maya Developers Conference.
+    
+    Name Permutations
+    
+     -    Full name (FN)
+     -    Full name without namespaces (FNWN)
+     -    Leaf name (LN)
+     -    Leaf name without namespaces (LNWN)
+     -    *Parent DAG path (PP)
+     -    *Parent DAG path without namespaces (PPWN)
+     -    *Attribute name (AN)
+     
+     * Currently not implemented, but left for completeness
+    """
+    from general import PyNode, MayaNodeError
+    
+    data = parseMayaName(node)
+    for t in searchOrder:
+        try:
+            return PyNode(data[t])
+        except MayaNodeError:
+            pass
+        except KeyError:
+            raise NotImplementedError(t)
+
+def parseMayaName( fullPath ):
+    """
+    Parses a given node name into a dictionary of name permutations (see above)
+    """
+    fullPath = str(fullPath)
+    nameTokens = fullPath.split( "|" )
+    fullNameWithoutNamespaces = removeNamespaces( fullPath )
+    
+    #
+    # leafName is the last token of the fullName, as split by '|'.
+    # parentPath is the full name up to, but not including, the 
+    # leafName and the preceding "|".
+    #
+    leafName = nameTokens[-1]
+    parentPath = fullPath[:-len(leafName)-1]
+    #
+    # For paths that include underworld nodes, the parentPath
+    # would end with the underworld separator "->".  This does not
+    # need to be considered in the parsing of the full name.  It
+    # just needs to be removed from the parsed elements.
+    #
+    if parentPath.endswith("->"):
+        parentPath = parentPath[:-2]
+    #
+    # Remove namespaces in the leafName and parentPath.
+    # But store the namespace for the leafName, if any.
+    #
+    leafNamespaces = leafName.split(":")
+    leafNameWithoutNamespaces = leafNamespaces[-1]
+    leafNamespace = ""
+    if len( leafNamespaces ) > 1:
+        leafNamespace = ":".join( leafNamespaces[:-1] )
+    parentPathWithoutNamespaces = removeNamespaces( parentPath )
+
+    # Pull off an attribute name, if one exists.
+    attributeName = ""
+    nodeAttributeTokens = leafName.split( "." )
+    if len( nodeAttributeTokens ) > 1:
+        attributeName = ".".join( nodeAttributeTokens[1:] ) 
+
+    pathInfo = {
+        'FN': fullPath, 
+        'FNWN': fullNameWithoutNamespaces, 
+        'LN': leafName, 
+        'LNWN': leafNameWithoutNamespaces, 
+        'PP': parentPath, 
+        'PPWN': parentPathWithoutNamespaces, 
+        'AN': attributeName, 
+        'LNS': leafNamespace, 
+        }
+    return pathInfo
+
+ 
+def removeNamespaces( path ):
+    #
+    # To remove the namespace from the path input string:
+    # 1) Split on "->" to get all "underworld" parts, UW
+    # 2) For each UW, U:
+    # 3)     Split on "|" to get each part of the path, P
+    # 4)     For each P, p:
+    # 5)         Split on ":" and take the last one
+    # 6)     Rejoin P's
+    # 7) Rejoin UW's
+    #
+    pathPieces = []
+    underWorldTokens = path.split( "->" )
+    for uw in underWorldTokens:
+        underWorldPieces = []
+        pathTokens = uw.split( "|" )
+        for p in pathTokens:
+            namespaceTokens = p.split( ":" )
+            thisPathPiece = namespaceTokens[-1]
+            underWorldPieces.append( thisPathPiece )
+        thisUnderWorldPiece = "|".join( underWorldPieces )
+        pathPieces.append( thisUnderWorldPiece )
+    pathWithoutNamespaces = "->".join( pathPieces )
+    return pathWithoutNamespaces
