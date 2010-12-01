@@ -846,6 +846,12 @@ class test_commands(unittest.TestCase):
         self.assert_( duplicate(self.dependNode) )
         
 class test_plugins(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        if cmds.pluginInfo('Fur', q=1, loaded=1):
+            cmds.unloadPlugin('Fur')
+            cmds.file(new=1, f=1)
+        
     def test01_load(self):
         loadPlugin('Fur')
         self.assert_( 'FurGlobals' not in nt.__dict__ )
@@ -855,7 +861,8 @@ class test_plugins(unittest.TestCase):
         nt.FurGlobals
         self.assert_( 'FurGlobals' in nt.__dict__ )
         
-    def test1_unload(self):
+    def test02_unload(self):
+        loadPlugin('Fur')
         unloadPlugin('Fur')
         self.assert_( 'FurGlobals' not in nt.__dict__ )
         # after accessing, the lazy loader should generate the class
