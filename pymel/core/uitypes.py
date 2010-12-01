@@ -701,7 +701,9 @@ class AELoader(type):
             cls = getattr(mod,classname)
             cls(nodename)
         except Exception:
-            _logger.exception("failed to load python attribute editor template '%s.%s'" % (modname, classname))
+            print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
+            import traceback
+            traceback.print_exc()
 
     @classmethod
     def loadedTemplates(cls):
@@ -711,10 +713,10 @@ class AELoader(type):
 class AETemplate(object):
     """
     To create an Attribute Editor template using python, do the following:
-     	1. create a subclass of `uitypes.AETemplate`
-    	2. set its ``_nodeType`` class attribute to the name of the desired node type, or name the class using the
+         1. create a subclass of `uitypes.AETemplate`
+        2. set its ``_nodeType`` class attribute to the name of the desired node type, or name the class using the
     convention ``AE<nodeType>Template``
-    	3. import the module
+        3. import the module
 
     AETemplates which do not meet one of the two requirements listed in step 2 will be ignored.  To ensure that your
     Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
@@ -728,8 +730,8 @@ class AETemplate(object):
 
     To check which python templates are loaded::
 
-    	from pymel.core.uitypes import AELoader
-    	print AELoader.loadedTemplates()
+        from pymel.core.uitypes import AELoader
+        print AELoader.loadedTemplates()
     """
 
     __metaclass__ = AELoader
@@ -990,6 +992,8 @@ class ObjectScrollList(UserList, TextScrollList):
         ret = [self[s] for s in self.selectedIndices]
         return self._converter(ret)
 
+    getValue = getSelected
+
     def popSelected(self):
         ret = [self.pop(i) for i in reversed(self.selectedIndices)]
         ret.reverse()
@@ -1052,6 +1056,8 @@ class ObjectMenu(UserList, OptionMenu):
         idx = self.getSelectIndexedItem()
         if idx:
             return self[idx-1]
+        
+    getValue = getSelected        
 
     def popSelected(self):
         ret = self.pop(self.getSelectIndexedItem())
