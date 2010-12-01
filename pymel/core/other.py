@@ -40,7 +40,7 @@ class NameParser(unicode):
     def __getattr__(self, attr):
         """
             >>> NameParser('foo:bar').spangle
-            AttributeName('foo:bar.spangle')
+            AttributeName(u'foo:bar.spangle')
 
         """
         if attr.startswith('__') and attr.endswith('__'):
@@ -57,7 +57,7 @@ class NameParser(unicode):
         The default is 0 which will remove all namespaces.
 
             >>> NameParser('foo:bar.spangle').stripNamespace()
-            AttributeName('bar.spangle')
+            AttributeName(u'bar.spangle')
 
         """
 
@@ -81,10 +81,10 @@ class NameParser(unicode):
         also be stripped.  If it is false, only namespaces
     
             >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar')
-            AttributeName('top|middle|extra:guy.spangle')
+            AttributeName(u'top|middle|extra:guy.spangle')
             
             >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar', partial=False)
-            AttributeName('top|foo:middle|extra:guy.spangle')
+            AttributeName(u'top|foo:middle|extra:guy.spangle')
         """
         prefixSplit = namespace.rstrip(':').split(':')
 
@@ -141,7 +141,7 @@ class NameParser(unicode):
         given AttributeName.
 
             >>> NameParser('foo:bar').attr('spangle')
-            AttributeName('foo:bar.spangle')
+            AttributeName(u'foo:bar.spangle')
 
         """
         return AttributeName( '%s.%s' % (self, attr) )
@@ -175,7 +175,7 @@ class AttributeName(NameParser):
         Returns the array (multi) AttributeName of the current element
             >>> n = AttributeName('lambert1.groupNodes[0]')
             >>> n.array()
-            AttributeName('lambert1.groupNodes')
+            AttributeName(u'lambert1.groupNodes')
         """
         try:
             return AttributeName(AttributeName.attrItemReg.split( self )[0])
@@ -186,7 +186,7 @@ class AttributeName(NameParser):
         """plugNode
 
         >>> NameParser('foo:bar.spangle.banner').plugNode()
-        DependNodeName('foo:bar')
+        DependNodeName(u'foo:bar')
 
         """
         return NameParser( unicode(self).split('.')[0])
@@ -236,12 +236,12 @@ class AttributeName(NameParser):
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
                   >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(2)
-                  AttributeName('Cube1.multiComp[3]')
+                  AttributeName(u'Cube1.multiComp[3]')
 
               Negative values will traverse from the top, not counting the initial node name:
 
                   >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(-2)
-                  AttributeName('Cube1.multiComp[3].child')
+                  AttributeName(u'Cube1.multiComp[3].child')
 
               A value of 0 will return the same node.
               The default value is 1.
@@ -414,12 +414,12 @@ class DagNodeName(DependNodeName):
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
                   >>> DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(2)
-                  DagNodeName('NS1:TopLevel|Next')
+                  DagNodeName(u'NS1:TopLevel|Next')
 
               Negative values will traverse from the top, not counting the initial node name:
 
                   >>> DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(-3)
-                  DagNodeName('NS1:TopLevel|Next|ns2:Third')
+                  DagNodeName(u'NS1:TopLevel|Next|ns2:Third')
 
               A value of 0 will return the same node.
               The default value is 1.

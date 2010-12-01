@@ -8,7 +8,7 @@ import pymel.core.uitypes as ui
 
 if not hasattr(pm, 'currentMenuParent'):
     def currentMenuParent():
-        return _uitypes.PyUI(cmds.setParent(q=1, menu=1))
+        return ui.PyUI(cmds.setParent(q=1, menu=1))
     pm.currentMenuParent = currentMenuParent
 
 

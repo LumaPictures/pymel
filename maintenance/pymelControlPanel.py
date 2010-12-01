@@ -34,17 +34,34 @@ class PymelControlPanel(object):
             
     def buildUI(self):
         self.win = window(title='Pymel Control Panel')
+        self.win.show()
         
         with paneLayout(configuration='vertical3', paneSize=([1,20,100], [3,20,100]) ) as self.pane:
             # Lef Column: Api Classes
             self.classScrollList = textScrollList('apiClassList')
         
         # Center Column: Api Methods
-        with formLayout() as apiForm:
-            #with scrollLayout() as scroll:
-            with tabLayout('apiMethodCol') as self.apiMethodCol:
-                pass
-            status = helpLine(h=60)
+        
+        # Would LIKE to do it like this, but there is currently a bug with
+        # objectType UI, such that even if
+        #     layout('window4|paneLayout5', q=1, exists=1) == True
+        # when you run:
+        #     objectTypeUI('window4|paneLayout5')
+        # you will get an error:
+        #     RuntimeError: objectTypeUI: Object 'window4|paneLayout5' not found.
+
+#        with formLayout() as apiForm:
+#            #with scrollLayout() as scroll:
+#            with tabLayout('apiMethodCol') as self.apiMethodCol:
+#                pass
+#            status = helpLine(h=60)
+
+        # So, instead, we do it old-school...
+        apiForm = formLayout()
+        self.apiMethodCol = tabLayout('apiMethodCol')
+        setParent(apiForm)
+        status = cmds.helpLine(h=60)
+        setParent(self.pane)
 
         apiForm.attachForm( self.apiMethodCol, 'top', 5 )
         apiForm.attachForm( self.apiMethodCol, 'left', 5 )
@@ -56,16 +73,16 @@ class PymelControlPanel(object):
         apiForm.attachForm( status, 'right', 5 )
         
         # Right Column: Mel Methods
-        with formLayout() as melForm:
+        melForm = formLayout() 
+        label1 = text( label='Unassigned Mel Methods' )
+        self.unassignedMelMethodLister = textScrollList()
         
-            label1 = text( label='Unassigned Mel Methods' )
-            self.unassignedMelMethodLister = textScrollList()
-            
-            label2 = text( label='Assigned Mel Methods' )
-            self.assignedMelMethodLister = textScrollList()
-    
-            label3 = text( label='Disabled Mel Methods' )
-            self.disabledMelMethodLister = textScrollList()
+        label2 = text( label='Assigned Mel Methods' )
+        self.assignedMelMethodLister = textScrollList()
+
+        label3 = text( label='Disabled Mel Methods' )
+        self.disabledMelMethodLister = textScrollList()
+        setParent(self.pane)
         
         melForm.attachForm( label1, 'top', 5 )
         melForm.attachForm( label1, 'left', 5 )
@@ -101,8 +118,10 @@ class PymelControlPanel(object):
         menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
 
         popupMenu(parent=self.assignedMelMethodLister, button=3  )
-        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
-        
+        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.assignedMelMethodLister ) )
+
+        popupMenu(parent=self.disabledMelMethodLister, button=3  )
+        menuItem(l='enable', c=Callback( PymelControlPanel.enableMelMethod))        
         
         self.classScrollList.extend( self.classList )
         self.classScrollList.selectCommand( lambda: self.apiClassList_selectCB() )
@@ -122,13 +141,25 @@ class PymelControlPanel(object):
             self.disabledMelMethodLister.append( method  )
             #print clsname, method, factories.apiToMelData[ (clsname, method) ]
             factories.apiToMelData[ (clsname, method) ]['melEnabled'] = False
+
+    def enableMelMethod(self):
+        menu = self.disabledMelMethodLister
+        msel = menu.getSelectItem()
+        csel = self.classScrollList.getSelectItem()
+        if msel and csel:
+            method = msel[0]
+            clsname = csel[0]
+            menu.removeItem(method)
+            self.unassignedMelMethodLister.append( method  )
+            #print clsname, method, factories.apiToMelData[ (clsname, method) ]
+            factories.apiToMelData[ (clsname, method) ].pop('melEnabled')
        
     @staticmethod    
     def getMelMethods(className):
         """get all mel-derived methods for this class"""
         reg = re.compile('(.*[a-z])([XYZ])$')
         newlist = []
-        origlist = factories.apiToMelMap['mel'][className]
+        origlist = factories.classToMelMap[className]
         for method in origlist:
             m = reg.search(method)
             if m:
@@ -412,9 +443,9 @@ class MethodRow(object):
         if not self.data.has_key( 'melName' ):
             match = None
             for method in melMethods:
-                methreg = method.replace('*', '.{0,1}') + '$'
+                methreg = re.compile(method.replace('*', '.{0,1}') + '$')
                 #print self.methodName, methreg
-                if re.match( methreg, self.methodName ):
+                if methreg.match( self.methodName ):
                     match = str(method)
                     break
             if match:

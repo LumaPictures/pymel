@@ -21,7 +21,7 @@ some of the new commands were changed slightly from their flag name to avoid nam
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
-    FileReference(u'testRN', u'.../test.ma')
+    FileReference(u'.../test.ma', refnode=u'testRN')
 
 Notice that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 
@@ -674,8 +674,8 @@ class Path(pathClass):
 # FileReference
 #===============================================================================
 
-
-def iterReferences( parentReference=None, recursive=False, namespaces=False, refNodes=False, references=True ):
+def iterReferences( parentReference=None, recursive=False, namespaces=False,
+                    refNodes=False, references=True, recurseType='depth'):
     """
     returns references in the scene as a list of value tuples. The values in the tuples can be namespaces, refNodes (as PyNodes),
     and/or references (as FileReferences), and are controlled by their respective keywords.  If only one of the three options is True,
@@ -687,18 +687,26 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False, ref
     :param recursive: recursively determine all references and sub-references
     :type recursive: bool
 
+    :param recurseType: if recursing, whether to do a 'breadth' or 'depth'
+        first search; defaults to a 'depth' first
+    :type recurseType: string
 
     """
     import general
+    
+    validRecurseTypes = ('breadth', 'width')
+    if recurseType not in validRecurseTypes:
+        ValueError('%s was not an acceptable value for recurseType - must be one of %s' % (recurseType, ', '.join(validRecurseTypes)))
 
     if parentReference is None:
-        refs = zip( cmds.file( q=1, reference=1),
-                    cmds.file( q=1, reference=1, unresolvedName=1) )
+        refs = cmds.file(q=1, reference=1)
     else:
-        refs = zip( cmds.file( parentReference, q=1, reference=1),
-                    cmds.file( parentReference, q=1, reference=1, unresolvedName=1) )
+        refs = cmds.file(parentReference, q=1, reference=1)
+        
     #print "reference", parentReference
-    for ref, unresolvedRef in refs:
+    while refs:
+        #if recursive and recurseType == 'breadth':
+        ref = refs.pop(0)
         row = []
 
         refNode = cmds.file( ref, q=1, referenceNode=1)
@@ -716,13 +724,16 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False, ref
             row = tuple(row)
         yield row
         if recursive:
-            for x in iterReferences(parentReference=ref,
-                                    recursive=True,
-                                    namespaces=namespaces,
-                                    refNodes=refNodes,
-                                    references=references):
-                #print "yield sub"
-                yield x
+            if recurseType == 'depth':
+                for x in iterReferences(parentReference=ref,
+                                        recursive=True,
+                                        namespaces=namespaces,
+                                        refNodes=refNodes,
+                                        references=references):
+                    #print "yield sub"
+                    yield x
+            elif recurseType == 'breadth':
+                refs.extend(cmds.file(ref, q=1, reference=1))
         #print "for done"
     #print "done"
 
@@ -972,8 +983,10 @@ class FileReference(object):
                 if isinstance( pathOrRefNode, nodetypes.Reference ):
                     self._refNode = pathOrRefNode
                 else:
-                    self._refNode = general.PyNode( pathOrRefNode )
-
+                    try:
+                        self._refNode = general.PyNode( pathOrRefNode )
+                    except general.MayaObjectError:
+                        self._refNode = general.PyNode( cmds.file( pathOrRefNode, q=1, referenceNode=True) )
         elif namespace:
             namespace = namespace.rstrip(':')
             for iNamespace, iRefNode in iterReferences(namespaces=True, recursive=True, refNodes=True, references=False):
@@ -1036,7 +1049,7 @@ class FileReference(object):
         return self.withCopyNumber()
 
     def __repr__(self):
-        return u'%s(%r, refNode=%r)' % ( self.__class__.__name__, self.withCopyNumber(), unicode(self.refNode) )
+        return u'%s(%r, refnode=%r)' % ( self.__class__.__name__, self.withCopyNumber(), unicode(self.refNode) )
 
     def __str__(self):
         return self.withCopyNumber()

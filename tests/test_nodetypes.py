@@ -1572,8 +1572,9 @@ class testCase_sets(TestCaseExtended):
             myList = mySet.members()
         else:
             myList = list(mySet)
-        self.assertIteration(initialSel, myList,
-                             orderMatters=False)
+        select(myList)
+        newSel = cmds.ls(sl=1)
+        self.assertIteration(initialSel, newSel, orderMatters=False)
         
     def test_ObjectSet_singleObject(self):
         self.assertSetSelect(ObjectSet, self.cube)

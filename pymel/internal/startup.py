@@ -389,74 +389,117 @@ def _load(filename):
         res = pickle.load(file)
         return res
 
+class PymelCache(object):
+    # override these
+    NAME = ''   # ie, 'mayaApi'
+    DESC = ''   # ie, 'the API cache' - used in error messages, etc
+    COMPRESSED = True
+    
+    # whether to add the version to the filename when writing out the cache
+    USE_VERSION = True
 
-def loadCache( filePrefix, description='', useVersion=True, compressed=True):
-    if useVersion:
-        short_version = shortName()
-    else:
-        short_version = ''
-    newPath = _moduleJoin( 'cache', filePrefix+short_version )
+    @classmethod        
+    def read(cls):
+        newPath = cls.path()
+        if cls.COMPRESSED:
+            func = picklezip.load
+        else:
+            func = _load
+    
+        _logger.debug(cls._actionMessage('Loading', 'from', newPath))
+    
+        try:
+            return func(newPath)
+        except Exception, e:
+            cls._errorMsg('read', 'from', newPath, e)
 
-    if compressed:
-        newPath += '.zip'
-        func = picklezip.load
-    else:
-        newPath += '.bin'
-        func = _load
-
-    if description:
-        description = ' ' + description
-
-    #_logger.info("Loading%s from '%s'" % ( description, newPath ))
-
-    try:
-        return func(newPath)
-    except Exception, e:
-        _logger.error("Unable to load%s from '%s': %s" % (description, newPath, e))
+    @classmethod
+    def write(cls, data):
+        newPath = cls.path()
+        if cls.COMPRESSED:
+            func = picklezip.dump
+        else:
+            func = _dump
+    
+        _logger.info(cls._actionMessage('Saving', 'to', newPath))
+    
+        try :
+            func( data, newPath, 2)
+        except Exception, e:
+            cls._errorMsg('write', 'to', newPath, e)
+            
+    @classmethod
+    def path(cls):
+        if cls.USE_VERSION:
+            short_version = shortName()
+        else:
+            short_version = ''
+    
+        newPath = _moduleJoin( 'cache', cls.NAME+short_version )
+        if cls.COMPRESSED:
+            newPath += '.zip'
+        else:
+            newPath += '.bin'
+        return newPath
+                        
+    @classmethod
+    def _actionMessage(cls, action, direction, location):
+        '''_actionMessage('eat', 'at', 'Joes') =>
+            "eat cls.DESC at 'Joes'"
+        '''
+        description = cls.DESC
+        if description:
+            description = ' ' + description
+        return "%s%s %s %r" % (action, description, direction, location)
+            
+    @classmethod
+    def _errorMsg(cls, action, direction, path, error):
+        '''_errorMessage('eat', 'at', 'Joes') =>
+            'Unable to eat cls.DESC at Joes: error.msg'
+        '''
+        actionMsg = cls._actionMessage(action, direction, path)
+        _logger.error("Unable to %s: %s" % (actionMsg, error))
         import traceback
         _logger.debug(traceback.format_exc())
+     
 
 
-
-def writeCache( data, filePrefix, description='', useVersion=True, compressed=True):
-
-    if useVersion:
-        short_version = shortName()
-    else:
-        short_version = ''
-
-    newPath = _moduleJoin( 'cache', filePrefix+short_version )
-    if compressed:
-        newPath += '.zip'
-        func = picklezip.dump
-    else:
-        newPath += '.bin'
-        func = _dump
-
-    if description:
-        description = ' ' + description
-
-    _logger.info("Saving%s to '%s'" % ( description, newPath ))
-
-    try :
-        func( data, newPath, 2)
-    except Exception, e:
-        _logger.error("Unable to write%s to '%s': %s" % (description, newPath, e))
-
-class MayaCache(object):
+# Considered using named_tuple, but wanted to make data stored in cache
+# have as few dependencies as possible - ie, just a simple tuple
+class SubItemCache(PymelCache):
     '''Used to store various maya information
     
     ie, api / cmd data parsed from docs
-    '''
-    # override these
-    NAME = 'THE_BASE_FILENAME'
-    DESC = 'purpose of this cache'
-    COMPRESSED = True
-    # whether to use the version when writing out the cache
-    USE_VERSION = True
     
-    # override this with a list of names
-    CACHE_NAMES = ['DUMMY_NAME']
+    To implement, create a subclass, which overrides at least the NAME, DESC, 
+    and _CACHE_NAMES attributes, and implements the rebuild method.
+    
+    Then to access data, you should initialize an instance, then call build;
+    build will load the data from the cache file if possible, or call rebuild
+    to build the data from scratch if not.  If the data had to be rebuilt,
+    a new file cache will be saved.
+    
+    The data may then be accessed through attributes on the instance, with
+    the names given in _CACHE_NAMES.
+    
+    >>> NodeCache(SubItemCache):
+    ...     NAME = 'mayaNodes'
+    ...     DESC = 'the maya nodes cache'
+    ...     COMPRESSED = False
+    ...     _CACHE_NAMES = ['nodeTypes']
+    ...     def rebuild(self):
+    ...         import maya.cmds
+    ...         self.nodeTypes = maya.cmds.allNodeTypes(includeAbstract=True)
+    >>> cacheInst = NodeCache()
+    >>> cacheInst.build()
+    >>> print cacheInst.nodeTypeNames
+    '''
+    # Provides a front end for a pickled file, which should contain a
+    # tuple of items; each item in the tuple is associated with a name from
+    # _CACHE_NAMES
+    
+    # override this with a list of names for the items within the cache
+    _CACHE_NAMES = []
 
     # Set this to the initialization contructor for each cache item;
     # if a given cache name is not present in ITEM_TYPES, DEFAULT_TYPE is
@@ -472,8 +515,11 @@ class MayaCache(object):
     DEFAULT_TYPE = dict
     
     def __init__(self):
-        for name in self.CACHE_NAMES:
+        for name in self._CACHE_NAMES:
             self.initVal(name)
+            
+    def cacheNames(self):
+        return tuple(self._CACHE_NAMES)
             
     def initVal(self, name):
         itemType = self.itemType(name)
@@ -493,7 +539,7 @@ class MayaCache(object):
         data = self.load()
         if data is None:
             self.rebuild()
-            self.save
+            self.save()
     
     # override this...
     def rebuild(self):
@@ -510,25 +556,19 @@ class MayaCache(object):
         or an object with the caches stored in attributes on it.
         '''
         if cacheNames is None:
-            cacheNames = self.CACHE_NAMES
+            cacheNames = self.cacheNames()
             
         if isinstance(obj, dict):
-            for key, val in obj:
-                if key not in cacheNames:
-                    raise KeyError('given item %r not found items to update - %s' % (key, cacheNames)) 
+            for key, val in obj.iteritems():
                 setattr(self, key, val)
         elif isinstance(obj, (list, tuple)):
             if len(obj) != len(cacheNames):
-                raise KeyError('given item had %d items, not %d' % (len(obj), len(cacheNames)))
+                raise ValueError('length of update object (%d) did not match length of cache names (%d)' % (len(obj), len(cacheNames)))
             for newVal, name in zip(obj, cacheNames):
                 setattr(self, name, newVal)
         else:
             for cacheName in cacheNames:
                 setattr(self, cacheName, getattr(obj, cacheName))
-    
-    def _load(self):
-        return loadCache( self.NAME, self.DESC, compressed=self.COMPRESSED,
-                           useVersion=self.USE_VERSION)
     
     def load(self):
         '''Attempts to load the data from the cache on file.
@@ -536,19 +576,19 @@ class MayaCache(object):
         If it succeeds, it will update itself, and return the loaded items;
         if it fails, it will return None
         '''
-        data = self._load()
+        data = self.read()
         if data is not None:
             data = list(data)
             # if STORAGE_TYPES, need to convert back from the storage type to
             # the 'normal' type
             if self.STORAGE_TYPES:
                 for name in self.STORAGE_TYPES:
-                    index = self.CACHE_NAMES.index(name)
+                    index = self._CACHE_NAMES.index(name)
                     val = data[index]
                     val = self.itemType(name)(val)
                     data[index] = val 
             data = tuple(data)
-            self.update(data)
+            self.update(data, cacheNames=self._CACHE_NAMES)
         return data
     
     def save(self, obj=None):
@@ -563,20 +603,18 @@ class MayaCache(object):
         data = self.contents()
         if self.STORAGE_TYPES:
             newData = []
-            for name, val in zip(self.CACHE_NAMES, data):
+            for name, val in zip(self._CACHE_NAMES, data):
                 if name in self.STORAGE_TYPES:
                     val = self.STORAGE_TYPES[name](val)
                 newData.append(val)
             data = tuple(newData)
-                            
-        writeCache(data, self.NAME,
-                   self.DESC, compressed=self.COMPRESSED,
-                   useVersion=self.USE_VERSION)            
+                
+        self.write(data)            
             
     # was called 'caches' 
     def contents(self):
-        return tuple( getattr(self, x) for x in self.CACHE_NAMES )
-        
+        return tuple( getattr(self, x) for x in self.cacheNames() )
+                
 #===============================================================================
 # Config stuff
 #===============================================================================
