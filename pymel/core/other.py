@@ -466,6 +466,9 @@ def find(node, searchOrder=("FN", "FNWN", "LN", "LNWN")):
         except KeyError:
             raise NotImplementedError(t)
 
+# TODO: Make use of the NameParser class. 
+#       Currently NameParser does not take 'underworld' nodes into account (delimited by '->'),
+#       however I'm not sure how those show up exactly and how to test those. 
 def parseMayaName( fullPath ):
     """
     Parses a given node name into a dictionary of name permutations (see above)
