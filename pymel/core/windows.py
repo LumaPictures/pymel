@@ -996,8 +996,71 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
 
 def getMainProgressBar():
-    
     return _uitypes.ProgressBar(melGlobals['gMainProgressBar'])
+
+
+@contextmanager
+def progressShown(estimatedSteps=None, title=None, id=None):
+    """
+    Shows an interruptible progress window that is driven by log messages issued in the 
+    current context (using python's built-in logging module).
+    
+    
+    @param estimatedSteps: Will be used to set the range of the progress bar for this context
+    @param title: Sets the title of the progress window
+    @param id: Used to uniquely identify the current context for caching estimated steps  
+    
+    See uitype.ProgressWindow for more info.
+    See showsProgress for a decorator variant of this function
+    
+    Example:
+    
+    import logging
+    
+    n = 10000
+    with progressShown(estimatedSteps=n, title="Processing...") as progressWin:
+        progressWin.status = "something's happening..."
+        for i in xrange(n):
+            logging.debug(i)                         # any log message will step up the progress
+    
+    func(10000)
+    """
+
+    pw = _uitypes.ProgressWindow()
+    pw.processBegin(id, estimatedSteps, title)
+    try:
+        yield pw
+    except pw.StoppedByUser, e:
+        raise pw.StoppedByUser(str(e))
+    finally:
+        pw.processEnd()
+
+@decorator
+def showsProgress(func):
+    """
+    Decorator - makes the function show an interruptible progress window that is 
+    driven by log messages (using python's built-in logging module).
+    
+    See uitype.ProgressWindow for more info.
+    See progressShown for a context-manager variant of this function
+    
+    Example:
+    
+    import logging
+    
+    @showProgress
+    def func(n):
+        logging.info("something's happening...")     # INFO messages show in the progress window status
+        for i in xrange(n):
+            logging.debug(i)                         # any log message will step up the progress
+    
+    func(10000)
+    """
+    def progressingFunc(*args, **kwargs):
+        with progressShown(id=func) as progressBar:
+            return func(*args, **kwargs)
+    return progressingFunc
+
 
 # Now that we've actually created all the functions, it should be safe to import
 # _uitypes...

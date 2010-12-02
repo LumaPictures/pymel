@@ -6,6 +6,8 @@ import pymel.internal as _internal
 import pymel.versions as _versions
 import windows as _windows
 import maya.mel as _mm
+import pymel.internal.plogging as _plogging
+
 _logger = _internal.getLogger(__name__)
 
 def _resolveUIFunc(name):
@@ -915,7 +917,7 @@ if sys.version_info > (2,6):
 else:
     from UserList import UserList
 
-#@decorator
+@_util.decorator
 def refreshing(func):
     def dec(self, *x, **y):
         sel = self.getSelected()
@@ -1224,7 +1226,152 @@ class TextLayout(FrameLayout):
             text = pformat(text)
         self.txtInfo.setText(text)
         self.txtInfo.setInsertionPosition(1)
+
+
+# Unlike most ui widgets the progressWindow is unique and only has one instance in the maya session.
+# For this reason its associated command only receive flags, and does not require the widget's name.
+# The MetaMayaUIWrapper (which automatically creates methods for a given UI class) always passes 'self'
+# into the underlying maya command, which is undesired in this case.
+# To work around that we wrap the original progressWindow function with the following function, which
+# skips the 'self' argument if it is indeed the singleton instance of the ProgressWindow
+def myFunc(*args, **kwargs):
+    if args:
+        self = args[0]
+        if self is ProgressWindow.__singleton__:
+            args = args[1:]
+    return cmds.progressWindow(*args, **kwargs)
+
+_util.decorated(_windows.progressWindow, myFunc)
+myFunc.__doc__ = _factories.addCmdDocsCallback("progressWindow")
+_windows.progressWindow = myFunc
+
+class ProgressWindow(object):
+    """
+    Blaaa
+    """
+    
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    __singleton__ = None
+    
+    class StoppedByUser(KeyboardInterrupt): pass
+
+    class ProgressHandler(_plogging.Handler):
+        """
+        This is the logging handler used to step the progress-bar.
+        It is installed at the root of the logging tree when the progress window is first loaded,
+        and removed when it window is closed.
+        """
+        def emit(self, record):
+            if record.levelno>_plogging.DEBUG:
+                self.progress.setStatus(self.format(record))
+            if self.progress.getIsCancelled():
+                self.progress._cancel()
+            else:
+                self.progress._doProgress()
+    
+        def handleError(self, *args, **kwargs):
+            # normally handleError suppresses exceptions thrown while logging, but here we
+            # need to allow the StoppedByUser to be raised so that it stops the progress
+            raise
+    
+    _stack = []
+    _history = {}
+    __slots__ = '_globalProgress'   # used to keep track of the overall progress of nested-processes
+    _handler = ProgressHandler(level=0)
+    
+    def __new__(cls):
+        if not cls.__singleton__:
+            cls.__singleton__ = object.__new__(cls)
+        return cls.__singleton__
+
+    def __init__(self):
+        from pymel.core.language import optionVar
+        _logger.debug("Loading progressWindow cached data...")
+        for k,v in optionVar.iteritems():
+            if k.startswith("%s.progress" % (__name__)):
+                id = ".".join(k.split(".")[-2:])
+                _logger.debug("    %-20s: %10d" % (k,v))
+                self._history[id] = v
+        self._globalProgress = 0        
+    
+    def _call(self,*args ,**kwargs):
+        return _windows.progressWindow(*args ,**kwargs)
+
+    def _cancelProgress(self):
+        """
+        Raises a StoppedByUser exception
+        """
+        raise self.StoppedByUser("(while in '%s')" % self._stack[-1][0])        
+
+    def reset(self, **kwargs):
+        self.end()
+        self._call(edit=True,
+            progress = 0,
+            status = " "*100,   # this ensures the progress window will be wide enough
+            isInterruptable = True,
+            max = 100,
+            min = 0)
+        self._call(**kwargs)
         
+        if self._handler not in _plogging.root.handlers:
+            _plogging.root.addHandler(self._handler)
+        self._handler.progress = self
+        self._globalProgress = 0
+        
+    def end(self):
+        self._call(endProgress=True)
+        _plogging.root.removeHandler(self._handler)
+
+    def _doProgress(self, by=1):
+        self._globalProgress += by
+        self.step(by)
+        id, estimatedSteps, lastPosition = self._stack[-1]
+        if (self._globalProgress - lastPosition)>=estimatedSteps:
+            # we've hit the end, update the range to make it wider
+            max = self._stack[-1][1] =  estimatedSteps * 1.5
+            self.setMaxValue(max)
+
+    def processBegin(self, func, estimatedSteps=None, title=None):
+        """
+        Begin a progress-tracked function/context. 
+        This can be called in a nested fashion, meaning a new 'sub' process can begin before the 
+        previous 'parent process' is over.
+        """
+        id = '%s.%s' % (func.__module__, func.__name__) if (func and callable(func)) else func
+        self.setTitle(title or 
+              ((func and callable(func)) and ("In Module '%s', Function '%s'..." % (func.__module__, func.__name__))) or 
+              "(Processing...)") 
+        estimatedSteps = estimatedSteps or self._history.get(id) or 100
+        if not self._stack:
+            # stack is empty - start fresh new progressWindow
+            self.reset(max = estimatedSteps)
+        else:
+            self.setProgress(0)
+        currentProgress = self._globalProgress
+        self._stack.append([id, estimatedSteps, currentProgress])
+
+    def processEnd(self):
+        """
+        End the current progress-tracked function/context.
+        When the last process is ended the progressWindow will be finalized and closed.
+        """
+        if self._stack:
+            id, estimatedSteps, lastPosition = self._stack.pop()
+            actualSteps = self._globalProgress - lastPosition
+            self._history[id] = int( .5 + # for rounding
+                (.75 * actualSteps) + 
+                (.25 * self._history.get(id,actualSteps))
+                )
+                
+            self._call(edit=True, max=estimatedSteps, progress=lastPosition)
+        
+        # there's a good reason for not putting an 'else' here! (see self._stack.pop() above...?)
+        if not self._stack:
+            from pymel.core.language import optionVar
+            self.end()
+            # storing the actual progress of the tracked functions/contexts
+            for k,v in self._history.iteritems():
+                optionVar["%s.progress.%s" % (__name__, k)] = v    
 
 
 # most of the keys here are names that are only used in certain circumstances
