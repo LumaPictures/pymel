@@ -35,6 +35,7 @@ the results::
 """
 
 import sys, os
+import contextlib
 import maya.OpenMaya as _OpenMaya
 from pymel.util.scanf import fscanf
 from pymel.util.decoration import decorator
@@ -312,6 +313,11 @@ Modifications:
 
     return cmds.namespaceInfo(*args, **kwargs)
 
+@contextlib.contextmanager
+def namespaceMaintained():
+    current = Namespace.getCurrent()
+    yield current
+    current.setCurrent()
 
 #-----------------------------------------------
 #  Translator Class
