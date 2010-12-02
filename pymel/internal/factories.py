@@ -613,7 +613,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
             if doPassSelf:
                 newargs = [ args[0] ] + newargs
             newargs = tuple(newargs)
-                res = origCallback( *newargs )
+            res = origCallback( *newargs )
             if isinstance(res, util.ProxyUnicode):
                 res = unicode(res)
             return res
