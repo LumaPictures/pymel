@@ -324,7 +324,7 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
 
 def informBox(title, message, ok="Ok"):
     """ Information box """
-    confirmDialog(t=title, m=message, b=["Ok"], db="Ok")
+    confirmDialog(t=title, m=message, b=[ok], db=ok)
 
 
 class PopupError( Exception ):
