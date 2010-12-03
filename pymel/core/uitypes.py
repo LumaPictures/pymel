@@ -254,18 +254,21 @@ class PyUI(unicode):
         try:
             return cmds.setParent(self)
         except RuntimeError:
-            self.__class__._currentParent = self
+            try:
+                return cmds.setParent(self, m=1)
+            except:
+                pass
 
         return self
     
     def __enter__(self):
-        self.__class__._previousParents = (cmds.setParent(q=1), cmds.setParent(q=1,m=1))
+        self._previousParents = (cmds.setParent(q=1), cmds.setParent(q=1,m=1))
         self.setAsParent()
         return self
     
     def __exit__(self, type, value, tb):
-        cmds.setParent(self.__class__._previousParents[0])
-        cmds.setParent(self.__class__._previousParents[1], m=1)
+        cmds.setParent(self._previousParents[0])
+        cmds.setParent(self._previousParents[1], m=1)
         
 class Panel(PyUI):
     """pymel panel class"""
@@ -1071,28 +1074,29 @@ class ModalLayout(FormLayout):
     A base class for creating Modal Dialog Boxes.
     To launch the dialog box, call the 'prompt' class-method on the derived class. All paramters will be passed directly to the 'buildLayout' method,
     which must be implemented on the derived class.
-    In order to return a result the derived class should call the 'returnValue' method with the value to return as it's only argument.
-    In order to cancel the dialog the derived class should call the 'cancel' method.
+    
+    To return a value from the prompt:       self.returnValue(value)
+    To cancel the prompt and return None:    self.cancel()            
     
     Example:
     
-        SLT= pm.SLT
-        class ExampleLayout(pm.ModalLayout):
+        class ExampleLayout(ModalLayout):
         
-            def buildLayout(self, *args, **kwargs):
-                SLT(pm.verticalLayout, 'topLayout', ratios=[0,1], childCreators=[
-                    SLT(pm.horizontalLayout, 'buttons', childCreators=[
-                        SLT(pm.button, label="All", c=pm.Callback(self.selected, all=True)),
-                        SLT(pm.button, label="Select", c=pm.Callback(self.selected)),
-                        SLT(pm.button, label="Cancel", c=pm.Callback(self.cancel)),
-                       ]),
-                    SLT(pm.ObjectScrollList, 'list', ams=True),
-                ]).create(parent=self, creation=self.__dict__)
+            def buildLayout(self, defaultColor=None, *args, **kwargs):
+                with verticalLayout(ratios=[0,1]) as self.topLayout:
+                    with horizontalLayout() as self.buttons:
+                        button(label="All", c=Callback(self.selected, all=True))
+                        button(label="Select", c=pm.Callback(self.selected))
+                        button(label="Cancel", c=pm.Callback(self.cancel))
+                    self.list = objectScrollList(ams=True, p=self.topLayout )
+                
                 self.list[:] = ['blue', 'red', 'green', 'white']
+                if defaultColor:
+                    self.list.select(defaultColor)
         
             @classmethod
             def prompt(cls):
-                return super(ExampleLayout, cls).prompt("This is an Example", width=500, height=100)
+                return super(ExampleLayout, cls).prompt(title="Choose a color", width=500, height=100, defaultColor='red')
         
             def selected(self, all=False):
                 if all:
@@ -1103,102 +1107,125 @@ class ModalLayout(FormLayout):
     """
     value = None
     def __new__(cls, *args):
-        p = core.setParent(q=True)
+        p = cmds.setParent(q=True)
         self = FormLayout.__new__(cls, p)
         return self
 
     def __init__(self, *args):
         super(ModalLayout, self).__init__(spacing=0, orientation=FormLayout.VERTICAL)
-        kwargs = self.kwargs
-        args = self.args
-        self.buildLayout(*args, **kwargs)
-        self.redistribute()
-        if 'width' in kwargs:         self.setWidth(kwargs['width'])
-        if 'height' in kwargs:        self.setHeight(kwargs['height'])
-
+        try:
+            kwargs = self.kwargs
+            args = self.args
+            with self:
+                self.buildLayout(*args, **kwargs)
+    
+            if 'width' in kwargs:         self.setWidth(kwargs['width'])
+            if 'height' in kwargs:        self.setHeight(kwargs['height'])
+        except Exception, e:
+            self.__class__.exc_info = sys.exc_info()
+            from maya.utils import executeDeferred
+            executeDeferred(cmds.layoutDialog, dismiss="Error")
+            
+    def buildLayout(self, *args, **kwargs):
+        txt = _windows.text(l="Override the 'buildLayout' method of this class")
+        btn = _windows.button(l="(Close)", c=self.cancel)
+        self.attachForm(btn,"bottom",2)
+        self.attachForm(btn,"right",2)
+        self.setWidth(250)
+        
     def returnValue(self, value):
+        """
+        Call this method to dismiss the prompt window and return 'value'.
+        """
         self.__class__.value = value
         return cmds.layoutDialog(dismiss="True")
 
-    def cancel(self):
+    def cancel(self, *args):
+        """
+        Call this method to dismiss the prompt window and return None
+        """
         return cmds.layoutDialog(dismiss="")
 
     @classmethod
     def prompt(cls, title="Dialog Box", width=100, height=200, *args, **kwargs):
+        """
+        Call this method to display the prompt window and wait for the user.
+        """
         kwargs['width'] = width
         kwargs['height'] = height
         cls.args = args
         cls.kwargs = kwargs
-        if not cmds.about(version=True).startswith("2008"):
+        if _versions.current() > _versions.v2008:
             ret = str(cmds.layoutDialog(title=title, ui=cls))
         else:
-            sys._tmp_cls = cls
+            sys._tmp_cls = cls  # temporarily make this class object accessible globally
             ret = str(cmds.layoutDialog(title=title, ui="""python("import sys; sys._tmp_cls()")"""))
             del sys._tmp_cls
-        if ret:
+        
+        if ret == "True":
             return cls.value
-
-class _ListSelectLayout(FormLayout):
-    """This Layout Class is specifically designed to be used by the promptFromList function"""
-    args = None
-    selection = None
-    def __new__(cls, *args, **kwargs):
-        self = core.setParent(q=True)
-        self = FormLayout.__new__(cls, self)
-        return self
+        elif ret == "Error":
+            type, value, tb = cls.exc_info
+            raise type, value, tb
     
-    def __init__(self):
-        (items, prompt, ok, cancel, default, allowMultiSelection, width, height, kwargs) = _ListSelectLayout.args
+class ListSelectLayout(ModalLayout):
+    """
+    This Layout Class is specifically designed to be used by the promptFromList function.
+    A ModalLayout showing a list of items for the user to select from.
+    """
+
+    def buildLayout(self, items, prompt, ok, cancel, default, allowMultiSelection, 
+                    width, height, objectToString, **kwargs):
         self.ams = allowMultiSelection
         self.items = list(items)
         kwargs.update(dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection))
-        SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), AutoLayout.redistribute, [
-            SLC("prompt", text, dict(l=prompt)),
-            SLC("selectionList", textScrollList, kwargs),
-            SLC("buttons", horizontalLayout, dict(ratios=[1,1]), AutoLayout.redistribute, [
-                SLC(None, button, dict(l=ok, c=self.returnSelection)),
-                SLC(None, button, dict(l=cancel, c=Callback(cmds.layoutDialog, dismiss=""))), 
-            ]),
-        ]).create(parent=self, creation=self.__dict__)
+        
+        with _windows.verticalLayout(ratios=[0,0,1], p=self) as self.topLayout:
+            self.prompt = _windows.text(l=prompt)
+            self.selectionList = _windows.objectScrollList(**kwargs)
+            with _windows.horizontalLayout(ratios=[1,1]) as self.buttons:
+                _windows.button(l=ok, c=self.returnSelection)
+                _windows.button(l=cancel, c=self.cancel) 
 
-        self.selectionList.append(map(str, self.items))
+        self.selectionList.objectToString = objectToString
+        self.selectionList[:] = self.items
         if default:
             if not hasattr(default,"__iter__"):
                 default = [default]
-            for i in default:    
-                self.selectionList.setSelectItem(str(i))
+            self.selectionList.select(default)
         
-        width  = width  or 150
-        height = height or 200
-        self.setWidth(width)
-        self.setHeight(height)
         for side in ["top", "right", "left", "bottom"]:
             self.attachForm(self.topLayout, side, 0)
             self.topLayout.attachNone(self.buttons, "top")
             self.topLayout.attachControl(self.selectionList, "bottom", 0, self.buttons)
-
         
     def returnSelection(self, *args):
-        _ListSelectLayout.selection = [self.items[i-1] for i in self.selectionList.getSelectIndexedItem() or []]
-        if _ListSelectLayout.selection:        
-            if not self.ams:
-                _ListSelectLayout.selection = _ListSelectLayout.selection[0]
-            return cmds.layoutDialog(dismiss=_ListSelectLayout.selection and "True" or "")
+        self.returnValue(self.selectionList.getSelected())
+    
+def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", 
+                   default=None, allowMultiSelection=False, width=150, height=200, ams=False,
+                   objectToString=str, **kwargs):
+    """
+    Prompt the user to select items from a list of objects.
+    Any python object can be used, and it will be returned as the same object if selected (no forced conversion to string).
+    
+    @param title: Window title
+    @param prompt: A message to display above the selection list
+    @param ok: The text for the 'OK' button
+    @param cancel: The text for the 'Cancel' button
+    @param default: The default selection (single object or a list of objects)
+    @param allowMultiSelection: Set to True  to allow multiple object selection
+    @param ams: Short for 'allowMultiSelection'
+    @param objectToString: The function to use when displaying the objects in the scroll list
+    
+    Example:
+        ret = promptFromList([1,2,"hello",(4,5)], ams=1, default=[2,"hello"])
+        print "%r" % ret
+    """
+    return ListSelectLayout.prompt(title=title, items=items, prompt=prompt, ok=ok, cancel=cancel, 
+                             default=default, allowMultiSelection=allowMultiSelection or ams, 
+                             width=width, height=height, objectToString=objectToString, **kwargs)
 
-if not cmds.about(version=True).startswith("2008"):
-    def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False, **kwargs):
-        """ Prompt the user to select items from a list of objects """
-        _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height, kwargs)
-        ret = str(cmds.layoutDialog(title=title, ui=_ListSelectLayout))
-        if ret:
-            return _ListSelectLayout.selection
-else:
-    def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False, **kwargs):
-        """ Prompt the user to select items from a list of objects """
-        _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height, kwargs)
-        ret = str(cmds.layoutDialog(title=title, ui="""python("import sys; sys.modules['%s']._ListSelectLayout()")""" % (__name__)))
-        if ret:
-            return _ListSelectLayout.selection
 
 class FrameLayout(Layout):
     """pymel frame-layout class"""
