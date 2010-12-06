@@ -7,18 +7,21 @@ from __future__ import with_statement
 
 import sys, platform, os, shutil, time, inspect, tempfile, doctest
 
-# tee class taken from http://shallowsky.com/blog/programming/python-tee.html,
-# from 
-class tee :
+# tee class adapted from http://shallowsky.com/blog/programming/python-tee.html
+class Tee(object):
     def __init__(self, _fd1, _fd2) :
         self.fd1 = _fd1
         self.fd2 = _fd2
 
     def __del__(self) :
-        if self.fd1 != sys.stdout and self.fd1 != sys.stderr :
-            self.fd1.close()
-        if self.fd2 != sys.stdout and self.fd2 != sys.stderr :
-            self.fd2.close()
+        self.close()
+            
+    def close(self):
+        for toClose in (self.fd1, self.fd2):
+            if toClose not in (sys.stdout, sys.stderr,
+                               sys.__stdout__, sys.__stderr__, None):
+                toClose.close()
+        self.fd1 = self.fd2 = None
 
     def write(self, text) :
         self.fd1.write(text)
@@ -75,8 +78,8 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
     noseArgv = "dummyArg0 --with-doctest -vv".split()
     if module is None:
         #module = 'pymel' # if you don't set a module, nose will search the cwd
-        excludes = '''^windows
-                    ^all.py$
+        excludes = r'''^windows
+                    \Wall\.py$
                     ^tools
                     ^example1
                     ^testingutils
@@ -268,7 +271,7 @@ class DocTestPatcher(object):
 
         nose.plugins.doctests.Doctest.wantFile = wantFile
         
-    def __exit__(self):
+    def __exit__(self, *args, **kwargs):
         doctest.DocTestFinder._from_module = self.orig_from_module
         if self.orig_wantFile is not None:
             import nose.plugins.doctests

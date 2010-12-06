@@ -2610,8 +2610,8 @@ class Attribute(PyNode):
 
         >>> addAttr( "persp", ln='numbers', at='enum', enumName="zero:one:two:thousand=1000:three")
         >>> numbers = Attribute('persp.numbers').getEnums()
-        >>> numbers
-        EnumDict({u'one': 1, u'thousand': 1000, u'three': 1001, u'two': 2, u'zero': 0})
+        >>> sorted(numbers.items())
+        [(u'one', 1), (u'thousand', 1000), (u'three', 1001), (u'two', 2), (u'zero', 0)]
         >>> numbers[1]
         u'one'
         >>> numbers['thousand']

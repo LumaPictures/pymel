@@ -61,7 +61,6 @@ def _pluginLoaded( *args ):
         return
 
     _logger.debug("Plugin loaded: %s", pluginName)
-
     _pluginData[pluginName] = {}
 
     try:
@@ -125,9 +124,6 @@ def _pluginLoaded( *args ):
                     for node in inheritance:
                         nodeName = _factories.addPyNode( nodetypes, node, parent )
                         parent = node
-                        if 'pymel.all' in sys.modules:
-                            # getattr forces loading of Lazy object
-                            setattr( sys.modules['pymel.all'], nodeName, getattr(nodetypes,nodeName) )
 
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
         if _api.MFileIO.isReadingFile() or ( _versions.current() >= _versions.v2008 and _api.MFileIO.isOpeningFile() ):
@@ -156,6 +152,7 @@ def _pluginUnloaded(*args):
         pluginName = args[0]
 
     _logger.debug("Plugin unloaded: %s" % pluginName)
+    
     try:
         data = _pluginData.pop(pluginName)
     except KeyError:

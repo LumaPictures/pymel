@@ -851,6 +851,14 @@ class test_plugins(unittest.TestCase):
         if cmds.pluginInfo('Fur', q=1, loaded=1):
             cmds.unloadPlugin('Fur')
             cmds.file(new=1, f=1)
+        # Currently, PyNode classes for node types defined in 'default'
+        # plugins are always created when pymel starts up, even if the plugin
+        # wasn't loaded... so we need to make sure we delete 'FurGlobals' if it
+        # was made
+        if 'FurGlobals' in nt.__dict__:
+            del nt.__dict__['FurGlobals']
+        if 'FurGlobals' in nt.__class__.__dict__:
+            delattr(nt.__class__, 'FurGlobals')
         
     def test01_load(self):
         loadPlugin('Fur')

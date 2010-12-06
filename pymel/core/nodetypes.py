@@ -3061,7 +3061,14 @@ def _createPyNodes():
 
     for mayaType, parents, children in _factories.nodeHierarchy:
 
-        if mayaType == 'dependNode': continue
+        if mayaType == 'dependNode':
+        # This seems like the more 'correct' way of doing it - only node types
+        # that are currently available have PyNodes created for them - but
+        # changing it so some PyNodes are no longer available until their
+        # plugin is loaded may create backwards incompatibility issues... 
+#        if (mayaType == 'dependNode'
+#                or mayaType not in _factories.mayaTypesToApiTypes):
+            continue
 
         parentMayaType = parents[0]
         #print "superNodeType: ", superNodeType, type(superNodeType)

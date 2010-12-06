@@ -2711,13 +2711,21 @@ def addPyNode( dynModule, mayaType, parentMayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     parentPyNodeTypeName = str(util.capitalize(parentMayaType))
 
-    try:
-        dynModule[pyNodeTypeName]
-    except KeyError:
-        #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
-        dynModule[pyNodeTypeName] = ( addPyNodeCallback,
-                                   ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName ) )
-    return pyNodeTypeName
+    # If pymel.all is loaded, we will need to get the actual node in order to
+    # store it on pymel.all, so in that case don't bother with the lazy-loading
+    # behavior...
+    if 'pymel.all' in sys.modules:
+        newType = addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName )
+        setattr( sys.modules['pymel.all'], pyNodeTypeName, newType )
+    # otherwise, do the lazy-loading thing
+    else:
+        try:
+            dynModule[pyNodeTypeName]
+        except KeyError:
+            #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
+            dynModule[pyNodeTypeName] = ( addPyNodeCallback,
+                                       ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName ) )
+        return pyNodeTypeName
 
 def removePyNode( dynModule, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
@@ -2728,6 +2736,11 @@ def removePyNode( dynModule, mayaType ):
     dynModule.__dict__.pop(pyNodeTypeName,None)
     # delete the lazy loader too, so it does not regenerate the object
     delattr(dynModule.__class__,pyNodeTypeName)
+    if 'pymel.all' in sys.modules:
+        try:
+            delattr(sys.modules['pymel.all'], pyNodeTypeName)
+        except AttributeError:
+            pass
     removeMayaType( mayaType )
 
 
