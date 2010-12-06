@@ -524,6 +524,10 @@ def objectScrollList(*args, **kwargs):
     kwargs['create']=True
     return _uitypes.ObjectScrollList(*args, **kwargs)
 
+def objectTreeView(*args, **kwargs):
+    kwargs['create']=True
+    return _uitypes.ObjectTreeView(*args, **kwargs)
+
 def textWindow(title, text, size=(300,300)):
     """
     Convenience for creating a simple window with a scroll-field of text inside
@@ -563,7 +567,6 @@ def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None
     if parent:
         kw['parent']=parent
     with horizontalLayout(**kw) as layout:
-        _logger.debug("layout: %r" % layout)
         label = text(l=label,al=align)
         control = uiFunc(**kwargs)
             

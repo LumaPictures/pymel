@@ -277,6 +277,258 @@ class Panel(PyUI):
     # we're declaring it here because other classes will have this
     # as their base class, so we need to make sure it exists first
 
+    
+class TreeView(PyUI):
+    """pymel TreeView class"""
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    
+
+    def getItemParent(self, item):
+        parentItem = self.__melcmd__(self, q=1, itemParent=item)
+        return self.TreeItem(self, parentItem) if parentItem else self
+
+    def getItemIndex(self, item):
+        return self.__melcmd__(self, q=1, itemIndex=item)
+    
+    def getIsItemExpanded(self, item):
+        return self.__melcmd__(self, q=1, isItemExpanded=item)
+    
+    def getIsLeaf(self, item):
+        return self.__melcmd__(self, q=1, isLeaf=item)
+
+    def getButtonState(self, name, button):
+        return self.__melcmd__(self, q=True, buttonState=True)
+
+    def setButtonState(self, name, button, state='buttonDown'):
+        self.__melcmd__(self, q=True, buttonState=(name, button, state))
+
+
+        
+    def addItem(self, name, parent=None, **kw):
+        self.__melcmd__(self, edit=True, addItem=(name, parent or ""), **kw)
+        return self.TreeItem(self, name)
+    
+    def getSelectItem(self):
+        return [self[name] for name in self.__melcmd__(self, q=True, selectItem=True) or []]
+
+    def setSelectItem(self, item, select=True):
+        return self.__melcmd__(self, e=1, selectItem=(item,select))
+    
+        
+    def __getitem__(self, name):
+        return self.TreeItem(self, name)
+    
+    class TreeItem(str):
+        """
+        Represent a Tree Item in a pymel TreeView.
+        """
+    
+        def __new__(cls, treeView, name):
+            self = str.__new__(cls, name)
+            self.treeView = treeView
+            return self
+        
+        def __repr__(self):
+            return "%s('%s','%s')" % (self.__class__.__name__, self.treeView, self)
+            
+        def _call(self, funcName, *args, **kw):
+            args = (self,) + args
+            if kw.pop('_packArgs',True):
+                args = args,
+            return getattr(self.treeView, funcName)(*args, **kw)
+        
+        def _callNoPack(self, funcName, *args, **kw):
+            kw['_packArgs'] = False
+            return self._call(funcName, *args, **kw)
+            
+        def addItem(self, name):
+            return self.treeView.addItem(name, self)
+            
+        def __getitem__(self, name):
+            return self.treeView[name]
+    
+    # TODO - factories probably has some utility functions that can do this better a nicer...
+    def getFunc(funcName, noPack=True):
+        if noPack:
+            def func(self, *a, **b):  return self._callNoPack(funcName, *a, **b)
+        else:
+            def func(self, *a, **b):  return self._call(funcName, *a, **b)
+        func.__name__ = funcName
+        return func
+    
+    # don't pack args
+    for funcName in ('getIsLeaf', 'getItemExists', 'getItemParent', 'getItemIndex',
+                     'setSelectItem', 'showItem', 'getIsItemExpanded',
+                     'setButtonState', 'getButtonState', 
+                     
+                     ):
+        setattr(TreeItem, funcName, getFunc(funcName))
+
+    # pack multiple args
+    for funcName in ('borderHighlite', 'borderHighliteColor', 
+                     'buttonState', 'buttonStyle', 'buttonTextIcon', 'buttonTooltip',
+                     'buttonTransparencyColor', 'buttonTransparencyOverride', 'setButtonVisible',
+                     'displayLabel', 'displayLabelSuffix', 'expandItem', 'enableButton', 'enableLabel',
+                     'expandItem', 'font', 'fontFace', 'highlite', 'highliteColor', 'image',
+                     'textColor', 
+                     ):
+        setattr(TreeItem, funcName, getFunc(funcName, False))
+        
+    del getFunc
+
+class ObjectTreeView(TreeView):
+    """
+    
+    A convenience object-oriented interface for the TreeView widget.
+    Use the 'addObject' method to add objects to the tree-view. 
+    The ObjectTreeView will use the overridden ObjectTreeItem.getObjectParent to determine an object's parent
+    and will create the appropriate tree-structure automatically.
+    Use the 'getSelectedObjects' method to get back at the original objects that were added into the tree-view.
+    
+    Example:
+
+        # The following example creates a tree-view from a path object (see pymel.util.path)
+        
+        # override basic methods in the
+        class PathTreeItem(ObjectTreeView.ObjectTreeItem):
+    
+            @classmethod
+            def getObjectParent(cls, object):
+                # classmethod, determine the parent of an object. In this case, use the path object methods
+                # to determine if the path is at the root mount-point ('C:\'), and if not return the parent
+                # directory ('C:\Windows\System32\something.log' --> 'C:\Windows\System32') 
+                return (not object.ismount() and object.parent)     
+    
+            def getDisplayLabel(self):
+                return self.object.name or self.object    # self.object is the object this tree-item represents 
+    
+            def getIsBorderHighlighted(self):
+                return len(self.object.splitall())%3==0   # causes the tree-item to be highlighted 
+        
+        with window() as win:
+             with verticalLayout() as layout:
+                 # create the ObjectTreeView, specifying the PathTreeItem as the treeItemClass
+                 tree = ObjectTreeView(create=1, parent = layout, numberOfButtons = 2, treeItemClass=PathTreeItem )
+        
+        # Add the current workspace path to the tree-view
+        tree.addObject(workspace.getcwd())
+
+    """
+    
+    class ObjectTreeItem(TreeView.TreeItem):
+        
+        def __new__(cls, treeView, name, *args, **kwargs):
+            try:
+                return treeView[name]
+            except KeyError:
+                return super(ObjectTreeView.ObjectTreeItem, cls).__new__(cls, treeView, name)
+            
+        @classmethod
+        def getObjectParent(cls, object):
+            """
+            Override this for the particular object type so that it returns it's parent object.
+            NOTE - this method must be kept decorated as a 'classmethod'.
+            """
+            return None
+        
+        def refresh(self):
+            self.displayLabel(self.getDisplayLabel())
+            self.highlite(self.getIsHighlighted())
+            self.borderHighlite(self.getIsBorderHighlighted())
+            
+        def getDisplayLabel(self):
+            """
+            Override this for the particular object type so that it returns the desired display-label
+            to be shown in the ObjectTreeView
+            """
+            return str(self.object)
+        
+        def getIsHighlighted(self):
+            return False
+        
+        def getIsBorderHighlighted(self):
+            return False
+        
+        def editLabelCommad(self, newLabel):
+            """
+            Callback - override this for desired behavior when the display-label is edited by the user.
+            return False/None to prevent the label from being edited. 
+            """
+            print newLabel
+            return
+        
+        def expandCollapseCommand(self, expanded):
+            """
+            Callback - override this for desired behavior when the item is expanded or collapesed.
+            """
+            print expanded
+            return
+            
+    
+    def __new__(cls, *args, **kwargs):
+        kwargs.pop('treeItemClass', None)
+        return super(ObjectTreeView, cls).__new__(cls, *args, **kwargs)
+        
+    def __init__(self, *args, **kwargs):
+        #self.objectParent = kwargs.pop('objectParent', lambda n: None)
+        self.TreeItem = kwargs.pop('treeItemClass', self.ObjectTreeItem)
+        self.allItems = {}
+
+#        TODO - install these callbacks using mel :(..., since pure python isn't supported apparently
+#
+#        kw = set(kwargs)
+#        if not set(('editLabelCommand','elc')) & kw:
+#            self.editLabelCommand(self._editLabelCommand)
+#        if not set(('expandCollapseCommand', 'ecc')) & kw:
+#            self.expandCollapseCommand(self._expandCollapseCommand)
+        
+        
+    def _editLabelCommand(self, name, newLabel):
+        return self[name].editLabelCommad(newLabel)
+    
+    def _expandCollapseCommand(self, name, expanded):
+        return self[name].expandCollapseCommand(expanded)
+    
+    def __getitem__(self, name):
+        return self.allItems[long(name)]
+        
+    def getObjectItem(self, object):
+        return self.allItems.get(hash(object))
+
+    def addObject(self, object, refresh=True, expand=True):
+        id = hash(object)
+        
+        parent = self.TreeItem.getObjectParent(object)
+        
+        parentItem = parent and (self.getObjectItem(parent) or self.addObject(parent, refresh, expand))
+        
+        try:
+            item = self.allItems[id]
+        except KeyError:
+            self.allItems[id] = item = self.addItem(id, parentItem)
+        item.object = object
+        item.refresh()
+        return item
+    
+    def removeAll(self):
+        super(ObjectTreeView, self).removeAll()
+        items = self.allItems.values()
+        self.allItems = {}
+        return [item.object for item in items]
+    
+    def reset(self):
+        return [self.addObject(object, False) for object in sorted(self.removeAll())]
+        
+    def refresh(self):
+        for item in self.allItems.itervalues():
+            item.refresh()
+
+    getSelectedItems = TreeView.getSelectItem
+    
+    def getSelectedObjects(self):
+        return [item.object for item in self.getSelectedItems()]
+
+    
 class Layout(PyUI):
 
     def children(self):
@@ -932,8 +1184,32 @@ def refreshing(func):
 
 class ObjectScrollList(UserList, TextScrollList):
     """
-    Create a dynamic Scroll-List from a simple object list.
-    Override or set the 'objectToString' function to a function that function that will return the string representation for an object.
+    A dynamic scroll-list widget that behaves similar to the built-in python list type.
+    Override or set the 'objectToString' function to a function that function that will 
+    return the string representation for an object for display in the scroll-list.
+    
+    Example:
+    with window() as win:
+        with verticalLayout() as layout:
+            objectScroll = objectScrollList(parent = layout, allowMultiSelection=1, font='smallFixedWidthFont')
+    
+    # determine how the objects are displayed in the list
+    objectScroll.objectToString = lambda n: "<%05d>" % n
+
+    objectScroll.extend(range(10))    # add items
+    objectScroll[-3:] = [20,30,40]    # modify using slicing
+    objectScroll.select((6,9,1))      # select objects  
+    print objectScroll.getSelected()
+    # Result: [1, 6, 9] # 
+
+    # modify the display method
+    objectScroll.objectToString = lambda n: "<%4d>" % n
+    objectScroll.refresh()
+    
+    # getSelected returns original objects, not strings.
+    print objectScroll.getSelected()
+    # Result: [1, 6, 9] # 
+    
     """
     
     def __new__(cls, *args, **kwargs):
@@ -950,15 +1226,15 @@ class ObjectScrollList(UserList, TextScrollList):
         if self.getAllowMultiSelection():
             self._converter = lambda l: l
         else:
-            self._converter = lambda l: l and l[0] or None
+            self._converter = lambda l: l[0] if l else None
 
-    __nonzero__ = lambda s: True
+    __nonzero__ = lambda self: True
     
     objectToString = str
 
     d = locals()
     for fn in ['append', 'extend', 'insert', 'pop', 'remove', 'reverse', 'sort',
-               '__setslice__', '__delslice__', '__imul__', '__iadd__']:
+               '__setslice__', '__delslice__', '__imul__', '__iadd__', '__setitem__']:
         func = refreshing(getattr(UserList,fn))
         d[fn] = func
     del d, func, fn
@@ -994,6 +1270,10 @@ class ObjectScrollList(UserList, TextScrollList):
         return [i-1 for i in self.getSelectIndexedItem()]
 
     def getSelected(self):
+        """
+        Returns the currently selected object or None.
+        If 'allowMultiSelection' is True then returns the list of objects (or empty list)
+        """
         ret = [self[s] for s in self.selectedIndices]
         return self._converter(ret)
 
@@ -1007,9 +1287,30 @@ class ObjectScrollList(UserList, TextScrollList):
 
 class ObjectMenu(UserList, OptionMenu):
     """
-    Create a dynamic Option-Menu from a simple object list.
-    Override or set the 'objectToString' function to a function that function that will return the string representation for an object.
-    """    
+    A dynamic option-menu widget that behaves similar to the built-in python list type.
+    Override or set the 'objectToString' function to a function that function that will 
+    return the string representation for an object for display in the scroll-list.
+    
+    Example:
+    with window() as win:
+        with verticalLayout() as layout:
+            objectScroll = objectScrollList(parent = layout, allowMultiSelection=1, font='smallFixedWidthFont')
+    
+    # determine how the objects are displayed in the list
+    objectScroll.objectToString = lambda n: "<%05d>" % n
+
+    # add items
+    objectScroll.extend(range(10))
+    
+    # use basic list operations to modify the option-menu
+    objectScroll[0] = 10
+    objectScroll[3:] = [30,40,50]
+    objectScroll.select(40)
+    
+    # getSelected returns original objects, not strings
+    100 + objectScroll.getSelected()
+    # Result: 140 # 
+    """  
     def __init__(self, *args, **kwargs):
         #kwargs['create'] = True
         initlist = kwargs.pop('initlist',None)
@@ -1028,7 +1329,7 @@ class ObjectMenu(UserList, OptionMenu):
 
     d = locals()
     for fn in ['append', 'extend', 'insert', 'pop', 'remove', 'reverse', 'sort',
-               '__setslice__', '__delslice__', '__imul__', '__iadd__']:
+               '__setslice__', '__delslice__', '__imul__', '__iadd__', '__setitem__']:
         func = refreshing(getattr(UserList,fn))
         d[fn] = func
     del d, func, fn
@@ -1045,27 +1346,27 @@ class ObjectMenu(UserList, OptionMenu):
         self.clear()
         offset = 1
         if self.title:
-            menuItem(l = self.title, en = 0,parent = self)
+            _windows.menuItem(l = self.title, en = 0,parent = self)
             offset += 1
         self.objectToIndices.clear()
         for i, o in enumerate(self.data):
-            menuItem(l = self.objectToString(o), parent = self)            
+            _windows.menuItem(l = self.objectToString(o), parent = self)            
             self.objectToIndices.setdefault(o,[]).append(i+offset)
         if reselect: self.select(reselect)
         
     def select(self, object):
         if object and object in self.objectToIndices:
-            self.setSelectIndexedItem(self.objectToIndices[object][-1])
+            self.setSelect(self.objectToIndices[object][-1])
 
     def getSelected(self):
-        idx = self.getSelectIndexedItem()
+        idx = self.getSelect()
         if idx:
             return self[idx-1]
         
     getValue = getSelected        
 
     def popSelected(self):
-        ret = self.pop(self.getSelectIndexedItem())
+        ret = self.pop(self.getSelect())
         self.refresh()
         return ret
 
