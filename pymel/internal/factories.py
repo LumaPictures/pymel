@@ -373,7 +373,7 @@ if includeDocExamples:
 #cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
 
 # FIXME
-#: stores a dcitionary of pymel classnames to mel method names
+#: stores a dictionary of pymel classnames to mel method names
 classToMelMap = util.defaultdict(list)
 
 def _getApiOverrideNameAndData(classname, pymelName):
