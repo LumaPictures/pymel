@@ -859,11 +859,15 @@ class test_plugins(unittest.TestCase):
             del nt.__dict__['FurGlobals']
         if 'FurGlobals' in nt.__class__.__dict__:
             delattr(nt.__class__, 'FurGlobals')
+        # Also, 'unload' pymel.all if present - if it's there, it will cause
+        # any new PyNodes to skip lazy loading
+        sys.modules.pop('pymel.all', None)
         
     def test01_load(self):
+        self.assert_( 'FurGlobals' not in nt.__dict__ )
         loadPlugin('Fur')
         self.assert_( 'FurGlobals' not in nt.__dict__ )
-        # lazer loader exists
+        # lazy loader exists
         self.assert_( 'FurGlobals' in nt.__class__.__dict__ )
         # after accessing, the lazy loader should generate the class
         nt.FurGlobals
