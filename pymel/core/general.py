@@ -16,6 +16,7 @@ import pymel.internal.factories as _factories
 import pymel.internal.pwarnings as _warnings
 import pymel.api as _api
 import pymel.versions as _versions
+import other
 import datatypes
 import logging
 from maya.cmds import about as _about
