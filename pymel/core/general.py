@@ -387,6 +387,10 @@ Modifications:
     >>> addAttr( 'persp', longName= 'testDoubleArray', dataType='doubleArray')
     >>> setAttr( 'persp.testDoubleArray', [0,1,2])
     >>> setAttr( 'defaultRenderGlobals.preMel', 'sfff')
+    
+  - Added ability to set enum attributes using the string values; this may be
+    done either by setting the 'asString' kwarg to True, or simply supplying
+    a string value for an enum attribute.
 
     """
     datatype = kwargs.get( 'type', kwargs.get( 'typ', None) )
@@ -398,7 +402,9 @@ Modifications:
 
         # force flag
         force = kwargs.pop('force', kwargs.pop('f', False) )
-
+        
+        # asString flag
+        asString = kwargs.pop('asString', None)
 
         # vector, matrix, and arrays
         if _util.isIterable(arg):
@@ -539,16 +545,29 @@ Modifications:
                     else:
                         raise TypeError, "%s.setAttr: %s is not a supported type for use with the force flag" % ( __name__, type(arg) )
 
-                elif isinstance(arg,basestring) or isinstance(arg, _util.ProxyUnicode):
-                    kwargs['type'] = 'string'
-
+                elif isinstance(arg, (basestring, _util.ProxyUnicode)):
+                    if asString is None:
+                        if isinstance(attr, Attribute):
+                            attrType = attr.type()
+                        else:
+                            attrType = cmds.getAttr(attr, type=1)
+                        asString = (attrType == 'enum')
+                    if asString:
+                        val = getEnums(attr).get(arg)
+                        if val is None:
+                            raise MayaAttributeEnumError(attr, arg)
+                        arg = val
+                        args = (val,)
+                    else:
+                        kwargs['type'] = 'string'
+                    
     if datatype == 'matrix' and _versions.current() < _versions.v2011:
         import language
         #language.mel.setAttr( attr, *args, **kwargs )
         strFlags = [ '-%s %s' % ( key, language.pythonToMel(val) ) for key, val in kwargs.items() ]
         cmd = 'setAttr %s %s %s' % ( attr, ' '.join( strFlags ), ' '.join( [str(x) for x in args] ) )
         import maya.mel as _mm
-        print cmd
+        #print cmd
         _mm.eval(cmd)
         return
 
@@ -692,6 +711,50 @@ def hasAttr( pyObj, attr, checkShape=True ):
         return True
     except AttributeError:
         return False
+
+#-----------------------
+#  Attr Enums
+#-----------------------
+
+def setEnums(attr, enumList):
+    cmds.addAttr( attr, e=1, en=":".join(enumList) )
+
+
+def getEnums(attr):
+    """
+    :rtype: `util.enum.EnumDict`
+
+    >>> addAttr( "persp", ln='numbers', at='enum', enumName="zero:one:two:thousand=1000:three")
+    >>> numbers = Attribute('persp.numbers').getEnums()
+    >>> sorted(numbers.items())
+    [(u'one', 1), (u'thousand', 1000), (u'three', 1001), (u'two', 2), (u'zero', 0)]
+    >>> numbers[1]
+    u'one'
+    >>> numbers['thousand']
+    1000
+
+    """
+    if isinstance(attr, Attribute):
+        attrName = attr.attrName()
+        node = attr.node().name()
+    else:
+        node, attrName = unicode(attr).rsplit('.', 1)
+    enum_list = cmds.attributeQuery(attrName, node=node,
+                                    listEnum=True)[0].split(':')
+
+    enum_dict = {}
+    index = 0
+    for enum in enum_list:
+        try:
+            name, value = enum.split(u'=')
+            index = int(value)
+            enum = name
+        except:
+            pass
+        enum_dict[enum] = index
+        index += 1
+
+    return _util.enum.EnumDict(enum_dict)
 
 #-----------------------
 #  List Functions
@@ -1426,6 +1489,17 @@ class MayaNodeError(MayaObjectError):
 
 class MayaAttributeError(MayaObjectError, AttributeError):
     _objectDescription = 'Attribute'
+
+class MayaAttributeEnumError(MayaAttributeError):
+    _objectDescription = 'Attribute Enum'
+    def __init__(self, node=None, enum=None):
+        super(MayaAttributeEnumError, self).__init__(node)
+        self.enum = enum
+    def __str__(self):
+        msg = super(MayaAttributeEnumError, self).__str__()
+        if self.enum:
+            msg += " - %r" % (self.enum)
+        return msg    
 
 class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
@@ -2600,46 +2674,14 @@ class Attribute(PyNode):
     item = _factories.wrapApiMethod( _api.MPlug, 'logicalIndex', 'item' )
     index = _factories.wrapApiMethod( _api.MPlug, 'logicalIndex', 'index' )
 
-    def setEnums(self, enumList):
-        cmds.addAttr( self, e=1, en=":".join(enumList) )
-
-
-    def getEnums(self, asDict=False):
-        """
-        :rtype: `util.enum.EnumDict`
-
-        >>> addAttr( "persp", ln='numbers', at='enum', enumName="zero:one:two:thousand=1000:three")
-        >>> numbers = Attribute('persp.numbers').getEnums()
-        >>> sorted(numbers.items())
-        [(u'one', 1), (u'thousand', 1000), (u'three', 1001), (u'two', 2), (u'zero', 0)]
-        >>> numbers[1]
-        u'one'
-        >>> numbers['thousand']
-        1000
-
-        """
-        enum_list = cmds.attributeQuery(self.name(includeNode=False),
-                                        node=self.node().name(),
-                                        listEnum=True)[0].split(':')
-
-        enum_dict = {}
-        index = 0
-        for enum in enum_list:
-            try:
-                name, value = enum.split(u'=')
-                index = int(value)
-                enum = name
-            except:
-                pass
-            enum_dict[enum] = index
-            index += 1
-
-        return _util.enum.EnumDict(enum_dict)
-
-
+    # enums
+    getEnums = getEnums
+    setEnums = setEnums
+        
     # getting and setting
     set = setAttr
     get = getAttr
+
     setKey = _factories.functionFactory( cmds.setKeyframe, rename='setKey' )
 
 

@@ -229,6 +229,22 @@ def test_pymel_setAttr():
             #testSetAttr()
             yield testSetAttr,
             
+class testCase_enumAttr(unittest.TestCase):
+    def setUp(self):
+        self.node = cmds.createNode('transform')
+        self.attrName = 'testEnum'
+        self.attr = '%s.%s' % (self.node, self.attrName)
+        cmds.addAttr(self.node, at='enum', longName=self.attrName,
+                     enumName='First:Second:Third', keyable=True)
+        
+    def test_setString(self):
+        print "self.attr:", self.attr
+        setAttr(self.attr, 'Second')
+        self.assertEqual(1, getAttr(self.attr))
+        setAttr(self.attr, 'Third', asString=1)
+        self.assertEqual(2, getAttr(self.attr))
+        self.assertRaises(MayaAttributeEnumError, setAttr, self.attr, 'foo')
+            
 class testCase_nodesAndAttributes(unittest.TestCase):
 
     def setUp(self):
