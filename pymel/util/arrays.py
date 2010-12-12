@@ -6028,7 +6028,7 @@ def dot(u, v):
         try :
             u = VectorN(u)
         except :
-            raise TypeError, "%s is not convertible to type VectorN, cross product is only defined for two Vectors of identical size" % (clsname(u))
+            raise TypeError, "%s is not convertible to type VectorN, dot product is only defined for two Vectors of identical size" % (clsname(u))
     return u.dot(v)
 
 def outer(u, v):
@@ -6374,8 +6374,9 @@ class VectorN(Array):
         """
         try :
             nself, nother = coerce(VectorN(self), other)
+            assert len(nself) == len(nother)
         except :
-            raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (clsname(other), clsname(self))
+            raise TypeError, "%s not convertible to %s, dot product is only defined for two Vectors of identical size" % (clsname(other), clsname(self))
         return reduce(operator.add, map(operator.mul, nself, nother))
     def outer(self, other):
         """ u.outer(v) <==> outer(u, v)
@@ -6385,7 +6386,7 @@ class VectorN(Array):
         try :
             nself, nother = coerce(VectorN(self), other)
         except :
-            raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors" % (clsname(other), clsname(self))
+            raise TypeError, "%s not convertible to %s, outer product is only defined for two Vectors" % (clsname(other), clsname(self))
         return MatrixN([nother*x for x in nself])
     def transformAsNormal(self, other):
         """ u.transformAsNormal(m) --> VectorN
