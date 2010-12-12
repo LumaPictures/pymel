@@ -350,15 +350,15 @@ class PopupError( Exception ):
             ret = informBox('Error', msg)
 
 
-def promptForFolder():
+def promptForFolder(title='Select Folder', root=None, actionName='Select'):
     """ Prompt the user for a folder path """
+    kw = {}
+    if root:
+        kw['dir'] = root
 
-    # a little trick that allows us to change the top-level 'folder' variable from
-    # the nested function ('getfolder') - use a single-element list, and change its content
-    folder = [None]
-    def getfolder(*args):
-        folder[0] = args[0]
-    ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
+    folder = cmds.fileDialog2(cap=title, fm=3, okc=actionName, **kw)
+    if not folder:
+        return
     folder = _Path(folder[0])
     if folder.exists():
         return folder
@@ -405,8 +405,10 @@ def hourglassShown():
                 print i
     """
     cmds.waitCursor(st=True)
-    yield
-    cmds.waitCursor(st=False)
+    try:
+        yield
+    finally:
+        cmds.waitCursor(st=False)
     
 
 @decorator
