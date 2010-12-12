@@ -340,15 +340,6 @@ def informBox(title, message, ok="Ok"):
     confirmDialog(t=title, m=message, b=["Ok"], db="Ok")
 
 
-class PopupError( Exception ):
-    """Raise this exception in your scripts to cause a promptDialog to be opened displaying the error message.
-    After the user presses 'OK', the exception will be raised as normal. In batch mode the promptDialog is not opened."""
-
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
-        if not cmds.about(batch=1):
-            ret = informBox('Error', msg)
-
 
 def promptForFolder(title='Select Folder', root=None, actionName='Select'):
     """ Prompt the user for a folder path """
