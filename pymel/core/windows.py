@@ -411,7 +411,37 @@ def showsHourglass(func):
     return decoratedFunc
 
 _lastException = None
-def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck script-editor for details", ignoredExecptiones=None):
+@contextmanager
+def exceptionsAnnounced(title="Exception Caught", message="'%(exc)s'\nCheck script-editor for details", ignoredExceptions=None):
+    """
+    Create a context in which raised exceptions cause an information box to be shown to the user.
+    Note - the exception is re-raised.
+    
+    @param title: The title of the message-box
+    @param message: The message in the message box, string-formatted with 'exc' as the exception object 
+    """
+    
+    ignoredExceptions = tuple(ignoredExceptions) if ignoredExceptions else ()
+    
+    try:
+        yield
+    except ignoredExceptions:
+        typ, exc, tb = sys.exc_info()
+        raise typ, exc, tb.tb_next
+    except Exception, e:
+        global _lastException
+        if e is _lastException:
+            return
+        else:
+            _lastException = e
+        from maya.utils import executeDeferred 
+        executeDeferred(informBox, title, message % dict(exc=e))
+        typ, exc, tb = sys.exc_info()
+        raise typ, exc, tb.tb_next
+        
+
+
+def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck script-editor for details", ignoredExceptions=None):
     """
     Decorator - shows an information box to the user with any exception raised in a sub-routine.
     Note - the exception is re-raised.
@@ -421,10 +451,6 @@ def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck scri
 
     """
     
-    if not ignoredExecptiones:
-        ignoredExecptiones = tuple()
-    else:
-        ignoredExecptiones = tuple(ignoredExecptiones)
     if callable(title):
         func = title
         title = "Exception Caught"
@@ -432,25 +458,15 @@ def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck scri
         func = None
     
     @decorator
-    def decoratingFunc(func):
+    def announcesExceptions(func):
         def decoratedFunc(*args, **kwargs):
-            try:
+            with exceptionsAnnounced(title, message, ignoredExceptions):
                 return func(*args, **kwargs)
-            except ignoredExecptiones:
-                raise
-            except Exception, e:
-                global _lastException
-                if e is _lastException:
-                    return
-                else:
-                    _lastException = e
-                from maya.utils import executeDeferred 
-                executeDeferred(informBox, title, message % dict(exc=e))
-                raise
         return decoratedFunc
+
     if func:
-        return decoratingFunc(func)
-    return decoratingFunc
+        return announcesExceptions(func)
+    return announcesExceptions
 
 
 def pathButtonGrp( name=None, *args, **kwargs ):
