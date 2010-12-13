@@ -243,6 +243,8 @@ def toApiObject(nodeName, dagPlugs=True):
             except (RuntimeError,ValueError):
                 return
     else:
+        if sel.length() != 1:
+            return None
         if "." in nodeName :
             try:
                 # Plugs
