@@ -1389,8 +1389,6 @@ class ApiArgUtil(object):
         return False
 
     def canBeWrapped(self):
-        inArgs = self.methodInfo['inArgs']
-        outArgs =  self.methodInfo['outArgs']
         defaults = self.methodInfo['defaults']
         #argList = methodInfo['args']
         returnType =  self.methodInfo['returnType']
