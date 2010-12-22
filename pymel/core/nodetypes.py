@@ -279,9 +279,13 @@ class DependNode( general.PyNode ):
         return general.listConnections(self, **kwargs)
 
     def shadingGroups(self):
-        """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes
+        """list any shading groups in the future of this object - works for
+        shading nodes, transforms, and shapes
         
-        Also see listSets(type=1)
+        Also see listSets(type=1) - which returns which 'rendering sets' the
+        object is a member of (and 'rendering sets' seem to consist only of
+        shading groups), whereas this method searches the object's future for
+        any nodes of type 'shadingEngine'.   
         
         :rtype: `DependNode` list
         """
