@@ -287,6 +287,9 @@ Modifications:
 
     try:
         res = cmds.getAttr( attr, **kwargs)
+        
+        if res is None and (kwargs.get('mi') or kwargs.get('multiIndices')):
+            res = []
 
         if isinstance(res, list) and len(res):
             if isinstance(res[0], tuple):
@@ -321,13 +324,13 @@ Modifications:
                 return [child.get() for child in pyattr.getChildren() ]
             elif pyattr.isMulti():
                 if pyattr.type() == 'message':
-                    return pyattr.listConnections()
-                return [pyattr[i].get() for i in range(pyattr.numElements())]
+                    return pyattr.listConnections()     # BUGGY - mixes inputs and outputs
+                return [pyattr[i].get() for i in pyattr.get(mi=1)]
             # re-raise error
             elif pyattr.type() == 'message':
                 connects = pyattr.listConnections()
                 if connects:
-                    return connects[0]
+                    return connects[0]                  # BUGGY - mixes inputs and outputs, may have more than 1 item
                 else:
                     return None
             raise
@@ -1391,6 +1394,31 @@ Maya Bug Fix:
         instancers = cmds.ls(type='instancer')
         cmds.instancer(*args, **kwargs)
         return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
+
+
+COLOR_INDICES = {}
+
+def colorToIndex(color, limited=False):
+    """
+    Convert a color vector ([r,g,b]) to the closest indexed color. 
+    If 'limited==True' then uses the 8 'userDefined' colors using the 'displayRGBColor' command,
+    otherwise uses the 32 colors using 'colorIndex' command.
+    """
+    global COLOR_INDICES
+    from datatypes import Vector
+    
+    if not COLOR_INDICES:
+        # initialize color mappings
+        COLOR_INDICES[True] = dict((i,tuple(displayRGBColor("userDefined%s" % i, q=1, hsv=1))) for i in xrange(1,9))
+        COLOR_INDICES[False]= dict((i,tuple(colorIndex(i, q=1))) for i in xrange(1,32))
+    
+    color = Vector(color)
+    # create a list of pairs - (distance from color to the indexed color, the color index) - for each indexed color
+    distances = [((Vector(col) - color).length(), idx) for (idx, col) in COLOR_INDICES[limited].iteritems()]    
+    # get the pair with the smallest distance
+    color, index = min(distances)
+    return index
+
 
 #--------------------------
 # PyNode Exceptions

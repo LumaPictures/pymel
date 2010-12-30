@@ -1071,7 +1071,6 @@ def showsProgress(func):
             return func(*args, **kwargs)
     return progressingFunc
 
-
 # Now that we've actually created all the functions, it should be safe to import
 # _uitypes...
 if _versions.current() >= _versions.v2011:
