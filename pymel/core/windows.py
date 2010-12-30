@@ -430,12 +430,10 @@ def exceptionsAnnounced(title="Exception Caught", message="'%(exc)s'\nCheck scri
         raise typ, exc, tb.tb_next
     except Exception, e:
         global _lastException
-        if e is _lastException:
-            return
-        else:
+        if e is not _lastException:
             _lastException = e
-        from maya.utils import executeDeferred 
-        executeDeferred(informBox, title, message % dict(exc=e))
+            from maya.utils import executeDeferred 
+            executeDeferred(informBox, title, message % dict(exc=e))
         typ, exc, tb = sys.exc_info()
         raise typ, exc, tb.tb_next
         
