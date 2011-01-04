@@ -17,7 +17,7 @@ from pymel.util.decoration import decorator
 
 
 PYMEL_CONF_ENV_VAR = 'PYMEL_CONF'
-
+PYMEL_LOGLEVEL_ENV_VAR = 'PYMEL_LOGLEVEL'
 
 #===============================================================================
 # DEFAULT FORMAT SETUP
@@ -180,8 +180,9 @@ def getLogger(name):
     calling `getLogger(__name__)`.  If the module is a package, "__init__" will
     be stripped from the logger name
     """
-    if name.endswith('.__init__'):
-        name = name[:-9]
+    suffix = '.__init__'
+    if name.endswith(suffix):
+        name = name[:-len(suffix)]
     return logging.getLogger(name)
 
 # keep as an enumerator so that we can keep the order
@@ -194,6 +195,10 @@ def nameToLevel(name):
 
 def levelToName(level):
     return logLevels.getKey(level)
+
+if PYMEL_LOGLEVEL_ENV_VAR in os.environ:
+    pymelLogger.setLevel(nameToLevel(os.environ[PYMEL_LOGLEVEL_ENV_VAR]))
+
 
 #===============================================================================
 # DECORATORS
@@ -229,7 +234,8 @@ def _setupLevelPreferenceHook():
     # retrieve the preference as a string name, for human readability.
     # we need to use MGlobal because cmds.optionVar might not exist yet
     # TODO : resolve load order for standalone.  i don't think that userPrefs is loaded yet at this point in standalone.
-    levelName = os.environ.get( 'PYMEL_LOGLEVEL', MGlobal.optionVarStringValue( LOGLEVEL_OPTVAR ) )
+    levelName = os.environ.get( PYMEL_LOGLEVEL_ENV_VAR,
+                                MGlobal.optionVarStringValue( LOGLEVEL_OPTVAR ) )
     if levelName:
         level =  min( logging.WARNING, nameToLevel(levelName) ) # no more than WARNING level
         pymelLogger.setLevel(level)
