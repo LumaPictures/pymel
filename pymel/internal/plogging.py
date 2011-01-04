@@ -109,12 +109,16 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     rootHandlers = root.handlers[:]
     oldLogHandlers = {}
 
-    # can't use loggerDict.iteritems, as some of the values are
-    # 'PlaceHolder' items... need to use logging.getLogger()
-    for loggerName in root.manager.loggerDict:
-        logger = logging.getLogger(loggerName)
-        # make sure you get a COPY of handlers!
-        oldLogHandlers[loggerName] = logger.handlers[:]
+    # Don't use getLogger while iterating through loggerDict, as that
+    # may actually create a logger, and change the size of the dict
+    # ...instead, just ignore any PlaceHolder instances we get, as they
+    # won't have any handlers to worry about anyway
+    # thanks to pierre.augeard for pointing this one out
+    for loggerName, logger in root.manager.loggerDict.iteritems():
+        # Make sure it's not a PlaceHolder
+        if isinstance(logger, logging.Logger):
+            # make sure you get a COPY of handlers!
+            oldLogHandlers[loggerName] = logger.handlers[:]
 
     # critical section
     logging._acquireLock()

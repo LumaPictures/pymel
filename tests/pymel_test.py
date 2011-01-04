@@ -3,7 +3,37 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
+from __future__ import with_statement
+
 import sys, platform, os, shutil, time, inspect, tempfile, doctest
+
+# tee class adapted from http://shallowsky.com/blog/programming/python-tee.html
+class Tee(object):
+    def __init__(self, _fd1, _fd2) :
+        self.fd1 = _fd1
+        self.fd2 = _fd2
+
+    def __del__(self) :
+        self.close()
+            
+    def close(self):
+        for toClose in (self.fd1, self.fd2):
+            if toClose not in (sys.stdout, sys.stderr,
+                               sys.__stdout__, sys.__stderr__, None):
+                toClose.close()
+        self.fd1 = self.fd2 = None
+
+    def write(self, text) :
+        self.fd1.write(text)
+        self.fd2.write(text)
+
+    def flush(self) :
+        self.fd1.flush()
+        self.fd2.flush()
+
+#stderrsav = sys.stderr
+#outputlog = open(logfilename, "w")
+#sys.stderr = tee(stderrsav, outputlog)
 
 try:
     import nose
@@ -48,7 +78,8 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
     noseArgv = "dummyArg0 --with-doctest -vv".split()
     if module is None:
         #module = 'pymel' # if you don't set a module, nose will search the cwd
-        excludes = '''^windows
+        excludes = r'''^windows
+                    \Wall\.py$
                     ^tools
                     ^example1
                     ^testingutils
@@ -82,12 +113,9 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
         noseArgv.extend(extraArgs)
     noseKwArgs['argv'] = noseArgv
     
-    patcher = DocTestPatcher()
-    try:
+    with DocTestPatcher():
         print noseKwArgs
         nose.main( **noseKwArgs)
-    finally:
-        patcher.reset()
 
 def backupAndTest(extraNoseArgs):
     if os.path.isdir(backup_dir):
@@ -185,8 +213,23 @@ class DocTestPatcher(object):
     some problems with this.  Eventually, we may experiment with setting the LazyLoadModule
     and original module's dict's to be the same... for now, we use this class to override
     DocTestFinder._from_module to return the results we want.
+    
+    Also, the doctest will override the 'wantFile' setting for ANY .py file,
+    even it it matches the 'exclude' - it does this so that it can search all
+    python files for docs to add to the doctests.
+    
+    Unfortunately, if some modules are simply loaded, they can affect things -
+    ie, if pymel.all is loaded, it will trigger the lazy-loading of all class
+    objects, which will make our lazy-loading tests fail.
+    
+    To get around this, override the Doctest plugin object's wantFile to also
+    exclude the 'excludes'.
     """
-    def __init__(self):
+    def __enter__(self):
+        self.set_from_module()
+        self.set_wantFile()
+        
+    def set_from_module(self):
         self.orig_from_module = doctest.DocTestFinder.__dict__['_from_module']
         
         def _from_module(docTestFinder_self, module, object):
@@ -200,10 +243,39 @@ class DocTestPatcher(object):
                     if module.__name__ == object.__module__:
                         return True
             return self.orig_from_module(docTestFinder_self, module, object)
-        doctest.DocTestFinder.__dict__['_from_module'] = _from_module
+        doctest.DocTestFinder._from_module = _from_module
         
-    def reset(self):
-        doctest.DocTestFinder.__dict__['_from_module'] = self.orig_from_module
+    def set_wantFile(self):
+        import nose
+        if nose.__versioninfo__ > (1,0,0):
+            self.orig_wantFile = None
+            return 
+
+        import nose.plugins.doctests
+        self.orig_wantFile = nose.plugins.doctests.Doctest.__dict__['wantFile']
+        
+        def wantFile(self, file):
+            """Override to select all modules and any file ending with
+            configured doctest extension.
+            """
+            # Check if it's a desired file type
+            if ( (file.endswith('.py') or (self.extension
+                                           and anyp(file.endswith, self.extension)) )
+                 # ...and that it isn't excluded
+                 and (not self.conf.exclude
+                      or not filter(None, 
+                                    [exc.search(file)
+                                     for exc in self.conf.exclude]))):
+                return True
+            return None
+
+        nose.plugins.doctests.Doctest.wantFile = wantFile
+        
+    def __exit__(self, *args, **kwargs):
+        doctest.DocTestFinder._from_module = self.orig_from_module
+        if self.orig_wantFile is not None:
+            import nose.plugins.doctests
+            nose.plugins.doctests.Doctest.wantFile = self.orig_wantFile
 
 if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:

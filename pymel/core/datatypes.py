@@ -2539,7 +2539,7 @@ class Time(Unit):
 
 class Distance( Unit ) :
     """
-        >>> from pymel.all import *
+        >>> from pymel.core import *
         >>> import pymel.core.datatypes as dt
         >>>
         >>> dt.Distance.getInternalUnit()

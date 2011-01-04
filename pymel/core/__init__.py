@@ -113,7 +113,6 @@ def _pluginLoaded( *args ):
         return
 
     _logger.debug("Plugin loaded: %s", pluginName)
-
     _pluginData[pluginName] = {}
 
     try:
@@ -178,6 +177,7 @@ def _pluginUnloaded(*args):
         pluginName = args[0]
 
     _logger.debug("Plugin unloaded: %s" % pluginName)
+    
     try:
         data = _pluginData.pop(pluginName)
     except KeyError:

@@ -229,6 +229,22 @@ def test_pymel_setAttr():
             #testSetAttr()
             yield testSetAttr,
             
+class testCase_enumAttr(unittest.TestCase):
+    def setUp(self):
+        self.node = cmds.createNode('transform')
+        self.attrName = 'testEnum'
+        self.attr = '%s.%s' % (self.node, self.attrName)
+        cmds.addAttr(self.node, at='enum', longName=self.attrName,
+                     enumName='First:Second:Third', keyable=True)
+        
+    def test_setString(self):
+        print "self.attr:", self.attr
+        setAttr(self.attr, 'Second')
+        self.assertEqual(1, getAttr(self.attr))
+        setAttr(self.attr, 'Third', asString=1)
+        self.assertEqual(2, getAttr(self.attr))
+        self.assertRaises(MayaAttributeEnumError, setAttr, self.attr, 'foo')
+            
 class testCase_nodesAndAttributes(unittest.TestCase):
 
     def setUp(self):
@@ -846,16 +862,35 @@ class test_commands(unittest.TestCase):
         self.assert_( duplicate(self.dependNode) )
         
 class test_plugins(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        if cmds.pluginInfo('Fur', q=1, loaded=1):
+            cmds.unloadPlugin('Fur')
+            cmds.file(new=1, f=1)
+        # Currently, PyNode classes for node types defined in 'default'
+        # plugins are always created when pymel starts up, even if the plugin
+        # wasn't loaded... so we need to make sure we delete 'FurGlobals' if it
+        # was made
+        if 'FurGlobals' in nt.__dict__:
+            del nt.__dict__['FurGlobals']
+        if 'FurGlobals' in nt.__class__.__dict__:
+            delattr(nt.__class__, 'FurGlobals')
+        # Also, 'unload' pymel.all if present - if it's there, it will cause
+        # any new PyNodes to skip lazy loading
+        sys.modules.pop('pymel.all', None)
+        
     def test01_load(self):
+        self.assert_( 'FurGlobals' not in nt.__dict__ )
         loadPlugin('Fur')
         self.assert_( 'FurGlobals' not in nt.__dict__ )
-        # lazer loader exists
+        # lazy loader exists
         self.assert_( 'FurGlobals' in nt.__class__.__dict__ )
         # after accessing, the lazy loader should generate the class
         nt.FurGlobals
         self.assert_( 'FurGlobals' in nt.__dict__ )
         
-    def test1_unload(self):
+    def test02_unload(self):
+        loadPlugin('Fur')
         unloadPlugin('Fur')
         self.assert_( 'FurGlobals' not in nt.__dict__ )
         # after accessing, the lazy loader should generate the class

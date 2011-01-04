@@ -12,10 +12,15 @@ Changes
   'with' object if there are nested with statements; if not in a nested with
   statement, resets parent back to UI element's parent (or more precisely, the
   first element that is not a rowGroupLayout element)
+- ``with OptionMenuGrp()`` will set parent menu properly
 - 'Unit' support for Quaternion objects is now removed (as it doesn't make
   any sense)
-- ``with OptionMenuGrp()`` will set parent menu properly
-
+- can now set enum attributes using their string values
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- PyNode('*') - or any other non-unique name - now returns an error
+  use ls('*') if you wish to return a list of possible nodes
 
 ==================================
 Version 1.0.2

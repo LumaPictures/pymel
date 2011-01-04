@@ -362,7 +362,7 @@ class MethodRow(object):
         self.apiClassName = apiClassName
         self.apiMethodName = apiMethodName
         self.methodInfoList = methodInfoList
-        self.data = factories.apiToMelData[ (self.className, self.methodName ) ]
+        self.data = factories._getApiOverrideNameAndData(self.className, self.methodName)[1]
         self.classInfo = factories.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName]
         try:
             enabledArray = self.getEnabledArray()

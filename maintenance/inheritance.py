@@ -232,9 +232,9 @@ cache2._subCaches[pymel.internal.apicache.ApiMelBridgeCache].build()
 
 def compareDicts(dict1, dict2, showDiff=True, showOnlys=False, indent=0):
     if isinstance(dict1, (list, tuple)):
-        dict1 = dict(enumerate(diff1))
+        dict1 = dict(enumerate(dict1))
     if isinstance(dict2, (list, tuple)):
-        dict2 = dict(enumerate(diff2))
+        dict2 = dict(enumerate(dict2))
     v1 = set(dict1)
     v2 = set(dict2)
     both = v1 & v2

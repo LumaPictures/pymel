@@ -36,7 +36,10 @@ ip = IPython.ipapi.get()
 from IPython.ColorANSI import TermColors, ColorScheme, ColorSchemeTable
 from IPython.genutils import page
 
-import readline
+try:
+    import readline
+except ImportError:
+    import pyreadline as readline
 delim = readline.get_completer_delims()
 delim = delim.replace('|', '') # remove pipes
 delim = delim.replace(':', '') # remove colon
@@ -628,3 +631,6 @@ def main():
     s = IPython.Shell.start()
     setup()
     s.mainloop()
+
+if __name__ == '__main__':
+    main()

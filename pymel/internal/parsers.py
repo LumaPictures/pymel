@@ -862,7 +862,12 @@ class ApiDocParser(object):
                                 else:
                                     dir = 'in'
                             elif dir == '[out]':
-                                dir = 'out'
+                                if types[name] == 'MAnimCurveChange':
+                                    _logger.warn( "%s.%s(%s): Setting MAnimCurveChange argument '%s' to an input arg (instead of output)" % (
+                                                                        self.apiClassName,self.currentMethod,', '.join(names), name))
+                                    dir = 'in'
+                                else:
+                                    dir = 'out'
                             else: raise
 
                             assert name in names

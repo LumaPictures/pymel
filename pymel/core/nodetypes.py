@@ -279,9 +279,13 @@ class DependNode( general.PyNode ):
         return general.listConnections(self, **kwargs)
 
     def shadingGroups(self):
-        """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes
+        """list any shading groups in the future of this object - works for
+        shading nodes, transforms, and shapes
         
-        Also see listSets(type=1)
+        Also see listSets(type=1) - which returns which 'rendering sets' the
+        object is a member of (and 'rendering sets' seem to consist only of
+        shading groups), whereas this method searches the object's future for
+        any nodes of type 'shadingEngine'.   
         
         :rtype: `DependNode` list
         """
@@ -3061,7 +3065,14 @@ def _createPyNodes():
 
     for mayaType, parents, children in _factories.nodeHierarchy:
 
-        if mayaType == 'dependNode': continue
+        if mayaType == 'dependNode':
+        # This seems like the more 'correct' way of doing it - only node types
+        # that are currently available have PyNodes created for them - but
+        # changing it so some PyNodes are no longer available until their
+        # plugin is loaded may create backwards incompatibility issues... 
+#        if (mayaType == 'dependNode'
+#                or mayaType not in _factories.mayaTypesToApiTypes):
+            continue
 
         parentMayaType = parents[0]
         #print "superNodeType: ", superNodeType, type(superNodeType)

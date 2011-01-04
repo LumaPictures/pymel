@@ -482,7 +482,7 @@ class SubItemCache(PymelCache):
     The data may then be accessed through attributes on the instance, with
     the names given in _CACHE_NAMES.
     
-    >>> NodeCache(SubItemCache):
+    >>> class NodeCache(SubItemCache):
     ...     NAME = 'mayaNodes'
     ...     DESC = 'the maya nodes cache'
     ...     COMPRESSED = False
@@ -492,7 +492,8 @@ class SubItemCache(PymelCache):
     ...         self.nodeTypes = maya.cmds.allNodeTypes(includeAbstract=True)
     >>> cacheInst = NodeCache()
     >>> cacheInst.build()
-    >>> print cacheInst.nodeTypeNames
+    >>> 'polyCube' in cacheInst.nodeTypes
+    True
     '''
     # Provides a front end for a pickled file, which should contain a
     # tuple of items; each item in the tuple is associated with a name from

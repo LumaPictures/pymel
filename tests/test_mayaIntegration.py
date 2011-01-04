@@ -99,7 +99,7 @@ class TestMayaIntegration(unittest.TestCase):
                         res = res.replace('<py_dir>/test_mayaIntegration.py', '<maya console>')
                         res = res.replace('#     eval(codeStr)\n', '')
                         
-                        expected = messages[level] % {'site_packages':pythonlib}
+                        expected = messages[level]
                         if res != expected:
                             print '*' * 60
                             print "raw res:"

@@ -423,8 +423,8 @@ class EnumDict(utilitytypes.EquivalencePairs):
         >>> from enum import EnumDict
         >>> Colours = EnumDict(['red', 'blue', 'green'])
         >>> Weekdays = EnumDict(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
-        >>> Weekdays
-        {'fri': 4, 'mon': 0, 'sat': 5, 'sun': 6, 'thu': 3, 'tue': 1, 'wed': 2}
+        >>> sorted(Weekdays.items())
+        [('fri', 4), ('mon', 0), ('sat', 5), ('sun', 6), ('thu', 3), ('tue', 1), ('wed', 2)]
 
     Alternately, a dictionary of label-value pairs can be provided:
 
@@ -497,7 +497,7 @@ class EnumDict(utilitytypes.EquivalencePairs):
         get an index value from a key. this method always returns an index. if a valid index is passed instead of a key, the index will
         be returned unchanged.  this is useful when you need an index, but are not certain whether you are starting with a key or an index.
 
-            >>> units = EnumDict('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
+            >>> units = EnumDict(['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.value('inches')
             1
             >>> units.value(3)
@@ -506,10 +506,10 @@ class EnumDict(utilitytypes.EquivalencePairs):
             Traceback (most recent call last):
               ...
             ValueError: invalid enumerator key: 'hectares'
-            >>> units.value(10)
+            >>> units.value(10) #doctest: +ELLIPSIS
             Traceback (most recent call last):
               ...
-            ValueError: invalid enumerator index: 10
+            ValueError: invalid enumerator value: 10
         """
         if isinstance(key, int):
             # got a potential index : checking if it's valid
@@ -529,15 +529,15 @@ class EnumDict(utilitytypes.EquivalencePairs):
         get a key value from an index. this method always returns a key. if a valid key is passed instead of an index, the key will
         be returned unchanged.  this is useful when you need a key, but are not certain whether you are starting with a key or an index.
 
-            >>> units = EnumDict('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
+            >>> units = EnumDict(['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.key(2)
             'feet'
             >>> units.key('inches')
             'inches'
-            >>> units.key(10)
+            >>> units.key(10)  #doctest: +ELLIPSIS
             Traceback (most recent call last):
               ...
-            ValueError: invalid enumerator index: 10
+            ValueError: invalid enumerator value: 10
             >>> units.key('hectares')
             Traceback (most recent call last):
               ...
