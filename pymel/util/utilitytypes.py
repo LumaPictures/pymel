@@ -692,12 +692,13 @@ def LazyLoadModule(name, contents):
             """
             Used to update the contents of the LazyLoadModule with the contents of another dict.
             """
-            self.__dict__.update(self._lazyGlobals)
-            # For debugging, print out a list of things in the LazyLoadModule that AREN'T in
-            # otherDict...
+            # For debugging, print out a list of things in the _lazyGlobals that
+            # AREN'T in __dict__
+#            print "_lazyModule_update:"
 #            print "only in dynamic module:", [x for x in
-#                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(otherDict)
+#                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(self._lazyGlobals)
 #                                              if not x.startswith('__')]
+            self.__dict__.update(self._lazyGlobals)
 
 
     return _LazyLoadModule(name, contents)
