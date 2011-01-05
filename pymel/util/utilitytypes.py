@@ -531,8 +531,8 @@ class universalmethod(object):
             cls = type(instance)
         if instance is None:
             instance = cls
-        def newfunc(*args):
-            return self.f(instance, *args)
+        def newfunc(*args, **kwargs):
+            return self.f(instance, *args, **kwargs)
         return newfunc
 
 def LazyLoadModule(name, contents):
