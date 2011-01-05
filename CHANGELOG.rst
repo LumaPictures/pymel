@@ -16,6 +16,11 @@ Changes
 - 'Unit' support for Quaternion objects is now removed (as it doesn't make
   any sense)
 - can now set enum attributes using their string values
+- can now pass in PyNode class objects to functions / methods that expect a
+  mel node class name - ie,
+     listRelatives(allDescendents=True, type=nt.Joint)
+  is equivalent to
+     listRelatives(allDescendents=True, type='joint')
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------

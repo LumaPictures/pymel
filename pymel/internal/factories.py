@@ -2748,7 +2748,7 @@ def addPyNode( dynModule, mayaType, parentMayaType, extraAttrs=None ):
             #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
             dynModule[pyNodeTypeName] = ( addPyNodeCallback,
                                        ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs ) )
-        return pyNodeTypeName
+    return pyNodeTypeName
 
 def removePyNode( dynModule, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )

@@ -57,6 +57,17 @@ class DependNode( general.PyNode ):
 
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self._apiobject.object() )
+
+    @_util.universalmethod
+    def __melobject__(self):
+        """Special method for returning a mel-friendly representation."""
+        if isinstance(self, DependNode):
+            # For instance, return the node's name...
+            return self.name()
+        else:
+            # For the class itself, return the mel node name
+            return self.__melnode__
+
     def __repr__(self):
         """
         :rtype: `unicode`
