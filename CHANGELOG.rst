@@ -21,6 +21,10 @@ Non-Backward Compatible Changes
 ----------------------------------
 - PyNode('*') - or any other non-unique name - now returns an error
   use ls('*') if you wish to return a list of possible nodes
+- By default, the root pymel logger outputs to sys.__stdout__ now, instead of
+  sys.stderr; can be overriden to another stream in sys (ie, stdout, stderr,
+  __stderr__, __stdout__) by setting the MAYA_SHELL_LOGGER_STREAM environment
+  variable
 
 ==================================
 Version 1.0.2
