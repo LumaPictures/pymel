@@ -33,6 +33,9 @@ _thisModule = sys.modules[__name__]
 
 ## Mesh Components
 
+# If we're reloading, clear the pynode types out
+_factories.clearPyNodeTypes()
+
 class DependNode( general.PyNode ):
     __apicls__ = _api.MFnDependencyNode
     __metaclass__ = _factories.MetaMayaNodeWrapper
@@ -3058,10 +3061,6 @@ _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 def _createPyNodes():
 
     dynModule = _util.LazyLoadModule(__name__, globals())
-
-    # reset cache
-    _factories.pyNodeTypesHierarchy.clear()
-    _factories.pyNodeNamesToPyNodes.clear()
 
     for mayaType, parents, children in _factories.nodeHierarchy:
 
