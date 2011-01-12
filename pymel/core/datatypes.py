@@ -2705,12 +2705,11 @@ _factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, r
 #    else:
 #        return input
 
-def getPlugValue( plug ):
+def getPlugValue(plug, useUnits=False):
     """given an MPlug, get its value as a pymel-style object"""
 
     #if plug.isArray():
     #    raise TypeError, "array plugs of this type are not supported"
-
     obj = plug.attribute()
     apiType = obj.apiType()
 
@@ -2719,7 +2718,8 @@ def getPlugValue( plug ):
         res = []
         for i in range(plug.numChildren()):
             res.append( getPlugValue( plug.child(i) ) )
-        if isinstance(res[0],Distance): return Vector(res)
+        if isinstance(res[0], Distance):
+            return Vector(res)
         return res
 
     # Integer Groups
@@ -2735,7 +2735,7 @@ def getPlugValue( plug ):
         for i in range(plug.numChildren()):
             res.append( getPlugValue( plug.child(i) ) )
 
-        if isinstance(res[0],Distance):
+        if isinstance(res[0], Distance):
             return Vector(res)
         elif _api.MFnAttribute(obj).isUsedAsColor():
             return Color(res)
@@ -2753,22 +2753,28 @@ def getPlugValue( plug ):
         val = plug.asMDistance()
         unit = _api.MDistance.uiUnit()
         # as becomes a keyword in python 2.6
-        return Distance( getattr(val, AS_UNITS)( unit ), unit )
-
+        val = getattr(val, AS_UNITS)(unit)
+        if useUnits:
+            return Distance(val, unit)
+        return val
     # Angle
     elif apiType in [ _api.MFn.kDoubleAngleAttribute, _api.MFn.kFloatAngleAttribute ] :
         val = plug.asMAngle()
         unit = _api.MAngle.uiUnit()
         # as becomes a keyword in python 2.6
-        return Angle( getattr(val, AS_UNITS), unit )
-
+        val = getattr(val, AS_UNITS)(unit)
+        if useUnits:
+            return Angle(val, unit)
+        return val
     # Time
     elif apiType == _api.MFn.kTimeAttribute:
         val = plug.asMTime()
         unit = _api.MTime.uiUnit()
         # as becomes a keyword in python 2.6
-        return Time( getattr(val, AS_UNITS), unit )
-
+        val = getattr(val, AS_UNITS)(unit)
+        if useUnits:
+            return Time(val, unit)
+        return val
     elif apiType == _api.MFn.kNumericAttribute:
         nAttr = _api.MFnNumericAttribute(obj)
         dataType = nAttr.unitType()

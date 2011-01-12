@@ -21,27 +21,38 @@ import logging
 from maya.cmds import about as _about
 _logger = logging.getLogger(__name__)
 
+# for disposable queries using MFnDependencyNode, using setObject() is faster,
+# so keep a global copy around
+global _fnDepend
+_fnDepend = _api.MFnDependencyNode()
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
 
+def _getPymelTypeFromDependNode(obj, name):
+    _fnDepend.setObject(obj)
+    mayaType = _fnDepend.typeName()
+    import nodetypes
+    pymelType = getattr(nodetypes, _util.capitalize(mayaType), nodetypes.DependNode)
+
+    try:
+        data = _factories.virtualClass[pymelType]
+    except KeyError:
+        pass
+    else:
+        nodeName = name
+        for virtualCls, nameRequired in data:
+            if nameRequired and nodeName is None:
+                nodeName = _fnDepend.name()
+
+            if virtualCls._isVirtual(obj, nodeName):
+                pymelType = virtualCls
+                break
+    return pymelType
+
 def _getPymelTypeFromObject(obj, name):
     if obj.hasFn(_api.MFn.kDependencyNode):
-        fnDepend = _api.MFnDependencyNode( obj )
-        mayaType = fnDepend.typeName()
-        import nodetypes
-        pymelType = getattr( nodetypes, _util.capitalize(mayaType), nodetypes.DependNode )
-
-        if pymelType in _factories.virtualClass:
-            data = _factories.virtualClass[pymelType]
-            nodeName = name
-            for virtualCls, nameRequired in data:
-                if nameRequired and nodeName is None:
-                    nodeName = fnDepend.name()
-
-                if virtualCls._isVirtual(obj, nodeName):
-                    pymelType = virtualCls
-                    break
+        pymelType = _getPymelTypeFromDependNode(obj, name)
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
         if compTypes is None:
@@ -1487,8 +1498,6 @@ class PyNode(_util.ProxyUnicode):
         attrNode = None
         argObj = None
         if args :
-
-
             if len(args)>1 :
                 # Attribute passed as two args: ( node, attr )
                 # valid types:
@@ -1515,12 +1524,9 @@ class PyNode(_util.ProxyUnicode):
 #                elif isinstance( argObj, int ) or isinstance( argObj, slice ):
 #                    argObj = attrNode._apiobject
 
-
             else:
                 argObj = args[0]
-
                 # the order of the following 3 checks is important, as it is in increasing generality
-
                 if isinstance( argObj, Attribute ):
                     attrNode = argObj._node
                     argObj = argObj.__apiobjects__['MPlug']
@@ -1529,20 +1535,17 @@ class PyNode(_util.ProxyUnicode):
                         argObj = argObj._node.__apiobjects__[ 'MDagPath']
                     except KeyError:
                         argObj = argObj._node.__apiobjects__['MObjectHandle']
-
                 elif isinstance( argObj, PyNode ):
                     try:
                         argObj = argObj.__apiobjects__[ 'MDagPath']
                     except KeyError:
                         argObj = argObj.__apiobjects__['MObjectHandle']
-
                 elif hasattr( argObj, '__module__') and argObj.__module__.startswith( 'maya.OpenMaya' ) :
                     pass
-
                 #elif isinstance(argObj,basestring) : # got rid of this check because of nameparse objects
                 else:
                     # didn't match any known types. treat as a string
-                    # convert to string then to _api objects.
+                    # convert to string then to api objects.
                     try:
                         name = unicode(argObj)
                     except:
@@ -1571,7 +1574,7 @@ class PyNode(_util.ProxyUnicode):
                                 if attrNode.hasAttr(attrName):
                                     return attrNode.attr(attrName)
                         # DependNode Plug
-                        elif isinstance(res,_api.MPlug):
+                        elif isinstance(res, _api.MPlug):
                             attrNode = PyNode(res.node())
                             argObj = res
                         # Other Object
@@ -1629,11 +1632,11 @@ class PyNode(_util.ProxyUnicode):
             # Virtual (non-existent) objects will be cast to their own virtual type.
             # so, until we make that, we're rejecting them
             assert obj is not None# real objects only
-            #assert obj or name
 
+        # args is empty
         else :
             # create node if possible
-            if issubclass(cls,nodetypes.DependNode):
+            if issubclass(cls, nodetypes.DependNode):
                 newNode = None
                 #----------------------------------
                 # Pre Creation
@@ -1935,10 +1938,6 @@ class PyNode(_util.ProxyUnicode):
         return listSets(o=self, *args, **kwargs)
 
 
-    listConnections = listConnections
-
-    connections = listConnections
-
     listHistory = listHistory
 
     history = listHistory
@@ -2143,6 +2142,102 @@ class Attribute(PyNode):
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self._apiobject )
 
+    def __new__(cls, *args, **kwargs):
+        """ Catch all creation for PyNode classes, creates correct class depending on type passed.
+
+
+        For nodes:
+            MObject
+            MObjectHandle
+            MDagPath
+            string/unicode
+
+        For attributes:
+            MPlug
+            MDagPath, MPlug
+            string/unicode
+        """
+        import nodetypes
+        apiInfo = {}
+        name = None
+        attrNode = None
+
+        if len(args)>1 :
+            # Attribute passed as two args: ( node, attr )
+            # valid types:
+            #    node : MObject, MObjectHandle, MDagPath
+            #    attr : MPlug  (TODO: MObject and MObjectHandle )
+            # One very important reason for allowing an attribute to be specified as two args instead of as an MPlug
+            # is that the node can be represented as an MDagPath which will differentiate between instances, whereas
+            # an MPlug loses this distinction.
+
+            attrNode = args[0]
+            assert isinstance(args[1], _api.MPlug)
+            apiInfo['MPlug'] = args[1]
+
+            #-- First Argument: Node
+            # ensure that the node object is a PyNode object
+            if not isinstance( attrNode, nodetypes.DependNode ):
+                attrNode = PyNode( attrNode )
+
+        else:
+            argObj = args[0]
+            # the order of the following 3 checks is important, as it is in increasing generality
+            if isinstance(argObj, Attribute):
+                attrNode = argObj._node
+                apiInfo = argObj.__apiobjects__
+            elif hasattr(argObj, '__module__') and argObj.__module__.startswith( 'maya.OpenMaya' ) :
+                apiInfo['MPlug'] = argObj
+            else:
+                # didn't match any known types. treat as a string
+                # convert to string then to api objects.
+                try:
+                    name = unicode(argObj)
+                except:
+                    raise MayaAttributeError
+                else:
+                    res = _api.toApiObject(name, dagPlugs=True)
+                    # DagNode Plug
+                    if isinstance(res, tuple):
+                        # Plug or Component
+                        #print "PLUG or COMPONENT", res
+                        apiInfo['MDagPath'] = res[0]
+                        apiInfo['MPlug'] = res[1]
+
+#                        # There are some names which are both components and
+#                        #    attributes: ie, scalePivot / rotatePivot
+#                        # toApiObject (and MSelectionList) will return the
+#                        #    component in these ambigious cases; therefore,
+#                        #    if we're explicitly trying to make an Attribute - ie,
+#                        #        Attribute('myCube.scalePivot')
+#                        #    ... make sure to cast it to one in these cases
+#                        if issubclass(cls, Attribute) and \
+#                                isinstance(argObj, _api.MObject) and \
+#                                _api.MFnComponent().hasObj(argObj) and \
+#                                '.' in name:
+#                            attrName = name.split('.', 1)[1]
+#                            if attrNode.hasAttr(attrName):
+#                                return attrNode.attr(attrName)
+                    # DependNode Plug
+                    elif isinstance(res, _api.MPlug):
+                        apiInfo['NodeMObjectHandle'] = _api.MObjectHandle(res.node())
+                        apiInfo['MPlug'] = res
+                    else:
+                        raise MayaAttributeError(name)
+
+#            # Virtual (non-existent) objects will be cast to their own virtual type.
+#            # so, until we make that, we're rejecting them
+#            assert apiInfo is not None# real objects only
+
+        self = _util.ProxyUnicode.__new__(cls)
+        self._name = name
+        if attrNode:
+            self._node = attrNode
+
+        self.__apiobjects__ = apiInfo
+        return self
+
+        
     def __apiobject__(self) :
         "Return the default API object (MPlug) for this attribute, if it is valid"
         return self.__apimplug__()
@@ -2167,9 +2262,9 @@ class Attribute(PyNode):
 
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this attribute, if it is valid"
-        try:
-            return self.node().__apimdagpath__()
-        except AttributeError: pass
+        if 'MDagPath' not in self.__apiobjects__:
+            self.__apiobjects__['MDagPath'] = self.node().__apimdagpath__()
+        return self.__apiobjects__['MDagPath']
         
     def __apimattr__(self) :
         "Return the MFnAttribute for this attribute, if it is valid"
@@ -2395,9 +2490,15 @@ class Attribute(PyNode):
         :rtype: `DependNode`
         """
         # we shouldn't have to use this
-        #if self._node is None:
-        #    self._node = PyNode(self.__apimplug__().node())
-
+        if self._node is None:
+            try:
+                apiObj = self.__apiobjects__['MDagPath']
+            except KeyError:
+                try:
+                    apiObj = self.__apiobjects__['NodeMObjectHandle']
+                except KeyError:
+                    apiObj = self.__apimplug__().node()
+            self._node = PyNode(apiObj)
         return self._node
 
     node = plugNode
@@ -2646,6 +2747,43 @@ class Attribute(PyNode):
 #----------------------
 #xxx{ Connections
 #----------------------
+
+    listConnections = listConnections
+
+    connections = listConnections
+
+    def connections2(self, source=True, destination=True, plugs=False, type=None):
+        def iterator(direction):
+            apiType = _factories.mayaTypesToApiEnums.get(type, _api.MFn.kInvalid)
+            iter = _api.MItDependencyGraph(self.__apimplug__(), 
+                                           apiType, 
+                                           direction, 
+                                           _api.MItDependencyGraph.kBreadthFirst)
+            if apiType == _api.MFn.kInvalid and not iter.isDone():
+                print "removing", PyNode(iter.currentItem())
+                iter.next() # first is always ourselves? (seems like only on node mode)
+
+            while not iter.isDone():
+                if plugs:
+                    yield Attribute(iter.thisPlug())
+                else:
+                    yield PyNode(iter.currentItem())
+                #print plug.isNull(), plug.partialName(), PyNode(iter.currentItem())
+                iter.prune()
+                iter.next()
+
+        if source:
+            for x in iterator(_api.MItDependencyGraph.kUpstream):
+                yield x
+        if destination:
+            for x in iterator(_api.MItDependencyGraph.kDownstream):
+                yield x
+
+    def inputs2(self, plugs=False, type=None):
+        return list(self.connections2(True, False, plugs, type))
+
+    def outputs2(self, plugs=False, type=None):
+        return list(self.connections2(False, True, plugs, type))
 
     def isConnectedTo(self, other, ignoreUnitConversion=False, checkLocalArray=False, checkOtherArray=False ):
         """

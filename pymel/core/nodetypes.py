@@ -39,21 +39,135 @@ class DependNode( general.PyNode ):
     #-------------------------------
     #    Name Info and Manipulation
     #-------------------------------
-#    def __new__(cls,name,create=False):
-#        """
-#        Provides the ability to create the object when creating a class
-#
-#            >>> n = pm.Transform("persp",create=True)
-#            >>> n.__repr__()
-#            # Result: nt.Transform(u'persp1')
-#        """
-#        if create:
-#            ntype = cls.__melnode__
-#            name = createNode(ntype,n=name,ss=1)
-#        return general.PyNode.__new__(cls,name)
 
-#    def __init__(self, *args, **kwargs ):
-#        self.apicls.__init__(self, self._apiobject.object() )
+    def __new__(cls, *args, **kwargs):
+        pymelType = None
+        apiInfo = {}
+        name = None
+        argObj = None
+        if args:
+            argObj = args[0]
+            if isinstance(argObj, DependNode):
+                apiInfo = argObj.__apiobjects__
+                pymelType = argObj.__class__
+            else:
+                if hasattr( argObj, '__module__') and argObj.__module__.startswith('maya.OpenMaya') :
+                    pass
+                else:
+                    # didn't match any known types. treat as a string
+                    # convert to string then to api objects.
+                    try:
+                        name = unicode(argObj)
+                    except:
+                        raise general.MayaNodeError
+                    else:
+                        argObj = _api.toApiObject(name, dagPlugs=True)
+
+                if isinstance(argObj, _api.MDagPath):
+                    apiInfo['MDagPath'] = argObj
+                    argObj = argObj.node()
+                elif isinstance(argObj, _api.MObject):
+                    apiInfo['MObjectHandle'] = _api.MObjectHandle(argObj)
+                elif isinstance(argObj, _api.MObjectHandle):
+                    apiInfo['MObjectHandle'] = argObj
+                    argObj = argObj.object()
+                else:
+                    # non-existent objects
+                    # the object doesn't exist: raise an error
+                    raise general._objectError(name)
+
+                # TEMP hack
+                if cls == Transform:
+                    pymelType = cls
+                else:
+                    pymelType = general._getPymelTypeFromDependNode(argObj, name)
+                # Virtual (non-existent) objects will be cast to their own virtual type.
+                # so, until we make that, we're rejecting them
+                assert apiInfo # real objects only
+
+        # args is empty
+        else :
+            # create node if possible
+            newNode = None
+            #----------------------------------
+            # Pre Creation
+            #----------------------------------
+            if hasattr( cls, '_preCreateVirtual' ):
+                newkwargs = cls._preCreateVirtual(**kwargs)
+                assert isinstance(newkwargs, dict), "_preCreateVirtual must return a dictionary of keyword arguments"
+                kwargs = newkwargs
+
+            #----------------------------------
+            # Creation
+            #----------------------------------
+            if hasattr( cls, '_createVirtual' ):
+                newNode = cls.createVirtual(**kwargs)
+                assert isinstance(newNode, basestring), "_createVirtual must return the name created node"
+#                elif cls in _factories.virtualClassCreation:
+#                    res = _factories.virtualClassCreation[cls](**kwargs)
+#                    if res is None:
+#                        raise TypeError, "the creation callback of a virtual node must return the created node"
+#                    return cls(res)
+
+            elif hasattr(cls, '__melcmd__') and not cls.__melcmd_isinfo__:
+                try:
+                    _logger.debug( 'creating node of type %s using %s' % (cls.__melnode__, cls.__melcmd__.__name__ ) )
+                    res = cls.__melcmd__(**kwargs)
+                except Exception, e:
+                    _logger.debug( 'failed to create %s' % e )
+                    pass
+                else:
+                    if isinstance(res,list):
+                        # we only want to return a single object
+                        for x in res:
+                            typ = cmds.nodeType(x)
+                            if typ == cls.__melnode__:
+                                newNode = x
+                                break
+                            elif typ == 'transform':
+                                shape = cmds.listRelatives( x, s=1)
+                                if shape and cmds.nodeType(shape[0]) == cls.__melnode__:
+                                    newNode = shape[0]
+                                    break
+                        if newNode is None:
+                            raise ValueError, "could not find type %s in result %s returned by %s" % ( cls.__name__, res, cls.__melcmd__.__name__ )
+                    elif cls.__melnode__ == general.nodeType(res): #isinstance(res,cls):
+                        newNode = res
+                    else:
+                        raise ValueError, "unexpect result %s returned by %s" % ( res, cls.__melcmd__.__name__ )
+            else:
+                _logger.debug( 'creating node of type %s using createNode' % cls.__melnode__ )
+                try:
+                    newNode = general.createNode( cls.__melnode__, **kwargs )
+                except RuntimeError:
+                    # FIXME: should we really be passing on this?
+                    pass
+
+            #----------------------------------
+            # Post Creation
+            #----------------------------------
+            if newNode:
+                if hasattr( cls, '_postCreateVirtual' ):
+                    cls._postCreateVirtual( newNode )
+                return cls(newNode)
+
+        # if an explicit class was given (ie: pyObj=DagNode(u'pCube1')) just check if actual type is compatible
+        # if none was given (ie generic pyObj=PyNode('pCube1')) then use the class corresponding to the type we found
+
+        # a PyNode class was explicitly required, if an existing object was passed to init check that the object type
+        # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
+        # There is one exception type:  MeshVertex( Mesh( 'pSphere1') )
+        # TODO : can add object creation option in the __init__ if desired
+
+        if not pymelType or not issubclass( pymelType, cls ):
+            raise TypeError, "Determined type is %s, which is not a subclass of desired type %s" % ( pymelType.__name__, cls.__name__ )
+
+        self = _util.ProxyUnicode.__new__(pymelType)
+        self._name = name
+        self.__apiobjects__ = apiInfo
+        return self
+
+
     def __repr__(self):
         """
         :rtype: `unicode`
