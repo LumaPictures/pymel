@@ -1812,9 +1812,8 @@ class PyNode(_util.ProxyUnicode):
         pass
 
 
-
     def __melobject__(self):
-        """Special method for returning a mel-friendly representation. """
+        """Special method for returning a mel-friendly representation."""
         return self.name()
 
     def __apimfn__(self):

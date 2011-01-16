@@ -16,11 +16,20 @@ Changes
 - 'Unit' support for Quaternion objects is now removed (as it doesn't make
   any sense)
 - can now set enum attributes using their string values
+- can now pass in PyNode class objects to functions / methods that expect a
+  mel node class name - ie,
+     listRelatives(allDescendents=True, type=nt.Joint)
+  is equivalent to
+     listRelatives(allDescendents=True, type='joint')
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
 - PyNode('*') - or any other non-unique name - now returns an error
   use ls('*') if you wish to return a list of possible nodes
+- By default, the root pymel logger outputs to sys.__stdout__ now, instead of
+  sys.stderr; can be overriden to another stream in sys (ie, stdout, stderr,
+  __stderr__, __stdout__) by setting the MAYA_SHELL_LOGGER_STREAM environment
+  variable
 
 ==================================
 Version 1.0.2

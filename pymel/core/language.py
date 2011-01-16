@@ -83,9 +83,9 @@ def pythonToMelCmd(command, *args, **kwargs):
     if kwargs:
         # keyword args trigger us to format as a command rather than a procedure
         strFlags = []
-        if command in _cmdcache.cmdlist:
-            flags = _cmdcache.cmdlist[command]['flags']
-            shortFlags = _cmdcache.cmdlist[command]['shortFlags']
+        if command in _factories.cmdlist:
+            flags = _factories.cmdlist[command]['flags']
+            shortFlags = _factories.cmdlist[command]['shortFlags']
         else:
 #            # Make a dummy flags dict - basically, just assume that q / e
 #            # are bool flags with no args... 

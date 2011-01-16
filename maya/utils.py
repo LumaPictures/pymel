@@ -197,13 +197,15 @@ def guiLogHandler():
 
 def shellLogHandler():
     """
-    Adds an additional handler to the root logger to print to sys.stdout
+    Adds an additional handler to the root logger to print to sys.__stdout__
     Returns the handler.
     """
     global _shellLogHandler
     if _shellLogHandler is not None:
         return _shellLogHandler
-    _shellLogHandler = logging.StreamHandler()
+    shellStream = os.environ.get('MAYA_SHELL_LOGGER_STREAM', '__stdout__')
+    shellStream = getattr(sys, shellStream, sys.__stdout__)
+    _shellLogHandler = logging.StreamHandler(shellStream)
     format = os.environ.get('MAYA_SHELL_LOGGER_FORMAT', '%(name)s : %(levelname)s : %(message)s')
     _shellLogHandler.setFormatter( logging.Formatter(format) )
     log = logging.getLogger('')
