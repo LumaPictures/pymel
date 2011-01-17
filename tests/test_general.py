@@ -9,7 +9,9 @@ import pymel.core.nodetypes as nt
 #import pymel
 import pymel.internal.factories as _factories
 #import maya.cmds as cmds
-#
+
+# Name mangling happens if we try to use __name inside a UnitTest class...
+from maya.app.commands import __makeStubFunc as _makeStubFunc
 #
 #
 #
@@ -910,6 +912,32 @@ class test_move(unittest.TestCase):
         self.assertEqual(cube.getTranslation(), dt.Vector(1,1,0))
         pm.move(0,0,1, xyz=True, r=1)
         self.assertEqual(cube.getTranslation(), dt.Vector(1,1,1))
+        
+class test_lazyDocs(unittest.TestCase):
+    def test_stubMethodDocs(self):
+        origCmd = cmd = cmds.filter
+        try:
+            # if maya.cmds.filter has already been 'de-stubbed', re-stub it
+            if not cmd.__name__ == 'stubFunc':
+                # maya.cmds.dynamicLoad will fail if a library has already been
+                # loaded, so we could just feed in a dummy library..
+                cmd = _makeStubFunc('filter', 'Devices.dll')
+                cmds.filter = cmd
+            self.assertTrue('Creates or modifies a filter node' in 
+                            pm.nt.Filter.__doc__)
+        finally:
+            if cmds.filter != origCmd:
+                cmds.filter = origCmd
+                
+    def test_getCmdName(self):
+        cmd = cmds.filter
+        if not cmd.__name__ == 'stubFunc':
+            # maya.cmds.dynamicLoad will fail if a library has already been
+            # loaded, so we could just feed in a dummy library..
+            cmd = _makeStubFunc('filter', 'Devices.dll')
+        self.assertEqual(factories.getCmdName(cmd), 'filter')
+        
+         
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
