@@ -14,9 +14,13 @@ The wrapped commands in this module are the starting point for any other pymel c
 
 '''
 
-import inspect, sys, re
+import inspect
+import sys
+import re
+import os
 
 import pymel.util as util
+import pymel.versions as versions
 #import mayautils
 import maya.cmds
 import warnings
@@ -24,7 +28,17 @@ import warnings
 __all__ = ['getMelRepresentation']
 _thisModule = sys.modules[__name__]
 
-objectErrorReg = re.compile(',?Object (.*) is invalid,?$')
+# In Maya <= 2011, the error would be:
+#   TypeError: Object foo.bar is invalid
+# In Maya 2012, it is:
+#   ValueError: No object matches name: foo.bar
+if versions.current() < versions.v2012:
+    objectErrorType = TypeError
+    objectErrorReg = re.compile(',?Object (.*) is invalid,?$')
+else:
+    objectErrorType = ValueError
+    objectErrorReg = re.compile(',?No object matches name: ,?(.*)$')
+
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
@@ -33,6 +47,22 @@ def _testDecorator(function):
     newFunc.__doc__ =  function.__doc__
     return newFunc
 
+
+def getCmdName(inFunc):
+    '''Use in place of inFunc.__name__ when inFunc could be a maya.cmds cmd
+    
+    handles stubFuncs 
+    '''
+    cmdName = inFunc.__name__
+    if cmdName == 'stubFunc':
+        sourceFile = inspect.getsourcefile(inFunc)
+        if (isinstance(sourceFile, basestring) and
+                os.path.join('maya','app','commands') in sourceFile):
+            # Here's where it gets tricky... this is a fairly big hack, highly
+            # dependent on the exact implementation of maya.app.commands.stubFunc...
+            freeVarIndex = inFunc.func_code.co_freevars.index('command')
+            cmdName = inFunc.func_closure[freeVarIndex].cell_contents
+    return cmdName
 
 def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
     """Will return a list which contains each element of the iterable 'args' converted to a mel-friendly representation.
@@ -96,7 +126,7 @@ def addWrappedCmd(cmdname, cmd=None):
         #print new_args, new_kwargs
         try:
             res = new_cmd(*new_args, **new_kwargs)
-        except TypeError, e:
+        except objectErrorType, e:
             m = objectErrorReg.match(str(e))
             if m:
                 import pymel.core.general
@@ -119,10 +149,12 @@ def addWrappedCmd(cmdname, cmd=None):
 
     wrappedCmd.__doc__ = cmd.__doc__
 
-    try:
-        wrappedCmd.__name__ = cmd.__name__
-    except TypeError:
-        wrappedCmd.__name__ = cmdname
+    oldname = getattr(cmd, '__name__', None)
+    if isinstance(oldname, str):
+        # Don't use cmd.__name__, as this could be 'stubFunc'
+        wrappedCmd.__name__ = getCmdName(cmd)
+    else:
+        wrappedCmd.__name__ = str(cmdname)
 
     # for debugging, to make sure commands got wrapped...
     #wrappedCmd = _testDecorator(wrappedCmd)

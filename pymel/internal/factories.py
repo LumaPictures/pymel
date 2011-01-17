@@ -653,7 +653,7 @@ class CallbackError(RuntimeError):
             func = callback
             callbackTraceback = ''
         if hasattr(func, '__name__'):
-            callbackStr += ' - %s' % func.__name__
+            callbackStr += ' - %s' % pmcmds.getCmdName(func).__name__
         if hasattr(func, '__module__'):
             callbackStr += ' - module %s' % func.__module__
         if hasattr(func, 'func_code'):
@@ -680,7 +680,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
     """
 
     if not funcName:
-        funcName = inFunc.__name__
+        funcName = pmcmds.getCmdName(inFunc)
 
     if not commandFlags:
         #commandFlags = []
@@ -779,7 +779,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                 #_logger.debug('Cannot find function %s' % funcNameOrObject)
                 return
     else:
-        funcName = funcNameOrObject.__name__
+        funcName = pmcmds.getCmdName(funcNameOrObject)
         inFunc = funcNameOrObject
         customFunc = True
 
@@ -896,7 +896,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             if func.__doc__:
                 funcString = func.__doc__.strip()
             else:
-                funcString = func.__name__ + '(result)'
+                funcString = pmcmds.getCmdName(func) + '(result)'
             doc += '  - ' + funcString + flags + '\n'
 
         newFunc.__doc__  = doc
@@ -937,7 +937,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None ):
     #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
-        cmdName = inFunc.__name__
+        cmdName = pmcmds.getCmdName(inFunc)
 
     if returnFunc:
         def wrappedMelFunc(*args, **kwargs):
@@ -972,7 +972,7 @@ def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdNam
 def createflag( cmdName, flag ):
     """create flag decorator"""
     def create_decorator(method):
-        wrappedMelFunc = makeCreateFlagMethod( method, flag, method.__name__, cmdName=cmdName )
+        wrappedMelFunc = makeCreateFlagMethod( method, flag, pmcmds.getCmdName(method), cmdName=cmdName )
         wrappedMelFunc.__module__ = method.__module__
         return wrappedMelFunc
     return create_decorator
@@ -987,7 +987,8 @@ def secondaryflag( cmdName, flag ):
 def makeQueryFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None ):
     #name = 'get' + flag[0].upper() + flag[1:]
     if cmdName is None:
-        cmdName = inFunc.__name__
+        cmdName = pmcmds.getCmdName(inFunc)
+        
 
     if returnFunc:
         def wrappedMelFunc(self, **kwargs):
@@ -1010,7 +1011,7 @@ def makeQueryFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName
 def queryflag( cmdName, flag ):
     """query flag decorator"""
     def query_decorator(method):
-        wrappedMelFunc = makeQueryFlagMethod( method, flag, method.__name__, cmdName=cmdName )
+        wrappedMelFunc = makeQueryFlagMethod( method, flag, pmcmds.getCmdName(method), cmdName=cmdName )
         wrappedMelFunc.__module__ = method.__module__
         return wrappedMelFunc
     return query_decorator
@@ -1019,7 +1020,7 @@ def queryflag( cmdName, flag ):
 def makeEditFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=None):
     #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
-        cmdName = inFunc.__name__
+        cmdName = pmcmds.getCmdName(inFunc)
 
     def wrappedMelFunc(self, val=True, **kwargs):
         kwargs['edit']=True
@@ -1041,7 +1042,7 @@ def makeEditFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=
 def editflag( cmdName, flag ):
     """edit flag decorator"""
     def edit_decorator(method):
-        wrappedMelFunc = makeEditFlagMethod(  method, flag, method.__name__, cmdName=cmdName )
+        wrappedMelFunc = makeEditFlagMethod(  method, flag, pmcmds.getCmdName(method), cmdName=cmdName )
         wrappedMelFunc.__module__ = method.__module__
         return wrappedMelFunc
     return edit_decorator
