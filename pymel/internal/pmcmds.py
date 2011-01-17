@@ -17,6 +17,7 @@ The wrapped commands in this module are the starting point for any other pymel c
 import inspect, sys, re
 
 import pymel.util as util
+import pymel.versions as versions
 #import mayautils
 import maya.cmds
 import warnings
@@ -24,7 +25,17 @@ import warnings
 __all__ = ['getMelRepresentation']
 _thisModule = sys.modules[__name__]
 
-objectErrorReg = re.compile(',?Object (.*) is invalid,?$')
+# In Maya <= 2011, the error would be:
+#   TypeError: Object foo.bar is invalid
+# In Maya 2012, it is:
+#   ValueError: No object matches name: foo.bar
+if versions.current() < versions.v2012:
+    objectErrorType = TypeError
+    objectErrorReg = re.compile(',?Object (.*) is invalid,?$')
+else:
+    objectErrorType = ValueError
+    objectErrorReg = re.compile(',?No object matches name: ,?(.*)$')
+
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
@@ -96,7 +107,7 @@ def addWrappedCmd(cmdname, cmd=None):
         #print new_args, new_kwargs
         try:
             res = new_cmd(*new_args, **new_kwargs)
-        except TypeError, e:
+        except objectErrorType, e:
             m = objectErrorReg.match(str(e))
             if m:
                 import pymel.core.general
