@@ -1195,9 +1195,9 @@ class testCase_components(unittest.TestCase):
                     elif (isinstance(comp, SubdEdge) and
                           comp.currentDimension() == 0):
                         raise CrashError
-        except CrashError:
+        except CrashError, e:
             print "Auto-failing %r to avoid crash..." % comp
-            raise CrashError
+            raise
             
     def test_multiComponentName(self):
         compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
