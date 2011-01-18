@@ -1075,9 +1075,15 @@ def listSets(*args, **kwargs):
     '''
 Modifications:
   - returns wrapped classes
+  - if called without arguments and keys works as with allSets=True
   :rtype: `PyNode` list
     '''
-    return [PyNode(x) for x in _util.listForNone(cmds.listSets( *args,  **kwargs ))]
+    #cmds.listSets() reports existance of defaultCreaseDataSet which does not
+    #exist if checked with cmds.objExists at least linux-2010
+    if not args and not kwargs:
+        kwargs['allSets'] = True
+    return [PyNode(x) for x in _util.listForNone(cmds.listSets( *args,  **kwargs))
+            if not x == 'defaultCreaseDataSet' ]
 
 #-----------------------
 #  Objects

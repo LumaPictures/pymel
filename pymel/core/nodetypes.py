@@ -2956,6 +2956,14 @@ class ObjectSet(Entity):
     def union(self, other):
         self.addMembers(other)
 
+    def isRenderable(self):
+        '''Mimics cmds.sets(self, q=True, renderable=True).
+
+        Alternatively you can use isinstance(someset, pm.nt.ShadingEngine)
+        since shadingEngine is the only renderable set in maya now
+        '''
+        return bool(cmds.sets(self, q=True, r=True))
+
 class ShadingEngine(ObjectSet):
     @classmethod
     def _getApiObjs(cls, item, tryCast=True):
