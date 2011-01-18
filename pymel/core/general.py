@@ -2020,6 +2020,27 @@ class PyNode(_util.ProxyUnicode):
 
     future = listFuture
 
+# This was supposed to be removed in the 1.0 update, but somehow got left out...
+deprecated_str_methods = ['__getitem__']
+strDeprecateDecorator = _warnings.deprecated( 'Convert to string first using str() or PyNode.name()', 'PyNode' )
+
+def _deprecatePyNode():
+    def makeDeprecatedMethod(method):
+        def f(self, *args):
+            proxyMethod = getattr( _util.ProxyUnicode, method )
+            return proxyMethod(self,*args)
+        
+        f.__doc__ = "deprecated\n"
+        f.__name__ = method
+        g = strDeprecateDecorator(f)
+        setattr( PyNode, method, g)
+        
+
+    for method in deprecated_str_methods:
+        makeDeprecatedMethod( method )                   
+
+_deprecatePyNode()
+
 
 _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 
