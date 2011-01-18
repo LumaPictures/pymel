@@ -4,6 +4,24 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import maya.OpenMayaFX as fx
 
+# Bug report 378192
+class TestEmptyMFnNurbsCurve(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def runTest(self):
+        shapeStr = cmds.createNode('nurbsCurve', n="RigWorldShape")
+        selList = om.MSelectionList()
+        selList.add(shapeStr)
+        node = om.MObject()
+        selList.getDependNode(0, node)
+        
+        mnc = om.MFnNurbsCurve()
+        self.assertTrue(mnc.hasObj(node))
+        try:
+            mnc.setObject(node)
+        except Exception:
+            self.fail("MFnNurbs curve doesn't work with empty curve object")
 
 # Bug report 345382
 # Fixed ! Yay!  (...though I've only check on win64...)
@@ -165,7 +183,11 @@ class TestGroupUniqueness(unittest.TestCase):
         cmds.group(n='bar')
         cmds.select(cl=1)
         res = cmds.group(n='foo', empty=1)
-        cmds.select(res)
+        sameNames = cmds.ls(res)
+        if len(sameNames) < 1:
+            self.fail('cmds.group did not return a valid name')
+        elif len(sameNames) > 1:
+            self.fail('cmds.group did not return a unique name')
 
 # Fixed ! Yay!  (...though I've only check on win64...)
 # (not sure when... was fixed by time of 2011 Hotfix 1 - api 201101,
