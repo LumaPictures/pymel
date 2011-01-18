@@ -1727,7 +1727,7 @@ class RenderLayer(DependNode):
         cmds.editRenderLayerMembers( self, members, remove=True )
 
     def listAdjustments(self):
-        return map( general.PyNode, _util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
+        return map( general.PyNode, _util.listForNone( cmds.editRenderLayerAdjustment( self, layer=1, q=1) ) )
 
     def addAdjustments(self, members, noRecurse):
         return cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
