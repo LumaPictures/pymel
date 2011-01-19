@@ -244,6 +244,13 @@ class TestCaseExtended(TestCase):
             
         message = "iterable '%s' did not contain expected item(s): %s" % (iterable, [str(x) for x in unmatchedResults])
         self.assertEqual(len(unmatchedResults), 0, message)
+        
+    def assertVectorsEqual(self, v1, v2, places=5):
+        for p1, p2 in zip(v1, v2):
+            try:
+                self.assertAlmostEqual(p1, p2, places=places)
+            except AssertionError:
+                self.fail('%r not equal to %r to %s places' % (v1, v2, places))     
 
 
 # TODO: move to util.math?
