@@ -12,7 +12,6 @@ import pymel.internal.apicache as apicache
 
 from pymel.util.testing import TestCaseExtended, setCompare
 
-
 VERBOSE = False
 
 def getFundamentalTypes():
@@ -1665,6 +1664,21 @@ class testCase_Mesh(unittest.TestCase):
         self.assertEqual(mesh.numVertices(), 0)
         self.assertEqual(mesh.numEdges(), 0)
 
+class testCase_OrientConstraint(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.cube1 = pm.polyCube()[0]
+        self.cube2 = pm.polyCube()[0]
+        self.cube2.translate.set( (2,0,0) )
+        
+        self.oc = pm.orientConstraint(self.cube1, self.cube2)
+        self.oc.offset.set(5,7,9)
+        
+    def testGetSetOffset(self):
+        setVals = (12, 8, 7)
+        self.oc.setOffset(setVals)
+        getVals = self.oc.getOffset()
+        self.assertVectorsEqual(setVals, getVals)
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
