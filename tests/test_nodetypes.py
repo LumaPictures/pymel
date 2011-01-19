@@ -9,7 +9,8 @@ from maintenance.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
-from testingutils import TestCaseExtended, setCompare
+
+from pymel.util.testing import TestCaseExtended, setCompare
 
 
 VERBOSE = False
