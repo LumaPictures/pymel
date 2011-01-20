@@ -3,6 +3,7 @@
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import general as _general
+import pymel.versions as versions
 
 import pymel.internal.pmcmds as cmds
 
@@ -80,12 +81,8 @@ Maya Bug Fix:
     return res
 
 def _constraint( func ):
-
-    def constraint(*args, **kwargs):
+    def constraintWithWeightSyntax(*args, **kwargs):
         """
-Maya Bug Fix:
-  - when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
-
 Modifications:
   - added new syntax for querying the weight of a target object, by passing the constraint first::
 
@@ -94,18 +91,7 @@ Modifications:
         aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
         """
         if kwargs.get( 'query', kwargs.get('q', False) and len(args)==1) :
-
-            # Fix the big with upVector, worldUpVector, and aimVector
-            attrs = [
-            'upVector', 'u',
-            'worldUpVector', 'wu',
-            'aimVector', 'a' ]
-
-            for attr in attrs:
-                if attr in kwargs:
-                    return _general.datatypes.Vector( _general.getAttr(args[0] + "." + attr ) )
-
-            # ...otherwise, try seeing if we can apply the new weight query syntax
+            # try seeing if we can apply the new weight query syntax
             targetObjects =  kwargs.get( 'weight', kwargs.get('w', None) )
             if targetObjects is not None:
                 # old way caused KeyError if 'w' not in kwargs, even if 'weight' was!
@@ -130,6 +116,29 @@ Modifications:
             elif kwargs.get( 'targetList', kwargs.get('tl', None) ):
                 res = _factories.toPyNodeList(res)
         return res
+
+    constraint = constraintWithWeightSyntax
+    if versions.current() < versions.v2009:
+        def constraintWithVectorFix(*args, **kwargs):
+            """
+    Maya Bug Fix:
+      - when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
+    
+            """
+            if kwargs.get( 'query', kwargs.get('q', False) and len(args)==1) :
+    
+                # Fix the big with upVector, worldUpVector, and aimVector
+                attrs = [
+                'upVector', 'u',
+                'worldUpVector', 'wu',
+                'aimVector', 'a' ]
+    
+                for attr in attrs:
+                    if attr in kwargs:
+                        return _general.datatypes.Vector( _general.getAttr(args[0] + "." + attr ) )
+            return constraintWithWeightSyntax(*args, **kwargs)
+        constraintWithVectorFix.__doc__ += constraintWithWeightSyntax.__doc__
+        constraint = constraintWithVectorFix
 
     constraint.__name__ = func.__name__
     return constraint
