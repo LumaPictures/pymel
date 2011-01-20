@@ -398,45 +398,45 @@ class PymelCache(object):
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
 
-    @classmethod        
-    def read(cls):
-        newPath = cls.path()
-        if cls.COMPRESSED:
+    def read(self):
+        newPath = self.path()
+        if self.COMPRESSED:
             func = picklezip.load
         else:
             func = _load
     
-        _logger.debug(cls._actionMessage('Loading', 'from', newPath))
+        _logger.debug(self._actionMessage('Loading', 'from', newPath))
     
         try:
             return func(newPath)
         except Exception, e:
-            cls._errorMsg('read', 'from', newPath, e)
+            self._errorMsg('read', 'from', newPath, e)
 
-    @classmethod
-    def write(cls, data):
-        newPath = cls.path()
-        if cls.COMPRESSED:
+    def write(self, data):
+        newPath = self.path()
+        if self.COMPRESSED:
             func = picklezip.dump
         else:
             func = _dump
     
-        _logger.info(cls._actionMessage('Saving', 'to', newPath))
+        _logger.info(self._actionMessage('Saving', 'to', newPath))
     
         try :
             func( data, newPath, 2)
         except Exception, e:
-            cls._errorMsg('write', 'to', newPath, e)
+            self._errorMsg('write', 'to', newPath, e)
             
-    @classmethod
-    def path(cls):
-        if cls.USE_VERSION:
-            short_version = shortName()
+    def path(self):
+        if self.USE_VERSION:
+            if hasattr(self, 'version'):
+                short_version = str(self.version)
+            else:
+                short_version = shortName()
         else:
             short_version = ''
     
-        newPath = _moduleJoin( 'cache', cls.NAME+short_version )
-        if cls.COMPRESSED:
+        newPath = _moduleJoin( 'cache', self.NAME+short_version )
+        if self.COMPRESSED:
             newPath += '.zip'
         else:
             newPath += '.bin'

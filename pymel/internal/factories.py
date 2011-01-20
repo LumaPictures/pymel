@@ -440,7 +440,7 @@ def loadCmdDocCache():
     global docCacheLoaded
     if docCacheLoaded:
         return
-    data = cmdcache.CmdDocsCache.read()
+    data = cmdcache.CmdDocsCache().read()
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
 

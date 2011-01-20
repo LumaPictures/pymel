@@ -957,8 +957,8 @@ class CmdCache(startup.SubItemCache):
             if newCmdInfo:
                 cmdDocList[cmdName] = newCmdInfo
     
-        CmdDocsCache.write(cmdDocList)
-        CmdExamplesCache.write(examples)
+        CmdDocsCache().write(cmdDocList)
+        CmdExamplesCache().write(examples)
     
     def build(self):
         super(CmdCache, self).build()
