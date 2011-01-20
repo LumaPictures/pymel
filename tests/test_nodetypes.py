@@ -1664,22 +1664,23 @@ class testCase_Mesh(unittest.TestCase):
         self.assertEqual(mesh.numVertices(), 0)
         self.assertEqual(mesh.numEdges(), 0)
 
-class testCase_OrientConstraint(TestCaseExtended):
+class TestConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
-        self.cube1 = pm.polyCube()[0]
-        self.cube2 = pm.polyCube()[0]
-        self.cube2.translate.set( (2,0,0) )
         
-        self.oc = pm.orientConstraint(self.cube1, self.cube2)
-        self.oc.offset.set(5,7,9)
-        
-    def testGetSetOffset(self):
-        setVals = (12, 8, 7)
-        self.oc.setOffset(setVals)
-        getVals = self.oc.getOffset()
-        self.assertVectorsEqual(setVals, getVals)
-    
+    def runTest(self):
+        for cmdName in ('aimConstraint', 'orientConstraint'):
+            cube1 = pm.polyCube()[0]
+            cube2 = pm.polyCube()[0]
+            cube2.translate.set( (2,0,0) )
+            cmd = getattr(pm, cmdName)            
+            constraint = cmd(cube1, cube2)
+            
+            setVals = (12, 8, 7)
+            cmd(constraint, e=1, offset=setVals)
+            getVals = tuple(cmd(constraint, q=1, offset=1))
+            self.assertVectorsEqual(setVals, getVals)
+            
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #    

@@ -7,21 +7,22 @@ import maya.OpenMayaFX as fx
 from pymel.util.testing import TestCaseExtended
 
 # Bug report 378211
-class TestOrientConstraintOffset(TestCaseExtended):
+class TestConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
         cmds.file(new=1, f=1)
         
     def runTest(self):
-        cube1 = cmds.polyCube()[0]
-        cube2 = cmds.polyCube()[0]
-        
-        oc = cmds.orientConstraint(cube1, cube2)[0]
-        cmds.orientConstraint(oc, q=1, offset=1)
-        
-        setVals = (12, 8, 7)
-        cmds.orientConstraint(oc, e=1, offset=setVals)
-        getVals = tuple(cmds.orientConstraint(oc, q=1, offset=1))
-        self.assertVectorsEqual(setVals, getVals)
+        for cmdName in ('aimConstraint', 'orientConstraint'):
+            cube1 = cmds.polyCube()[0]
+            cube2 = cmds.polyCube()[0]
+
+            cmd = getattr(cmds, cmdName)            
+            constraint = cmd(cube1, cube2)[0]
+            
+            setVals = (12, 8, 7)
+            cmd(constraint, e=1, offset=setVals)
+            getVals = tuple(cmd(constraint, q=1, offset=1))
+            self.assertVectorsEqual(setVals, getVals)
 
 # Bug report 378192
 class TestEmptyMFnNurbsCurve(unittest.TestCase):
