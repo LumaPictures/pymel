@@ -2724,7 +2724,8 @@ def removePyNode( dynModule, mayaType ):
     #_logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
     dynModule.__dict__.pop(pyNodeTypeName,None)
     # delete the lazy loader too, so it does not regenerate the object
-    delattr(dynModule.__class__,pyNodeTypeName)
+    if hasattr(dynModule.__class__, pyNodeTypeName): 
+        delattr(dynModule.__class__, pyNodeTypeName) 
     if 'pymel.all' in sys.modules:
         try:
             delattr(sys.modules['pymel.all'], pyNodeTypeName)
