@@ -653,7 +653,7 @@ class CallbackError(RuntimeError):
             func = callback
             callbackTraceback = ''
         if hasattr(func, '__name__'):
-            callbackStr += ' - %s' % pmcmds.getCmdName(func).__name__
+            callbackStr += ' - %s' % pmcmds.getCmdName(func)
         if hasattr(func, '__module__'):
             callbackStr += ' - module %s' % func.__module__
         if hasattr(func, 'func_code'):
