@@ -83,6 +83,9 @@ Maya Bug Fix:
 def _constraint( func ):
     def constraintWithWeightSyntax(*args, **kwargs):
         """
+Maya Bug Fix:
+  - when queried, angle offsets would be returned in radians, not current angle unit
+        
 Modifications:
   - added new syntax for querying the weight of a target object, by passing the constraint first::
 
@@ -91,6 +94,10 @@ Modifications:
         aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
         """
         if kwargs.get( 'query', kwargs.get('q', False) and len(args)==1) :
+            # Fix the big with angle offset query always being in radians
+            if kwargs.get( 'offset', kwargs.get('o', None) ):
+                return _general.getAttr(str(args[0]) + ".offset")            
+            
             # try seeing if we can apply the new weight query syntax
             targetObjects =  kwargs.get( 'weight', kwargs.get('w', None) )
             if targetObjects is not None:
@@ -135,7 +142,7 @@ Modifications:
     
                 for attr in attrs:
                     if attr in kwargs:
-                        return _general.datatypes.Vector( _general.getAttr(args[0] + "." + attr ) )
+                        return _general.datatypes.Vector( _general.getAttr(str(args[0]) + "." + attr ) )
             return constraintWithWeightSyntax(*args, **kwargs)
         constraintWithVectorFix.__doc__ += constraintWithWeightSyntax.__doc__
         constraint = constraintWithVectorFix
