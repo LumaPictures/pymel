@@ -1,4 +1,10 @@
-import sys, os, types, doctest, modulefinder, traceback
+import sys
+import os
+import types
+import doctest
+import modulefinder
+import traceback
+import inspect
 from StringIO import StringIO
 from unittest import *
 
@@ -42,6 +48,13 @@ def doctestFriendly(func):
         return result
     return prepForDoctest
         
+@doctestFriendly
+def doctestobj(*args, **kwargs):
+    """
+    Wrapper for doctest.run_docstring_examples that works in maya gui.
+    """
+    return doctest.run_docstring_examples(*args, **kwargs)
+
 @doctestFriendly
 def doctestmod(*args, **kwargs):
     """
