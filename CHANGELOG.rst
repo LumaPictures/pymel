@@ -30,6 +30,8 @@ Non-Backward Compatible Changes
   sys.stderr; can be overriden to another stream in sys (ie, stdout, stderr,
   __stderr__, __stdout__) by setting the MAYA_SHELL_LOGGER_STREAM environment
   variable
+- tangentConstraint, poleVectorConstraint, and pointOnPolyConstraint commands
+  now return a PyNode when creating, instead of a list with one item
 
 ==================================
 Version 1.0.2
