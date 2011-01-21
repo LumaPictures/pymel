@@ -313,7 +313,11 @@ simpleCommandWraps = {
                               Flag('query', 'q') & Flag('jointList', 'jl') ),
                           ],
     'skinCluster'       : [ ( toPyNodeList,
-                              Flag('query', 'q') & Flag('geometry', 'g') )
+                              Flag('query', 'q') &
+                                (Flag('geometry', 'g') |
+                                 Flag('deformerTools', 'dt') |
+                                 Flag('influence', 'inf') |
+                                 Flag('weightedInfluence', 'wi') )),
                           ],
     'addDynamic'        : [ ( toPyNodeList, Always ) ],
     'addPP'             : [ ( toPyNodeList, Always ) ],
