@@ -525,11 +525,19 @@ def cmdArgMakers(force=False):
         j1 = cmds.joint()
         j2 = cmds.joint()
         return cmds.ikHandle(j1, j2, solver='ikRPsolver')[0]
+    def makeJoint():
+        return cmds.joint()
+    def makeSkin():
+        j1 = cmds.joint()
+        j2 = cmds.joint()
+        sphere = makeSphere()
+        return cmds.skinCluster(j1, j2, sphere)[0]
     
     _cmdArgMakers = \
-        { 'tangentConstraint': ( makeCircle, makeCube ),
-          'poleVectorConstraint': ( makeSphere, makeIk),
+        { 'tangentConstraint'   : ( makeCircle, makeCube ),
+          'poleVectorConstraint': ( makeSphere, makeIk ),
           'pointCurveConstraint': ( makeEp, ),
+          'skinCluster'         : ( makeJoint, makeJoint, makeSphere ),
         }
     
     constraintCmds = [x for x in dir(cmds)
@@ -697,14 +705,18 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
                         # there are certain patterns of asymmetry which we can safely correct:
+                        singleItemList = (isinstance( resultType, list)
+                                          and len(resultType) ==1
+                                          and 'multiuse' not in flagInfo.get('modes', []))
+                        
                         # [bool] --> bool
-                        if isinstance( resultType, list) and len(resultType) ==1 and resultType[0] == argtype:
+                        if singleItemList and resultType[0] == argtype:
                             _logger.info("%s, %s: query flag return values need unpacking" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             val = val[0]
 
                         # [int] --> bool
-                        elif argtype in _castList and isinstance( resultType, list) and len(resultType) ==1 and resultType[0] in _castList:
+                        elif singleItemList and argtype in _castList and resultType[0] in _castList:
                             _logger.info("%s, %s: query flag return values need unpacking and casting" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             flagInfo['resultNeedsCasting'] = True
