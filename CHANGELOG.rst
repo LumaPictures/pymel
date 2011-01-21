@@ -32,6 +32,8 @@ Non-Backward Compatible Changes
   variable
 - tangentConstraint, poleVectorConstraint, and pointOnPolyConstraint commands
   now return a PyNode when creating, instead of a list with one item
+- skinCluster command / node's methods / flags for querying deformerTools, 
+  influence, weightedInfluence now return PyNodes, not strings
 
 ==================================
 Version 1.0.2
