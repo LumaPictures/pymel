@@ -2211,7 +2211,7 @@ class Attribute(PyNode):
         >>> value == result
         False
         >>> # why is this? because result is a Vector and value is a list
-        >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
+        >>> # use `Vector.isEquivalent` or cast the list to a `list`
         >>> result == datatypes.Vector(value)
         True
         >>> result.isEquivalent(value)
