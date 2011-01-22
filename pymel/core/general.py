@@ -1075,9 +1075,15 @@ def listSets(*args, **kwargs):
     '''
 Modifications:
   - returns wrapped classes
+  - if called without arguments and keys works as with allSets=True
   :rtype: `PyNode` list
     '''
-    return [PyNode(x) for x in _util.listForNone(cmds.listSets( *args,  **kwargs ))]
+    #cmds.listSets() reports existance of defaultCreaseDataSet which does not
+    #exist if checked with cmds.objExists at least linux-2010
+    if not args and not kwargs:
+        kwargs['allSets'] = True
+    return [PyNode(x) for x in _util.listForNone(cmds.listSets( *args,  **kwargs))
+            if not x == 'defaultCreaseDataSet' ]
 
 #-----------------------
 #  Objects
@@ -2020,6 +2026,27 @@ class PyNode(_util.ProxyUnicode):
 
     future = listFuture
 
+# This was supposed to be removed in the 1.0 update, but somehow got left out...
+deprecated_str_methods = ['__getitem__']
+strDeprecateDecorator = _warnings.deprecated( 'Convert to string first using str() or PyNode.name()', 'PyNode' )
+
+def _deprecatePyNode():
+    def makeDeprecatedMethod(method):
+        def f(self, *args):
+            proxyMethod = getattr( _util.ProxyUnicode, method )
+            return proxyMethod(self,*args)
+        
+        f.__doc__ = "deprecated\n"
+        f.__name__ = method
+        g = strDeprecateDecorator(f)
+        setattr( PyNode, method, g)
+        
+
+    for method in deprecated_str_methods:
+        makeDeprecatedMethod( method )                   
+
+_deprecatePyNode()
+
 
 _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 
@@ -2184,7 +2211,7 @@ class Attribute(PyNode):
         >>> value == result
         False
         >>> # why is this? because result is a Vector and value is a list
-        >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
+        >>> # use `Vector.isEquivalent` or cast the list to a `list`
         >>> result == datatypes.Vector(value)
         True
         >>> result.isEquivalent(value)

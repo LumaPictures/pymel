@@ -313,7 +313,11 @@ simpleCommandWraps = {
                               Flag('query', 'q') & Flag('jointList', 'jl') ),
                           ],
     'skinCluster'       : [ ( toPyNodeList,
-                              Flag('query', 'q') & Flag('geometry', 'g') )
+                              Flag('query', 'q') &
+                                (Flag('geometry', 'g') |
+                                 Flag('deformerTools', 'dt') |
+                                 Flag('influence', 'inf') |
+                                 Flag('weightedInfluence', 'wi') )),
                           ],
     'addDynamic'        : [ ( toPyNodeList, Always ) ],
     'addPP'             : [ ( toPyNodeList, Always ) ],
@@ -440,7 +444,7 @@ def loadCmdDocCache():
     global docCacheLoaded
     if docCacheLoaded:
         return
-    data = cmdcache.CmdDocsCache.read()
+    data = cmdcache.CmdDocsCache().read()
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
 
@@ -653,7 +657,7 @@ class CallbackError(RuntimeError):
             func = callback
             callbackTraceback = ''
         if hasattr(func, '__name__'):
-            callbackStr += ' - %s' % pmcmds.getCmdName(func).__name__
+            callbackStr += ' - %s' % pmcmds.getCmdName(func)
         if hasattr(func, '__module__'):
             callbackStr += ' - module %s' % func.__module__
         if hasattr(func, 'func_code'):
@@ -2758,7 +2762,8 @@ def removePyNode( dynModule, mayaType ):
     #_logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
     dynModule.__dict__.pop(pyNodeTypeName,None)
     # delete the lazy loader too, so it does not regenerate the object
-    delattr(dynModule.__class__,pyNodeTypeName)
+    if hasattr(dynModule.__class__, pyNodeTypeName): 
+        delattr(dynModule.__class__, pyNodeTypeName) 
     if 'pymel.all' in sys.modules:
         try:
             delattr(sys.modules['pymel.all'], pyNodeTypeName)

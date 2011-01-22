@@ -120,7 +120,7 @@ def getUserScriptsDir():
     if appDir:
         return os.path.join(appDir, 'scripts')
     
-def executeDeferred(func):
+def executeDeferred(func, *args, **kwargs):
     """
     This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this
     function does a simple check to see if we're in batch or interactive mode.  In interactive it runs maya.utils.executeDeferred,
@@ -145,9 +145,14 @@ def executeDeferred(func):
     import maya.utils
     import maya.OpenMaya
     if maya.OpenMaya.MGlobal.mayaState() == maya.OpenMaya.MGlobal.kInteractive:
-        maya.utils.executeDeferred(func)
+        maya.utils.executeDeferred(func, *args, **kwargs)
     else:
-        func()
+        if isinstance(func, basestring):
+            if args or kwargs:
+                raise ValueError('if passing a string to be executed, no additional args may be passed')
+            exec func
+        else:
+            func(*args, **kwargs)
 
 def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn', prepend=False):
     """

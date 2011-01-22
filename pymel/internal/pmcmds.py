@@ -60,7 +60,13 @@ def getCmdName(inFunc):
                 os.path.join('maya','app','commands') in sourceFile):
             # Here's where it gets tricky... this is a fairly big hack, highly
             # dependent on the exact implementation of maya.app.commands.stubFunc...
-            freeVarIndex = inFunc.func_code.co_freevars.index('command')
+            freevars = inFunc.func_code.co_freevars
+            # in python 2.5, tuples don't have index / find methods
+            if not hasattr(freevars, 'index'):
+                freevars = list(freevars)
+            freeVarIndex = freevars.index('command')
+            if freeVarIndex:
+                raise ValueError('could not find a command var in %s' % cmdName)
             cmdName = inFunc.func_closure[freeVarIndex].cell_contents
     return cmdName
 

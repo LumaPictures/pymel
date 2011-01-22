@@ -9,8 +9,8 @@ from maintenance.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
-from testingutils import TestCaseExtended, setCompare
 
+from pymel.util.testing import TestCaseExtended, setCompare
 
 VERBOSE = False
 
@@ -1664,7 +1664,23 @@ class testCase_Mesh(unittest.TestCase):
         self.assertEqual(mesh.numVertices(), 0)
         self.assertEqual(mesh.numEdges(), 0)
 
-    
+class TestConstraintAngleOffsetQuery(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+        
+    def runTest(self):
+        for cmdName in ('aimConstraint', 'orientConstraint'):
+            cube1 = pm.polyCube()[0]
+            cube2 = pm.polyCube()[0]
+            cube2.translate.set( (2,0,0) )
+            cmd = getattr(pm, cmdName)            
+            constraint = cmd(cube1, cube2)
+            
+            setVals = (12, 8, 7)
+            cmd(constraint, e=1, offset=setVals)
+            getVals = tuple(cmd(constraint, q=1, offset=1))
+            self.assertVectorsEqual(setVals, getVals)
+            
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #    

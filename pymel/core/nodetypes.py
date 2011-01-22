@@ -1727,7 +1727,7 @@ class RenderLayer(DependNode):
         cmds.editRenderLayerMembers( self, members, remove=True )
 
     def listAdjustments(self):
-        return map( general.PyNode, _util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
+        return map( general.PyNode, _util.listForNone( cmds.editRenderLayerAdjustment( self, layer=1, q=1) ) )
 
     def addAdjustments(self, members, noRecurse):
         return cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
@@ -2955,6 +2955,14 @@ class ObjectSet(Entity):
 
     def union(self, other):
         self.addMembers(other)
+
+    def isRenderable(self):
+        '''Mimics cmds.sets(self, q=True, renderable=True).
+
+        Alternatively you can use isinstance(someset, pm.nt.ShadingEngine)
+        since shadingEngine is the only renderable set in maya now
+        '''
+        return bool(cmds.sets(self, q=True, r=True))
 
 class ShadingEngine(ObjectSet):
     @classmethod
