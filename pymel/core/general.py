@@ -3231,7 +3231,14 @@ class Attribute(PyNode):
 
         x = self.getParent()
         res = []
-        while x:
+        
+        # Don't just do:
+        #while x:
+        # ... because this will do truth evaluation on a returned attribute,
+        # which equates to seeing if the attribute exists; and it's possible
+        # that for multi attributes, we'll get back an attribute with an index
+        # that doesn't exist
+        while x is not None:
             res.append(x)
             x = x.getParent()
         return res

@@ -1027,7 +1027,7 @@ class DagNode(Entity):
 
         Starts from the parent immediately above, going up.
 
-        :rtype: `Attribute` list
+        :rtype: `DagNode` list
         """
 
         x = self.getParent()
