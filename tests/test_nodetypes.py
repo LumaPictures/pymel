@@ -55,16 +55,25 @@ class testCase_attribs(unittest.TestCase):
                         AttributeData('multiCompound_string', dataType='string', parent='multiCompound'),
                         AttributeData('multiCompound_enum', attributeType='enum', parent='multiCompound'),
                         ]
+        self.attrTypes = {}
+        for attrData in self.newAttrs:
+            attrType = attrData.initArgs.get('attributeType', attrData.initArgs.get('dataType'))
+            if attrType == 'compound':
+                attrType = 'TdataCompound'
+            self.attrTypes[attrData.name] = attrType
 
         for attr in self.newAttrs:
             attr.add()
             
         self.newAttrs = dict([(newAttr.name, Attribute(str(self.sphere1) + "." + newAttr.name)) for newAttr in self.newAttrs ])
         
-        self.setMultiElement = self.newAttrs['multiByte'][1]
-        self.setMultiElement.set(1)
+        self.setIndices = (1, 3, 5, 12)
+        for i in self.setIndices:
+            self.newAttrs['multiByte'][i].set(1)
         
-        self.unsetMultiElement = self.newAttrs['multiByte'][3]
+        self.setMultiElement = self.newAttrs['multiByte'][self.setIndices[0]]
+        
+        self.unsetMultiElement = self.newAttrs['multiByte'][200]
         
     def tearDown(self):
         delete(self.sphere1)
@@ -113,11 +122,23 @@ class testCase_attribs(unittest.TestCase):
         self.assert_(  not PyNode('persp').hasAttr('foo') )
         
     def test_elements(self):
-        self.assertEqual(self.newAttrs['multiByte'].elements(), [u'multiByte[1]'])
+        self.assertEqual(self.newAttrs['multiByte'].elements(), ['multiByte[%d]' % x for x in self.setIndices])
         self.assertEqual(self.newAttrs['multiCompound'].elements(), [])
         self.assertEqual(self.newAttrs['compound_multiFloat'].elements(), [])
+
+    def test_iter(self):
+        iterList = [x for x in self.newAttrs['multiByte']]
+        expectedList = [self.newAttrs['multiByte'][i] for i in self.setIndices]
+        self.assertEqual(iterList, expectedList)
         
-#    def test_multi_compound_attr_type(self):
+    def test_iter_independence(self):
+        iter1 = iter(self.newAttrs['multiByte'])
+        iter2 = iter(self.newAttrs['multiByte'])
+        zipped = zip(iter1, iter2)
+        self.assertEqual(zipped, [ (self.newAttrs['multiByte'][i],
+                                    self.newAttrs['multiByte'][i])
+                                   for i in self.setIndices ])
+        
 
 def testInvertibles():
     classList = getFundamentalTypes()

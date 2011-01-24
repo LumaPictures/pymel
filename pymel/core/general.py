@@ -2321,7 +2321,13 @@ class Attribute(PyNode):
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
 
-
+    # Need an iterator which is NOT self, so that we can have independent
+    # iterators - ie, so if we do:
+    #     zip(self, self)
+    # we get
+    #     ( (self[0], self[0]), (self[1], self[1]), (self[2], self[2]) ... )
+    # and not
+    #     ( (self[0], self[1]), (self[2], self[3]), (self[4], self[5]) ... )
     def __iter__(self):
         """
         iterator for multi-attributes
@@ -2343,39 +2349,11 @@ class Attribute(PyNode):
             defaultLightSet.dagSetMembers[2]
         """
         if self.isMulti():
-            return self
+            for i in self._getArrayIndices()[1]:
+                yield self[i]
             #return self[0]
         else:
             raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
-
-    def next(self):
-        """
-        iterator for multi-attributes.  Iterates over the sparse array, so if an idex has not been set
-        or connected, it will be skipped.
-        """
-#        index = self.index()
-#        size = self.size()
-        try:
-            index = self.__dict__['_iterIndex']
-            size, indices = self.__dict__['_iterIndices']
-
-        except KeyError:
-            #size = self.size()
-            try:
-                size, indices = self._getArrayIndices()
-            except RuntimeError:
-                raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
-            index = 0
-            self.__dict__['_iterIndices'] = size, indices
-
-        if index >= size:
-            self.__dict__.pop('_iterIndex', None)
-            self.__dict__.pop('_iterIndices', None)
-            raise StopIteration
-
-        else:
-            self.__dict__['_iterIndex'] = index+1
-            return self[indices[index]]
 
     def __str__(self):
         """
