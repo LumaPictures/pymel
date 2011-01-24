@@ -407,7 +407,7 @@ class DependNode( general.PyNode ):
                     plug = self.__apimfn__().findPlug( attr, False )
                 except RuntimeError:
                     # Don't use .findAlias, as it always returns the 'base'
-                    # attribtue - ie, if the alias is to foo[0].bar, it will
+                    # attribute - ie, if the alias is to foo[0].bar, it will
                     # just point to foo
                     # aliases
                     #obj = _api.MObject()
@@ -418,10 +418,12 @@ class DependNode( general.PyNode ):
                     # know the dagNode. however, certain attributes, such as rotatePivot, are detected as components,
                     # despite the fact that findPlug finds them as MPlugs. need to look into this
                     # TODO: test speed versus above method
-                    if attr in dict(self.listAliases()):
+                    try:
                         plug = _api.toApiObject(self.name() + '.' + attr, dagPlugs=False)
-                    else:
+                    except RuntimeError:
                         raise
+                    if not isinstance(plug, _api.MPlug):
+                        raise RuntimeError
                 return general.Attribute( self.__apiobject__(), plug )
 
         except RuntimeError:

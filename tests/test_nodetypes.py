@@ -1664,7 +1664,7 @@ class testCase_Mesh(unittest.TestCase):
         self.assertEqual(mesh.numVertices(), 0)
         self.assertEqual(mesh.numEdges(), 0)
 
-class TestConstraintAngleOffsetQuery(TestCaseExtended):
+class testCase_ConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
         
@@ -1681,6 +1681,24 @@ class TestConstraintAngleOffsetQuery(TestCaseExtended):
             getVals = tuple(cmd(constraint, q=1, offset=1))
             self.assertVectorsEqual(setVals, getVals)
             
+class testCase_Container(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+        
+    def testPublishedAttribute(self):
+        c=pm.container( current=1 )
+        g=pm.group( em=True )
+        pm.container( c, e=True, publishAsParent=(g, 'yippee') )
+        fromPyNode = pm.PyNode('container1.yippee')
+        self.assertTrue( isinstance(fromPyNode, Attribute))
+        self.assertEqual( fromPyNode.name(), 'container1.canBeParent[0]' )
+        fromAttr = c.attr('yippee')
+        self.assertTrue( isinstance(fromAttr, Attribute))
+        self.assertEqual( fromAttr.name(), 'container1.canBeParent[0]' )
+        self.assertEqual( fromPyNode, fromAttr )
+        
+        
+
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #    

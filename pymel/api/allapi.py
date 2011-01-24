@@ -267,17 +267,36 @@ def toApiObject(nodeName, dagPlugs=True):
                 comp = MObject()
                 try:
                     sel.getDagPath( 0, dag, comp )
-                except Exception:
+                except RuntimeError:
                     pass
                 #if not isValidMDagPath(dag) :   return
                 if not comp.isNull():
                     return (dag, comp)
-                # We may have gotten something weird, like a container
-                # parent attribute, which auto-magically converts to the
-                # contained node it references when added to an MSelectionList
-                elif dag.isValid():
-                    return dag
-
+                # We may have gotten a published container attribute, which
+                # auto- magically converts to the contained node it references
+                # when added to an MSelectionList
+                splitName = nodeName.split('.')
+                # Thankfully, it seems you can't index / get children off an
+                # aliased attribute - ie, myNode.myAlias[0] and
+                # myNode.myAlias.childAttr don't work, even if myAlias point
+                # to a multi / compound attr
+                if len(splitName) == 2:
+                    obj = MObject()
+                    try:
+                        sel.add( splitName[0] )
+                        sel.getDependNode(1, obj)
+                    except RuntimeError:
+                        pass 
+                    else:
+                        # Since it seems there's no api way to get at the plug for
+                        # a published / aliased container attr, we just check for
+                        # aliases...
+                        mfn = MFnDependencyNode(obj)
+                        aliases = []
+                        if mfn.getAliasList(aliases):
+                            for aliasName, trueName in util.pairIter(aliases):
+                                if aliasName == splitName[1]:
+                                    return toApiObject('.'.join( (splitName[0], trueName) ))
         else:
             try:
                 # DagPaths
