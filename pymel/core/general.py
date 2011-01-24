@@ -2093,7 +2093,7 @@ def _getParent( getter, obj, generations):
         i -= 1
         
     if generations is None:
-        return allParents
+        return allParents[1:]
     
     if generations >= 1:
         if generations < len(allParents):

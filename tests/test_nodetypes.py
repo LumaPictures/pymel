@@ -108,12 +108,27 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)
         
+        self.assertEqual(self.newAttrs['compound_compound_long'].getAllParents(),
+                         [  self.newAttrs['compound_compound'],
+                            self.newAttrs['compound'],
+                         ])
+        
+        
         self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=1).array(),
                          self.newAttrs['multiCompound'])
         self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=2, arrays=True),
                          self.newAttrs['multiCompound'])
         self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=-1, arrays=True),
                          self.newAttrs['multiCompound'])
+
+        self.assertEqual(self.newAttrs['multiCompound_string'].getAllParents(),
+                         [  self.newAttrs['multiCompound_string'].getParent(generations=1),
+                         ])
+        self.assertEqual(self.newAttrs['multiCompound_string'].getAllParents(arrays=True),
+                         [  self.newAttrs['multiCompound_string'].getParent(generations=1),
+                            self.newAttrs['multiCompound'],
+                         ])
+
         
     def test_comparison(self):
         for attr in self.newAttrs.itervalues():
