@@ -109,10 +109,25 @@ def _pluginLoaded( *args ):
                 _logger.warning("could not find callback id!")
 
             _pluginData[pluginName]['dependNodes'] = mayaTypes
+            allTypes = set(cmds.ls(nodeTypes=1))
             for mayaType in mayaTypes:
+                # make sure it's a 'valid' type - some plugins list node types
+                # that don't show up in ls(nodeTypes=1), and aren't creatable
+                # ...perhaps they're abstract types?
+                # Unfortunately, can't check this, as only plugin I know of
+                # that has such a node - mayalive, mlConstraint - is only
+                # available up to 2009, which has a bug with allNodeTypes...
+                if mayaType not in allTypes:
+                    continue
+                
                 _logger.debug("Adding node: %s" % mayaType)
-                inheritance = _factories.getInheritance( mayaType )
-
+                try:
+                    inheritance = _factories.getInheritance( mayaType )
+                except Exception:
+                    import traceback
+                    _logger.debug(traceback.format_exc())
+                    inheritance = None
+                    
                 if not util.isIterable(inheritance):
                     _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
                 else:

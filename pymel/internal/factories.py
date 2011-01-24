@@ -418,19 +418,20 @@ def getInheritance( mayaType ):
     dgMod = api.MDGModifier()
 
     obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
-    if obj.hasFn( api.MFn.kDagNode ):
-        mod = dagMod
-        mod.doIt()
-        name = api.MFnDagNode(obj).partialPathName()
-    else:
-        mod = dgMod
-        mod.doIt()
-        name = api.MFnDependencyNode(obj).name()
 
-    if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
-        lineage = cmds.nodeType( name, inherited=1)
-    else:
-        lineage = []
+    lineage = []
+    if obj is not None:
+        if obj.hasFn( api.MFn.kDagNode ):
+            mod = dagMod
+            mod.doIt()
+            name = api.MFnDagNode(obj).partialPathName()
+        else:
+            mod = dgMod
+            mod.doIt()
+            name = api.MFnDependencyNode(obj).name()
+    
+        if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
+            lineage = cmds.nodeType( name, inherited=1)
     mod.undoIt()
     return lineage
 
