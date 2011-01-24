@@ -108,6 +108,13 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)
         
+        self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=1).array(),
+                         self.newAttrs['multiCompound'])
+        self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=2, arrays=True),
+                         self.newAttrs['multiCompound'])
+        self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=-1, arrays=True),
+                         self.newAttrs['multiCompound'])
+        
     def test_comparison(self):
         for attr in self.newAttrs.itervalues():
             self.assertEqual(attr, PyNode(attr.name()))
@@ -170,7 +177,6 @@ class testCase_attribs(unittest.TestCase):
                     testLockUnlock(attr, multi_child)
             elif attr.isCompound():
                 testLockUnlock(attr, attr.children()[0])
-                    
 
 def testInvertibles():
     classList = getFundamentalTypes()

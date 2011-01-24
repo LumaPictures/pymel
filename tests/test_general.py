@@ -28,9 +28,34 @@ from maya.app.commands import __makeStubFunc as _makeStubFunc
 #    #print emptyFunctions
 
 
+# Todo - add missing attribute types (ie, message, boolean, datatype forms of
+# double2, float3, etc
 
 def _makeAllAttrTypes(nodeName):
-    res = cmds.sphere(n=nodeName)
+    if not cmds.objExists(nodeName):
+        cmds.sphere(n=nodeName)
+    cmds.select(nodeName)
+    
+    attributeTypesToNames = {}
+    dataTypesToNames = {}
+    namesToType = {}
+    
+    def doAttrAdd(**kwargs):
+        cmds.addAttr(**kwargs)
+        name = kwargs.get('ln', kwargs.get('longName'))
+        dt = kwargs.get('dt', kwargs.get('dataType'))
+
+        if dt is not None:
+            dataTypesToNames.setdefault(dt, []).append(name)
+            namesToType[name] = ('dt', dt)
+        else:
+            at = kwargs.get('at', kwargs.get('attributeType'))
+            if at is None:
+                at = 'double'
+            attributeTypesToNames.setdefault(dt, []).append(name)
+            namesToType[name] = ('at', at)
+    
+    # compound numeric types    
     cmds.addAttr(ln='short2Attr',at='short2')
     cmds.addAttr(ln='short2a',p='short2Attr',at='short')
     cmds.addAttr(ln='short2b',p='short2Attr',at='short')
@@ -67,6 +92,8 @@ def _makeAllAttrTypes(nodeName):
     cmds.addAttr(ln='double3b',p='double3Attr',at='double')
     cmds.addAttr(ln='double3c',p='double3Attr',at='double')
     
+    # Array Attributes 
+    
     cmds.addAttr(ln='Int32ArrayAttr',dt='Int32Array')
     cmds.addAttr(ln='doubleArrayAttr',dt='doubleArray')
     cmds.addAttr(ln='pointArrayAttr',dt='pointArray')
@@ -74,6 +101,9 @@ def _makeAllAttrTypes(nodeName):
     
     cmds.addAttr(ln='stringArrayAttr',dt='stringArray')
     cmds.addAttr(ln='stringAttr',dt="string")
+
+    # Matrix
+    
     cmds.addAttr(ln='matrixAttr',dt="matrix")
     
     # non numeric
@@ -89,6 +119,8 @@ def _makeAllAttrTypes(nodeName):
     cmds.addAttr(ln='surfaceAttr',dt='nurbsSurface')
     cmds.addAttr(ln='trimFaceAttr',dt='nurbsTrimface')
     cmds.addAttr(ln='polyFaceAttr',dt='polyFaces')
+    
+    return attributeTypesToNames, dataTypesToNames, namesToType
     
 class testCase_mayaSetAttr(unittest.TestCase):
     """
