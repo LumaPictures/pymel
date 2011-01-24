@@ -2644,12 +2644,15 @@ class Attribute(PyNode):
 
         If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
         See `Attribute.__iter__`.
+
+        Modifications:
+          - returns an empty list when the result is None
         """
         if self.isElement():
             arrayAttr = self.array()
         else:
             arrayAttr = self
-        return cmds.listAttr(arrayAttr, multi=True)
+        return _util.listForNone(cmds.listAttr(arrayAttr, multi=True))
 
 #    def item(self):
 #        try:

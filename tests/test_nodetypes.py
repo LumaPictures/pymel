@@ -51,6 +51,9 @@ class testCase_attribs(unittest.TestCase):
                         AttributeData('compound_compound', attributeType='compound', numberOfChildren=2, parent='compound'),
                         AttributeData('compound_compound_matrix', attributeType='matrix', parent='compound_compound'),
                         AttributeData('compound_compound_long', attributeType='long', parent='compound_compound'),
+                        AttributeData('multiCompound', attributeType='compound', multi=True, numberOfChildren=2),
+                        AttributeData('multiCompound_string', dataType='string', parent='multiCompound'),
+                        AttributeData('multiCompound_enum', attributeType='enum', parent='multiCompound'),
                         ]
 
         for attr in self.newAttrs:
@@ -69,7 +72,7 @@ class testCase_attribs(unittest.TestCase):
     def test_newAttrsExists(self):
         for attr in self.newAttrs.itervalues():
 #            print "Testing existence of:", attr.name()
-            self.assertTrue(attr.exists())
+            self.assertTrue(attr.exists(), 'attr %r did not exist' % attr)
             
     def test_setMultiElementExists(self):
         self.assertTrue(self.setMultiElement.exists())
@@ -105,6 +108,13 @@ class testCase_attribs(unittest.TestCase):
         self.assert_( PyNode('persp').hasAttr('foo') )
         PyNode('persp').deleteAttr('foo')
         self.assert_(  not PyNode('persp').hasAttr('foo') )
+        
+    def test_elements(self):
+        self.assertEqual(self.newAttrs['multiByte'].elements(), [u'multiByte[1]'])
+        self.assertEqual(self.newAttrs['multiCompound'].elements(), [])
+        self.assertEqual(self.newAttrs['compound_multiFloat'].elements(), [])
+        
+#    def test_multi_compound_attr_type(self):
 
 def testInvertibles():
     classList = getFundamentalTypes()
