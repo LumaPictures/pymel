@@ -432,7 +432,7 @@ def getInheritance( mayaType ):
     
         if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
             lineage = cmds.nodeType( name, inherited=1)
-    mod.undoIt()
+        mod.undoIt()
     return lineage
 
 

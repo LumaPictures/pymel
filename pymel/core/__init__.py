@@ -117,6 +117,8 @@ def _pluginLoaded( *args ):
                 # Unfortunately, can't check this, as only plugin I know of
                 # that has such a node - mayalive, mlConstraint - is only
                 # available up to 2009, which has a bug with allNodeTypes...
+                # Oddly enough, mlConstraint WILL show up in allTypes here,
+                # but not after the plugin is loaded / callback finishes...?
                 if mayaType not in allTypes:
                     continue
                 
@@ -128,7 +130,7 @@ def _pluginLoaded( *args ):
                     _logger.debug(traceback.format_exc())
                     inheritance = None
                     
-                if not util.isIterable(inheritance):
+                if not inheritance or not util.isIterable(inheritance):
                     _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
                 else:
                     #__logger.debug(mayaType, inheritance)
