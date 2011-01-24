@@ -70,9 +70,12 @@ class testCase_attribs(unittest.TestCase):
         delete(self.sphere1)
         
     def test_newAttrsExists(self):
-        for attr in self.newAttrs.itervalues():
+        for attrName, attr in self.newAttrs.iteritems():
 #            print "Testing existence of:", attr.name()
-            self.assertTrue(attr.exists(), 'attr %r did not exist' % attr)
+            if attrName.startswith('multiCompound_'):
+                self.assertFalse(attr.exists(), 'attr %r existed' % attr)
+            else:
+                self.assertTrue(attr.exists(), 'attr %r did not exist' % attr)
             
     def test_setMultiElementExists(self):
         self.assertTrue(self.setMultiElement.exists())
