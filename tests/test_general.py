@@ -4,10 +4,10 @@ from pymel.core import *
 import pymel.core as pm 
 import pymel.versions as versions
 import pymel.internal.factories as factories
+import pymel.internal.pmcmds as pmcmds
 import pymel.core.datatypes as dt
 import pymel.core.nodetypes as nt
 #import pymel
-import pymel.internal.factories as _factories
 #import maya.cmds as cmds
 
 # Name mangling happens if we try to use __name inside a UnitTest class...
@@ -292,12 +292,33 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.assertEqual( self.sphere1.primaryVisibility, shape.primaryVisibility )
      
     def test_attribute_aliases(self):
-        self.assert_( isinstance(PyNode(self.sphere1.name() + '.myalias'), Attribute ) )
-        self.assert_( isinstance(self.sphere1.attr('myalias'), Attribute) )
+        fromPyNode = pm.PyNode(self.sphere1.name() + '.myalias')
+        self.assertTrue( isinstance(fromPyNode, pm.Attribute ) )
+        fromAttr = self.sphere1.attr('myalias')
+        self.assertTrue( isinstance(fromAttr, pm.Attribute) )
+        
         res1 = self.sphere1.listAttr(alias=1)
         res2 = self.sphere1.listAliases()
         self.assertEqual( res1[0], res2[0][1] )
+        self.assertEqual(fromPyNode, res1[0])
+        self.assertEqual(fromAttr, fromPyNode)
+
+    def test_multi_compound_attribute_aliases(self):
+        remap = pm.createNode('remapValue')
+        attr = remap.attr('value')[0].value_Position
+        attr.setAlias('alfred')
         
+        fromPyNode = pm.PyNode(remap.name() + '.alfred')
+        self.assertTrue( isinstance(fromPyNode, pm.Attribute ) )
+        fromAttr = remap.attr('alfred')
+        self.assertTrue( isinstance(fromAttr, pm.Attribute) )
+        
+        res1 = remap.listAttr(alias=1)
+        res2 = remap.listAliases()
+        self.assertEqual( res1[0], res2[0][1] )
+        self.assertEqual(fromPyNode, res1[0])
+        self.assertEqual(fromAttr, fromPyNode)
+
     def test_pmcmds_objectErrors(self):
         self.assertRaises( MayaAttributeError, setAttr, 'foo.bar', 0 )
         self.assertRaises( MayaAttributeError, getAttr, 'foo.bar' )
@@ -427,7 +448,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
     def test_transform_rotation(self):
         SCENE.persp.setRotation( [10,20,0], 'world')
-        print repr( SCENE.persp.getRotation( 'world' ) )
+        #print repr( SCENE.persp.getRotation( 'world' ) )
         self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 0.0])) )
         SCENE.persp.setRotation( [0,90,0], 'world', relative=1)
 
@@ -836,7 +857,7 @@ for cmdName in ('''aimConstraint geometryConstraint normalConstraint
         constr = melCmd( 'circle1', 'cube1')[0]
         self.assertPyNodes(pyCmd(constr, q=1, targetList=1))
         self.assertPyNodes(pyCmd(constr, q=1, weightAliasList=1), Attribute)
-        if 'worldUpObject' in _factories.cmdlist[cmdName]['flags']:
+        if 'worldUpObject' in factories.cmdlist[cmdName]['flags']:
             self.assertEqual(pyCmd(constr, q=1, worldUpObject=1), None)
             cmds.polySphere(name='sphere1')
             melCmd(constr, e=1, worldUpType='object', worldUpObject='sphere1')
@@ -914,20 +935,22 @@ class test_move(unittest.TestCase):
         self.assertEqual(cube.getTranslation(), dt.Vector(1,1,1))
         
 class test_lazyDocs(unittest.TestCase):
-    def test_stubMethodDocs(self):
-        origCmd = cmd = cmds.filter
-        try:
-            # if maya.cmds.filter has already been 'de-stubbed', re-stub it
-            if not cmd.__name__ == 'stubFunc':
-                # maya.cmds.dynamicLoad will fail if a library has already been
-                # loaded, so we could just feed in a dummy library..
-                cmd = _makeStubFunc('filter', 'Devices.dll')
-                cmds.filter = cmd
-            self.assertTrue('Creates or modifies a filter node' in 
-                            pm.nt.Filter.__doc__)
-        finally:
-            if cmds.filter != origCmd:
-                cmds.filter = origCmd
+    # Test can't be reliably run if pymel.all is imported... re-stubbing
+    # doesn't work
+#    def test_stubMethodDocs(self):
+#        origCmd = cmd = cmds.filter
+#        try:
+#            # if maya.cmds.filter has already been 'de-stubbed', re-stub it
+#            if not cmd.__name__ == 'stubFunc':
+#                # maya.cmds.dynamicLoad will fail if a library has already been
+#                # loaded, so we could just feed in a dummy library..
+#                cmd = _makeStubFunc('filter', 'Devices.dll')
+#                cmds.filter = cmd
+#            self.assertTrue('Creates or modifies a filter node' in 
+#                            pm.nt.Filter.__doc__)
+#        finally:
+#            if cmds.filter != origCmd:
+#                cmds.filter = origCmd
                 
     def test_getCmdName(self):
         cmd = cmds.filter
@@ -935,7 +958,7 @@ class test_lazyDocs(unittest.TestCase):
             # maya.cmds.dynamicLoad will fail if a library has already been
             # loaded, so we could just feed in a dummy library..
             cmd = _makeStubFunc('filter', 'Devices.dll')
-        self.assertEqual(factories.getCmdName(cmd), 'filter')
+        self.assertEqual(pmcmds.getCmdName(cmd), 'filter')
         
          
 

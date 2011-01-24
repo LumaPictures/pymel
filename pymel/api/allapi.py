@@ -265,9 +265,19 @@ def toApiObject(nodeName, dagPlugs=True):
                 # Components
                 dag = MDagPath()
                 comp = MObject()
-                sel.getDagPath( 0, dag, comp )
+                try:
+                    sel.getDagPath( 0, dag, comp )
+                except Exception:
+                    pass
                 #if not isValidMDagPath(dag) :   return
-                return (dag, comp)
+                if not comp.isNull():
+                    return (dag, comp)
+                # We may have gotten something weird, like a container
+                # parent attribute, which auto-magically converts to the
+                # contained node it references when added to an MSelectionList
+                elif dag.isValid():
+                    return dag
+
         else:
             try:
                 # DagPaths
@@ -280,48 +290,8 @@ def toApiObject(nodeName, dagPlugs=True):
                 # Objects
                 obj = MObject()
                 sel.getDependNode( 0, obj )          
-                #if not isValidMObject(obj) : return     
+                #if not isValidMObject(obj) : return
                 return obj
-        
-#    # TODO : components
-#    if "." in nodeName :
-#        # build up to the final MPlug
-#        nameTokens = nameparse.getBasicPartList( nodeName )
-#        if dag.isValid():
-#            fn = MFnDagNode(dag)
-#            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
-#                if isinstance( token, nameparse.MayaName ):
-#                    if isinstance( result, MPlug ):
-#                        result = result.child( fn.attribute( unicode(token) ) )
-#                    else:
-#                        try:
-#                            result = fn.findPlug( unicode(token) )
-#                        except TypeError:
-#                            for i in range(fn.childCount()):
-#                                try:
-#                                    result = MFnDagNode( fn.child(i) ).findPlug( unicode(token) )
-#                                except TypeError:
-#                                    pass
-#                                else:
-#                                    break
-#                if isinstance( token, nameparse.NameIndex ):
-#                    result = result.elementByLogicalIndex( token.value )
-#            if dagMatters:
-#                result = (dag, result)
-#        else:
-#            fn = MFnDependencyNode(obj)
-#            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
-#                if isinstance( token, nameparse.MayaName ):
-#                    if isinstance( result, MPlug ):
-#                        result = result.child( fn.attribute( unicode(token) ) )
-#                    else:
-#                        result = fn.findPlug( unicode(token) )
-#                            
-#                if isinstance( token, nameparse.NameIndex ):
-#                    result = result.elementByLogicalIndex( token.value )
-#        
-#
-#    return result
 
 def toMDagPath(nodeName):
     """ Get an API MDagPAth to the node, given the name of an existing dag node """ 

@@ -406,15 +406,22 @@ class DependNode( general.PyNode ):
                 try:
                     plug = self.__apimfn__().findPlug( attr, False )
                 except RuntimeError:
+                    # Don't use .findAlias, as it always returns the 'base'
+                    # attribtue - ie, if the alias is to foo[0].bar, it will
+                    # just point to foo
                     # aliases
-                    obj = _api.MObject()
-                    self.__apimfn__().findAlias( attr, obj )
-                    plug = self.__apimfn__().findPlug( obj, False )
+                    #obj = _api.MObject()
+                    #self.__apimfn__().findAlias( attr, obj )
+                    #plug = self.__apimfn__().findPlug( obj, False )
+                    
                     # the following technique gets aliased attributes as well. turning dagPlugs to off saves time because we already
                     # know the dagNode. however, certain attributes, such as rotatePivot, are detected as components,
                     # despite the fact that findPlug finds them as MPlugs. need to look into this
                     # TODO: test speed versus above method
-                    # _api.toApiObject(self.name() + '.' + attr, dagPlugs=False)
+                    if attr in dict(self.listAliases()):
+                        plug = _api.toApiObject(self.name() + '.' + attr, dagPlugs=False)
+                    else:
+                        raise
                 return general.Attribute( self.__apiobject__(), plug )
 
         except RuntimeError:
