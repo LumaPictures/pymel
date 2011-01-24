@@ -2107,8 +2107,9 @@ def _getParent( getter, obj, generations):
             return allParents[generations]
 
 class Attribute(PyNode):
-    """
-
+    """Attribute class
+    
+    see pymel docs for details on usage
     """
 
     #
@@ -2898,6 +2899,69 @@ class Attribute(PyNode):
             return []
         return [Attribute( '%s.%s' % ( self.node(), x )) for x in rawResult]
 
+    class  _TempRealIndexedAttr(object):
+        '''When used with the 'with statement', will return a 'sibling' of the
+        whose indices all exist - creating indices if needed.
+        
+        If any indices are created, they will be destroyed in exit. 
+        '''
+        def __init__(self, attr):
+            self.origAttr = attr
+            
+            # indexed attrs whose indice we have created, and will need to
+            # delete when done
+            self.toDelete = None
+            
+        def _getRealIndexedElem(self, plug, i):
+            parent = self.chain[i - 1]
+            indices = parent.getArrayIndices()
+            if plug.index() in indices:
+                return plug
+            if indices:
+                #print "plug didn't exist, but parent had existing indices..."
+                return parent[indices[0]]
+            # Because it was the Great One's number...
+            newPlug = parent[99]
+            #print "plug didn't exist, parent had no existing indices..."
+            try:
+                # this should create a 'real' instance at that index
+                newPlug.get()
+            except Exception:
+                pass
+            
+            self.chain[i] = newPlug
+            # Only need to delete the 'topmost' plug
+            if self.toDelete is None:
+                self.toDelete = newPlug
+
+        def __enter__(self):
+            self.chain = self.origAttr.getAllParents(arrays=True)
+            self.chain.reverse()
+            self.chain.append(self.origAttr)
+            
+            # traverse, starting from upper-most parent, as we may need to
+            # replace children with 'real' ones as we go down 
+            for i in xrange(len(self.chain)):
+                #print 'processing:', i
+                elem = self.chain[i]
+                if self.toDelete:
+                    #print 'need new plug due to upstream change'
+                    # We've already had to make a new attribute upstream,
+                    # which means we need to grab a 'new' object for every
+                    # element downstream.
+                    if elem.isChild():
+                        newPlug = self.chain[i-1].attr(elem.attrName())
+                        self.chain[i] = newPlug
+                    elif elem.isElement():
+                        self._getRealIndexedElem(elem, i)
+                elif elem.isElement():
+                    self._getRealIndexedElem(elem, i)
+            return self.chain[-1]
+        
+        def __exit__(self, type, value, traceback):
+            if self.toDelete is not None:
+                cmds.removeMultiInstance(self.toDelete.name())
+                
     # getAttr info methods
     def type(self):
         """
@@ -2905,7 +2969,26 @@ class Attribute(PyNode):
 
         :rtype: `unicode`
         """
-        return cmds.getAttr(self.name(placeHolderIndices=False), type=True)
+        # Note - currently, this returns 'TdataCompound' even for multi,
+        # NON-compound attributes, if you feed it the array plug (ie, not
+        # an indexed element plug)
+        # Not sure this is really desirable, but changing would be backward
+        # incompatible... revisit this later? 
+        with self._TempRealIndexedAttr(self) as realAttr:
+            res = cmds.getAttr(realAttr.name(), type=True)
+            if res:
+                return res
+            # Sometimes getAttr seems to fail with dynamic attributes...
+            if realAttr.isDynamic():
+                at = cmds.addAttr(realAttr.name(), q=1, attributeType=1)
+                if isinstance(at, (list, tuple)):
+                    at = at[0]
+                if at != 'typed':
+                    return at
+                dt = cmds.addAttr(realAttr.name(), q=1, dataType=1)
+                if isinstance(dt, (list, tuple)):
+                    dt = dt[0]
+                return dt
 
     def lock(self):
         "setAttr -locked 1"
@@ -3238,7 +3321,7 @@ class Attribute(PyNode):
             getter = self._getAttrParent
 
         res = _getParent(getter, self.__apimfn__(), generations)
-        if res:
+        if res is not None:
             if generations is None:
                 return [Attribute(self.node(), x) for x in res]
             else:

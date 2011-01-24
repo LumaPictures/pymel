@@ -44,6 +44,7 @@ class testCase_attribs(unittest.TestCase):
                 addAttr(self.node, longName=self.name, **self.initArgs)
         
         self.newAttrs = [
+                        AttributeData('angle', attributeType='doubleAngle'),
                         AttributeData('multiByte', multi=True, attributeType='byte'),
                         AttributeData('compound', attributeType='compound', numberOfChildren=3),
                         AttributeData('compound_multiFloat', attributeType='float', multi=True, parent='compound'),
@@ -51,14 +52,16 @@ class testCase_attribs(unittest.TestCase):
                         AttributeData('compound_compound', attributeType='compound', numberOfChildren=2, parent='compound'),
                         AttributeData('compound_compound_matrix', attributeType='matrix', parent='compound_compound'),
                         AttributeData('compound_compound_long', attributeType='long', parent='compound_compound'),
-                        AttributeData('multiCompound', attributeType='compound', multi=True, numberOfChildren=2),
+                        AttributeData('multiCompound', attributeType='compound', multi=True, numberOfChildren=3),
                         AttributeData('multiCompound_string', dataType='string', parent='multiCompound'),
                         AttributeData('multiCompound_enum', attributeType='enum', parent='multiCompound'),
+                        AttributeData('multiCompound_curve', dataType='nurbsCurve', parent='multiCompound'),
                         ]
+        
         self.attrTypes = {}
         for attrData in self.newAttrs:
-            attrType = attrData.initArgs.get('attributeType', attrData.initArgs.get('dataType'))
-            if attrType == 'compound':
+            attrType = attrData.initArgs.get('attributeType',attrData.initArgs.get('dataType'))
+            if attrType == 'compound' or attrData.initArgs.get('multi'):
                 attrType = 'TdataCompound'
             self.attrTypes[attrData.name] = attrType
 
@@ -126,7 +129,6 @@ class testCase_attribs(unittest.TestCase):
                             self.newAttrs['compound'],
                          ])
         
-        
         self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=1).array(),
                          self.newAttrs['multiCompound'])
         self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=2, arrays=True),
@@ -142,6 +144,14 @@ class testCase_attribs(unittest.TestCase):
                             self.newAttrs['multiCompound'],
                          ])
 
+        self.assertEqual(self.newAttrs['multiByte'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['multiByte'].getAllParents(arrays=True), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(arrays=True), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(arrays=True), [])
+        self.assertEqual(self.newAttrs['angle'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['angle'].getAllParents(arrays=True), [])        
         
     def test_comparison(self):
         for attr in self.newAttrs.itervalues():
@@ -205,6 +215,22 @@ class testCase_attribs(unittest.TestCase):
                     testLockUnlock(attr, multi_child)
             elif attr.isCompound():
                 testLockUnlock(attr, attr.children()[0])
+
+    def test_attr_type(self):
+        for attrName, attrType in self.attrTypes.iteritems():
+            self.assertEqual(self.newAttrs[attrName].type(), attrType)
+        self.assertEqual(self.newAttrs['multiCompound'].numElements(), 0)
+        self.assertEqual(self.newAttrs['multiByte'].numElements(), len(self.setIndices))
+        
+        # Try some non-dynamic attrs...
+        self.assertEqual(self.sphere1.attr('translateX').type(), 'doubleLinear')
+        self.assertEqual(self.sphere1.attr('translate').type(), 'double3')
+        self.assertEqual(self.sphere1.attr('message').type(), 'message')
+        
+        # Try a more unusual attr type...
+        circleMaker = pm.circle()[1]
+        self.assertEqual(circleMaker.attr('outputCurve').type(), 'nurbsCurve')
+        
 
 def testInvertibles():
     classList = getFundamentalTypes()
