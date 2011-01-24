@@ -139,6 +139,38 @@ class testCase_attribs(unittest.TestCase):
                                     self.newAttrs['multiByte'][i])
                                    for i in self.setIndices ])
         
+    def test_settable(self):
+        
+        def testLockUnlock(attr, child=None):
+            if child is None:
+                attr.lock()
+                self.assertFalse(attr.isSettable(), '%s was locked - should be unsettable' % attr)
+                attr.unlock()
+                self.assertTrue(attr.isSettable(), '%s was unlocked - should be settable' % attr)
+            else:
+                child.lock()
+                self.assertFalse(child.isSettable(), '%s was locked - should be unsettable' % child)
+                self.assertFalse(attr.isSettable(), '%s had locked child- should be unsettable' % attr)
+                child.unlock()
+                self.assertTrue(child.isSettable(), '%s was unlocked - should be settable' % attr)
+                self.assertTrue(attr.isSettable(), '%s had unlocked child - should be settable' % attr)
+                
+        for attr in self.newAttrs.itervalues():
+            if not attr.exists():
+                continue
+
+            testLockUnlock(attr)
+
+            if attr.isMulti():
+                child = attr[0]
+                testLockUnlock(attr, child)
+                if attr.isCompound():
+                    multi_child = child.children()[0]
+                    testLockUnlock(attr, child)
+                    testLockUnlock(attr, multi_child)
+            elif attr.isCompound():
+                testLockUnlock(attr, attr.children()[0])
+                    
 
 def testInvertibles():
     classList = getFundamentalTypes()

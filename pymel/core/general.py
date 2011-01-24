@@ -2895,7 +2895,6 @@ class Attribute(PyNode):
         """
         return cmds.getAttr(self.name(placeHolderIndices=False), type=True)
 
-
     def lock(self):
         "setAttr -locked 1"
         return self.setLocked(True)
@@ -2910,7 +2909,10 @@ class Attribute(PyNode):
 
         :rtype: `bool`
         """
-        return cmds.getAttr(self.name(placeHolderIndices=False), settable=True)
+        # use MPlug.isFreeToChange, as it doesn't have the issues that getAttr
+        # does with multi-compound attributes with no indices existing
+        #return cmds.getAttr(self.name(placeHolderIndices=False), settable=True)
+        return self.__apimplug__().isFreeToChange() == _api.MPlug.kFreeToChange
 
     # attributeQuery info methods
     def isHidden(self):
