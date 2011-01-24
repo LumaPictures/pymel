@@ -87,10 +87,23 @@ class testCase_attribs(unittest.TestCase):
                 self.assertTrue(attr.exists(), 'attr %r did not exist' % attr)
             
     def test_setMultiElementExists(self):
-        self.assertTrue(self.setMultiElement.exists())
-            
+        attr = self.setMultiElement
+        self.assertTrue(attr.exists(), '%s should exist' % attr)
+        
     def test_unsetMultiElementExists(self):
-        self.assertFalse(self.unsetMultiElement.exists())
+        attr = self.unsetMultiElement
+        self.assertFalse(attr.exists(), '%s should not exist' % attr)
+
+    def test_setMultiCompoundElementExists(self):
+        attr = self.newAttrs['multiCompound'][1].attr('multiCompound_string')
+        attr.set('foo')
+        self.assertTrue(attr.exists(), '%s should exist' % attr)
+
+    def test_unsetMultiCompoundElementExists(self):
+        attr = self.newAttrs['multiCompound'][1].attr('multiCompound_string')
+        self.assertFalse(attr.exists())
+        attr = self.newAttrs['multiCompound_string']
+        self.assertFalse(attr.exists())
         
     def test_getParent(self):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(), self.newAttrs['compound_compound'])

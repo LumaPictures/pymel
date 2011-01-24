@@ -2975,6 +2975,10 @@ class Attribute(PyNode):
             # If the array exists, now check the array indices...
             indices = self.array().getArrayIndices()
             return bool(indices and self.index() in indices)
+        elif self.isChild():
+            # attributeQuery doesn't handle multi-compound attributes well...
+            # so need to traverse all the way up the parent chain
+            return self.parent().exists()
         else:
             try:
                 return bool( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True) )
