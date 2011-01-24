@@ -984,6 +984,15 @@ class DagNode(Entity):
         res = general.PyNode( res )
         return res
 
+    @staticmethod
+    def _getDagParent(dag):
+        if dag.length() <= 1:
+            return None
+        # Need a copy as we'll be modifying it...
+        dag = _api.MDagPath(dag)
+        dag.pop()
+        return dag
+
     def getParent(self, generations=1):
         """
         Modifications:
@@ -1011,6 +1020,9 @@ class DagNode(Entity):
               A value of 0 will return the same node.
               The default value is 1.
 
+              If generations is None, it will be interpreted as 'return all
+              parents', and a list will be returned.
+              
               Since the original command returned None if there is no parent, to sync with this behavior, None will
               be returned if generations is out of bounds (no IndexError will be thrown).
 
@@ -1019,17 +1031,14 @@ class DagNode(Entity):
 
         # Get the parent through the api - listRelatives doesn't handle instances correctly,
         # and string processing seems unreliable...
-        def getDagParent(dag):
-            if dag.length() <= 1:
-                return None
-            # Need a copy as we'll be modifying it...
-            dag = _api.MDagPath(dag)
-            dag.pop()
-            return dag
-        res = general._getParent(getDagParent, self.__apimdagpath__(), generations)
-        if res:
-            return general.PyNode( res )
 
+        res = general._getParent(self._getDagParent, self.__apimdagpath__(), generations)
+        if res:
+            if generations is None:
+                return [general.PyNode(x) for x in res]
+            else:
+                return general.PyNode( res )
+        
     def getAllParents(self):
         """
         Return a list of all parents above this.
@@ -1038,15 +1047,7 @@ class DagNode(Entity):
 
         :rtype: `DagNode` list
         """
-
-        x = self.getParent()
-        res = []
-        while x:
-            res.append(x)
-            x = x.getParent()
-        return res
-
-    #getAllParents, getParent = general._makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent2)
+        return self.getParent(generations=None, arrays=arrays)
 
     def getChildren(self, **kwargs ):
         """

@@ -2068,29 +2068,41 @@ _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 #_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
 
 def _getParent( getter, obj, generations):
+    '''If generations is None, then a list of all the parents is returned.
+    '''
     if generations == 0:
         return obj
-    elif generations >= 1:
-        try:
-            firstParent = getter(obj)
-        except:
-            return
 
-        if generations == 1:
-            return firstParent
-        else:
-            return _getParent( getter, firstParent, generations-1 )
-    elif generations < 0:
-        x = getter(obj)
-        allParents = []
-        while x:
-            allParents.append(x)
+    x = obj
+    allParents = [obj]
+    if generations is None:
+        i = -1
+    else:
+        i = generations
+        
+    # If generations is positive, we will stop as soon as we get to the parent
+    # we need; otherwise, we will get all the parents
+    while i != 0:
+        try:
             x = getter( x )
-        if -generations > (len(allParents) + 1):
+        except Exception:
+            break
+        if x is None:
+            break
+        allParents.append(x)
+        i -= 1
+        
+    if generations is None:
+        return allParents
+    
+    if generations >= 1:
+        if generations < len(allParents):
+            return allParents[generations]
+        else:
             return None
-        # Assures we can return self
-        elif -generations == (len(allParents) + 1):
-            return obj
+    elif generations < 0:
+        if -generations > len(allParents):
+            return None
         else:
             return allParents[generations]
 
@@ -3175,58 +3187,69 @@ class Attribute(PyNode):
             return Attribute( self.node(), self.__apimfn__().parent() )
         except:
             pass
+        
+    @staticmethod
+    def _getAttrParent(plug):
+        if plug.isChild():
+            return plug.parent()
+        else:
+            return None
 
-    def getParent(self, generations=1):
+    @staticmethod
+    def _getAttrOrMultiParent(plug):
+        if plug.isChild():
+            return plug.parent()
+        elif plug.isElement():
+            return plug.array()
+        else:
+            return None
+
+
+    def getParent(self, generations=1, arrays=False):
         """
         Modifications:
-            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
-
+            - added optional generations keyword arg, which gives the number of
+              levels up that you wish to go for the parent
 
               Negative values will traverse from the top.
 
               A value of 0 will return the same node.
               The default value is 1.
 
-              Since the original command returned None if there is no parent, to sync with this behavior, None will
-              be returned if generations is out of bounds (no IndexError will be thrown).
+              If generations is None, it will be interpreted as 'return all
+              parents', and a list will be returned.
+
+              Since the original command returned None if there is no parent,
+              to sync with this behavior, None will be returned if generations
+              is out of bounds (no IndexError will be thrown).
+              
+            - added optional arrays keyword arg, which if True, will also
+              traverse from an array element to an array plug 
 
         :rtype: `Attribute`
         """
+        if arrays:
+            getter = self._getAttrOrMultiParent
+        else:
+            getter = self._getAttrParent
 
-        def getAttrParent(plug):
-            try:
-                return plug.parent()
-            except:
-                return None
-
-        res = _getParent(getAttrParent, self.__apimfn__(), generations)
+        res = _getParent(getter, self.__apimfn__(), generations)
         if res:
-            return Attribute( self.node(), res )
-
-    def getAllParents(self):
+            if generations is None:
+                return [Attribute(self.node(), x) for x in res]
+            else:
+                return Attribute( self.node(), res )
+        
+    def getAllParents(self, arrays=False):
         """
         Return a list of all parents above this.
 
         Starts from the parent immediately above, going up.
 
         :rtype: `Attribute` list
-        """
+        """        
+        return self.getParent(generations=None, arrays=arrays)
 
-        x = self.getParent()
-        res = []
-        
-        # Don't just do:
-        #while x:
-        # ... because this will do truth evaluation on a returned attribute,
-        # which equates to seeing if the attribute exists; and it's possible
-        # that for multi attributes, we'll get back an attribute with an index
-        # that doesn't exist
-        while x is not None:
-            res.append(x)
-            x = x.getParent()
-        return res
-
-    #getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent)
     parent = getParent
 
 def _MObjectIn(x):
