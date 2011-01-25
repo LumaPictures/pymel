@@ -71,6 +71,9 @@ Appendices:
 	pymel.util.path
 	pymel.util.trees
 	pymel.util.utilitytypes
+	pymel.tools.mel2py
+	pymel.tools.py2mel
+	pymel.tools.loggingControl
 
 
 =======================================
