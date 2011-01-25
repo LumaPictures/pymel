@@ -4232,6 +4232,11 @@ class DiscreteComponent( DimensionedComponent ):
         return self
 
     def getIndex(self):
+        '''Returns the current 'flat list' index for this group of components -
+        ie, if this component holds the vertices:
+            [5, 7, 12, 13, 14, 25]
+        then if the 'flat list' index is 2, then we are pointing to vertex 12.
+        '''
         return self._currentFlatIndex
 
     def currentItem(self):
@@ -4247,6 +4252,29 @@ class DiscreteComponent( DimensionedComponent ):
         mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
         curIndex = ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
         return self.__class__(self._node, curIndex)
+    
+    def currentItemIndex(self):
+        '''Returns the component indices for the current item in this component
+        group
+        
+        If the component type has more then one dimension, the return result
+        will be a ComponentIndex object which is a sub-class of tuple; otherwise,
+        it will be a single int.
+        
+        These values correspond to the indices that you would use when selecting
+        components in mel - ie, vtx[5], cv[3][2]
+        '''
+        # Again, duplicates some code in currentItem/_flatIter for speed
+        dimensionIndicePtrs = []
+        mfncomp = self.__apicomponent__()
+        for i in xrange(self.dimensions):
+            dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
+
+        mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
+        if self.dimensions == 1:
+            return dimensionIndicePtrs[0].get()
+        else:
+            return ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
 
     def next(self):
         if self._stopIteration:
@@ -4364,6 +4392,21 @@ class Component1D( DiscreteComponent ):
     def currentItem(self):
         mfncomp = self.__apicomponent__()
         return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
+
+    def currentItemIndex(self):
+        '''Returns the component indices for the current item in this component
+        group
+        
+        If the component type has more then one dimension, the return result
+        will be a ComponentIndex object which is a sub-class of tuple; otherwise,
+        it will be a single int.
+        
+        These values correspond to the indices that you would use when selecting
+        components in mel - ie, vtx[5], cv[3][2]
+        '''
+        # Again, duplicates some code in currentItem/_flatIter for speed
+        mfncomp = self.__apicomponent__()
+        return mfncomp.element(self._currentFlatIndex)
 
     def indicesIter(self):
         """
@@ -4518,7 +4561,7 @@ class MeshVertex( MItComponent1D ):
         return self.node().numVertices()
 
     def setColor(self,color):
-        self.node().setVertexColor( color, self.getIndex() )
+        self.node().setVertexColor( color, self.currentItemIndex() )
 
     def connectedEdges(self):
         """
@@ -4551,16 +4594,22 @@ class MeshVertex( MItComponent1D ):
         :rtype: bool
         """
         if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
+            return self.isConnectedToFace( component.currentItemIndex() )
         if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
+            return self.isConnectedToEdge( component.currentItemIndex() )
         if isinstance(component,MeshVertex):
             array = _api.MIntArray()
             self.__apimfn__().getConnectedVertices(array)
-            return component.getIndex() in [ array[i] for i in range( array.length() ) ]
-
+            return component.currentItemIndex() in [ array[i] for i in range( array.length() ) ]
         raise TypeError, 'type %s is not supported' % type(component)
-
+    
+    def getColor(self, *args, **kwargs):
+        # Want all possible versions of this command, so easiest to just manually
+        # wrap (particularly want to be able to invoke with no args!
+        color = _api.MColor()
+        self.__apimfn__().getColor(color, *args, **kwargs)
+        return datatypes.Color(color)
+    
 class MeshEdge( MItComponent1D ):
     __apicls__ = _api.MItMeshEdge
     _ComponentLabel__ = "e"
@@ -4600,13 +4649,13 @@ class MeshEdge( MItComponent1D ):
         :rtype: bool
         """
         if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
+            return self.isConnectedToFace( component.currentItemIndex() )
         if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
+            return self.isConnectedToEdge( component.currentItemIndex() )
         if isinstance(component,MeshVertex):
             index0 = self.__apimfn__().index(0)
             index1 = self.__apimfn__().index(1)
-            return component.getIndex() in [index0, index1]
+            return component.currentItemIndex() in [index0, index1]
 
         raise TypeError, 'type %s is not supported' % type(component)
 
@@ -4617,8 +4666,6 @@ class MeshFace( MItComponent1D ):
 
     def _dimLength(self, partialIndex):
         return self.node().numFaces()
-
-
 
     def connectedEdges(self):
         """
@@ -4649,11 +4696,11 @@ class MeshFace( MItComponent1D ):
         :rtype: bool
         """
         if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
+            return self.isConnectedToFace( component.currentItemIndex() )
         if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
+            return self.isConnectedToEdge( component.currentItemIndex() )
         if isinstance(component,MeshVertex):
-            return self.isConnectedToVertex( component.getIndex() )
+            return self.isConnectedToVertex( component.currentItemIndex() )
 
         raise TypeError, 'type %s is not supported' % type(component)
 

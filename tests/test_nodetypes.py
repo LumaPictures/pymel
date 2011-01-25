@@ -1776,8 +1776,14 @@ class testCase_apiArgConversion(unittest.TestCase):
         self.assertEqual(mesh.getEdgeVertices(2), [4,5])
 
 class testCase_Mesh(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        self.mesh = pm.createNode('mesh')
+        
     def test_emptyMeshOps(self):
-        mesh = pm.createNode('mesh')
+        mesh = self.mesh
         for comp in (mesh.vtx, mesh.faces, mesh.edges):
             self.assertEqual(len(comp), 0)
             self.assertEqual(bool(comp), False)
@@ -1789,6 +1795,74 @@ class testCase_Mesh(unittest.TestCase):
         self.assertEqual(mesh.numFaces(), 0)
         self.assertEqual(mesh.numVertices(), 0)
         self.assertEqual(mesh.numEdges(), 0)
+
+    def test_setVertexColor(self):
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.cube.setVertexColor(color, i)
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.assertEqual(self.trans.vtx[i].getColor(), color)
+
+class testCase_MeshVert(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        
+    def test_setVertexColor(self):
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.trans.vtx[i].setColor(color)
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.assertEqual(self.cube.vtx[i].getColor(), color)
+            
+    def test_connections(self):
+        self.assertTrue(self.cube.vtx[2].isConnectedTo(self.cube.vtx[3]))
+        self.assertFalse(self.cube.vtx[2].isConnectedTo(self.cube.vtx[7]))
+        
+        self.assertTrue(self.cube.vtx[5].isConnectedTo(self.cube.e[7]))
+        self.assertFalse(self.cube.vtx[5].isConnectedTo(self.cube.e[5]))
+
+        self.assertTrue(self.cube.vtx[6].isConnectedTo(self.cube.f[5]))
+        self.assertFalse(self.cube.vtx[6].isConnectedTo(self.cube.f[0]))
+
+class testCase_MeshEdge(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        
+    def test_connections(self):
+        self.assertTrue(self.cube.e[7].isConnectedTo(self.cube.vtx[5]))
+        self.assertFalse(self.cube.e[5].isConnectedTo(self.cube.vtx[5]))
+
+        self.assertTrue(self.cube.e[2].isConnectedTo(self.cube.e[8]))
+        self.assertFalse(self.cube.e[2].isConnectedTo(self.cube.e[5]))
+
+        self.assertTrue(self.cube.e[1].isConnectedTo(self.cube.f[0]))
+        self.assertFalse(self.cube.e[6].isConnectedTo(self.cube.f[2]))
+
+
+class testCase_MeshFace(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        
+    def test_connections(self):
+        # Oddly enough, in a cube, all the verts 'connected' to the face
+        # are the ones NOT contained in it, and all the ones that are
+        # contained are considered not connected...
+        self.assertTrue(self.cube.f[5].isConnectedTo(self.cube.vtx[7]))
+        self.assertTrue(self.cube.f[0].isConnectedTo(self.cube.vtx[3]))
+
+        self.assertTrue(self.cube.f[3].isConnectedTo(self.cube.e[5]))
+        self.assertFalse(self.cube.f[4].isConnectedTo(self.cube.e[4]))
+
+        self.assertTrue(self.cube.f[2].isConnectedTo(self.cube.f[1]))
+        self.assertFalse(self.cube.f[5].isConnectedTo(self.cube.f[4]))        
 
 class testCase_ConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
