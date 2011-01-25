@@ -430,7 +430,8 @@ def compareCascadingDicts(dict1, dict2):
             >>> differences =  compareCascadingDicts(d1, d2)[-1]
             >>> mergeCascadingDicts(differences, d1,
             ...                     allowDictToListMerging=True)
-        ...then d1 == d2... that is, 'applying' the differences to d1
+        
+        - then d1 == d2... that is, 'applying' the differences to d1
         should yield d2
     '''
     if isinstance(dict1, (list, tuple)):
