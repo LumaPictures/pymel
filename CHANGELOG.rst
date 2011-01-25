@@ -34,6 +34,7 @@ Non-Backward Compatible Changes
   now return a PyNode when creating, instead of a list with one item
 - skinCluster command / node's methods / flags for querying deformerTools, 
   influence, weightedInfluence now return PyNodes, not strings
+- Attribute.elements now returns an empty list instead of None
 
 ==================================
 Version 1.0.2
