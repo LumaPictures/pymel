@@ -367,7 +367,7 @@ simpleCommandWraps = {
 #---------------------------------------------------------------
 
 if includeDocExamples:
-    examples = cmdcache.CmdProcessedExamplesCache.read()
+    examples = cmdcache.CmdProcessedExamplesCache().read()
     for cmd, example in examples.iteritems():
         cmdlist[cmd]['example'] = example
 

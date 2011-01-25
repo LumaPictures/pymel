@@ -365,7 +365,7 @@ def fixCodeExamples(style='maya', force=False):
 
     openWindows = cmds.lsUI(windows=True)
     examples = CmdExamplesCache.read()
-    processedExamples = CmdProcessedExamplesCache.read()
+    processedExamples = CmdProcessedExamplesCache().read()
     processedExamples = {} if processedExamples is None else processedExamples
     allCmds = set(examples.keys())
     # put commands that require manual interaction first
@@ -476,7 +476,7 @@ def fixCodeExamples(style='maya', force=False):
             #_logger.info("FAILED: %s: %s" % (command, e) )
         else:
             # write out after each success so that if we crash we don't have to start from scratch
-            CmdProcessedExamplesCache.write(processedExamples)
+            CmdProcessedExamplesCache().write(processedExamples)
 
         # cleanup opened windows
         for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
