@@ -82,7 +82,8 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
                     \Wall\.py$
                     ^tools
                     ^example1
-                    ^testingutils
+                    ^testing
+                    ^eclipseDebug
                     ^pmcmds
                     ^testPa
                     ^maya
@@ -247,9 +248,9 @@ class DocTestPatcher(object):
         
     def set_wantFile(self):
         import nose
-        if nose.__versioninfo__ > (1,0,0):
-            self.orig_wantFile = None
-            return 
+#        if nose.__versioninfo__ > (1,0,0):
+#            self.orig_wantFile = None
+#            return 
 
         import nose.plugins.doctests
         self.orig_wantFile = nose.plugins.doctests.Doctest.__dict__['wantFile']
