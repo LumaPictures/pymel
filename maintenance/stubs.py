@@ -11,6 +11,9 @@ class StubDoc(Doc):
     # ------------------------------------------- text formatting utilities
     module_map = {}
     _repr_instance = TextRepr()
+    # We don't care if it's compact, we just want it to parse right...
+    _repr_instance.maxlist = _repr_instance.maxtuple = _repr_instance.maxdict\
+        = _repr_instance.maxstring = _repr_instance.maxother = 100000
     repr = _repr_instance.repr
     missing_modules = set([])
     def bold(self, text):
@@ -52,6 +55,12 @@ class StubDoc(Doc):
                 result = result + self.formattree(
                     entry, modname, c, prefix + '    ')
         return result
+    
+    importSubstitutions = {'pymel.util.objectParser':'''
+class ProxyUni(object): pass
+class Parsed(ProxyUni): pass
+''',
+                           'precompmodule':''}
 
     def docmodule(self, object, name=None, mod=None):
         """Produce text documentation for a given module object."""
@@ -171,12 +180,20 @@ class StubDoc(Doc):
                 self.module_map[realname] = key if importname != key else importname
                 if object.__name__ == debugmodule:
                     print '\t %-30s %-30s %s' % ( realname, importname, key )
-                contents.append( 'import ' + importname + ( ( ' as ' + key ) if importname != key else '') )
+                if importname in self.importSubstitutions:
+                    if importname != key:
+                        importname = key
+                    contents.append('%s = None' % importname)
+                else:
+                    contents.append( 'import ' + importname + ( ( ' as ' + key ) if importname != key else '') )
             result = result + join(contents, '\n') + '\n\n'
         if fromall_modules:
             contents = []
             for modname in fromall_modules:
-                contents.append( 'from ' + modname + ' import *' )
+                if modname in self.importSubstitutions:
+                    contents.append(self.importSubstitutions[modname])
+                else:
+                    contents.append( 'from ' + modname + ' import *' )
                 self.module_map[modname] = ''
             result = result + join(contents, '\n') + '\n\n'
                 
@@ -365,9 +382,20 @@ class StubDoc(Doc):
 
     def formatvalue(self, object):
         """Format an argument default value as text."""
-        objRepr = self.repr(object)
-        if objRepr[0] == '<' and objRepr[-1] == '>':
-            objRepr = repr(objRepr)
+        # check if the object is os.environ...
+        isEnviron = False
+        if object == os.environ:
+            isEnviron = True
+        elif isinstance(object, dict):
+            # If over 90% of the keys are in os.environ, assume it's os.environ
+            if len(set(object) & set(os.environ)) > (len(object) * 0.9):
+                isEnviron = True
+        if isEnviron:
+            objRepr = repr({'PROXY_FOR':'os.environ'})
+        else:
+            objRepr = self.repr(object)
+            if objRepr[0] == '<' and objRepr[-1] == '>':
+                objRepr = repr(objRepr)
         return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
@@ -449,45 +477,49 @@ class StubDoc(Doc):
 
 stubs = StubDoc()
 
-def packagestubs(packagename, outputdir='', extension='py', exclude=None):
+def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'), exclude=None):
     packagemod = __import__(packagename, globals(), locals(), [], -1)
     for modname, mod, ispkg in util.subpackages(packagemod):
-        curpath = os.path.join(outputdir, *modname.split('.') )
-        
-        if ispkg:
-            if not os.path.exists(curpath):
-                os.mkdir(curpath)
-            curfile = os.path.join(curpath, '__init__'+os.extsep+extension )
+        if modname == 'pymel.internal.pmcmds':
+            contents = 'from maya.cmds import *\n'
         else:
-            curfile = curpath + os.extsep + extension
-        print modname, curfile
-        f = open( curfile, 'w' )
-        if not exclude or not re.match( exclude, modname ):
-            f.write( stubs.docmodule(mod) )
-        f.close()
+            contents = stubs.docmodule(mod)
+        for extension in extensions:
+            curfile = os.path.join(outputdir, extension)
+            if extension == 'pypredef':
+                curfile = os.path.join(curfile, modname)
+            else:
+                curfile = os.path.join(curfile, *modname.split('.') )
+                if ispkg:
+                    curfile = os.path.join(curfile, '__init__' )
 
-def pymelstubs(extension='py'):
+            curfile = curfile + os.extsep + extension
+            
+            curdir = os.path.dirname(curfile)
+            if not os.path.isdir(curdir):
+                os.makedirs(curdir)
+            print modname, curfile
+            f = open( curfile, 'w' )
+            if not exclude or not re.match( exclude, modname ):
+                f.write( contents )
+            f.close()
+
+def pymelstubs(extensions=('py', 'pypredef', 'pi')):
     """ Builds pymel stub files for autocompletion.
     
     Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
     
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
-    outputdir = os.path.join(pymeldir, 'extras', 'completion', extension)
+    outputdir = os.path.join(pymeldir, 'extras', 'completion')
     print outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
     
     packagestubs( 'pymel', 
                   outputdir=outputdir, 
-                  extension=extension,
-                  exclude='(pymel\.util\.scanf)|(pymel\.util\.objectParser)')
+                  extensions=extensions,
+                  exclude='pymel\.util\.scanf|pymel\.util\.objectParser|pymel\.tools\.ipymel')
 
-    # fix pmcmds:
-    f = open( os.path.join(outputdir,'pymel','internal','pmcmds'+os.extsep+extension), 'w' )
-    f.write( 'from maya.cmds import *\n' )
-    f.close()
-    
-    shutil
-    packagestubs( 'maya', outputdir=outputdir,extension=extension )
+    packagestubs( 'maya', outputdir=outputdir,extensions=extensions )
     return outputdir
 

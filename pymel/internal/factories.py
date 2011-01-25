@@ -2724,12 +2724,17 @@ def addPyNode( dynModule, mayaType, parentMayaType ):
 def removePyNode( dynModule, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     removePyNodeType( pyNodeTypeName )
-
-    #_logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
+    
+    _logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
     dynModule.__dict__.pop(pyNodeTypeName,None)
+
     # delete the lazy loader too, so it does not regenerate the object
-    if hasattr(dynModule.__class__, pyNodeTypeName): 
-        delattr(dynModule.__class__, pyNodeTypeName) 
+    # Note - even doing a 'hasattr' will trigger the lazy loader, so just
+    # delete blind!
+    try: 
+        delattr(dynModule.__class__, pyNodeTypeName)
+    except Exception:
+        pass
     if 'pymel.all' in sys.modules:
         try:
             delattr(sys.modules['pymel.all'], pyNodeTypeName)

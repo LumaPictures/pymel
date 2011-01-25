@@ -32,16 +32,13 @@ from maya.app.commands import __makeStubFunc as _makeStubFunc
 # double2, float3, etc
 
 def _makeAllAttrTypes(nodeName):
-    if not cmds.objExists(nodeName):
-        cmds.sphere(n=nodeName)
-    cmds.select(nodeName)
+    cmds.sphere(n=nodeName)
     
     attributeTypesToNames = {}
     dataTypesToNames = {}
     namesToType = {}
     
     def doAttrAdd(**kwargs):
-        cmds.addAttr(**kwargs)
         name = kwargs.get('ln', kwargs.get('longName'))
         dt = kwargs.get('dt', kwargs.get('dataType'))
 
@@ -54,71 +51,72 @@ def _makeAllAttrTypes(nodeName):
                 at = 'double'
             attributeTypesToNames.setdefault(dt, []).append(name)
             namesToType[name] = ('at', at)
+        cmds.addAttr(**kwargs)
     
     # compound numeric types    
-    cmds.addAttr(ln='short2Attr',at='short2')
-    cmds.addAttr(ln='short2a',p='short2Attr',at='short')
-    cmds.addAttr(ln='short2b',p='short2Attr',at='short')
+    doAttrAdd(ln='short2Attr',at='short2')
+    doAttrAdd(ln='short2a',p='short2Attr',at='short')
+    doAttrAdd(ln='short2b',p='short2Attr',at='short')
     
-    cmds.addAttr(ln='short3Attr',at='short3')
-    cmds.addAttr(ln='short3a',p='short3Attr',at='short')
-    cmds.addAttr(ln='short3b',p='short3Attr',at='short')
-    cmds.addAttr(ln='short3c',p='short3Attr',at='short')
+    doAttrAdd(ln='short3Attr',at='short3')
+    doAttrAdd(ln='short3a',p='short3Attr',at='short')
+    doAttrAdd(ln='short3b',p='short3Attr',at='short')
+    doAttrAdd(ln='short3c',p='short3Attr',at='short')
     
-    cmds.addAttr(ln='long2Attr',at='long2')
-    cmds.addAttr(ln='long2a',p='long2Attr',at='long')
-    cmds.addAttr(ln='long2b',p='long2Attr',at='long')
+    doAttrAdd(ln='long2Attr',at='long2')
+    doAttrAdd(ln='long2a',p='long2Attr',at='long')
+    doAttrAdd(ln='long2b',p='long2Attr',at='long')
     
-    cmds.addAttr(ln='long3Attr',at='long3')
-    cmds.addAttr(ln='long3a',p='long3Attr',at='long')
-    cmds.addAttr(ln='long3b',p='long3Attr',at='long')
-    cmds.addAttr(ln='long3c',p='long3Attr',at='long')
+    doAttrAdd(ln='long3Attr',at='long3')
+    doAttrAdd(ln='long3a',p='long3Attr',at='long')
+    doAttrAdd(ln='long3b',p='long3Attr',at='long')
+    doAttrAdd(ln='long3c',p='long3Attr',at='long')
     
-    cmds.addAttr(ln='float2Attr',at='float2')
-    cmds.addAttr(ln='float2a',p='float2Attr',at="float")
-    cmds.addAttr(ln='float2b',p='float2Attr',at="float")
+    doAttrAdd(ln='float2Attr',at='float2')
+    doAttrAdd(ln='float2a',p='float2Attr',at="float")
+    doAttrAdd(ln='float2b',p='float2Attr',at="float")
     
-    cmds.addAttr(ln='float3Attr',at='float3')
-    cmds.addAttr(ln='float3a',p='float3Attr',at="float")
-    cmds.addAttr(ln='float3b',p='float3Attr',at="float")
-    cmds.addAttr(ln='float3c',p='float3Attr',at="float")
+    doAttrAdd(ln='float3Attr',at='float3')
+    doAttrAdd(ln='float3a',p='float3Attr',at="float")
+    doAttrAdd(ln='float3b',p='float3Attr',at="float")
+    doAttrAdd(ln='float3c',p='float3Attr',at="float")
     
-    cmds.addAttr(ln='double2Attr',at='double2')
-    cmds.addAttr(ln='double2a',p='double2Attr',at='double')
-    cmds.addAttr(ln='double2b',p='double2Attr',at='double')
+    doAttrAdd(ln='double2Attr',at='double2')
+    doAttrAdd(ln='double2a',p='double2Attr',at='double')
+    doAttrAdd(ln='double2b',p='double2Attr',at='double')
     
-    cmds.addAttr(ln='double3Attr',at='double3')
-    cmds.addAttr(ln='double3a',p='double3Attr',at='double')
-    cmds.addAttr(ln='double3b',p='double3Attr',at='double')
-    cmds.addAttr(ln='double3c',p='double3Attr',at='double')
+    doAttrAdd(ln='double3Attr',at='double3')
+    doAttrAdd(ln='double3a',p='double3Attr',at='double')
+    doAttrAdd(ln='double3b',p='double3Attr',at='double')
+    doAttrAdd(ln='double3c',p='double3Attr',at='double')
     
     # Array Attributes 
     
-    cmds.addAttr(ln='Int32ArrayAttr',dt='Int32Array')
-    cmds.addAttr(ln='doubleArrayAttr',dt='doubleArray')
-    cmds.addAttr(ln='pointArrayAttr',dt='pointArray')
-    cmds.addAttr(ln='vectorArrayAttr',dt='vectorArray')
+    doAttrAdd(ln='Int32ArrayAttr',dt='Int32Array')
+    doAttrAdd(ln='doubleArrayAttr',dt='doubleArray')
+    doAttrAdd(ln='pointArrayAttr',dt='pointArray')
+    doAttrAdd(ln='vectorArrayAttr',dt='vectorArray')
     
-    cmds.addAttr(ln='stringArrayAttr',dt='stringArray')
-    cmds.addAttr(ln='stringAttr',dt="string")
+    doAttrAdd(ln='stringArrayAttr',dt='stringArray')
+    doAttrAdd(ln='stringAttr',dt="string")
 
     # Matrix
     
-    cmds.addAttr(ln='matrixAttr',dt="matrix")
+    doAttrAdd(ln='matrixAttr',dt="matrix")
     
     # non numeric
-    cmds.addAttr(ln='sphereAttr',dt='sphere')
-    cmds.addAttr(ln='coneAttr',dt='cone')
-    cmds.addAttr(ln='meshAttr',dt='mesh')
-    cmds.addAttr(ln='latticeAttr',dt='lattice')
-    cmds.addAttr(ln='spectrumRGBAttr',dt='spectrumRGB')
-    cmds.addAttr(ln='reflectanceRGBAttr',dt='reflectanceRGB')
-    cmds.addAttr(ln='componentListAttr',dt='componentList')
-    cmds.addAttr(ln='attrAliasAttr',dt='attributeAlias')
-    cmds.addAttr(ln='curveAttr',dt='nurbsCurve')
-    cmds.addAttr(ln='surfaceAttr',dt='nurbsSurface')
-    cmds.addAttr(ln='trimFaceAttr',dt='nurbsTrimface')
-    cmds.addAttr(ln='polyFaceAttr',dt='polyFaces')
+    doAttrAdd(ln='sphereAttr',dt='sphere')
+    doAttrAdd(ln='coneAttr',dt='cone')
+    doAttrAdd(ln='meshAttr',dt='mesh')
+    doAttrAdd(ln='latticeAttr',dt='lattice')
+    doAttrAdd(ln='spectrumRGBAttr',dt='spectrumRGB')
+    doAttrAdd(ln='reflectanceRGBAttr',dt='reflectanceRGB')
+    doAttrAdd(ln='componentListAttr',dt='componentList')
+    doAttrAdd(ln='attrAliasAttr',dt='attributeAlias')
+    doAttrAdd(ln='curveAttr',dt='nurbsCurve')
+    doAttrAdd(ln='surfaceAttr',dt='nurbsSurface')
+    doAttrAdd(ln='trimFaceAttr',dt='nurbsTrimface')
+    doAttrAdd(ln='polyFaceAttr',dt='polyFaces')
     
     return attributeTypesToNames, dataTypesToNames, namesToType
     
@@ -779,7 +777,7 @@ class test_PyNodeWraps(unittest.TestCase):
         cube = cmds.polyCube()[0]
         j1 = cmds.joint(p=(0,0,-1))
         cmds.joint(p=(0,0,1))
-        skin = skinCluster(cube, j1)[0]
+        skin = skinCluster(cube, j1)
         self.assertPyNodes(skin.getGeometry(), nt.DependNode)
         
     def test_addDynamic(self):

@@ -426,13 +426,8 @@ def compareCascadingDicts(dict1, dict2):
         will be set as the value in differences)
         Values that are different, and both dictionaries, will themselves have
         sparse entries, showing only what is different
-        The return value should be such that if you do:
-            >>> differences =  compareCascadingDicts(d1, d2)[-1]
-            >>> mergeCascadingDicts(differences, d1,
-            ...                     allowDictToListMerging=True)
-        
-        - then d1 == d2... that is, 'applying' the differences to d1
-        should yield d2
+        The return value should be such that if you do if you merge the
+        differences with d1, you will get d2.
     '''
     if isinstance(dict1, (list, tuple)):
         dict1 = dict(enumerate(dict1))
