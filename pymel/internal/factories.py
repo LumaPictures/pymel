@@ -2712,9 +2712,14 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
     added to pymel.all, if that module has been imported.
      
     """
-    inheritance = getInheritance( mayaType )
-
-    if not util.isIterable(inheritance):
+    try:
+        inheritance = getInheritance( mayaType )
+    except Exception:
+        import traceback
+        _logger.debug(traceback.format_exc())
+        inheritance = None
+        
+    if not inheritance or not util.isIterable(inheritance):
         _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
     else:
         #__logger.debug(mayaType, inheritance)
