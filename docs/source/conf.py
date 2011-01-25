@@ -196,3 +196,6 @@ inheritance_graph_attrs = dict(rankdir="TB", nodesep=0.15, ranksep=0.15)
                             #, size='"6.0, 8.0"',
                             #   fontsize=14, ratio='compress')
 inheritance_node_attrs = dict(fontsize=8)
+
+autosummary_generate = True
+

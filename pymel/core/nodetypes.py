@@ -2323,13 +2323,13 @@ def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
     methodWrapForEmptyMesh.__name__ = resultName
     return methodWrapForEmptyMesh
 
-for apiMethodName in '''numColorSets
+for _apiMethodName in '''numColorSets
                     numFaceVertices
                     numNormals
                     numUVSets
                     numUVs'''.split():
-    wrappedFunc = _makeApiMethodWrapForEmptyMesh(apiMethodName)
-    setattr(Mesh, wrappedFunc.__name__, wrappedFunc)
+    _wrappedFunc = _makeApiMethodWrapForEmptyMesh(_apiMethodName)
+    setattr(Mesh, _wrappedFunc.__name__, _wrappedFunc)
 
 class Subdiv(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
