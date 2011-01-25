@@ -367,7 +367,11 @@ simpleCommandWraps = {
 if includeDocExamples:
     examples = cmdcache.CmdProcessedExamplesCache().read()
     for cmd, example in examples.iteritems():
-        cmdlist[cmd]['example'] = example
+        try:
+            cmdlist[cmd]['example'] = example
+        except KeyError:
+            print "found an example for an unknown command:", cmd
+            pass
 
 #cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
 

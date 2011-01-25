@@ -5,6 +5,7 @@ Version 1.0.3
 ----------------------------------
 Changes
 ----------------------------------
+
 - ``setParent`` now returns PyUI objects when queried
 - ``setParent`` now returns None object instead of 'NONE' string
 - ``menu(q=1, itemArray=1)`` now returns [] instead of None
@@ -17,13 +18,18 @@ Changes
   any sense)
 - can now set enum attributes using their string values
 - can now pass in PyNode class objects to functions / methods that expect a
-  mel node class name - ie,
+  mel node class name - ie:
+
      listRelatives(allDescendents=True, type=nt.Joint)
-  is equivalent to
+
+  is equivalent to:
+
      listRelatives(allDescendents=True, type='joint')
+
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
+
 - PyNode('*') - or any other non-unique name - now returns an error
   use ls('*') if you wish to return a list of possible nodes
 - By default, the root pymel logger outputs to sys.__stdout__ now, instead of

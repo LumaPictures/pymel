@@ -69,7 +69,6 @@ Appendices:
 	pymel.util.mathutils
 	pymel.util.namedtuple
 	pymel.util.path
-	pymel.util.trees
 	pymel.util.utilitytypes
 	pymel.tools.mel2py
 	pymel.tools.py2mel
