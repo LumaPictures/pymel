@@ -31,17 +31,7 @@ def _getPymelTypeFromObject(obj, name):
         mayaType = fnDepend.typeName()
         import nodetypes
         pymelType = getattr( nodetypes, _util.capitalize(mayaType), nodetypes.DependNode )
-
-        if pymelType in _factories.virtualClass:
-            data = _factories.virtualClass[pymelType]
-            nodeName = name
-            for virtualCls, nameRequired in data:
-                if nameRequired and nodeName is None:
-                    nodeName = fnDepend.name()
-
-                if virtualCls._isVirtual(obj, nodeName):
-                    pymelType = virtualCls
-                    break
+        pymelType = _factories.virtualClasses.getVirtualClass(pymelType, obj, name, fnDepend)
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
         if compTypes is None:
@@ -1715,25 +1705,25 @@ class PyNode(_util.ProxyUnicode):
             # create node if possible
             if issubclass(cls,nodetypes.DependNode):
                 newNode = None
+                vClassInfo = _factories.virtualClasses.getVirtualClassInfo(cls)
                 #----------------------------------
                 # Pre Creation
                 #----------------------------------
-                if hasattr( cls, '_preCreateVirtual' ):
-                    newkwargs = cls._preCreateVirtual(**kwargs)
-                    assert isinstance(newkwargs, dict), "_preCreateVirtual must return a dictionary of keyword arguments"
-                    kwargs = newkwargs
+                postArgs = {}
+                if vClassInfo and vClassInfo.preCreate:
+                    kwargs = vClassInfo.preCreate(**kwargs)
+                    if isinstance(kwargs, tuple):
+                        assert len(kwargs) == 2, "preCreate must either 1 or 2 dictionaries of keyword arguments"
+                        kwargs, postArgs = kwargs
+                        assert isinstance(postArgs, dict), "preCreate second return value must be a dictionary of keyword arguments"
+                    assert isinstance(kwargs, dict), "_preCreateVirtual must return a dictionary of keyword arguments"
 
                 #----------------------------------
                 # Creation
                 #----------------------------------
-                if hasattr( cls, '_createVirtual' ):
-                    newNode = cls.createVirtual(**kwargs)
+                if vClassInfo and vClassInfo.create:
+                    newNode = vClassInfo.create(**kwargs)
                     assert isinstance(newNode, basestring), "_createVirtual must return the name created node"
-#                elif cls in _factories.virtualClassCreation:
-#                    res = _factories.virtualClassCreation[cls](**kwargs)
-#                    if res is None:
-#                        raise TypeError, "the creation callback of a virtual node must return the created node"
-#                    return cls(res)
 
                 elif hasattr(cls, '__melcmd__') and not cls.__melcmd_isinfo__:
                     try:
@@ -1773,8 +1763,8 @@ class PyNode(_util.ProxyUnicode):
                 # Post Creation
                 #----------------------------------
                 if newNode:
-                    if hasattr( cls, '_postCreateVirtual' ):
-                        cls._postCreateVirtual( newNode )
+                    if vClassInfo and vClassInfo.postCreate:
+                        vClassInfo.postCreate(newNode, **postArgs)
                     return cls(newNode)
 
             raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
