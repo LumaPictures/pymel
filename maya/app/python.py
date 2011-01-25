@@ -1,5 +1,11 @@
 
 """
+!!!!!!!!
+As of 2011, this file is no longer part of the 'official' maya distribution -
+it is included here only to override it in older maya versions
+!!!!!!!!
+
+
 The maya.app.python module contains utilites which Maya uses to communicate
 with Python.  These functions are not part of Maya's public API and may be
 subject to change.
