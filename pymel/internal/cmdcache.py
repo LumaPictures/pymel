@@ -364,7 +364,7 @@ def fixCodeExamples(style='maya', force=False):
     animOptions.append( cmds.animDisplay( q=1, modelUpdate=True ) )
 
     openWindows = cmds.lsUI(windows=True)
-    examples = CmdExamplesCache.read()
+    examples = CmdExamplesCache().read()
     processedExamples = CmdProcessedExamplesCache().read()
     processedExamples = {} if processedExamples is None else processedExamples
     allCmds = set(examples.keys())
@@ -372,7 +372,6 @@ def fixCodeExamples(style='maya', force=False):
     manualCmds = ['fileBrowserDialog', 'fileDialog', 'fileDialog2', 'fontDialog']
     skipCmds = ['colorEditor', 'emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor', 'ogsRender', 'webBrowser']
     allCmds.difference_update(manualCmds)
-    allCmds.difference_update(skipCmds)
     sortedCmds = manualCmds + sorted(allCmds)
     for command in sortedCmds:
         example = examples[command]
@@ -392,6 +391,9 @@ def fixCodeExamples(style='maya', force=False):
         if len(lines)==1:
             _logger.info("removing empty example for command %s", command)
             examples.pop(command)
+            processedExamples[command] = ''
+            # write out after each success so that if we crash we don't have to start from scratch
+            CmdProcessedExamplesCache().write(processedExamples)
             continue
 
         if style == 'doctest' :
@@ -400,6 +402,13 @@ def fixCodeExamples(style='maya', force=False):
             DOC_TEST_SKIP = ''
 
         lines[0] = 'import pymel.core as pm' + DOC_TEST_SKIP
+        
+        if command in skipCmds:
+            example = '\n'.join( lines )
+            processedExamples[command] = example
+            # write out after each success so that if we crash we don't have to start from scratch
+            CmdProcessedExamplesCache().write(processedExamples)
+
         #lines.insert(1, 'pm.newFile(f=1) #fresh scene')
         # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
         cmds.file(new=1,f=1)

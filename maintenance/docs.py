@@ -3,7 +3,10 @@ import sys
 import os, glob, shutil
 
 
-#os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
+# remember, the processed command examples are not version specific. you must
+# run cmdcache.fixCodeExamples() to bring processed examples in from the raw
+# version-specific example caches
+os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
 
 pymel_root = os.path.dirname(os.path.dirname(sys.modules[__name__].__file__))
 docsdir = os.path.join(pymel_root, 'docs')
