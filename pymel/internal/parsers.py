@@ -113,7 +113,9 @@ class CommandDocParser(HTMLParser):
             numArgs = len(args)
             if numArgs == 0:
                 args = bool
-                numArgs = 1
+                #numArgs = 1
+                # numArgs will stay at 0, which is the number of mel arguments.
+                # this flag should be renamed to numMelArgs
             elif numArgs == 1:
                 args = args[0]
 

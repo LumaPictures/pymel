@@ -418,20 +418,21 @@ def getInheritance( mayaType ):
     dgMod = api.MDGModifier()
 
     obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
-    if obj.hasFn( api.MFn.kDagNode ):
-        mod = dagMod
-        mod.doIt()
-        name = api.MFnDagNode(obj).partialPathName()
-    else:
-        mod = dgMod
-        mod.doIt()
-        name = api.MFnDependencyNode(obj).name()
 
-    if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
-        lineage = cmds.nodeType( name, inherited=1)
-    else:
-        lineage = []
-    mod.undoIt()
+    lineage = []
+    if obj is not None:
+        if obj.hasFn( api.MFn.kDagNode ):
+            mod = dagMod
+            mod.doIt()
+            name = api.MFnDagNode(obj).partialPathName()
+        else:
+            mod = dgMod
+            mod.doIt()
+            name = api.MFnDependencyNode(obj).name()
+    
+        if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
+            lineage = cmds.nodeType( name, inherited=1)
+        mod.undoIt()
     return lineage
 
 
@@ -503,7 +504,6 @@ def addCmdDocsCallback(cmdName, docstring=''):
                 typ = docs['args']
             except KeyError, e:
                 raise KeyError("Error retrieving doc information for: %s, %s\n%s" % (cmdName, flag, e))
-                raise
             if isinstance(typ, list):
                 try:
                     typ = [ x.__name__ for x in typ ]
@@ -2758,12 +2758,17 @@ def addPyNode( dynModule, mayaType, parentMayaType, extraAttrs=None ):
 def removePyNode( dynModule, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     removePyNodeType( pyNodeTypeName )
-
-    #_logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
+    
+    _logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
     dynModule.__dict__.pop(pyNodeTypeName,None)
+
     # delete the lazy loader too, so it does not regenerate the object
-    if hasattr(dynModule.__class__, pyNodeTypeName): 
-        delattr(dynModule.__class__, pyNodeTypeName) 
+    # Note - even doing a 'hasattr' will trigger the lazy loader, so just
+    # delete blind!
+    try: 
+        delattr(dynModule.__class__, pyNodeTypeName)
+    except Exception:
+        pass
     if 'pymel.all' in sys.modules:
         try:
             delattr(sys.modules['pymel.all'], pyNodeTypeName)

@@ -222,8 +222,9 @@ def getCmdInfoBasic( command ):
 
                 try:
                     tokens.remove('(multi-use)')
-                except:
-                    pass
+                    multiuse = True
+                except ValueError:
+                    multiuse = False
                 #_logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
 
@@ -255,6 +256,8 @@ def getCmdInfoBasic( command ):
                         longname = shortname
 
                     flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, 'docstring' : '' }
+                    if multiuse:
+                        flags[longname].setdefault('modes', []).append('multiuse')
                     shortFlags[shortname] = longname
 
     #except:
@@ -316,13 +319,17 @@ def getCmdInfo( command, version='8.5', python=True ):
         # args and numArgs is more reliable from mel help command than from parsed docs,
         # so, here we put that back in place and create shortflags.
 
+        # also use original 'multiuse' info...
 
         for flag, flagData in flags.items():
-            try:
-                basicFlagData = basicInfo['flags'][flag]
-                flagData['args'] = basicFlagData['args']
-                flagData['numArgs'] = basicFlagData['numArgs']
-            except KeyError: pass
+            basicFlagData = basicInfo.get('flags', {}).get(flag)
+            if basicFlagData:
+                if 'args' in basicFlagData and 'numargs' in basicFlagData:
+                    flagData['args'] = basicFlagData['args']
+                    flagData['numArgs'] = basicFlagData['numArgs']
+                    if (        'multiuse' in basicFlagData.get('modes', [])
+                            and 'multiuse' not in  flagData.get('modes', [])):
+                        flagData.setdefault('modes', []).append('multiuse')
 
         shortFlags = basicInfo['shortFlags']
         res = { 'flags': flags,
@@ -844,7 +851,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         flagInfo.pop(flag,None)
                         flagInfo.pop(shortname,None)
                     else:
-                        _logger.info(cmd)
+                        _logger.info(funcName)
                         _logger.info("\t" + str(msg).rstrip('\n'))
                         _logger.info("\tpredicted arg: %s", argtype)
                         if not 'query' in modes:

@@ -270,7 +270,9 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     # if so, we will swap the unicode back in
     if len(excLines) > 0:
         excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
-    exceptionMsg = excLines[-1].split(':',1)[1].strip()
+    
+    # use index of -1 because message may not have a ':'
+    exceptionMsg = excLines[-1].split(':',1)[-1].strip()
     if detail == 0:
         result = exceptionType.__name__ + ': ' + exceptionMsg
     else:
