@@ -1091,9 +1091,8 @@ def nodeType( node, **kwargs ):
     if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
         return cmds.nodeType( unicode(node), **kwargs )
 
-
-    obj = None
-    objName = None
+#    obj = None
+#    objName = None
 
     import nodetypes
 
@@ -1169,8 +1168,6 @@ Modifications:
             if kwargs.get(invalidArg, False) :
                 raise ValueError("duplicate: argument %r may not be used with 'addShape' argument" % invalidArg)
         name=kwargs.pop('name', kwargs.pop('n', None))
-
-        import nodetypes
 
         newShapes = []
         for origShape in [PyNode(x) for x in args]:
@@ -2318,7 +2315,7 @@ class Attribute(PyNode):
     def __getattr__(self, attr):
         try:
             return self.attr(attr)
-        except MayaAttributeError, e:
+        except MayaAttributeError:
             raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
     # Added the __call__ so to generate a more appropriate exception when a class method is not found
     def __call__(self, *args, **kwargs):
@@ -3507,7 +3504,6 @@ class Component( PyNode ):
                 oldCompLabel = set( (self._ComponentLabel__,) )
             if isinstance(self._indices, dict):
                 if len(self._indices) > 1:
-                    isComplete = False
                     assert set(self._indices.iterkeys()).issubset(oldCompLabel)
                     self._ComponentLabel__ = self._indices.keys()
                 else:
@@ -4028,7 +4024,7 @@ def validComponentIndexType( argObj, allowDicts=True, componentIndexTypes=None):
         componentIndexTypes = (int, long, float, slice, HashableSlice, ComponentIndex)
 
     if allowDicts and isinstance(argObj, dict):
-        for key, value in argObj.iteritems():
+        for value in argObj.itervalues():
             if not validComponentIndexType(value, allowDicts=False):
                 return False
         return True
@@ -4202,7 +4198,7 @@ class DiscreteComponent( DimensionedComponent ):
 
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for i in xrange(self.dimensions):
+        for _ in xrange(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         for flatIndex in xrange(len(self)):
@@ -4236,7 +4232,7 @@ class DiscreteComponent( DimensionedComponent ):
 
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for i in xrange(self.dimensions):
+        for _ in xrange(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
@@ -4257,7 +4253,7 @@ class DiscreteComponent( DimensionedComponent ):
         # Again, duplicates some code in currentItem/_flatIter for speed
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for i in xrange(self.dimensions):
+        for _ in xrange(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
@@ -4751,7 +4747,7 @@ class MeshVertexFace( Component2D ):
         if len(self._partialIndex) == 0:
             return super(MeshVertexFace, self)._validateGetItemIndice(item)
         if allowIterables and _util.isIterable(item):
-            for x in item:
+            for _ in item:
                 self._validateGetItemIndice(item, allowIterables=False)
             return
         if isinstance(item, (slice, HashableSlice)):
@@ -5303,7 +5299,7 @@ class Scene(object):
         if obj.startswith('__') and obj.endswith('__'):
             try:
                 return self.__dict__[obj]
-            except KeyError, err:
+            except KeyError:
                 raise AttributeError, "type object %r has no attribute %r" % (self.__class__.__name__, obj)
 
         return PyNode( obj )
