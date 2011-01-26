@@ -1954,9 +1954,11 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             getterInArgs = []
             # query method ( getter )
             #if argHelper.getGetterInfo() is not None:
-            if getterArgHelper is not None:
-                _logger.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
-                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
+            
+            # temporarily supress this warning, until we get a deeper level
+#            if getterArgHelper is not None:
+#                _logger.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
+#                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
 
         else:
             # edit method ( setter )
@@ -2272,6 +2274,9 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         removeAttrs.append(methodName)
                     except KeyError:
                         pymelName = methodName
+                        
+#                    if classname == 'DependNode' and pymelName in ('setName','getName'):
+#                        raise Exception('debug')
 
                     pymelName, data = _getApiOverrideNameAndData( classname, pymelName )
 
