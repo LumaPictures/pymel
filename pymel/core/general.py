@@ -6,7 +6,7 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 
 
 """
-
+from __future__ import with_statement
 
 import sys, os, re, itertools, inspect
 

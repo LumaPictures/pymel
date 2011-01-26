@@ -2801,7 +2801,7 @@ def removeMayaType(mayaType):
     _setApiCacheGlobals()
 
 VirtualClassInfo = util.namedtuple('VirtualClassInfo',
-            'cls parent nameRequired isVirtual preCreate create postCreate')
+            'vclass parent nameRequired isVirtual preCreate create postCreate')
 
 class VirtualClassError(Exception): pass
 
@@ -2810,7 +2810,7 @@ class VirtualClassManager(object):
         self._byVirtualClass = {}
         self._byParentClass = util.defaultdict(list)
         
-    def register( self, cls, nameRequired=False, isVirtual='_isVirtual',
+    def register( self, vclass, nameRequired=False, isVirtual='_isVirtual',
                   preCreate='_preCreateVirtual',
                   create='_createVirtual',
                   postCreate='_postCreateVirtual', ):
@@ -2912,17 +2912,17 @@ class VirtualClassManager(object):
         validSpecialAttrs = set(['__module__','__readonly__','__slots__','__melnode__','__doc__'])
 
         if isinstance(isVirtual, basestring):
-            isVirtual = getattr(cls, isVirtual, None)
+            isVirtual = getattr(vclass, isVirtual, None)
         if isinstance(preCreate, basestring):
-            preCreate = getattr(cls, preCreate, None)
+            preCreate = getattr(vclass, preCreate, None)
         if isinstance(create, basestring):
-            create = getattr(cls, create, None)
+            create = getattr(vclass, create, None)
         if isinstance(postCreate, basestring):
-            postCreate = getattr(cls, postCreate, None)
+            postCreate = getattr(vclass, postCreate, None)
         
         # assert that we are a leaf class
         parentCls = None
-        for each_cls in inspect.getmro(cls):
+        for each_cls in inspect.getmro(vclass):
             # we've reached a pymel node. we're done
             if each_cls.__module__.startswith('pymel.core'):
                 parentCls = each_cls
@@ -2935,25 +2935,25 @@ class VirtualClassManager(object):
                     raise ValueError, 'invalid attribute name(s) %s: special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
     
         assert parentCls, "passed class must be a subclass of a PyNode type"
-        #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
+        #assert issubclass( vclass, parentCls ), "%s must be a subclass of %s" % ( vclass, parentCls )
     
-        cls.__melnode__ = parentCls.__melnode__
+        vclass.__melnode__ = parentCls.__melnode__
 
         # filter out any pre-existing classes with the same name / module as
         # this one, because leaving stale callbacks in the list will slow things
         # down
         for vClassInfo in self._byParentClass[parentCls]:
-            vcls = vClassInfo.cls
-            if vcls.__name__ == cls.__name__ and vcls.__module__ == cls.__module__:
-                self.unregister(vcls)
+            otherVcls = vClassInfo.vclass
+            if otherVcls.__name__ == vclass.__name__ and otherVcls.__module__ == vclass.__module__:
+                self.unregister(otherVcls)
                 
         #TODO:
         # inspect callbacks to ensure proper number of args and kwargs ( create callback must support **kwargs )
         # ensure that the name of our node does not conflict with a real node
 
-        vClassInfo = VirtualClassInfo(cls, parentCls, nameRequired, isVirtual, preCreate, create, postCreate)
+        vClassInfo = VirtualClassInfo(vclass, parentCls, nameRequired, isVirtual, preCreate, create, postCreate)
         self._byParentClass[parentCls].append( vClassInfo )
-        self._byVirtualClass[cls] = vClassInfo
+        self._byVirtualClass[vclass] = vClassInfo
         
     def unregister(self, vcls):
         try:
@@ -2976,13 +2976,13 @@ class VirtualClassManager(object):
                 name = fnDepend.name()
 
             if vClassInfo.isVirtual(obj, name):
-                return vClassInfo.cls
+                return vClassInfo.vclass
         return baseClass
     
-    def getVirtualClassInfo(self, cls):
+    def getVirtualClassInfo(self, vclass):
         '''Given a virtual class, returns it's registered VirtualClassInfo
         '''
-        return self._byVirtualClass.get(cls)
+        return self._byVirtualClass.get(vclass)
 
 virtualClasses = VirtualClassManager()
 
