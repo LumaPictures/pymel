@@ -4,6 +4,7 @@ import maya.cmds as cmds
 import pymel.api as api
 import pymel.internal.cmdcache as cmdcache
 import pymel.internal.apicache as apicache
+import pymel.internal.factories as factories
 
 cmds.file(new=1, f=1)
 lsTypes = cmds.ls(nodeTypes=1)
@@ -11,6 +12,8 @@ num = len(lsTypes)
 lsTypes = set(lsTypes)
 assert num == len(lsTypes), "The result of ls(nodeTypes=1) contained duplicates"
 print num
+
+print 'got ls(nodeTypes=1), confirmed no dupes'
 
 realTypes = lsTypes
 
@@ -22,12 +25,17 @@ except RuntimeError:
     realAndAbstract = lsTypes
     abstractTypes = None
 else:
+
     num = len(allTypes)
     allTypes = set(allTypes)
     assert num == len(allTypes), "The result of allNodeTypes() contained duplicates"
     print num
     
+    print 'got allNodeTypes(), confirmed no dupes'
+
     assert lsTypes == allTypes, "ls(nodeTypes=1) and allNodeTypes() returned different result"
+    
+    print 'confirmed allNodeTypes() == ls(nodeTypes=1)'
     
     abstractSuffix = ' (abstract)'
     rawRealAndAbstract = cmds.allNodeTypes(includeAbstract=True)
@@ -40,14 +48,25 @@ else:
     
     abstractTypes = realAndAbstract - realTypes
     assert len(abstractTypes) + len(realTypes) == len(realAndAbstract)
+    
+    print 'got allNodeTypes(includeAbstract=True), separated nodes into real + abstract'
+
+# To do - make and load a plugin which makes one of every possible plugin node
+# type...
+
+print 'about to make nodes...'
 
 mobjDict = {}
 dagMod = api.MDagModifier()
 dgMod = api.MDGModifier()
 for nodeType in realTypes:
+    #print 'making nodeType %s...' % nodeType,
     mobjDict[nodeType] = apicache._makeDgModGhostObject(nodeType, dagMod, dgMod)
+    #print 'success!'
 dagMod.doIt()
 dgMod.doIt()
+
+print 'made nodes!'
 
 nodeDict = {}
 mfnDag = api.MFnDagNode()
@@ -176,30 +195,30 @@ for nodeType, inheritance in goodInheritances.iteritems():
             nodeTypeTree[child][0] = parents
     
 
-#print "trees equal?"
-#
-#only1, only2, diff = compareTrees(nodeTypeTree, cmdcache.nodeHierarchy)
-#
-#print
-#print "-" * 60
-#print "only1:"
-#pprint(list(only1))
-#print "-" * 60
-#print
-#
-#print
-#print "-" * 60
-#print "only2:"
-#pprint(list(only2))
-#print "-" * 60
-#print
-#
-#print
-#print "-" * 60
-#print "diff:"
-#pprint(diff)
-#print "-" * 60
-#print
+print "trees equal?"
+
+only1, only2, diff = compareTrees(nodeTypeTree, factories.nodeHierarchy)
+
+print
+print "-" * 60
+print "only1:"
+pprint(list(only1))
+print "-" * 60
+print
+
+print
+print "-" * 60
+print "only2:"
+pprint(list(only2))
+print "-" * 60
+print
+
+print
+print "-" * 60
+print "diff:"
+pprint(diff)
+print "-" * 60
+print
 #
 #
 ##==============================================================================
