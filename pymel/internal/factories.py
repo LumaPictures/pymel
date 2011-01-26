@@ -412,9 +412,15 @@ def getUncachedCmds():
 
 
 def getInheritance( mayaType ):
-    """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
-    To get the inheritance we use nodeType, which requires a real node.  To do get these without poluting the scene
-    we use a dag/dg modifier, call the doIt method, get the lineage, then call undoIt."""
+    """Get parents as a list, starting from the node after dependNode, and
+    ending with the mayaType itself. To get the inheritance we use nodeType,
+    which requires a real node.  To do get these without poluting the scene we
+    use a dag/dg modifier, call the doIt method, get the lineage, then call
+    undoIt.
+    
+    The special value 'manip' is returned if the type was discovered to be a
+    manipulator
+    """
 
     dagMod = api.MDagModifier()
     dgMod = api.MDGModifier()
@@ -423,6 +429,16 @@ def getInheritance( mayaType ):
 
     lineage = []
     if obj is not None:
+        if (      obj.hasFn( api.MFn.kManipulator )      
+               or obj.hasFn( api.MFn.kManipContainer )
+               or obj.hasFn( api.MFn.kPluginManipContainer )
+               or obj.hasFn( api.MFn.kPluginManipulatorNode )
+               
+               or obj.hasFn( api.MFn.kManipulator2D )
+               or obj.hasFn( api.MFn.kManipulator3D )
+               or obj.hasFn( api.MFn.kManip2DContainer) ):
+            return 'manip'
+ 
         if obj.hasFn( api.MFn.kDagNode ):
             mod = dagMod
             mod.doIt()

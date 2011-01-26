@@ -129,8 +129,10 @@ def _pluginLoaded( *args ):
                     import traceback
                     _logger.debug(traceback.format_exc())
                     inheritance = None
-                    
-                if not inheritance or not util.isIterable(inheritance):
+
+                if inheritance == 'manip':
+                    continue
+                elif not inheritance or not util.isIterable(inheritance):
                     _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
                 else:
                     #__logger.debug(mayaType, inheritance)
