@@ -17,7 +17,7 @@ sys.stdout = maya.utils.Output()
 sys.stderr = maya.utils.Output( error=1 )
 
 maya.utils.guiLogHandler()
-# Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+# Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related

@@ -5,7 +5,7 @@ This module is imported during the startup of Maya in batch mode.
 import maya.app.startup.basic
 
 pass
-# Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+# Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related

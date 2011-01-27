@@ -1,26 +1,87 @@
 """
 This is an experimental feature!!!  for advanced users only.
 
-Allows a user to create their own subclasses of leaf PyMEL node classes,
-which are returned by `PyNode` and all other pymel commands.
+Allows a user to create their own subclasses of leaf PyMEL node classes, which
+are returned by `PyNode` and all other pymel commands.
 
-.. warning:: If you are not familiar with the classmethod and staticmethod decorators you should read up on them before using this feature.
-
-The process is fairly simple:
-    1.  Subclass a PyNode class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
-        and not an abstract type higher up in the hierarchy. 
-    2.  Add an _isVirtual classmethod that accepts two arguments: an MObject/MDagPath instance for the current object, and its name. 
-        It should return True if the current object meets the requirements to become the virtual subclass, or else False. 
-    3.  Add an optional _preCreate and _postCreate method.  for more on these, see the examples below.
-    4.  Register your subclass by calling factories.registerVirtualClass. If the _isVirtual callback requires the name of the object, 
-        set the keyword argument nameRequired to True. The object's name is not always immediately available and may take an extra 
-        calculation to retrieve, so if nameRequired is not set the name argument passed to your callback could be None.
+.. warning:: If you are not familiar with the classmethod and staticmethod
+decorators you should read up on them before using this feature.
+    
+        The process is fairly simple:
+            1.  Subclass a PyNode class.  Be sure that it is a leaf class,
+                meaning that it represents an actual Maya node type and not an
+                abstract type higher up in the hierarchy.
+            2.  Add an _isVirtual classmethod that accepts two arguments: an
+                MObject/MDagPath instance for the current object, and its name.
+                It should return True if the current object meets the
+                requirements to become the virtual subclass, or else False.
+            3.  Add optional _preCreate, _create, and _postCreate methods.  For
+                more on these, see below
+            4.  Register your subclass by calling
+                factories.registerVirtualClass. If the _isVirtual callback
+                requires the name of the object, set the keyword argument
+                nameRequired to True. The object's name is not always
+                immediately available and may take an extra calculation to
+                retrieve, so if nameRequired is not set the name argument
+                passed to your callback could be None.
             
-If more than one subclass is registered for a node type, the registered callbacks will be run newest to oldest until one returns True.  
-If no test returns True, then the standard node class is used.  Keep in mind that once your new type is registered, its test will be run
-every time a node of its parent type is returned as a PyMEL node class, so be sure to keep your tests simple and fast.  
+        The creation of custom nodes may be customized with the use of
+        isVirtual, preCreate, create, and postCreate functions; these are
+        functions (or classmethods) which are called before / during / after
+        creating the node.
+        
+        The isVirtual method is required - it is the callback used on instances
+        of the base (ie, 'real') objects to determine whether they should be
+        considered an instance of this virtual class. It's input is an MObject
+        and an optional name (if nameRequired is set to True). It should return
+        True to indicate that the given object is 'of this class', False
+        otherwise. PyMEL code should not be used inside the callback, only API
+        and maya.cmds. Keep in mind that once your new type is registered, its
+        test will be run every time a node of its parent type is returned as a
+        PyMEL node class, so be sure to keep your tests simple and fast.
+
+        The preCreate function is called prior to node creation and gives you a
+        chance to modify the kwargs dictionary; they are fed the kwargs fed to
+        the creation command, and return either 1 or 2 dictionaries; the first
+        dictionary is the one actually passed to the creation command; the
+        second, if present, is passed to the postCreate command.
+        
+        The create method can be used to override the 'default' node creation
+        command;  it is given the kwargs given on node creation (possibly
+        altered by the preCreate), and must return the string name of the
+        created node. (...or any another type of object (such as an MObject),
+        as long as the postCreate and class.__init__ support it.)
+        
+        The postCreate function is called after creating the new node, and
+        gives you a chance to modify it.  The method is passed the PyNode of
+        the newly created node, as well as the second dictionary returned from
+        the preCreate function as kwargs (if it was returned). You can use
+        PyMEL code here, but you should avoid creating any new nodes.
+        
+        By default, any method named '_isVirtual', '_preCreateVirtual',
+        '_createVirtual', or '_postCreateVirtual' on the class is used; if
+        present, these must be classmethods or staticmethods.
+        
+        Other methods / functions may be used by passing a string or callable
+        to the preCreate / postCreate kwargs.  If a string, then the method
+        with that name on the class is used; it should be a classmethod or
+        staticmethod present at the time it is registered.
+        
+        The value None may also be passed to any of these args (except isVirtual)
+        to signal that no function is to be used for these purposes.
+        
+        If more than one subclass is registered for a node type, the registered
+        callbacks will be run newest to oldest until one returns True. If no
+        test returns True, then the standard node class is used. Also, for each
+        base node type, if there is already a virtual class registered with the
+        same name and module, then it is removed. (This helps alleviate
+        registered callbacks from piling up if, for instance, a module is
+        reloaded.)
 
 """
+# Note - all of this, below the 'warning', is copied from the docstring for
+# VirtualClassManger.register - keep it in sync!
+
 
 from pymel.all import *
     
@@ -51,8 +112,10 @@ class CustomJointBase(Joint):
     @classmethod
     def _preCreateVirtual(cls, **kwargs ):
         """
-        This class method is called prior to node creation and gives you a chance to modify the kwargs dictionary
-        that is passed to the creation command.
+        This class method is called prior to node creation and gives you a
+        chance to modify the kwargs dictionary that is passed to the creation
+        command.  If it returns two dictionaries, the second is used passed
+        as the kwargs to the postCreate method 
         
         this method must be a classmethod or staticmethod
         """
@@ -60,30 +123,40 @@ class CustomJointBase(Joint):
             # if no name is passed, then use the joint Id as the name.
             kwargs['name'] = cls._jointClassID
         # be sure to return the modified kwarg dictionary
-        return kwargs
+        
+        postKwargs = {}
+        
+        if 'rotate' in kwargs:
+            postKwargs['rotate'] = kwargs.pop('rotate')
+        return kwargs, postKwargs
           
     @classmethod
-    def _postCreateVirtual(cls, newNode ):
+    def _postCreateVirtual(cls, newNode, **kwargs ):
         """
-        This method is called after creating the new node, and gives you a chance to modify it.  The method is
-        passed the PyNode of the newly created node. You can use PyMEL code here, but you should avoid creating
-        any new nodes.
+        This method is called after creating the new node, and gives you a
+        chance to modify it.  The method is passed the PyNode of the newly
+        created node, and the second dictionary returned by the preCreate, if
+        it returned two items. You can use PyMEL code here, but you should
+        avoid creating any new nodes.
         
         this method must be a classmethod or staticmethod
         """
         # add the identifying attribute. the attribute name will be set on subclasses of this class
         newNode.addAttr( cls._jointClassID )
+        rotate = kwargs.get('rotate')
+        if rotate is not None:
+            newNode.attr('rotate').set(rotate)
  
 class LegJoint(CustomJointBase):
     _jointClassID = 'joint_leg'
     def kick(self):
-        print "kicking"
+        print "%s is kicking" % self.name()
         
         
 class JawJoint(CustomJointBase):
     _jointClassID = 'joint_jaw'
     def munch(self):
-        print "munching"
+        print "%s is munching" % self.name()
 
 # we don't need to register CustomJointBase because it's just an abstract class to help us easily make our other virtual nodes
 factories.registerVirtualClass( LegJoint, nameRequired=False )
@@ -95,7 +168,7 @@ def testJoint():
     Joint()
     # now make some of our custom joints
     LegJoint(name='leftLeg')
-    JawJoint()
+    JawJoint(rotate=(90,45,0))
 
     # now list the joints and see which ones are our special joints
     res = ls(type='joint')

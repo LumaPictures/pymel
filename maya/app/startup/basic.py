@@ -45,7 +45,7 @@ def executeSetup(filename):
     namespace
     """
     try:
-        for path in sys.path:
+        for path in sys.path[:]:
             scriptPath = os.path.join( path, filename )
             if os.path.isfile( scriptPath ):
                 import __main__
@@ -91,7 +91,7 @@ if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
 
 # Register code to be run on exit
 atexit.register( maya.app.finalize )
-# Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+# Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related

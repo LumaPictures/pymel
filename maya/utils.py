@@ -3,7 +3,9 @@ General utility functions that are not specific to Maya Commands or the
 OpenMaya API.
 
 Note:
-env vars MAYA_GUI_LOGGER_FORMAT and MAYA_SHELL_LOGGER_FORMAT can be used to 
+By default, handlers are installed for the root logger.  This can be overriden
+with env var MAYA_DEFAULT_LOGGER_NAME.
+Env vars MAYA_GUI_LOGGER_FORMAT and MAYA_SHELL_LOGGER_FORMAT can be used to 
 override the default formatting of logging messages sent to the GUI and 
 shell respectively.
 
@@ -17,11 +19,14 @@ import os
 import re
 import sys
 import traceback
-import types
+import pydoc
+import inspect
 from maya import cmds
 
 _shellLogHandler = None
 _guiLogHandler = None
+
+appLoggerName = os.environ.get('MAYA_DEFAULT_LOGGER_NAME', '')
 
 def loadStringResourcesForModule( moduleName ):
     """
@@ -91,6 +96,9 @@ def getPossibleCompletions(input):
             term = completer.complete(input, index)
             if term is None:
                 break
+            # avoid duplicate entries
+            if len(listOfMatches) and listOfMatches[-1] == term:
+                continue
             listOfMatches.append(term)
     except:
         pass
@@ -100,36 +108,37 @@ def getPossibleCompletions(input):
 def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0):
     """
     Utility method to return python help in the form of a string
-    (based on the code in pydoc.py)
-    Note: only a string (including unicode) should be passed in for "thing"
-    """
     
-    import pydoc as pydocs
-    import inspect
-    import string
+    thing - str or unicode name to get help on
+    title - format string for help result
+    forceload - argument to pydoc.resolve, force object's module to be reloaded from file
+    
+    returns formated help string 
+    """
+    result = ""
+    try:
+        thingStr = thing.encode(cmds.about(codeset=True))
+    except:
+        thingStr = str(thing)
 
-    result=""
-
-    # Important for converting an incoming c++ unicode character string!
-    thingStr=str(thing)
-
-    """Display text documentation, given an object or a path to an object."""
     try:
         # Possible two-stage object resolution!
         # Sometimes we get docs for strings, other times for objects
         #
         try:
-            object, name = pydocs.resolve(thingStr, forceload)
+            object, name = pydoc.resolve(thingStr, forceload)
         except:
             # Get an object from a string
-            thingObj=eval(thingStr)
-            object, name = pydocs.resolve(thingObj, forceload)
-        desc = pydocs.describe(object)
+            thingObj=eval(thingStr,sys.modules['__main__'].__dict__)
+            object, name = pydoc.resolve(thingObj, forceload)
+        desc = pydoc.describe(object)
         module = inspect.getmodule(object)
         if name and '.' in name:
             desc += ' in ' + name[:name.rfind('.')]
         elif module and module is not object:
             desc += ' in module ' + module.__name__
+        doc = None
+        text = pydoc.TextDoc()        
         if not (inspect.ismodule(object) or
                 inspect.isclass(object) or
                 inspect.isroutine(object) or
@@ -140,16 +149,22 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
             # document its available methods instead of its value.
             object = type(object)
             desc += ' object'
-        text = pydocs.TextDoc()
-        result=pydocs.plain(title % desc + '\n\n' + text.document(object, name))
+        # if the object is a maya command without a proper docstring,
+        # then tack on the help for it
+        elif module is cmds and inspect.isroutine(object): 
+            try:
+                if len(object.__doc__) == 0:
+                    doc = cmds.help(object.__name__)
+            except:
+                pass
+        if not doc:
+            doc = text.document(object, name)
+        result = pydoc.plain(title % desc + '\n\n' + doc)
         
         # Remove multiple empty lines
-        result = [ line for line in result.splitlines() if line.strip() ]
-        result = string.join(result,"\n")
-
+        result = "\n".join([ line for line in result.splitlines() if line.strip()])
     except:
         pass
-
     return result
 
 # ##############################################################################
@@ -191,7 +206,7 @@ def guiLogHandler():
     _guiLogHandler = MayaGuiLogHandler()
     format = os.environ.get('MAYA_GUI_LOGGER_FORMAT', '%(name)s : %(message)s')
     _guiLogHandler.setFormatter( logging.Formatter(format) )
-    log = logging.getLogger('')
+    log = logging.getLogger(appLoggerName)
     log.addHandler(_guiLogHandler)
     return _guiLogHandler
 
@@ -208,7 +223,7 @@ def shellLogHandler():
     _shellLogHandler = logging.StreamHandler(shellStream)
     format = os.environ.get('MAYA_SHELL_LOGGER_FORMAT', '%(name)s : %(levelname)s : %(message)s')
     _shellLogHandler.setFormatter( logging.Formatter(format) )
-    log = logging.getLogger('')
+    log = logging.getLogger(appLoggerName)
     log.addHandler(_shellLogHandler)
     log.setLevel(logging.INFO)
     return _shellLogHandler
@@ -353,7 +368,7 @@ def formatGuiResult(obj):
             return maya.utils._formatGuiResult(obj)
         maya.utils.formatGuiResult = myResultCallback
     """
-    if isinstance(obj, types.StringTypes):
+    if isinstance(obj, str) or isinstance(obj, unicode):
         return obj
     else:
         return repr(obj)
@@ -361,7 +376,7 @@ def formatGuiResult(obj):
 # store a local unmodified copy
 _formatGuiResult = formatGuiResult
 
-# Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+# Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related

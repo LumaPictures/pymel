@@ -158,8 +158,6 @@ nodeTypeToInfoCommand = {
     'transform' : 'xform'
 }
 
-virtualClass = util.defaultdict(list)
-
 def toPyNode(res):
     "returns a PyNode object"
     if res is not None and res != '':
@@ -367,9 +365,13 @@ simpleCommandWraps = {
 #---------------------------------------------------------------
 
 if includeDocExamples:
-    examples = cmdcache.CmdProcessedExamplesCache.read()
+    examples = cmdcache.CmdProcessedExamplesCache().read()
     for cmd, example in examples.iteritems():
-        cmdlist[cmd]['example'] = example
+        try:
+            cmdlist[cmd]['example'] = example
+        except KeyError:
+            print "found an example for an unknown command:", cmd
+            pass
 
 #cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
 
@@ -407,12 +409,18 @@ def _getApiOverrideNameAndData(classname, pymelName):
 def getUncachedCmds():
     return list( set( map( itemgetter(0), inspect.getmembers( cmds, callable ) ) ).difference( cmdlist.keys() ) )
 
-
+class InvalidNodeTypeError(Exception): pass
+class ManipNodeTypeError(InvalidNodeTypeError): pass
 
 def getInheritance( mayaType ):
-    """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
-    To get the inheritance we use nodeType, which requires a real node.  To do get these without poluting the scene
-    we use a dag/dg modifier, call the doIt method, get the lineage, then call undoIt."""
+    """Get parents as a list, starting from the node after dependNode, and
+    ending with the mayaType itself. To get the inheritance we use nodeType,
+    which requires a real node.  To do get these without poluting the scene we
+    use a dag/dg modifier, call the doIt method, get the lineage, then call
+    undoIt.
+    
+    A ManipNodeTypeError is the node type fed in was a manipulator
+    """
 
     dagMod = api.MDagModifier()
     dgMod = api.MDGModifier()
@@ -421,6 +429,16 @@ def getInheritance( mayaType ):
 
     lineage = []
     if obj is not None:
+        if (      obj.hasFn( api.MFn.kManipulator )      
+               or obj.hasFn( api.MFn.kManipContainer )
+               or obj.hasFn( api.MFn.kPluginManipContainer )
+               or obj.hasFn( api.MFn.kPluginManipulatorNode )
+               
+               or obj.hasFn( api.MFn.kManipulator2D )
+               or obj.hasFn( api.MFn.kManipulator3D )
+               or obj.hasFn( api.MFn.kManip2DContainer) ):
+            raise ManipNodeTypeError
+ 
         if obj.hasFn( api.MFn.kDagNode ):
             mod = dagMod
             mod.doIt()
@@ -1952,9 +1970,11 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             getterInArgs = []
             # query method ( getter )
             #if argHelper.getGetterInfo() is not None:
-            if getterArgHelper is not None:
-                _logger.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
-                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
+            
+            # temporarily supress this warning, until we get a deeper level
+#            if getterArgHelper is not None:
+#                _logger.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
+#                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
 
         else:
             # edit method ( setter )
@@ -2270,6 +2290,9 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         removeAttrs.append(methodName)
                     except KeyError:
                         pymelName = methodName
+                        
+#                    if classname == 'DependNode' and pymelName in ('setName','getName'):
+#                        raise Exception('debug')
 
                     pymelName, data = _getApiOverrideNameAndData( classname, pymelName )
 
@@ -2714,6 +2737,9 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
     """
     try:
         inheritance = getInheritance( mayaType )
+    except ManipNodeTypeError:
+        _logger.warn( "could not create a PyNode for manipulator type %s" % mayaType)
+        return
     except Exception:
         import traceback
         _logger.debug(traceback.format_exc())
@@ -2816,53 +2842,194 @@ def removeMayaType(mayaType):
     _apiCacheInst.removeMayaType(mayaType, globals())
     _setApiCacheGlobals()
 
+VirtualClassInfo = util.namedtuple('VirtualClassInfo',
+            'vclass parent nameRequired isVirtual preCreate create postCreate')
 
-def registerVirtualClass( cls, nameRequired=False ):
-    """
-    Allows a user to create their own subclasses of leaf PyMEL node classes,
-    which are returned by `general.PyNode` and all other pymel commands.
+class VirtualClassError(Exception): pass
 
-    The process is fairly simple:
-        1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
-            and not an abstract type higher up in the hierarchy.
-        2.  Register your subclass by calling this function
+class VirtualClassManager(object):
+    def __init__(self):
+        self._byVirtualClass = {}
+        self._byParentClass = util.defaultdict(list)
+        
+    def register( self, vclass, nameRequired=False, isVirtual='_isVirtual',
+                  preCreate='_preCreateVirtual',
+                  create='_createVirtual',
+                  postCreate='_postCreateVirtual', ):
+        """Register a new virtual class
+         
+        Allows a user to create their own subclasses of leaf PyMEL node classes,
+        which are returned by `general.PyNode` and all other pymel commands.
+    
+        The process is fairly simple:
+            1.  Subclass a PyNode class.  Be sure that it is a leaf class,
+                meaning that it represents an actual Maya node type and not an
+                abstract type higher up in the hierarchy.
+            2.  Add an _isVirtual classmethod that accepts two arguments: an
+                MObject/MDagPath instance for the current object, and its name.
+                It should return True if the current object meets the
+                requirements to become the virtual subclass, or else False.
+            3.  Add optional _preCreate, _create, and _postCreate methods.  For
+                more on these, see below
+            4.  Register your subclass by calling
+                factories.registerVirtualClass. If the _isVirtual callback
+                requires the name of the object, set the keyword argument
+                nameRequired to True. The object's name is not always
+                immediately available and may take an extra calculation to
+                retrieve, so if nameRequired is not set the name argument
+                passed to your callback could be None.
+            
+        The creation of custom nodes may be customized with the use of
+        isVirtual, preCreate, create, and postCreate functions; these are
+        functions (or classmethods) which are called before / during / after
+        creating the node.
+        
+        The isVirtual method is required - it is the callback used on instances
+        of the base (ie, 'real') objects to determine whether they should be
+        considered an instance of this virtual class. It's input is an MObject
+        and an optional name (if nameRequired is set to True). It should return
+        True to indicate that the given object is 'of this class', False
+        otherwise. PyMEL code should not be used inside the callback, only API
+        and maya.cmds. Keep in mind that once your new type is registered, its
+        test will be run every time a node of its parent type is returned as a
+        PyMEL node class, so be sure to keep your tests simple and fast.
 
-    :type  nameRequired: bool
-    :param nameRequired: True if the _isVirtual callback requires the string name to operate on. The object's name is not always immediately
-        avaiable and may take an extra calculation to retrieve.
+        The preCreate function is called prior to node creation and gives you a
+        chance to modify the kwargs dictionary; they are fed the kwargs fed to
+        the creation command, and return either 1 or 2 dictionaries; the first
+        dictionary is the one actually passed to the creation command; the
+        second, if present, is passed to the postCreate command.
+        
+        The create method can be used to override the 'default' node creation
+        command;  it is given the kwargs given on node creation (possibly
+        altered by the preCreate), and must return the string name of the
+        created node. (...or any another type of object (such as an MObject),
+        as long as the postCreate and class.__init__ support it.)
+        
+        The postCreate function is called after creating the new node, and
+        gives you a chance to modify it.  The method is passed the PyNode of
+        the newly created node, as well as the second dictionary returned from
+        the preCreate function as kwargs (if it was returned). You can use
+        PyMEL code here, but you should avoid creating any new nodes.
+        
+        By default, any method named '_isVirtual', '_preCreateVirtual',
+        '_createVirtual', or '_postCreateVirtual' on the class is used; if
+        present, these must be classmethods or staticmethods.
+        
+        Other methods / functions may be used by passing a string or callable
+        to the preCreate / postCreate kwargs.  If a string, then the method
+        with that name on the class is used; it should be a classmethod or
+        staticmethod present at the time it is registered.
+        
+        The value None may also be passed to any of these args (except isVirtual)
+        to signal that no function is to be used for these purposes.
+        
+        If more than one subclass is registered for a node type, the registered
+        callbacks will be run newest to oldest until one returns True. If no
+        test returns True, then the standard node class is used. Also, for each
+        base node type, if there is already a virtual class registered with the
+        same name and module, then it is removed. (This helps alleviate
+        registered callbacks from piling up if, for instance, a module is
+        reloaded.)
+        
+        For a usage example, see examples/customClasses.py
 
-    """
-    validSpecialAttrs = set(['__module__','__readonly__','__slots__','__melnode__','__doc__'])
+        :parameters:
+        nameRequired : `bool`
+            True if the _isVirtual callback requires the string name to operate
+            on. The object's name is not always immediately avaiable and may
+            take an extra calculation to retrieve.
+        isVirtual: `str` or callable
+            the function to determine whether an MObject is an instance of this
+            class; should take an MObject and name, returns True / or False
+        preCreate: `str` or callable
+            the function used to modify kwargs before being passed to the
+            creation function
+        create: `str` or callable
+            function to use instead of the standard node creation method;
+            takes whatever args are given to the cl
+        postCreate: `str` or callable
+            the function used to modify the PyNode after it is created.
+        """
+        validSpecialAttrs = set(['__module__','__readonly__','__slots__','__melnode__','__doc__'])
 
-    # assert that we are a leaf class
-    parentCls = None
-    for each_cls in inspect.getmro(cls):
-        # we've reached a pymel node. we're done
-        if each_cls.__module__.startswith('pymel.core'):
-            parentCls = each_cls
-            break
-        else:
-            # it's a custom class: test for disallowed attributes
-            specialAttrs = [ x for x in each_cls.__dict__.keys() if x.startswith('__') and x.endswith('__') ]
-            badAttrs = set(specialAttrs).difference(validSpecialAttrs)
-            if badAttrs:
-                raise ValueError, 'invalid attribute name(s) %s: special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
+        if isinstance(isVirtual, basestring):
+            isVirtual = getattr(vclass, isVirtual, None)
+        if isinstance(preCreate, basestring):
+            preCreate = getattr(vclass, preCreate, None)
+        if isinstance(create, basestring):
+            create = getattr(vclass, create, None)
+        if isinstance(postCreate, basestring):
+            postCreate = getattr(vclass, postCreate, None)
+        
+        # assert that we are a leaf class
+        parentCls = None
+        for each_cls in inspect.getmro(vclass):
+            # we've reached a pymel node. we're done
+            if each_cls.__module__.startswith('pymel.core'):
+                parentCls = each_cls
+                break
+            else:
+                # it's a custom class: test for disallowed attributes
+                specialAttrs = [ x for x in each_cls.__dict__.keys() if x.startswith('__') and x.endswith('__') ]
+                badAttrs = set(specialAttrs).difference(validSpecialAttrs)
+                if badAttrs:
+                    raise ValueError, 'invalid attribute name(s) %s: special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
+    
+        assert parentCls, "passed class must be a subclass of a PyNode type"
+        #assert issubclass( vclass, parentCls ), "%s must be a subclass of %s" % ( vclass, parentCls )
+    
+        vclass.__melnode__ = parentCls.__melnode__
 
-    assert parentCls, "passed class must be a subclass of a PyNode type"
-    #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
+        # filter out any pre-existing classes with the same name / module as
+        # this one, because leaving stale callbacks in the list will slow things
+        # down
+        for vClassInfo in self._byParentClass[parentCls]:
+            otherVcls = vClassInfo.vclass
+            if otherVcls.__name__ == vclass.__name__ and otherVcls.__module__ == vclass.__module__:
+                self.unregister(otherVcls)
+                
+        #TODO:
+        # inspect callbacks to ensure proper number of args and kwargs ( create callback must support **kwargs )
+        # ensure that the name of our node does not conflict with a real node
 
-    cls.__melnode__ = parentCls.__melnode__
+        vClassInfo = VirtualClassInfo(vclass, parentCls, nameRequired, isVirtual, preCreate, create, postCreate)
+        self._byParentClass[parentCls].append( vClassInfo )
+        self._byVirtualClass[vclass] = vClassInfo
+        
+    def unregister(self, vcls):
+        try:
+            vClassInfo = self._byVirtualClass.pop(vcls)
+        except KeyError:
+            raise VirtualClassError('%r was not registered as a virtual class' % vcls) 
+        self._byParentClass[vClassInfo.parent].remove(vClassInfo)
+        
+    def getVirtualClass(self, baseClass, obj, name=None, fnDepend=None):
+        '''Returns the virtual class to use for the given baseClass + obj, or
+        the original baseClass if no virtual class matches.
+        '''
+        vClasses = self._byParentClass.get(baseClass)
+        if not vClasses:
+            return baseClass
+        for vClassInfo in reversed(vClasses):
+            if vClassInfo.nameRequired and name is None:
+                if fnDepend is None:
+                    fnDepend = api.MFnDependencyNode(obj)
+                name = fnDepend.name()
 
-    # filter out any pre-existing classes with the same name as this one, because leaving stale callbacks in the list will slow things down
-    virtualClass[parentCls] = [ x for x in virtualClass[parentCls] if x[0].__name__ != cls.__name__]
+            if vClassInfo.isVirtual(obj, name):
+                return vClassInfo.vclass
+        return baseClass
+    
+    def getVirtualClassInfo(self, vclass):
+        '''Given a virtual class, returns it's registered VirtualClassInfo
+        '''
+        return self._byVirtualClass.get(vclass)
 
-    #TODO:
-    # inspect callbacks to ensure proper number of args and kwargs ( create callback must support **kwargs )
-    # ensure that the name of our node does not conflict with a real node
+virtualClasses = VirtualClassManager()
 
-    # put new classes at the front of list, so more recently added ones
-    # will override old definitions
-    virtualClass[parentCls].insert( 0, (cls, nameRequired) )
+# for backwards compatibility + ease of access
+registerVirtualClass = virtualClasses.register
 
 #-------------------------------------------------------------------------------
 

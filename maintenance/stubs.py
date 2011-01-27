@@ -1,9 +1,11 @@
-from pydoc import *
-import pydoc, pkgutil, sys, pprint
+from pydoc import *         #@UnusedWildImport
+import pydoc, sys, pprint   #@Reimport
 import __builtin__
-import os, shutil
+import os                   #@Reimport
+import pkgutil              #@Reimport
 
-import pymel.util as util
+# for the sake of stubtest, don't importy anything pymel/maya at module level 
+#import pymel.util as util
 
 class StubDoc(Doc):
     """Formatter class for text documentation."""
@@ -67,7 +69,7 @@ class Parsed(ProxyUni): pass
         debugmodule = 'pymel.api'
         
         name = object.__name__ # ignore the passed-in name
-        synop, desc = splitdoc(getdoc(object))
+        desc = splitdoc(getdoc(object))[1]
         result = ''
         self.module_map = {}
         self.missing_modules = set([])
@@ -134,30 +136,6 @@ class Parsed(ProxyUni): pass
                 if object.__name__ == debugmodule and value.__module__ == 'pymel.internal.apicache':
                     print "import* %r" % value
                 fromall_modules.add( value.__module__ )
-            
-#        modpkgs = []
-#        modpkgs_names = set()
-#        if hasattr(object, '__path__'):
-#            for importer, modname, ispkg in pkgutil.iter_modules(object.__path__):
-#                modpkgs_names.add(modname)
-#                if ispkg:
-#                    modpkgs.append(modname + ' (package)')
-#                else:
-#                    modpkgs.append(modname)
-#
-#            modpkgs.sort()
-#            result = result + self.section(
-#                'PACKAGE CONTENTS', join(modpkgs, '\n'))
-#
-#        # Detect submodules as sometimes created by C extensions
-#        submodules = []
-#        for key, value in inspect.getmembers(object, inspect.ismodule):
-#            if value.__name__.startswith(name + '.') and key not in modpkgs_names:
-#                submodules.append(key)
-#        if submodules:
-#            submodules.sort()
-#            result = result + self.section(
-#                'SUBMODULES', join(submodules, '\n'))
 
         if modules:
             contents = []
@@ -188,6 +166,11 @@ class Parsed(ProxyUni): pass
                     contents.append( 'import ' + importname + ( ( ' as ' + key ) if importname != key else '') )
             result = result + join(contents, '\n') + '\n\n'
         if fromall_modules:
+            # special-case handling for pymel.internal.pmcmds, which ends up
+            # with a bunch of 'from pymel.core.X import *' commands
+            if name == 'pymel.internal.pmcmds':
+                fromall_modules = [x for x in fromall_modules if not x.startswith('pymel.core')]
+                fromall_modules.append('maya.cmds')
             contents = []
             for modname in fromall_modules:
                 if modname in self.importSubstitutions:
@@ -311,18 +294,10 @@ class Parsed(ProxyUni): pass
         contents = doc and [self.docstring(doc) + '\n'] or []
         push = contents.append
 
-#        # List the mro, if non-trivial.
-        mro = deque(inspect.getmro(object))
-#        if len(mro) > 2:
-#            push("Method resolution order:")
-#            for base in mro:
-#                push('    ' + makename(base))
-#            push('')
-
         def spill(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:
+                for name, kind, homecls, value in ok:       #@UnusedVariable
                     push(self.document(getattr(object, name),
                                        name, mod, object))
             return attrs
@@ -330,14 +305,14 @@ class Parsed(ProxyUni): pass
         def spilldescriptors(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:
+                for name, kind, homecls, value in ok:       #@UnusedVariable
                     push(self._docdescriptor(name, value, mod))
             return attrs
 
         def spilldata(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:
+                for name, kind, homecls, value in ok:       #@UnusedVariable
                     if (hasattr(value, '__call__') or
                             inspect.isdatadescriptor(value)):
                         doc = getdoc(value)
@@ -402,38 +377,23 @@ class Parsed(ProxyUni): pass
         """Produce text documentation for a function or method object."""
         realname = object.__name__
         name = name or realname
-        note = ''
         skipdocs = 0
         if inspect.ismethod(object):
-            imclass = object.im_class
-#            if cl:
-#                if imclass is not cl:
-#                    note = ' from ' + classname(imclass, mod)
-#            else:
-#                if object.im_self is not None:
-#                    note = ' method of %s instance' % classname(
-#                        object.im_self.__class__, mod)
-#                else:
-#                    note = ' unbound %s method' % classname(imclass,mod)
             object = object.im_func
         
         title = name
-#        if name == realname:
-#            title = realname
-#        else:
-#            if (cl and realname in cl.__dict__ and
-#                cl.__dict__[realname] is object):
-#                skipdocs = 1
-#            title = name + ' = ' + realname
         if inspect.isfunction(object):
             args, varargs, varkw, defaults = inspect.getargspec(object)
             argspec = inspect.formatargspec(
                 args, varargs, varkw, defaults, formatvalue=self.formatvalue)
-#            if realname == '<lambda>':
-#                title = name
         else:
             argspec = '(*args, **kwargs)'
         decl = 'def ' + title + argspec + ':'
+        
+        if isinstance(object, staticmethod):
+            decl = '@staticmethod\n' + decl
+        elif isinstance(object, classmethod):
+            decl = '@classmethod\n' + decl
 
         if skipdocs:
             return decl + 'pass\n'
@@ -445,10 +405,6 @@ class Parsed(ProxyUni): pass
         results = []
         push = results.append
 
-#        doc = getdoc(value) or ''
-#        if doc:
-#            push( '# ' + self.indent(doc))
-#            push('\n')
         if name:
             push(name + ' = None')
             push('\n')
@@ -471,25 +427,22 @@ class Parsed(ProxyUni): pass
         else:
             value = 'None' 
         line = (name and name + ' = ' or '') + value + '\n'
-#        if doc is not None:
-#            line += '\n' + self.indent(str(doc))
         return line
 
 stubs = StubDoc()
 
 def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'), exclude=None):
+    import pymel.util as util
+    
     packagemod = __import__(packagename, globals(), locals(), [], -1)
     for modname, mod, ispkg in util.subpackages(packagemod):
-        if modname == 'pymel.internal.pmcmds':
-            contents = 'from maya.cmds import *\n'
-        else:
-            contents = stubs.docmodule(mod)
+        contents = stubs.docmodule(mod)
         for extension in extensions:
-            curfile = os.path.join(outputdir, extension)
+            basedir = os.path.join(outputdir, extension)
             if extension == 'pypredef':
-                curfile = os.path.join(curfile, modname)
+                curfile = os.path.join(basedir, modname)
             else:
-                curfile = os.path.join(curfile, *modname.split('.') )
+                curfile = os.path.join(basedir, *modname.split('.') )
                 if ispkg:
                     curfile = os.path.join(curfile, '__init__' )
 
@@ -503,6 +456,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             if not exclude or not re.match( exclude, modname ):
                 f.write( contents )
             f.close()
+    
 
 def pymelstubs(extensions=('py', 'pypredef', 'pi')):
     """ Builds pymel stub files for autocompletion.
@@ -521,5 +475,45 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi')):
                   exclude='pymel\.util\.scanf|pymel\.util\.objectParser|pymel\.tools\.ipymel')
 
     packagestubs( 'maya', outputdir=outputdir,extensions=extensions )
+    
     return outputdir
 
+# don't start name with test - don't want it automatically run by nose
+def stubstest(pystubdir, doprint=True):
+    '''Test the stubs modules.
+    
+    Don't call this from 'inside maya', as we've probably already loaded all
+    the various 'real' modules, which can give problems.
+    '''
+    def importError(modname):
+        print 'error importing %s:' % modname
+        import traceback
+        bad.append( (modname, traceback.format_exc()) )
+        
+    bad = []
+    print "Testing all modules in: %s" % pystubdir
+    sys.path.insert(0, pystubdir)
+    try:
+        for importer, modname, ispkg in \
+                pkgutil.walk_packages(path=[pystubdir],onerror=importError):
+            print 'testing %s' % modname
+            try:
+                # Don't use the importer returned by walk_packages, as it
+                # doesn't always properly update parent packages's dictionary
+                # with submodule name - ie, you would do:
+                # import pymel.all
+                # print pymel.all
+                # ...and find that pymel had no attribute 'all'
+                #importer.find_module(modname).load_module(modname)
+                __import__(modname, globals(), locals(), [])
+            except Exception, error:
+                print 'found bad module: %s - %s' % (modname, error)
+                importError(modname)
+    finally:
+        sys.path.pop(0)
+    print 'done walking modules'
+    if doprint:
+        for modname, error in bad:
+            print '*' * 60
+            print 'could not import %s:\n%s' % (modname, error)
+    return bad
