@@ -45,7 +45,7 @@ Non-Backward Compatible Changes
 ----------------------------------
 Bugfixes
 ----------------------------------
-- py2mel  failing with functions that take *args/**kwargs
+- py2mel failing with functions that take \*args/\*\*kwargs
 - eliminated / fixed various 'warning' messages on pymel startup
 - MayaNodeError / MayaAttributeError not being raised when a node / attribute not found
 - some maya cmds were not handling 'stubFunc' correctly
