@@ -42,6 +42,36 @@ Non-Backward Compatible Changes
   influence, weightedInfluence now return PyNodes, not strings
 - Attribute.elements now returns an empty list instead of None
 
+----------------------------------
+Bugfixes
+----------------------------------
+- py2mel  failing with functions that take *args/**kwargs
+- eliminated / fixed various 'warning' messages on pymel startup
+- MayaNodeError / MayaAttributeError not being raised when a node / attribute not found
+- some maya cmds were not handling 'stubFunc' correctly
+- renderLayer.listAdjustments() was not functioning
+- MainProgressBar fixed
+- listSets() throws away non-existant 'defaultCreaseDataSet' that maya.cmds.listSets() returns
+- fix for dealing with maya bug where constraint angle offsets always returned in radians (but set in degrees)
+- fixes for incorrect formatting of error strings in some cases
+- fixes for unloading of commands/nodetypes when plugins unloaded (and pymel.all was imported first)
+- miscellaneous documentation fixes
+- fix for mayautils.executeDeferred when invoked with args
+- fix for Attribute.getAllParents()
+- fix for aliased multi/compound attributes
+- fix for Attribute.isSettable with multi/compound attributes
+- fix for Attribute.exists with multi/compound attributes
+- fix for Attribute.type with multi/compound attributes dynamic attributes
+- fix for published container node attributes / aliases
+- fixes for plugin callback failing when plugin has uncreate-able nodes
+- fixes for multiple iterators of a mutli-attribute not being independent
+- fix for MeshVertex.setColor
+- fix for MeshVertex.isConnectedTo
+- fix for MeshVertex.getColor
+- fix for MeshEdge.isConnectedTo
+- fix for MeshFace.isConnectedTo
+- fix for plogging handling case where various env. variables exist, but are empty
+
 ==================================
 Version 1.0.2
 ==================================
