@@ -19,11 +19,13 @@ import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
 import maya.cmds
 
+import pymel.util as util
+
 #===============================================================================
 # General Info
 #===============================================================================
 
-mpxToEnum = {
+mpxToEnum = util.EquivalencePairs({
     mpx.MPxNode:mpx.MPxNode.kDependNode,
     mpx.MPxPolyTrg:mpx.MPxNode.kDependNode,             # has no unique enum
     mpx.MPxLocatorNode:mpx.MPxNode.kLocatorNode,
@@ -45,7 +47,7 @@ mpxToEnum = {
     mpx.MPxCameraSet:mpx.MPxNode.kCameraSetNode,
     mpx.MPxConstraint:mpx.MPxNode.kConstraintNode,
     mpx.MPxManipulatorNode:mpx.MPxNode.kManipulatorNode,
-    }
+    })
 
 def allMPx():
     '''
@@ -140,13 +142,35 @@ class BasePluginMixin(object):
     _mpxType = None
     
     @classmethod
+    def getMpxType(cls):
+        if cls._mpxType is None:
+            for pClass in inspect.getmro(cls):
+                if issubclass(pClass, mpx.MPxNode):
+                    cls._mpxType = pClass
+        return cls._mpxType
+    
+    @classmethod
+    def mayaName(cls):
+        if not cls._name is None:
+            cls._name = cls.__name__
+        return cls._name
+
+    _typeId = None
+    
+    # Defined here just so it can be shared between MPxTransformationMatrix
+    # and DependNode
+    @classmethod
+    def getTypeId(cls, nodeName=None):
+        if cls._typeId is None:
+            if nodeName is None:
+                nodeName = cls.mayaName()
+            cls._typeId = cls._devTypeIdHash(nodeName)
+        return cls._typeId
+    
+    @classmethod
     def create(cls):
         return mpx.asMPxPtr( cls() )    
 
-    @classmethod
-    def mayaName(cls):
-        return cls._name if cls._name else cls.__name__
-    
     @classmethod
     def register(cls, plugin=None):
         """Used to register this MPx object wrapper with the maya plugin.
@@ -160,10 +184,6 @@ class BasePluginMixin(object):
         When implementing the derived MPx wrappers, do not override this -
         instead, override _registerOverride
         """
-        if cls._mpxType is None:
-            for pClass in inspect.getmro(cls):
-                if issubclass(pClass, mpx.MPxNode):
-                    cls._mpxType = pClass 
         global registered
         useThisPlugin = (plugin is None)
         mplugin = _getPlugin(plugin)
@@ -229,6 +249,7 @@ class Command(BasePluginMixin, mpx.MPxCommand):
             pymel.core._removePluginCommand(mplugin.name(), name)
             
 class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
+    _typeId = None
     # Override to do nothing - should be (de)registered by the transform!
     @classmethod
     def register(cls, plugin=None): pass
@@ -244,6 +265,12 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
     # hash of the node name in the user range... to ensure no name clashes,
     # though, you should get a node id from Autodesk!
     _typeId = None
+    
+    @classmethod
+    def getTypeEnum(cls):
+        if cls._typeEnum is None:
+            cls._typeEnum = mpxToEnum[cls.getMpxType()]
+        return cls._typeEnum
     
     _classification = None
     
@@ -264,12 +291,6 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         for clsAttrName, clsObj in inspect.getmembers(cls):
             if isinstance(clsObj, PyNodeMethod):
                 pluginPynodeMethods[nodeName][clsObj.name] = clsObj.func
-                        
-        if cls._typeId is None:
-            cls._typeId = cls._devTypeIdHash(nodeName)
-            
-        if cls._typeEnum is None:
-            cls._typeEnum = mpxToEnum[cls._mpxType]
             
         cls._nodeRegisterOverride( nodeName, mplugin )
         
@@ -291,8 +312,8 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
 
     @classmethod                
     def _nodeRegisterOverride( cls, nodeName, mplugin ):
-        registerArgs = [ nodeName,cls._typeId, cls.create, cls.initialize,
-                        cls._typeEnum]
+        registerArgs = [ nodeName,cls.getTypeId(), cls.create, cls.initialize,
+                        cls.getTypeEnum()]
         if cls._classification:
             registerArgs.append(cls._classification)
         mplugin.registerNode( *registerArgs )
@@ -309,7 +330,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         global pyNodeMethods
         pyNodeMethods.get(mplugin.name(), {}).pop(nodeName, None)
         
-        mplugin.deregisterNode( cls._typeId )
+        mplugin.deregisterNode( cls.getTypeId() )
         if useThisPlugin:
             import pymel.core
             pymel.core._removePluginNode(mplugin.name(), nodeName)
@@ -379,12 +400,9 @@ class Transform(DependNode, mpx.MPxTransform):
     
     @classmethod                
     def _nodeRegisterOverride( cls, nodeName, mplugin ):
-        if cls._transformMatrix._typeId is None:
-            cls._typeId = cls._devTypeIdHash(cls._transformMatrix.name())
-
-        registerArgs = [ nodeName, cls._typeId, cls.create, cls.initialize,
+        registerArgs = [ nodeName, cls.getTypeId(), cls.create, cls.initialize,
                          cls._transformMatrix.create,
-                         cls._transformMatrix._typeId ]
+                         cls._transformMatrix.getTypeId() ]
         if cls._classification:
             registerArgs.append(cls._classification)
         mplugin.registerTransform( *registerArgs )
