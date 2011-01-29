@@ -20,6 +20,47 @@ import maya.OpenMayaMPx as mpx
 import maya.cmds
 
 #===============================================================================
+# General Info
+#===============================================================================
+
+mpxToEnum = {
+    mpx.MPxNode:mpx.MPxNode.kDependNode,
+    mpx.MPxPolyTrg:mpx.MPxNode.kDependNode,             # has no unique enum
+    mpx.MPxLocatorNode:mpx.MPxNode.kLocatorNode,
+    mpx.MPxDeformerNode:mpx.MPxNode.kDeformerNode,
+    mpx.MPxManipContainer:mpx.MPxNode.kManipContainer,
+    mpx.MPxSurfaceShape:mpx.MPxNode.kSurfaceShape,
+    mpx.MPxComponentShape:mpx.MPxNode.kSurfaceShape,    # has no unique enum
+    mpx.MPxFieldNode:mpx.MPxNode.kFieldNode,
+    mpx.MPxEmitterNode:mpx.MPxNode.kEmitterNode,
+    mpx.MPxSpringNode:mpx.MPxNode.kSpringNode,
+    mpx.MPxIkSolverNode:mpx.MPxNode.kIkSolverNode,
+    mpx.MPxHardwareShader:mpx.MPxNode.kHardwareShader,
+    mpx.MPxHwShaderNode:mpx.MPxNode.kHwShaderNode,
+    mpx.MPxTransform:mpx.MPxNode.kTransformNode,
+    mpx.MPxObjectSet:mpx.MPxNode.kObjectSet,
+    mpx.MPxFluidEmitterNode:mpx.MPxNode.kFluidEmitterNode,
+    mpx.MPxImagePlane:mpx.MPxNode.kImagePlaneNode,
+    mpx.MPxParticleAttributeMapperNode:mpx.MPxNode.kParticleAttributeMapperNode,
+    mpx.MPxCameraSet:mpx.MPxNode.kCameraSetNode,
+    mpx.MPxConstraint:mpx.MPxNode.kConstraintNode,
+    mpx.MPxManipulatorNode:mpx.MPxNode.kManipulatorNode,
+    }
+
+def allMPx():
+    '''
+    Returns a list of all MPx classes
+    ''' 
+    mpxClasses = []
+    for _, cls in inspect.getmembers(mpx, lambda x: inspect.isclass(x) and issubclass(x, mpx.MPxNode)):
+        mpxClasses.append[cls]
+    return mpxClasses
+
+# We want to make sure we know if maya adds a new MPx class!
+for _mpx in allMPx():
+    assert _mpx in mpxToEnum, 'new MPx class found: %s' % _mpx.__name__
+
+#===============================================================================
 # Plugin Registration / loading
 #===============================================================================
 
