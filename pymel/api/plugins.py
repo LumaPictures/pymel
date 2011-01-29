@@ -53,7 +53,7 @@ def allMPx():
     ''' 
     mpxClasses = []
     for _, cls in inspect.getmembers(mpx, lambda x: inspect.isclass(x) and issubclass(x, mpx.MPxNode)):
-        mpxClasses.append[cls]
+        mpxClasses.append(cls)
     return mpxClasses
 
 # We want to make sure we know if maya adds a new MPx class!
@@ -157,6 +157,10 @@ class BasePluginMixin(object):
         When implementing the derived MPx wrappers, do not override this -
         instead, override _registerOverride
         """
+        if cls._mpxType is None:
+            for pClass in inspect.getmro(cls):
+                if issubclass(pClass, mpx.MPxNode):
+                    cls._mpxType = pClass 
         global registered
         useThisPlugin = (plugin is None)
         mplugin = _getPlugin(plugin)
@@ -237,7 +241,9 @@ class BaseNodeMixin(BasePluginMixin):
             if isinstance(clsObj, PyNodeMethod):
                 pluginPynodeMethods[nodeName][clsObj.name] = clsObj.func
                         
-        
+        if cls._typeId is None:
+            cls._typeId = cls._devTypeIdHash(nodeName)
+            
         mplugin.registerNode( nodeName, cls._typeId, cls.create, cls.initialize, cls._type )
         
         if useThisPlugin:
