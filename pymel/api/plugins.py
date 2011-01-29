@@ -134,6 +134,9 @@ def uninitializePlugin(mobject):
 class BasePluginMixin(object):
     # The name of the command or the node type
     _name = None
+    
+    # You can manually set this, or just leave it at None to let pymel
+    # automatically determine it from the base classes
     _mpxType = None
     
     @classmethod
@@ -196,7 +199,12 @@ class BasePluginMixin(object):
         '''
         return
 
-class BaseCommandMixin(BasePluginMixin):
+#===============================================================================
+# Plugin Classes - inherit from these!
+#===============================================================================
+
+            
+class Command(BasePluginMixin, mpx.MPxCommand):
     @classmethod
     def createSyntax(cls):
         return om.MSyntax()
@@ -219,10 +227,17 @@ class BaseCommandMixin(BasePluginMixin):
         if useThisPlugin:
             import pymel.core
             pymel.core._removePluginCommand(mplugin.name(), name)
+                
+class DependNode(BasePluginMixin, mpx.MPxNode):
+    # You can manually set this, or just leave it at None to let pymel
+    # automatically determine it from the MPxType
+    _typeEnum = None
 
-
-class BaseNodeMixin(BasePluginMixin):
+    # If this is left as None, a 'reasonable' default will be made based on a
+    # hash of the node name in the user range... to ensure no name clashes,
+    # though, you should get a node id from Autodesk!
     _typeId = None
+    
     _callbacks = defaultdict(list)
     
     @classmethod
@@ -244,7 +259,10 @@ class BaseNodeMixin(BasePluginMixin):
         if cls._typeId is None:
             cls._typeId = cls._devTypeIdHash(nodeName)
             
-        mplugin.registerNode( nodeName, cls._typeId, cls.create, cls.initialize, cls._type )
+        if cls._typeEnum is None:
+            cls._typeEnum = mpxToEnum[cls._mpxType]
+            
+        mplugin.registerNode( nodeName, cls._typeId, cls.create, cls.initialize, cls._typeEnum )
         
         if useThisPlugin:
             import pymel.core
@@ -294,22 +312,9 @@ class BaseNodeMixin(BasePluginMixin):
         md5.update(name)
         id = start + long(md5.hexdigest(), 16) % size
         return om.MTypeId(id)
-    
-#===============================================================================
-# Plugin Classes - inherit from these!
-#===============================================================================
 
-            
-class Command(BaseCommandMixin, mpx.MPxCommand):
-    _mpxType = mpx.MPxCommand
-            
-class DependNode(BaseNodeMixin, mpx.MPxNode):
-    _mpxType = mpx.MPxNode
-    _type = mpx.MPxNode.kDependNode
                 
-class LocatorNode(BaseNodeMixin, mpx.MPxLocatorNode):
-    _mpxType = mpx.MPxLocatorNode
-    _type = mpx.MPxNode.kLocatorNode
+class LocatorNode(DependNode, mpx.MPxLocatorNode): pass
 
 #===============================================================================
 # Plugin Class Helpers
