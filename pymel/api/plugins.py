@@ -432,8 +432,57 @@ class PyNodeMethod(object):
             name = func.__name__
         self.func = func
         self.name = name
+
+
+#===============================================================================
+# Querying Plugin Hierarchy
+#===============================================================================
+
+def getPluginHierarchy():
+    '''Dynamically query the mel node hierarchy for all plugin node types
+    
+    This command must be run from within a running maya session - ie, where
+    maya.cmds, etc are accessible.
+    '''
+    import pymel.internal.factories as factories
+    
+    nodetypes = createDummyPluginNodes()
+    inheritances = {}
+    for pluginType, nodetype in nodetypes:
+        try:
+            inheritance = factories.getInheritance(nodetype)
+        except factories.ManipNodeTypeError:
+            pass
+        assert inheritance[0] == nodetype
+        inheritances[pluginType] = inheritance[1:]
+    return inheritances
+
+def createDummyPluginNodes():
+    '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
+    subclass
+    
+    returns a dictionary mapping from MPx class to a maya node type string
+    '''
+    nodetypes = {}
+    
+    pymelPlugClasses = []
+    
+    for obj in globals.itervalues():
+        if inspect.isclass(obj) and issubclass(obj, DependNode):
+            pymelPlugClasses.append(obj)
+            
+    dummyClasses = {}
+    for cls in pymelPlugClasses:
+        class DummyClass(cls):
+            _name = 'dummy' + cls.__name__
+        DummyClass.__name__ = util.capitalize(DummyClass._name)
+        DummyClass.register()
+        dummyClasses[DummyClass.getMpxType()] = DummyClass
         
-        
+    return dummyClasses
+    
+
+
 #def _repoplulate():
 #    print "repopulate"
 #    try:
