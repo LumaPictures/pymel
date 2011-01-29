@@ -64,7 +64,7 @@ for _mpx in allMPx():
 # Plugin Registration / loading
 #===============================================================================
 
-registered = {}
+registered = set()
 
 pyNodeMethods = {}
 
@@ -125,7 +125,7 @@ def uninitializePlugin(mobject):
     for obj in registered:
         print "deregistering", obj.name()
         obj.deregisterCommand(plugin)
-    registered = {}
+    registered = set()
 
 #===============================================================================
 # Plugin Mixin Classes
@@ -169,12 +169,12 @@ class BasePluginMixin(object):
         mplugin = _getPlugin(plugin)
         cls._registerOverride(mplugin, useThisPlugin)
         if useThisPlugin:
-            registered[cls] = None
+            registered.add(cls)
             
     @classmethod
     def _registerOverride(cls, mplugin, useThisPlugin):
         '''Override this to implement the actual registration behavior for
-        the MPx class. 
+        the MPx class.
         '''
         return
     
@@ -190,7 +190,7 @@ class BasePluginMixin(object):
         mplugin = _getPlugin(plugin)
         cls._deregisterOverride(mplugin, useThisPlugin)
         if plugin is None:
-            registered.pop(cls)
+            registered.remove(cls)
 
     @classmethod
     def _deregisterOverride(cls, mplugin, useThisPlugin):
@@ -227,6 +227,13 @@ class Command(BasePluginMixin, mpx.MPxCommand):
         if useThisPlugin:
             import pymel.core
             pymel.core._removePluginCommand(mplugin.name(), name)
+            
+class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
+    # Override to do nothing - should be (de)registered by the transform!
+    @classmethod
+    def register(cls, plugin=None): pass
+    @classmethod
+    def deregister(cls, plugin=None): pass
                 
 class DependNode(BasePluginMixin, mpx.MPxNode):
     # You can manually set this, or just leave it at None to let pymel
@@ -237,6 +244,8 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
     # hash of the node name in the user range... to ensure no name clashes,
     # though, you should get a node id from Autodesk!
     _typeId = None
+    
+    _classification = None
     
     _callbacks = defaultdict(list)
     
@@ -262,7 +271,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         if cls._typeEnum is None:
             cls._typeEnum = mpxToEnum[cls._mpxType]
             
-        mplugin.registerNode( nodeName, cls._typeId, cls.create, cls.initialize, cls._typeEnum )
+        cls._nodeRegisterOverride( nodeName, mplugin )
         
         if useThisPlugin:
             import pymel.core
@@ -279,7 +288,14 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
                 cb = getattr(cls, cbname)
                 # TODO: assert cb is a classmethod, maybe check number of inputs too
                 cls._callbacks[nodeName].append(reg(cb, nodeName))
-                
+
+    @classmethod                
+    def _nodeRegisterOverride( cls, nodeName, mplugin ):
+        registerArgs = [ nodeName,cls._typeId, cls.create, cls.initialize,
+                        cls._typeEnum]
+        if cls._classification:
+            registerArgs.append(cls._classification)
+        mplugin.registerNode( *registerArgs )
         
                 
     @classmethod
@@ -313,8 +329,65 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         id = start + long(md5.hexdigest(), 16) % size
         return om.MTypeId(id)
 
+
+# I have some unnecessary if statements, just to visually show the hierarchy
                 
+class CameraSet(DependNode, mpx.MPxCameraSet): pass
+        
+class Constraint(DependNode, mpx.MPxConstraint): pass
+
+class DeformerNode(DependNode, mpx.MPxDeformerNode): pass
+
+class EmitterNode(DependNode, mpx.MPxEmitterNode): pass
+
+if 1:
+    class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode): pass
+
+class FieldNode(DependNode, mpx.MPxFieldNode): pass
+    
+class HardwareShader(DependNode, mpx.MPxHardwareShader): pass
+
+class HwShaderNode(DependNode, mpx.MPxHwShaderNode): pass
+
+class IkSolverNode(DependNode, mpx.MPxIkSolverNode): pass
+
+class ImagePlane(DependNode, mpx.MPxImagePlane): pass
+
 class LocatorNode(DependNode, mpx.MPxLocatorNode): pass
+
+class ManipContainer(DependNode, mpx.MPxManipContainer): pass
+
+class ManipulatorNode(DependNode, mpx.MPxManipulatorNode): pass
+
+class ObjectSet(DependNode, mpx.MPxObjectSet): pass
+
+class ParticleAttributeMapperNode(DependNode, mpx.MPxParticleAttributeMapperNode): pass
+
+class PolyTrg(DependNode, mpx.MPxPolyTrg): pass
+
+class SpringNode(DependNode, mpx.MPxSpringNode): pass
+
+class SurfaceShape(DependNode, mpx.MPxSurfaceShape): pass
+
+if 1:
+    class ComponentShape(SurfaceShape, mpx.MPxComponentShape): pass
+    
+class Transform(DependNode, mpx.MPxTransform):
+    # Bug in python - can't just use MPxTransformationMatrix, as there's a
+    # problem with MPxTransformationMatrix.baseTransformationMatrixId
+    _transformMatrix = TransformationMatrix
+    
+    @classmethod                
+    def _nodeRegisterOverride( cls, nodeName, mplugin ):
+        if cls._transformMatrix._typeId is None:
+            cls._typeId = cls._devTypeIdHash(cls._transformMatrix.name())
+
+        registerArgs = [ nodeName, cls._typeId, cls.create, cls.initialize,
+                         cls._transformMatrix.create,
+                         cls._transformMatrix._typeId ]
+        if cls._classification:
+            registerArgs.append(cls._classification)
+        mplugin.registerTransform( *registerArgs )
 
 #===============================================================================
 # Plugin Class Helpers
