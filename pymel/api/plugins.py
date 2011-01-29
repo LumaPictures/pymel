@@ -19,6 +19,10 @@ import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
 import maya.cmds
 
+#===============================================================================
+# Plugin Registration / loading
+#===============================================================================
+
 registered = {}
 
 pyNodeMethods = {}
@@ -57,6 +61,34 @@ def _getPlugin(object=None):
     else:
         raise TypeError('expected an MFnPlugin instance or an MObject that can be cast to an MFnPlugin')
     return plugin
+
+# allow this file to be loaded as its own dummy plugin
+# Initialize the script plug-in
+def initializePlugin(mobject):
+    pass
+
+# Uninitialize the script plug-in
+def uninitializePlugin(mobject):
+
+    #print "getmodule", inspect.getmodule( None )
+    #mod = _pluginModule()
+
+    #when uninitializePlugin is called it is execfile'd which changes the module in which this code runs.
+    #we need to get the correct module first
+
+    # FIXME: determine a reliable way to get this module's name when it is being execfile'd
+    global registered
+    mod = sys.modules['pymel.api.plugins']
+
+    plugin = mpx.MFnPlugin(mobject)
+    for obj in registered:
+        print "deregistering", obj.name()
+        obj.deregisterCommand(plugin)
+    registered = {}
+
+#===============================================================================
+# Plugin Mixin Classes
+#===============================================================================
 
 class BasePluginMixin(object):
     # The name of the command or the node type
@@ -142,40 +174,7 @@ class BaseCommandMixin(BasePluginMixin):
         if useThisPlugin:
             import pymel.core
             pymel.core._removePluginCommand(mplugin.name(), name)
-            
-class Command(BaseCommandMixin, mpx.MPxCommand):
-    _mpxType = mpx.MPxCommand
 
-
-# Todo: implement the underlying stuff to make PyNodeMethod work... probably
-# need to unify the code in pymel.core._pluginLoaded/_pluginUnloaded and
-# factories.addCustomPyNode; then, just have anytime we're adding new plugin
-# nodes, check for PyNodeMethod objects on the class, and modify the resulting
-# PyNode accordingly
-
-# The support for this isn't implemented yet... just here to give an idea of
-# how it would work...
-class PyNodeMethod(object):
-    '''Used as a decorator, placed on methods on a plugin node class, to signal
-    that these methods should be placed on to PyNode objects constructed for
-    the resulting depend nodes.
-    
-    >>> class FriendlyNode(DependNode):
-    ...     _typeId = om.MTypeId(654748)
-    ...     @PyNodeMethod
-    ...     def introduce(self):
-    ...         print "Hi, I'm an instance of a MyNode PyNode - my name is %s!" % self.name()
-    >>> FriendlyNode.register()
-    >>> import pymel.core as pm
-    >>> frank = pm.createNode('FriendlyNode', name='Frank')
-    >>> frank.introduce()
-    Hi, I'm an instance of a MyNode PyNode - my name is Frank!
-    '''
-    def __init__(self, func, name=None):
-        if name is None:
-            name = func.__name__
-        self.func = func
-        self.name = name
 
 class BaseNodeMixin(BasePluginMixin):
     _typeId = None
@@ -248,6 +247,14 @@ class BaseNodeMixin(BasePluginMixin):
         md5.update(name)
         id = start + long(md5.hexdigest(), 16) % size
         return om.MTypeId(id)
+    
+#===============================================================================
+# Plugin Classes - inherit from these!
+#===============================================================================
+
+            
+class Command(BaseCommandMixin, mpx.MPxCommand):
+    _mpxType = mpx.MPxCommand
             
 class DependNode(BaseNodeMixin, mpx.MPxNode):
     _mpxType = mpx.MPxNode
@@ -257,32 +264,33 @@ class LocatorNode(BaseNodeMixin, mpx.MPxLocatorNode):
     _mpxType = mpx.MPxLocatorNode
     _type = mpx.MPxNode.kLocatorNode
 
+#===============================================================================
+# Plugin Class Helpers
+#===============================================================================
 
-# allow this file to be loaded as its own dummy plugin
-# Initialize the script plug-in
-def initializePlugin(mobject):
-    pass
-
-
-# Uninitialize the script plug-in
-def uninitializePlugin(mobject):
-
-    #print "getmodule", inspect.getmodule( None )
-    #mod = _pluginModule()
-
-    #when uninitializePlugin is called it is execfile'd which changes the module in which this code runs.
-    #we need to get the correct module first
-
-    # FIXME: determine a reliable way to get this module's name when it is being execfile'd
-    global registered
-    mod = sys.modules['pymel.api.plugins']
-
-    plugin = mpx.MFnPlugin(mobject)
-    for obj in registered:
-        print "deregistering", obj.name()
-        obj.deregisterCommand(plugin)
-    registered = {}
-
+class PyNodeMethod(object):
+    '''Used as a decorator, placed on methods on a plugin node class, to signal
+    that these methods should be placed on to PyNode objects constructed for
+    the resulting depend nodes.
+    
+    >>> class FriendlyNode(DependNode):
+    ...     _typeId = om.MTypeId(654748)
+    ...     @PyNodeMethod
+    ...     def introduce(self):
+    ...         print "Hi, I'm an instance of a MyNode PyNode - my name is %s!" % self.name()
+    >>> FriendlyNode.register()
+    >>> import pymel.core as pm
+    >>> frank = pm.createNode('FriendlyNode', name='Frank')
+    >>> frank.introduce()
+    Hi, I'm an instance of a MyNode PyNode - my name is Frank!
+    '''
+    def __init__(self, func, name=None):
+        if name is None:
+            name = func.__name__
+        self.func = func
+        self.name = name
+        
+        
 #def _repoplulate():
 #    print "repopulate"
 #    try:
