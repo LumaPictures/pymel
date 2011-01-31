@@ -19,13 +19,11 @@ import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
 import maya.cmds
 
-import pymel.util as util
-
 #===============================================================================
 # General Info
 #===============================================================================
 
-mpxToEnum = util.EquivalencePairs({
+mpxToEnum = {
     mpx.MPxNode:mpx.MPxNode.kDependNode,
     mpx.MPxPolyTrg:mpx.MPxNode.kDependNode,             # has no unique enum
     mpx.MPxLocatorNode:mpx.MPxNode.kLocatorNode,
@@ -47,7 +45,7 @@ mpxToEnum = util.EquivalencePairs({
     mpx.MPxCameraSet:mpx.MPxNode.kCameraSetNode,
     mpx.MPxConstraint:mpx.MPxNode.kConstraintNode,
     mpx.MPxManipulatorNode:mpx.MPxNode.kManipulatorNode,
-    })
+    }
 
 def allMPx():
     '''
@@ -475,7 +473,7 @@ def createDummyPluginNodes():
     for cls in pymelPlugClasses:
         class DummyClass(cls):
             _name = 'dummy' + cls.__name__
-        DummyClass.__name__ = util.capitalize(DummyClass._name)
+        DummyClass.__name__ = 'Dummy' + cls.__name__
         DummyClass.register()
         dummyClasses[DummyClass.getMpxType()] = DummyClass
         
