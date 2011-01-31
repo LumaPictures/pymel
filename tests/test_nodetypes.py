@@ -9,8 +9,8 @@ from maintenance.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
-from testingutils import TestCaseExtended, setCompare
 
+from pymel.util.testing import TestCaseExtended, setCompare
 
 VERBOSE = False
 
@@ -44,6 +44,7 @@ class testCase_attribs(unittest.TestCase):
                 addAttr(self.node, longName=self.name, **self.initArgs)
         
         self.newAttrs = [
+                        AttributeData('angle', attributeType='doubleAngle'),
                         AttributeData('multiByte', multi=True, attributeType='byte'),
                         AttributeData('compound', attributeType='compound', numberOfChildren=3),
                         AttributeData('compound_multiFloat', attributeType='float', multi=True, parent='compound'),
@@ -51,31 +52,61 @@ class testCase_attribs(unittest.TestCase):
                         AttributeData('compound_compound', attributeType='compound', numberOfChildren=2, parent='compound'),
                         AttributeData('compound_compound_matrix', attributeType='matrix', parent='compound_compound'),
                         AttributeData('compound_compound_long', attributeType='long', parent='compound_compound'),
+                        AttributeData('multiCompound', attributeType='compound', multi=True, numberOfChildren=3),
+                        AttributeData('multiCompound_string', dataType='string', parent='multiCompound'),
+                        AttributeData('multiCompound_enum', attributeType='enum', parent='multiCompound'),
+                        AttributeData('multiCompound_curve', dataType='nurbsCurve', parent='multiCompound'),
                         ]
+        
+        self.attrTypes = {}
+        for attrData in self.newAttrs:
+            attrType = attrData.initArgs.get('attributeType',attrData.initArgs.get('dataType'))
+            if attrType == 'compound' or attrData.initArgs.get('multi'):
+                attrType = 'TdataCompound'
+            self.attrTypes[attrData.name] = attrType
 
         for attr in self.newAttrs:
             attr.add()
             
         self.newAttrs = dict([(newAttr.name, Attribute(str(self.sphere1) + "." + newAttr.name)) for newAttr in self.newAttrs ])
         
-        self.setMultiElement = self.newAttrs['multiByte'][1]
-        self.setMultiElement.set(1)
+        self.setIndices = (1, 3, 5, 12)
+        for i in self.setIndices:
+            self.newAttrs['multiByte'][i].set(1)
         
-        self.unsetMultiElement = self.newAttrs['multiByte'][3]
+        self.setMultiElement = self.newAttrs['multiByte'][self.setIndices[0]]
+        
+        self.unsetMultiElement = self.newAttrs['multiByte'][200]
         
     def tearDown(self):
         delete(self.sphere1)
         
     def test_newAttrsExists(self):
-        for attr in self.newAttrs.itervalues():
+        for attrName, attr in self.newAttrs.iteritems():
 #            print "Testing existence of:", attr.name()
-            self.assertTrue(attr.exists())
+            if attrName.startswith('multiCompound_'):
+                self.assertFalse(attr.exists(), 'attr %r existed' % attr)
+            else:
+                self.assertTrue(attr.exists(), 'attr %r did not exist' % attr)
             
     def test_setMultiElementExists(self):
-        self.assertTrue(self.setMultiElement.exists())
-            
+        attr = self.setMultiElement
+        self.assertTrue(attr.exists(), '%s should exist' % attr)
+        
     def test_unsetMultiElementExists(self):
-        self.assertFalse(self.unsetMultiElement.exists())
+        attr = self.unsetMultiElement
+        self.assertFalse(attr.exists(), '%s should not exist' % attr)
+
+    def test_setMultiCompoundElementExists(self):
+        attr = self.newAttrs['multiCompound'][1].attr('multiCompound_string')
+        attr.set('foo')
+        self.assertTrue(attr.exists(), '%s should exist' % attr)
+
+    def test_unsetMultiCompoundElementExists(self):
+        attr = self.newAttrs['multiCompound'][1].attr('multiCompound_string')
+        self.assertFalse(attr.exists())
+        attr = self.newAttrs['multiCompound_string']
+        self.assertFalse(attr.exists())
         
     def test_getParent(self):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(), self.newAttrs['compound_compound'])
@@ -93,6 +124,35 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)
         
+        self.assertEqual(self.newAttrs['compound_compound_long'].getAllParents(),
+                         [  self.newAttrs['compound_compound'],
+                            self.newAttrs['compound'],
+                         ])
+        
+        self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=1).array(),
+                         self.newAttrs['multiCompound'])
+        self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=2, arrays=True),
+                         self.newAttrs['multiCompound'])
+        self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=-1, arrays=True),
+                         self.newAttrs['multiCompound'])
+
+        self.assertEqual(self.newAttrs['multiCompound_string'].getAllParents(),
+                         [  self.newAttrs['multiCompound_string'].getParent(generations=1),
+                         ])
+        self.assertEqual(self.newAttrs['multiCompound_string'].getAllParents(arrays=True),
+                         [  self.newAttrs['multiCompound_string'].getParent(generations=1),
+                            self.newAttrs['multiCompound'],
+                         ])
+
+        self.assertEqual(self.newAttrs['multiByte'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['multiByte'].getAllParents(arrays=True), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(arrays=True), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['multiCompound'].getAllParents(arrays=True), [])
+        self.assertEqual(self.newAttrs['angle'].getAllParents(), [])
+        self.assertEqual(self.newAttrs['angle'].getAllParents(arrays=True), [])        
+        
     def test_comparison(self):
         for attr in self.newAttrs.itervalues():
             self.assertEqual(attr, PyNode(attr.name()))
@@ -105,6 +165,72 @@ class testCase_attribs(unittest.TestCase):
         self.assert_( PyNode('persp').hasAttr('foo') )
         PyNode('persp').deleteAttr('foo')
         self.assert_(  not PyNode('persp').hasAttr('foo') )
+        
+    def test_elements(self):
+        self.assertEqual(self.newAttrs['multiByte'].elements(), ['multiByte[%d]' % x for x in self.setIndices])
+        self.assertEqual(self.newAttrs['multiCompound'].elements(), [])
+        self.assertEqual(self.newAttrs['compound_multiFloat'].elements(), [])
+
+    def test_iter(self):
+        iterList = [x for x in self.newAttrs['multiByte']]
+        expectedList = [self.newAttrs['multiByte'][i] for i in self.setIndices]
+        self.assertEqual(iterList, expectedList)
+        
+    def test_iter_independence(self):
+        iter1 = iter(self.newAttrs['multiByte'])
+        iter2 = iter(self.newAttrs['multiByte'])
+        zipped = zip(iter1, iter2)
+        self.assertEqual(zipped, [ (self.newAttrs['multiByte'][i],
+                                    self.newAttrs['multiByte'][i])
+                                   for i in self.setIndices ])
+        
+    def test_settable(self):
+        
+        def testLockUnlock(attr, child=None):
+            if child is None:
+                attr.lock()
+                self.assertFalse(attr.isSettable(), '%s was locked - should be unsettable' % attr)
+                attr.unlock()
+                self.assertTrue(attr.isSettable(), '%s was unlocked - should be settable' % attr)
+            else:
+                child.lock()
+                self.assertFalse(child.isSettable(), '%s was locked - should be unsettable' % child)
+                self.assertFalse(attr.isSettable(), '%s had locked child- should be unsettable' % attr)
+                child.unlock()
+                self.assertTrue(child.isSettable(), '%s was unlocked - should be settable' % attr)
+                self.assertTrue(attr.isSettable(), '%s had unlocked child - should be settable' % attr)
+                
+        for attr in self.newAttrs.itervalues():
+            if not attr.exists():
+                continue
+
+            testLockUnlock(attr)
+
+            if attr.isMulti():
+                child = attr[0]
+                testLockUnlock(attr, child)
+                if attr.isCompound():
+                    multi_child = child.children()[0]
+                    testLockUnlock(attr, child)
+                    testLockUnlock(attr, multi_child)
+            elif attr.isCompound():
+                testLockUnlock(attr, attr.children()[0])
+
+    def test_attr_type(self):
+        for attrName, attrType in self.attrTypes.iteritems():
+            self.assertEqual(self.newAttrs[attrName].type(), attrType)
+        self.assertEqual(self.newAttrs['multiCompound'].numElements(), 0)
+        self.assertEqual(self.newAttrs['multiByte'].numElements(), len(self.setIndices))
+        
+        # Try some non-dynamic attrs...
+        self.assertEqual(self.sphere1.attr('translateX').type(), 'doubleLinear')
+        self.assertEqual(self.sphere1.attr('translate').type(), 'double3')
+        self.assertEqual(self.sphere1.attr('message').type(), 'message')
+        
+        # Try a more unusual attr type...
+        circleMaker = pm.circle()[1]
+        self.assertEqual(circleMaker.attr('outputCurve').type(), 'nurbsCurve')
+        
 
 def testInvertibles():
     classList = getFundamentalTypes()
@@ -1195,9 +1321,9 @@ class testCase_components(unittest.TestCase):
                     elif (isinstance(comp, SubdEdge) and
                           comp.currentDimension() == 0):
                         raise CrashError
-        except CrashError:
+        except CrashError, e:
             print "Auto-failing %r to avoid crash..." % comp
-            raise CrashError
+            raise
             
     def test_multiComponentName(self):
         compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
@@ -1650,8 +1776,14 @@ class testCase_apiArgConversion(unittest.TestCase):
         self.assertEqual(mesh.getEdgeVertices(2), [4,5])
 
 class testCase_Mesh(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        self.mesh = pm.createNode('mesh')
+        
     def test_emptyMeshOps(self):
-        mesh = pm.createNode('mesh')
+        mesh = self.mesh
         for comp in (mesh.vtx, mesh.faces, mesh.edges):
             self.assertEqual(len(comp), 0)
             self.assertEqual(bool(comp), False)
@@ -1664,7 +1796,109 @@ class testCase_Mesh(unittest.TestCase):
         self.assertEqual(mesh.numVertices(), 0)
         self.assertEqual(mesh.numEdges(), 0)
 
-    
+    def test_setVertexColor(self):
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.cube.setVertexColor(color, i)
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.assertEqual(self.trans.vtx[i].getColor(), color)
+
+class testCase_MeshVert(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        
+    def test_setVertexColor(self):
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.trans.vtx[i].setColor(color)
+        for i in range(8):
+            color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
+            self.assertEqual(self.cube.vtx[i].getColor(), color)
+            
+    def test_connections(self):
+        self.assertTrue(self.cube.vtx[2].isConnectedTo(self.cube.vtx[3]))
+        self.assertFalse(self.cube.vtx[2].isConnectedTo(self.cube.vtx[7]))
+        
+        self.assertTrue(self.cube.vtx[5].isConnectedTo(self.cube.e[7]))
+        self.assertFalse(self.cube.vtx[5].isConnectedTo(self.cube.e[5]))
+
+        self.assertTrue(self.cube.vtx[6].isConnectedTo(self.cube.f[5]))
+        self.assertFalse(self.cube.vtx[6].isConnectedTo(self.cube.f[0]))
+
+class testCase_MeshEdge(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        
+    def test_connections(self):
+        self.assertTrue(self.cube.e[7].isConnectedTo(self.cube.vtx[5]))
+        self.assertFalse(self.cube.e[5].isConnectedTo(self.cube.vtx[5]))
+
+        self.assertTrue(self.cube.e[2].isConnectedTo(self.cube.e[8]))
+        self.assertFalse(self.cube.e[2].isConnectedTo(self.cube.e[5]))
+
+        self.assertTrue(self.cube.e[1].isConnectedTo(self.cube.f[0]))
+        self.assertFalse(self.cube.e[6].isConnectedTo(self.cube.f[2]))
+
+
+class testCase_MeshFace(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.trans = pm.polyCube()[0]
+        self.cube = self.trans.getShape()
+        
+    def test_connections(self):
+        # Oddly enough, in a cube, all the verts 'connected' to the face
+        # are the ones NOT contained in it, and all the ones that are
+        # contained are considered not connected...
+        self.assertTrue(self.cube.f[5].isConnectedTo(self.cube.vtx[7]))
+        self.assertTrue(self.cube.f[0].isConnectedTo(self.cube.vtx[3]))
+
+        self.assertTrue(self.cube.f[3].isConnectedTo(self.cube.e[5]))
+        self.assertFalse(self.cube.f[4].isConnectedTo(self.cube.e[4]))
+
+        self.assertTrue(self.cube.f[2].isConnectedTo(self.cube.f[1]))
+        self.assertFalse(self.cube.f[5].isConnectedTo(self.cube.f[4]))        
+
+class testCase_ConstraintAngleOffsetQuery(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+        
+    def runTest(self):
+        for cmdName in ('aimConstraint', 'orientConstraint'):
+            cube1 = pm.polyCube()[0]
+            cube2 = pm.polyCube()[0]
+            cube2.translate.set( (2,0,0) )
+            cmd = getattr(pm, cmdName)            
+            constraint = cmd(cube1, cube2)
+            
+            setVals = (12, 8, 7)
+            cmd(constraint, e=1, offset=setVals)
+            getVals = tuple(cmd(constraint, q=1, offset=1))
+            self.assertVectorsEqual(setVals, getVals)
+            
+class testCase_Container(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+        
+    def testPublishedAttribute(self):
+        c=pm.container( current=1 )
+        g=pm.group( em=True )
+        pm.container( c, e=True, publishAsParent=(g, 'yippee') )
+        fromPyNode = pm.PyNode('container1.yippee')
+        self.assertTrue( isinstance(fromPyNode, Attribute))
+        self.assertEqual( fromPyNode.name(), 'container1.canBeParent[0]' )
+        fromAttr = c.attr('yippee')
+        self.assertTrue( isinstance(fromAttr, Attribute))
+        self.assertEqual( fromAttr.name(), 'container1.canBeParent[0]' )
+        self.assertEqual( fromPyNode, fromAttr )
+        
+        
+
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #    

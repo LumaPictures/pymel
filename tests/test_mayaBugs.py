@@ -4,8 +4,49 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import maya.OpenMayaFX as fx
 
+from pymel.util.testing import TestCaseExtended
+
+# Bug report 378211
+class TestConstraintAngleOffsetQuery(TestCaseExtended):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        
+    def runTest(self):
+        for cmdName in ('aimConstraint', 'orientConstraint'):
+            cube1 = cmds.polyCube()[0]
+            cube2 = cmds.polyCube()[0]
+
+            cmd = getattr(cmds, cmdName)            
+            constraint = cmd(cube1, cube2)[0]
+            
+            setVals = (12, 8, 7)
+            cmd(constraint, e=1, offset=setVals)
+            getVals = tuple(cmd(constraint, q=1, offset=1))
+            self.assertVectorsEqual(setVals, getVals)
+
+# Bug report 378192
+class TestEmptyMFnNurbsCurve(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def runTest(self):
+        shapeStr = cmds.createNode('nurbsCurve', n="RigWorldShape")
+        selList = om.MSelectionList()
+        selList.add(shapeStr)
+        node = om.MObject()
+        selList.getDependNode(0, node)
+        
+        mnc = om.MFnNurbsCurve()
+        self.assertTrue(mnc.hasObj(node))
+        try:
+            mnc.setObject(node)
+        except Exception:
+            self.fail("MFnNurbs curve doesn't work with empty curve object")
 
 # Bug report 345382
+# Fixed ! Yay!  (...though I've only check on win64...)
+# (not sure when... was fixed by time of 2011 Hotfix 1 - api 201101,
+# and still broken in 2009 SP1a - api 200906)
 class TestFluidMFnCreation(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -162,8 +203,15 @@ class TestGroupUniqueness(unittest.TestCase):
         cmds.group(n='bar')
         cmds.select(cl=1)
         res = cmds.group(n='foo', empty=1)
-        cmds.select(res)
+        sameNames = cmds.ls(res)
+        if len(sameNames) < 1:
+            self.fail('cmds.group did not return a valid name')
+        elif len(sameNames) > 1:
+            self.fail('cmds.group did not return a unique name')
 
+# Fixed ! Yay!  (...though I've only check on win64...)
+# (not sure when... was fixed by time of 2011 Hotfix 1 - api 201101,
+# and still broken in 2009 SP1a - api 200906)
 class TestMatrixSetAttr(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -172,5 +220,66 @@ class TestMatrixSetAttr(unittest.TestCase):
 
     def runTest(self):
         cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
+
+
+# Fixed in Maya 2009! yay!
+class TestConstraintVectorQuery(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        
+    def _doTestForConstraintType(self, constraintType):
+        cmd = getattr(cmds, constraintType)
+        
+        if constraintType == 'tangentConstraint':
+            target = cmds.circle()[0]
+        else:
+            target = cmds.polyCube()[0]
+        constrained = cmds.polyCube()[0]
+        
+        constr = cmd(target, constrained)[0]
+        
+        self.assertEqual(cmd(constr, q=1, worldUpVector=1), [0,1,0])
+        self.assertEqual(cmd(constr, q=1, upVector=1), [0,1,0])
+        self.assertEqual(cmd(constr, q=1, aimVector=1), [1,0,0])
+
+    def test_aimConstraint(self):
+        self._doTestForConstraintType('aimConstraint')
+
+    def test_normalConstraint(self):
+        self._doTestForConstraintType('normalConstraint')
+
+    def test_tangentConstraint(self):
+        self._doTestForConstraintType('tangentConstraint')
+        
+
+
+
+# This is commented out as it will cause a CRASH - uncomment out (or just
+# copy/ paste the relevant code into the script editor) to test if it's still
+# causing a crash...
+
+# If you're copy / pasting into a script editor, in order for a crash to occur,
+# all lines must be executed at once - if you execute one at a time, there will
+# be no crash
+
+# Also, I'm making the code in each of the test functions self-contained (ie,
+# has all imports, etc) for easy copy-paste testing...
+
+#class TestSubdivSelectCrash(unittest.TestCas):
+#    def testCmds(self):
+#        import maya.cmds as cmds
+#        cmds.file(new=1, f=1)
+#        polyCube = cmds.polyCube()[0]
+#        subd = cmds.polyToSubdiv(polyCube)[0]
+#        cmds.select(subd + '.sme[*][*]')
+#        
+#    def testApi(self):
+#        import maya.cmds as cmds
+#        import maya.OpenMaya as om
+#        
+#        polyCube = cmds.polyCube()[0]
+#        subd = cmds.polyToSubdiv(polyCube)[0]
+#        selList = om.MSelectionList()
+#        selList.add(subd + '.sme[*][*]')
 
       

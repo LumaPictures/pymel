@@ -1,5 +1,5 @@
 import sys, unittest
-import testingutils
+import pymel.util.testing as testingutils
 
 class TestAssertIteration(testingutils.TestCaseExtended):
     #################################################

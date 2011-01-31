@@ -113,7 +113,9 @@ class CommandDocParser(HTMLParser):
             numArgs = len(args)
             if numArgs == 0:
                 args = bool
-                numArgs = 1
+                #numArgs = 1
+                # numArgs will stay at 0, which is the number of mel arguments.
+                # this flag should be renamed to numMelArgs
             elif numArgs == 1:
                 args = args[0]
 
@@ -264,21 +266,21 @@ class NodeHierarchyDocParser(HTMLParser):
 
         HTMLParser.__init__(self)
     def handle_starttag(self, tag, attrs):
-        #_logger.debug(tag, attrs)
+        #_logger.debug("%s - %s" % (tag, attrs))
         self.currentTag = tag
 
     def handle_data(self, data):
-        _logger.info("data %s", data)
+        _logger.info("data %r" % data)
         if self.currentTag == 'tt':
             self.depth = data.count('>')
-            #_logger.debug("lastDepth", self.lastDepth, "depth", self.depth)
+            #_logger.debug("lastDepth: %s - depth: %s" % (self.lastDepth, self.depth))
 
         elif self.currentTag == 'a':
             data = data.lstrip()
 
             if self.depth == 0:
                 if self.tree is None:
-                    #_logger.debug("starting brand new tree: %s %s", self.depth, data)
+                    #_logger.debug("starting brand new tree: %s %s" % (self.depth, data))
                     self.tree = [data]
                 else:
                     #_logger.debug("skipping %s", data)
@@ -289,14 +291,14 @@ class NodeHierarchyDocParser(HTMLParser):
                 self.tree[ self.depth ].append( data )
 
             elif self.depth > self.lastDepth:
-                #_logger.debug("starting new level: %s %s", self.depth, data)
+                #_logger.debug("starting new level: %s %s" % (self.depth, data))
                 self.tree.append( [data] )
 
             elif self.depth < self.lastDepth:
 
                     for i in range(0, self.lastDepth-self.depth):
                         branch = self.tree.pop()
-                        #_logger.debug("closing level", self.lastDepth, self.depth, self.tree[-1])
+                        #_logger.debug("closing level %s - %s - %s" % (self.lastDepth, self.depth, self.tree[-1]))
                         currTree = self.tree[-1]
                         #if isinstance(currTree, list):
                         currTree.append( branch )
@@ -321,7 +323,7 @@ def printTree( tree, depth=0 ):
         if util.isIterable(branch):
             printTree( branch, depth+1)
         else:
-            _logger.info('> '*depth, branch)
+            _logger.info('%s %s' % ('> '*depth,  branch))
 
 
 class CommandModuleDocParser(HTMLParser):

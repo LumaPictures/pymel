@@ -356,13 +356,12 @@ class ApiCache(startup.SubItemCache):
         # If we loaded from cache, we still need to rebuild the reserved types
         self._buildMayaReservedTypes(force=False)
 
-    @classmethod
-    def read(cls, raw=False):
-        data = super(ApiCache, cls).read()
+    def read(self, raw=False):
+        data = super(ApiCache, self).read()
         if not raw:
             # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
             # even though they weren't used...
-            if data is not None and len(data) != len(cls._CACHE_NAMES):
+            if data is not None and len(data) != len(self._CACHE_NAMES):
                 if len(data) == 8 and versions.current() < versions.v2012:
                     data = data[2:6] + data[7:]
                 else:

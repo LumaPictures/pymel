@@ -1,4 +1,4 @@
-from testingutils import TestCaseExtended, setupUnittestModule, TestCase
+from pymel.util.testing import TestCaseExtended, setupUnittestModule, TestCase
 from pymel.util import utilitytypes
 
 aDict = {'A':1, 'a':2}

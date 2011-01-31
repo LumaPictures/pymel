@@ -397,31 +397,108 @@ def reorder( x, indexList=[], indexDict={} ):
         newlist.append( val )
     return newlist
 
+class RemovedKey(object):
+    def __init__(self, oldVal):
+        self.oldVal = oldVal
+        
+    def __eq__(self, other):
+        return self.oldVal == other.oldVal
+    
+    def __ne__(self, other):
+        return self.oldVal != other.oldVal
 
-def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
-    """
-    recursively update to_dict with values from from_dict.  if allowDictToListMerging is
-    True, then if to_dict contains a list, from_dict can contain a dictionary with int
-    keys which can be used to sparsely update the list".
-    """
+def compareCascadingDicts(dict1, dict2):
+    '''compares two cascading dicts
 
-    if allowDictToListMerging and isinstance(to_dict, list ):
-        contains = lambda key: isinstance(key,int) and key in range(len(to_dict))
-        isList = True
+    :rtype: `tuple` of (both, only1, only2, differences)
+    both : `set`
+        keys that were present in both (non-recursively)
+        (both, only1, and only2 should be discrete partitions of all the keys
+        present in both dict1 and dict2)
+    only1 : `set`
+        keys that were present in only1 (non-recursively)
+    only2 : `set`
+        keys that were present in only1 (non-recursively)
+    differences : `dict`
+        recursive sparse dict containing information that was 'different' in
+        dict2 - either not present in dict1, or having a different value in
+        dict2, or removed in dict2 (in which case an instance of 'RemovedKey'
+        will be set as the value in differences)
+        Values that are different, and both dictionaries, will themselves have
+        sparse entries, showing only what is different
+        The return value should be such that if you do if you merge the
+        differences with d1, you will get d2.
+    '''
+    if isinstance(dict1, (list, tuple)):
+        dict1 = dict(enumerate(dict1))
+    if isinstance(dict2, (list, tuple)):
+        dict2 = dict(enumerate(dict2))
+    v1 = set(dict1)
+    v2 = set(dict2)
+    both = v1 & v2
+    only1 = v1 - both
+    only2 = v2 - both
+    
+    recurseTypes = (dict, list, tuple)
+    differences = dict( (key, dict2[key]) for key in only2)
+    differences.update( (key, RemovedKey(dict1[key])) for key in only1 )
+    for key in both:
+        val1 = dict1[key]
+        val2 = dict2[key]
+        if val1 != val2:
+            if isinstance(val1, recurseTypes) and isinstance(val2, recurseTypes):
+                subDiffs = compareCascadingDicts(val1, val2)[-1]
+                differences[key] = subDiffs
+            else:
+                differences[key] = val2
+    
+    return both, only1, only2, differences
+
+def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False,
+                         allowNewListMembers=False ):
+    """
+    recursively update to_dict with values from from_dict.
+    
+    if any entries in 'from_dict' are instances of the class RemovedKey,
+    then the key containing that value will be removed from to_dict
+    
+    if allowDictToListMerging is True, then if to_dict contains a list,
+    from_dict can contain a dictionary with int keys which can be used to
+    sparsely update the list.
+    
+    if allowNewListMembers is True, and allowDictToListMerging is also True,
+    then if merging an index into a list that currently isn't long enough to
+    contain that index, then the list will be extended to be long enough (with
+    None inserted in any intermediate indices)
+    
+    Note: if using RemovedKey objects and allowDictToList merging, then only
+    indices greater than all of any indices updated / added should be removed,
+    because the order in which items are updated / removed is indeterminate.
+    """
+    listMerge = allowDictToListMerging and isinstance(to_dict, list )
+    if listMerge:
+        contains = lambda key: isinstance(key,int) and 0 <= key < len(to_dict)
     else:
         contains = lambda key: key in to_dict
-        isList = False
 
     for key, from_val in from_dict.iteritems():
         #print key, from_val
         if contains(key):
+            if isinstance(from_val, RemovedKey):
+                del to_dict[key]
+                continue
             to_val = to_dict[key]
             #if isMapping(from_val) and ( isMapping(to_val) or (allowDictToListMerging and isinstance(to_val, list )) ):
-            if hasattr(from_val, 'iteritems') and ( hasattr(to_val, 'iteritems') or (allowDictToListMerging and isinstance(to_val, list )) ):
+            if hasattr(from_val, 'iteritems') and ( hasattr(to_val, 'iteritems')
+                                                    or (allowDictToListMerging and isinstance(to_val, list )) ):
                 mergeCascadingDicts( from_val, to_val, allowDictToListMerging )
             else:
                 to_dict[key] = from_val
         else:
+            if isinstance(from_val, RemovedKey):
+                continue
+            if listMerge and allowNewListMembers and key >= len(to_dict):
+                to_dict.extend( (None,) * (key + 1 - len(to_dict)) )
             to_dict[key] = from_val
 
 def setCascadingDictItem( dict, keys, value ):

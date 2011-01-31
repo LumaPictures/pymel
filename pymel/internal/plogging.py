@@ -41,12 +41,12 @@ def _fixMayaOutput():
 _fixMayaOutput()
 
 def getConfigFile():
-    if PYMEL_CONF_ENV_VAR in os.environ:
-        configFile = os.environ[PYMEL_CONF_ENV_VAR]
-        if os.path.isfile(configFile):
-            return configFile
-    if 'HOME' in os.environ:
-        configFile = os.path.join( os.environ['HOME'], "pymel.conf")
+    configFile = os.environ.get(PYMEL_CONF_ENV_VAR)
+    if configFile and os.path.isfile(configFile):
+        return configFile
+    home = os.environ.get('HOME')
+    if home:
+        configFile = os.path.join( home, "pymel.conf")
         if os.path.isfile(configFile):
             return configFile
     moduleDir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
@@ -196,7 +196,8 @@ def nameToLevel(name):
 def levelToName(level):
     return logLevels.getKey(level)
 
-if PYMEL_LOGLEVEL_ENV_VAR in os.environ:
+# variable must exist AND be non-empty
+if os.environ.get(PYMEL_LOGLEVEL_ENV_VAR):
     pymelLogger.setLevel(nameToLevel(os.environ[PYMEL_LOGLEVEL_ENV_VAR]))
 
 

@@ -1,9 +1,11 @@
-from pydoc import *
-import pydoc, pkgutil, sys, pprint
+from pydoc import *         #@UnusedWildImport
+import pydoc, sys, pprint   #@Reimport
 import __builtin__
-import os, shutil
+import os                   #@Reimport
+import pkgutil              #@Reimport
 
-import pymel.util as util
+# for the sake of stubtest, don't importy anything pymel/maya at module level 
+#import pymel.util as util
 
 class StubDoc(Doc):
     """Formatter class for text documentation."""
@@ -11,6 +13,9 @@ class StubDoc(Doc):
     # ------------------------------------------- text formatting utilities
     module_map = {}
     _repr_instance = TextRepr()
+    # We don't care if it's compact, we just want it to parse right...
+    _repr_instance.maxlist = _repr_instance.maxtuple = _repr_instance.maxdict\
+        = _repr_instance.maxstring = _repr_instance.maxother = 100000
     repr = _repr_instance.repr
     missing_modules = set([])
     def bold(self, text):
@@ -52,13 +57,19 @@ class StubDoc(Doc):
                 result = result + self.formattree(
                     entry, modname, c, prefix + '    ')
         return result
+    
+    importSubstitutions = {'pymel.util.objectParser':'''
+class ProxyUni(object): pass
+class Parsed(ProxyUni): pass
+''',
+                           'precompmodule':''}
 
     def docmodule(self, object, name=None, mod=None):
         """Produce text documentation for a given module object."""
         debugmodule = 'pymel.api'
         
         name = object.__name__ # ignore the passed-in name
-        synop, desc = splitdoc(getdoc(object))
+        desc = splitdoc(getdoc(object))[1]
         result = ''
         self.module_map = {}
         self.missing_modules = set([])
@@ -125,30 +136,6 @@ class StubDoc(Doc):
                 if object.__name__ == debugmodule and value.__module__ == 'pymel.internal.apicache':
                     print "import* %r" % value
                 fromall_modules.add( value.__module__ )
-            
-#        modpkgs = []
-#        modpkgs_names = set()
-#        if hasattr(object, '__path__'):
-#            for importer, modname, ispkg in pkgutil.iter_modules(object.__path__):
-#                modpkgs_names.add(modname)
-#                if ispkg:
-#                    modpkgs.append(modname + ' (package)')
-#                else:
-#                    modpkgs.append(modname)
-#
-#            modpkgs.sort()
-#            result = result + self.section(
-#                'PACKAGE CONTENTS', join(modpkgs, '\n'))
-#
-#        # Detect submodules as sometimes created by C extensions
-#        submodules = []
-#        for key, value in inspect.getmembers(object, inspect.ismodule):
-#            if value.__name__.startswith(name + '.') and key not in modpkgs_names:
-#                submodules.append(key)
-#        if submodules:
-#            submodules.sort()
-#            result = result + self.section(
-#                'SUBMODULES', join(submodules, '\n'))
 
         if modules:
             contents = []
@@ -171,12 +158,25 @@ class StubDoc(Doc):
                 self.module_map[realname] = key if importname != key else importname
                 if object.__name__ == debugmodule:
                     print '\t %-30s %-30s %s' % ( realname, importname, key )
-                contents.append( 'import ' + importname + ( ( ' as ' + key ) if importname != key else '') )
+                if importname in self.importSubstitutions:
+                    if importname != key:
+                        importname = key
+                    contents.append('%s = None' % importname)
+                else:
+                    contents.append( 'import ' + importname + ( ( ' as ' + key ) if importname != key else '') )
             result = result + join(contents, '\n') + '\n\n'
         if fromall_modules:
+            # special-case handling for pymel.internal.pmcmds, which ends up
+            # with a bunch of 'from pymel.core.X import *' commands
+            if name == 'pymel.internal.pmcmds':
+                fromall_modules = [x for x in fromall_modules if not x.startswith('pymel.core')]
+                fromall_modules.append('maya.cmds')
             contents = []
             for modname in fromall_modules:
-                contents.append( 'from ' + modname + ' import *' )
+                if modname in self.importSubstitutions:
+                    contents.append(self.importSubstitutions[modname])
+                else:
+                    contents.append( 'from ' + modname + ' import *' )
                 self.module_map[modname] = ''
             result = result + join(contents, '\n') + '\n\n'
                 
@@ -294,18 +294,10 @@ class StubDoc(Doc):
         contents = doc and [self.docstring(doc) + '\n'] or []
         push = contents.append
 
-#        # List the mro, if non-trivial.
-        mro = deque(inspect.getmro(object))
-#        if len(mro) > 2:
-#            push("Method resolution order:")
-#            for base in mro:
-#                push('    ' + makename(base))
-#            push('')
-
         def spill(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:
+                for name, kind, homecls, value in ok:       #@UnusedVariable
                     push(self.document(getattr(object, name),
                                        name, mod, object))
             return attrs
@@ -313,14 +305,14 @@ class StubDoc(Doc):
         def spilldescriptors(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:
+                for name, kind, homecls, value in ok:       #@UnusedVariable
                     push(self._docdescriptor(name, value, mod))
             return attrs
 
         def spilldata(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:
+                for name, kind, homecls, value in ok:       #@UnusedVariable
                     if (hasattr(value, '__call__') or
                             inspect.isdatadescriptor(value)):
                         doc = getdoc(value)
@@ -365,47 +357,43 @@ class StubDoc(Doc):
 
     def formatvalue(self, object):
         """Format an argument default value as text."""
-        objRepr = self.repr(object)
-        if objRepr[0] == '<' and objRepr[-1] == '>':
-            objRepr = repr(objRepr)
+        # check if the object is os.environ...
+        isEnviron = False
+        if object == os.environ:
+            isEnviron = True
+        elif isinstance(object, dict):
+            # If over 90% of the keys are in os.environ, assume it's os.environ
+            if len(set(object) & set(os.environ)) > (len(object) * 0.9):
+                isEnviron = True
+        if isEnviron:
+            objRepr = repr({'PROXY_FOR':'os.environ'})
+        else:
+            objRepr = self.repr(object)
+            if objRepr[0] == '<' and objRepr[-1] == '>':
+                objRepr = repr(objRepr)
         return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
         """Produce text documentation for a function or method object."""
         realname = object.__name__
         name = name or realname
-        note = ''
         skipdocs = 0
         if inspect.ismethod(object):
-            imclass = object.im_class
-#            if cl:
-#                if imclass is not cl:
-#                    note = ' from ' + classname(imclass, mod)
-#            else:
-#                if object.im_self is not None:
-#                    note = ' method of %s instance' % classname(
-#                        object.im_self.__class__, mod)
-#                else:
-#                    note = ' unbound %s method' % classname(imclass,mod)
             object = object.im_func
         
         title = name
-#        if name == realname:
-#            title = realname
-#        else:
-#            if (cl and realname in cl.__dict__ and
-#                cl.__dict__[realname] is object):
-#                skipdocs = 1
-#            title = name + ' = ' + realname
         if inspect.isfunction(object):
             args, varargs, varkw, defaults = inspect.getargspec(object)
             argspec = inspect.formatargspec(
                 args, varargs, varkw, defaults, formatvalue=self.formatvalue)
-#            if realname == '<lambda>':
-#                title = name
         else:
             argspec = '(*args, **kwargs)'
         decl = 'def ' + title + argspec + ':'
+        
+        if isinstance(object, staticmethod):
+            decl = '@staticmethod\n' + decl
+        elif isinstance(object, classmethod):
+            decl = '@classmethod\n' + decl
 
         if skipdocs:
             return decl + 'pass\n'
@@ -417,10 +405,6 @@ class StubDoc(Doc):
         results = []
         push = results.append
 
-#        doc = getdoc(value) or ''
-#        if doc:
-#            push( '# ' + self.indent(doc))
-#            push('\n')
         if name:
             push(name + ' = None')
             push('\n')
@@ -443,51 +427,93 @@ class StubDoc(Doc):
         else:
             value = 'None' 
         line = (name and name + ' = ' or '') + value + '\n'
-#        if doc is not None:
-#            line += '\n' + self.indent(str(doc))
         return line
 
 stubs = StubDoc()
 
-def packagestubs(packagename, outputdir='', extension='py', exclude=None):
+def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'), exclude=None):
+    import pymel.util as util
+    
     packagemod = __import__(packagename, globals(), locals(), [], -1)
     for modname, mod, ispkg in util.subpackages(packagemod):
-        curpath = os.path.join(outputdir, *modname.split('.') )
-        
-        if ispkg:
-            if not os.path.exists(curpath):
-                os.mkdir(curpath)
-            curfile = os.path.join(curpath, '__init__'+os.extsep+extension )
-        else:
-            curfile = curpath + os.extsep + extension
-        print modname, curfile
-        f = open( curfile, 'w' )
-        if not exclude or not re.match( exclude, modname ):
-            f.write( stubs.docmodule(mod) )
-        f.close()
+        contents = stubs.docmodule(mod)
+        for extension in extensions:
+            basedir = os.path.join(outputdir, extension)
+            if extension == 'pypredef':
+                curfile = os.path.join(basedir, modname)
+            else:
+                curfile = os.path.join(basedir, *modname.split('.') )
+                if ispkg:
+                    curfile = os.path.join(curfile, '__init__' )
 
-def pymelstubs(extension='py'):
+            curfile = curfile + os.extsep + extension
+            
+            curdir = os.path.dirname(curfile)
+            if not os.path.isdir(curdir):
+                os.makedirs(curdir)
+            print modname, curfile
+            f = open( curfile, 'w' )
+            if not exclude or not re.match( exclude, modname ):
+                f.write( contents )
+            f.close()
+    
+
+def pymelstubs(extensions=('py', 'pypredef', 'pi')):
     """ Builds pymel stub files for autocompletion.
     
     Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
     
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
-    outputdir = os.path.join(pymeldir, 'extras', 'completion', extension)
+    outputdir = os.path.join(pymeldir, 'extras', 'completion')
     print outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
     
     packagestubs( 'pymel', 
                   outputdir=outputdir, 
-                  extension=extension,
-                  exclude='(pymel\.util\.scanf)|(pymel\.util\.objectParser)')
+                  extensions=extensions,
+                  exclude='pymel\.util\.scanf|pymel\.util\.objectParser|pymel\.tools\.ipymel')
 
-    # fix pmcmds:
-    f = open( os.path.join(outputdir,'pymel','internal','pmcmds'+os.extsep+extension), 'w' )
-    f.write( 'from maya.cmds import *\n' )
-    f.close()
+    packagestubs( 'maya', outputdir=outputdir,extensions=extensions )
     
-    shutil
-    packagestubs( 'maya', outputdir=outputdir,extension=extension )
     return outputdir
 
+# don't start name with test - don't want it automatically run by nose
+def stubstest(pystubdir, doprint=True):
+    '''Test the stubs modules.
+    
+    Don't call this from 'inside maya', as we've probably already loaded all
+    the various 'real' modules, which can give problems.
+    '''
+    def importError(modname):
+        print 'error importing %s:' % modname
+        import traceback
+        bad.append( (modname, traceback.format_exc()) )
+        
+    bad = []
+    print "Testing all modules in: %s" % pystubdir
+    sys.path.insert(0, pystubdir)
+    try:
+        for importer, modname, ispkg in \
+                pkgutil.walk_packages(path=[pystubdir],onerror=importError):
+            print 'testing %s' % modname
+            try:
+                # Don't use the importer returned by walk_packages, as it
+                # doesn't always properly update parent packages's dictionary
+                # with submodule name - ie, you would do:
+                # import pymel.all
+                # print pymel.all
+                # ...and find that pymel had no attribute 'all'
+                #importer.find_module(modname).load_module(modname)
+                __import__(modname, globals(), locals(), [])
+            except Exception, error:
+                print 'found bad module: %s - %s' % (modname, error)
+                importError(modname)
+    finally:
+        sys.path.pop(0)
+    print 'done walking modules'
+    if doprint:
+        for modname, error in bad:
+            print '*' * 60
+            print 'could not import %s:\n%s' % (modname, error)
+    return bad

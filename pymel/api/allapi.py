@@ -265,9 +265,38 @@ def toApiObject(nodeName, dagPlugs=True):
                 # Components
                 dag = MDagPath()
                 comp = MObject()
-                sel.getDagPath( 0, dag, comp )
+                try:
+                    sel.getDagPath( 0, dag, comp )
+                except RuntimeError:
+                    pass
                 #if not isValidMDagPath(dag) :   return
-                return (dag, comp)
+                if not comp.isNull():
+                    return (dag, comp)
+                # We may have gotten a published container attribute, which
+                # auto- magically converts to the contained node it references
+                # when added to an MSelectionList
+                splitName = nodeName.split('.')
+                # Thankfully, it seems you can't index / get children off an
+                # aliased attribute - ie, myNode.myAlias[0] and
+                # myNode.myAlias.childAttr don't work, even if myAlias point
+                # to a multi / compound attr
+                if len(splitName) == 2:
+                    obj = MObject()
+                    try:
+                        sel.add( splitName[0] )
+                        sel.getDependNode(1, obj)
+                    except RuntimeError:
+                        pass 
+                    else:
+                        # Since it seems there's no api way to get at the plug for
+                        # a published / aliased container attr, we just check for
+                        # aliases...
+                        mfn = MFnDependencyNode(obj)
+                        aliases = []
+                        if mfn.getAliasList(aliases):
+                            for aliasName, trueName in util.pairIter(aliases):
+                                if aliasName == splitName[1]:
+                                    return toApiObject('.'.join( (splitName[0], trueName) ))
         else:
             try:
                 # DagPaths
@@ -280,48 +309,8 @@ def toApiObject(nodeName, dagPlugs=True):
                 # Objects
                 obj = MObject()
                 sel.getDependNode( 0, obj )          
-                #if not isValidMObject(obj) : return     
+                #if not isValidMObject(obj) : return
                 return obj
-        
-#    # TODO : components
-#    if "." in nodeName :
-#        # build up to the final MPlug
-#        nameTokens = nameparse.getBasicPartList( nodeName )
-#        if dag.isValid():
-#            fn = MFnDagNode(dag)
-#            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
-#                if isinstance( token, nameparse.MayaName ):
-#                    if isinstance( result, MPlug ):
-#                        result = result.child( fn.attribute( unicode(token) ) )
-#                    else:
-#                        try:
-#                            result = fn.findPlug( unicode(token) )
-#                        except TypeError:
-#                            for i in range(fn.childCount()):
-#                                try:
-#                                    result = MFnDagNode( fn.child(i) ).findPlug( unicode(token) )
-#                                except TypeError:
-#                                    pass
-#                                else:
-#                                    break
-#                if isinstance( token, nameparse.NameIndex ):
-#                    result = result.elementByLogicalIndex( token.value )
-#            if dagMatters:
-#                result = (dag, result)
-#        else:
-#            fn = MFnDependencyNode(obj)
-#            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
-#                if isinstance( token, nameparse.MayaName ):
-#                    if isinstance( result, MPlug ):
-#                        result = result.child( fn.attribute( unicode(token) ) )
-#                    else:
-#                        result = fn.findPlug( unicode(token) )
-#                            
-#                if isinstance( token, nameparse.NameIndex ):
-#                    result = result.elementByLogicalIndex( token.value )
-#        
-#
-#    return result
 
 def toMDagPath(nodeName):
     """ Get an API MDagPAth to the node, given the name of an existing dag node """ 

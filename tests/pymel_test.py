@@ -82,7 +82,8 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
                     \Wall\.py$
                     ^tools
                     ^example1
-                    ^testingutils
+                    ^testing
+                    ^eclipseDebug
                     ^pmcmds
                     ^testPa
                     ^maya
@@ -247,9 +248,9 @@ class DocTestPatcher(object):
         
     def set_wantFile(self):
         import nose
-        if nose.__versioninfo__ > (1,0,0):
-            self.orig_wantFile = None
-            return 
+#        if nose.__versioninfo__ > (1,0,0):
+#            self.orig_wantFile = None
+#            return 
 
         import nose.plugins.doctests
         self.orig_wantFile = nose.plugins.doctests.Doctest.__dict__['wantFile']
@@ -281,19 +282,27 @@ if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:
         #backupAndTest(sys.argv[1:])
         oldPath = os.getcwd()
-        thisDir = os.path.dirname(os.path.abspath(sys.argv[0]) )
+        testsDir = os.path.dirname(os.path.abspath(sys.argv[0]) )
+        pymelRoot = os.path.dirname( testsDir )
         noseArgs = sys.argv[1:]
 
-        # add thisDir to the python path - that way,
+        # make sure our cwd is the pymel project working directory
+        os.chdir( pymelRoot )
+
+        pypath = os.environ['PYTHONPATH'].split(os.pathsep)
+        # add the test dir to the python path - that way,
         # we can do 'pymel_test test_general' in order to run just the tests
         # in test_general
-        sys.path.append(thisDir)
-        pypath = os.environ['PYTHONPATH'].split(os.pathsep)
-        pypath.append(thisDir)
+        sys.path.append(testsDir)
+        pypath.append(testsDir)
+
+        # ...and add this copy of pymel to the python path, highest priority,
+        # to make sure it overrides any 'builtin' pymel/maya packages
+        sys.path.insert(0, pymelRoot)
+        pypath.insert(0, pymelRoot)
+
         os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
 
-        # make sure our cwd is the pymel project working directory
-        os.chdir( os.path.dirname( thisDir ) )
         nose_test(extraArgs=noseArgs)
         os.chdir(oldPath)
     else:

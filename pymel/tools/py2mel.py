@@ -1,4 +1,6 @@
-
+"""
+Convert python callables into MEL procedures
+"""
 import inspect, re, types
 from pymel.util.arrays import VectorN, MatrixN
 from pymel.util.arguments import isMapping, isIterable

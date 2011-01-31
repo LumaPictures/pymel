@@ -1,4 +1,4 @@
-from testingutils import TestCase, setupUnittestModule
+from pymel.util.testing import TestCase, setupUnittestModule
 import pymel.util.trees as trees
 
 class testCase_typeTrees(TestCase):

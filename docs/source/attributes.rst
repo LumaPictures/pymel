@@ -108,7 +108,7 @@ for a given attribute. This can be a potential source of confusion:
     >>> # why is this? because result is a Vector and value is a list
     >>> result
     dt.Vector([4,5,6])
-    >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
+    >>> # use `Vector.isEquivalent` or cast the list to a `list`
     >>> list(result) == value
     True
     >>> result.isEquivalent(value)

@@ -34,15 +34,20 @@ the results::
 
 """
 
-import sys, os
+import sys
+import os
+import warnings
+
+import maya.mel as _mel
 import maya.OpenMaya as _OpenMaya
+
 from pymel.util.scanf import fscanf
 from pymel.util.decoration import decorator
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.internal.pmcmds as cmds
-import maya.mel as _mel
+import pymel.versions as versions
 
 _logger = _internal.getLogger(__name__)
 
@@ -197,6 +202,17 @@ class Namespace(unicode):
         return node
 
     def listNamespaces(self, recursive=False, internal=False):
+        '''List the namespaces contained within this namespace.
+        
+        :parameters:
+        recursive : `bool`
+            Set to True to enable recursive search of sub (and sub-sub, etc)
+            namespaces
+        internal : `bool`
+            By default, this command filters out certain automatically created
+            maya namespaces (ie, :UI, :shared); set to True to show these
+            internal namespaces as well
+        '''
         curNS = Namespace.getCurrent()
 
         self.setCurrent()
@@ -219,14 +235,24 @@ class Namespace(unicode):
         return namespaces
 
     def listNodes(self, recursive=False, internal=False):
-        import general
+        '''List the nodes contained within this namespace.
+        
+        :parameters:
+        recursive : `bool`
+            Set to True to enable recursive search of sub (and sub-sub, etc)
+            namespaces
+        internal : `bool`
+            By default, this command filters out nodes in certain automatically
+            created maya namespaces (ie, :UI, :shared); set to True to show
+            these internal namespaces as well
+        '''
         curNS = Namespace.getCurrent()
 
         self.setCurrent()
         try:
-            if not internal:
-                nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True,
-                                      recurse=False)
+            if not internal or versions.current() < versions.v2011:
+                # Default for recursive is false
+                nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True)
                 if recursive:
                     namespaces = self.listNamespaces(recursive=False, internal=internal)
     

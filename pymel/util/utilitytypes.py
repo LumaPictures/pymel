@@ -488,6 +488,10 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
     return Proxy
 
 
+# Note - for backwards compatibility reasons, PyNodes still inherit from
+# ProxyUnicode, even though we are now discouraging their use 'like strings',
+# and ProxyUnicode itself has now had so many methods removed from it that
+# it's no longer really a good proxy for unicode.
 
 # NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
