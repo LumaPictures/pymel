@@ -47,14 +47,31 @@ mpxToEnum = {
     mpx.MPxManipulatorNode:mpx.MPxNode.kManipulatorNode,
     }
 
+_enumToStr = None
+def enumToStr():
+    '''Returns a dictionary mapping from an MPxNode node type enum to it's
+    string name.
+    Useful for debugging purposes.
+    '''
+    global _enumToStr
+    if _enumToStr is None:
+        _enumToStr = {}
+        for name, val in inspect.getmembers(mpx.MPxNode, lambda x: isinstance(x, int)):
+            if name.startswith('k'):
+                _enumToStr[val] = name
+    return _enumToStr
+    
+_allMPx = None
 def allMPx():
     '''
     Returns a list of all MPx classes
-    ''' 
-    mpxClasses = []
-    for _, cls in inspect.getmembers(mpx, lambda x: inspect.isclass(x) and issubclass(x, mpx.MPxNode)):
-        mpxClasses.append(cls)
-    return mpxClasses
+    '''
+    global _allMPx
+    if _allMPx is None:
+        _allMPx = []
+        for _, cls in inspect.getmembers(mpx, lambda x: inspect.isclass(x) and issubclass(x, mpx.MPxNode)):
+            _allMPx.append(cls)
+    return _allMPx
 
 # We want to make sure we know if maya adds a new MPx class!
 for _mpx in allMPx():
@@ -143,13 +160,14 @@ class BasePluginMixin(object):
     def getMpxType(cls):
         if cls._mpxType is None:
             for pClass in inspect.getmro(cls):
-                if issubclass(pClass, mpx.MPxNode):
+                if pClass in mpxToEnum:
                     cls._mpxType = pClass
+                    break
         return cls._mpxType
     
     @classmethod
     def mayaName(cls):
-        if not cls._name is None:
+        if cls._name is None:
             cls._name = cls.__name__
         return cls._name
 
@@ -164,6 +182,19 @@ class BasePluginMixin(object):
                 nodeName = cls.mayaName()
             cls._typeId = cls._devTypeIdHash(nodeName)
         return cls._typeId
+
+    @classmethod
+    def _devTypeIdHash(cls, name):
+        '''hashes the given string to a MTypeId, somewhere in the dev range
+        (0x80000 - 0xfffff)
+        '''
+        start = 0x80000
+        end = 0xfffff
+        size = (end - start) + 1
+        md5 = hashlib.md5()
+        md5.update(name)
+        id = start + long(md5.hexdigest(), 16) % size
+        return om.MTypeId(id)
     
     @classmethod
     def create(cls):
@@ -310,8 +341,8 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
 
     @classmethod                
     def _nodeRegisterOverride( cls, nodeName, mplugin ):
-        registerArgs = [ nodeName,cls.getTypeId(), cls.create, cls.initialize,
-                        cls.getTypeEnum()]
+        registerArgs = [ nodeName, cls.getTypeId(), cls.create, cls.initialize,
+                         cls.getTypeEnum() ]
         if cls._classification:
             registerArgs.append(cls._classification)
         mplugin.registerNode( *registerArgs )
@@ -332,23 +363,14 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         if useThisPlugin:
             import pymel.core
             pymel.core._removePluginNode(mplugin.name(), nodeName)
-        for id in cls._callbacks.pop(nodeName):
+        for id in cls._callbacks.pop(nodeName, []):
             om.MMessage.removeCallback(id)
-            
+
     @classmethod
-    def _devTypeIdHash(cls, name):
-        '''hashes the given string to a MTypeId, somewhere in the dev range
-        (0x80000 - 0xfffff)
-        '''
-        start = 0x80000
-        end = 0xfffff
-        size = (end - start) + 1
-        md5 = hashlib.md5()
-        md5.update(name)
-        id = start + long(md5.hexdigest(), 16) % size
-        return om.MTypeId(id)
-
-
+    def isAbstractClass(cls):
+        # MPxPolyTrg returns True
+        return False
+            
 # I have some unnecessary if statements, just to visually show the hierarchy
                 
 class CameraSet(DependNode, mpx.MPxCameraSet): pass
@@ -444,28 +466,31 @@ def getPluginHierarchy():
     '''
     import pymel.internal.factories as factories
     
-    nodetypes = createDummyPluginNodes()
+    dummyClasses = createDummyNodePlugins()
     inheritances = {}
-    for pluginType, nodetype in nodetypes:
+    for pluginType, dummyClass in dummyClasses.iteritems():
+        nodeType = dummyClass.mayaName()
+        dummyClass.register()
         try:
-            inheritance = factories.getInheritance(nodetype)
-        except factories.ManipNodeTypeError:
-            pass
-        assert inheritance[0] == nodetype
+            try:
+                inheritance = factories.getInheritance(nodeType)
+            except factories.ManipNodeTypeError:
+                continue
+        finally:
+            dummyClass.deregister()
+        assert inheritance[-1] == nodeType
         inheritances[pluginType] = inheritance[1:]
     return inheritances
 
-def createDummyPluginNodes():
+def createDummyNodePlugins():
     '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
     subclass
     
     returns a dictionary mapping from MPx class to a maya node type string
     '''
-    nodetypes = {}
-    
     pymelPlugClasses = []
     
-    for obj in globals.itervalues():
+    for obj in globals().itervalues():
         if inspect.isclass(obj) and issubclass(obj, DependNode):
             pymelPlugClasses.append(obj)
             
@@ -474,7 +499,6 @@ def createDummyPluginNodes():
         class DummyClass(cls):
             _name = 'dummy' + cls.__name__
         DummyClass.__name__ = 'Dummy' + cls.__name__
-        DummyClass.register()
         dummyClasses[DummyClass.getMpxType()] = DummyClass
         
     return dummyClasses
