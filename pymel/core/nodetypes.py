@@ -1033,11 +1033,13 @@ class DagNode(Entity):
         # and string processing seems unreliable...
 
         res = general._getParent(self._getDagParent, self.__apimdagpath__(), generations)
-        if res:
-            if generations is None:
-                return [general.PyNode(x) for x in res]
-            else:
-                return general.PyNode( res )
+        
+        if generations is None:
+            if res is None:
+                return []
+            return [general.PyNode(x) for x in res]
+        elif res is not None:
+            return general.PyNode( res )
         
     def getAllParents(self):
         """
@@ -1047,7 +1049,7 @@ class DagNode(Entity):
 
         :rtype: `DagNode` list
         """
-        return self.getParent(generations=None, arrays=arrays)
+        return self.getParent(generations=None)
 
     def getChildren(self, **kwargs ):
         """
@@ -1852,14 +1854,11 @@ class NurbsCurve(CurveShape):
                             'editPoints'  : general.NurbsCurveEP,
                             'knot'        : general.NurbsCurveKnot,
                             'knots'       : general.NurbsCurveKnot}
-# hard coding the mapping of numCVs => _numCVs for now,
-# instead of using apiToMelBridge, as caches are in a state of flux
-# for now
-# can leave this in, or always move it to apiToMelBridge later...
-NurbsCurve._numCVs = NurbsCurve.numCVs
+
+# apiToMelBridge maps MFnNurbsCurve.numCVs => NurbsCurve._numCVsApi
 NurbsCurve.numCVs = \
     NurbsCurve._numCVsFunc_generator(NurbsCurve.form,
-                                     NurbsCurve._numCVs,
+                                     NurbsCurve._numCVsApi,
                                      NurbsCurve.numSpans,
                                      name='numCVs',
                                      doc =
@@ -1953,14 +1952,11 @@ class NurbsSurface(SurfaceShape):
                             'knots'       : general.NurbsSurfaceKnot,
                             'sf'          : general.NurbsSurfaceFace,
                             'faces'       : general.NurbsSurfaceFace}
-# hard coding the mapping of numCVs => _numCVs for now,
-# instead of using apiToMelBridge, as caches are in a state of flux
-# for now
-# can leave this in, or always move it to apiToMelBridge later...
-NurbsSurface._numCVsInU = NurbsSurface.numCVsInU
+
+# apiToMelBridge maps MFnNurbsCurve._numCVsInU => NurbsCurve._numCVsInUApi
 NurbsSurface.numCVsInU = \
     NurbsSurface._numCVsFunc_generator(NurbsSurface.formInU,
-                                       NurbsSurface._numCVsInU,
+                                       NurbsSurface._numCVsInUApi,
                                        NurbsSurface.numSpansInU,
                                        name='numCVsInU',
                                        doc =
@@ -2007,14 +2003,11 @@ NurbsSurface.numCVsInU = \
 
         :rtype: `int`
         """)
-# hard coding the mapping of numCVs => _numCVs for now,
-# instead of using apiToMelBridge, as caches are in a state of flux
-# for now
-# can leave this in, or always move it to apiToMelBridge later...
-NurbsSurface._numCVsInV = NurbsSurface.numCVsInV
+
+# apiToMelBridge maps MFnNurbsCurve._numCVsInV => NurbsCurve._numCVsInVApi
 NurbsSurface.numCVsInV = \
     NurbsSurface._numCVsFunc_generator(NurbsSurface.formInV,
-                                       NurbsSurface._numCVsInV,
+                                       NurbsSurface._numCVsInVApi,
                                        NurbsSurface.numSpansInV,
                                        name='numCVsInV',
                                        doc =

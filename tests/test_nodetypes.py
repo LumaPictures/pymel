@@ -3,6 +3,7 @@ import itertools
 import re
 import platform
 
+import maya.cmds as cmds
 from pymel.all import *
 import pymel.core as pm
 from maintenance.pymelControlPanel import getClassHierarchy
@@ -151,7 +152,7 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['multiCompound'].getAllParents(), [])
         self.assertEqual(self.newAttrs['multiCompound'].getAllParents(arrays=True), [])
         self.assertEqual(self.newAttrs['angle'].getAllParents(), [])
-        self.assertEqual(self.newAttrs['angle'].getAllParents(arrays=True), [])        
+        self.assertEqual(self.newAttrs['angle'].getAllParents(arrays=True), [])
         
     def test_comparison(self):
         for attr in self.newAttrs.itervalues():
@@ -1628,6 +1629,50 @@ for propName, evalStringFunc in \
         newFuncName = 'test_' + baseName + '_ComponentCreation'
         setattr(testCase_components, newFuncName,
             makeComponentCreationTests(evalStringFunc, funcName=newFuncName))
+
+class testCase_DagNode(TestCaseExtended):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        
+    def test_getParent(self):
+        tg1     = pm.createNode('transform', name='topGroup1')
+        tg1c1   = pm.createNode('transform',    name='tg1_child1', parent='topGroup1')
+        tg1c1g1 = pm.createNode('transform',        name='tg1_c1_grandkid1', parent='tg1_child1')
+        tg1c1g2 = pm.createNode('transform',        name='tg1_c1_grandkid2', parent='tg1_child1')
+        tg1c2   = pm.createNode('transform',    name='tg1_child2', parent='topGroup1')
+        tg2     = pm.createNode('transform', name='topGroup2')
+        tg2c2   = pm.createNode('transform',    name='tg2_child1', parent='topGroup2')
+        # try some non-unique names
+        tg3     = pm.createNode('transform', name='topGroup3')
+        tg3c1   = pm.createNode('transform',    name='child1', parent='topGroup3')
+        tg3c1c1 = pm.createNode('transform',        name='child1', parent='topGroup3|child1')
+        tg4     = pm.createNode('transform', name='topGroup4')
+        tg4c1   = pm.createNode('transform',    name='child1', parent='topGroup4')
+            
+        self.assertEqual(tg1c1g1.getParent(), tg1c1)
+                
+        self.assertEqual(tg1c1g1.getParent(0), tg1c1g1)
+        self.assertEqual(tg1c1g1.getParent(generations=1), tg1c1)
+        self.assertEqual(tg1c1g1.getParent(2), tg1)
+        self.assertEqual(tg1c1g1.getParent(generations=3), None)
+        self.assertEqual(tg1c1g1.getParent(-1), tg1)
+        self.assertEqual(tg1c1g1.getParent(generations=-2), tg1c1)
+        self.assertEqual(tg1c1g1.getParent(-3), tg1c1g1)
+        self.assertEqual(tg1c1g1.getParent(generations=-4), None)
+        self.assertEqual(tg1c1g1.getParent(-5), None)
+        self.assertEqual(tg1c1g1.getParent(generations=4), None)
+        self.assertEqual(tg1c1g1.getParent(-63), None)
+        self.assertEqual(tg1c1g1.getParent(generations=32), None)
+        
+        self.assertEqual(tg1c1g1.getAllParents(), [tg1c1, tg1])
+        
+        self.assertEqual(tg3c1.getParent(generations=1), tg3)
+        self.assertEqual(tg3c1c1.getParent(generations=2), tg3)
+        self.assertEqual(tg3c1.getParent(generations=-1), tg3)
+
+        self.assertEqual(tg3c1c1.getAllParents(), [tg3c1, tg3])
+        self.assertEqual(tg3c1.getAllParents(), [tg3])
+        self.assertEqual(tg3.getAllParents(), [])
         
 class testCase_nurbsSurface(TestCaseExtended):
     def setUp(self):

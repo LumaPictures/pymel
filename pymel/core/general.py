@@ -3308,11 +3308,12 @@ class Attribute(PyNode):
             getter = self._getAttrParent
 
         res = _getParent(getter, self.__apimfn__(), generations)
-        if res is not None:
-            if generations is None:
-                return [Attribute(self.node(), x) for x in res]
-            else:
-                return Attribute( self.node(), res )
+        if generations is None:
+            if res is None:
+                return []
+            return [Attribute(self.node(), x) for x in res]
+        elif res is not None:
+            return Attribute( self.node(), res )
         
     def getAllParents(self, arrays=False):
         """
