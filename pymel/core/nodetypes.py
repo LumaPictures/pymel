@@ -1033,11 +1033,13 @@ class DagNode(Entity):
         # and string processing seems unreliable...
 
         res = general._getParent(self._getDagParent, self.__apimdagpath__(), generations)
-        if res:
-            if generations is None:
-                return [general.PyNode(x) for x in res]
-            else:
-                return general.PyNode( res )
+        
+        if generations is None:
+            if res is None:
+                return []
+            return [general.PyNode(x) for x in res]
+        elif res is not None:
+            return general.PyNode( res )
         
     def getAllParents(self):
         """
@@ -1047,7 +1049,7 @@ class DagNode(Entity):
 
         :rtype: `DagNode` list
         """
-        return self.getParent(generations=None, arrays=arrays)
+        return self.getParent(generations=None)
 
     def getChildren(self, **kwargs ):
         """
