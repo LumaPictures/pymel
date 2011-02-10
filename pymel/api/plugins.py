@@ -19,7 +19,69 @@ import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
 import maya.cmds
 
-registered = {}
+#===============================================================================
+# General Info
+#===============================================================================
+
+mpxToEnum = {
+    mpx.MPxNode:mpx.MPxNode.kDependNode,
+    mpx.MPxPolyTrg:mpx.MPxNode.kDependNode,             # has no unique enum
+    mpx.MPxLocatorNode:mpx.MPxNode.kLocatorNode,
+    mpx.MPxDeformerNode:mpx.MPxNode.kDeformerNode,
+    mpx.MPxManipContainer:mpx.MPxNode.kManipContainer,
+    mpx.MPxSurfaceShape:mpx.MPxNode.kSurfaceShape,
+    mpx.MPxComponentShape:mpx.MPxNode.kSurfaceShape,    # has no unique enum
+    mpx.MPxFieldNode:mpx.MPxNode.kFieldNode,
+    mpx.MPxEmitterNode:mpx.MPxNode.kEmitterNode,
+    mpx.MPxSpringNode:mpx.MPxNode.kSpringNode,
+    mpx.MPxIkSolverNode:mpx.MPxNode.kIkSolverNode,
+    mpx.MPxHardwareShader:mpx.MPxNode.kHardwareShader,
+    mpx.MPxHwShaderNode:mpx.MPxNode.kHwShaderNode,
+    mpx.MPxTransform:mpx.MPxNode.kTransformNode,
+    mpx.MPxObjectSet:mpx.MPxNode.kObjectSet,
+    mpx.MPxFluidEmitterNode:mpx.MPxNode.kFluidEmitterNode,
+    mpx.MPxImagePlane:mpx.MPxNode.kImagePlaneNode,
+    mpx.MPxParticleAttributeMapperNode:mpx.MPxNode.kParticleAttributeMapperNode,
+    mpx.MPxCameraSet:mpx.MPxNode.kCameraSetNode,
+    mpx.MPxConstraint:mpx.MPxNode.kConstraintNode,
+    mpx.MPxManipulatorNode:mpx.MPxNode.kManipulatorNode,
+    }
+
+_enumToStr = None
+def enumToStr():
+    '''Returns a dictionary mapping from an MPxNode node type enum to it's
+    string name.
+    Useful for debugging purposes.
+    '''
+    global _enumToStr
+    if _enumToStr is None:
+        _enumToStr = {}
+        for name, val in inspect.getmembers(mpx.MPxNode, lambda x: isinstance(x, int)):
+            if name.startswith('k'):
+                _enumToStr[val] = name
+    return _enumToStr
+    
+_allMPx = None
+def allMPx():
+    '''
+    Returns a list of all MPx classes
+    '''
+    global _allMPx
+    if _allMPx is None:
+        _allMPx = []
+        for _, cls in inspect.getmembers(mpx, lambda x: inspect.isclass(x) and issubclass(x, mpx.MPxNode)):
+            _allMPx.append(cls)
+    return _allMPx
+
+# We want to make sure we know if maya adds a new MPx class!
+for _mpx in allMPx():
+    assert _mpx in mpxToEnum, 'new MPx class found: %s' % _mpx.__name__
+
+#===============================================================================
+# Plugin Registration / loading
+#===============================================================================
+
+registered = set()
 
 pyNodeMethods = {}
 
@@ -58,19 +120,86 @@ def _getPlugin(object=None):
         raise TypeError('expected an MFnPlugin instance or an MObject that can be cast to an MFnPlugin')
     return plugin
 
+# allow this file to be loaded as its own dummy plugin
+# Initialize the script plug-in
+def initializePlugin(mobject):
+    pass
+
+# Uninitialize the script plug-in
+def uninitializePlugin(mobject):
+
+    #print "getmodule", inspect.getmodule( None )
+    #mod = _pluginModule()
+
+    #when uninitializePlugin is called it is execfile'd which changes the module in which this code runs.
+    #we need to get the correct module first
+
+    # FIXME: determine a reliable way to get this module's name when it is being execfile'd
+    global registered
+    mod = sys.modules['pymel.api.plugins']
+
+    plugin = mpx.MFnPlugin(mobject)
+    for obj in registered:
+        print "deregistering", obj.name()
+        obj.deregisterCommand(plugin)
+    registered = set()
+
+#===============================================================================
+# Plugin Mixin Classes
+#===============================================================================
+
 class BasePluginMixin(object):
     # The name of the command or the node type
     _name = None
+    
+    # You can manually set this, or just leave it at None to let pymel
+    # automatically determine it from the base classes
     _mpxType = None
+    
+    @classmethod
+    def getMpxType(cls):
+        if cls._mpxType is None:
+            for pClass in inspect.getmro(cls):
+                if pClass in mpxToEnum:
+                    cls._mpxType = pClass
+                    break
+        return cls._mpxType
+    
+    @classmethod
+    def mayaName(cls):
+        if cls._name is None:
+            cls._name = cls.__name__
+        return cls._name
+
+    _typeId = None
+    
+    # Defined here just so it can be shared between MPxTransformationMatrix
+    # and DependNode
+    @classmethod
+    def getTypeId(cls, nodeName=None):
+        if cls._typeId is None:
+            if nodeName is None:
+                nodeName = cls.mayaName()
+            cls._typeId = cls._devTypeIdHash(nodeName)
+        return cls._typeId
+
+    @classmethod
+    def _devTypeIdHash(cls, name):
+        '''hashes the given string to a MTypeId, somewhere in the dev range
+        (0x80000 - 0xfffff)
+        '''
+        start = 0x80000
+        end = 0xfffff
+        size = (end - start) + 1
+        md5 = hashlib.md5()
+        md5.update(name)
+        id = start + long(md5.hexdigest(), 16) % size
+        return om.MTypeId(id)
     
     @classmethod
     def create(cls):
         return mpx.asMPxPtr( cls() )    
 
-    @classmethod
-    def mayaName(cls):
-        return cls._name if cls._name else cls.__name__
-    
     @classmethod
     def register(cls, plugin=None):
         """Used to register this MPx object wrapper with the maya plugin.
@@ -89,12 +218,12 @@ class BasePluginMixin(object):
         mplugin = _getPlugin(plugin)
         cls._registerOverride(mplugin, useThisPlugin)
         if useThisPlugin:
-            registered[cls] = None
+            registered.add(cls)
             
     @classmethod
     def _registerOverride(cls, mplugin, useThisPlugin):
         '''Override this to implement the actual registration behavior for
-        the MPx class. 
+        the MPx class.
         '''
         return
     
@@ -110,7 +239,7 @@ class BasePluginMixin(object):
         mplugin = _getPlugin(plugin)
         cls._deregisterOverride(mplugin, useThisPlugin)
         if plugin is None:
-            registered.pop(cls)
+            registered.remove(cls)
 
     @classmethod
     def _deregisterOverride(cls, mplugin, useThisPlugin):
@@ -119,7 +248,12 @@ class BasePluginMixin(object):
         '''
         return
 
-class BaseCommandMixin(BasePluginMixin):
+#===============================================================================
+# Plugin Classes - inherit from these!
+#===============================================================================
+
+            
+class Command(BasePluginMixin, mpx.MPxCommand):
     @classmethod
     def createSyntax(cls):
         return om.MSyntax()
@@ -143,18 +277,160 @@ class BaseCommandMixin(BasePluginMixin):
             import pymel.core
             pymel.core._removePluginCommand(mplugin.name(), name)
             
-class Command(BaseCommandMixin, mpx.MPxCommand):
-    _mpxType = mpx.MPxCommand
+class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
+    _typeId = None
+    # Override to do nothing - should be (de)registered by the transform!
+    @classmethod
+    def register(cls, plugin=None): pass
+    @classmethod
+    def deregister(cls, plugin=None): pass
+                
+class DependNode(BasePluginMixin, mpx.MPxNode):
+    # You can manually set this, or just leave it at None to let pymel
+    # automatically determine it from the MPxType
+    _typeEnum = None
 
+    # If this is left as None, a 'reasonable' default will be made based on a
+    # hash of the node name in the user range... to ensure no name clashes,
+    # though, you should get a node id from Autodesk!
+    _typeId = None
+    
+    @classmethod
+    def getTypeEnum(cls):
+        if cls._typeEnum is None:
+            cls._typeEnum = mpxToEnum[cls.getMpxType()]
+        return cls._typeEnum
+    
+    _classification = None
+    
+    _callbacks = defaultdict(list)
+    
+    @classmethod
+    def initialize(cls):
+        return
 
-# Todo: implement the underlying stuff to make PyNodeMethod work... probably
-# need to unify the code in pymel.core._pluginLoaded/_pluginUnloaded and
-# factories.addCustomPyNode; then, just have anytime we're adding new plugin
-# nodes, check for PyNodeMethod objects on the class, and modify the resulting
-# PyNode accordingly
+    @classmethod
+    def _registerOverride(cls, mplugin, useThisPlugin):
+        nodeName = cls.mayaName()
 
-# The support for this isn't implemented yet... just here to give an idea of
-# how it would work...
+        # PyNodeMethods
+        global pyNodeMethods
+        pluginPynodeMethods = pyNodeMethods.setdefault(mplugin.name(), {})
+        pluginPynodeMethods[nodeName] = {}
+        for clsAttrName, clsObj in inspect.getmembers(cls):
+            if isinstance(clsObj, PyNodeMethod):
+                pluginPynodeMethods[nodeName][clsObj.name] = clsObj.func
+            
+        cls._nodeRegisterOverride( nodeName, mplugin )
+        
+        if useThisPlugin:
+            import pymel.core
+            pymel.core._addPluginNode(mplugin.name(), nodeName)
+        # callbacks
+        for cbname, reg in [
+                    ('timeChanged', om.MDGMessage.addTimeChangeCallback),
+                    ('forcedUpdate', om.MDGMessage.addForceUpdateCallback),
+                    ('nodeAdded', om.MDGMessage.addNodeAddedCallback),
+                    ('nodeRemoved', om.MDGMessage.addNodeRemovedCallback),
+                    #('connectionMade', om.MDGMessage.addConnectionCallback), # conflicts with MPxNode.connectionMade
+                    ('preConnectionMade', om.MDGMessage.addPreConnectionCallback)]:
+            if hasattr(cls, cbname):
+                cb = getattr(cls, cbname)
+                # TODO: assert cb is a classmethod, maybe check number of inputs too
+                cls._callbacks[nodeName].append(reg(cb, nodeName))
+
+    @classmethod                
+    def _nodeRegisterOverride( cls, nodeName, mplugin ):
+        registerArgs = [ nodeName, cls.getTypeId(), cls.create, cls.initialize,
+                         cls.getTypeEnum() ]
+        if cls._classification:
+            registerArgs.append(cls._classification)
+        mplugin.registerNode( *registerArgs )
+        
+                
+    @classmethod
+    def _deregisterOverride(cls, mplugin, useThisPlugin):
+        '''Override this to implement the actual deregistration behavior for
+        the MPx class. 
+        '''
+        nodeName = cls.mayaName()
+
+        # PyNodeMethods
+        global pyNodeMethods
+        pyNodeMethods.get(mplugin.name(), {}).pop(nodeName, None)
+        
+        mplugin.deregisterNode( cls.getTypeId() )
+        if useThisPlugin:
+            import pymel.core
+            pymel.core._removePluginNode(mplugin.name(), nodeName)
+        for id in cls._callbacks.pop(nodeName, []):
+            om.MMessage.removeCallback(id)
+
+    @classmethod
+    def isAbstractClass(cls):
+        # MPxPolyTrg returns True
+        return False
+            
+# I have some unnecessary if statements, just to visually show the hierarchy
+                
+class CameraSet(DependNode, mpx.MPxCameraSet): pass
+        
+class Constraint(DependNode, mpx.MPxConstraint): pass
+
+class DeformerNode(DependNode, mpx.MPxDeformerNode): pass
+
+class EmitterNode(DependNode, mpx.MPxEmitterNode): pass
+
+if 1:
+    class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode): pass
+
+class FieldNode(DependNode, mpx.MPxFieldNode): pass
+    
+class HardwareShader(DependNode, mpx.MPxHardwareShader): pass
+
+class HwShaderNode(DependNode, mpx.MPxHwShaderNode): pass
+
+class IkSolverNode(DependNode, mpx.MPxIkSolverNode): pass
+
+class ImagePlane(DependNode, mpx.MPxImagePlane): pass
+
+class LocatorNode(DependNode, mpx.MPxLocatorNode): pass
+
+class ManipContainer(DependNode, mpx.MPxManipContainer): pass
+
+class ManipulatorNode(DependNode, mpx.MPxManipulatorNode): pass
+
+class ObjectSet(DependNode, mpx.MPxObjectSet): pass
+
+class ParticleAttributeMapperNode(DependNode, mpx.MPxParticleAttributeMapperNode): pass
+
+class PolyTrg(DependNode, mpx.MPxPolyTrg): pass
+
+class SpringNode(DependNode, mpx.MPxSpringNode): pass
+
+class SurfaceShape(DependNode, mpx.MPxSurfaceShape): pass
+
+if 1:
+    class ComponentShape(SurfaceShape, mpx.MPxComponentShape): pass
+    
+class Transform(DependNode, mpx.MPxTransform):
+    # Bug in python - can't just use MPxTransformationMatrix, as there's a
+    # problem with MPxTransformationMatrix.baseTransformationMatrixId
+    _transformMatrix = TransformationMatrix
+    
+    @classmethod                
+    def _nodeRegisterOverride( cls, nodeName, mplugin ):
+        registerArgs = [ nodeName, cls.getTypeId(), cls.create, cls.initialize,
+                         cls._transformMatrix.create,
+                         cls._transformMatrix.getTypeId() ]
+        if cls._classification:
+            registerArgs.append(cls._classification)
+        mplugin.registerTransform( *registerArgs )
+
+#===============================================================================
+# Plugin Class Helpers
+#===============================================================================
+
 class PyNodeMethod(object):
     '''Used as a decorator, placed on methods on a plugin node class, to signal
     that these methods should be placed on to PyNode objects constructed for
@@ -177,111 +453,57 @@ class PyNodeMethod(object):
         self.func = func
         self.name = name
 
-class BaseNodeMixin(BasePluginMixin):
-    _typeId = None
-    _callbacks = defaultdict(list)
+
+#===============================================================================
+# Querying Plugin Hierarchy
+#===============================================================================
+
+def getPluginHierarchy():
+    '''Dynamically query the mel node hierarchy for all plugin node types
     
-    @classmethod
-    def initialize(cls):
-        return
+    This command must be run from within a running maya session - ie, where
+    maya.cmds, etc are accessible.
+    '''
+    import pymel.internal.factories as factories
+    
+    dummyClasses = createDummyNodePlugins()
+    inheritances = {}
+    for pluginType, dummyClass in dummyClasses.iteritems():
+        nodeType = dummyClass.mayaName()
+        dummyClass.register()
+        try:
+            try:
+                inheritance = factories.getInheritance(nodeType)
+            except factories.ManipNodeTypeError:
+                continue
+        finally:
+            dummyClass.deregister()
+        assert inheritance[-1] == nodeType
+        inheritances[pluginType] = inheritance[1:]
+    return inheritances
 
-    @classmethod
-    def _registerOverride(cls, mplugin, useThisPlugin):
-        nodeName = cls.mayaName()
-
-        # PyNodeMethods
-        global pyNodeMethods
-        pluginPynodeMethods = pyNodeMethods.setdefault(mplugin.name(), {})
-        pluginPynodeMethods[nodeName] = {}
-        for clsAttrName, clsObj in inspect.getmembers(cls):
-            if isinstance(clsObj, PyNodeMethod):
-                pluginPynodeMethods[nodeName][clsObj.name] = clsObj.func
-                        
-        
-        mplugin.registerNode( nodeName, cls._typeId, cls.create, cls.initialize, cls._type )
-        
-        if useThisPlugin:
-            import pymel.core
-            pymel.core._addPluginNode(mplugin.name(), nodeName)
-        # callbacks
-        for cbname, reg in [
-                    ('timeChanged', om.MDGMessage.addTimeChangeCallback),
-                    ('forcedUpdate', om.MDGMessage.addForceUpdateCallback),
-                    ('nodeAdded', om.MDGMessage.addNodeAddedCallback),
-                    ('nodeRemoved', om.MDGMessage.addNodeRemovedCallback),
-                    #('connectionMade', om.MDGMessage.addConnectionCallback), # conflicts with MPxNode.connectionMade
-                    ('preConnectionMade', om.MDGMessage.addPreConnectionCallback)]:
-            if hasattr(cls, cbname):
-                cb = getattr(cls, cbname)
-                # TODO: assert cb is a classmethod, maybe check number of inputs too
-                cls._callbacks[nodeName].append(reg(cb, nodeName))
-                
-        
-                
-    @classmethod
-    def _deregisterOverride(cls, mplugin, useThisPlugin):
-        '''Override this to implement the actual deregistration behavior for
-        the MPx class. 
-        '''
-        nodeName = cls.mayaName()
-
-        # PyNodeMethods
-        global pyNodeMethods
-        pyNodeMethods.get(mplugin.name(), {}).pop(nodeName, None)
-        
-        mplugin.deregisterNode( cls._typeId )
-        if useThisPlugin:
-            import pymel.core
-            pymel.core._removePluginNode(mplugin.name(), nodeName)
-        for id in cls._callbacks.pop(nodeName):
-            om.MMessage.removeCallback(id)
+def createDummyNodePlugins():
+    '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
+    subclass
+    
+    returns a dictionary mapping from MPx class to a maya node type string
+    '''
+    pymelPlugClasses = []
+    
+    for obj in globals().itervalues():
+        if inspect.isclass(obj) and issubclass(obj, DependNode):
+            pymelPlugClasses.append(obj)
             
-    @classmethod
-    def _devTypeIdHash(cls, name):
-        '''hashes the given string to a MTypeId, somewhere in the dev range
-        (0x80000 - 0xfffff)
-        '''
-        start = 0x80000
-        end = 0xfffff
-        size = (end - start) + 1
-        md5 = hashlib.md5()
-        md5.update(name)
-        id = start + long(md5.hexdigest(), 16) % size
-        return om.MTypeId(id)
-            
-class DependNode(BaseNodeMixin, mpx.MPxNode):
-    _mpxType = mpx.MPxNode
-    _type = mpx.MPxNode.kDependNode
-                
-class LocatorNode(BaseNodeMixin, mpx.MPxLocatorNode):
-    _mpxType = mpx.MPxLocatorNode
-    _type = mpx.MPxNode.kLocatorNode
+    dummyClasses = {}
+    for cls in pymelPlugClasses:
+        class DummyClass(cls):
+            _name = 'dummy' + cls.__name__
+        DummyClass.__name__ = 'Dummy' + cls.__name__
+        dummyClasses[DummyClass.getMpxType()] = DummyClass
+        
+    return dummyClasses
+    
 
-
-# allow this file to be loaded as its own dummy plugin
-# Initialize the script plug-in
-def initializePlugin(mobject):
-    pass
-
-
-# Uninitialize the script plug-in
-def uninitializePlugin(mobject):
-
-    #print "getmodule", inspect.getmodule( None )
-    #mod = _pluginModule()
-
-    #when uninitializePlugin is called it is execfile'd which changes the module in which this code runs.
-    #we need to get the correct module first
-
-    # FIXME: determine a reliable way to get this module's name when it is being execfile'd
-    global registered
-    mod = sys.modules['pymel.api.plugins']
-
-    plugin = mpx.MFnPlugin(mobject)
-    for obj in registered:
-        print "deregistering", obj.name()
-        obj.deregisterCommand(plugin)
-    registered = {}
 
 #def _repoplulate():
 #    print "repopulate"

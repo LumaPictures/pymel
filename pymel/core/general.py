@@ -6,7 +6,7 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 
 
 """
-
+from __future__ import with_statement
 
 import sys, os, re, itertools, inspect
 
@@ -31,17 +31,7 @@ def _getPymelTypeFromObject(obj, name):
         mayaType = fnDepend.typeName()
         import nodetypes
         pymelType = getattr( nodetypes, _util.capitalize(mayaType), nodetypes.DependNode )
-
-        if pymelType in _factories.virtualClass:
-            data = _factories.virtualClass[pymelType]
-            nodeName = name
-            for virtualCls, nameRequired in data:
-                if nameRequired and nodeName is None:
-                    nodeName = fnDepend.name()
-
-                if virtualCls._isVirtual(obj, nodeName):
-                    pymelType = virtualCls
-                    break
+        pymelType = _factories.virtualClasses.getVirtualClass(pymelType, obj, name, fnDepend)
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
         if compTypes is None:
@@ -1075,9 +1065,15 @@ def listSets(*args, **kwargs):
     '''
 Modifications:
   - returns wrapped classes
+  - if called without arguments and keys works as with allSets=True
   :rtype: `PyNode` list
     '''
-    return [PyNode(x) for x in _util.listForNone(cmds.listSets( *args,  **kwargs ))]
+    #cmds.listSets() reports existance of defaultCreaseDataSet which does not
+    #exist if checked with cmds.objExists at least linux-2010
+    if not args and not kwargs:
+        kwargs['allSets'] = True
+    return [PyNode(x) for x in _util.listForNone(cmds.listSets( *args,  **kwargs))
+            if not x == 'defaultCreaseDataSet' ]
 
 #-----------------------
 #  Objects
@@ -1095,9 +1091,8 @@ def nodeType( node, **kwargs ):
     if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
         return cmds.nodeType( unicode(node), **kwargs )
 
-
-    obj = None
-    objName = None
+#    obj = None
+#    objName = None
 
     import nodetypes
 
@@ -1173,8 +1168,6 @@ Modifications:
             if kwargs.get(invalidArg, False) :
                 raise ValueError("duplicate: argument %r may not be used with 'addShape' argument" % invalidArg)
         name=kwargs.pop('name', kwargs.pop('n', None))
-
-        import nodetypes
 
         newShapes = []
         for origShape in [PyNode(x) for x in args]:
@@ -1709,25 +1702,25 @@ class PyNode(_util.ProxyUnicode):
             # create node if possible
             if issubclass(cls,nodetypes.DependNode):
                 newNode = None
+                vClassInfo = _factories.virtualClasses.getVirtualClassInfo(cls)
                 #----------------------------------
                 # Pre Creation
                 #----------------------------------
-                if hasattr( cls, '_preCreateVirtual' ):
-                    newkwargs = cls._preCreateVirtual(**kwargs)
-                    assert isinstance(newkwargs, dict), "_preCreateVirtual must return a dictionary of keyword arguments"
-                    kwargs = newkwargs
+                postArgs = {}
+                if vClassInfo and vClassInfo.preCreate:
+                    kwargs = vClassInfo.preCreate(**kwargs)
+                    if isinstance(kwargs, tuple):
+                        assert len(kwargs) == 2, "preCreate must either 1 or 2 dictionaries of keyword arguments"
+                        kwargs, postArgs = kwargs
+                        assert isinstance(postArgs, dict), "preCreate second return value must be a dictionary of keyword arguments"
+                    assert isinstance(kwargs, dict), "_preCreateVirtual must return a dictionary of keyword arguments"
 
                 #----------------------------------
                 # Creation
                 #----------------------------------
-                if hasattr( cls, '_createVirtual' ):
-                    newNode = cls.createVirtual(**kwargs)
+                if vClassInfo and vClassInfo.create:
+                    newNode = vClassInfo.create(**kwargs)
                     assert isinstance(newNode, basestring), "_createVirtual must return the name created node"
-#                elif cls in _factories.virtualClassCreation:
-#                    res = _factories.virtualClassCreation[cls](**kwargs)
-#                    if res is None:
-#                        raise TypeError, "the creation callback of a virtual node must return the created node"
-#                    return cls(res)
 
                 elif hasattr(cls, '__melcmd__') and not cls.__melcmd_isinfo__:
                     try:
@@ -1767,8 +1760,8 @@ class PyNode(_util.ProxyUnicode):
                 # Post Creation
                 #----------------------------------
                 if newNode:
-                    if hasattr( cls, '_postCreateVirtual' ):
-                        cls._postCreateVirtual( newNode )
+                    if vClassInfo and vClassInfo.postCreate:
+                        vClassInfo.postCreate(newNode, **postArgs)
                     return cls(newNode)
 
             raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
@@ -2020,6 +2013,27 @@ class PyNode(_util.ProxyUnicode):
 
     future = listFuture
 
+# This was supposed to be removed in the 1.0 update, but somehow got left out...
+deprecated_str_methods = ['__getitem__']
+strDeprecateDecorator = _warnings.deprecated( 'Convert to string first using str() or PyNode.name()', 'PyNode' )
+
+def _deprecatePyNode():
+    def makeDeprecatedMethod(method):
+        def f(self, *args):
+            proxyMethod = getattr( _util.ProxyUnicode, method )
+            return proxyMethod(self,*args)
+        
+        f.__doc__ = "deprecated\n"
+        f.__name__ = method
+        g = strDeprecateDecorator(f)
+        setattr( PyNode, method, g)
+        
+
+    for method in deprecated_str_methods:
+        makeDeprecatedMethod( method )                   
+
+_deprecatePyNode()
+
 
 _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 
@@ -2041,35 +2055,48 @@ _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 #_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
 
 def _getParent( getter, obj, generations):
+    '''If generations is None, then a list of all the parents is returned.
+    '''
     if generations == 0:
         return obj
-    elif generations >= 1:
-        try:
-            firstParent = getter(obj)
-        except:
-            return
 
-        if generations == 1:
-            return firstParent
-        else:
-            return _getParent( getter, firstParent, generations-1 )
-    elif generations < 0:
-        x = getter(obj)
-        allParents = []
-        while x:
-            allParents.append(x)
+    x = obj
+    allParents = [obj]
+    if generations is None:
+        i = -1
+    else:
+        i = generations
+        
+    # If generations is positive, we will stop as soon as we get to the parent
+    # we need; otherwise, we will get all the parents
+    while i != 0:
+        try:
             x = getter( x )
-        if -generations > (len(allParents) + 1):
+        except Exception:
+            break
+        if x is None:
+            break
+        allParents.append(x)
+        i -= 1
+        
+    if generations is None:
+        return allParents[1:]
+    
+    if generations >= 1:
+        if generations < len(allParents):
+            return allParents[generations]
+        else:
             return None
-        # Assures we can return self
-        elif -generations == (len(allParents) + 1):
-            return obj
+    elif generations < 0:
+        if -generations > len(allParents):
+            return None
         else:
             return allParents[generations]
 
 class Attribute(PyNode):
-    """
-
+    """Attribute class
+    
+    see pymel docs for details on usage
     """
 
     #
@@ -2184,7 +2211,7 @@ class Attribute(PyNode):
         >>> value == result
         False
         >>> # why is this? because result is a Vector and value is a list
-        >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
+        >>> # use `Vector.isEquivalent` or cast the list to a `list`
         >>> result == datatypes.Vector(value)
         True
         >>> result.isEquivalent(value)
@@ -2288,13 +2315,19 @@ class Attribute(PyNode):
     def __getattr__(self, attr):
         try:
             return self.attr(attr)
-        except MayaAttributeError, e:
+        except MayaAttributeError:
             raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
     # Added the __call__ so to generate a more appropriate exception when a class method is not found
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
 
-
+    # Need an iterator which is NOT self, so that we can have independent
+    # iterators - ie, so if we do:
+    #     zip(self, self)
+    # we get
+    #     ( (self[0], self[0]), (self[1], self[1]), (self[2], self[2]) ... )
+    # and not
+    #     ( (self[0], self[1]), (self[2], self[3]), (self[4], self[5]) ... )
     def __iter__(self):
         """
         iterator for multi-attributes
@@ -2316,39 +2349,11 @@ class Attribute(PyNode):
             defaultLightSet.dagSetMembers[2]
         """
         if self.isMulti():
-            return self
+            for i in self._getArrayIndices()[1]:
+                yield self[i]
             #return self[0]
         else:
             raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
-
-    def next(self):
-        """
-        iterator for multi-attributes.  Iterates over the sparse array, so if an idex has not been set
-        or connected, it will be skipped.
-        """
-#        index = self.index()
-#        size = self.size()
-        try:
-            index = self.__dict__['_iterIndex']
-            size, indices = self.__dict__['_iterIndices']
-
-        except KeyError:
-            #size = self.size()
-            try:
-                size, indices = self._getArrayIndices()
-            except RuntimeError:
-                raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
-            index = 0
-            self.__dict__['_iterIndices'] = size, indices
-
-        if index >= size:
-            self.__dict__.pop('_iterIndex', None)
-            self.__dict__.pop('_iterIndices', None)
-            raise StopIteration
-
-        else:
-            self.__dict__['_iterIndex'] = index+1
-            return self[indices[index]]
 
     def __str__(self):
         """
@@ -2617,12 +2622,15 @@ class Attribute(PyNode):
 
         If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
         See `Attribute.__iter__`.
+
+        Modifications:
+          - returns an empty list when the result is None
         """
         if self.isElement():
             arrayAttr = self.array()
         else:
             arrayAttr = self
-        return cmds.listAttr(arrayAttr, multi=True)
+        return _util.listForNone(cmds.listAttr(arrayAttr, multi=True))
 
 #    def item(self):
 #        try:
@@ -2878,6 +2886,69 @@ class Attribute(PyNode):
             return []
         return [Attribute( '%s.%s' % ( self.node(), x )) for x in rawResult]
 
+    class  _TempRealIndexedAttr(object):
+        '''When used with the 'with statement', will return a 'sibling' of the
+        whose indices all exist - creating indices if needed.
+        
+        If any indices are created, they will be destroyed in exit. 
+        '''
+        def __init__(self, attr):
+            self.origAttr = attr
+            
+            # indexed attrs whose indice we have created, and will need to
+            # delete when done
+            self.toDelete = None
+            
+        def _getRealIndexedElem(self, plug, i):
+            parent = self.chain[i - 1]
+            indices = parent.getArrayIndices()
+            if plug.index() in indices:
+                return plug
+            if indices:
+                #print "plug didn't exist, but parent had existing indices..."
+                return parent[indices[0]]
+            # Because it was the Great One's number...
+            newPlug = parent[99]
+            #print "plug didn't exist, parent had no existing indices..."
+            try:
+                # this should create a 'real' instance at that index
+                newPlug.get()
+            except Exception:
+                pass
+            
+            self.chain[i] = newPlug
+            # Only need to delete the 'topmost' plug
+            if self.toDelete is None:
+                self.toDelete = newPlug
+
+        def __enter__(self):
+            self.chain = self.origAttr.getAllParents(arrays=True)
+            self.chain.reverse()
+            self.chain.append(self.origAttr)
+            
+            # traverse, starting from upper-most parent, as we may need to
+            # replace children with 'real' ones as we go down 
+            for i in xrange(len(self.chain)):
+                #print 'processing:', i
+                elem = self.chain[i]
+                if self.toDelete:
+                    #print 'need new plug due to upstream change'
+                    # We've already had to make a new attribute upstream,
+                    # which means we need to grab a 'new' object for every
+                    # element downstream.
+                    if elem.isChild():
+                        newPlug = self.chain[i-1].attr(elem.attrName())
+                        self.chain[i] = newPlug
+                    elif elem.isElement():
+                        self._getRealIndexedElem(elem, i)
+                elif elem.isElement():
+                    self._getRealIndexedElem(elem, i)
+            return self.chain[-1]
+        
+        def __exit__(self, type, value, traceback):
+            if self.toDelete is not None:
+                cmds.removeMultiInstance(self.toDelete.name())
+                
     # getAttr info methods
     def type(self):
         """
@@ -2885,8 +2956,26 @@ class Attribute(PyNode):
 
         :rtype: `unicode`
         """
-        return cmds.getAttr(self.name(placeHolderIndices=False), type=True)
-
+        # Note - currently, this returns 'TdataCompound' even for multi,
+        # NON-compound attributes, if you feed it the array plug (ie, not
+        # an indexed element plug)
+        # Not sure this is really desirable, but changing would be backward
+        # incompatible... revisit this later? 
+        with self._TempRealIndexedAttr(self) as realAttr:
+            res = cmds.getAttr(realAttr.name(), type=True)
+            if res:
+                return res
+            # Sometimes getAttr seems to fail with dynamic attributes...
+            if realAttr.isDynamic():
+                at = cmds.addAttr(realAttr.name(), q=1, attributeType=1)
+                if isinstance(at, (list, tuple)):
+                    at = at[0]
+                if at != 'typed':
+                    return at
+                dt = cmds.addAttr(realAttr.name(), q=1, dataType=1)
+                if isinstance(dt, (list, tuple)):
+                    dt = dt[0]
+                return dt
 
     def lock(self):
         "setAttr -locked 1"
@@ -2902,7 +2991,10 @@ class Attribute(PyNode):
 
         :rtype: `bool`
         """
-        return cmds.getAttr(self.name(placeHolderIndices=False), settable=True)
+        # use MPlug.isFreeToChange, as it doesn't have the issues that getAttr
+        # does with multi-compound attributes with no indices existing
+        #return cmds.getAttr(self.name(placeHolderIndices=False), settable=True)
+        return self.__apimplug__().isFreeToChange() == _api.MPlug.kFreeToChange
 
     # attributeQuery info methods
     def isHidden(self):
@@ -2953,6 +3045,10 @@ class Attribute(PyNode):
             # If the array exists, now check the array indices...
             indices = self.array().getArrayIndices()
             return bool(indices and self.index() in indices)
+        elif self.isChild():
+            # attributeQuery doesn't handle multi-compound attributes well...
+            # so need to traverse all the way up the parent chain
+            return self.parent().exists()
         else:
             try:
                 return bool( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True) )
@@ -3165,51 +3261,70 @@ class Attribute(PyNode):
             return Attribute( self.node(), self.__apimfn__().parent() )
         except:
             pass
+        
+    @staticmethod
+    def _getAttrParent(plug):
+        if plug.isChild():
+            return plug.parent()
+        else:
+            return None
 
-    def getParent(self, generations=1):
+    @staticmethod
+    def _getAttrOrMultiParent(plug):
+        if plug.isChild():
+            return plug.parent()
+        elif plug.isElement():
+            return plug.array()
+        else:
+            return None
+
+
+    def getParent(self, generations=1, arrays=False):
         """
         Modifications:
-            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
-
+            - added optional generations keyword arg, which gives the number of
+              levels up that you wish to go for the parent
 
               Negative values will traverse from the top.
 
               A value of 0 will return the same node.
               The default value is 1.
 
-              Since the original command returned None if there is no parent, to sync with this behavior, None will
-              be returned if generations is out of bounds (no IndexError will be thrown).
+              If generations is None, it will be interpreted as 'return all
+              parents', and a list will be returned.
+
+              Since the original command returned None if there is no parent,
+              to sync with this behavior, None will be returned if generations
+              is out of bounds (no IndexError will be thrown).
+              
+            - added optional arrays keyword arg, which if True, will also
+              traverse from an array element to an array plug 
 
         :rtype: `Attribute`
         """
+        if arrays:
+            getter = self._getAttrOrMultiParent
+        else:
+            getter = self._getAttrParent
 
-        def getAttrParent(plug):
-            try:
-                return plug.parent()
-            except:
-                return None
-
-        res = _getParent(getAttrParent, self.__apimfn__(), generations)
-        if res:
+        res = _getParent(getter, self.__apimfn__(), generations)
+        if generations is None:
+            if res is None:
+                return []
+            return [Attribute(self.node(), x) for x in res]
+        elif res is not None:
             return Attribute( self.node(), res )
-
-    def getAllParents(self):
+        
+    def getAllParents(self, arrays=False):
         """
         Return a list of all parents above this.
 
         Starts from the parent immediately above, going up.
 
         :rtype: `Attribute` list
-        """
+        """        
+        return self.getParent(generations=None, arrays=arrays)
 
-        x = self.getParent()
-        res = []
-        while x:
-            res.append(x)
-            x = x.getParent()
-        return res
-
-    #getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent)
     parent = getParent
 
 def _MObjectIn(x):
@@ -3390,7 +3505,6 @@ class Component( PyNode ):
                 oldCompLabel = set( (self._ComponentLabel__,) )
             if isinstance(self._indices, dict):
                 if len(self._indices) > 1:
-                    isComplete = False
                     assert set(self._indices.iterkeys()).issubset(oldCompLabel)
                     self._ComponentLabel__ = self._indices.keys()
                 else:
@@ -3911,7 +4025,7 @@ def validComponentIndexType( argObj, allowDicts=True, componentIndexTypes=None):
         componentIndexTypes = (int, long, float, slice, HashableSlice, ComponentIndex)
 
     if allowDicts and isinstance(argObj, dict):
-        for key, value in argObj.iteritems():
+        for value in argObj.itervalues():
             if not validComponentIndexType(value, allowDicts=False):
                 return False
         return True
@@ -4085,7 +4199,7 @@ class DiscreteComponent( DimensionedComponent ):
 
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for i in xrange(self.dimensions):
+        for _ in xrange(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         for flatIndex in xrange(len(self)):
@@ -4105,6 +4219,11 @@ class DiscreteComponent( DimensionedComponent ):
         return self
 
     def getIndex(self):
+        '''Returns the current 'flat list' index for this group of components -
+        ie, if this component holds the vertices:
+            [5, 7, 12, 13, 14, 25]
+        then if the 'flat list' index is 2, then we are pointing to vertex 12.
+        '''
         return self._currentFlatIndex
 
     def currentItem(self):
@@ -4114,12 +4233,35 @@ class DiscreteComponent( DimensionedComponent ):
 
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for i in xrange(self.dimensions):
+        for _ in xrange(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
         curIndex = ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
         return self.__class__(self._node, curIndex)
+    
+    def currentItemIndex(self):
+        '''Returns the component indices for the current item in this component
+        group
+        
+        If the component type has more then one dimension, the return result
+        will be a ComponentIndex object which is a sub-class of tuple; otherwise,
+        it will be a single int.
+        
+        These values correspond to the indices that you would use when selecting
+        components in mel - ie, vtx[5], cv[3][2]
+        '''
+        # Again, duplicates some code in currentItem/_flatIter for speed
+        dimensionIndicePtrs = []
+        mfncomp = self.__apicomponent__()
+        for _ in xrange(self.dimensions):
+            dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
+
+        mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
+        if self.dimensions == 1:
+            return dimensionIndicePtrs[0].get()
+        else:
+            return ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
 
     def next(self):
         if self._stopIteration:
@@ -4237,6 +4379,21 @@ class Component1D( DiscreteComponent ):
     def currentItem(self):
         mfncomp = self.__apicomponent__()
         return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
+
+    def currentItemIndex(self):
+        '''Returns the component indices for the current item in this component
+        group
+        
+        If the component type has more then one dimension, the return result
+        will be a ComponentIndex object which is a sub-class of tuple; otherwise,
+        it will be a single int.
+        
+        These values correspond to the indices that you would use when selecting
+        components in mel - ie, vtx[5], cv[3][2]
+        '''
+        # Again, duplicates some code in currentItem/_flatIter for speed
+        mfncomp = self.__apicomponent__()
+        return mfncomp.element(self._currentFlatIndex)
 
     def indicesIter(self):
         """
@@ -4391,7 +4548,7 @@ class MeshVertex( MItComponent1D ):
         return self.node().numVertices()
 
     def setColor(self,color):
-        self.node().setVertexColor( color, self.getIndex() )
+        self.node().setVertexColor( color, self.currentItemIndex() )
 
     def connectedEdges(self):
         """
@@ -4424,16 +4581,22 @@ class MeshVertex( MItComponent1D ):
         :rtype: bool
         """
         if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
+            return self.isConnectedToFace( component.currentItemIndex() )
         if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
+            return self.isConnectedToEdge( component.currentItemIndex() )
         if isinstance(component,MeshVertex):
             array = _api.MIntArray()
             self.__apimfn__().getConnectedVertices(array)
-            return component.getIndex() in [ array[i] for i in range( array.length() ) ]
-
+            return component.currentItemIndex() in [ array[i] for i in range( array.length() ) ]
         raise TypeError, 'type %s is not supported' % type(component)
-
+    
+    def getColor(self, *args, **kwargs):
+        # Want all possible versions of this command, so easiest to just manually
+        # wrap (particularly want to be able to invoke with no args!
+        color = _api.MColor()
+        self.__apimfn__().getColor(color, *args, **kwargs)
+        return datatypes.Color(color)
+    
 class MeshEdge( MItComponent1D ):
     __apicls__ = _api.MItMeshEdge
     _ComponentLabel__ = "e"
@@ -4473,13 +4636,13 @@ class MeshEdge( MItComponent1D ):
         :rtype: bool
         """
         if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
+            return self.isConnectedToFace( component.currentItemIndex() )
         if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
+            return self.isConnectedToEdge( component.currentItemIndex() )
         if isinstance(component,MeshVertex):
             index0 = self.__apimfn__().index(0)
             index1 = self.__apimfn__().index(1)
-            return component.getIndex() in [index0, index1]
+            return component.currentItemIndex() in [index0, index1]
 
         raise TypeError, 'type %s is not supported' % type(component)
 
@@ -4490,8 +4653,6 @@ class MeshFace( MItComponent1D ):
 
     def _dimLength(self, partialIndex):
         return self.node().numFaces()
-
-
 
     def connectedEdges(self):
         """
@@ -4522,11 +4683,11 @@ class MeshFace( MItComponent1D ):
         :rtype: bool
         """
         if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
+            return self.isConnectedToFace( component.currentItemIndex() )
         if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
+            return self.isConnectedToEdge( component.currentItemIndex() )
         if isinstance(component,MeshVertex):
-            return self.isConnectedToVertex( component.getIndex() )
+            return self.isConnectedToVertex( component.currentItemIndex() )
 
         raise TypeError, 'type %s is not supported' % type(component)
 
@@ -4587,7 +4748,7 @@ class MeshVertexFace( Component2D ):
         if len(self._partialIndex) == 0:
             return super(MeshVertexFace, self)._validateGetItemIndice(item)
         if allowIterables and _util.isIterable(item):
-            for x in item:
+            for _ in item:
                 self._validateGetItemIndice(item, allowIterables=False)
             return
         if isinstance(item, (slice, HashableSlice)):
@@ -5139,7 +5300,7 @@ class Scene(object):
         if obj.startswith('__') and obj.endswith('__'):
             try:
                 return self.__dict__[obj]
-            except KeyError, err:
+            except KeyError:
                 raise AttributeError, "type object %r has no attribute %r" % (self.__class__.__name__, obj)
 
         return PyNode( obj )

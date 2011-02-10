@@ -1,4 +1,10 @@
-import sys, os, types, doctest, modulefinder, traceback
+import sys
+import os
+import types
+import doctest
+import modulefinder
+import traceback
+import inspect
 from StringIO import StringIO
 from unittest import *
 
@@ -42,6 +48,13 @@ def doctestFriendly(func):
         return result
     return prepForDoctest
         
+@doctestFriendly
+def doctestobj(*args, **kwargs):
+    """
+    Wrapper for doctest.run_docstring_examples that works in maya gui.
+    """
+    return doctest.run_docstring_examples(*args, **kwargs)
+
 @doctestFriendly
 def doctestmod(*args, **kwargs):
     """
@@ -244,6 +257,13 @@ class TestCaseExtended(TestCase):
             
         message = "iterable '%s' did not contain expected item(s): %s" % (iterable, [str(x) for x in unmatchedResults])
         self.assertEqual(len(unmatchedResults), 0, message)
+        
+    def assertVectorsEqual(self, v1, v2, places=5):
+        for p1, p2 in zip(v1, v2):
+            try:
+                self.assertAlmostEqual(p1, p2, places=places)
+            except AssertionError:
+                self.fail('%r not equal to %r to %s places' % (v1, v2, places))     
 
 
 # TODO: move to util.math?

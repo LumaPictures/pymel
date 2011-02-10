@@ -1,7 +1,6 @@
 import unittest, sys
 
 import maya.mel
-import testingutils
 
 from pymel.tools.mel2py import mel2pyStr
 

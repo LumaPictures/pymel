@@ -961,9 +961,8 @@ class MainProgressBar(dynModule.ProgressBar):
                 if bar.getIsCancelled():
                     break
     '''
-    from language import melGlobals
     def __new__(cls, minValue=0, maxValue=100, interruptable=True):
-        
+        from language import melGlobals
         bar = dynModule.ProgressBar.__new__( 
             cls, melGlobals['gMainProgressBar'], create=False)
         bar.setMinValue(minValue)

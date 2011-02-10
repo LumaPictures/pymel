@@ -24,7 +24,7 @@ def doIt(obj):
    
         avgLen=totalLen / edgCnt
        
-        currColor = vtx.getColor(0)
+        currColor = vtx.getColor()
         color = Color.black
         # only set blue if it has not been set before
         if currColor.b<=0.0:

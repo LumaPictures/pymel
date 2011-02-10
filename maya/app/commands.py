@@ -43,7 +43,7 @@ def processCommandList():
         sys.stderr.write("Unable to process commandList %s" % commandListPath)
         raise
 
-# Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+# Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related

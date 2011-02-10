@@ -182,6 +182,9 @@ util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'flags', 'jointList',
 #util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', 'modes' ),   ['query'] )
 util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'args' ), 'timeRange' ) # make sure this is a time range so it gets proper slice syntax
 
+# Need to override this, rather than having it deteced from testNodeCmd, because
+# it crashes testNodeCmd
+util.setCascadingDictItem( cmdlistOverrides, ( 'pointOnPolyConstraint', 'resultNeedsUnpacking', ), True )
 
 def getCmdInfoBasic( command ):
     typemap = {
@@ -219,8 +222,9 @@ def getCmdInfoBasic( command ):
 
                 try:
                     tokens.remove('(multi-use)')
-                except:
-                    pass
+                    multiuse = True
+                except ValueError:
+                    multiuse = False
                 #_logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
 
@@ -252,6 +256,8 @@ def getCmdInfoBasic( command ):
                         longname = shortname
 
                     flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, 'docstring' : '' }
+                    if multiuse:
+                        flags[longname].setdefault('modes', []).append('multiuse')
                     shortFlags[shortname] = longname
 
     #except:
@@ -313,13 +319,17 @@ def getCmdInfo( command, version='8.5', python=True ):
         # args and numArgs is more reliable from mel help command than from parsed docs,
         # so, here we put that back in place and create shortflags.
 
+        # also use original 'multiuse' info...
 
         for flag, flagData in flags.items():
-            try:
-                basicFlagData = basicInfo['flags'][flag]
-                flagData['args'] = basicFlagData['args']
-                flagData['numArgs'] = basicFlagData['numArgs']
-            except KeyError: pass
+            basicFlagData = basicInfo.get('flags', {}).get(flag)
+            if basicFlagData:
+                if 'args' in basicFlagData and 'numargs' in basicFlagData:
+                    flagData['args'] = basicFlagData['args']
+                    flagData['numArgs'] = basicFlagData['numArgs']
+                    if (        'multiuse' in basicFlagData.get('modes', [])
+                            and 'multiuse' not in  flagData.get('modes', [])):
+                        flagData.setdefault('modes', []).append('multiuse')
 
         shortFlags = basicInfo['shortFlags']
         res = { 'flags': flags,
@@ -354,15 +364,14 @@ def fixCodeExamples(style='maya', force=False):
     animOptions.append( cmds.animDisplay( q=1, modelUpdate=True ) )
 
     openWindows = cmds.lsUI(windows=True)
-    examples = CmdExamplesCache.read()
-    processedExamples = CmdProcessedExamplesCache.read()
+    examples = CmdExamplesCache().read()
+    processedExamples = CmdProcessedExamplesCache().read()
     processedExamples = {} if processedExamples is None else processedExamples
     allCmds = set(examples.keys())
     # put commands that require manual interaction first
     manualCmds = ['fileBrowserDialog', 'fileDialog', 'fileDialog2', 'fontDialog']
     skipCmds = ['colorEditor', 'emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor', 'ogsRender', 'webBrowser']
     allCmds.difference_update(manualCmds)
-    allCmds.difference_update(skipCmds)
     sortedCmds = manualCmds + sorted(allCmds)
     for command in sortedCmds:
         example = examples[command]
@@ -382,6 +391,9 @@ def fixCodeExamples(style='maya', force=False):
         if len(lines)==1:
             _logger.info("removing empty example for command %s", command)
             examples.pop(command)
+            processedExamples[command] = ''
+            # write out after each success so that if we crash we don't have to start from scratch
+            CmdProcessedExamplesCache().write(processedExamples)
             continue
 
         if style == 'doctest' :
@@ -390,6 +402,13 @@ def fixCodeExamples(style='maya', force=False):
             DOC_TEST_SKIP = ''
 
         lines[0] = 'import pymel.core as pm' + DOC_TEST_SKIP
+        
+        if command in skipCmds:
+            example = '\n'.join( lines )
+            processedExamples[command] = example
+            # write out after each success so that if we crash we don't have to start from scratch
+            CmdProcessedExamplesCache().write(processedExamples)
+
         #lines.insert(1, 'pm.newFile(f=1) #fresh scene')
         # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
         cmds.file(new=1,f=1)
@@ -466,7 +485,7 @@ def fixCodeExamples(style='maya', force=False):
             #_logger.info("FAILED: %s: %s" % (command, e) )
         else:
             # write out after each success so that if we crash we don't have to start from scratch
-            CmdProcessedExamplesCache.write(processedExamples)
+            CmdProcessedExamplesCache().write(processedExamples)
 
         # cleanup opened windows
         for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
@@ -503,10 +522,75 @@ def getCallbackFlags(cmdInfo):
 #-----------------------------------------------
 #  Command Help Documentation
 #-----------------------------------------------
+_cmdArgMakers = {}
+def cmdArgMakers(force=False):
+    global _cmdArgMakers
+    
+    if _cmdArgMakers and not force:
+        return _cmdArgMakers
+    
+    def makeCircle():
+        return cmds.circle()[0]
+    def makeEp():
+        return makeCircle() + '.ep[1]'
+    def makeSphere():
+        return cmds.polySphere()[0]
+    def makeCube():
+        return cmds.polyCube()[0]
+    def makeIk():
+        j1 = cmds.joint()
+        j2 = cmds.joint()
+        return cmds.ikHandle(j1, j2, solver='ikRPsolver')[0]
+    def makeJoint():
+        return cmds.joint()
+    def makeSkin():
+        j1 = cmds.joint()
+        j2 = cmds.joint()
+        sphere = makeSphere()
+        return cmds.skinCluster(j1, j2, sphere)[0]
+    
+    _cmdArgMakers = \
+        { 'tangentConstraint'   : ( makeCircle, makeCube ),
+          'poleVectorConstraint': ( makeSphere, makeIk ),
+          'pointCurveConstraint': ( makeEp, ),
+          'skinCluster'         : ( makeJoint, makeJoint, makeSphere ),
+        }
+    
+    constraintCmds = [x for x in dir(cmds)
+                      if x.endswith('onstraint')
+                         and not cmds.runTimeCommand(x, q=1, exists=1)
+                         and x != 'polySelectConstraint']
+    
+    for constrCmd in constraintCmds:
+        if constrCmd not in _cmdArgMakers: 
+            _cmdArgMakers[constrCmd] = ( makeSphere, makeCube )
+    
+    return _cmdArgMakers
+
+def nodeCreationCmd(func, nodeType):
+    argMakers = cmdArgMakers()
+    
+    # compile the args list for node creation
+    createArgs = argMakers.get(nodeType, [])
+    if createArgs:
+        createArgs = [argMaker() for argMaker in createArgs] 
+
+    # run the function
+    return func(*createArgs)
+
 def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
+    _logger.info(funcName.center( 50, '='))
+
+    if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
+        _logger.debug("skipping")
+        return cmdInfo
+    
+    # These cause crashes... confirmed that pointOnPolyConstraint still
+    # crashes in 2012
     dangerousCmds = ['doBlur', 'pointOnPolyConstraint']
     if funcName in dangerousCmds:
+        _logger.debug("skipping 'dangerous command'")
         return cmdInfo
 
     def _formatCmd( cmd, args, kwargs ):
@@ -533,13 +617,6 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
     module = cmds
 
-
-    _logger.info(funcName.center( 50, '='))
-
-    if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
-        _logger.debug("skipping")
-        return cmdInfo
-
     try:
         func = getattr(module, funcName)
     except AttributeError:
@@ -561,19 +638,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
             #------------------
             # CREATION
             #------------------
-
-            # compile the args list for node creation
-            if funcName.endswith( 'onstraint'):
-                # special treatment for constraints because they need two objects passed to the function
-                constrObj = module.polySphere()[0]
-                c = module.polyCube()[0]
-                # run the function
-                createArgs = [constrObj,c]
-            else:
-                createArgs = []
-
-            # run the function
-            obj = func(*createArgs)
+            obj = nodeCreationCmd(func, funcName)
 
             if isinstance(obj, list):
                 _logger.debug("Return %s", obj)
@@ -584,7 +649,6 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     raise ValueError, "returned object is an empty list"
                 objTransform = obj[0]
                 obj = obj[-1]
-
 
             if obj is None:
                 #emptyFunctions.append( funcName )
@@ -657,14 +721,18 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
                         # there are certain patterns of asymmetry which we can safely correct:
+                        singleItemList = (isinstance( resultType, list)
+                                          and len(resultType) ==1
+                                          and 'multiuse' not in flagInfo.get('modes', []))
+                        
                         # [bool] --> bool
-                        if isinstance( resultType, list) and len(resultType) ==1 and resultType[0] == argtype:
+                        if singleItemList and resultType[0] == argtype:
                             _logger.info("%s, %s: query flag return values need unpacking" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             val = val[0]
 
                         # [int] --> bool
-                        elif argtype in _castList and isinstance( resultType, list) and len(resultType) ==1 and resultType[0] in _castList:
+                        elif singleItemList and argtype in _castList and resultType[0] in _castList:
                             _logger.info("%s, %s: query flag return values need unpacking and casting" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             flagInfo['resultNeedsCasting'] = True
@@ -792,7 +860,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         flagInfo.pop(flag,None)
                         flagInfo.pop(shortname,None)
                     else:
-                        _logger.info(cmd)
+                        _logger.info(funcName)
                         _logger.info("\t" + str(msg).rstrip('\n'))
                         _logger.info("\tpredicted arg: %s", argtype)
                         if not 'query' in modes:
@@ -957,8 +1025,8 @@ class CmdCache(startup.SubItemCache):
             if newCmdInfo:
                 cmdDocList[cmdName] = newCmdInfo
     
-        CmdDocsCache.write(cmdDocList)
-        CmdExamplesCache.write(examples)
+        CmdDocsCache().write(cmdDocList)
+        CmdExamplesCache().write(examples)
     
     def build(self):
         super(CmdCache, self).build()

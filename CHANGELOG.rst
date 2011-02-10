@@ -5,6 +5,7 @@ Version 1.0.3
 ----------------------------------
 Changes
 ----------------------------------
+
 - ``setParent`` now returns PyUI objects when queried
 - ``setParent`` now returns None object instead of 'NONE' string
 - ``menu(q=1, itemArray=1)`` now returns [] instead of None
@@ -17,19 +18,59 @@ Changes
   any sense)
 - can now set enum attributes using their string values
 - can now pass in PyNode class objects to functions / methods that expect a
-  mel node class name - ie,
+  mel node class name - ie:
+
      listRelatives(allDescendents=True, type=nt.Joint)
-  is equivalent to
+
+  is equivalent to:
+
      listRelatives(allDescendents=True, type='joint')
+
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
+
 - PyNode('*') - or any other non-unique name - now returns an error
   use ls('*') if you wish to return a list of possible nodes
 - By default, the root pymel logger outputs to sys.__stdout__ now, instead of
   sys.stderr; can be overriden to another stream in sys (ie, stdout, stderr,
   __stderr__, __stdout__) by setting the MAYA_SHELL_LOGGER_STREAM environment
   variable
+- tangentConstraint, poleVectorConstraint, and pointOnPolyConstraint commands
+  now return a PyNode when creating, instead of a list with one item
+- skinCluster command / node's methods / flags for querying deformerTools, 
+  influence, weightedInfluence now return PyNodes, not strings
+- Attribute.elements now returns an empty list instead of None
+
+----------------------------------
+Bugfixes
+----------------------------------
+- py2mel failing with functions that take \*args/\*\*kwargs
+- eliminated / fixed various 'warning' messages on pymel startup
+- MayaNodeError / MayaAttributeError not being raised when a node / attribute not found
+- some maya cmds were not handling 'stubFunc' correctly
+- renderLayer.listAdjustments() was not functioning
+- MainProgressBar fixed
+- listSets() throws away non-existant 'defaultCreaseDataSet' that maya.cmds.listSets() returns
+- fix for dealing with maya bug where constraint angle offsets always returned in radians (but set in degrees)
+- fixes for incorrect formatting of error strings in some cases
+- fixes for unloading of commands/nodetypes when plugins unloaded (and pymel.all was imported first)
+- miscellaneous documentation fixes
+- fix for mayautils.executeDeferred when invoked with args
+- fix for Attribute.getAllParents()
+- fix for aliased multi/compound attributes
+- fix for Attribute.isSettable with multi/compound attributes
+- fix for Attribute.exists with multi/compound attributes
+- fix for Attribute.type with multi/compound attributes dynamic attributes
+- fix for published container node attributes / aliases
+- fixes for plugin callback failing when plugin has uncreate-able nodes
+- fixes for multiple iterators of a mutli-attribute not being independent
+- fix for MeshVertex.setColor
+- fix for MeshVertex.isConnectedTo
+- fix for MeshVertex.getColor
+- fix for MeshEdge.isConnectedTo
+- fix for MeshFace.isConnectedTo
+- fix for plogging handling case where various env. variables exist, but are empty
 
 ==================================
 Version 1.0.2
