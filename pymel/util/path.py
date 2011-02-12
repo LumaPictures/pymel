@@ -809,7 +809,7 @@ class path(_base):
         """
         return self.canonicalpath() == self.__class__(otherpath).canonicalpath()
 
-    def canonicalpath(self):
+    def canonicalpath(self, normcase=True):
         """
         Attempt to return a 'canonical' version of the path
 
@@ -820,7 +820,10 @@ class path(_base):
         The intention is that string comparison of canonical paths will yield
         a reasonable guess as to whether two paths represent the same file.
         """
-        return self.__class__(self.abspath().realpath().normpath().normcase())
+        if normcase:
+            return self.__class__(self.abspath().realpath().normpath().normcase())
+        else:
+            return self.__class__(self.abspath().realpath().normpath())
 
     getatime = os.path.getatime
     atime = property(
