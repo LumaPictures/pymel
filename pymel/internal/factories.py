@@ -1787,14 +1787,19 @@ class ApiUndo:
         Note that we don't want to use Maya commands here because they
         would pollute Maya's undo queue, so we use API calls instead.
         """
-
+        
+        ns = api.MGlobal.executeCommandStringResult("namespaceInfo -currentNamespace")
+        api.MGlobal.executeCommand("namespace -set \":\"")
         self.flushUndo()
 
         dgmod = api.MDGModifier()
         self.undoNode = dgmod.createNode('facade')
         dgmod.renameNode(self.undoNode, self.node_name)
         dgmod.doIt()
-
+        
+        for x in ns.split(':'):
+            api.MGlobal.executeCommand("namespace -set %s"%x)
+        
         # Add an attribute to keep a count of the commands in the stack.
         attrFn = api.MFnNumericAttribute()
         self.cmdCountAttr = attrFn.create( 'cmdCount', 'cc',
