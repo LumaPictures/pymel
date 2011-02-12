@@ -120,13 +120,24 @@ class DependNode( general.PyNode ):
         return self.name()
 
     #rename = rename
-    def rename( self, name ):
+    def rename( self, name, **kwargs ):
         """
         :rtype: `DependNode`
         """
-        # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
         #self.setName( name ) # no undo support
-        return general.rename(self, name)
+        
+        #check for preserveNamespace a pymel unique flag
+        if 'preserveNamespace' in kwargs.keys():
+            if kwargs['preserveNamespace']:
+                name = self.namespace() + name
+                #pyMel unique flag so we don't want to pass it with kwargs
+                del kwargs['preserveNamespace']
+        
+        #ensure shortname
+        if '|' in name:
+            name = name.split('|')[-1]
+        
+        return general.rename(self, name, **kwargs)
 
     def __apiobject__(self) :
         "get the default API object (MObject) for this node if it is valid"
