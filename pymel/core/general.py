@@ -588,7 +588,7 @@ Modifications:
 
 def addAttr( *args, **kwargs ):
     """
-Modifications:
+    Modifications:
   - allow python types to be passed to set -at type
             str         string
             float       double
@@ -607,9 +607,32 @@ Modifications:
         >>> addAttr('persp.test', edit=1, hasMaxValue=True)
         >>> addAttr('persp.test', query=1, hasMaxValue=True)
         True
-
+   -Allow user to pass in type and determine whether it is a dataType or attributeType.
+    Right now float2, float3, double2, double3, long2, long3, short2, and short3 are all treated
+    as attributeTypes.
     """
+    attributeTypes = [ 'bool', 'long', 'short', 'byte', 'char', 'enum',
+                       'float', 'double', 'doubleAngle', 'doubleLinear',
+                       'compound', 'message', 'time', 'fltMatrix', 'reflectance',
+                       'spectrum', 'float2', 'float3', 'double2', 'double3', 'long2',
+                       'long3', 'short2', 'short3' ]
+
+    dataTypes = [ 'string', 'stringArray', 'matrix', 'reflectanceRGB',
+                  'spectrumRGB', 'doubleArray', 'Int32Array', 'vectorArray',
+                  'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray' ]
+    
+    type = kwargs.pop('type', kwargs.pop('typ', None ))
+    
+    if type is not None:
+        if type in attributeTypes:
+            kwargs['at'] = type
+        elif type in dataTypes:
+            kwargs['dt'] = type
+        else:
+            raise TypeError, "type not supported"
+    
     at = kwargs.pop('attributeType', kwargs.pop('at', None ))
+    
     if at is not None:
         try:
             kwargs['at'] = {
