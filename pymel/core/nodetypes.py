@@ -1599,14 +1599,31 @@ class Transform(DagNode):
 #        _api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
 #        return datatypes.EulerRotation( quat.asEulerRotation() )
 
-    @_factories.addApiDocs( _api.MFnTransform, 'getRotation' )
-    def getRotation(self, space='object', **kwargs):
+    @_factories.addApiDocs( _api.MFnTransform, 'getRotation', overloadIndex=1 )
+    def getRotation(self, space='object', quaternion=False, **kwargs):
+        '''
+    Modifications:
+      - added 'quaternion' keyword arg, to specify whether the result
+        be returned as a Quaternion object, as opposed to the default
+        EulerRotation object
+      - added 'space' keyword arg, which defaults to 'object'
+        '''
         # quaternions are the only method that support a space parameter
         space = self._getSpaceArg(space, kwargs )
-        #return self._getRotation(space=space).asEulerRotation()
-        e = self._getRotation(space=space).asEulerRotation()
-        e.setDisplayUnit( datatypes.Angle.getUIUnit() )
-        return e
+        if space.lower() in ('object', 'pretransform', 'transform') and not quaternion:
+            # In this case, we can just go straight to the EulerRotation,
+            # without having to go through Quaternion - this means we will
+            # get information like angles > 360 degrees
+            euler = _api.MEulerRotation()
+            self.__apimfn__().getRotation(euler)
+            rot = datatypes.EulerRotation(euler)
+        else:
+            rot = self._getRotation(space=space)
+            if not quaternion:
+                rot =  rot.asEulerRotation()
+        if isinstance(rot, datatypes.EulerRotation):
+            rot.setDisplayUnit( datatypes.Angle.getUIUnit() )
+        return rot
 
 
     @_factories.addApiDocs( _api.MFnTransform, 'rotateBy' )

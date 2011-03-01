@@ -486,7 +486,8 @@ def createDummyNodePlugins():
     '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
     subclass
     
-    returns a dictionary mapping from MPx class to a maya node type string
+    returns a dictionary mapping from MPx class to a pymel dummy class of that
+    type
     '''
     pymelPlugClasses = []
     
