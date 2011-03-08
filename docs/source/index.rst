@@ -45,7 +45,6 @@ Appendices:
 	
 	pymel.versions
 	pymel.mayautils
-	pymel.internal
 	pymel.core.animation
 	pymel.core.effects
 	pymel.core.general
@@ -73,6 +72,7 @@ Appendices:
 	pymel.tools.mel2py
 	pymel.tools.py2mel
 	pymel.tools.loggingControl
+	pymel.api.plugins
 
 
 =======================================

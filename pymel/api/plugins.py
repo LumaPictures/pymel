@@ -1,12 +1,16 @@
 """
-from pymel.api.plugins import Command
-class testCmd(Command):
-    def doIt(self, args):
-        print "doIt..."
+Maya API plugin utilities
 
-testCmd.register()
-cmds.testCmd()
-testCmd.deregister()
+A quick example::
+
+    from pymel.api.plugins import Command
+    class testCmd(Command):
+        def doIt(self, args):
+            print "doIt..."
+    
+    testCmd.register()
+    cmds.testCmd()
+    testCmd.deregister()
 """
 
 
@@ -123,10 +127,12 @@ def _getPlugin(object=None):
 # allow this file to be loaded as its own dummy plugin
 # Initialize the script plug-in
 def initializePlugin(mobject):
+    "do not call directly"
     pass
 
 # Uninitialize the script plug-in
 def uninitializePlugin(mobject):
+    "do not call directly"
 
     #print "getmodule", inspect.getmodule( None )
     #mod = _pluginModule()
@@ -254,6 +260,7 @@ class BasePluginMixin(object):
 
             
 class Command(BasePluginMixin, mpx.MPxCommand):
+	"""create a subclass of this with a doIt method"""
     @classmethod
     def createSyntax(cls):
         return om.MSyntax()
