@@ -366,6 +366,14 @@ class DependNode( general.PyNode ):
 
         :rtype: `Attribute`
         """
+        return self._attr(attr, False)
+        
+    # Just have this alias because it will sometimes return attributes for an
+    # underlying shape, which we may want for DagNode.attr, but don't want for
+    # DependNode.attr (and using the on-shape result, instead of throwing it
+    # away and then finding it again on the shape, saves time for the DagNode
+    # case)
+    def _attr(self, attr, allowOtherNode):
         #return Attribute( '%s.%s' % (self, attr) )
         try :
             if '.' in attr or '[' in attr:
@@ -401,7 +409,7 @@ class DependNode( general.PyNode ):
                     if isinstance( token, nameparse.NameIndex ):
                         if token.value != -1:
                             result = result.elementByLogicalIndex( token.value )
-                return general.Attribute( self.__apiobject__(), result )
+                plug = result
             else:
                 try:
                     plug = self.__apimfn__().findPlug( attr, False )
@@ -424,7 +432,12 @@ class DependNode( general.PyNode ):
                         raise
                     if not isinstance(plug, _api.MPlug):
                         raise RuntimeError
-                return general.Attribute( self.__apiobject__(), plug )
+                    
+                if not (allowOtherNode or plug.node() == self.__apimobject__()):
+                    # we could have gotten an attribute on a shape object,
+                    # which we don't want
+                    raise RuntimeError
+            return general.Attribute( self.__apiobject__(), plug )
 
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
@@ -1346,11 +1359,11 @@ class Transform(DagNode):
         """
         #print "ATTR: Transform"
         try :
-            res = DependNode.attr(self,attr)
+            res = self._attr(attr, checkShape)
         except general.MayaAttributeError, e:
             if checkShape:
                 try:
-                    return self.getShape().attr(attr)
+                    res = self.getShape().attr(attr)
                 except AttributeError:
                     raise e
             raise e
