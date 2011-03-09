@@ -18,6 +18,10 @@ class StubDoc(Doc):
         = _repr_instance.maxstring = _repr_instance.maxother = 100000
     repr = _repr_instance.repr
     missing_modules = set([])
+    
+    # Mapping of (module, dontImportThese)
+    MODULE_EXCLUDES = {'pymel.api':set(['pymel.internal.apicache'])}
+    
     def bold(self, text):
         """Format a string in bold by overstriking."""
         return join(map(lambda ch: ch + '\b' + ch, text), '')
@@ -128,11 +132,15 @@ class Parsed(ProxyUni): pass
 
         modules = []
         for key, value in inspect.getmembers(object, inspect.ismodule):
+            if value.__name__ in self.MODULE_EXCLUDES.get(name, ()):
+                continue
             modules.append((key, value))
         
         fromall_modules = set([])
         for key, value in inspect.getmembers(object, lambda x: not inspect.ismodule(x) ):
             if hasattr(value, '__module__') and value.__module__ not in [None, object.__name__] and not value.__module__.startswith('_'):
+                if value.__module__ in self.MODULE_EXCLUDES.get(name, ()):
+                    continue
                 if object.__name__ == debugmodule and value.__module__ == 'pymel.internal.apicache':
                     print "import* %r" % value
                 fromall_modules.add( value.__module__ )
@@ -458,7 +466,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             f.close()
     
 
-def pymelstubs(extensions=('py', 'pypredef', 'pi')):
+def pymelstubs(extensions=('py', 'pypredef', 'pi'), pymel=True, maya=True):
     """ Builds pymel stub files for autocompletion.
     
     Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
@@ -469,12 +477,13 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi')):
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
     
-    packagestubs( 'pymel', 
-                  outputdir=outputdir, 
-                  extensions=extensions,
-                  exclude='pymel\.util\.scanf|pymel\.util\.objectParser|pymel\.tools\.ipymel')
-
-    packagestubs( 'maya', outputdir=outputdir,extensions=extensions )
+    if pymel:
+        packagestubs( 'pymel', 
+                      outputdir=outputdir, 
+                      extensions=extensions,
+                      exclude='pymel\.util\.scanf|pymel\.util\.objectParser|pymel\.tools\.ipymel')
+    if maya:
+        packagestubs( 'maya', outputdir=outputdir,extensions=extensions )
     
     return outputdir
 
