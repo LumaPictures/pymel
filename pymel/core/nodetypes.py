@@ -3009,8 +3009,8 @@ class AnimCurve(DependNode):
         keys = _api.MDoubleArray()
         for value in values: keys.append(value)
         return self.__apimfn__().addKeys( times, keys,
-                                          _api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentInType.capitalize()),
-                                          _api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentOutType.capitalize()))
+                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentInType.capitalize()),
+                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentOutType.capitalize()))
 
 class GeometryFilter(DependNode): pass
 class SkinCluster(GeometryFilter):
