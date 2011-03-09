@@ -1942,7 +1942,42 @@ class testCase_Container(TestCaseExtended):
         self.assertEqual( fromAttr.name(), 'container1.canBeParent[0]' )
         self.assertEqual( fromPyNode, fromAttr )
         
+class testCase_AnimCurve(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
         
+    def testAddKeys(self):
+        import maya.OpenMayaAnim as omAn
+        import maya.OpenMaya as om
+        import pymel.core as pm
+        
+        # Test thanks to Mark Therrell, from issue 234
+        
+        pm.sphere()
+        
+        nodeAttr = 'nurbsSphere1.tx'
+        times = [1, 2, 4, 7]
+        values = [-1.444, 2.461, 7.544, 11.655]
+        
+        ## get the the MPlug of the node.attr using pymel (could use api, this way just to see it work)
+        mplug = pm.PyNode(nodeAttr).__apimplug__()
+         
+        ## instantiate the MFnAnimaCurve function, get the curve type needed
+        crvFnc = omAn.MFnAnimCurve()
+        crvtype = crvFnc.timedAnimCurveTypeForPlug(mplug)
+        
+        ## make a curve on the attr using API
+        ## how do i create the curve with pymel?? no docs on this??
+        crv = crvFnc.create(mplug,crvtype)
+        
+        ## try to add keyframes to the curve using .addKeys function in Pymel
+        name = om.MFnDependencyNode(crv).name()
+        pyAnimCurve = pm.PyNode(name)
+        pyAnimCurve.addKeys(times,values,'step','step',False)
+        
+        for time, val in zip(times, values):
+            pm.currentTime(time)
+            self.assertEqual(getAttr(nodeAttr), val)
 
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
