@@ -260,7 +260,7 @@ class BasePluginMixin(object):
 
             
 class Command(BasePluginMixin, mpx.MPxCommand):
-	"""create a subclass of this with a doIt method"""
+    """create a subclass of this with a doIt method"""
     @classmethod
     def createSyntax(cls):
         return om.MSyntax()
@@ -324,7 +324,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         global pyNodeMethods
         pluginPynodeMethods = pyNodeMethods.setdefault(mplugin.name(), {})
         pluginPynodeMethods[nodeName] = {}
-        for clsAttrName, clsObj in inspect.getmembers(cls):
+        for _, clsObj in inspect.getmembers(cls):
             if isinstance(clsObj, PyNodeMethod):
                 pluginPynodeMethods[nodeName][clsObj.name] = clsObj.func
             
