@@ -366,6 +366,14 @@ class DependNode( general.PyNode ):
 
         :rtype: `Attribute`
         """
+        return self._attr(attr, False)
+        
+    # Just have this alias because it will sometimes return attributes for an
+    # underlying shape, which we may want for DagNode.attr, but don't want for
+    # DependNode.attr (and using the on-shape result, instead of throwing it
+    # away and then finding it again on the shape, saves time for the DagNode
+    # case)
+    def _attr(self, attr, allowOtherNode):
         #return Attribute( '%s.%s' % (self, attr) )
         try :
             if '.' in attr or '[' in attr:
@@ -401,7 +409,7 @@ class DependNode( general.PyNode ):
                     if isinstance( token, nameparse.NameIndex ):
                         if token.value != -1:
                             result = result.elementByLogicalIndex( token.value )
-                return general.Attribute( self.__apiobject__(), result )
+                plug = result
             else:
                 try:
                     plug = self.__apimfn__().findPlug( attr, False )
@@ -424,7 +432,12 @@ class DependNode( general.PyNode ):
                         raise
                     if not isinstance(plug, _api.MPlug):
                         raise RuntimeError
-                return general.Attribute( self.__apiobject__(), plug )
+                    
+                if not (allowOtherNode or plug.node() == self.__apimobject__()):
+                    # we could have gotten an attribute on a shape object,
+                    # which we don't want
+                    raise RuntimeError
+            return general.Attribute( self.__apiobject__(), plug )
 
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
@@ -1346,11 +1359,11 @@ class Transform(DagNode):
         """
         #print "ATTR: Transform"
         try :
-            res = DependNode.attr(self,attr)
+            res = self._attr(attr, checkShape)
         except general.MayaAttributeError, e:
             if checkShape:
                 try:
-                    return self.getShape().attr(attr)
+                    res = self.getShape().attr(attr)
                 except AttributeError:
                     raise e
             raise e
@@ -1599,14 +1612,31 @@ class Transform(DagNode):
 #        _api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
 #        return datatypes.EulerRotation( quat.asEulerRotation() )
 
-    @_factories.addApiDocs( _api.MFnTransform, 'getRotation' )
-    def getRotation(self, space='object', **kwargs):
+    @_factories.addApiDocs( _api.MFnTransform, 'getRotation', overloadIndex=1 )
+    def getRotation(self, space='object', quaternion=False, **kwargs):
+        '''
+    Modifications:
+      - added 'quaternion' keyword arg, to specify whether the result
+        be returned as a Quaternion object, as opposed to the default
+        EulerRotation object
+      - added 'space' keyword arg, which defaults to 'object'
+        '''
         # quaternions are the only method that support a space parameter
         space = self._getSpaceArg(space, kwargs )
-        #return self._getRotation(space=space).asEulerRotation()
-        e = self._getRotation(space=space).asEulerRotation()
-        e.setDisplayUnit( datatypes.Angle.getUIUnit() )
-        return e
+        if space.lower() in ('object', 'pretransform', 'transform') and not quaternion:
+            # In this case, we can just go straight to the EulerRotation,
+            # without having to go through Quaternion - this means we will
+            # get information like angles > 360 degrees
+            euler = _api.MEulerRotation()
+            self.__apimfn__().getRotation(euler)
+            rot = datatypes.EulerRotation(euler)
+        else:
+            rot = self._getRotation(space=space)
+            if not quaternion:
+                rot =  rot.asEulerRotation()
+        if isinstance(rot, datatypes.EulerRotation):
+            rot.setDisplayUnit( datatypes.Angle.getUIUnit() )
+        return rot
 
 
     @_factories.addApiDocs( _api.MFnTransform, 'rotateBy' )
@@ -2996,8 +3026,8 @@ class AnimCurve(DependNode):
         keys = _api.MDoubleArray()
         for value in values: keys.append(value)
         return self.__apimfn__().addKeys( times, keys,
-                                          _api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentInType.capitalize()),
-                                          _api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentOutType.capitalize()))
+                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentInType.capitalize()),
+                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentOutType.capitalize()))
 
 class GeometryFilter(DependNode): pass
 class SkinCluster(GeometryFilter):

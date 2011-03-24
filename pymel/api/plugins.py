@@ -1,12 +1,16 @@
 """
-from pymel.api.plugins import Command
-class testCmd(Command):
-    def doIt(self, args):
-        print "doIt..."
+Maya API plugin utilities
 
-testCmd.register()
-cmds.testCmd()
-testCmd.deregister()
+A quick example::
+
+    from pymel.api.plugins import Command
+    class testCmd(Command):
+        def doIt(self, args):
+            print "doIt..."
+    
+    testCmd.register()
+    cmds.testCmd()
+    testCmd.deregister()
 """
 
 
@@ -123,10 +127,12 @@ def _getPlugin(object=None):
 # allow this file to be loaded as its own dummy plugin
 # Initialize the script plug-in
 def initializePlugin(mobject):
+    "do not call directly"
     pass
 
 # Uninitialize the script plug-in
 def uninitializePlugin(mobject):
+    "do not call directly"
 
     #print "getmodule", inspect.getmodule( None )
     #mod = _pluginModule()
@@ -254,6 +260,7 @@ class BasePluginMixin(object):
 
             
 class Command(BasePluginMixin, mpx.MPxCommand):
+    """create a subclass of this with a doIt method"""
     @classmethod
     def createSyntax(cls):
         return om.MSyntax()
@@ -317,7 +324,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         global pyNodeMethods
         pluginPynodeMethods = pyNodeMethods.setdefault(mplugin.name(), {})
         pluginPynodeMethods[nodeName] = {}
-        for clsAttrName, clsObj in inspect.getmembers(cls):
+        for _, clsObj in inspect.getmembers(cls):
             if isinstance(clsObj, PyNodeMethod):
                 pluginPynodeMethods[nodeName][clsObj.name] = clsObj.func
             
@@ -486,7 +493,8 @@ def createDummyNodePlugins():
     '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
     subclass
     
-    returns a dictionary mapping from MPx class to a maya node type string
+    returns a dictionary mapping from MPx class to a pymel dummy class of that
+    type
     '''
     pymelPlugClasses = []
     
