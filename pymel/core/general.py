@@ -2872,6 +2872,12 @@ class Attribute(PyNode):
         :rtype: `bool`
         """
         return cmds.isDirty(self, **kwargs)
+    
+    def setDirty(self, **kwargs):
+        cmds.dgdirty(self, **kwargs)
+        
+    def evaluate(self, **kwargs):
+        cmds.dgeval(self, **kwargs)
 
     def affects( self, **kwargs ):
         rawResult = cmds.affects( self.plugAttr(), self.node() )
