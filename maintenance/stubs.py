@@ -20,7 +20,10 @@ class StubDoc(Doc):
     missing_modules = set([])
     
     # Mapping of (module, dontImportThese)
-    MODULE_EXCLUDES = {'pymel.api':set(['pymel.internal.apicache'])}
+    MODULE_EXCLUDES = {
+                       'pymel.api':set(['pymel.internal.apicache']),
+                       'pymel'    :set(['pymel.all']),
+                      }
     
     def bold(self, text):
         """Format a string in bold by overstriking."""
@@ -163,6 +166,7 @@ class Parsed(ProxyUni): pass
                     if realparts[:len(currparts)] == currparts:
                         if object.__name__ == debugmodule: print "parent"
                         importname = '.'.join(realparts[len(currparts):])
+                        continue
                 self.module_map[realname] = key if importname != key else importname
                 if object.__name__ == debugmodule:
                     print '\t %-30s %-30s %s' % ( realname, importname, key )
