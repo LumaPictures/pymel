@@ -138,13 +138,12 @@ Modifications:
       otherwise, it does nothing
 
     """
-
     try:
         cmds.select(*args, **kwargs)
     except TypeError, msg:
         if args == ([],):
             for modeFlag in ('add', 'af', 'addFirst',
-                             'r', 'replace', 'd', 'deselect',
+                             'd', 'deselect',
                              'tgl', 'toggle'):
                 if kwargs.get(modeFlag, False):
                     return
