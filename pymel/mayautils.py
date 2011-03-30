@@ -156,8 +156,12 @@ def executeDeferred(func, *args, **kwargs):
 
 def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn', prepend=False):
     """
-    Given a path or list of paths, recurses through directories appending to the MAYA_SCRIPT_PATH
-    environment variable
+    Given a path or list of paths, recurses through directories appending to
+    the MAYA_SCRIPT_PATH environment variable any found directories containing
+    mel scripts
+    
+    The root directories, if given, are always added to the MAYA_SCRIPT_PATH,
+    even if they don't contain any mel scripts.
 
     :Parameters:
         roots
@@ -184,43 +188,49 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
 
 
 
+    scriptPath = os.environ["MAYA_SCRIPT_PATH"]
+    varList = scriptPath.split(os.path.pathsep)
+    initalLen = len(varList)
 
+    def addDir(toAdd):
+        if toAdd not in varList:
+            if prepend:
+                _logger.debug("Prepending script path directory %s" % toAdd)
+                varList.insert(0, toAdd)
+            else:
+                _logger.debug("Appending script path directory %s" % toAdd)
+                varList.append(toAdd)
+                
     if roots:
         if isinstance( roots, list) or isinstance( roots, tuple):
             rootVars = list(roots)
         else:
             rootVars = [roots]
+        # Roots are always added to the script path, even if they don't have
+        # .mel files
+        for d in rootVars:
+            addDir(d)
     ##  else expand the whole  environment  currently set
     else:
-        scriptPath = os.environ["MAYA_SCRIPT_PATH"]
-        rootVars = scriptPath.split(os.path.pathsep)
+        rootVars = varList[:]
 
-    varList = rootVars[:]
-
+   
+    
     _logger.debug("Recursing Maya script path")
     _logger.debug( "Only directories which match %s will be traversed" % includeRegex )
     for rootVar in rootVars:
         root = _path( rootVar )
         if re.match( includeRegex, root.name ) and root.exists():
             _logger.debug( "Searching for all valid script directories below %s" % rootVar )
-            # TODO: fix walkdirs so we can pass our regular expression directly to it. this will prevent us from descending into directories whose parents have failed
             for f in root.walkdirs( errors=errors, regex=includeRegex ):
                 try:
                     if len(f.files("*.mel")):
-                        f = str(f)
-                        if f not in varList:
-                            if prepend:
-                                _logger.debug("Prepending script path directory %s" % f)
-                                varList.insert(0, f)
-                            else:
-                                _logger.debug("Appending script path directory %s" % f)
-                                varList.append(f)
-
+                        addDir(str(f))
                 except OSError: pass
 
-    if len(varList) > len(rootVars):
+    if len(varList) > initalLen:
         os.environ["MAYA_SCRIPT_PATH"] = os.path.pathsep.join( varList )
-        _logger.info("Added %d directories to Maya script path" % (len(varList) - len(rootVars)) )
+        _logger.info("Added %d directories to Maya script path" % (len(varList) - initalLen) )
     else:
         _logger.info("Maya script path recursion did not find any paths to add")
 
