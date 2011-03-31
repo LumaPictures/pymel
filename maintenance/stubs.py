@@ -4,6 +4,8 @@ import __builtin__
 import os                   #@Reimport
 import pkgutil              #@Reimport
 
+builtins = set(__builtin__.__dict__.values())
+
 # for the sake of stubtest, don't importy anything pymel/maya at module level 
 #import pymel.util as util
 
@@ -17,10 +19,19 @@ class StubDoc(Doc):
     _repr_instance.maxlist = _repr_instance.maxtuple = _repr_instance.maxdict\
         = _repr_instance.maxstring = _repr_instance.maxother = 100000
     repr = _repr_instance.repr
-    missing_modules = set([])
+    
     
     # Mapping of (module, dontImportThese)
-    MODULE_EXCLUDES = {'pymel.api':set(['pymel.internal.apicache'])}
+    MODULE_EXCLUDES = {
+                       'pymel.api':set(['pymel.internal.apicache']),
+                       'pymel'    :set(['pymel.all']),
+                      }
+    debugmodule = 'pymel.api'    
+    
+    def __init__(self, *args, **kwargs):
+        self.missing_modules = set([])
+        if hasattr(Doc, '__init__'):
+            Doc.__init__(self, *args, **kwargs)
     
     def bold(self, text):
         """Format a string in bold by overstriking."""
@@ -70,7 +81,6 @@ class Parsed(ProxyUni): pass
 
     def docmodule(self, object, name=None, mod=None):
         """Produce text documentation for a given module object."""
-        debugmodule = 'pymel.api'
         
         name = object.__name__ # ignore the passed-in name
         desc = splitdoc(getdoc(object))[1]
@@ -82,7 +92,6 @@ class Parsed(ProxyUni): pass
         except AttributeError:
             all = None
         
-        ispkg = hasattr(object, '__path__')
 #        try:
 #            file = inspect.getabsfile(object)
 #        except TypeError:
@@ -96,11 +105,19 @@ class Parsed(ProxyUni): pass
         if desc:
             result += result + self.docstring(desc)
 
+        def classModule(classObj):
+            mod = inspect.getmodule(classObj)
+            if not mod:
+                mod = object
+            elif mod == __builtin__ and classObj not in builtins:
+                mod = object
+            return mod
+
         untraversedClasses = []
         for key, value in inspect.getmembers(object, inspect.isclass):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
             if (all is not None
-                or (inspect.getmodule(value) or object) is object):
+                    or classModule(value) is object):
                 if visiblename(key, all):
                     untraversedClasses.append((key, value))
         # A visible class may have a non-visible baseClass from this module,
@@ -113,7 +130,7 @@ class Parsed(ProxyUni): pass
             key, childClass = untraversedClasses.pop()
             classes.append( (key, childClass) )
             for parentClass in childClass.__bases__:
-                if (inspect.getmodule(parentClass) or object) is object:
+                if classModule(parentClass) is object:
                     newTuple = (parentClass.__name__, parentClass)
                     if newTuple not in classes and newTuple not in untraversedClasses:
                         untraversedClasses.append( newTuple )
@@ -121,8 +138,7 @@ class Parsed(ProxyUni): pass
         funcs = []
         for key, value in inspect.getmembers(object, inspect.isroutine):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
-            if (all is not None or
-                inspect.isbuiltin(value) or inspect.getmodule(value) is object):
+            if (all is not None or inspect.getmodule(value) is object):
                 if visiblename(key, all):
                     funcs.append((key, value))
         data = []
@@ -132,16 +148,12 @@ class Parsed(ProxyUni): pass
 
         modules = []
         for key, value in inspect.getmembers(object, inspect.ismodule):
-            if value.__name__ in self.MODULE_EXCLUDES.get(name, ()):
-                continue
             modules.append((key, value))
         
         fromall_modules = set([])
         for key, value in inspect.getmembers(object, lambda x: not inspect.ismodule(x) ):
             if hasattr(value, '__module__') and value.__module__ not in [None, object.__name__] and not value.__module__.startswith('_'):
-                if value.__module__ in self.MODULE_EXCLUDES.get(name, ()):
-                    continue
-                if object.__name__ == debugmodule and value.__module__ == 'pymel.internal.apicache':
+                if object.__name__ == self.debugmodule and value.__module__ == 'pymel.internal.apicache':
                     print "import* %r" % value
                 fromall_modules.add( value.__module__ )
 
@@ -152,26 +164,9 @@ class Parsed(ProxyUni): pass
                 realname = value.__name__
                 if realname == name:
                     continue
-                realparts = realname.split('.')
-                currparts = name.split('.')
-                importname = realname
-                if len(realparts) == len(currparts): #test for siblings
-                    if realparts[:-1] == currparts[:-1] and not ispkg:
-                        if object.__name__ == debugmodule: print "sibling"
-                        importname = realparts[-1]
-                elif len(realparts) > len(currparts): #test if current is parent
-                    if realparts[:len(currparts)] == currparts:
-                        if object.__name__ == debugmodule: print "parent"
-                        importname = '.'.join(realparts[len(currparts):])
-                self.module_map[realname] = key if importname != key else importname
-                if object.__name__ == debugmodule:
-                    print '\t %-30s %-30s %s' % ( realname, importname, key )
-                if importname in self.importSubstitutions:
-                    if importname != key:
-                        importname = key
-                    contents.append('%s = None' % importname)
-                else:
-                    contents.append( 'import ' + importname + ( ( ' as ' + key ) if importname != key else '') )
+                import_text = self.import_mod_text(object, realname, key)
+                if import_text:
+                    contents.append(import_text)
             result = result + join(contents, '\n') + '\n\n'
         if fromall_modules:
             # special-case handling for pymel.internal.pmcmds, which ends up
@@ -181,13 +176,11 @@ class Parsed(ProxyUni): pass
                 fromall_modules.append('maya.cmds')
             contents = []
             for modname in fromall_modules:
-                if modname in self.importSubstitutions:
-                    contents.append(self.importSubstitutions[modname])
-                else:
-                    contents.append( 'from ' + modname + ' import *' )
-                self.module_map[modname] = ''
+                import_text = self.import_mod_text(object, modname, '*')
+                if import_text:
+                    contents.append(import_text)
             result = result + join(contents, '\n') + '\n\n'
-                
+        
         if classes:
             # sort in order of resolution
             def nonconflicting(classlist):
@@ -254,8 +247,11 @@ class Parsed(ProxyUni): pass
         if self.missing_modules:
             contents = []
             for mod in self.missing_modules:
-                contents.append( 'import ' + mod)
+                import_text = self.import_mod_text(object, mod, mod)
+                if import_text:
+                    contents.append(import_text)
             result = join(contents, '\n') + '\n\n'  + result
+                        
         return result
 
     def classname(self, object, modname):
@@ -440,6 +436,41 @@ class Parsed(ProxyUni): pass
             value = 'None' 
         line = (name and name + ' = ' or '') + value + '\n'
         return line
+    
+    def import_mod_text(self, currmodule, importmodule, asname):
+        ispkg = hasattr(currmodule, '__path__')
+        currname = currmodule.__name__
+
+        if importmodule in self.MODULE_EXCLUDES.get(currname, ()):
+            print "%s had %s in MODULE_EXCLUDES" % (currname, importmodule)
+            return ''
+        elif asname != '*':
+            realname = importmodule
+
+            realparts = realname.split('.')
+            currparts = currname.split('.')
+            importname = realname
+            if len(realparts) == len(currparts): #test for siblings
+                if realparts[:-1] == currparts[:-1] and not ispkg:
+                    if currname == self.debugmodule: print "sibling"
+                    importname = realparts[-1]
+            elif len(realparts) > len(currparts): #test if current is parent
+                if realparts[:len(currparts)] == currparts:
+                    if currname == self.debugmodule: print "parent"
+                    importname = '.'.join(realparts[len(currparts):])
+            self.module_map[realname] = asname if importname != asname else importname
+            if currname == self.debugmodule:
+                print '\t %-30s %-30s %s' % ( realname, importname, asname )
+            if importname in self.importSubstitutions:
+                return '%s = None' % asname
+            else:
+                return 'import ' + importname + ( ( ' as ' + asname ) if importname != asname else '')
+        else:
+            self.module_map[importmodule] = ''
+            if importmodule in self.importSubstitutions:
+                return self.importSubstitutions[importmodule]
+            else:
+                return 'from ' + importmodule + ' import *'
 
 stubs = StubDoc()
 
