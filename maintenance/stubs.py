@@ -457,7 +457,9 @@ class Parsed(ProxyUni): pass
             elif len(realparts) > len(currparts): #test if current is parent
                 if realparts[:len(currparts)] == currparts:
                     if currname == self.debugmodule: print "parent"
-                    importname = '.'.join(realparts[len(currparts):])
+                    # If it's a parent, we shouldn't need to import it
+                    # explicitly...
+                    return ''
             self.module_map[realname] = asname if importname != asname else importname
             if currname == self.debugmodule:
                 print '\t %-30s %-30s %s' % ( realname, importname, asname )
