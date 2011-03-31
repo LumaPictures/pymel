@@ -380,6 +380,10 @@ class Parsed(ProxyUni): pass
         if isEnviron:
             objRepr = repr({'PROXY_FOR':'os.environ'})
         else:
+            if isinstance(object, unicode):
+                # pydev can't handle unicode literals - ie, u'stuff' - so
+                # convert to normal strings
+                object = str(object)
             objRepr = self.repr(object)
             if objRepr[0] == '<' and objRepr[-1] == '>':
                 objRepr = repr(objRepr)
