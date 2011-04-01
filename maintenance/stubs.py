@@ -9,12 +9,19 @@ builtins = set(__builtin__.__dict__.values())
 # for the sake of stubtest, don't importy anything pymel/maya at module level 
 #import pymel.util as util
 
+class NoUnicodeTextRepr(TextRepr):
+    '''PyDev barfs when a unicode literal (ie, u'something') is in a pypredef
+    file; use this repr to make sure they don't show up.
+    '''
+    def repr_unicode(self, uStr, level):
+        return self.repr_string(str(uStr), level)
+
 class StubDoc(Doc):
     """Formatter class for text documentation."""
 
     # ------------------------------------------- text formatting utilities
     module_map = {}
-    _repr_instance = TextRepr()
+    _repr_instance = NoUnicodeTextRepr()
     # We don't care if it's compact, we just want it to parse right...
     _repr_instance.maxlist = _repr_instance.maxtuple = _repr_instance.maxdict\
         = _repr_instance.maxstring = _repr_instance.maxother = 100000
@@ -129,6 +136,10 @@ class Parsed(ProxyUni): pass
         while untraversedClasses:
             key, childClass = untraversedClasses.pop()
             classes.append( (key, childClass) )
+            try:
+                [x for x in childClass.__bases__]
+            except Exception:
+                print "problem iterating %s.__bases__" % childClass
             for parentClass in childClass.__bases__:
                 if classModule(parentClass) is object:
                     newTuple = (parentClass.__name__, parentClass)
@@ -430,10 +441,15 @@ class Parsed(ProxyUni): pass
         """Produce text documentation for a data object."""
         if name in ['__metaclass__']:
             return ''
+        
+        value = None
         if name == '__all__':
             value = pprint.pformat(object)
         else:
-            value = 'None' 
+            if isinstance(object, (basestring, int, long)):
+                value = self.repr(object)
+            else:
+                value = 'None'
         line = (name and name + ' = ' or '') + value + '\n'
         return line
     
