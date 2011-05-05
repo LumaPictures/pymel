@@ -55,6 +55,7 @@ def _addPluginCommand(pluginName, funcName):
     
     if funcName not in _pluginData[pluginName].setdefault('commands', []):
         _pluginData[pluginName]['commands'].append(funcName)
+    _logger.debug("Adding command: %s" % funcName)
     #_logger.debug("adding new command:", funcName)
     _factories.cmdlist[funcName] = _factories.cmdcache.getCmdInfoBasic( funcName )
     _pmcmds.addWrappedCmd(funcName)
@@ -98,7 +99,10 @@ def _removePluginNode(pluginName, node):
     if node in nodes:
         nodes.remove(node)
     _factories.removePyNode( nodetypes, node )
-    
+
+# Some plugins (ie, stereoCamera) have commands that are added to maya.cmds,
+# but aren't returned when querying the plugin
+UNREPORTED_COMMANDS = {'stereoCamera':['stereoCameraView']}    
 
 def _pluginLoaded( *args ):
     global _pluginData
@@ -120,6 +124,11 @@ def _pluginLoaded( *args ):
     except:
         _logger.error("Failed to get command list from %s", pluginName)
         commands = None
+        
+    if pluginName in UNREPORTED_COMMANDS:
+        if commands is None:
+            commands = []
+        commands += UNREPORTED_COMMANDS[pluginName]
 
     # Commands
     if commands:
