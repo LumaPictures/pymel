@@ -144,14 +144,25 @@ def _pluginLoaded( *args ):
                         nodeName = _factories.addPyNode( nodetypes, node, parent )
                         parent = node
 
-        # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
-        if _api.MFileIO.isReadingFile() or ( _versions.current() >= _versions.v2008 and _api.MFileIO.isOpeningFile() ):
-            #__logger.debug("pymel: Installing temporary plugin-loaded callback")
-            id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
+        # Detect if we are currently opening/importing a file and load as a callback versus execute now
+        if _api.MFileIO.isReadingFile() or  _api.MFileIO.isOpeningFile(): #or \
+##           #Referencing still doesn't work because while I can detect when I am referencing in 2012 I don't have
+##           # an acceptable event to latch on to. Contacting Autodesk to see if we can get one.
+##            ( _versions.current() >= _versions.v2012 and _api.MFileIO.isReferencingFile()):
+##            if _api.MFileIO.isReferencingFile():
+##                _logger.debug("pymel: Installing temporary plugin-loaded nodes callback - postsceneread")
+##                id = _api.MEventMessage.addEventCallback( 'PostSceneRead', addPluginPyNodes )
+            if _api.MFileIO.isImportingFile():
+                _logger.debug("pymel: Installing temporary plugin-loaded nodes callback - sceneimported")
+                id = _api.MEventMessage.addEventCallback( 'SceneImported', addPluginPyNodes )
+            else:
+                _logger.debug("pymel: Installing temporary plugin-loaded nodes callback - sceneopened")
+                id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
             _pluginData[pluginName]['callbackId'] = id
             # scriptJob not respected in batch mode, had to use _api
             #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 )
         else:
+            _logger.debug("pymel: Running plugin-loaded nodes callback")
             # add the callback id as None so that if we fail to get an id in addPluginPyNodes we know something is wrong
             _pluginData[pluginName]['callbackId'] = None
             addPluginPyNodes()
