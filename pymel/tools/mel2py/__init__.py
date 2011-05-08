@@ -246,12 +246,12 @@ def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False, basePacka
     filepath = util.path( melobj )
     if filepath.isfile():
         if filepath.ext == '.mel':
-            files = [ filepath.canonicalpath() ]
+            files = [ filepath.truepath() ]
         else:
             log.warning( "File is not a mel script: %s" % (filepath) )
             files = []
     elif filepath.isdir():
-        files = [ f.canonicalpath() for f in filepath.files( '[a-zA-Z]*.mel') ]
+        files = [ f.truepath() for f in filepath.files( '[a-zA-Z]*.mel') ]
         if recurse:
             for dir in filepath.dirs():
                 recursedResults.extend(resolvePath(dir, recurse=recurse,
@@ -264,7 +264,7 @@ def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False, basePacka
             info = pm.mel.whatIs( melobj ).split(': ')[-1]
             assert info != 'Unknown', "If providing a procedure or a short file name, ensure the appropriate script is sourced"
             melfile = util.path( info )
-            files = [ melfile.canonicalpath() ]
+            files = [ melfile.truepath() ]
         except Exception, msg:
             log.warning( "Could not determine mel script from input '%s': %s." % (filepath, msg) )
     if exclude:
@@ -279,7 +279,7 @@ def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False, basePacka
             for badFile in exclude:
                 if f.samepath(badFile) \
                    or (badFile.isdir()
-                       and f.startswith(badFile)):
+                       and f.canonicalpath().startswith(badFile)):
                     fileGood = False
             if fileGood:
                 filteredFiles.append(f)

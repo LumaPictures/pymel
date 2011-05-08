@@ -795,8 +795,7 @@ class path(_base):
         samefile = os.path.samefile
 
     def samepath(self, otherpath):
-        """
-        Whether the other path represents the same path as this one.
+        """Whether the other path represents the same path as this one.
 
         This will account for symbolic links, absolute/relative paths,
         case differences (if on a case-insensitive file system), and '..'
@@ -810,8 +809,7 @@ class path(_base):
         return self.canonicalpath() == self.__class__(otherpath).canonicalpath()
 
     def canonicalpath(self):
-        """
-        Attempt to return a 'canonical' version of the path
+        """Attempt to return a 'canonical' version of the path
 
         This will standardize for symbolic links, absolute/relative paths,
         case differences (if on a case-insensitive file system), and '..'
@@ -821,6 +819,19 @@ class path(_base):
         a reasonable guess as to whether two paths represent the same file.
         """
         return self.__class__(self.abspath().realpath().normpath().normcase())
+
+    def truepath(self):
+        """The absolute, real, normalized path.
+        
+        Shortcut for .abspath().realpath().normpath()
+        
+        Unlike canonicalpath, on case-sensitive filesystems, two different paths
+        may refer the same file, and so should only be used in cases where a
+        "normal" path from root is desired, but we wish to preserve case; in
+        situations where comparison is desired, canonicalpath (or samepath)
+        should be used.  
+        """
+        return self.__class__(self.abspath().realpath().normpath())
 
     getatime = os.path.getatime
     atime = property(
