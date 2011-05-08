@@ -1944,6 +1944,71 @@ class testCase_Container(TestCaseExtended):
         
         
 
+class testCase_rename(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+    
+    def testBasicRename(self):
+        sphere = pm.polySphere()[0]
+        sphere.rename('firstName')
+        self.assertEqual('firstName', sphere.nodeName())
+        sphere.rename('newName')
+        self.assertEqual('newName', sphere.nodeName())
+        
+    def testPreserveNamespace(self):
+        sphere1 = pm.polySphere()[0]
+        sphere2 = pm.polySphere()[0]
+        pm.namespace(add="myNS")
+
+
+        pm.namespace(set=":")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/o preserveNamespace, current NS == :
+        sphere1.rename('sphere3', preserveNamespace=False)
+        sphere2.rename('sphere4', preserveNamespace=False)
+        self.assertEqual('sphere3', sphere1.nodeName())
+        self.assertEqual('sphere4', sphere2.nodeName())
+        
+        pm.namespace(set=":myNS")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/o preserveNamespace, current NS == :myNS
+        sphere1.rename('sphere3', preserveNamespace=False)
+        sphere2.rename('sphere4', preserveNamespace=False)
+        self.assertEqual('myNS:sphere3', sphere1.nodeName())
+        self.assertEqual('myNS:sphere4', sphere2.nodeName())
+
+        pm.namespace(set=":")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/ preserveNamespace, current NS == :
+        sphere1.rename('sphere3', preserveNamespace=True)
+        sphere2.rename('sphere4', preserveNamespace=True)
+        self.assertEqual('sphere3', sphere1.nodeName())
+        self.assertEqual('myNS:sphere4', sphere2.nodeName())
+
+        pm.namespace(set=":myNS")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/ preserveNamespace, current NS == :myNS
+        sphere1.rename('sphere3', preserveNamespace=True)
+        sphere2.rename('sphere4', preserveNamespace=True)
+        self.assertEqual('sphere3', sphere1.nodeName())
+        self.assertEqual('myNS:sphere4', sphere2.nodeName())
+
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #    

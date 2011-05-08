@@ -127,11 +127,8 @@ class DependNode( general.PyNode ):
         #self.setName( name ) # no undo support
         
         #check for preserveNamespace a pymel unique flag
-        if 'preserveNamespace' in kwargs.keys():
-            if kwargs['preserveNamespace']:
-                name = self.namespace() + name
-                #pyMel unique flag so we don't want to pass it with kwargs
-                del kwargs['preserveNamespace']
+        if kwargs.pop('preserveNamespace', False):
+            name = self.namespace(root=True) + name
         
         #ensure shortname
         if '|' in name:
