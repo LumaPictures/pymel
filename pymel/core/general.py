@@ -1940,8 +1940,10 @@ class PyNode(_util.ProxyUnicode):
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
     def namespace(self, root=False):
-        """Returns the namespace of the object with trailing colon included.  See `DependNode.parentNamespace` for
-        a variant which does not include the trailing colon.
+        """Returns the namespace of the object with trailing colon included.
+        
+        See `DependNode.parentNamespace` for a variant which does not include
+        the trailing colon.
 
         By default, if the object is in the root namespace, an empty string is
         returned; if root is True, ':' is returned in this case.
