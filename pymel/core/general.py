@@ -1939,7 +1939,7 @@ class PyNode(_util.ProxyUnicode):
         """
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
-    def namespace(self, root=True):
+    def namespace(self, root=False):
         """Returns the namespace of the object with trailing colon included.  See `DependNode.parentNamespace` for
         a variant which does not include the trailing colon.
 
