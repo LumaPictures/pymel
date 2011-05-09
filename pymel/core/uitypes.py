@@ -585,7 +585,6 @@ class OptionMenu(PopupMenu):
 
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """
-        print 'fasjfklafja'
         if title:
             cmds.menuItem(l=title, en=0, parent=self)
         for item in items:
