@@ -746,13 +746,16 @@ class DagNode(Entity):
         """
         return self.name(long=False)
 
-    def nodeName( self ):
+    def nodeName( self, stripNamespace=False ):
         """
         Just the name of the node, without any dag path
 
         :rtype: `unicode`
         """
-        return self.name().split('|')[-1]
+        name = self.name().rsplit('|', 1)[-1]
+        if stripNamespace:
+            name = name.rsplit(':', 1)[-1]
+        return name
 
 
     def __apiobject__(self) :
