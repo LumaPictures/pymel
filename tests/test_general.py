@@ -777,7 +777,7 @@ class test_PyNodeWraps(unittest.TestCase):
         cube = cmds.polyCube()[0]
         j1 = cmds.joint(p=(0,0,-1))
         cmds.joint(p=(0,0,1))
-        skin = skinCluster(cube, j1)
+        skin = skinCluster(cube, j1)[0]
         self.assertPyNodes(skin.getGeometry(), nt.DependNode)
         
     def test_addDynamic(self):

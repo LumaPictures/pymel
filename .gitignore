@@ -12,3 +12,5 @@
 ._*
 *.tmproj
 *~
+/maintenance/release
+/docs/build
