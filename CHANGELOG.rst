@@ -6,9 +6,6 @@ Version 1.0.3
 Changes
 ----------------------------------
 
-- ``setParent`` now returns PyUI objects when queried
-- ``setParent`` now returns None object instead of 'NONE' string
-- ``menu(q=1, itemArray=1)`` now returns [] instead of None
 - UI classes that have 'with' statement support now set parent back to previous
   'with' object if there are nested with statements; if not in a nested with
   statement, resets parent back to UI element's parent (or more precisely, the
@@ -16,7 +13,6 @@ Changes
 - ``with OptionMenuGrp()`` will set parent menu properly
 - 'Unit' support for Quaternion objects is now removed (as it doesn't make
   any sense)
-- can now set enum attributes using their string values
 - can now pass in PyNode class objects to functions / methods that expect a
   mel node class name - ie:
 
@@ -25,6 +21,8 @@ Changes
   is equivalent to:
 
      listRelatives(allDescendents=True, type='joint')
+- other: NameParser(dagObj) now always gives a DagNodeName even if shortName has no |
+
 
 ----------------------------------
 Non-Backward Compatible Changes
@@ -41,16 +39,49 @@ Non-Backward Compatible Changes
 - skinCluster command / node's methods / flags for querying deformerTools, 
   influence, weightedInfluence now return PyNodes, not strings
 - Attribute.elements now returns an empty list instead of None
+- general: Attribute.affects/affected return empty list when affects returns None
+- setParent returns PyUI / None; menu(itemArray) returns [] for None
+- general: make Attribute.elements() return empty list for None
+- shape attribute lookup on all child shapes (like mel does)
+
+----------------------------------
+Additions
+----------------------------------
+
+- Shape.setParent automatically adds --shape flag
+- nodetypes: added isVisible
+- added MGlobal.display* methods to pymel.core.system namespace
+- other: added NameParser.stripGivenNamespace()
+- language: OptionVarList has more helpful error message when __setitem__ attempted
+- nodetypes: getSiblings can now take kwargs
+- Added MainProgressBar context manager
+- Added isUsedAsColor method to Attribute class
+- Added wrapper for listSets function
+- Added method listSets to PyNode class
+- Add a folderButtonGrp
+- core.system: added Namespace.move
+- core.system: added Namespace.listNodes
+- mel2py: python mel command now translated to pymel.python (ie, maya.cmds.python)
+- general: added Attribute.indexMatters
+- language: added animStart/EndTime to Env
+- system: add in a 'breadth'-first recursive search mode to iterReferences
+- general: added ability to set enum Attributes with string values (issue 35)
+- plogging: set logging level with PYMEL_LOGLEVEL env var
+- Added isRenderable() method to object set.
+- deprecate PyNode.__getitem__
+- mayautils: executeDeferred now takes args, like maya.utils.executeDeferred
 
 ----------------------------------
 Bugfixes
 ----------------------------------
+
 - py2mel failing with functions that take \*args/\*\*kwargs
 - eliminated / fixed various 'warning' messages on pymel startup
 - MayaNodeError / MayaAttributeError not being raised when a node / attribute not found
 - some maya cmds were not handling 'stubFunc' correctly
 - renderLayer.listAdjustments() was not functioning
 - MainProgressBar fixed
+- language: OptionVarList __init__ no longer raises deprecation warning
 - listSets() throws away non-existant 'defaultCreaseDataSet' that maya.cmds.listSets() returns
 - fix for dealing with maya bug where constraint angle offsets always returned in radians (but set in degrees)
 - fixes for incorrect formatting of error strings in some cases
@@ -71,6 +102,57 @@ Bugfixes
 - fix for MeshEdge.isConnectedTo
 - fix for MeshFace.isConnectedTo
 - fix for plogging handling case where various env. variables exist, but are empty
+- Fix for Layout.children() Layout.children() now returns empty list if layout has no kids intead of raising error.
+- listConnections: fix so rotatePivot always Attribute (not component)
+- uitypes: bugfixes to AETemplates.  corrected UITemplate to represent an existing uiTemplate if instantiated with the name of an existing template
+- nodetypes: fixed a bug where Transform.setScalePivot was internally using MFnTransform.setScalePivotTranslation
+- fixed a bug in pythonToMel where python booleans were not converted to integer. this caused the Mel class to not work properly with booleans.
+- core.general: fix a bug with sets command where noWarnings was interpreted as a set flag, instead of a boolean flag
+- Namespace: fix for getParent()
+- general: various attr name fixes (stripping of [-1] indices, etc)
+- nameparse: enable parsing of [-1] indices (for attributes)
+- nodetypes: enable parsing of [-1] indices (for attributes)
+- nodetypes: setParent to current parent no longer errors
+- util.enum: fix for repr of EnumDict
+- fixes for referenceQuery
+- attr.exists() should return False if the node no longer exists
+- datatypes: fixed bug to allow Point * FloatMatrix
+- general: bugfix for Attribute.attrName
+- utilitytypes: EquivalencePairs.get now correctly retrieves value=>key
+- nodetypes: fixed setParent(world=1) bug
+- uitypes: Fix issues with the popup and with support.
+- pm.mel.command translation would fail with no-arg bool flags (like -q, -e)
+- language: mel command translation makes no assumptions for unknown commands; None is translated to empty string, not 'None'
+- bugfix for uiTemplate(exists=1)
+- general: Attribute.elements() now correctly works with array and element plugs
+- fix get/set rotation by using eulerRotation
+- startup: changes to fix issues with maya -prompt and plugins loading pymel
+- fix for TransformationMatrix.get/setRotation, removed Quaternion units
+- datatypes: fixes for EulerRotation
+- fix for ui heights for pymelControlPanel
+- uitypes: bugfix for with statement parent setting on exit
+- mesh: fixes to allow creating component objects for empty meshes (ie, createNode('mesh').vtx)
+- mesh: made more num* functions work with empty meshes
+- core.general: fix for move with no object
+- datatypes: fix for EulerRotation comparison/len
+- fix for menu('someOptionMenu')
+- FileReference: initialize correctly from a path
+- windows: bugfix - informBox wasn't using 'ok' kwarg
+- plogging: bugfix for 182 - crash due to creating loggers as iterating over dict
+- arrays: fix for dot/outer product error messages (issue 158)
+- fix for 'no useName' and MfknSkinCluster.setBlendWeights warnings on startup
+- Fixed language import in MainProgressBar
+- fix for Issue 216: renderLayer.listAdjustments()
+- docfix for issue 192
+- fix for constraint angle offset query always being in radians
+- nodetypes: fix for multi/compound alias attrs
+- nodetypes: fixes for published container node attributes / aliases
+- general: made attribute iterator independent
+- general: fix for isSettable with multi/compound attributes
+- general: fix so getAllParents doesn't return orig object
+- general: fix for Attribute.exists with multi/compound attrs
+- Attribute.type() now works with multi/compound, dynamic attrs
+- fixes for mesh components
 
 ==================================
 Version 1.0.2
