@@ -15,7 +15,7 @@ from pymel.util.testing import TestCaseExtended, setCompare
 VERBOSE = False
 
 def getFundamentalTypes():
-    classList = sorted( list( set( [ key[0] for key in factories.apiToMelData.keys()] ) ) )
+    classList = sorted( set( [ key[0] for key in factories.apiToMelData.keys()] ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
@@ -234,6 +234,8 @@ class testCase_attribs(unittest.TestCase):
 
 def testInvertibles():
     classList = getFundamentalTypes()
+    
+    
     for pynodeName in classList:
         try:
             pynode = getattr( core.nodetypes, pynodeName )
@@ -258,6 +260,7 @@ def testInvertibles():
                 print "skipping shape", pynode
                 continue
         else:
+            print "creating: %s" % util.uncapitalize(pynodeName)
             obj = createNode( util.uncapitalize(pynodeName) )
         
         print repr(obj)
