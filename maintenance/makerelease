@@ -1,5 +1,24 @@
 #!/bin/bash
 
+# For a release:
+#   1) build docs (? - ask chad about this... probably execute docs.py in this 
+#                  folder?)
+#   2) build stubs
+#      from a clean/default environment maya gui, run:
+#          import maintenance.stubs
+#          reload(maintenance.stubs)
+#          maintenance.stubs.pymelstubs()
+#      test stubs - from shell, do:
+#          python -c "import stubs; stubs.stubstest('/Volumes/sv-dev01/devRepo/paulm/pymel/extras/completion/py')"
+#   3) changelog
+#      run changelog script in this folder
+#           changelog $PREVIOUS_PYMEL_VERSION $CURRENT_REVISION
+#      copy results from resulting maintenance/CHANGELOG file to CHANGELOG.rst
+#      edit as necessary
+#   4) run makerelease (this file)
+#           makerelesae $PYMEL_VERSION
+            
+
 cd `dirname $0` 
 mtnc=`pwd` 
 # pwd is now maintenance
@@ -21,7 +40,7 @@ fi
 cd $mtnc
 
 echo "checking completion stubs"
-cd $mtnc/../extras/completion/py && python -c "import pymel;assert pymel.__version__ == None"
+cd $mtnc/../extras/completion/py && python -c "import pymel;assert pymel.__version__ == '$1'"
 if [ $? -gt 0 ]; then
 	echo "ERROR: python completion stubs are not working"
 	exit 1
