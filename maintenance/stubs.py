@@ -33,7 +33,7 @@ class StubDoc(Doc):
                        'pymel.api':set(['pymel.internal.apicache']),
                        'pymel'    :set(['pymel.all']),
                       }
-    debugmodule = 'pymel.api'    
+    debugmodule = 'pymel.core'    
     
     def __init__(self, *args, **kwargs):
         self.missing_modules = set([])
@@ -164,8 +164,8 @@ class Parsed(ProxyUni): pass
         fromall_modules = set([])
         for key, value in inspect.getmembers(object, lambda x: not inspect.ismodule(x) ):
             if hasattr(value, '__module__') and value.__module__ not in [None, object.__name__] and not value.__module__.startswith('_'):
-                if object.__name__ == self.debugmodule and value.__module__ == 'pymel.internal.apicache':
-                    print "import* %r" % value
+                if object.__name__ == self.debugmodule and value.__module__ not in fromall_modules:
+                    print "import* %r" % value.__module__
                 fromall_modules.add( value.__module__ )
 
         if modules:
@@ -466,23 +466,44 @@ class Parsed(ProxyUni): pass
             realparts = realname.split('.')
             currparts = currname.split('.')
             importname = realname
-            if len(realparts) == len(currparts): #test for siblings
-                if realparts[:-1] == currparts[:-1] and not ispkg:
-                    if currname == self.debugmodule: print "sibling"
-                    importname = realparts[-1]
-            elif len(realparts) > len(currparts): #test if current is parent
-                if realparts[:len(currparts)] == currparts:
-                    if currname == self.debugmodule: print "parent"
-                    # If it's a parent, we shouldn't need to import it
-                    # explicitly...
-                    return ''
-            self.module_map[realname] = asname if importname != asname else importname
+            fromname = ''
             if currname == self.debugmodule:
                 print '\t %-30s %-30s %s' % ( realname, importname, asname )
+
+            #test for siblings - needed to avoid circular imports
+            if len(realparts) == len(currparts):
+                if realparts[:-1] == currparts[:-1] and not ispkg:
+                    if currname == self.debugmodule:
+                        print "\t\tsibling"
+                    fromname = '.'
+                    importname = realparts[-1]
+            # test if importing a child - ie, pymel will have a .core attribute,
+            # simply because at some point we imported pymel.core, but we don't
+            # need / want an explicit import statement
+            elif len(realparts) > len(currparts):
+                if realparts[:len(currparts)] == currparts:
+                    # Check that asname matches realname, so that if we do
+                    #     import pymel.core.nt as nt
+                    # from inside pymel.core, we still get the nt showing up
+                    if asname == realparts[-1]:
+                        if currname == self.debugmodule:
+                            print "\t\tparent - no import"
+                        return ''
+                    
+                    # if we're doing a renamed parent import, we want to make it
+                    # relative to avoid circular imports
+                    fromname = '.'
+                    importname = '.'.join(realparts[len(currparts):])
+            self.module_map[realname] = asname if importname != asname else importname
             if importname in self.importSubstitutions:
                 return '%s = None' % asname
             else:
-                return 'import ' + importname + ( ( ' as ' + asname ) if importname != asname else '')
+                result = 'import ' + importname
+                if importname != asname:
+                    result += ' as ' + asname
+                if fromname:
+                    result = 'from ' + fromname + ' ' + result
+                return result
         else:
             self.module_map[importmodule] = ''
             if importmodule in self.importSubstitutions:
@@ -497,6 +518,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
     
     packagemod = __import__(packagename, globals(), locals(), [], -1)
     for modname, mod, ispkg in util.subpackages(packagemod):
+        print modname, ":"
         contents = stubs.docmodule(mod)
         for extension in extensions:
             basedir = os.path.join(outputdir, extension)
@@ -512,7 +534,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             curdir = os.path.dirname(curfile)
             if not os.path.isdir(curdir):
                 os.makedirs(curdir)
-            print modname, curfile
+            print "\t ...writing %s" % curfile
             f = open( curfile, 'w' )
             if not exclude or not re.match( exclude, modname ):
                 f.write( contents )
