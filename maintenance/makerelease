@@ -12,7 +12,7 @@
 #          reload(maintenance.stubs)
 #          maintenance.stubs.pymelstubs()
 #      test stubs - ie, from shell, do:
-#          python -c "import stubs; stubs.stubstest('/Volumes/sv-dev01/devRepo/paulm/pymel/extras/completion/py')"
+#          python -c "import maintenance.stubs; maintenance.stubs.stubstest('/Volumes/sv-dev01/devRepo/paulm/pymel/extras/completion/py')"
 #   3) changelog
 #      run changelog script in this folder
 #           changelog $PREVIOUS_PYMEL_VERSION $CURRENT_REVISION
