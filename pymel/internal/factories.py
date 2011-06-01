@@ -422,35 +422,41 @@ def getInheritance( mayaType ):
     A ManipNodeTypeError is the node type fed in was a manipulator
     """
 
-    dagMod = api.MDagModifier()
-    dgMod = api.MDGModifier()
-
-    obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
-
-    lineage = []
-    if obj is not None:
-        if (      obj.hasFn( api.MFn.kManipulator )      
-               or obj.hasFn( api.MFn.kManipContainer )
-               or obj.hasFn( api.MFn.kPluginManipContainer )
-               or obj.hasFn( api.MFn.kPluginManipulatorNode )
-               
-               or obj.hasFn( api.MFn.kManipulator2D )
-               or obj.hasFn( api.MFn.kManipulator3D )
-               or obj.hasFn( api.MFn.kManip2DContainer) ):
+    if versions.current() >= versions.v2012:
+        # We now have nodeType(isTypeName)! yay!
+        lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
+        if 'manip3D' in lineage:
             raise ManipNodeTypeError
- 
-        if obj.hasFn( api.MFn.kDagNode ):
-            mod = dagMod
-            mod.doIt()
-            name = api.MFnDagNode(obj).partialPathName()
-        else:
-            mod = dgMod
-            mod.doIt()
-            name = api.MFnDependencyNode(obj).name()
+    else:
+        dagMod = api.MDagModifier()
+        dgMod = api.MDGModifier()
     
-        if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
-            lineage = cmds.nodeType( name, inherited=1)
-        mod.undoIt()
+        obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
+    
+        lineage = []
+        if obj is not None:
+            if (      obj.hasFn( api.MFn.kManipulator )      
+                   or obj.hasFn( api.MFn.kManipContainer )
+                   or obj.hasFn( api.MFn.kPluginManipContainer )
+                   or obj.hasFn( api.MFn.kPluginManipulatorNode )
+                   
+                   or obj.hasFn( api.MFn.kManipulator2D )
+                   or obj.hasFn( api.MFn.kManipulator3D )
+                   or obj.hasFn( api.MFn.kManip2DContainer) ):
+                raise ManipNodeTypeError
+     
+            if obj.hasFn( api.MFn.kDagNode ):
+                mod = dagMod
+                mod.doIt()
+                name = api.MFnDagNode(obj).partialPathName()
+            else:
+                mod = dgMod
+                mod.doIt()
+                name = api.MFnDependencyNode(obj).name()
+        
+            if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
+                lineage = cmds.nodeType( name, inherited=1)
+            mod.undoIt()
     return lineage
 
 

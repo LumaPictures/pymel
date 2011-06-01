@@ -884,14 +884,54 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
 def _getNodeHierarchy( version=None ):
     """
-    parse node hierarchy from docs and return as a list of 3-value tuples:
+    get node hierarchy as a list of 3-value tuples:
         ( nodeType, parents, children )
     """
-    from parsers import NodeHierarchyDocParser
-    parser = NodeHierarchyDocParser(version)
     import pymel.util.trees as trees
-    nodeHierarchyTree = trees.IndexedTree(parser.parse())
-    return [ (x.key, tuple( [y.key for y in x.parents()]), tuple( [y.key for y in x.childs()] ) ) \
+    
+    if versions.current() >= versions.v2012:
+        # We now have nodeType(isTypeName)! yay!
+
+        # For whatever reason, we can't query these objects from the hierarchy
+        # correctly using nodeType(isTypeName)
+        inheritances = {'file':[u'texture2d', u'file']}
+        
+        
+        for nodeType in cmds.allNodeTypes():
+            inheritance = cmds.nodeType(nodeType, inherited=True,
+                                        isTypeName=True)
+            if inheritance is None:
+                if nodeType in inheritances:
+                    pass
+                else:
+                    raise RuntimeError("Could not query the inheritance of node type %s" % nodeType)
+            else:
+                inheritances[nodeType] = inheritance
+        
+        parentTree = {}
+        # Convert inheritance lists node=>parent dict
+        for nodeType, inheritance in inheritances.iteritems():
+            assert inheritance[-1] == nodeType
+            for i in xrange(len(inheritance)):
+                child = inheritance[i]
+                if i == 0:
+                    if child == 'dependNode':
+                        continue
+                    else:
+                        parent = 'dependNode'
+                else:
+                    parent = inheritance[i - 1]
+                
+                if child in parentTree:
+                    assert parentTree[child] == parent
+                else:
+                    parentTree[child] = parent
+        nodeHierarchyTree = trees.treeFromDict(parentTree)
+    else:
+        from parsers import NodeHierarchyDocParser
+        parser = NodeHierarchyDocParser(version)
+        nodeHierarchyTree = trees.IndexedTree(parser.parse())
+    return [ (x.value, tuple( [y.value for y in x.parents()]), tuple( [y.value for y in x.childs()] ) ) \
              for x in nodeHierarchyTree.preorder() ]
 
 
