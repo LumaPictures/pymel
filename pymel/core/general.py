@@ -1110,7 +1110,10 @@ def nodeType( node, **kwargs ):
     #if isinstance(node,basestring) :
         #obj = _api.toMObject( node.split('.')[0] )
         # don't spend the extra time converting to MObject
-        return cmds.nodeType( unicode(node), **kwargs )
+        # don't do unicode(node) - let pmcmds wrap handle it - 'node' may
+        #     actually be a single item list, which cmds.nodeType accepts as a
+        #    valid arg 
+        return cmds.nodeType( node, **kwargs )
         #raise TypeError, "Invalid input %r." % node
 
     if kwargs.get( 'apiType', kwargs.get( '_api', False) ):
