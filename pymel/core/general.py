@@ -138,13 +138,12 @@ Modifications:
       otherwise, it does nothing
 
     """
-
     try:
         cmds.select(*args, **kwargs)
     except TypeError, msg:
         if args == ([],):
             for modeFlag in ('add', 'af', 'addFirst',
-                             'r', 'replace', 'd', 'deselect',
+                             'd', 'deselect',
                              'tgl', 'toggle'):
                 if kwargs.get(modeFlag, False):
                     return
@@ -1111,7 +1110,10 @@ def nodeType( node, **kwargs ):
     #if isinstance(node,basestring) :
         #obj = _api.toMObject( node.split('.')[0] )
         # don't spend the extra time converting to MObject
-        return cmds.nodeType( unicode(node), **kwargs )
+        # don't do unicode(node) - let pmcmds wrap handle it - 'node' may
+        #     actually be a single item list, which cmds.nodeType accepts as a
+        #    valid arg 
+        return cmds.nodeType( node, **kwargs )
         #raise TypeError, "Invalid input %r." % node
 
     if kwargs.get( 'apiType', kwargs.get( '_api', False) ):
@@ -1940,15 +1942,20 @@ class PyNode(_util.ProxyUnicode):
         """
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
-    def namespace(self):
-        """Returns the namespace of the object with trailing colon included.  See `DependNode.parentNamespace` for
-        a variant which does not include the trailing colon.
+    def namespace(self, root=False):
+        """Returns the namespace of the object with trailing colon included.
+        
+        See `DependNode.parentNamespace` for a variant which does not include
+        the trailing colon.
 
+        By default, if the object is in the root namespace, an empty string is
+        returned; if root is True, ':' is returned in this case.
+        
         :rtype: `unicode`
 
         """
         ns = self.parentNamespace()
-        if ns:
+        if ns or root:
             ns += ':'
         return ns
 
@@ -2873,6 +2880,12 @@ class Attribute(PyNode):
         :rtype: `bool`
         """
         return cmds.isDirty(self, **kwargs)
+    
+    def setDirty(self, **kwargs):
+        cmds.dgdirty(self, **kwargs)
+        
+    def evaluate(self, **kwargs):
+        cmds.dgeval(self, **kwargs)
 
     def affects( self, **kwargs ):
         rawResult = cmds.affects( self.plugAttr(), self.node() )

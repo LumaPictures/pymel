@@ -252,8 +252,23 @@ class NodeHierarchyDocParser(HTMLParser):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
 
         f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )
-        self.feed( f.read() )
-        f.close()
+        try:
+            rawdata = f.read()
+        finally:
+            f.close()
+            
+        if versions.v2011 <= versions.current() < versions.v2012:
+            # The maya 2011 doc doesn't parse correctly with HTMLParser - the
+            # '< < <' lines get left out.  Use beautiful soup instead.
+            soup = BeautifulSoup( rawdata, convertEntities='html' )
+            for tag in soup.findAll(['tt', 'a']):
+                # piggypack on current handle_starttag / handle_data
+                self.handle_starttag(tag.name, tag.attrs)
+                data = tag.string
+                if data is not None:
+                    self.handle_data(data)
+        else:
+            self.feed( rawdata )
         return self.tree
 
     def __init__(self, version=None):
@@ -270,7 +285,7 @@ class NodeHierarchyDocParser(HTMLParser):
         self.currentTag = tag
 
     def handle_data(self, data):
-        _logger.info("data %r" % data)
+        _logger.debug("data %r" % data)
         if self.currentTag == 'tt':
             self.depth = data.count('>')
             #_logger.debug("lastDepth: %s - depth: %s" % (self.lastDepth, self.depth))

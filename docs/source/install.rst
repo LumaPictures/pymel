@@ -69,6 +69,9 @@ Installation on Windows
 -----------------------
 
     #.  Open a shell: from the Start menu go to "Run...", then type in ``cmd`` and press "OK"
+	
+		.. note:: On Windows Vista and above you will need to open ``cmd`` as administrator.  To do this right-click the ``Command Prompt``
+			and select ``Run as administrator``.
      
     #.  ``cd`` to the directory where you extracted the pymel zip file. A file called "setup.py" should exist directly below this directory.
         For example, I downloaded and extracted mine to my desktop::

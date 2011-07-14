@@ -451,7 +451,7 @@ def MItGraph (nodeOrPlug, *args, **kwargs):
     elif isValidMNode(nodeOrPlug) :
         startObj = nodeOrPlug
     else :
-        raise ValueError, "'%s' is not a valid Node or Plug" % toMObjectName(nodeOrPlug)
+        raise ValueError, "'%s' is not a valid Node or Plug" % MObjectName(nodeOrPlug)
     upstream = kwargs.get('upstream', False)
     breadth = kwargs.get('breadth', False)
     plug = kwargs.get('plug', False)
@@ -518,7 +518,7 @@ def MItDag (root = None, *args, **kwargs) :
     elif isValidMDagNode (root) :
         startObj = root
     else :
-        raise ValueError, "'%s' is not a valid Dag Node" % toMObjectName(root)
+        raise ValueError, "'%s' is not a valid Dag Node" % MObjectName(root)
     breadth = kwargs.get('breadth', False)
     underworld = kwargs.get('underworld', False)
     prune = kwargs.get('prune', False)

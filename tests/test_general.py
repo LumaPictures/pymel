@@ -777,7 +777,7 @@ class test_PyNodeWraps(unittest.TestCase):
         cube = cmds.polyCube()[0]
         j1 = cmds.joint(p=(0,0,-1))
         cmds.joint(p=(0,0,1))
-        skin = skinCluster(cube, j1)
+        skin = skinCluster(cube, j1)[0]
         self.assertPyNodes(skin.getGeometry(), nt.DependNode)
         
     def test_addDynamic(self):
@@ -991,6 +991,30 @@ class test_lazyDocs(unittest.TestCase):
         self.assertEqual(pmcmds.getCmdName(cmd), 'filter')
         
          
+
+class test_hasAttr(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.loc = pm.spaceLocator()
+    
+    def test_transformAttr(self):
+        self.assertTrue(pm.hasAttr(self.loc, 'tx', checkShape=False))
+        self.assertTrue(pm.hasAttr(self.loc, 'tx', checkShape=True))
+        self.assertTrue(self.loc.hasAttr('tx', checkShape=False))
+        self.assertTrue(self.loc.hasAttr('tx', checkShape=True))
+
+    def test_shapeAttr(self):
+        self.assertFalse(pm.hasAttr(self.loc, 'localPositionX', checkShape=False))
+        self.assertTrue(pm.hasAttr(self.loc, 'localPositionX', checkShape=True))
+        self.assertFalse(self.loc.hasAttr('localPositionX', checkShape=False))
+        self.assertTrue(self.loc.hasAttr('localPositionX', checkShape=True))
+
+    def test_badAttr(self):
+        self.assertFalse(pm.hasAttr(self.loc, 'foobar', checkShape=False))
+        self.assertFalse(pm.hasAttr(self.loc, 'foobar', checkShape=True))
+        self.assertFalse(self.loc.hasAttr('foobar', checkShape=False))
+        self.assertFalse(self.loc.hasAttr('foobar', checkShape=True))
+
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))

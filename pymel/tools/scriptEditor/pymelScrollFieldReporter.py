@@ -16,7 +16,7 @@ import maya.OpenMayaUI as OpenMayaUI
 import pymel.tools.mel2py as mel2py
 from maya.cmds import encodeString
 
-mparser = mel2py.MelParser()
+mparser = mel2py.melparse.MelParser()
 mparser.build()
 
 kPluginCmdName = "pymelScrollFieldReporter"

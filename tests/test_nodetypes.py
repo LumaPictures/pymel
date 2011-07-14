@@ -16,7 +16,7 @@ from pymel.util.testing import TestCaseExtended, setCompare
 VERBOSE = False
 
 def getFundamentalTypes():
-    classList = sorted( list( set( [ key[0] for key in factories.apiToMelData.keys()] ) ) )
+    classList = sorted( set( [ key[0] for key in factories.apiToMelData.keys()] ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
@@ -235,6 +235,8 @@ class testCase_attribs(unittest.TestCase):
 
 def testInvertibles():
     classList = getFundamentalTypes()
+    
+    
     for pynodeName in classList:
         try:
             pynode = getattr( core.nodetypes, pynodeName )
@@ -259,6 +261,7 @@ def testInvertibles():
                 print "skipping shape", pynode
                 continue
         else:
+            print "creating: %s" % util.uncapitalize(pynodeName)
             obj = createNode( util.uncapitalize(pynodeName) )
         
         print repr(obj)
@@ -1942,7 +1945,107 @@ class testCase_Container(TestCaseExtended):
         self.assertEqual( fromAttr.name(), 'container1.canBeParent[0]' )
         self.assertEqual( fromPyNode, fromAttr )
         
+class testCase_AnimCurve(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
         
+    def testAddKeys(self):
+        import maya.OpenMayaAnim as omAn
+        import maya.OpenMaya as om
+        import pymel.core as pm
+        
+        # Test thanks to Mark Therrell, from issue 234
+        
+        pm.sphere()
+        
+        nodeAttr = 'nurbsSphere1.tx'
+        times = [1, 2, 4, 7]
+        values = [-1.444, 2.461, 7.544, 11.655]
+        
+        ## get the the MPlug of the node.attr using pymel (could use api, this way just to see it work)
+        mplug = pm.PyNode(nodeAttr).__apimplug__()
+         
+        ## instantiate the MFnAnimaCurve function, get the curve type needed
+        crvFnc = omAn.MFnAnimCurve()
+        crvtype = crvFnc.timedAnimCurveTypeForPlug(mplug)
+        
+        ## make a curve on the attr using API
+        ## how do i create the curve with pymel?? no docs on this??
+        crv = crvFnc.create(mplug,crvtype)
+        
+        ## try to add keyframes to the curve using .addKeys function in Pymel
+        name = om.MFnDependencyNode(crv).name()
+        pyAnimCurve = pm.PyNode(name)
+        pyAnimCurve.addKeys(times,values,'step','step',False)
+        
+        for time, val in zip(times, values):
+            pm.currentTime(time)
+            self.assertEqual(getAttr(nodeAttr), val)
+
+class testCase_rename(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+    
+    def testBasicRename(self):
+        sphere = pm.polySphere()[0]
+        sphere.rename('firstName')
+        self.assertEqual('firstName', sphere.nodeName())
+        sphere.rename('newName')
+        self.assertEqual('newName', sphere.nodeName())
+        
+    def testPreserveNamespace(self):
+        sphere1 = pm.polySphere()[0]
+        sphere2 = pm.polySphere()[0]
+        pm.namespace(add="myNS")
+
+
+        pm.namespace(set=":")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/o preserveNamespace, current NS == :
+        sphere1.rename('sphere3', preserveNamespace=False)
+        sphere2.rename('sphere4', preserveNamespace=False)
+        self.assertEqual('sphere3', sphere1.nodeName())
+        self.assertEqual('sphere4', sphere2.nodeName())
+        
+        pm.namespace(set=":myNS")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/o preserveNamespace, current NS == :myNS
+        sphere1.rename('sphere3', preserveNamespace=False)
+        sphere2.rename('sphere4', preserveNamespace=False)
+        self.assertEqual('myNS:sphere3', sphere1.nodeName())
+        self.assertEqual('myNS:sphere4', sphere2.nodeName())
+
+        pm.namespace(set=":")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/ preserveNamespace, current NS == :
+        sphere1.rename('sphere3', preserveNamespace=True)
+        sphere2.rename('sphere4', preserveNamespace=True)
+        self.assertEqual('sphere3', sphere1.nodeName())
+        self.assertEqual('myNS:sphere4', sphere2.nodeName())
+
+        pm.namespace(set=":myNS")
+        # set to sphere1, myNS:sphere2
+        sphere1.rename(':sphere1')
+        sphere2.rename(':myNS:sphere2')
+        self.assertEqual('sphere1', sphere1.nodeName())
+        self.assertEqual('myNS:sphere2', sphere2.nodeName())
+        # test w/ preserveNamespace, current NS == :myNS
+        sphere1.rename('sphere3', preserveNamespace=True)
+        sphere2.rename('sphere4', preserveNamespace=True)
+        self.assertEqual('sphere3', sphere1.nodeName())
+        self.assertEqual('myNS:sphere4', sphere2.nodeName())
 
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
