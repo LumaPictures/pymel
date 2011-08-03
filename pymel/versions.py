@@ -75,6 +75,7 @@ v2011_HOTFIX2 = 201102
 v2011_HOTFIX3 = 201103
 v2011_SP1     = 201104
 v2012         = 201200
+v2012_HOTFIX1 = 201201
 
 def current():
     return _current
