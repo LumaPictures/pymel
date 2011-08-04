@@ -4561,7 +4561,8 @@ class MeshVertex( MItComponent1D ):
         return self.node().numVertices()
 
     def setColor(self,color):
-        self.node().setVertexColor( color, self.currentItemIndex() )
+        for i in self.indices():
+            self.node().setVertexColor( color, i )
 
     def connectedEdges(self):
         """
