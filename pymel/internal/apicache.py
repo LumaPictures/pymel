@@ -49,18 +49,16 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # for some reason, this ensures good cleanup (don't ask me why...??)
     parent = dagMod.createNode ( 'transform', api.MObject())
 
-    try:
-        try :
-            obj = dgMod.createNode ( mayaType )
-        except RuntimeError:
-            # DagNode
+    try :
+        # DependNode
+        obj = dgMod.createNode ( mayaType )
+    except RuntimeError:
+        # DagNode
+        try:
             obj = dagMod.createNode ( mayaType, parent )
-            _logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
-        else:
-            # DependNode
-            _logger.debug( "Made ghost DG node of type '%s'" % mayaType )
-    except Exception:
-        obj = None
+        except Exception, err:
+            _logger.debug("Error trying to create ghost node for '%s': %s" %  (mayaType, err))
+            return None
 
     if api.isValidMObject(obj) :
         return obj
