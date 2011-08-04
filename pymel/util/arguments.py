@@ -418,7 +418,7 @@ def compareCascadingDicts(dict1, dict2):
     only1 : `set`
         keys that were present in only1 (non-recursively)
     only2 : `set`
-        keys that were present in only1 (non-recursively)
+        keys that were present in only2 (non-recursively)
     differences : `dict`
         recursive sparse dict containing information that was 'different' in
         dict2 - either not present in dict1, or having a different value in
