@@ -31,14 +31,14 @@ if _versions.current() >= _versions.v2011:
 
     def toQtObject(mayaName):
         """
-        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction. 
+        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
         If the object does not exist, returns None
-        
-        When using this function you don't need to specify whether UI type is a control, layout, 
+
+        When using this function you don't need to specify whether UI type is a control, layout,
         window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
         this should always be correct, however, if you only have the short name of the UI object,
         consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -52,12 +52,12 @@ if _versions.current() >= _versions.v2011:
                 ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtcore.QObject)
-        
+
     def toQtControl(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget. 
+        Given the name of a May UI control, return the corresponding QWidget.
         If the object does not exist, returns None
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -67,12 +67,12 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QWidget)
-        
+
     def toQtLayout(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget. 
+        Given the name of a May UI control, return the corresponding QWidget.
         If the object does not exist, returns None
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -82,12 +82,12 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findLayout(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QWidget)
-    
+
     def toQtWindow(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget. 
+        Given the name of a May UI control, return the corresponding QWidget.
         If the object does not exist, returns None
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -97,14 +97,14 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findWindow(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QWidget)
-        
+
     def toQtMenuItem(mayaName):
         """
-        Given the name of a May UI menuItem, return the corresponding QAction. 
+        Given the name of a May UI menuItem, return the corresponding QAction.
         If the object does not exist, returns None
-        
+
         This only works for menu items. for Menus, use toQtControl or toQtObject
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -114,7 +114,7 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QAction)
-        
+
 class PyUI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
@@ -242,7 +242,7 @@ class PyUI(unicode):
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtControl
-        
+
 class Panel(PyUI):
     """pymel panel class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -324,10 +324,10 @@ class Layout(PyUI):
         if children:
             for child in self.getChildArray():
                 cmds.deleteUI(child)
-    
+
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtLayout
-        
+
 # customized ui classes
 class Window(Layout):
     """pymel window class"""
@@ -376,7 +376,7 @@ class Window(Layout):
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtWindow
-    
+
 class FormLayout(Layout):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
@@ -527,7 +527,7 @@ class TextScrollList(PyUI):
 
 class Menu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    
+
     def __enter__(self):
         global _withParentMenuStack
         _withParentMenuStack.append(self)
@@ -556,12 +556,12 @@ class Menu(PyUI):
             return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
         else:
             return []
-        
+
     def makeDefault(self):
         """
         set this layout as the default parent
         """
-        cmds.setParent(self, menu=True)        
+        cmds.setParent(self, menu=True)
 
 class PopupMenu(Menu):
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -581,17 +581,17 @@ class OptionMenu(PopupMenu):
         for t in self.getItemListLong() or []:
             cmds.deleteUI(t)
     addItems = addMenuItems
-    
+
 class OptionMenuGrp(RowLayout):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    
+
     def menu(self):
         for child in self.children():
             if isinstance(child, OptionMenu):
                 return child
-    
+
     # Want to set both the menu to the child |OptionMenu item, and the normal
-    # parent to this... 
+    # parent to this...
     def __enter__(self):
         self.menu().__enter__()
         return super(OptionMenuGrp, self).__enter__()
@@ -600,16 +600,25 @@ class OptionMenuGrp(RowLayout):
         self.menu().__exit__(type, value, traceback)
         return super(OptionMenuGrp, self).__exit__(type, value, traceback)
 
+    def addMenuItems( self, items, title=None):
+        """ Add the specified item list to the OptionMenu, with an optional 'title' item """
+        if title:
+            cmds.menuItem(l=title, en=0, parent=self.name()+'|OptionMenu')
+        for item in items:
+            cmds.menuItem(l=item, parent=self.name()+'|OptionMenu')
+
+    addItems = addMenuItems
+
 class SubMenuItem(Menu):
     def getBoldFont(self):
         return cmds.menuItem(self,query=True,boldFont=True)
 
     def getItalicized(self):
         return cmds.menuItem(self,query=True,italicized=True)
-    
+
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtMenuItem
-        
+
 class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = 'menuItem'
@@ -725,7 +734,7 @@ class AELoader(type):
              if template not in cls._loaded:
                  cls._loaded.append(template)
         return newcls
-    
+
     @staticmethod
     def makeAEProc(modname, classname, procname):
         _logger.info("making AE loader procedure: %s" % procname)
@@ -751,7 +760,7 @@ class AELoader(type):
     def loadedTemplates(cls):
         "Return the names of the loaded templates"
         return cls._loaded
-    
+
 class AETemplate(object):
     """
     To create an Attribute Editor template using python, do the following:
@@ -764,10 +773,10 @@ class AETemplate(object):
     Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
 
         import AETemplates
-        AETemplates.AEmib_amb_occlusionTemplate.nodeType()  
+        AETemplates.AEmib_amb_occlusionTemplate.nodeType()
 
     As a convenience, when pymel is imported it will automatically import the module ``AETemplates``, if it exists,
-    thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel 
+    thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel
     or modules containing your ``AETemplate`` classes before opening the Atrribute Editor for the node types in question.
 
     To check which python templates are loaded::
@@ -777,7 +786,7 @@ class AETemplate(object):
     """
 
     __metaclass__ = AELoader
-    
+
     _nodeType = None
     def __init__(self, nodeName):
         self._nodeName = nodeName
@@ -896,7 +905,7 @@ def _createUIClasses():
             if classname.endswith( ('Layout', 'Grp') ):
                 bases = (Layout,)
             elif classname.endswith('Panel'):
-                bases = (Panel,)                
+                bases = (Panel,)
             else:
                 bases = (PyUI,)
             dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}) )
@@ -912,7 +921,7 @@ class MainProgressBar(dynModule.ProgressBar):
      :Parameters:
         minValue : int
             Minimum or startingvalue of progress indicatior. If the progress
-            value is less than the minValue, the progress value will be set 
+            value is less than the minValue, the progress value will be set
             to the minimum.  Default value is 0
 
         maxValue : int
@@ -938,7 +947,7 @@ class MainProgressBar(dynModule.ProgressBar):
     '''
     def __new__(cls, minValue=0, maxValue=100, interruptable=True):
         from language import melGlobals
-        bar = dynModule.ProgressBar.__new__( 
+        bar = dynModule.ProgressBar.__new__(
             cls, melGlobals['gMainProgressBar'], create=False)
         bar.setMinValue(minValue)
         bar.setMaxValue(maxValue)
@@ -975,12 +984,45 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
     def __new__(cls, name=None, create=False, *args, **kwargs):
 
         if create:
+            import windows
+
             kwargs.pop('bl', None)
             kwargs['buttonLabel'] = 'Browse'
             kwargs.pop('bc', None)
             kwargs.pop('buttonCommand', None)
 
+            recent_menu=kwargs.pop('recentMenuOptionVar',False)
+            
             name = cmds.textFieldButtonGrp( name, *args, **kwargs)
+
+            if recent_menu:
+                def buildRecentMenu(popup,field,optionvar):
+                    import language
+
+                    popup.deleteAllItems()
+                    recent_list = language.optionVar.get(optionvar,None)
+                    if recent_list:
+                        if not isinstance(recent_list,tuple):
+                            recent_list = (recent_list,)
+                        for item in recent_list:
+                            windows.menuItem(label=item,
+                                             command=windows.Callback(cmds.textFieldGrp,
+                                                                      field,
+                                                                      edit=True,
+                                                                      text=item,
+                                                                      forceChangeCommand=True,
+                                                                      ),
+                                             parent=popup)
+                with windows.popupMenu() as pop:
+                    windows.popupMenu(pop,
+                                      edit=True,
+                                      postMenuCommand=windows.Callback(
+                                          buildRecentMenu,
+                                          pop,
+                                          name,
+                                          recent_menu,
+                                          ),
+                         )
 
             def setPathCB(name):
                 import windows
@@ -1001,6 +1043,22 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
     def getPath(self):
         import system
         return system.Path( self.getText() )
+
+    def updateRecentMenu(self,item,optionvar,length=10):
+        import language
+
+        recent = language.optionVar.get(optionvar,list())
+        if recent:
+            if isinstance(recent,unicode):
+                recent = [recent,]
+            else:
+                recent = list(recent)
+                
+        u_item = unicode(item)
+        if u_item in recent:
+            recent.remove(u_item)
+        recent.insert(0,u_item)
+        language.optionVar[optionvar] = recent[:length]
 
 class FolderButtonGrp( PathButtonGrp ):
     def __new__(cls, name=None, create=False, *args, **kwargs):
