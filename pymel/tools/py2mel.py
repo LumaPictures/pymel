@@ -201,6 +201,7 @@ def py2melProc( function, returnType=None, procName=None, evaluateInputs=True, a
         argTypes = {}
 
     for arg, melType in argList:
+        melType = argTypes.get(arg, melType)
         if melType == 'string':
             compilePart = "'\" + $%s + \"'" %  arg
             melCompile.append( compilePart )

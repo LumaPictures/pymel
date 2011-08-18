@@ -133,6 +133,23 @@ class testCase_references(unittest.TestCase):
             print "testing failed ref edits on: %s" % ref
             self.assertEqual(1, len(pm.referenceQuery(ref,successfulEdits=False,failedEdits=True,es=True)))
             self.assertEqual(1, len(cmds.referenceQuery(str(ref.refNode), successfulEdits=False,failedEdits=True,es=True)))
+            
+    def test_import(self):
+        ref = self.sphereRef1
+        sphere = 'sphere1:pSphere1'
+        self.assertTrue(pm.PyNode(sphere).isReferenced())
+        ref.importContents()
+        self.assertFalse(pm.PyNode(sphere).isReferenced())
+        
+    def test_import_remove_namespace(self):
+        ref = self.sphereRef1
+        nsSphere = 'sphere1:pSphere1'
+        noNsSphere = 'pSphere1'
+        self.assertTrue(pm.PyNode(nsSphere).isReferenced())
+        self.assertFalse(pm.objExists(noNsSphere))
+        ref.importContents(removeNamespace=True)
+        self.assertFalse(pm.objExists(nsSphere))
+        self.assertFalse(pm.PyNode(noNsSphere).isReferenced())
         
     def tearDown(self):
         pm.newFile(f=1)

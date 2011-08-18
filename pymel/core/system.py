@@ -1152,10 +1152,12 @@ class FileReference(object):
     @_factories.addMelDocs('file', 'importReference')
     def importContents(self, removeNamespace=False):
         ns = self.namespace
-        return cmds.file( rfn=self.refNode, importReference=1 )
+        res = cmds.file( rfn=self.refNode, importReference=1 )
+        #res = cmds.file( rfn=self.refNode, importReference=1 )
         if removeNamespace:
             cmds.namespace( mv=(ns, ':'), f=1 )
             cmds.namespace( rm=ns )
+        return res
 
 #    @_factories.createflag('file', 'removeReference')
 #    def remove(self, **kwargs):
