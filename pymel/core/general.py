@@ -43,7 +43,7 @@ def _getPymelTypeFromObject(obj, name):
         pymelType = AttributeDefaults
     else:
         raise RuntimeError('Could not determine pymel type for object of type %s' % obj.apiTypeStr())
-    
+
     return pymelType
 
 def _getPymelType(arg, name) :
@@ -168,7 +168,7 @@ NOTE: this command also reorders the argument order to be more intuitive, with t
     if args and isinstance(args[0], (basestring, PyNode)):
         obj = args[0]
         args = args[1:]
-        
+
     if len(args) == 1 and _util.isIterable(args[0]):
         args = tuple(args[0])
     if obj is not None:
@@ -376,7 +376,7 @@ Modifications:
     >>> addAttr( 'persp', longName= 'testDoubleArray', dataType='doubleArray')
     >>> setAttr( 'persp.testDoubleArray', [0,1,2])
     >>> setAttr( 'defaultRenderGlobals.preMel', 'sfff')
-    
+
   - Added ability to set enum attributes using the string values; this may be
     done either by setting the 'asString' kwarg to True, or simply supplying
     a string value for an enum attribute.
@@ -391,7 +391,7 @@ Modifications:
 
         # force flag
         force = kwargs.pop('force', kwargs.pop('f', False) )
-        
+
         # asString flag
         asString = kwargs.pop('asString', None)
 
@@ -549,7 +549,7 @@ Modifications:
                         args = (val,)
                     else:
                         kwargs['type'] = 'string'
-                    
+
     if datatype == 'matrix' and _versions.current() < _versions.v2011:
         import language
         #language.mel.setAttr( attr, *args, **kwargs )
@@ -654,7 +654,7 @@ Modifications:
             if isinstance(node, Attribute):
                 node = node.node()
             res = node.attr(res)
-                
+
 #    else:
 #        # attempt to gather Attributes we just made
 #        # this is slightly problematic because compound attributes are invalid
@@ -877,6 +877,7 @@ def listRelatives( *args, **kwargs ):
     """
 Maya Bug Fix:
   - allDescendents and shapes flags did not work in combination
+  - noIntermediate doesn't appear to work
 
 Modifications:
   - returns an empty list when the result is None
@@ -898,7 +899,11 @@ Modifications:
             return []
         return ls( res, shapes=1)
 
-    return map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs)))
+    results = map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs)))
+    #Fix that noIntermediate doesn't seem to work in list relatives
+    if kwargs.get('noIntermediate',kwargs.get('ni',False)):
+        return [ result for result in results if not result.intermediateObject.get()]
+    return results
 
 
 def ls( *args, **kwargs ):
@@ -1491,7 +1496,7 @@ class MayaAttributeEnumError(MayaAttributeError):
         msg = super(MayaAttributeEnumError, self).__str__()
         if self.enum:
             msg += " - %r" % (self.enum)
-        return msg    
+        return msg
 
 class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
@@ -1945,7 +1950,7 @@ class PyNode(_util.ProxyUnicode):
 
         By default, if the object is in the root namespace, an empty string is
         returned; if root is True, ':' is returned in this case.
-        
+
         :rtype: `unicode`
 
         """
@@ -2024,15 +2029,15 @@ def _deprecatePyNode():
         def f(self, *args):
             proxyMethod = getattr( _util.ProxyUnicode, method )
             return proxyMethod(self,*args)
-        
+
         f.__doc__ = "deprecated\n"
         f.__name__ = method
         g = strDeprecateDecorator(f)
         setattr( PyNode, method, g)
-        
+
 
     for method in deprecated_str_methods:
-        makeDeprecatedMethod( method )                   
+        makeDeprecatedMethod( method )
 
 _deprecatePyNode()
 
@@ -2068,7 +2073,7 @@ def _getParent( getter, obj, generations):
         i = -1
     else:
         i = generations
-        
+
     # If generations is positive, we will stop as soon as we get to the parent
     # we need; otherwise, we will get all the parents
     while i != 0:
@@ -2080,10 +2085,10 @@ def _getParent( getter, obj, generations):
             break
         allParents.append(x)
         i -= 1
-        
+
     if generations is None:
         return allParents[1:]
-    
+
     if generations >= 1:
         if generations < len(allParents):
             return allParents[generations]
@@ -2097,7 +2102,7 @@ def _getParent( getter, obj, generations):
 
 class Attribute(PyNode):
     """Attribute class
-    
+
     see pymel docs for details on usage
     """
 
@@ -2272,7 +2277,7 @@ class Attribute(PyNode):
         try:
             return self.node().__apimdagpath__()
         except AttributeError: pass
-        
+
     def __apimattr__(self) :
         "Return the MFnAttribute for this attribute, if it is valid"
         try:
@@ -2420,13 +2425,13 @@ class Attribute(PyNode):
             u'persp.tx'
             >>> tx.name(fullAttrPath=True, includeNode=False)
             u'translate.translateX'
-            
+
             >>> vis = SCENE.perspShape.visibility
             >>> vis.name()
             u'perspShape.visibility'
             >>> vis.name(fullDagPath=True)
             u'perspShape.visibility'
-            
+
             >>> og = SCENE.persp.instObjGroups.objectGroups
             >>> og.name()
             u'persp.instObjGroups[-1].objectGroups'
@@ -2435,7 +2440,7 @@ class Attribute(PyNode):
 
         :rtype: `unicode`
         """
-                    
+
         obj = self.__apimplug__()
         if obj:
             name = ''
@@ -2552,13 +2557,13 @@ class Attribute(PyNode):
         :rtype: `unicode`
         """
         return self.plugNode().name()
-    
+
     def attrName( self, longName=False, includeNode=False ):
         """Just the name of the attribute for this plug
-        
+
         This will have no indices, no parent attributes, etc...
         This is suitable for use with cmds.attributeQuery
-    
+
             >>> at = SCENE.persp.instObjGroups.objectGroups
             >>> at.name()
             u'persp.instObjGroups[-1].objectGroups'
@@ -2686,7 +2691,7 @@ class Attribute(PyNode):
     # enums
     getEnums = getEnums
     setEnums = setEnums
-        
+
     # getting and setting
     set = setAttr
     get = getAttr
@@ -2891,16 +2896,16 @@ class Attribute(PyNode):
     class  _TempRealIndexedAttr(object):
         '''When used with the 'with statement', will return a 'sibling' of the
         whose indices all exist - creating indices if needed.
-        
-        If any indices are created, they will be destroyed in exit. 
+
+        If any indices are created, they will be destroyed in exit.
         '''
         def __init__(self, attr):
             self.origAttr = attr
-            
+
             # indexed attrs whose indice we have created, and will need to
             # delete when done
             self.toDelete = None
-            
+
         def _getRealIndexedElem(self, plug, i):
             parent = self.chain[i - 1]
             indices = parent.getArrayIndices()
@@ -2917,7 +2922,7 @@ class Attribute(PyNode):
                 newPlug.get()
             except Exception:
                 pass
-            
+
             self.chain[i] = newPlug
             # Only need to delete the 'topmost' plug
             if self.toDelete is None:
@@ -2927,9 +2932,9 @@ class Attribute(PyNode):
             self.chain = self.origAttr.getAllParents(arrays=True)
             self.chain.reverse()
             self.chain.append(self.origAttr)
-            
+
             # traverse, starting from upper-most parent, as we may need to
-            # replace children with 'real' ones as we go down 
+            # replace children with 'real' ones as we go down
             for i in xrange(len(self.chain)):
                 #print 'processing:', i
                 elem = self.chain[i]
@@ -2946,11 +2951,11 @@ class Attribute(PyNode):
                 elif elem.isElement():
                     self._getRealIndexedElem(elem, i)
             return self.chain[-1]
-        
+
         def __exit__(self, type, value, traceback):
             if self.toDelete is not None:
                 cmds.removeMultiInstance(self.toDelete.name())
-                
+
     # getAttr info methods
     def type(self):
         """
@@ -2962,7 +2967,7 @@ class Attribute(PyNode):
         # NON-compound attributes, if you feed it the array plug (ie, not
         # an indexed element plug)
         # Not sure this is really desirable, but changing would be backward
-        # incompatible... revisit this later? 
+        # incompatible... revisit this later?
         with self._TempRealIndexedAttr(self) as realAttr:
             res = cmds.getAttr(realAttr.name(), type=True)
             if res:
@@ -3263,7 +3268,7 @@ class Attribute(PyNode):
             return Attribute( self.node(), self.__apimfn__().parent() )
         except:
             pass
-        
+
     @staticmethod
     def _getAttrParent(plug):
         if plug.isChild():
@@ -3298,9 +3303,9 @@ class Attribute(PyNode):
               Since the original command returned None if there is no parent,
               to sync with this behavior, None will be returned if generations
               is out of bounds (no IndexError will be thrown).
-              
+
             - added optional arrays keyword arg, which if True, will also
-              traverse from an array element to an array plug 
+              traverse from an array element to an array plug
 
         :rtype: `Attribute`
         """
@@ -3316,7 +3321,7 @@ class Attribute(PyNode):
             return [Attribute(self.node(), x) for x in res]
         elif res is not None:
             return Attribute( self.node(), res )
-        
+
     def getAllParents(self, arrays=False):
         """
         Return a list of all parents above this.
@@ -3324,7 +3329,7 @@ class Attribute(PyNode):
         Starts from the parent immediately above, going up.
 
         :rtype: `Attribute` list
-        """        
+        """
         return self.getParent(generations=None, arrays=arrays)
 
     parent = getParent
@@ -4241,15 +4246,15 @@ class DiscreteComponent( DimensionedComponent ):
         mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
         curIndex = ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
         return self.__class__(self._node, curIndex)
-    
+
     def currentItemIndex(self):
         '''Returns the component indices for the current item in this component
         group
-        
+
         If the component type has more then one dimension, the return result
         will be a ComponentIndex object which is a sub-class of tuple; otherwise,
         it will be a single int.
-        
+
         These values correspond to the indices that you would use when selecting
         components in mel - ie, vtx[5], cv[3][2]
         '''
@@ -4385,11 +4390,11 @@ class Component1D( DiscreteComponent ):
     def currentItemIndex(self):
         '''Returns the component indices for the current item in this component
         group
-        
+
         If the component type has more then one dimension, the return result
         will be a ComponentIndex object which is a sub-class of tuple; otherwise,
         it will be a single int.
-        
+
         These values correspond to the indices that you would use when selecting
         components in mel - ie, vtx[5], cv[3][2]
         '''
@@ -4591,14 +4596,14 @@ class MeshVertex( MItComponent1D ):
             self.__apimfn__().getConnectedVertices(array)
             return component.currentItemIndex() in [ array[i] for i in range( array.length() ) ]
         raise TypeError, 'type %s is not supported' % type(component)
-    
+
     def getColor(self, *args, **kwargs):
         # Want all possible versions of this command, so easiest to just manually
         # wrap (particularly want to be able to invoke with no args!
         color = _api.MColor()
         self.__apimfn__().getColor(color, *args, **kwargs)
         return datatypes.Color(color)
-    
+
 class MeshEdge( MItComponent1D ):
     __apicls__ = _api.MItMeshEdge
     _ComponentLabel__ = "e"
@@ -5270,7 +5275,7 @@ class AttributeDefaults(PyNode):
         try:
             return self.node().__apimdagpath__()
         except AttributeError: pass
-        
+
     def name(self):
         return self.__apimfn__().name()
 
