@@ -1762,11 +1762,11 @@ class RenderLayer(DependNode):
     def listAdjustments(self):
         return map( general.PyNode, _util.listForNone( cmds.editRenderLayerAdjustment( self, layer=1, q=1) ) )
 
-    def addAdjustments(self, members, noRecurse):
-        return cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
+    def addAdjustments(self, members):
+        return cmds.editRenderLayerAdjustment( members, layer=self )
 
     def removeAdjustments(self, members ):
-        return cmds.editRenderLayerMembers( self, members, remove=True )
+        return cmds.editRenderLayerAdjustment( members, layer=self, remove=True )
 
     def setCurrent(self):
         cmds.editRenderLayerGlobals( currentRenderLayer=self)

@@ -2047,6 +2047,74 @@ class testCase_rename(TestCaseExtended):
         self.assertEqual('sphere3', sphere1.nodeName())
         self.assertEqual('myNS:sphere4', sphere2.nodeName())
 
+class testCase_renderLayers(TestCaseExtended):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.cube = pm.polyCube()[0]
+        self.sphere = pm.polySphere()[0]
+        pm.select(None)
+        self.layer = pm.createRenderLayer(name="diffuse")
+        
+    def test_add_single(self):
+        self.assertEqual(self.layer.listMembers(), [])
+        self.layer.addMembers(self.cube)
+        self.assertEqual(self.layer.listMembers(), [self.cube])
+        self.layer.addMembers(self.sphere)
+        self.assertEqual(set(self.layer.listMembers()),
+                         set([self.cube, self.sphere]))
+
+    def test_add_multi(self):
+        self.assertEqual(self.layer.listMembers(), [])
+        self.layer.addMembers([self.cube, self.sphere])
+        self.assertEqual(set(self.layer.listMembers()),
+                         set([self.cube, self.sphere]))
+        
+    def test_remove_single(self):
+        self.layer.addMembers([self.cube, self.sphere])
+        self.assertEqual(set(self.layer.listMembers()),
+                         set([self.cube, self.sphere]))
+        self.layer.removeMembers(self.sphere)
+        self.assertEqual(self.layer.listMembers(), [self.cube])
+        self.layer.removeMembers(self.cube)
+        self.assertEqual(self.layer.listMembers(), [])
+        
+    def test_remove_multi(self):
+        self.layer.addMembers([self.cube, self.sphere])
+        self.assertEqual(set(self.layer.listMembers()),
+                         set([self.cube, self.sphere]))
+        self.layer.removeMembers([self.sphere, self.cube])
+        self.assertEqual(self.layer.listMembers(), [])
+        
+    def test_setCurrent(self):
+        self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
+                         pm.nt.RenderLayer.currentLayer())
+        self.layer.setCurrent()
+        self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
+        
+    def test_adjustments(self):
+        widthAttr = PyNode("defaultResolution.width")
+        self.assertEqual(self.layer.listAdjustments(), [])
+        self.layer.addAdjustments(widthAttr)
+        self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
+        
+        origVal = widthAttr.get()
+        adjVal = origVal + 5
+        
+        self.layer.setCurrent()
+        widthAttr.set(adjVal)
+        self.assertEqual(widthAttr.get(), adjVal)
+        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+        self.assertEqual(widthAttr.get(), origVal)
+        self.layer.setCurrent()
+        self.assertEqual(widthAttr.get(), adjVal)
+        
+        self.layer.removeAdjustments(widthAttr)
+        self.assertEqual(self.layer.listAdjustments(), [])
+        self.assertEqual(widthAttr.get(), origVal)
+        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+        self.assertEqual(widthAttr.get(), origVal)
+        
+        
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #    
