@@ -996,9 +996,13 @@ class VectorFieldGrp( dynModule.FloatFieldGrp ):
         cmds.floatFieldGrp( self, e=1, v1=vec[0], v2=vec[1], v3=vec[2] )
 
 class PathButtonGrp( dynModule.TextFieldButtonGrp ):
+    PROMPT_FUNCTION = 'promptForPath'
+    
     def __new__(cls, name=None, create=False, *args, **kwargs):
 
         if create:
+            import windows
+
             kwargs.pop('bl', None)
             kwargs['buttonLabel'] = 'Browse'
             kwargs.pop('bc', None)
@@ -1006,9 +1010,9 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
 
             name = cmds.textFieldButtonGrp( name, *args, **kwargs)
 
+            promptFunction = getattr(windows, cls.PROMPT_FUNCTION)
             def setPathCB(name):
-                import windows
-                f = windows.promptForPath()
+                f = promptFunction()
                 if f:
                     cmds.textFieldButtonGrp( name, e=1, text=f, forceChangeCommand=True)
 
@@ -1016,7 +1020,7 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
             cb = windows.Callback( setPathCB, name )
             cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
 
-        return dynModule.TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
+        return super(PathButtonGrp, cls).__new__( cls, name, create=False, *args, **kwargs )
 
     def setPath(self, path, **kwargs):
         kwargs['forceChangeCommand'] = kwargs.pop('fcc',kwargs.pop('forceChangeCommand',True))
@@ -1027,27 +1031,7 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         return system.Path( self.getText() )
 
 class FolderButtonGrp( PathButtonGrp ):
-    def __new__(cls, name=None, create=False, *args, **kwargs):
-
-        if create:
-            kwargs.pop('bl', None)
-            kwargs['buttonLabel'] = 'Browse'
-            kwargs.pop('bc', None)
-            kwargs.pop('buttonCommand', None)
-
-            name = cmds.textFieldButtonGrp( name, *args, **kwargs)
-
-            def setPathCB(name):
-                import windows
-                f = windows.promptForFolder()
-                if f:
-                    cmds.textFieldButtonGrp( name, e=1, text=f, forceChangeCommand=True)
-
-            import windows
-            cb = windows.Callback( setPathCB, name )
-            cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
-
-        return dynModule.TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
+    PROMPT_FUNCTION = 'promptForFolder'
 
 # most of the keys here are names that are only used in certain circumstances
 _uiTypesToCommands = {
