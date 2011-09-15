@@ -62,8 +62,8 @@ def loadStringResourcesForModule( moduleName ):
     try:
         baseVersionPath = os.path.join( modulePath, resourceFileName )
         execfile( baseVersionPath, {} )
-    except:
-        raise RuntimeError( 'Failed to load base string resources for module %s' % moduleName )
+    except Exception, err:
+        raise RuntimeError( 'Failed to load base string resources for module %s:\n%s' % (moduleName,err))
     
     if cmds.about( uiLanguageIsLocalized=True ):
         scriptPath = cmds.about( localizedResourceLocation=True )
@@ -77,7 +77,7 @@ def loadStringResourcesForModule( moduleName ):
             except IOError:
                 pass
             except Exception, err:
-                raise RuntimeError( 'Unexpected error encountered when attempting to load localized string resources for module %s: %s' % (moduleName,err) )
+                raise RuntimeError( 'Error encountered when attempting to load localized string resources for module %s:\n%s' % (moduleName,err))
 
 def getPossibleCompletions(input):
     """
@@ -272,22 +272,19 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     default printing of exceptions, do the following::
     
         import maya.utils
-        def myExceptCB(etype, value, tb):
+        def myExceptCB(etype, value, tb, detail=2):
             # do something here...
             return maya.utils._formatGuiException(etype, value, tb, detail)
         maya.utils.formatGuiException = myExceptCB
         
     """
-    exceptionMsg = unicode(exceptionObject).strip()
-    # format the exception
-    excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
-    # traceback may have failed to decode a unicode exception value
-    # if so, we will swap the unicode back in
-    if len(excLines) > 0:
-        excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
-    
-    # use index of -1 because message may not have a ':'
-    exceptionMsg = excLines[-1].split(':',1)[-1].strip()
+    # if we are passed a valid exception, the primary message will be the first
+    # element in its 'args' attribute
+    if hasattr(exceptionObject, 'args') and len(exceptionObject.args):
+        exceptionMsg = unicode(exceptionObject.args[0])
+    else:
+        exceptionMsg = unicode(exceptionObject)
+    exceptionMsg = exceptionMsg.strip()
     if detail == 0:
         result = exceptionType.__name__ + ': ' + exceptionMsg
     else:
@@ -302,6 +299,12 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
             else:
                 result = exceptionMsg
         else: # detail == 2
+            # format the exception
+            excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
+            # traceback may have failed to decode a unicode exception value
+            # if so, we will swap the unicode back in
+            if len(excLines) > 0:
+                excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
             # format the traceback stack
             tbLines = _decodeStack( traceback.format_list(tbStack) )
             if len(tbStack) > 0:
