@@ -108,6 +108,10 @@ The PyMEL project hosts its issues and wiki on `googlecode <http://code.google.c
  2. Check out the `Github Guides <http://github.com/guides/home>`_ for instructions on how to setup git for your OS
  3. Download a GUI front-end: `SmartGit <http://www.syntevo.com/smartgit/index.html>`_ and `TortoiseGit <http://code.google.com/p/tortoisegit/>`_ are by far my favorites
  4. Make a fork of the main `PyMEL repository <http://github.com/LumaPictures/pymel>`_, and start hacking
+
+To get maya to use the version of pymel you have just checked out, either manually add it to your PYTHONPATH environment variable, or cd into the directory, then run::
+
+    PATH/TO/MAYA/INSTALL/bin/mayapy setup.py develop
  
 When you "push" your changes up to Github, we'll be able to track them, give you feedback, and cherry-pick what we like. You, in turn, will be able to easily pull new changes from our repo into yours.
 
