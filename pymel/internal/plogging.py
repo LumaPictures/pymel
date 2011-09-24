@@ -174,6 +174,18 @@ rootLogger = logging.root
 
 pymelLogger = logging.getLogger("pymel")
 
+def environLogLevelOverride(logger):
+    """If PYMEL_LOGLEVEL is set, make sure the logging level is at least that
+    much for the given logger.
+    """
+    # variable must exist AND be non-empty
+    environLevel = os.environ.get(PYMEL_LOGLEVEL_ENV_VAR)
+    if environLevel:
+        environLevel = nameToLevel(environLevel)
+        currentLevel = logger.getEffectiveLevel()
+        if not currentLevel or currentLevel > environLevel:
+            logger.setLevel(environLevel)
+
 def getLogger(name):
     """
     a convenience function that allows any module to setup a logger by simply
@@ -183,12 +195,12 @@ def getLogger(name):
     suffix = '.__init__'
     if name.endswith(suffix):
         name = name[:-len(suffix)]
-    return logging.getLogger(name)
+    logger = logging.getLogger(name)
+    environLogLevelOverride(logger)
+    return logger
 
 # keep as an enumerator so that we can keep the order
 logLevels = util.Enum( 'logLevels', dict([(getLevelName(n),n) for n in range(0,CRITICAL+1,10)]) )
-
-
 
 def nameToLevel(name):
     return logLevels.getIndex(name)
@@ -196,9 +208,7 @@ def nameToLevel(name):
 def levelToName(level):
     return logLevels.getKey(level)
 
-# variable must exist AND be non-empty
-if os.environ.get(PYMEL_LOGLEVEL_ENV_VAR):
-    pymelLogger.setLevel(nameToLevel(os.environ[PYMEL_LOGLEVEL_ENV_VAR]))
+environLogLevelOverride(pymelLogger)
 
 
 #===============================================================================
