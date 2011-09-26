@@ -1,21 +1,27 @@
 """
 Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
 """
+
+# Built-in imports
 import re, types, os, inspect, sys, textwrap
 import time
 from operator import itemgetter
 
-import pymel.util as util
-from pymel.util.conditions import Always, Condition
-import pymel.api as api
-import pymel.versions as versions
-from . import plogging
-from . import cmdcache
-from . import apicache
-from . import pmcmds
+# Maya imports
 import maya.cmds as cmds
 import maya.mel as mm
 
+# PyMEL imports
+import pymel.api as api
+import pymel.util as util
+from pymel.util.conditions import Always, Condition
+import pymel.versions as versions
+
+# Module imports
+from . import apicache
+from . import cmdcache
+from . import plogging
+from . import pmcmds
 
 _logger = plogging.getLogger(__name__)
 
@@ -56,6 +62,7 @@ moduleCmds = None
 # whenever we interact with it... 
 
 def loadApiCache():
+    _logger.debug("Loading api cache...")
     _start = time.time()
     
     global _apiCacheInst
@@ -84,6 +91,7 @@ def _setApiCacheGlobals():
             globals()[name] = val
     
 def loadCmdCache():
+    _logger.debug("Loading cmd cache...")
     _start = time.time()
     
     global _cmdCacheInst
@@ -409,55 +417,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
 def getUncachedCmds():
     return list( set( map( itemgetter(0), inspect.getmembers( cmds, callable ) ) ).difference( cmdlist.keys() ) )
 
-class InvalidNodeTypeError(Exception): pass
-class ManipNodeTypeError(InvalidNodeTypeError): pass
 
-def getInheritance( mayaType ):
-    """Get parents as a list, starting from the node after dependNode, and
-    ending with the mayaType itself. To get the inheritance we use nodeType,
-    which requires a real node.  To do get these without poluting the scene we
-    use a dag/dg modifier, call the doIt method, get the lineage, then call
-    undoIt.
-    
-    A ManipNodeTypeError is the node type fed in was a manipulator
-    """
-
-    if versions.current() >= versions.v2012:
-        # We now have nodeType(isTypeName)! yay!
-        lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
-        if 'manip3D' in lineage:
-            raise ManipNodeTypeError
-    else:
-        dagMod = api.MDagModifier()
-        dgMod = api.MDGModifier()
-    
-        obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
-    
-        lineage = []
-        if obj is not None:
-            if (      obj.hasFn( api.MFn.kManipulator )      
-                   or obj.hasFn( api.MFn.kManipContainer )
-                   or obj.hasFn( api.MFn.kPluginManipContainer )
-                   or obj.hasFn( api.MFn.kPluginManipulatorNode )
-                   
-                   or obj.hasFn( api.MFn.kManipulator2D )
-                   or obj.hasFn( api.MFn.kManipulator3D )
-                   or obj.hasFn( api.MFn.kManip2DContainer) ):
-                raise ManipNodeTypeError
-     
-            if obj.hasFn( api.MFn.kDagNode ):
-                mod = dagMod
-                mod.doIt()
-                name = api.MFnDagNode(obj).partialPathName()
-            else:
-                mod = dgMod
-                mod.doIt()
-                name = api.MFnDependencyNode(obj).name()
-        
-            if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
-                lineage = cmds.nodeType( name, inherited=1)
-            mod.undoIt()
-    return lineage
 
 
 
@@ -2746,8 +2706,8 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
      
     """
     try:
-        inheritance = getInheritance( mayaType )
-    except ManipNodeTypeError:
+        inheritance = cmdcache.getInheritance( mayaType )
+    except cmdcache.ManipNodeTypeError:
         _logger.warn( "could not create a PyNode for manipulator type %s" % mayaType)
         return
     except Exception:

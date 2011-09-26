@@ -1,11 +1,18 @@
+# Built-in imports
 import os, re, inspect, keyword
+
+# Maya imports
 import maya.cmds as cmds
 import maya.mel as mm
+
+# PyMEL imports
 import pymel.util as util
 import pymel.versions as versions
-import plogging
-import pymel.mayautils as mayautils
-import startup
+
+# Module imports
+from . import plogging
+from . import startup
+
 _logger = plogging.getLogger(__name__)
 
 moduleNameShortToLong = {
@@ -882,6 +889,76 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         cmds.delete( newObjs )
     return cmdInfo
 
+class InvalidNodeTypeError(Exception): pass
+class ManipNodeTypeError(InvalidNodeTypeError): pass
+
+def getInheritance( mayaType, checkManip3D=True ):
+    """Get parents as a list, starting from the node after dependNode, and
+    ending with the mayaType itself. To get the inheritance we use nodeType,
+    which requires a real node.  To do get these without poluting the scene we
+    use a dag/dg modifier, call the doIt method, get the lineage, then call
+    undoIt.
+    
+    A ManipNodeTypeError is the node type fed in was a manipulator
+    """
+    from . import apicache
+    import pymel.api as api
+    
+    if versions.current() >= versions.v2012:
+        # We now have nodeType(isTypeName)! yay!
+        kwargs = dict(isTypeName=True, inherited=True)
+        lineage = cmds.nodeType(mayaType, **kwargs)
+        if lineage is None:
+            controlPoint = cmds.nodeType('controlPoint', **kwargs)
+            # For whatever reason, nodeType(isTypeName) returns
+            # None for the following mayaTypes:
+            fixedLineages = {
+                'file':[u'texture2d', u'file'],
+                'lattice':controlPoint + [u'lattice'],
+                'mesh':controlPoint + [u'surfaceShape', u'mesh'],
+                'nurbsCurve':controlPoint + [u'curveShape', u'nurbsCurve'],
+                'nurbsSurface':controlPoint + [u'surfaceShape', u'nurbsSurface'],
+                'time':[u'time']
+            }
+            if mayaType in fixedLineages:
+                lineage = fixedLineages[mayaType]
+            else:
+                raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
+        elif checkManip3D and 'manip3D' in lineage:
+            raise ManipNodeTypeError
+        assert lineage[-1] == mayaType
+    else:
+        dagMod = api.MDagModifier()
+        dgMod = api.MDGModifier()
+    
+        obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
+    
+        lineage = []
+        if obj is not None:
+            if (      obj.hasFn( api.MFn.kManipulator )      
+                   or obj.hasFn( api.MFn.kManipContainer )
+                   or obj.hasFn( api.MFn.kPluginManipContainer )
+                   or obj.hasFn( api.MFn.kPluginManipulatorNode )
+                   
+                   or obj.hasFn( api.MFn.kManipulator2D )
+                   or obj.hasFn( api.MFn.kManipulator3D )
+                   or obj.hasFn( api.MFn.kManip2DContainer) ):
+                raise ManipNodeTypeError
+     
+            if obj.hasFn( api.MFn.kDagNode ):
+                mod = dagMod
+                mod.doIt()
+                name = api.MFnDagNode(obj).partialPathName()
+            else:
+                mod = dgMod
+                mod.doIt()
+                name = api.MFnDependencyNode(obj).name()
+        
+            if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
+                lineage = cmds.nodeType( name, inherited=1)
+            mod.undoIt()
+    return lineage
+
 def _getNodeHierarchy( version=None ):
     """
     get node hierarchy as a list of 3-value tuples:
@@ -891,27 +968,12 @@ def _getNodeHierarchy( version=None ):
     
     if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
-
-        # For whatever reason, we can't query these objects from the hierarchy
-        # correctly using nodeType(isTypeName)
-        inheritances = {'file':[u'texture2d', u'file']}
-        
-        
-        for nodeType in cmds.allNodeTypes():
-            inheritance = cmds.nodeType(nodeType, inherited=True,
-                                        isTypeName=True)
-            if inheritance is None:
-                if nodeType in inheritances:
-                    pass
-                else:
-                    raise RuntimeError("Could not query the inheritance of node type %s" % nodeType)
-            else:
-                inheritances[nodeType] = inheritance
+        inheritances = dict([(nodeType, getInheritance(nodeType, False))
+            for nodeType in cmds.allNodeTypes()])
         
         parentTree = {}
         # Convert inheritance lists node=>parent dict
         for nodeType, inheritance in inheritances.iteritems():
-            assert inheritance[-1] == nodeType
             for i in xrange(len(inheritance)):
                 child = inheritance[i]
                 if i == 0:
@@ -928,7 +990,7 @@ def _getNodeHierarchy( version=None ):
                     parentTree[child] = parent
         nodeHierarchyTree = trees.treeFromDict(parentTree)
     else:
-        from parsers import NodeHierarchyDocParser
+        from .parsers import NodeHierarchyDocParser
         parser = NodeHierarchyDocParser(version)
         nodeHierarchyTree = trees.IndexedTree(parser.parse())
     return [ (x.value, tuple( [y.value for y in x.parents()]), tuple( [y.value for y in x.childs()] ) ) \
