@@ -146,7 +146,7 @@ def mayaInit(forversion=None) :
         isInitializing = False
         return False
 
-    _logger.debug( "startup.initialize running" )
+    _logger.debug( "startup.mayaInit running" )
     # for use with pymel compatible maya package
     os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
 

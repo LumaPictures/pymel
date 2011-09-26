@@ -291,15 +291,46 @@ class ApiCache(startup.SubItemCache):
 
         import pymel.mayautils as mayautils
         # load all maya plugins
+        
+        # There's some weirdness with plugin loading on windows XP x64... if
+        # you have a fresh user profile, and do:
+        
+        # import maya.standalone
+        # maya.standalone.initialize()
+        # import maya.mel as mel
+        # mel.eval('''source "initialPlugins.mel"''')
+        
+        # ..then things work.  But if you import maya.OpenMaya:
+        
+        # import maya.standalone
+        # maya.standalone.initialize()
+        # import maya.OpenMaya
+        # import maya.mel as mel
+        # mel.eval('''source "initialPlugins.mel"''')
+        
+        # ...it crashes when loading Mayatomr.  Also, oddly, if you load
+        # Mayatomr directly, instead of using initialPlugins.mel, it also
+        # crashes:
+        
+        # import maya.standalone
+        # maya.standalone.initialize()
+        # import maya.cmds
+        # maya.cmds.loadPlugin('C:\\3D\\Autodesk\\Maya2012\\bin\\plug-ins\\Mayatomr.mll')
+        
+        # Anyway, for now, adding in the line to do sourcing of initialPlugins.mel
+        # until I can figure out if it's possible to avoid this crash...
+        import maya.mel
+        maya.mel.eval('source "initialPlugins.mel"')
         mayaLoc = mayautils.getMayaLocation()
         # need to set to os.path.realpath to get a 'canonical' path for string comparison...
         pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
         for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
             for x in os.listdir( pluginPath ):
                 if os.path.isfile( os.path.join(pluginPath,x)):
-                    try:
-                        maya.cmds.loadPlugin( x )
-                    except RuntimeError: pass
+                    if not maya.cmds.pluginInfo(x, q=1, loaded=1):
+                        try:
+                            maya.cmds.loadPlugin( x, quiet=1 )
+                        except RuntimeError: pass
 
         # all of maya OpenMaya api is now imported in module api's namespace
         mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
