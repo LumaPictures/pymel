@@ -27,30 +27,41 @@ import maya.cmds
 # General Info
 #===============================================================================
 
-mpxToEnum = {
-    mpx.MPxNode:mpx.MPxNode.kDependNode,
-    mpx.MPxPolyTrg:mpx.MPxNode.kDependNode,             # has no unique enum
-    mpx.MPxLocatorNode:mpx.MPxNode.kLocatorNode,
-    mpx.MPxDeformerNode:mpx.MPxNode.kDeformerNode,
-    mpx.MPxManipContainer:mpx.MPxNode.kManipContainer,
-    mpx.MPxSurfaceShape:mpx.MPxNode.kSurfaceShape,
-    mpx.MPxComponentShape:mpx.MPxNode.kSurfaceShape,    # has no unique enum
-    mpx.MPxFieldNode:mpx.MPxNode.kFieldNode,
-    mpx.MPxEmitterNode:mpx.MPxNode.kEmitterNode,
-    mpx.MPxSpringNode:mpx.MPxNode.kSpringNode,
-    mpx.MPxIkSolverNode:mpx.MPxNode.kIkSolverNode,
-    mpx.MPxHardwareShader:mpx.MPxNode.kHardwareShader,
-    mpx.MPxHwShaderNode:mpx.MPxNode.kHwShaderNode,
-    mpx.MPxTransform:mpx.MPxNode.kTransformNode,
-    mpx.MPxObjectSet:mpx.MPxNode.kObjectSet,
-    mpx.MPxFluidEmitterNode:mpx.MPxNode.kFluidEmitterNode,
-    mpx.MPxImagePlane:mpx.MPxNode.kImagePlaneNode,
-    mpx.MPxParticleAttributeMapperNode:mpx.MPxNode.kParticleAttributeMapperNode,
-    mpx.MPxCameraSet:mpx.MPxNode.kCameraSetNode,
-    mpx.MPxConstraint:mpx.MPxNode.kConstraintNode,
-    mpx.MPxManipulatorNode:mpx.MPxNode.kManipulatorNode,
+# Because different versions of maya may not have all these MPxNodes, we need
+# to store as a list, and retrieve from mpx
+mpxToEnumNames = {
+    'MPxNode':'kDependNode',
+    'MPxPolyTrg':'kDependNode',             # has no unique enum
+    'MPxLocatorNode':'kLocatorNode',
+    'MPxDeformerNode':'kDeformerNode',
+    'MPxManipContainer':'kManipContainer',
+    'MPxSurfaceShape':'kSurfaceShape',
+    'MPxComponentShape':'kSurfaceShape',    # has no unique enum
+    'MPxFieldNode':'kFieldNode',
+    'MPxEmitterNode':'kEmitterNode',
+    'MPxSpringNode':'kSpringNode',
+    'MPxIkSolverNode':'kIkSolverNode',
+    'MPxHardwareShader':'kHardwareShader',
+    'MPxHwShaderNode':'kHwShaderNode',
+    'MPxTransform':'kTransformNode',
+    'MPxObjectSet':'kObjectSet',
+    'MPxFluidEmitterNode':'kFluidEmitterNode',
+    'MPxImagePlane':'kImagePlaneNode',
+    'MPxParticleAttributeMapperNode':'kParticleAttributeMapperNode',
+    'MPxCameraSet':'kCameraSetNode',
+    'MPxConstraint':'kConstraintNode',
+    'MPxManipulatorNode':'kManipulatorNode',
+    'MPxRepMgr':'kRepMgr',
+    'MPxRepresentation':'kRepresentation',
     }
 
+
+mpxToEnum = {}
+for nodeName, enumName in mpxToEnumNames.iteritems():
+    node = getattr(mpx, nodeName, None)
+    if node:
+        mpxToEnum[node] = getattr(mpx.MPxNode, enumName)
+        
 _enumToStr = None
 def enumToStr():
     '''Returns a dictionary mapping from an MPxNode node type enum to it's
