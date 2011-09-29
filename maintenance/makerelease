@@ -5,7 +5,9 @@
 #       make sure environment is clean (default user prefs, etc) except
 #           possibly for adding custom pymel into path...
 #       delete existing cache for version you wish to rebuild
-#       start version of maya you wish to rebuild
+#       start GUI version of maya you wish to rebuild
+#       in script editor, run following, substituting location of your dev
+#       version of pymel:
 #           import sys
 #           pymelPath = r'C:\Dev\Projects\eclipse\workspace\pymelProject\pymel'   # ...or wherever YOUR pymel version is installed
 #           if sys.path[0] != pymelPath:
