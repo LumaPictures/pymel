@@ -1038,8 +1038,9 @@ class CmdCache(startup.SubItemCache):
         #nodeHierarchyTree = trees.IndexedTree(self.nodeHierarchy)
         self.uiClassList = UI_COMMANDS
         self.nodeCommandList = []
+        tmpModuleCmds = {}
         for moduleName, longname in moduleNameShortToLong.items():
-            moduleNameShortToLong[moduleName] = getModuleCommandList( longname, long_version )
+            tmpModuleCmds[moduleName] = getModuleCommandList( longname, long_version )
 
         tmpCmdlist = inspect.getmembers(cmds, callable)
 
@@ -1047,7 +1048,7 @@ class CmdCache(startup.SubItemCache):
         self.moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
         self.moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
 
-        for funcName, data in tmpCmdlist :
+        def addCommand(funcName):
             # determine to which module this function belongs
             module = None
             if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
@@ -1059,7 +1060,7 @@ class CmdCache(startup.SubItemCache):
             #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
             #    module = 'node'
             else:
-                for moduleName, commands in moduleNameShortToLong.iteritems():
+                for moduleName, commands in tmpModuleCmds.iteritems():
                     if funcName in commands:
                         module = moduleName
                         break
@@ -1105,6 +1106,9 @@ class CmdCache(startup.SubItemCache):
 #                     self.cmdlist[funcName] = (funcName, args, (False, None, None) )
 #                else:
 #                    self.cmdlist[funcName] = (funcName, args, () )
+
+        for funcName, _ in tmpCmdlist :
+            addCommand(funcName)
 
         # split the cached data for lazy loading
         cmdDocList = {}
