@@ -58,6 +58,7 @@ def _addPluginCommand(pluginName, funcName):
     _logger.debug("Adding command: %s" % funcName)
     #_logger.debug("adding new command:", funcName)
     _factories.cmdlist[funcName] = _factories.cmdcache.getCmdInfoBasic( funcName )
+    _factories.cmdlist[funcName]['plugin'] = pluginName
     _pmcmds.addWrappedCmd(funcName)
     func = _factories.functionFactory( funcName )
     try:
@@ -100,22 +101,6 @@ def _removePluginNode(pluginName, node):
         nodes.remove(node)
     _factories.removePyNode( nodetypes, node )
 
-# It's not possible to query all plugin commands that a plugin registers with
-# pluginInfo, so this holds a list of plugin commands that we still want to
-# wrap.
-# With 2012, we can now query modelEditor, constraint, and control commands.
-# Unfortunately, we still can't get context commands... so UNREPORTED_COMMANDS
-# is still necessary
-# We sort by type of command, so that if pluginInfo does have the necessary
-# flag for reporting, we can just use that.
-UNREPORTED_COMMANDS = {
-    'modelEditorCommand':{'stereoCamera':['stereoCameraView']},
-    'controlCommand':{},
-    'constraintCommand':{},
-    'contextCommand':{}, # currently no pluginInfo flag for this in any version, but I'm an optimist...
-    #'other':{}, # just to hold any commands we may want that don't fall in other categories
-    }       
-
 def _pluginLoaded( *args ):
     global _pluginData
     
@@ -132,24 +117,7 @@ def _pluginLoaded( *args ):
     _pluginData[pluginName] = {}
 
     # Commands
-    
-    # remember that the pluginInfo command queries will return None
-    try:
-        commands = _pmcmds.pluginInfo(pluginName, query=1, command=1)
-        if commands is None:
-            commands = []
-    except Exception:
-        _logger.error("Failed to get command list from %s", pluginName)
-        commands = []
-
-    pluginInfoFlags = _factories.cmdlist['pluginInfo']['flags']
-    for cmdType, pluginToCmds in UNREPORTED_COMMANDS.iteritems():
-        if cmdType in pluginInfoFlags:
-            moreCmds = _pmcmds.pluginInfo(pluginName, query=1, **{cmdType:1})
-        else:
-            moreCmds = pluginToCmds.get(pluginName, [])
-        if moreCmds:
-            commands.extend(moreCmds)
+    commands = _plugins.pluginCommands(pluginName)
     
     if commands:
         # clear out the command list first

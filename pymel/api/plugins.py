@@ -15,6 +15,7 @@ A quick example::
 
 
 import sys
+import os
 import inspect
 import hashlib
 from collections import defaultdict
@@ -389,8 +390,6 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         # MPxPolyTrg returns True
         return False
             
-# I have some unnecessary if statements, just to visually show the hierarchy
-                
 class CameraSet(DependNode, mpx.MPxCameraSet): pass
         
 class Constraint(DependNode, mpx.MPxConstraint): pass
@@ -399,8 +398,7 @@ class DeformerNode(DependNode, mpx.MPxDeformerNode): pass
 
 class EmitterNode(DependNode, mpx.MPxEmitterNode): pass
 
-if 1:
-    class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode): pass
+class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode): pass
 
 class FieldNode(DependNode, mpx.MPxFieldNode): pass
     
@@ -428,8 +426,7 @@ class SpringNode(DependNode, mpx.MPxSpringNode): pass
 
 class SurfaceShape(DependNode, mpx.MPxSurfaceShape): pass
 
-if 1:
-    class ComponentShape(SurfaceShape, mpx.MPxComponentShape): pass
+class ComponentShape(SurfaceShape, mpx.MPxComponentShape): pass
     
 class Transform(DependNode, mpx.MPxTransform):
     # Bug in python - can't just use MPxTransformationMatrix, as there's a
@@ -444,6 +441,12 @@ class Transform(DependNode, mpx.MPxTransform):
         if cls._classification:
             registerArgs.append(cls._classification)
         mplugin.registerTransform( *registerArgs )
+
+if hasattr(mpx, 'MPxRepMgr'):
+    class RepMgr(DependNode, mpx.MPxRepMgr): pass
+
+if hasattr(mpx, 'MPxRepresentation'):
+    class Representation(DependNode, mpx.MPxRepresentation): pass
 
 #===============================================================================
 # Plugin Class Helpers
@@ -538,3 +541,90 @@ def createDummyNodePlugins():
 
 # when we reload, should we deregister all plugins??? or maybe we can just repopulate registered
 #_unloadPlugin()
+
+#==============================================================================
+# Utility functions
+#==============================================================================
+
+def mayaPlugins():
+    '''all maya plugins in the maya install directory'''
+    import pymel.mayautils
+
+    mayaLoc = pymel.mayautils.getMayaLocation()
+    # need to set to os.path.realpath to get a 'canonical' path for string comparison...
+    plugins = []
+    pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
+    for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
+        for x in os.listdir( pluginPath ):
+            if os.path.isfile( os.path.join(pluginPath,x)):
+                if not maya.cmds.pluginInfo(x, q=1, loaded=1):
+                    plugins.append(x)
+    return plugins
+
+def loadAllMayaPlugins():
+    '''will load all maya-installed plugins
+    
+    WARNING: tthe act of loading all the plugins may crash maya, especially if
+    done from a non-GUI session
+    '''
+    import logging
+    logger = logging.getLogger('pymel')
+    logger.debug("loading all maya plugins...")
+    for plugin in mayaPlugins():
+        try:
+            maya.cmds.loadPlugin( plugin, quiet=1 )
+        except RuntimeError: pass
+    logger.debug("...done loading all maya plugins")
+
+def unloadAllPlugins():
+    import logging
+    logger = logging.getLogger('pymel')
+    
+    logger.debug("unloading all plugins...")
+    maya.cmds.unloadPlugin(force=True, *maya.cmds.pluginInfo(q=True, listPlugins=True))
+    logger.debug("...done unloading all plugins")
+
+# It's not possible to query all plugin commands that a plugin registers with
+# pluginInfo, so this holds a list of plugin commands that we still want to
+# wrap.
+# With 2012, we can now query modelEditor, constraint, and control commands.
+# Unfortunately, we still can't get context commands... so UNREPORTED_COMMANDS
+# is still necessary
+# We sort by type of command, so that if pluginInfo does have the necessary
+# flag for reporting, we can just use that.
+UNREPORTED_COMMANDS = {
+    'command':{},       # all versions of maya should support this flag!
+    'modelEditorCommand':{'stereoCamera':['stereoCameraView']},
+    'controlCommand':{},
+    'constraintCommand':{},
+    'contextCommand':{}, # currently no pluginInfo flag for this in any version, but I'm an optimist...
+    #'other':{}, # just to hold any commands we may want that don't fall in other categories
+    }
+    
+def pluginCommands(pluginName, reportedOnly=False):
+    '''Returns the list of all commands that the plugin provides, to the best
+    of our knowledge.
+    
+    Note that depending on your version of maya, this may not actually be the
+    list of all commands provided.
+    '''
+    import logging
+    logger = logging.getLogger('pymel')
+
+    commands = []
+    for cmdType, pluginToCmds in UNREPORTED_COMMANDS.iteritems():
+        try:
+            moreCmds = maya.cmds.pluginInfo(pluginName, query=1, **{cmdType:1})
+        except TypeError:  # will get this if it's a flag pluginInfo doesn't know
+            if reportedOnly:
+                moreCmds = []
+            else:
+                moreCmds = pluginToCmds.get(pluginName, [])
+        except Exception:
+            logger.error("Failed to get %s list from %s" % (cmdType, pluginName))
+            moreCmds = []
+
+        # moreCmds may be None, as pluginInfo will return None
+        if moreCmds:
+            commands.extend(moreCmds)
+    return commands

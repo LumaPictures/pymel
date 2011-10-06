@@ -272,6 +272,11 @@ class ApiCache(startup.SubItemCache):
     def _buildApiRelationships(self) :
         """
         Used to rebuild api info from scratch.
+        
+        WARNING: will load all maya-installed plugins, without making an
+        attempt to return the loaded plugins to the state they were at before
+        this command is run.  Also, the act of loading all the plugins may
+        crash maya, especially if done from a non-GUI session
         """
         # Put in a debug, because this can be crashy
         _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")        
@@ -289,7 +294,7 @@ class ApiCache(startup.SubItemCache):
             startup.mayaInit()
         import maya.cmds
 
-        import pymel.mayautils as mayautils
+        import pymel.api.plugins as plugins
         # load all maya plugins
         
         # There's some weirdness with plugin loading on windows XP x64... if
@@ -321,16 +326,7 @@ class ApiCache(startup.SubItemCache):
         # until I can figure out if it's possible to avoid this crash...
         import maya.mel
         maya.mel.eval('source "initialPlugins.mel"')
-        mayaLoc = mayautils.getMayaLocation()
-        # need to set to os.path.realpath to get a 'canonical' path for string comparison...
-        pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
-        for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
-            for x in os.listdir( pluginPath ):
-                if os.path.isfile( os.path.join(pluginPath,x)):
-                    if not maya.cmds.pluginInfo(x, q=1, loaded=1):
-                        try:
-                            maya.cmds.loadPlugin( x, quiet=1 )
-                        except RuntimeError: pass
+        plugins.loadAllMayaPlugins()
 
         # all of maya OpenMaya api is now imported in module api's namespace
         mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))

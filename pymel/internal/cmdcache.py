@@ -1020,20 +1020,38 @@ class CmdCache(startup.SubItemCache):
                    }
         
     def rebuild(self) :
-        """Build and save to disk the list of Maya Python commands and their arguments"""
-    
+        """Build and save to disk the list of Maya Python commands and their arguments
+        
+        WARNING: will unload existing plugins, then (re)load all maya-installed
+        plugins, without making an attempt to return the loaded plugins to the
+        state they were at before this command is run.  Also, the act of
+        loading all the plugins may crash maya, especially if done from a
+        non-GUI session        
+        """
+        # Put in a debug, because this can be crashy
+        _logger.debug("Starting CmdCache.rebuild...")
+        
         # With extension can't get docs on unix 64
         # path is
         # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
         # and not
         # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-        
-        _logger.info("Rebuilding the list of Maya commands...")
+
         long_version = versions.installName()
+        
+        _logger.info("Rebuilding the maya node hierarchy...")
+        
+        # Load all plugins to get the nodeHierarchy / nodeFunctions
+        import pymel.api.plugins as plugins
+        
+        plugins.loadAllMayaPlugins()
 
         self.nodeHierarchy = _getNodeHierarchy(long_version)
         nodeFunctions = [ x[0] for x in self.nodeHierarchy ]
         nodeFunctions += nodeTypeToNodeCommand.values()
+
+
+        _logger.info("Rebuilding the list of Maya commands...")
 
         #nodeHierarchyTree = trees.IndexedTree(self.nodeHierarchy)
         self.uiClassList = UI_COMMANDS
@@ -1092,7 +1110,6 @@ class CmdCache(startup.SubItemCache):
 
             self.cmdlist[funcName] = cmdInfo
 
-
 #            # func, args, (usePyNode, baseClsName, nodeName)
 #            # args = dictionary of command flags and their data
 #            # usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
@@ -1109,6 +1126,8 @@ class CmdCache(startup.SubItemCache):
 
         for funcName, _ in tmpCmdlist :
             addCommand(funcName)
+
+        self.addPluginInfo()
 
         # split the cached data for lazy loading
         cmdDocList = {}
@@ -1133,6 +1152,39 @@ class CmdCache(startup.SubItemCache):
     
         CmdDocsCache().write(cmdDocList)
         CmdExamplesCache().write(examples)
+        
+    def addPluginInfo(self):
+        # since pluginInfo does not return all command types (even in 2012, it
+        # still doesn't return context commands), so the only way to get all
+        # commands is to check what's added after we load the plugin..
+
+        # note that we make some assumptions here - that when unloaded, plugins
+        # remove from maya.cmds any commands that were added when loaded; and
+        # that two plugins do not add commands that have the same name. since
+        # we're only checking plugins that come installed with maya, these
+        # should be a fairly safe assumptions
+
+        import pymel.api.plugins as plugins
+        plugins.unloadAllPlugins()
+        
+        def getMayaCmds():
+            return set(x[0] for x in inspect.getmembers(cmds, callable))
+        
+        
+        previousCmds = getMayaCmds()
+        for plugin in plugins.mayaPlugins():
+            cmds.loadPlugin(plugin)
+            currentCmds = getMayaCmds()
+            newCmds = currentCmds - previousCmds
+            
+            # check reported commands as a sanity check
+            assert set(plugins.pluginCommands()).issubset(newCmds)
+            
+            for cmd in newCmds:
+                self.cmdlist[cmd]['plugin'] = plugin
+            
+            previousCmds = currentCmds
+            
     
     def build(self):
         super(CmdCache, self).build()
