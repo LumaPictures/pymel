@@ -526,6 +526,29 @@ def getCallbackFlags(cmdInfo):
                 commandFlags += [flag, data['shortname']]
     return commandFlags
 
+def getModule(funcName, knownModuleCmds):
+    # determine to which module this function belongs
+    module = None
+    if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
+        module = None
+    elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
+        module = 'context'
+    #elif funcName in self.uiClassList:
+    #    module = 'uiClass'
+    #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+    #    module = 'node'
+    else:
+        for moduleName, commands in knownModuleCmds.iteritems():
+            if funcName in commands:
+                module = moduleName
+                break
+        if module is None:
+            if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
+                module = 'runtime'
+            else:
+                module = 'other'
+    return module
+
 #-----------------------------------------------
 #  Command Help Documentation
 #-----------------------------------------------
@@ -968,8 +991,12 @@ def _getNodeHierarchy( version=None ):
     
     if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
-        inheritances = dict([(nodeType, getInheritance(nodeType, False))
-            for nodeType in cmds.allNodeTypes()])
+        inheritances = {}
+        for nodeType in cmds.allNodeTypes():
+            try:
+                inheritances[nodeType] = getInheritance(nodeType)
+            except ManipNodeTypeError:
+                continue
         
         parentTree = {}
         # Convert inheritance lists node=>parent dict
@@ -1044,7 +1071,22 @@ class CmdCache(startup.SubItemCache):
         # Load all plugins to get the nodeHierarchy / nodeFunctions
         import pymel.api.plugins as plugins
         
-        plugins.loadAllMayaPlugins()
+        # We don't want to add in plugin nodes / commands - let that be done
+        # by the plugin callbacks.  However, unloading mechanism is not 100%
+        # ... sometimes functions get left in maya.cmds... and then trying
+        # to use those left-behind functions can cause crashes (ie,
+        # FBXExportQuaternion). So check which methods SHOULD be unloaded
+        # first, so we know to skip those if we come across them even after
+        # unloading the plugin
+        pluginCommands = set()
+        loadedPlugins = cmds.pluginInfo(q=True, listPlugins=True)
+        if loadedPlugins:
+            for plug in loadedPlugins:
+                plugCmds = plugins.pluginCommands(plug)
+                if plugCmds:
+                    pluginCommands.update(plugCmds)
+        
+        plugins.unloadAllPlugins()
 
         self.nodeHierarchy = _getNodeHierarchy(long_version)
         nodeFunctions = [ x[0] for x in self.nodeHierarchy ]
@@ -1067,26 +1109,8 @@ class CmdCache(startup.SubItemCache):
         self.moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
 
         def addCommand(funcName):
-            # determine to which module this function belongs
-            module = None
-            if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
-                module = None
-            elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
-                module = 'context'
-            #elif funcName in self.uiClassList:
-            #    module = 'uiClass'
-            #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
-            #    module = 'node'
-            else:
-                for moduleName, commands in tmpModuleCmds.iteritems():
-                    if funcName in commands:
-                        module = moduleName
-                        break
-                if module is None:
-                    if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
-                        module = 'runtime'
-                    else:
-                        module = 'other'
+            _logger.debug('adding command: %s' % funcName)
+            module = getModule(funcName, tmpModuleCmds)
 
             cmdInfo = {}
 
@@ -1125,9 +1149,10 @@ class CmdCache(startup.SubItemCache):
 #                    self.cmdlist[funcName] = (funcName, args, () )
 
         for funcName, _ in tmpCmdlist :
+            if funcName in pluginCommands:
+                _logger.debug("command %s was a plugin command that should have been unloaded - skipping" % funcName)
+                continue 
             addCommand(funcName)
-
-        self.addPluginInfo()
 
         # split the cached data for lazy loading
         cmdDocList = {}
@@ -1153,39 +1178,6 @@ class CmdCache(startup.SubItemCache):
         CmdDocsCache().write(cmdDocList)
         CmdExamplesCache().write(examples)
         
-    def addPluginInfo(self):
-        # since pluginInfo does not return all command types (even in 2012, it
-        # still doesn't return context commands), so the only way to get all
-        # commands is to check what's added after we load the plugin..
-
-        # note that we make some assumptions here - that when unloaded, plugins
-        # remove from maya.cmds any commands that were added when loaded; and
-        # that two plugins do not add commands that have the same name. since
-        # we're only checking plugins that come installed with maya, these
-        # should be a fairly safe assumptions
-
-        import pymel.api.plugins as plugins
-        plugins.unloadAllPlugins()
-        
-        def getMayaCmds():
-            return set(x[0] for x in inspect.getmembers(cmds, callable))
-        
-        
-        previousCmds = getMayaCmds()
-        for plugin in plugins.mayaPlugins():
-            cmds.loadPlugin(plugin)
-            currentCmds = getMayaCmds()
-            newCmds = currentCmds - previousCmds
-            
-            # check reported commands as a sanity check
-            assert set(plugins.pluginCommands()).issubset(newCmds)
-            
-            for cmd in newCmds:
-                self.cmdlist[cmd]['plugin'] = plugin
-            
-            previousCmds = currentCmds
-            
-    
     def build(self):
         super(CmdCache, self).build()
 

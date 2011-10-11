@@ -11,6 +11,7 @@ import pymel.internal as _internal
 _startup.mayaInit()
 
 import pymel.internal.factories as _factories
+import pymel.internal.cmdcache as _cmdcache
 import pymel.internal.pmcmds as _pmcmds
 _pmcmds.addAllWrappedCmds()
 
@@ -57,12 +58,19 @@ def _addPluginCommand(pluginName, funcName):
         _pluginData[pluginName]['commands'].append(funcName)
     _logger.debug("Adding command: %s" % funcName)
     #_logger.debug("adding new command:", funcName)
-    _factories.cmdlist[funcName] = _factories.cmdcache.getCmdInfoBasic( funcName )
+    _factories.cmdlist[funcName] = _cmdcache.getCmdInfoBasic( funcName )
     _factories.cmdlist[funcName]['plugin'] = pluginName
     _pmcmds.addWrappedCmd(funcName)
     func = _factories.functionFactory( funcName )
     try:
         if func:
+            coreModule = 'pymel.core.%s' % _cmdcache.getModule(funcName,
+                                                               _factories.moduleCmds)
+            if coreModule in sys.modules:
+                setattr( sys.modules[coreModule], funcName, func )
+            # Note that we add the function to both a core module (ie,
+            # pymel.core.other), the pymel.core itself, and pymel.all; this
+            # way, we mirror the behavior of 'normal' functions 
             setattr( _module, funcName, func )
             if 'pymel.all' in sys.modules:
                 setattr( sys.modules['pymel.all'], funcName, func )
