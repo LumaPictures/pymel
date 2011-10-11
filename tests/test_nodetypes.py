@@ -6,6 +6,7 @@ import platform
 import maya.cmds as cmds
 from pymel.all import *
 import pymel.core as pm
+import pymel.util as util
 from maintenance.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
 import pymel.internal.factories as factories

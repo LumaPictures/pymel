@@ -278,13 +278,10 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
         maya.utils.formatGuiException = myExceptCB
         
     """
-    # if we are passed a valid exception, the primary message will be the first
-    # element in its 'args' attribute
-    if hasattr(exceptionObject, 'args') and len(exceptionObject.args):
-        exceptionMsg = unicode(exceptionObject.args[0])
-    else:
-        exceptionMsg = unicode(exceptionObject)
-    exceptionMsg = exceptionMsg.strip()
+    # This used to use args[0], but this is unreliable - ie,
+    # IOError(2, 'No such file or directory') - instead, just always do
+    # unicode(exception)
+    exceptionMsg = unicode(exceptionObject).strip()
     if detail == 0:
         result = exceptionType.__name__ + ': ' + exceptionMsg
     else:

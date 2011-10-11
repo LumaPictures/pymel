@@ -84,6 +84,7 @@ errorCodes = [
 
 class TestMayaIntegration(unittest.TestCase):
     if pymel.versions.current() >= pymel.versions.v2011:
+        import pymel.core
         def test_guiExceptionFormatting(self):
             for codeStr, messages in errorCodes:
                 try:
@@ -101,6 +102,7 @@ class TestMayaIntegration(unittest.TestCase):
                         
                         expected = messages[level]
                         if res != expected:
+                            print 'level: %d' % level
                             print '*' * 60
                             print "raw res:"
                             print rawres
