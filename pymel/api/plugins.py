@@ -576,12 +576,29 @@ def loadAllMayaPlugins():
         except RuntimeError: pass
     logger.debug("...done loading all maya plugins")
 
-def unloadAllPlugins():
+def unloadAllPlugins(skipErrors=False):
     import logging
     logger = logging.getLogger('pymel')
     
     logger.debug("unloading all plugins...")
-    maya.cmds.unloadPlugin(force=True, *maya.cmds.pluginInfo(q=True, listPlugins=True))
+    loadedPlugins = maya.cmds.pluginInfo(q=True, listPlugins=True)
+    # loadedPlugins may be None
+    if loadedPlugins:
+        # could just unload all plugins at once with:
+        # maya.cmds.unloadPlugin(force=True, *loadedPlugins)
+        # ...but if we do one at a time, we can at least get debugging info
+        # on which one crashed...
+        for plug in loadedPlugins:
+            logger.debug("...unloading: %s" % plug)
+            try:
+                maya.cmds.unloadPlugin(plug, force=True)
+            except Exception:
+                if skipErrors:
+                    import traceback
+                    logger.warning("Error unloading plugin %s:" % plug)
+                    logger.warning(traceback.format_exc())
+                else:
+                    raise
     logger.debug("...done unloading all plugins")
 
 # It's not possible to query all plugin commands that a plugin registers with
