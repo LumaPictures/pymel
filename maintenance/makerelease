@@ -13,6 +13,11 @@
 #           if sys.path[0] != pymelPath:
 #               sys.path.insert(0, pymelPath)
 #           import pymel.core as pm
+#       building of api cache loads plugins, then building of cmd cache
+#           unloads them... unfortunately, some of the built in plugins may not
+#           unload cleanly, resulting in an error; therefore, may be necessary
+#           to run the above steps twice (once to build api cache, once for
+#           cmd cache) 
 #   2) Run tests
 #          cd into tests directory
 #          ./pymel_test.py
