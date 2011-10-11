@@ -328,14 +328,52 @@ def informBox(title, message, ok="Ok"):
 
 
 class PopupError( Exception ):
-    """Raise this exception in your scripts to cause a promptDialog to be opened displaying the error message.
-    After the user presses 'OK', the exception will be raised as normal. In batch mode the promptDialog is not opened."""
+    """Raise this exception in your scripts to cause a confirmDialog to be opened displaying the error message.
+    After the user presses 'OK', the exception will be raised as normal. In batch mode the promptDialog is not opened.
 
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
+    Parameters
+    ----------
+    msgOrException : str or Exception instance
+        If a string, then the actual exception object returned / raised will
+        be a PopupError instance, and the message displayed will be this arg;
+        if an Exception instance, then the expection object returned / raised
+        will be the given instance
+    title : str
+        title of the dialog
+    button : str
+        text on the confirm button of the dialog
+    msg : str Or None
+        If msgOrException was not an exception instance, this is ignored; if it
+        is, then this controls what the displayed message is. If it is None,
+        then the displayed message is the first arg of the exception instance,
+        or the empty string if it has no args. If it is a string, then that will
+        be the displayed message.
+    icon : str
+        icon to use for the confirm dialog (see confirmDialog docs for available
+        icons)    
+    """
+    def __new__(cls, msgOrException, title='Error', button='Ok', msg=None,
+                icon='critical'):
+        if not isinstance(msgOrException, (basestring, Exception)):
+            raise TypeError(msgOrException)
+        
         if not cmds.about(batch=1):
-            ret = informBox('Error', msg)
+            if not isinstance(msgOrException, Exception):
+                msg = msgOrException
+            elif msg is None:
+                args = getattr(msgOrException, 'args', [])
+                if args:
+                    msg = args[0]
+                else:
+                    msg = ''
+            confirmDialog(title=title, message=msg, button=button, icon=icon)
+        if isinstance(msgOrException, Exception):
+            return msgOrException
+        else:
+            return super(PopupError, cls).__new__(cls, msgOrException)
 
+    def __init__(self, msg, *args, **kwargs):
+        super(PopupError, self).__init__(msg)
 
 def promptForFolder():
     """ Prompt the user for a folder path """
