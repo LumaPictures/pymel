@@ -62,8 +62,8 @@ def loadStringResourcesForModule( moduleName ):
     try:
         baseVersionPath = os.path.join( modulePath, resourceFileName )
         execfile( baseVersionPath, {} )
-    except Exception, err:
-        raise RuntimeError( 'Failed to load base string resources for module %s:\n%s' % (moduleName,err))
+    except:
+        raise RuntimeError( 'Failed to load base string resources for module %s' % moduleName )
     
     if cmds.about( uiLanguageIsLocalized=True ):
         scriptPath = cmds.about( localizedResourceLocation=True )
@@ -77,7 +77,7 @@ def loadStringResourcesForModule( moduleName ):
             except IOError:
                 pass
             except Exception, err:
-                raise RuntimeError( 'Error encountered when attempting to load localized string resources for module %s:\n%s' % (moduleName,err))
+                raise RuntimeError( 'Unexpected error encountered when attempting to load localized string resources for module %s: %s' % (moduleName,err) )
 
 def getPossibleCompletions(input):
     """
@@ -272,16 +272,39 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     default printing of exceptions, do the following::
     
         import maya.utils
-        def myExceptCB(etype, value, tb, detail=2):
+        def myExceptCB(etype, value, tb):
             # do something here...
             return maya.utils._formatGuiException(etype, value, tb, detail)
         maya.utils.formatGuiException = myExceptCB
         
     """
-    # This used to use args[0], but this is unreliable - ie,
-    # IOError(2, 'No such file or directory') - instead, just always do
-    # unicode(exception)
+    # originally, this code used
+    #    exceptionMsg = unicode(exceptionObject.args[0])
+    # Unfortunately, the problem with this is that the first arg is NOT always
+    # the string message - ie, witness
+    #    IOError(2, 'No such file or directory', 'non_existant.file')
+    # The next guess would be to simply use
+    #    exceptionMsg = unicode(exceptionObject).strip()
+    # However, there are unfortunately unicode problems with exceptions:
+    #    >>> str(IOError(2, 'foo', 'bar'))
+    #    "[Errno 2] foo: 'bar'"
+    #    >>> unicode(IOError(2, 'foo', 'bar'))
+    #    u"(2, 'foo')"
+    # Note that the unicode version gives the 'wrong' result; unfortunately, we
+    # can't simply rely on str, as maya is a multilingual product that may have
+    # unicode error strings.
+    # The method below seems the most reliable way of getting the 'best' result
+    
     exceptionMsg = unicode(exceptionObject).strip()
+    # format the exception
+    excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
+    # traceback may have failed to decode a unicode exception value
+    # if so, we will swap the unicode back in
+    if len(excLines) > 0:
+        excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
+    
+    # use index of -1 because message may not have a ':'
+    exceptionMsg = excLines[-1].split(':',1)[-1].strip()
     if detail == 0:
         result = exceptionType.__name__ + ': ' + exceptionMsg
     else:
@@ -296,12 +319,6 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
             else:
                 result = exceptionMsg
         else: # detail == 2
-            # format the exception
-            excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
-            # traceback may have failed to decode a unicode exception value
-            # if so, we will swap the unicode back in
-            if len(excLines) > 0:
-                excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
             # format the traceback stack
             tbLines = _decodeStack( traceback.format_list(tbStack) )
             if len(tbStack) > 0:
