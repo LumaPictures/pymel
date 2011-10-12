@@ -115,6 +115,9 @@ def pythonToMelCmd(command, *args, **kwargs):
                 # doing something like '-q 1' will raise an error, just
                 # do '-q' 
                 strFlags.append('-%s' % key)
+            elif (isinstance(val, (tuple, list))
+                    and len(val) == flagInfo.get('numArgs')):
+                strFlags.append('-%s %s' % ( key, ' '.join(pythonToMel(x) for x in val )))
             else:
                 strFlags.append('-%s %s' % ( key, pythonToMel(val) ))
         cmdStr = '%s %s %s' % ( command, ' '.join( strFlags ), ' '.join( strArgs ) )
