@@ -256,7 +256,7 @@ class NodeHierarchyDocParser(HTMLParser):
             rawdata = f.read()
         finally:
             f.close()
-            
+
         if versions.v2011 <= versions.current() < versions.v2012:
             # The maya 2011 doc doesn't parse correctly with HTMLParser - the
             # '< < <' lines get left out.  Use beautiful soup instead.
@@ -372,7 +372,7 @@ class CommandModuleDocParser(HTMLParser):
 class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
-    
+
     def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple):
         version = versions.installName() if version is None else version
         self.apiModule = apiModule
@@ -464,18 +464,18 @@ class ApiDocParser(object):
         if len(enumDict) > 1:
             enumList = enumDict.keys()
             capitalizedRe =  re.compile('([A-Z0-9][a-z0-9]*)')
-            
+
             # We first aim to remove all similar 'camel-case-group' prefixes, ie:
             # if our enums look like:
             #    kFooBar
             #    kFooSomeThing
             #    kFooBunnies
             # we want to get Bar, SomeThing, Bunnies
-            
-            # {'kFooBar':0, 'kFooSomeThing':1} 
+
+            # {'kFooBar':0, 'kFooSomeThing':1}
             #     => [['k', 'Foo', 'Some', 'Thing'], ['k', 'Foo', 'Bar']]
             splitEnums = [ [ y for y in capitalizedRe.split( x ) if y ] for x in enumList ]
-            
+
             # [['k', 'Invalid'], ['k', 'Pre', 'Transform']]
             #     => [('k', 'k'), ('Foo', 'Foo'), ('Some', 'Bar')]
             splitZip = zip( *splitEnums )
@@ -483,8 +483,8 @@ class ApiDocParser(object):
                 if  tuple([partList[0]]*len(partList)) == partList:
                     [ x.pop(0) for x in splitEnums ]
                 else: break
-            # splitEnums == [['Some', 'Thing'], ['Bar']]    
-            
+            # splitEnums == [['Some', 'Thing'], ['Bar']]
+
             joinedEnums = [ util.uncapitalize(''.join(x), preserveAcronymns=True ) for x in splitEnums]
             for i, enum in enumerate(joinedEnums):
                 if _iskeyword(enum):
@@ -515,7 +515,7 @@ class ApiDocParser(object):
                     'uint', 'uint2', 'uint3', 'uint4',
                     'short', 'short2', 'short3', 'short4',
                     'long', 'long2', 'long3',
-                    'MString', 'MStringArray']
+                    'MString', 'MStringArray', 'MStatus']
         notTypes = ['MCallbackId']
 
         if type is None: return type
