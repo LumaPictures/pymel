@@ -109,7 +109,7 @@ def pythonToMelCmd(command, *args, **kwargs):
                 flagInfo = flags[key]
             elif key in shortFlags:
                 flagInfo = flags[shortFlags[key]]
-            if (flagInfo and issubclass(flagInfo.get('args'), bool)
+            if (flagInfo and flagInfo.get('args') == bool
                          and flagInfo.get('numArgs') == 0):
                 # we have a boolean argument that takes no args!
                 # doing something like '-q 1' will raise an error, just
