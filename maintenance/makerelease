@@ -105,7 +105,6 @@ find $mtnc/../extras/ -type f -name '*.pyc' -exec rm {} \;
 
 cd $mtnc/release
 
-VER=$1
 RELEASE=pymel-$1
 echo $RELEASE
 SOURCE=../..
@@ -140,6 +139,12 @@ cp -r $SOURCE/docs/build/1.0 $RELEASE/docs
 
 echo "copying stubs"
 cp -r $SOURCE/extras/completion $RELEASE/extras/completion
+
+echo "adding version info"
+echo "" >> $RELEASE/README
+echo "Release ver: $fullVer" >> $RELEASE/README
+echo "Pymel ver: $baseVer" >> $RELEASE/README
+echo "Git commit: $(git rev-parse HEAD)" >> $RELEASE/README
 
 echo "zipping"
 zip -rq $RELEASE.zip $RELEASE
