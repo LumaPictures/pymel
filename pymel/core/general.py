@@ -108,24 +108,6 @@ def _getPymelType(arg, name) :
 # Docs state 'If there is only a single object specified then the selected objects are parented to that object. '
 # ...but actual behavior is to parent the named object (and any other selected objects) to the last selected object
 
-def about(**kwargs):
-    """
-Modifications:
-  - added apiVersion/_api flag to about command for version 8.5 and 8.5sp1
-    """
-    if kwargs.get('apiVersion', kwargs.get('_api',False)):
-        try:
-            return _about(_api=1)
-        except TypeError:
-            return {
-             '8.5 Service Pack 1': 200701,
-             '8.5': 200700,
-             }[ _about(version=1)]
-
-    return _about(**kwargs)
-
-
-
 #-----------------------
 #  Object Manipulation
 #-----------------------
