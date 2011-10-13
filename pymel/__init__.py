@@ -23,7 +23,7 @@ Attitude Studio, and ImageMovers Digital.
 """
 
 
-__version__ = '1.0.3'
+__version__ = '1.0.4b2'
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 
 import sys
