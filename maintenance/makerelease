@@ -40,6 +40,10 @@
 #   6) run makerelease (this file)
 #           makerelease $PYMEL_VERSION
 
+fullVer=$1
+baseVer=$(python -c "import pymel;import re; print re.split('[a-z]','$1')[0]")
+echo "Release version is $fullVer"
+echo "Release base version is $baseVer"
 
 cd `dirname $0` 
 mtnc=`pwd` 
@@ -53,19 +57,44 @@ fi
 
 
 # run in root of pymel dev
-cd ../ && mayapy -c "import pymel;import re;print 'current version is', pymel.__version__;assert pymel.__version__ == re.split('[a-z]','$1')[0]"
+cd ../ && mayapy -c 'import pymel
+import re
+print "current pymel version is", pymel.__version__
+assert pymel.__version__ == "'"$baseVer"'"'
+
 if [ $? -gt 0 ]; then
-	echo "ERROR: current pymel version is not $1"
+	echo "ERROR: current pymel version is not $baseVer"
 	exit 1
 fi
 
 cd $mtnc
 
 echo "checking completion stubs"
-cd $mtnc/../extras/completion/py && python -c "import pymel;assert pymel.__version__ == '$1'"
+cd $mtnc/../extras/completion/py && python -c 'import re
+import pymel
+print "current stub version is", pymel.__version__
+assert pymel.__version__ == "'"$baseVer"'"'
+
 if [ $? -gt 0 ]; then
 	echo "ERROR: python completion stubs are not working"
 	exit 1
+fi
+
+# clean out git stuff
+
+if [[ $(uname) == "Darwin" ]]
+then
+    myrm ()
+    {
+        rm -rfd "$@"
+    }
+    echo "using OSX rm"
+else
+    myrm ()
+    {
+        rm -rf "$@"
+    }
+    echo "using Linux rm"
 fi
 
 find $mtnc/../extras/ -type f -name '*.pyc' -exec rm {} \;
@@ -84,7 +113,7 @@ SOURCE=../..
 if [ -d $RELEASE ];
 then
 echo "removing existing folder"
-rm -rfd $RELEASE
+myrm $RELEASE
 fi
 
 if [ -f $RELEASE.zip ];
@@ -101,13 +130,12 @@ git clone --shared $SOURCE $RELEASE
 # clean out 2011 stuff til it's released
 #rm $RELEASE/pymel/cache/*2011.*
 
-# clean out git stuff
-rm -rfd $RELEASE/.git*
-rm -rfd $RELEASE/.hg*
-rm -rfd $RELEASE/maintenance
+myrm $RELEASE/.git*
+myrm $RELEASE/.hg*
+myrm $RELEASE/maintenance
 
 echo "copying docs"
-rm -rfd $RELEASE/docs
+myrm $RELEASE/docs
 cp -r $SOURCE/docs/build/1.0 $RELEASE/docs
 
 echo "copying stubs"
