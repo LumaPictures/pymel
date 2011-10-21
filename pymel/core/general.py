@@ -626,7 +626,15 @@ Modifications:
             if queriedArg not in ('q', 'query') and value:
                 break
         if queriedArg in ('dt', 'dataType'):
-            res = res[0]
+            # If the attr is not a dynamic attribute, maya.cmds prints:
+            #    Error: '...' is not a dynamic attribute of node '...'.
+            # ...but does NOT raise an exception
+            # Because it will be more consistent with maya.cmds, and because
+            # attributeType already behaves like this, we will do the same -
+            # allow maya.cmds to print it's error message, and return None, but
+            # not raise an exception  
+            if res is not None: 
+                res = res[0]
         elif queriedArg in ('p', 'parent'):
             node = None
             if args:
