@@ -18,7 +18,7 @@ decorators you should read up on them before using this feature.
             3.  Add optional _preCreate, _create, and _postCreate methods.  For
                 more on these, see below
             4.  Register your subclass by calling
-                factories.registerVirtualClass. If the _isVirtual callback
+                factories.virtualClasses.register. If the _isVirtual callback
                 requires the name of the object, set the keyword argument
                 nameRequired to True. The object's name is not always
                 immediately available and may take an extra calculation to
@@ -84,6 +84,7 @@ decorators you should read up on them before using this feature.
 
 
 from pymel.all import *
+from pymel.internal.factories import virtualClasses
     
 #-------------------------------------------------------------------------------
 
@@ -159,8 +160,8 @@ class JawJoint(CustomJointBase):
         print "%s is munching" % self.name()
 
 # we don't need to register CustomJointBase because it's just an abstract class to help us easily make our other virtual nodes
-factories.registerVirtualClass( LegJoint, nameRequired=False )
-factories.registerVirtualClass( JawJoint, nameRequired=False )
+virtualClasses.register( LegJoint, nameRequired=False )
+virtualClasses.register( JawJoint, nameRequired=False )
    
 def testJoint():
     # make some regular joints
@@ -195,7 +196,7 @@ class Mib_amb_occlusion(Mib_amb_occlusion):
         """
         return True
      
-factories.registerVirtualClass( Mib_amb_occlusion, nameRequired=False )
+virtualClasses.register( Mib_amb_occlusion, nameRequired=False )
     
 
 def testMib():
