@@ -416,10 +416,13 @@ class ApiCache(startup.SubItemCache):
 
     def _mergeClassOverrides(self, bridgeCache=None):
         if bridgeCache is None:
+            print "here1"
             bridgeCache = ApiMelBridgeCache()
             bridgeCache.build()
+            print "here2"
         _util.mergeCascadingDicts( bridgeCache.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
-        
+        print "here3"
+
     def melBridgeContents(self):
         return self._mayaApiMelBridge.contents()
     

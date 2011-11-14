@@ -88,6 +88,7 @@ class CommandDocParser(HTMLParser):
         self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None, 'numArgs': None, 'docstring': '', 'modes': [] }
 
     def addFlagData(self, data):
+        data = data.encode('ascii', 'ignore')
         # Shortname
         if self.iData == 0:
             self.flags[self.currFlag]['shortname'] = data.lstrip('-')
@@ -759,6 +760,7 @@ class ApiDocParser(object):
                         joined = ''.join(data).strip()
 
                         if joined:
+                            joined = joined.encode('ascii', 'ignore')
                             # break apart into index and defaults :  '[3] = NULL'
                             brackets, default = re.search( '([^=]*)(?:\s*=\s*(.*))?', joined ).groups()
 
@@ -789,7 +791,7 @@ class ApiDocParser(object):
                                         elif type in ['float', 'double']:
                                             # '1.0 / 24.0'
                                             if '/' in default:
-                                                default = eval(default.encode('ascii', 'ignore'))
+                                                default = eval(default)
                                             # '1.0e-5F'  --> '1.0e-5'
                                             elif default.endswith('F'):
                                                 default = float(default[:-1])

@@ -67,13 +67,16 @@ def loadApiCache():
     
     global _apiCacheInst
     global _apiMelBridgeCacheInst
-    
+    print "load 1"
     _apiCacheInst = apicache.ApiCache()
     _apiCacheInst.build()
+    print "load 2"
     _apiMelBridgeCacheInst = apicache.ApiMelBridgeCache()
+    print "load 3"
     _apiMelBridgeCacheInst.build()
+    print "load 4"
     _setApiCacheGlobals()
-    
+    print "load 5"
     _elapsed = time.time() - _start
     _logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
     

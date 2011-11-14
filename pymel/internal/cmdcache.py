@@ -377,7 +377,7 @@ def fixCodeExamples(style='maya', force=False):
     allCmds = set(examples.keys())
     # put commands that require manual interaction first
     manualCmds = ['fileBrowserDialog', 'fileDialog', 'fileDialog2', 'fontDialog']
-    skipCmds = ['colorEditor', 'emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor', 'ogsRender', 'webBrowser']
+    skipCmds = ['colorEditor', 'emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor', 'ogsRender', 'webBrowser', 'deleteAttrPattern']
     allCmds.difference_update(manualCmds)
     sortedCmds = manualCmds + sorted(allCmds)
     for command in sortedCmds:
@@ -502,6 +502,7 @@ def fixCodeExamples(style='maya', force=False):
     _logger.info("Done Fixing Examples")
 
     # restore manipulators and anim options
+    print manipOptions
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
 
@@ -1006,13 +1007,17 @@ def _getNodeHierarchy( version=None ):
                 if i == 0:
                     if child == 'dependNode':
                         continue
+                    # FIXME: this is a hack because something may be wrong with the file node.  
+                    # all other nodes that inherit from 'texture2d' identify its parent as 'shadingDependNode'
+                    elif nodeType == 'file':
+                        parent = 'shadingDependNode'
                     else:
                         parent = 'dependNode'
                 else:
                     parent = inheritance[i - 1]
                 
                 if child in parentTree:
-                    assert parentTree[child] == parent
+                    assert parentTree[child] == parent, "conflicting parents: node type '%s' previously determined parent was '%s'. now '%s'" % (child, parentTree[child], parent)
                 else:
                     parentTree[child] = parent
         nodeHierarchyTree = trees.treeFromDict(parentTree)

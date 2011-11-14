@@ -28,7 +28,9 @@ else:
 
 version = pymel.__version__.rsplit('.',1)[0]
 SOURCE = 'source'
-BUILD = 'build/' + version
+BUILD = os.path.join('build', version)
+
+from pymel.internal.cmdcache import fixCodeExamples
 
 def generate():
     from sphinx.ext.autosummary.generate import main

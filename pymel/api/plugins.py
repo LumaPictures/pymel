@@ -576,7 +576,7 @@ def loadAllMayaPlugins():
         except RuntimeError: pass
     logger.debug("...done loading all maya plugins")
 
-def unloadAllPlugins(skipErrors=False):
+def unloadAllPlugins(skipErrors=False, exclude=('DirectConnect',)):
     import logging
     logger = logging.getLogger('pymel')
     
@@ -589,6 +589,8 @@ def unloadAllPlugins(skipErrors=False):
         # ...but if we do one at a time, we can at least get debugging info
         # on which one crashed...
         for plug in loadedPlugins:
+            if plug in exclude:
+                continue
             logger.debug("...unloading: %s" % plug)
             try:
                 maya.cmds.unloadPlugin(plug, force=True)
