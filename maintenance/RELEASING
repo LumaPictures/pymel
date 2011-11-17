@@ -4,23 +4,17 @@ Building an Official PyMEL Release
 
 Before proceeding, install the necessary third party modules
 
-  - setuptools and easy_install. from the base pymel directory, run:
+  - setuptools and easy_install. from the base pymel directory:
 
+# you need write access to maya install directory for this to work 
 # downloads setuptools
-sudo mayapy -c "import ez_setup; ez_setup.use_setuptools(); import setuptools.command.easy_install"
-# setuptools is hardwired to look for its version of python on PATH
-sudo ln -s `which mayapy` `dirname "$(which mayapy)"`/python2.6
-# replace with whichever version of setuptools it downloads
-sudo sh setuptools-0.6c9-py2.6.egg
-sudo rm `dirname "$(which mayapy)"`/python2.6
-
-  - nose:
-
-        sudo mayapy `which easy_install` nose
-
-  - sphinx:
-
-        sudo mayapy `which easy_install` sphinx
+mayapy -c "import ez_setup; ez_setup.use_setuptools(); import setuptools.command.easy_install"
+# setuptools is hardwired to look for "python2.6" on PATH
+ln -s `which mayapy` `dirname "$(which mayapy)"`/python2.6
+sh setuptools-*-py2.6.egg
+rm `dirname "$(which mayapy)"`/python2.6
+mayapy `which easy_install` nose
+mayapy `which easy_install` sphinx
 
 
 1) Build cache(s)
@@ -71,6 +65,7 @@ maintenance.stubs.pymelstubs()
      
 python -c "import maintenance.stubs; maintenance.stubs.stubstest('/Volumes/sv-dev01/devRepo/paulm/pymel/extras/completion/py')"
 
+
 4) changelog
 ------------
 
@@ -81,13 +76,19 @@ python -c "import maintenance.stubs; maintenance.stubs.stubstest('/Volumes/sv-de
   - copy results from resulting maintenance/CHANGELOG file to CHANGELOG.rst
     edit as necessary
 
+
 5) build docs 
 -------------
 
-(? - ask chad about this... probably execute docs.py in this 
-                 folder?)
+  - from a clean/default environment maya gui, run:
+
+import maintenance.docs as docs
+docs.generate()
+docs.build()
+
 
 6) run makerelease
 ------------------
 
         makerelease $PYMEL_VERSION
+

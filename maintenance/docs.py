@@ -1,7 +1,6 @@
 import sys
-#assert 'pymel' not in sys.modules, "in order to generate docs properly pymel cannot
 import os, glob, shutil
-
+assert 'pymel' not in sys.modules or 'PYMEL_INCLUDE_EXAMPLES' in os.environ, "to generate docs PYMEL_INCLUDE_EXAMPLES env var must be set before pymel is imported"
 
 # remember, the processed command examples are not version specific. you must
 # run cmdcache.fixCodeExamples() to bring processed examples in from the raw
@@ -37,7 +36,7 @@ def generate():
 
     os.chdir( os.path.join(docsdir) )
     if os.path.exists(BUILD):
-        print "removing", os.path.join(docsdir,BUILD)
+        print "removing", os.path.join(docsdir, BUILD)
         shutil.rmtree(BUILD)
 
     os.chdir( os.path.join(docsdir,SOURCE) )
@@ -77,12 +76,17 @@ def build(clean=True,  **kwargs):
     # set some defaults
     if 'graphviz_dot' not in kwargs:
         if os.name == 'posix':
-            dot = '/usr/local/bin/dot'
+            dots = ['/usr/local/bin/dot', '/usr/bin/dot']
         else:
-            dot = 'C:\\graphviz\\bin\\dot.exe'
-        if not os.path.exists(dot):
-            raise TypeError( 'cannot find graphiz dot executable' )
-        kwargs['graphviz_dot'] = dot   
+            dots = ['C:\\graphviz\\bin\\dot.exe']
+        dot = None
+        for d in dots:
+            if os.path.exists(d):
+                dot = d
+                break
+        if not dot:
+            raise TypeError( 'cannot find graphiz dot executable in the following locations: %s' % ', '.join(dots) )
+        kwargs['graphviz_dot'] = dot
     
     for key, value in kwargs.iteritems():
         opts.append('-D')

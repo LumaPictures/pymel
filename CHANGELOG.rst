@@ -1,4 +1,65 @@
 ==================================
+Version 1.0.4
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+
+- uitypes: improved AETemplates to work when created from within a scripted plugin
+- mel2py will now output exact same filename as input on Windows. 
+- nodetypes: Transform.getRotation  - can get as euler or quaternion
+- edited path.canonicalpath to now take a bool parameter normcase=True.  If set to False abspath().realpath().normpath() is executed.  If set to True it returns abspath().realpath().normpath().normcase().
+- util.path: keep canonicalpath canonical; added truepath for absnormrealpath
+- improved reliability of stub files (for pydev, wing, etc) 
+- general: doing select([], replace=True) should clear selection
+- allapi: replace toMObjectName with MObjectName
+- core.general: namespace - root option should be False (for backward compatibility)
+- general: MeshVertex.setColors - set colors for all verts in MeshVertex
+- re-implement noIntermediate flag to listRelatives
+- plogging: PYMEL_LOGLEVEL env var now sets minimum level for all pymel loggers
+- core: use new 2012 pluginInfo flags for getting more command types
+- windows: PopupError can now raise another exception type
+- general: removed "about" modification (only applied to 8.5 and caused probs in later versions)
+- update customClasses.py example
+
+----------------------------------
+Additions
+----------------------------------
+
+- plugins: added methods for querying all MPx classes / MPx to MPx enum mappings
+- plugins: added in classes for all MPxNode classes
+- versions: added maya2012 hotfix 1,2,3,4
+- added Attribute.setDirty / evaluate
+- DependNode.rename() now supports pyMel unique flag preserveNamespace
+- added check to ensure name passed to DependNode.rename is shortname
+- implemented DependNode.rename() flags: i.e. ignoreShape can now be used
+- added new overridable methods which generate node callbacks:  timeChagned, forcedUpdate, nodeAdded, nodeRemoved, preConnectionMade
+- added Layout.findChild() which takes the shortname of a child as a string and returns the PyUI object
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- mayautils: fix so recurseMayaScriptPath, when given explicit roots, doesn't wipe out old paths
+- fixed bug where __pymelUndoNode was created in non root namespace
+- pymelScrollFieldReporter: use mel2py.melparse (issue 247)
+- fixed FileReference.importContents(removeNamespace=True)
+- core _pluginLoaded callback now correctly triggered by importing
+- windows:  fix promptForPath doesn't work for mode 1/100 due to testing for the existance of the path.
+- nodetypes: fix for DependNode.rename(preserveNamespace=True) when node in root namespace
+- nodetypes: fixed bug with RenderLayer.add/removeAdjustments
+- nodetypes: fix for DagNode.getAllParents (and test)
+- nodetypes: fix for DependNode.hasAttr(checkShape=False)
+- nodetypes: fix for AnimCurve.addKeys (issue 234)
+- startup: fix for error message when fail to import maya.cmds.about
+- general: fixed addAttr(q=1, dataType=1) so it does not error if non-dynamic attr
+- language: pythonToMelCmd - fix bug when flagInfo['args'] was not a class
+- language: pythonToMelCmd - fix for flags where numArgs > 1
+- maya/utils.py: formatGuiException - fix for, ie, IOError / OSError
+- updated 2012 caches to fix issue 243
+
+==================================
 Version 1.0.3
 ==================================
 
