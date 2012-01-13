@@ -34,7 +34,7 @@ def mayaIsRunning():
 
 def mayaDocsLocation(version=None):
     docLocation = None
-    if (version == None or version == versions.installName() ) and mayaIsRunning():
+    if (version is None or version == versions.installName() ) and mayaIsRunning():
         # Return the doc location for the running version of maya
         from maya.cmds import showHelp
         docLocation = showHelp("", q=True, docs=True)
@@ -375,10 +375,10 @@ class ApiDocParser(object):
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
 
     def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple):
-        version = versions.installName() if version is None else version
+        self.version = versions.installName() if version is None else version
         self.apiModule = apiModule
         self.verbose = verbose
-        self.docloc = mayaDocsLocation('2009' if version=='2008' else version)
+        self.docloc = mayaDocsLocation('2009' if self.version=='2008' else self.version)
         self.enumClass = enumClass
         if not os.path.isdir(self.docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
@@ -606,7 +606,7 @@ class ApiDocParser(object):
         for paramtype in proto.findAll( 'td', **{'class':'paramtype'} ) :
             buf = []
             [ buf.extend(x.split()) for x in paramtype.findAll( text=True ) ] #if x.strip() not in ['', '*', '&', 'const', 'unsigned'] ]
-            buf = [ str(x.strip()) for x in buf if x.strip() ]
+            buf = [ x.strip().encode('ascii', 'ignore') for x in buf if x.strip() ]
 
             i=0
             for i, each in enumerate(buf):
@@ -631,7 +631,7 @@ class ApiDocParser(object):
         # ARGUMENT NAMES
         i = 0
         for paramname in  proto.findAll( 'td', **{'class':'paramname'} )  :
-            buf = [ x.strip() for x in paramname.findAll( text=True ) if x.strip() not in['',','] ]
+            buf = [ x.strip().encode('ascii', 'ignore') for x in paramname.findAll( text=True ) if x.strip() not in['',','] ]
             if not buf: continue
             argname = buf[0]
             data = buf[1:]
@@ -690,6 +690,7 @@ class ApiDocParser(object):
             typeQualifiers[argname] = qualifiers
             names.append(argname)
             i+=1
+        assert sorted(names) == sorted(types.keys()), 'name-type mismatch %s %s' %  (sorted(names), sorted(types.keys()) )
         return names, types, typeQualifiers, defaults
 
     def parseEnums(self, proto):
@@ -750,55 +751,74 @@ class ApiDocParser(object):
             deprecated = True
 
 
-        methodDoc = ' '.join( addendum.p.findAll( text=True ) )
+        methodDoc = ' '.join( addendum.p.findAll( text=True ) ).encode('ascii', 'ignore')
 
         tmpDirs = []
         tmpNames = []
         tmpDocs = []
 
         #extraInfo = addendum.dl.table
-        if self.version and int(self.version) < 2013:
+        if self.version and int(self.version.split('-')[0]) < 2013:
             extraInfos = addendum.findAll('table')
         else:
-            extraInfos = addendum.findAll(lambda tag: tag.name == 'table' and ('class', 'params') in tag.attrs)
+            #extraInfos = addendum.findAll(lambda tag: tag.name == 'table' and ('class', 'params') in tag.attrs)
+            extraInfos = addendum.findAll(lambda tag: tag.name == 'dl' and ('class', 'return') not in tag.attrs and ('class', 'user') not in tag.attrs)
         if extraInfos:
             #print "NUMBER OF TABLES", len(extraInfos)
-            extraInfo = extraInfos[0]
-            if self.version and int(self.version) < 2013:
+            if self.version and int(self.version.split('-')[0]) < 2013:
+                extraInfo = extraInfos[0]
                 tmpDirs += extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
                 #tmpNames += [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
                 for tr in extraInfo.findAll( 'tr'):
                     assert tr, "could not find name tr"
                     td = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramname') in tag.attrs)
-                    assert tr, "could not find name em"
+                    assert td, "could not find name t"
                     name = td.findAll( text=True, limit=1 )[0]
                     tmpNames.append(name)
-            else: 
-                for tr in extraInfo.findAll( 'tr'):
-                    assert tr, "could not find name tr"
-                    td = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramname') in tag.attrs)
-                    assert td, "could not find name td"
-                    name = td.findAll( text=True, limit=1 )[0]
-                    tmpNames.append(name)
-                    td = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramdir') in tag.attrs)
-                    assert td, "could not find name td"
-                    name = td.findAll( text=True, limit=1 )[0]
-                    tmpDirs.append(name)
+                tds = extraInfo.findAll( lambda tag: tag.name == 'td' and not any([item for item in tag.attrs if 'class' in item]) )
+                for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in tds]:
+                    tmpDocs.append( ''.join(doc) )
+                if not tmpDocs:
+                    tmpDocs = [''] * len(tmpDirs)
+            else:
+                for extraInfo in extraInfos:
+                    for tr in extraInfo.findAll( 'tr'):
+                        assert tr, "could not find name tr"
+                        tds = tr.findAll(lambda tag: tag.name == 'td')
+                        assert tds, "could not find name td"
+                        assert len(tds) == 3, "td list is unexpected length: %d" % len(tds)
+    
+                        tt = tds[0].findNext(lambda tag: tag.name == 'tt')
+                        dir = tt.findAll( text=True, limit=1 )[0]
+                        tmpDirs.append(dir.encode('ascii', 'ignore'))
+    
+                        name = tds[1].findAll( text=True, limit=1 )[0]
+                        tmpNames.append(name.encode('ascii', 'ignore'))
+                        
+                        doc = ''.join(tds[2].findAll( text=True))
+                        tmpDocs.append(doc.encode('ascii', 'ignore'))
+
+#                print "here2"
+#                for tr in extraInfo.findAll( 'tr'):
+#                    assert tr, "could not find name tr"
+#                    tdName = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramname') in tag.attrs)
+#                    assert tdName, "could not find name td"
+#                    name = tdName.findAll( text=True, limit=1 )[0]
+#                    tmpNames.append(name)
+#
+#                    tdDir = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramdir') in tag.attrs)
+#                    assert tdDir, "could not find direction td"
+#                    name = tdDir.findAll( text=True, limit=1 )[0]
+#                    tmpDirs.append(name)
 
 #                            for td in extraInfo.findAll( 'td' ):
 #                                assert td, "could not find doc td"
 #                                for doc in td.findAll( text=lambda text: text.strip(), recursive=False) :
 #                                    if doc: tmpDocs.append( ''.join(doc) )
-            tds = extraInfo.findAll( lambda tag: tag.name == 'td' and not any([item for item in tag.attrs if 'class' in item]) )
-            for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in tds]:
-                tmpDocs.append( ''.join(doc) )
-            if not tmpDocs:
-                tmpDocs = [''] * len(tmpDirs)
 
             assert len(tmpDirs) == len(tmpNames) == len(tmpDocs), \
                 'names, types, and docs are of unequal lengths: %s vs. %s vs. %s' % (tmpDirs, tmpNames, tmpDocs)
-            assert sorted(tmpNames) == sorted(typeQualifiers.keys()), 'name list mismatch %s %s' %  (sorted(tmpNames), sorted(typeQualifiers.keys()) )
-
+            assert sorted(tmpNames) == sorted(typeQualifiers.keys()), 'name-typeQualifiers mismatch %s %s' %  (sorted(tmpNames), sorted(typeQualifiers.keys()) )
             #self.xprint(  sorted(tmpNames), sorted(typeQualifiers.keys()), sorted(typeQualifiers.keys()) )
 
             for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs) :
@@ -840,14 +860,15 @@ class ApiDocParser(object):
                     pass
                 else:
                     if returnDocBuf:
-                        returnDoc = ''.join( returnDocBuf[1:] ).replace('\n\r', ' ').replace('\n', ' ')
+                        returnDoc = ''.join( returnDocBuf[1:] ).replace('\n\r', ' ').replace('\n', ' ').encode('ascii', 'ignore')
                     self.xprint(  'RETURN_DOC', repr(returnDoc)  )
+        #assert len(names) == len(directions), "name lenght mismatch: %s %s" % (sorted(names), sorted(directions.keys()))
         return directions, docs, methodDoc, returnDoc, deprecated
 
     def getMethodNameAndOutput(self, proto):
         # NAME AND RETURN TYPE
         memb = proto.findAll( 'td', **{'class':'memname'} )[0]
-        buf = [ x.strip() for x in memb.findAll( text=True )]
+        buf = [ x.strip().encode('ascii', 'ignore') for x in memb.findAll( text=True )]
         if len(buf) ==1:
             buf = [ x for x in buf[0].split() if x not in ['const', 'unsigned'] ]
             if len(buf)==1:
@@ -911,7 +932,8 @@ class ApiDocParser(object):
             if methodName is None: continue
             # convert to unicode
             self.currentMethod = str(methodName)
-
+            if self.currentMethod == 'void(*':
+                continue
             # ENUMS
             if returnType == 'enum':
                 self.xprint( "ENUM", returnType)
@@ -968,7 +990,10 @@ class ApiDocParser(object):
                 
                 for argname in names[:] :
                     type = types[argname]
-                    direction = directions.get(argname, 'in')
+                    if argname not in directions:
+                        self.xprint("Warning: assuming direction is 'in'")
+                        directions[argname] = 'in'
+                    direction = directions[argname]
                     doc = docs.get( argname, '')
 
                     if type == 'MStatus':
@@ -1001,7 +1026,8 @@ class ApiDocParser(object):
                 # now that the directions are correct, make the argList
                 for argname in names:
                     type = types[argname]
-                    direction = directions.get(argname, 'in')
+                    self.xprint( "DIRECTIONS", directions )
+                    direction = directions[argname]
                     data = ( argname, type, direction)
                     self.xprint( "ARG", data )
                     argList.append(  data )
