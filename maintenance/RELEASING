@@ -53,9 +53,9 @@ import maintenance.stubs
 reload(maintenance.stubs)
 maintenance.stubs.pymelstubs()
 
-  - test stubs - ie, from shell, do::
+  - test stubs - ie, from shell in the pymel directory, do::
      
-python -c "import maintenance.stubs; maintenance.stubs.stubstest('/Volumes/sv-dev01/devRepo/paulm/pymel/extras/completion/py')"
+python -c "import maintenance.stubs; maintenance.stubs.stubstest('./extras/completion/py')"
 
 
 4) changelog
@@ -82,5 +82,5 @@ docs.build()
 6) run makerelease
 ------------------
 
-        makerelease $PYMEL_VERSION
+./maintenance/makerelease $PYMEL_VERSION
 

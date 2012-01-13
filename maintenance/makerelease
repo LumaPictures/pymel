@@ -1,44 +1,6 @@
 #!/bin/bash
 
-# For a release:
-#   1) Build cache(s)
-#       make sure environment is clean (default user prefs, etc) except
-#           possibly for adding custom pymel into path...
-#       delete existing cache for version you wish to rebuild
-#       start GUI version of maya you wish to rebuild
-#       in script editor, run following, substituting location of your dev
-#       version of pymel:
-#           import sys
-#           pymelPath = r'C:\Dev\Projects\eclipse\workspace\pymelProject\pymel'   # ...or wherever YOUR pymel version is installed
-#           if sys.path[0] != pymelPath:
-#               sys.path.insert(0, pymelPath)
-#           import pymel.core as pm
-#       building of api cache loads plugins, then building of cmd cache
-#           unloads them... unfortunately, some of the built in plugins may not
-#           unload cleanly, resulting in an error; therefore, may be necessary
-#           to run the above steps twice (once to build api cache, once for
-#           cmd cache) 
-#   2) Run tests
-#          cd into tests directory
-#          ./pymel_test.py
-#              OR, if on linux/mac,
-#          ./pymel_test_output.bash
-#   3) build stubs
-#      from a clean/default environment maya gui, run:
-#          import maintenance.stubs
-#          reload(maintenance.stubs)
-#          maintenance.stubs.pymelstubs()
-#      test stubs - ie, from shell, do:
-#          python -c "import maintenance.stubs; maintenance.stubs.stubstest('/Volumes/sv-dev01/devRepo/paulm/pymel/extras/completion/py')"
-#   4) changelog
-#      run changelog script in this folder
-#           changelog $PREVIOUS_PYMEL_VERSION $CURRENT_REVISION
-#      copy results from resulting maintenance/CHANGELOG file to CHANGELOG.rst
-#      edit as necessary
-#   5) build docs (? - ask chad about this... probably execute docs.py in this 
-#                  folder?)
-#   6) run makerelease (this file)
-#           makerelease $PYMEL_VERSION
+# For steps required to make a proper release see RELEASING in this directory
 
 fullVer=$1
 baseVer=$(python -c "import pymel;import re; print re.split('[a-z]','$1')[0]")
