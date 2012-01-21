@@ -207,17 +207,32 @@ Maya Bug Fix:
     else:
         cmds.connectAttr( source, destination, **kwargs )
 
-def disconnectAttr( source, destination=None, **kwargs ):
+def disconnectAttr( source, destination=None, inputs=None, outputs=None,
+                    **kwargs ):
     """
 Modifications:
-  - If no destination is passed, all inputs and outputs will be disconnected from the attribute
+  - If no destination is passed, then all inputs will be disconnected if inputs
+      is True, and all outputs will be disconnected if outputs is True; if
+      neither are given (or both are None), both all inputs and all outputs
+      will be disconnected
     """
 
     if destination:
+        if inputs:
+            raise ValueError('inputs/outputs flags may not be used in combination with a destination')
         cmds.disconnectAttr( source, destination, **kwargs )
     else:
-        # if disconnectingInputs, we're disconnecting inputs; otherwise, we're disconnecting outputs
-        for disconnectingInputs in (True, False):
+        disconnectionDirs = []
+        if inputs is None and outputs is None:
+            inputs = True
+            outputs = True
+        if inputs:
+            disconnectionDirs.append('inputs')
+        if outputs:
+            disconnectionDirs.append('outputs')
+            
+        for disconnectDir in disconnectionDirs:
+            disconnectingInputs = (disconnectDir == 'inputs')
             connections = cmds.listConnections(source,
                                                source=disconnectingInputs,
                                                destination=(not disconnectingInputs),
