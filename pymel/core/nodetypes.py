@@ -80,17 +80,20 @@ class DependNode( general.PyNode ):
         self._name = self.__apimfn__().name()
         return self._name
 
-    def name(self, update=True) :
+    def name(self, update=True, stripNamespace=False) :
         """
         :rtype: `unicode`
         """
 
         if update or self._name is None:
             try:
-                return self._updateName()
+                self._updateName()
             except general.MayaObjectError:
                 _logger.warn( "object %s no longer exists" % self._name )
-        return self._name
+        name = self._name
+        if stripNamespace:
+            name = name.rsplit(':', 1)[-1]
+        return name
 
     def shortName(self):
         """
@@ -110,14 +113,14 @@ class DependNode( general.PyNode ):
         """
         return self.name()
 
-    def nodeName(self):
+    def nodeName(self, **kwargs):
         """
         This produces the same results as `DependNode.name` and is included to simplify looping over lists
         of nodes that include both Dag and Depend nodes.
 
         :rtype: `unicode`
         """
-        return self.name()
+        return self.name(**kwargs)
 
     #rename = rename
     def rename( self, name, **kwargs ):
