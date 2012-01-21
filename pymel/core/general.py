@@ -4364,6 +4364,9 @@ class ContinuousComponent( DimensionedComponent ):
 
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1
+    
+    def index(self):
+        return self.indices()[0]
 
 class Component2DFloat( ContinuousComponent ):
     dimensions = 2
@@ -4372,6 +4375,9 @@ class Component1D( DiscreteComponent ):
     _mfncompclass = _api.MFnSingleIndexedComponent
     _apienum__ = _api.MFn.kSingleIndexedComponent
     dimensions = 1
+
+    def index(self):
+        return self.indices()[0]
 
     @staticmethod
     def _sequenceToComponentSlice( array ):
