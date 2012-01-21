@@ -4720,6 +4720,7 @@ class MeshFace( MItComponent1D ):
             return self.isConnectedToVertex( component.currentItemIndex() )
 
         raise TypeError, 'type %s is not supported' % type(component)
+MeshFace.numVertices = MeshFace.polygonVertexCount
 
 class MeshUV( Component1D ):
     _ComponentLabel__ = "map"
