@@ -135,6 +135,32 @@ Modifications:
     _factories.apiUndo.flushUndo()
     return cmds.flushUndo()
 
+class UndoChunk(object):
+    '''Context manager for encapsulating code in a single undo.
+    
+    Use in a with statement
+    Wrapper for cmds.undoInfo(openChunk=1)/cmds.undoInfo(closeChunk=1)
+    
+    >>> import pymel.core as pm
+    >>> pm.ls("MyNode*", type='transform')
+    []
+    >>> with pm.UndoChunk():
+    ...     res = pm.createNode('transform', name="MyNode1")
+    ...     res = pm.createNode('transform', name="MyNode2")
+    ...     res = pm.createNode('transform', name="MyNode3")
+    >>> pm.ls("MyNode*", type='transform')
+    [nt.Transform(u'MyNode1'), nt.Transform(u'MyNode2'), nt.Transform(u'MyNode3')]
+    >>> pm.undo() # Due to the undo chunk, all three are undone at once
+    >>> pm.ls("MyNode*", type='transform')
+    []
+    '''
+    def __enter__(self):
+        cmds.undoInfo(openChunk=1)
+        return self
+        
+    def __exit__(*args, **kwargs):
+        cmds.undoInfo(closeChunk=1)
+
 #===============================================================================
 # Namespace
 #===============================================================================
