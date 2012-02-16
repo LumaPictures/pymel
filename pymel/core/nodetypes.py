@@ -2776,9 +2776,9 @@ class ObjectSet(Entity):
     def __getitem__(self, index):
         return self.asSelectionSet()[index]
 
-    def __len__(self, s):
+    def __len__(self):
         """:rtype: `int`"""
-        return len(self.asSelectionSet())
+        return cmds.sets(self, q=1, size=1)
 
 
     #def __eq__(self, s):

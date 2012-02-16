@@ -1762,7 +1762,7 @@ class testCase_sets(TestCaseExtended):
     
     def test_ObjectSet_mixedObjectsComponents(self):
         self.assertSetSelect(ObjectSet, self.cube.edges[4:6], self.sphere)
-    
+
     def test_SelectionSet_singleObject(self):
         self.assertSetSelect(SelectionSet, self.cube)
         
@@ -1777,6 +1777,24 @@ class testCase_sets(TestCaseExtended):
 
     def test_SelectionSet_nestedSets(self):
         self.assertSetSelect(SelectionSet, self.set)
+        
+    def test_ObjectSet_len(self):
+        mySet = sets(name='mySet', empty=True)
+        self.assertEqual(len(mySet), 0)
+        mySet.add('persp')
+        self.assertEqual(len(mySet), 1)
+        mySet.add('perspShape')
+        self.assertEqual(len(mySet), 2)
+    
+    def test_SelectionSet_len(self):
+        mySet = SelectionSet([])
+        self.assertEqual(len(mySet), 0)
+        mySet.add('persp')
+        self.assertEqual(len(mySet), 1)
+        mySet.add('perspShape')
+        self.assertEqual(len(mySet), 2)
+        
+
         
 #class testCase_0_7_compatabilityMode(unittest.TestCase):
 #    # Just used to define a value that we know won't be stored in
