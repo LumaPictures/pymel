@@ -138,8 +138,15 @@ class PyUI(unicode):
                 except RuntimeError:
                     # we cannot query the type of rowGroupLayout children: check common types for these
                     uiType = None
-                    for control in 'checkBox floatField button floatSlider intSlider ' \
-                            'floatField textField intField optionMenu radioButton'.split():
+                    typesToCheck = 'checkBox floatField button floatSlider intSlider ' \
+                            'floatField textField intField optionMenu radioButton'.split()
+                    if _versions.current() >= _versions.v2012_SP2:
+                        # 2012 SP2 introducted a bug where doing:
+                        # win = cmds.window(menuBar=True)
+                        # cmds.objectTypeUI(win)
+                        # would error...
+                        typesToCheck.append('window')
+                    for control in typesToCheck:
                         if getattr(cmds, control)( name, ex=1, q=1):
                             uiType = control
                             break
@@ -557,6 +564,12 @@ class Menu(PyUI):
             parent = self
             while True:
                 parent = parent.parent()
+                # Maya 2012 Service Pack 2 (or SAP1, SP1) introduces a bug where
+                # '' is returned, instead of None; problem being that doing
+                # cmds.setParent(None, menu=True) is valid, but
+                # cmds.setParent('', menu=True) is not
+                if parent == '':
+                    parent = None
                 try:
                     cmds.setParent(parent, menu=True)
                 except RuntimeError:
