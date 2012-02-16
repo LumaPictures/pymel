@@ -223,6 +223,8 @@ class PyUI(unicode):
             # pre-2011, windows with menus can have a strange name:
             # ex.  window1|window1|menu1
             buf = buf[:1]
+        if not buf:
+            return None
         return PyUI( '|'.join(buf) )
     getParent = parent
 
