@@ -1829,7 +1829,7 @@ class Constraint(Transform):
         args = list(targetObjects) + [constraintObj]
         return inFunc(  *args, **{'query':True, 'weight':True} )
 
-class GeometryShape(DagNode):
+class GeometryShape(Shape):
     def __getattr__(self, attr):
         #print "Mesh.__getattr__", attr
         try:
@@ -3028,6 +3028,27 @@ class ShadingEngine(ObjectSet):
                 raise TypeError("%s has no shape, and %s objects cannot contain Transforms" % (itemStr, cls.__name__))
         else:
             return super(ShadingEngine, cls)._getApiObjs(item, tryCast=tryCast)
+
+class AnimLayer(ObjectSet):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    
+    def getAttribute(self):
+        '''Retrieve the attributes animated on this AnimLayer
+        '''
+        # Unfortunately, cmds.animLayer('MyAnimLayer', q=1, attribute=1)
+        # returns none unique attribute names, ie, 
+        #   MyNode.myAttr
+        # even if there are foo|MyNode and bar|MyNode in the scene, and there
+        # doesn't seem to be a flag to tell it to give unique / full paths.
+        # Therefore, query it ourselves, by gettin inputs to dagSetMembers.
+        # Testing has shown that animLayers only use dagSetMembers, and never
+        # dnSetMembers - if you add a non-dag node to an animLayer, it makes
+        # a connection to dagSetMembers; and even if you manually make a connection
+        # to dnSetMembers, those connections don't seem to show up in
+        # animLayer(q=1, attribute=1) 
+        return self.attr('dagSetMembers').inputs(plugs=1)
+    
+    getAttributes = getAttribute
 
 class AnimCurve(DependNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
