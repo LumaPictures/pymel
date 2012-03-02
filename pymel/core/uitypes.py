@@ -114,6 +114,36 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QAction)
+
+# really, this should be in core.windows; but, due to that fact that this module
+# is "higher" in the import hierarchy than core.windows, and we need this function
+# here, we're just defining it here
+@_factories.addMelDocs( 'objectTypeUI' )
+def objectTypeUI(name, **kwargs):
+    try:
+        return cmds.objectTypeUI(name, **kwargs)
+    except RuntimeError, topError:
+        try:
+            # some ui types (radioCollections) can only be identified with their shortname
+            return cmds.objectTypeUI(name.split('|')[-1], **kwargs)
+        except RuntimeError:
+            # we cannot query the type of rowGroupLayout children: check common types for these
+            uiType = None
+            typesToCheck = 'checkBox floatField button floatSlider intSlider ' \
+                    'floatField textField intField optionMenu radioButton'.split()
+            if _versions.current() >= _versions.v2012_SP2:
+                # 2012 SP2 introducted a bug where doing:
+                # win = cmds.window(menuBar=True)
+                # cmds.objectTypeUI(win)
+                # would error...
+                typesToCheck.append('window')
+            for cmdName in typesToCheck:
+                if getattr(cmds, cmdName)( name, ex=1, q=1):
+                    uiType = cmdName
+                    break
+            if uiType:
+                return uiType
+            raise topError
         
 class PyUI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
@@ -128,30 +158,11 @@ class PyUI(unicode):
 
         if cls is PyUI:
             try:
-                uiType = cmds.objectTypeUI(name)
-                uiType = _uiTypesToCommands.get(uiType, uiType)
+                uiType = objectTypeUI(name)
             except RuntimeError:
-                try:
-                    # some ui types (radioCollections) can only be identified with their shortname
-                    uiType = cmds.objectTypeUI(name.split('|')[-1])
-                    uiType = _uiTypesToCommands.get(uiType, uiType)
-                except RuntimeError:
-                    # we cannot query the type of rowGroupLayout children: check common types for these
-                    uiType = None
-                    typesToCheck = 'checkBox floatField button floatSlider intSlider ' \
-                            'floatField textField intField optionMenu radioButton'.split()
-                    if _versions.current() >= _versions.v2012_SP2:
-                        # 2012 SP2 introducted a bug where doing:
-                        # win = cmds.window(menuBar=True)
-                        # cmds.objectTypeUI(win)
-                        # would error...
-                        typesToCheck.append('window')
-                    for control in typesToCheck:
-                        if getattr(cmds, control)( name, ex=1, q=1):
-                            uiType = control
-                            break
-                    if not uiType:
-                        uiType = 'PyUI'
+                uiType = 'PyUI'
+            uiType =  _uiTypesToCommands.get(uiType, uiType)
+
             try:
                 newcls = getattr(dynModule, _util.capitalize(uiType) )
             except AttributeError:
@@ -228,12 +239,6 @@ class PyUI(unicode):
         return PyUI( '|'.join(buf) )
     getParent = parent
 
-    def type(self):
-        try:
-            return cmds.objectTypeUI(self)
-        except:
-            return None
-
     def shortName(self):
         return unicode(self).split('|')[-1]
     def name(self):
@@ -243,7 +248,7 @@ class PyUI(unicode):
 
     delete = _factories.functionFactory( 'deleteUI', rename='delete' )
     rename = _factories.functionFactory( 'renameUI', rename='rename' )
-    type = _factories.functionFactory( 'objectTypeUI', rename='type' )
+    type = objectTypeUI
 
     @classmethod
     def exists(cls, name):
@@ -276,7 +281,7 @@ class Layout(PyUI):
             parent = _withParentStack[-1]
         else:
             parent = self.pop()
-            while parent and cmds.objectTypeUI(parent) == u'rowGroupLayout':
+            while parent and objectTypeUI(parent) == u'rowGroupLayout':
                 parent = parent.pop()
         cmds.setParent(parent)
 
@@ -654,7 +659,7 @@ def MenuItem(name=None, create=False, **kwargs):
         cls = CommandMenuItem
     else:
         try:
-            uiType = cmds.objectTypeUI(name)
+            uiType = objectTypeUI(name)
         except RuntimeError:
             cls = SubMenuItem
         else:

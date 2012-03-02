@@ -920,3 +920,5 @@ def getMainProgressBar():
 # uitypes...
 if _versions.current() >= _versions.v2011:
     from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+
+from uitypes import objectTypeUI
