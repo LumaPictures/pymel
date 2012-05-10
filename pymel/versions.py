@@ -82,7 +82,8 @@ v2012_HOTFIX4 = 201204
 v2012_SP1     = 201209
 v2012_SAP1    = v2012_SP1
 v2012_SP2     = 201217
-v2012_SAP1SP1 = v2012_SP2 
+v2012_SAP1SP1 = v2012_SP2
+v2013         = 201300
 
 def current():
     return _current
