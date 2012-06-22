@@ -914,6 +914,11 @@ Modifications:
 def ls( *args, **kwargs ):
     """
 Modifications:
+  - Returns PyNode objects, not "names" - all flags which do nothing but modify
+    the string name of returned objects are ignored (ie, 'long'); note that
+    the 'allPaths' flag DOES have an effect, as PyNode objects are aware of
+    their dag paths (ie, two different instances of the same object will result
+    in two unique PyNodes) 
   - Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
   - Added new keyword: 'regex' - pass a valid regular expression string, compiled regex pattern, or list thereof.
 
