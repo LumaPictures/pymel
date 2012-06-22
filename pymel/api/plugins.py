@@ -17,7 +17,6 @@ A quick example::
 import sys
 import os
 import inspect
-import hashlib
 from collections import defaultdict
 
 import maya.OpenMaya as om
@@ -206,6 +205,8 @@ class BasePluginMixin(object):
         '''hashes the given string to a MTypeId, somewhere in the dev range
         (0x80000 - 0xfffff)
         '''
+        import hashlib
+
         start = 0x80000
         end = 0xfffff
         size = (end - start) + 1
