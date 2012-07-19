@@ -11,7 +11,71 @@ A quick example::
     testCmd.register()
     cmds.testCmd()
     testCmd.deregister()
+
+An example of a plugin which creates a node:
+
+    import math
+    
+    import pymel.api.plugins as plugins
+    import maya.OpenMaya as om
+    
+    class PymelSineNode(plugins.DependNode):
+        '''Example node adapted from maya's example sine node plugin
+    
+        Shows how much easier it is to create a plugin node using pymel.api.plugins
+        '''
+        # For quick testing, if _typeId is not defined, pymel will create one by
+        # hashing the node name. For longer-term uses, you should explicitly set
+        # own typeId like this
+        #
+        # (NOTE - if using the automatic typeId generation, the hashlib python
+        # builtin library must be functional / working from within maya... due
+        # to dynamic library linking issues (ie, libssl, libcrypto), this
+        # may not always be the case out-of-the-box on some linux distros
+        _typeId = om.MTypeId(0x900FF)
+        
+        # by default, the name of the node will be the name of the class - to
+        # override and set your own maya node name, do this:
+        #_name = 'PymelSineNode' 
+    
+        @classmethod
+        def initialize(cls):
+            # input
+            nAttr = om.MFnNumericAttribute()
+            cls.input = nAttr.create( "input", "in", om.MFnNumericData.kFloat, 0.0 )
+            nAttr.setStorable(1)
+            cls.addAttribute( cls.input )
+    
+            # output
+            cls.output = nAttr.create( "output", "out", om.MFnNumericData.kFloat, 0.0 )
+            nAttr.setStorable(1)
+            nAttr.setWritable(1)
+            cls.addAttribute( cls.output )
+    
+            # set attributeAffects relationships
+            cls.attributeAffects( cls.input, cls.output )
+    
+        def compute(self, plug, dataBlock):
+            if ( plug == self.output ):
+                dataHandle = dataBlock.inputValue( self.input )
+                inputFloat = dataHandle.asFloat()
+                result = math.sin( inputFloat )
+                outputHandle = dataBlock.outputValue( self.output )
+                outputHandle.setFloat( result )
+                dataBlock.setClean( plug )
+                return om.MStatus.kSuccess
+            return om.MStatus.kUnknownParameter
+    
+    ## initialize the script plug-in
+    def initializePlugin(mobject):
+        PymelSineNode.register(mobject)
+    
+    # uninitialize the script plug-in
+    def uninitializePlugin(mobject):
+        PymelSineNode.deregister(mobject)
 """
+
+
 
 
 import sys
