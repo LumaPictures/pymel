@@ -1118,6 +1118,9 @@ class FileReference(object):
         return self.withCopyNumber().__eq__(unicode(other))
     def __ne__(self, other):
         return self.withCopyNumber().__ne__(unicode(other))
+    
+    def __hash__(self):
+        return hash(self.withCopyNumber())
 
     def subReferences(self):
         namespace = self.namespace + ':'
