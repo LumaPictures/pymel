@@ -30,7 +30,14 @@ def _getPymelTypeFromObject(obj, name):
         fnDepend = _api.MFnDependencyNode( obj )
         mayaType = fnDepend.typeName()
         import nodetypes
-        pymelType = getattr( nodetypes, _util.capitalize(mayaType), nodetypes.DependNode )
+        # make sure that if we have a dag node, we return at least DagNode
+        # instead of DependNode - otherwise, we will end up with
+        # __apiobjects__ = {'MDagPath':MDagPath(...)}, but a pymel type of
+        # DependNode... and DependNode.__apihandle__() always assumes that
+        # MObjectHandle is always in __apiobjects__
+        pymelType = getattr( nodetypes, _util.capitalize(mayaType),
+                             nodetypes.DagNode if obj.hasFn(_api.MFn.kDagNode)
+                             else nodetypes.DependNode )
         pymelType = _factories.virtualClasses.getVirtualClass(pymelType, obj, name, fnDepend)
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
@@ -1629,7 +1636,7 @@ class PyNode(_util.ProxyUnicode):
                     # convert to string then to _api objects.
                     try:
                         name = unicode(argObj)
-                    except:
+                    except Exception:
                         raise MayaNodeError
                     else:
                         res = _api.toApiObject( name, dagPlugs=True )
