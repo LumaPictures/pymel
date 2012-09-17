@@ -142,13 +142,13 @@ def _pluginLoaded( *args ):
     #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1)
     if mayaTypes :
         def addPluginPyNodes(*args):
-            try:
-                id = _pluginData[pluginName]['callbackId']
-                if id is not None:
-                    _api.MEventMessage.removeCallback( id )
-                    if hasattr(id, 'disown'):
-                        id.disown()
-            except KeyError:
+            id = _pluginData[pluginName].get('callbackId')
+        
+            if id is not None:
+                _api.MEventMessage.removeCallback( id )
+                if hasattr(id, 'disown'):
+                    id.disown()
+            else:
                 _logger.warning("could not find callback id!")
 
             _pluginData[pluginName]['dependNodes'] = []
@@ -167,19 +167,35 @@ def _pluginLoaded( *args ):
                 _addPluginNode(pluginName, mayaType)
                 _logger.debug("Adding node: %s" % mayaType)
 
+        # Note - in my testing, a single _api.MFileIO.isReadingFile() call would
+        # also catch opening + referencing operations... but in commit
+        # 6e53d7818e9363d55d417c3a80ea7df94c4998ec, a check only against
+        # isReadingFile is commented out... so I'm playing it safe, and assuming
+        # there are edge cases where isOpeningFile is True but isReadingFile is
+        # not
+        
         # Detect if we are currently opening/importing a file and load as a callback versus execute now
-        if _api.MFileIO.isReadingFile() or  _api.MFileIO.isOpeningFile(): #or \
-##           #Referencing still doesn't work because while I can detect when I am referencing in 2012 I don't have
-##           # an acceptable event to latch on to. Contacting Autodesk to see if we can get one.
-##            ( _versions.current() >= _versions.v2012 and _api.MFileIO.isReferencingFile()):
-##            if _api.MFileIO.isReferencingFile():
-##                _logger.debug("pymel: Installing temporary plugin-loaded nodes callback - postsceneread")
-##                id = _api.MEventMessage.addEventCallback( 'PostSceneRead', addPluginPyNodes )
-            if _api.MFileIO.isImportingFile():
-                _logger.debug("Installing temporary plugin-loaded nodes callback - sceneimported")
+        if (_api.MFileIO.isReadingFile() or  _api.MFileIO.isOpeningFile() or
+                ( _versions.current() >= _versions.v2012
+                  and _api.MFileIO.isReferencingFile())):
+            if _versions.current() >= _versions.v2012 and _api.MFileIO.isReferencingFile():
+                _logger.debug("Installing temporary plugin-loaded nodes callback - PostSceneRead")
+                id = _api.MEventMessage.addEventCallback( 'PostSceneRead', addPluginPyNodes )
+            elif _api.MFileIO.isImportingFile():
+                _logger.debug("Installing temporary plugin-loaded nodes callback - SceneImported")
                 id = _api.MEventMessage.addEventCallback( 'SceneImported', addPluginPyNodes )
             else:
-                _logger.debug("Installing temporary plugin-loaded nodes callback - sceneopened")
+                # pre-2012 referencing operations will fall into this branch,
+                # which will not work (ie, pre-2012, plugins loaded due to
+                # reference loads will not trigger adding of that plugin's
+                # PyNodes).
+                # While this is obviously less than ideal, no 2011 versions were
+                # available for testing when I made the fix for 2012+, and we
+                # decided that making nothing worse would be better than
+                # potentially introducing problems/instabilities (ie, see
+                # messages in commits 6e53d7818e9363d55d417c3a80ea7df94c4998ec
+                # and 81bc5ee28f1775a680449fec8724e21e703a52b8).
+                _logger.debug("Installing temporary plugin-loaded nodes callback - SceneOpened")
                 id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
             _pluginData[pluginName]['callbackId'] = id
             # scriptJob not respected in batch mode, had to use _api
