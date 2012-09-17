@@ -794,7 +794,7 @@ class DagNode(Entity):
     def __apihandle__(self) :
         try:
             handle = self.__apiobjects__['MObjectHandle']
-        except:
+        except KeyError:
             try:
                 handle = _api.MObjectHandle( self.__apiobjects__['MDagPath'].node() )
             except RuntimeError:
@@ -1607,15 +1607,25 @@ class Transform(DagNode):
 
     @_factories.addApiDocs( _api.MFnTransform, 'setRotation' )
     def setRotation(self, rotation, space='object', **kwargs):
+        '''
+    Modifications:
+      - rotation may be given as an EulerRotation, Quaternion, or iterable of 3
+        or 4 components (to specify an euler/quaternion, respectively)
+        '''
         # quaternions are the only method that support a space parameter
         if self._isRelativeArg(kwargs):
             return self.rotateBy(rotation, space, **kwargs)
         space = self._getSpaceArg(space, kwargs )
         rotation = list(rotation)
 
-        rotation = [ datatypes.Angle( x ).asRadians() for x in rotation ]
-
-        quat = _api.MEulerRotation( *rotation ).asQuaternion()
+        if not isinstance(rotation, _api.MQuaternion):
+            if len(rotation) == 3:
+                rotation = [ datatypes.Angle( x ).asRadians() for x in rotation ]
+                quat = _api.MEulerRotation( *rotation ).asQuaternion()
+            elif len(rotation) == 4:
+                quat = _api.MQuaternion(*rotation)
+            else:
+                raise ValueError("rotation given to setRotation must have either 3 or 4 elements (for euler or quaternion, respectively)")
         _api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
 
 #    @_factories.addApiDocs( _api.MFnTransform, 'getRotation' )
