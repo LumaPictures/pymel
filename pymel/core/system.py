@@ -296,26 +296,44 @@ class Namespace(unicode):
     def setCurrent(self):
         cmds.namespace(set=self)
 
-    def clean(self, haltOnError=True):
+
+    def clean(self, haltOnError=True, reparentOtherChildren=True):
+        '''Deletes all nodes in this namespace
+        
+        Parameters
+        ----------
+        haltOnError : bool
+            If true, and reparentOtherChildren is set, and there is an error in
+            reparenting, then raise an Exception (no rollback is performed);
+            otherwise, ignore the failed reparent, and continue 
+        reparentOtherChildren : bool
+            If True, then if any transforms in this namespace have children NOT
+            in this namespace, then will attempt to reparent these children
+            under world (errors during these reparenting attempts is controlled
+            by haltOnError)
+        '''
         cur = Namespace.getCurrent()
         self.setCurrent()
         toDelete = cmds.namespaceInfo(ls=1, dp=1) or []
         cur.setCurrent()
 
-        # reparent
         if toDelete:
-            for o in general.ls(toDelete, transforms=True):
-                for c in o.getChildren(fullPath=True, type='transform'):
-                    if self != c.namespace():
-                        _logger.warning("Preserving %r, which was parented under %r" % (c, o))
-                        try:
-                            c.setParent(world=True)
-                        except Exception, e:
-                            if haltOnError:
-                                raise
-                            _logger.error("Could not preserve %r (%s)" % (c,e))
-
-            toDelete = general.ls(toDelete)
+            if reparentOtherChildren:
+                for o in general.ls(toDelete, transforms=True):
+                    # Note that we only need to check IMMEDIATE children...
+                    # because we're iterating through ALL transforms in this
+                    # namespace
+                    for c in o.getChildren(fullPath=True, type='transform'):
+                        if self != c.namespace():
+                            _logger.warning("Preserving %r, which was parented under %r" % (c, o))
+                            try:
+                                c.setParent(world=True)
+                            except Exception, e:
+                                if haltOnError:
+                                    raise
+                                _logger.error("Could not preserve %r (%s)" % (c,e))
+    
+                toDelete = general.ls(toDelete)
             if toDelete:
                 _logger.debug("Deleting %d nodes from namespace '%s'" % (len(toDelete), self))
                 for n in toDelete:
@@ -326,10 +344,38 @@ class Namespace(unicode):
     def move(self, other, force=False):
         cmds.namespace(moveNamespace=(self, other), force=force)
 
-    def remove(self, haltOnError=True):
-        self.clean(haltOnError=haltOnError)
+
+    # TODO:
+    # - add in "proper" handling for new 2013 flags:
+    #    deleteNamespaceContent (if False, error if non-empty)
+    #    mergeNamespaceWithRoot
+    #    mergeNamespaceWithParent
+    # - need to investigate exact way in which 2013 flags work (with sub-
+    #   namespaces, with children in other namespaces, etc), and possibly
+    #   add in support for flags to control recursive behavior, and handling of
+    #   children of transforms that are NOT in this namespace 
+    def remove(self, haltOnError=True, reparentOtherChildren=True):
+        '''Removes this namespace
+        
+        Recursively deletes any nodes and sub-namespaces
+        
+        Parameters
+        ----------
+        haltOnError : bool
+            If true, and reparentOtherChildren is set, and there is an error in
+            reparenting, then raise an Exception (no rollback is performed);
+            otherwise, ignore the failed reparent, and continue 
+        reparentOtherChildren : bool
+            If True, then if any transforms in this namespace have children NOT
+            in this namespace, then will attempt to reparent these children
+            under world (errors during these reparenting attempts is controlled
+            by haltOnError)
+        '''        
+        self.clean(haltOnError=haltOnError,
+                   reparentOtherChildren=reparentOtherChildren)
         for subns in self.listNamespaces():
-            subns.remove(haltOnError=haltOnError)
+            subns.remove(haltOnError=haltOnError,
+                         reparentOtherChildren=reparentOtherChildren)
         cmds.namespace(removeNamespace=self)
 
 
