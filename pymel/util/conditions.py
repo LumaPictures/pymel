@@ -16,7 +16,7 @@ class Condition(object):
 
     def __or__(self, other):
         return Or(self, other)
-    def __ror(self, other):
+    def __ror__(self, other):
         return Or(other, self)
 
     def __and__(self, other):
@@ -29,6 +29,9 @@ class Condition(object):
 
     def __nonzero__(self):
         return self.eval()
+    
+    def __str__(self):
+        return str(self.value)
 
 Always = Condition(True)
 
