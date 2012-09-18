@@ -141,7 +141,9 @@ class EnumValue(object):
                 self.__index,
                 self.__key,
             )
-
+            
+    def _asTuple(self):
+        return (self.__index, self.__key, self.__doc)
 
     def __hash__(self):
         return hash(self.__index)
@@ -288,6 +290,23 @@ class Enum(object):
         super(Enum, self).__setattr__('_values', values)
         super(Enum, self).__setattr__('_docs', docs)
         super(Enum, self).__setattr__('_name', name)
+        
+    def __eq__(self, other):
+        if not isinstance(other, Enum):
+            return False
+        if not self._keys == other._keys:
+            return False
+        # For values, can't just compare them straight up, as the values
+        # contain a ref to this Enum class, and THEIR compare compares the
+        # Enum class - which would result in a recursive cycle
+        # Instead, compare the values' _asTuple
+        def valTuples(enum):
+            return dict((key, val._asTuple()) for (key, val)
+                        in enum._values.iteritems())
+        return valTuples(self) == valTuples(other)
+    
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return '%s(\n%s)' % (self.__class__.__name__, ',\n'.join([ repr(v) for v in self.values()]))
