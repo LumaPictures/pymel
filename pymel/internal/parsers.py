@@ -374,11 +374,14 @@ class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
 
-    def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple):
+    def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple,
+                 docLocation=None):
         self.version = versions.installName() if version is None else version
         self.apiModule = apiModule
         self.verbose = verbose
-        self.docloc = mayaDocsLocation('2009' if self.version=='2008' else self.version)
+        if docLocation is None:
+            docLocation = mayaDocsLocation('2009' if self.version=='2008' else self.version)
+        self.docloc = docLocation
         self.enumClass = enumClass
         if not os.path.isdir(self.docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
@@ -704,7 +707,12 @@ class ApiDocParser(object):
                 _logger.warn( "%s.%s of enum %s does not exist" % ( self.apiClassName, enumKey, self.currentMethod))
                 enumVal = None
             enumValues[ enumKey ] = enumVal
-
+            # TODO:
+            # do we want to feed the docstrings to the Enum object itself
+            # (which seems to have support for docstrings)? Currently, we're
+            # not... if we did, though, we'd need to also account for them
+            # in getPymelEnums (probably by making getPymelEnums take a
+            # Enum object, instead of a dict)
             docItem = em.next.next.next.next.next
 
             if isinstance( docItem, NavigableString ):

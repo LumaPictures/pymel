@@ -1503,14 +1503,7 @@ class ApiArgUtil(object):
             #    return input
 
             apiClassName, enumName = argtype
-
-            try:
-                return apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
-            except ValueError:
-                try:
-                    return apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
-                except ValueError:
-                    raise ValueError, "expected an enum of type %s.%s: got %r" % ( apiClassName, enumName, input )
+            return self.castInputEnum(apiClassName, enumName, input)
 
         elif input is not None:
 #            try:
@@ -1528,6 +1521,17 @@ class ApiArgUtil(object):
 #                if argtype != cls.__name__:
 #                    raise TypeError, "Cannot cast a %s to %s" % ( type(input).__name__, argtype )
 #                return cls(input)
+
+    @classmethod
+    def castInputEnum(cls, apiClassName, enumName, input):
+        try:
+            return apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
+        except ValueError:
+            try:
+                return apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
+            except ValueError:
+                raise ValueError, "expected an enum of type %s.%s: got %r" % ( apiClassName, enumName, input )
+
 
     def fromInternalUnits(self, result, instance=None):
         # units
@@ -2079,6 +2083,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             #_logger.debug("defaults: %s" % defaults)
 
         wrappedApiFunc = util.interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults=defaults )
+        wrappedApiFunc._argHelper = argHelper
 
         if argHelper.isStatic():
             wrappedApiFunc = classmethod(wrappedApiFunc)
