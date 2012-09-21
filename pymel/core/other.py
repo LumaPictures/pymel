@@ -302,7 +302,10 @@ class DependNodeName( NameParser ):
     def node(self):
         """for compatibility with AttributeName class"""
         return self
-
+    
+    def nodeName(self):
+        """for compatibility with DagNodeName class"""
+        return self
 
     def exists(self, **kwargs):
         "objExists"
