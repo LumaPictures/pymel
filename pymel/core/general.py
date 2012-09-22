@@ -3669,6 +3669,9 @@ class Component( PyNode ):
 
     def isComplete(self, *args, **kwargs):
         return self.__apicomponent__().isComplete()
+    
+    def _isCompleteMfnComp(self, mfncomp):
+        return mfncomp.isComplete()
 
     @staticmethod
     def numComponentsFromStrings(*componentStrings):
@@ -3718,7 +3721,7 @@ class DimensionedComponent( Component ):
         handle = self.__apiobjects__.get('MObjectHandle', None)
         if handle is not None:
             mfncomp = self._mfncompclass(handle.object())
-            if not mfncomp.isComplete():
+            if not self._isCompleteMfnComp(mfncomp):
                 isComplete = False
 
         if isinstance(self._indices, dict) and len(self._indices) > 1:
@@ -4091,6 +4094,14 @@ class DiscreteComponent( DimensionedComponent ):
     def __init__(self, *args, **kwargs):
         self.reset()
         super(DiscreteComponent, self).__init__(*args, **kwargs)
+        
+    def _isCompleteMfnComp(self, mfncomp):
+        # for components created through MSelectionList - ie, pm.PyNode('pCube1.vtx[0]')
+        # - we may get back an MFnComponent object that actually has all the
+        # indices, but is not marked as complete
+        # check both if it is marked "isComplete", and if it has a number of
+        # components equal to the number that this object has
+        return mfncomp.isComplete() or mfncomp.elementCount() == self.totalSize()
 
     def _sliceToIndices(self, sliceObj, partialIndex=None):
         """

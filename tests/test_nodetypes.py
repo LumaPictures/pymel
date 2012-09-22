@@ -1654,6 +1654,10 @@ class testCase_components(unittest.TestCase):
         self.assertEqual(PyNode(self.nodes['lattice']).pt.totalSize(),
                          self.latticeSize[0] * self.latticeSize[1] * self.latticeSize[2])
         
+    def test_stringComp_indexing(self):
+        comp = pm.PyNode('%s.vtx[*]' % self.nodes['cube'])
+        compIndex = comp[2];
+        self.assertEqual(compIndex.getPosition(), pm.dt.Point(-0.5, 0.5, 0.5))        
 
         
 for propName, evalStringFunc in \
