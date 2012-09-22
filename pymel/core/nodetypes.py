@@ -1903,7 +1903,7 @@ class NurbsCurve(CurveShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'u'           : general.NurbsCurveParameter,
                             'cv'          : general.NurbsCurveCV,
-                            'conrolVerts' : general.NurbsCurveCV,
+                            'controlVerts': general.NurbsCurveCV,
                             'ep'          : general.NurbsCurveEP,
                             'editPoints'  : general.NurbsCurveEP,
                             'knot'        : general.NurbsCurveKnot,
@@ -1999,7 +1999,7 @@ class NurbsSurface(SurfaceShape):
                             'vIsoparm'    : (general.NurbsSurfaceRange, 'v'),
                             'uv'          : (general.NurbsSurfaceRange, 'uv'),
                             'cv'          : general.NurbsSurfaceCV,
-                            'conrolVerts' : general.NurbsSurfaceCV,
+                            'controlVerts': general.NurbsSurfaceCV,
                             'ep'          : general.NurbsSurfaceEP,
                             'editPoints'  : general.NurbsSurfaceEP,
                             'knot'        : general.NurbsSurfaceKnot,
