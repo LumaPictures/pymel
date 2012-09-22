@@ -719,8 +719,9 @@ class testCase_components(unittest.TestCase):
                                                     [IndexData('2:3')],
                                                     [(0,4),(0,8)])
 
+        self.latticeSize = (3,5,4)
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'],
-                                             divisions=(3,5,4))[1]
+                                             divisions=self.latticeSize)[1]
         self.compData['lattice'] = ComponentData(LatticePoint,
                                                  self.nodes['lattice'], "pt",
                                                  [IndexData(0,1,0)],
@@ -1622,7 +1623,37 @@ class testCase_components(unittest.TestCase):
 #               self.compData['lattice'])
 #        
 #        if failedComps:
-#            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps)) 
+#            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
+
+    def test_totalSize_meshVtx(self):
+        self.assertEqual(PyNode(self.nodes['cube']).vtx.totalSize(), 8)
+    def test_totalSize_meshEdge(self):
+        self.assertEqual(PyNode(self.nodes['cube']).edges.totalSize(), 12)
+    def test_totalSize_meshFace(self):
+        self.assertEqual(PyNode(self.nodes['cube']).faces.totalSize(), 6)
+    def test_totalSize_meshUV(self):
+        # default cube uv layout is "t-shape" - so 14 uvs 
+        self.assertEqual(PyNode(self.nodes['cube']).uvs.totalSize(), 14)
+    def test_totalSize_meshVtxFace(self):
+        self.assertEqual(PyNode(self.nodes['cube']).vtxFace.totalSize(), 24)
+    def test_totalSize_curveCV(self):
+        self.assertEqual(PyNode(self.nodes['curve']).cv.totalSize(), 8)
+    def test_totalSize_curveEP(self):
+        self.assertEqual(PyNode(self.nodes['curve']).ep.totalSize(), 8)
+    def test_totalSize_curveKnot(self):
+        self.assertEqual(PyNode(self.nodes['curve']).knots.totalSize(), 13)
+    def test_totalSize_nurbsCV(self):
+        self.assertEqual(PyNode(self.nodes['sphere']).cv.totalSize(), 56)
+    def test_totalSize_nurbsPatch(self):
+        self.assertEqual(PyNode(self.nodes['sphere']).faces.totalSize(), 32)
+    def test_totalSize_nurbsEP(self):
+        self.assertEqual(PyNode(self.nodes['sphere']).ep.totalSize(), 40)
+    def test_totalSize_nurbsKnot(self):
+        self.assertEqual(PyNode(self.nodes['sphere']).knots.totalSize(), 117)
+    def test_totalSize_lattice(self):
+        self.assertEqual(PyNode(self.nodes['lattice']).pt.totalSize(),
+                         self.latticeSize[0] * self.latticeSize[1] * self.latticeSize[2])
+        
 
         
 for propName, evalStringFunc in \

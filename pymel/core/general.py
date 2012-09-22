@@ -3910,8 +3910,6 @@ class DimensionedComponent( Component ):
 
     def _translateNegativeIndice(self, negIndex, partialIndex):
         raise NotImplementedError
-        assert negIndex < 0
-        self._dimLength
 
     def __getitem__(self, item):
         if self.currentDimension() is None:
@@ -4246,6 +4244,27 @@ class DiscreteComponent( DimensionedComponent ):
 
     def count(self):
         return len(self)
+    
+    # default implementation assumes that each dimension has a consistent
+    # number of components - so total number of components is
+    #   sizeDim1 * sizeDim2 * ... * sizeDimN
+    # if this is not the case (ie, for faceVertex, or subds), need to override
+    # this - either with a "correct" method, or an implementation that raises
+    # NotImplementedError
+    def totalSize(self):
+        '''The maximum possible number of components
+        
+        ie, for a polygon cube, the totalSize for verts would be 8, for edges
+        would be 12, and for faces would be 6
+        '''
+        if not self.dimensions:
+            return 0
+        totalSize = 1
+        partialIndex = ComponentIndex()
+        for _ in xrange(self.dimensions):
+            totalSize *= self._dimLength(partialIndex)
+            partialIndex += (0,)
+        return totalSize
 
     def setIndex(self, index):
         if not 0 <= index < len(self):
@@ -4494,6 +4513,9 @@ class Component1D64( DiscreteComponent ):
     else:
         _mfncompclass = _api.MFnComponent
         _apienum__ = _api.MFn.kComponent
+        
+    def totalSize(self):
+        raise NotImplementedError
 
     if Component._hasUint64 and hasattr(_api, 'MUint64'):
         # Note that currently the python api has zero support for MUint64's
@@ -4750,6 +4772,9 @@ class MeshVertexFace( Component2D ):
             return self._node.numVertices()
         elif len(partialIndex) == 1:
             return self._node.vtx[partialIndex[0]].numConnectedFaces()
+        
+    def totalSize(self):
+        return self.node().numFaceVertices()
 
     def _sliceToIndices(self, sliceObj, partialIndex=None):
         if not partialIndex:
@@ -4953,6 +4978,9 @@ class SubdUV( Component1D ):
         except AttributeError:
             raise RuntimeError("Couldn't determine max index for %s" %
                                Component._completeNameString(self))
+            
+    def totalSize(self):
+        raise NotImplementedError
 
     # SubdUV's don't work with .smm[*] - so need to use
     # explicit range instead - ie, .smm[0:206]
