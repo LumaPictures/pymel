@@ -688,6 +688,34 @@ class DagNode(Entity):
             shape = self.getShape()
             if shape:
                 return shape.comp(compName)
+            
+    def listComp(self, names=False):
+        """Will return a list of all component objects for this object
+        
+        Is to .comp() what .listAttr() is to .attr(); will NOT check the shape
+        node.
+        
+        Parameters
+        ----------
+        names : bool
+            By default, will return a list of actual usabale pymel Component
+            objects; if you just want a list of string names which would
+            be compatible with .comp(), set names to True
+        """
+        keys = sorted(self._componentAttributes.keys())
+        if names:
+            return keys
+        
+        compTypes = set()
+        comps = []
+        # use the sorted keys, so the order matches that returned by names,
+        # minus duplicate entries for aliases 
+        for name in keys:
+            compType = self._componentAttributes[name]
+            if compType not in compTypes:
+                compTypes.add(compType)
+                comps.append(self.comp(name))
+        return comps
 
 
     def _updateName(self, long=False) :

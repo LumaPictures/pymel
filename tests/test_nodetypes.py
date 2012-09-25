@@ -1657,7 +1657,38 @@ class testCase_components(unittest.TestCase):
     def test_stringComp_indexing(self):
         comp = pm.PyNode('%s.vtx[*]' % self.nodes['cube'])
         compIndex = comp[2];
-        self.assertEqual(compIndex.getPosition(), pm.dt.Point(-0.5, 0.5, 0.5))        
+        self.assertEqual(compIndex.getPosition(), pm.dt.Point(-0.5, 0.5, 0.5))
+        
+    def test_listComp(self):
+        nodeTypes = {'cube':pm.nt.Mesh,
+                     'subd':pm.nt.Subdiv,
+                     'curve':pm.nt.NurbsCurve,
+                     'sphere':pm.nt.NurbsSurface,
+                     'lattice':pm.nt.Lattice,
+                    }
+        
+        def assertListCompForNodeClass(node, nodeClass):
+            compNames = sorted(nodeClass._componentAttributes)
+            compTypes = set()
+            uniqueNames = []
+            for compName in compNames:
+                compType = nodeClass._componentAttributes[compName]
+                if compType not in compTypes:
+                    compTypes.add(compType)
+                    uniqueNames.append(compName)
+            self.assertEqual(node.listComp(names=True), compNames)
+            comps = []
+            for name in uniqueNames:
+                comps.append(node.comp(name))
+            self.assertEqual(node.listComp(), comps)
+            
+        
+        for typeName, nodeClass in nodeTypes.iteritems():
+            print typeName, nodeClass
+            trans = pm.PyNode(self.nodes[typeName])
+            assertListCompForNodeClass(trans, pm.nt.Transform)
+            shape = trans.getShape()
+            assertListCompForNodeClass(shape, nodeClass)
 
         
 for propName, evalStringFunc in \
