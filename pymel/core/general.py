@@ -3665,6 +3665,19 @@ class Component( PyNode ):
         else:
             return strings
 
+    def _defaultLabel(self):
+        """
+        Intended for classes such as NurbsSurfaceRange which have multiple possible
+        component labels (ie, u, v, uv), and we want to specify a 'default' one
+        so that we can do NurbsSurfaceRange(myNurbsSurface).
+
+        This should be None if either the component only has one label, or picking
+        a default doesn't make sense (ie, in the case of Pivot, we have no
+        idea whether the user would want the scale or rotate pivot, so
+        doing Pivot(myObject) makes no sense...
+        """
+        return None
+
     def name(self):
         melObj = self.__melobject__()
         if isinstance(melObj, basestring):
@@ -3760,19 +3773,6 @@ class DimensionedComponent( Component ):
                 self._partialIndex = ComponentIndex(label=self._ComponentLabel__)
         else:
             self._partialIndex = None
-
-    def _defaultLabel(self):
-        """
-        Intended for classes such as NurbsSurfaceRange which have multiple possible
-        component labels (ie, u, v, uv), and we want to specify a 'default' one
-        so that we can do NurbsSurfaceRange(myNurbsSurface).
-
-        This should be None if either the component only has one label, or picking
-        a default doesn't make sense (ie, in the case of Pivot, we have no
-        idea whether the user would want the scale or rotate pivot, so
-        doing Pivot(myObject) makes no sense...
-        """
-        return None
 
     def _completeNameString(self):
         # Note - most multi-dimensional components allow selection of all
