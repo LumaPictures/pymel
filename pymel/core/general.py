@@ -3783,6 +3783,11 @@ class DimensionedComponent( Component ):
         #    myNurbsSurface.sf[*]
         # FAILS, and you MUST do:
         #    myNurbsSurface.sf[*][*]
+        # ...However, some multi-indexed components (well, only LatticePoint
+        # that I know of) will give incorrect results with
+        #    ffd1LatticeShape.pt[*][*][*]
+        # ...and so you must do
+        #    ffd1LatticeShape.pt[*]
         return (super(DimensionedComponent, self)._completeNameString() +
                  ('[*]' * self.dimensions))
 
@@ -3797,45 +3802,73 @@ class DimensionedComponent( Component ):
         the given indices.
         """
         selList = _api.MSelectionList()
-        for index in indices:
-            compName = Component._completeNameString(self)
-            for dimNum, dimIndex in enumerate(index):
-                if isinstance(dimIndex, (slice, HashableSlice)):
-                    # by the time we're gotten here, standardizedIndices
-                    # should have either flattened out slice-indices
-                    # (DiscreteComponents) or disallowed slices with
-                    # step values (ContinuousComponents)
-                    if dimIndex.start == dimIndex.stop == None:
-                        dimIndex = '*'
-                    else:
-                        if dimIndex.start is None:
-                            if isinstance(self, DiscreteComponent):
-                                start = 0
-                            else:
-                                partialIndex = ComponentIndex(('*',)*dimNum,
-                                                              index.label)
-                                start = self._dimRange(partialIndex)[0]
-                        else:
-                            start = dimIndex.start
-                        if dimIndex.stop is None:
-                            partialIndex = ComponentIndex(('*',)*dimNum,
-                                                          index.label)
-                            stop= self._dimRange(partialIndex)[1]
-                        else:
-                            stop = dimIndex.stop
-                        dimIndex = "%s:%s" % (start, stop)
-                compName += '[%s]' % dimIndex
+        def addComp(compName):
             try:
                 selList.add(compName)
             except RuntimeError:
                 raise MayaComponentError(compName)
+        
+        if len(indices) == 1 and self._isCompleteIndex(indices[0]):
+            addComp(self._completeNameString())
+        else:
+            for index in indices:
+                compName = Component._completeNameString(self)
+                for dimNum, dimIndex in enumerate(index):
+                    if isinstance(dimIndex, (slice, HashableSlice)):
+                        # by the time we're gotten here, standardizedIndices
+                        # should have either flattened out slice-indices
+                        # (DiscreteComponents) or disallowed slices with
+                        # step values (ContinuousComponents)
+                        if dimIndex.start == dimIndex.stop == None:
+                            dimIndex = '*'
+                        else:
+                            if dimIndex.start is None:
+                                if isinstance(self, DiscreteComponent):
+                                    start = 0
+                                else:
+                                    partialIndex = ComponentIndex(('*',)*dimNum,
+                                                                  index.label)
+                                    start = self._dimRange(partialIndex)[0]
+                            else:
+                                start = dimIndex.start
+                            if dimIndex.stop is None:
+                                partialIndex = ComponentIndex(('*',)*dimNum,
+                                                              index.label)
+                                stop= self._dimRange(partialIndex)[1]
+                            else:
+                                stop = dimIndex.stop
+                            dimIndex = "%s:%s" % (start, stop)
+                    compName += '[%s]' % dimIndex
+                addComp(compName)
         compMobj = _api.MObject()
         dagPath = _api.MDagPath()
         selList.getDagPath(0, dagPath, compMobj)
         return _api.MObjectHandle(compMobj)
 
     VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
-
+    
+    # For situations in which we want a component object to represent ALL the
+    # possible components of that type - ie, all the vertices - it is a LOT
+    # faster to special case that situation, rather than the default behavior,
+    # which will flatten out the components into a list, etc.
+    # However, the shortcut for "complete" components will not work for all
+    # component types (ie, subdiv components), so this function controls whether
+    # it will be used.
+    _ALLOW_COMPLETE_SHORTCUT = True
+    
+    # in addition, for some types, it may USUALLY be allowable to use [*]
+    # syntax, but in some specific instances, it will cause problems... ie,
+    # for empty meshes, doing
+    #    pCubeShape1.vtx[*]
+    # will error...
+    def _allowCompleteShortcut(self):
+        # check for the empty mesh problem by grabbing the node's mfn - if it's
+        # a dag node, we have problems
+        return (self._ALLOW_COMPLETE_SHORTCUT
+                and not issubclass(_api.MFnDagNode,
+                                   type(self.node().__apimfn__())))
+        
+    
     def _standardizeIndices(self, indexObjs, allowIterable=True, label=None,
                             allowComplete=True):
         """
@@ -3847,6 +3880,8 @@ class DimensionedComponent( Component ):
         """
         # For speed, we want to allow through "entire component" indices,
         # without flattening... but only if "allowComplete" is True
+        if not self._allowCompleteShortcut():
+            allowComplete = False
         
         if indexObjs is None:
             indexObjs = ComponentIndex(label=label)
@@ -4135,7 +4170,14 @@ class DiscreteComponent( DimensionedComponent ):
         # indices, but is not marked as complete
         # check both if it is marked "isComplete", and if it has a number of
         # components equal to the number that this object has
-        return mfncomp.isComplete() or mfncomp.elementCount() == self.totalSize()
+        if mfncomp.isComplete():
+            return True
+        else:
+            try:
+                totalSize = self.totalSize()
+            except NotImplementedError:
+                return False
+            return mfncomp.elementCount() == totalSize
 
     def _sliceToIndices(self, sliceObj, partialIndex=None):
         """
@@ -4552,6 +4594,8 @@ class MItComponent( Component ):
 class MItComponent1D( MItComponent, Component1D ): pass
 
 class Component1D64( DiscreteComponent ):
+    _ALLOW_COMPLETE_SHORTCUT = False
+    
     if Component._hasUint64:
         _mfncompclass = _api.MFnUint64SingleIndexedComponent
         _apienum__ = _api.MFn.kUint64SingleIndexedComponent
@@ -4898,6 +4942,10 @@ class SubdFace( Component1D64 ):
     _apienum__ = _api.MFn.kSubdivFaceComponent
 
 class SubdUV( Component1D ):
+    # ...because you can't select subduv comps with '*' - ie, this doesn't work:
+    #    cmds.select('subdivCube1Shape.smm[*]')
+    _ALLOW_COMPLETE_SHORTCUT = False
+    
     _ComponentLabel__ = "smm"
     _apienum__ = _api.MFn.kSubdivMapComponent
 
@@ -5240,7 +5288,14 @@ class LatticePoint( Component3D ):
             raise ValueError('partialIndex %r too long for %s._dimLength' %
                              (partialIndex, self.__class__.__name__))
         return self.node().getDivisions()[len(partialIndex)]
-
+    
+    def _completeNameString(self):
+        # ...However, some multi-indexed components (well, only LatticePoint
+        # that I know of) will give incorrect results with
+        #    ffd1LatticeShape.pt[*][*][*]
+        # ...and so you must do
+        #    ffd1LatticeShape.pt[*]
+        return Component._completeNameString(self) + '[*]'
 
 #-----------------------------------------
 # Pivot Components
