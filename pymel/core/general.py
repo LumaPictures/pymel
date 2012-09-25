@@ -3428,6 +3428,14 @@ class HashableSlice(ProxySlice):
         if not hasattr(self, '_hash'):
             self._hash = (self.start, self.stop, self.step).__hash__()
         return self._hash
+    
+    def _toNormalSlice(self):
+        return slice(self.start, self.stop, self.step)
+    
+    def __cmp__(self, other):
+        if isinstance(other, HashableSlice):
+            other = other._toNormalSlice()
+        return slice.__cmp__(self._toNormalSlice(), other)
 
     @property
     def start(self):
@@ -3826,7 +3834,8 @@ class DimensionedComponent( Component ):
 
     VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
 
-    def _standardizeIndices(self, indexObjs, allowIterable=True, label=None):
+    def _standardizeIndices(self, indexObjs, allowIterable=True, label=None,
+                            allowComplete=True):
         """
         Convert indexObjs to an iterable of ComponentIndex objects.
 
@@ -3834,6 +3843,9 @@ class DimensionedComponent( Component ):
         ComponentIndex object, or an iterable of such items (if allowIterable),
         or 'None'
         """
+        # For speed, we want to allow through "entire component" indices,
+        # without flattening... but only if "allowComplete" is True
+        
         if indexObjs is None:
             indexObjs = ComponentIndex(label=label)
 
@@ -3841,7 +3853,8 @@ class DimensionedComponent( Component ):
         # Convert single objects to a list
         if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
             if self.dimensions == 1:
-                if isinstance(indexObjs, (slice, HashableSlice)):
+                if (isinstance(indexObjs, (slice, HashableSlice)) and not
+                        (allowComplete and self._isCompleteIndex(indexObjs))):
                     return self._standardizeIndices(self._sliceToIndices(indexObjs), label=label)
                 else:
                     indices.add(ComponentIndex((indexObjs,), label=label))
@@ -3851,7 +3864,10 @@ class DimensionedComponent( Component ):
             if label and indexObjs.label and label != indexObjs.label:
                 raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
                                  % (label, indexObjs.label))
-            indices.update(self._flattenIndex(indexObjs))
+            if allowComplete and self._isCompleteIndex(indexObjs):
+                indices.add(self._completeIndex(label=label))
+            else:
+                indices.update(self._flattenIndex(indexObjs))
         elif isinstance(indexObjs, dict):
             # Dicts are used to specify component labels for a group of indices at once...
             for dictLabel, dictIndices in indexObjs.iteritems():
@@ -3864,9 +3880,25 @@ class DimensionedComponent( Component ):
                 indices.update(self._standardizeIndices(index,
                                                         allowIterable=False,
                                                         label=label))
+                if (allowComplete and len(indices) == 1
+                        and self._isCompleteIndex(list(indices)[0])):
+                    break
+                allowComplete = False
         else:
             raise IndexError("Invalid indices for component: %r" % (indexObjs,) )
         return tuple(indices)
+    
+    def _completeIndex(self, label=None):
+        return ComponentIndex((HashableSlice(None),) * self.dimensions, label=label)
+    
+    def _isCompleteIndex(self, indexObj):
+        '''Return true if the indexObj represents the entire set of indices possible for this component'''
+        if isinstance(indexObj, ComponentIndex):
+            return (len(indexObj) == 0
+                    or indexObj == self._completeIndex(label=indexObj.label))
+        elif self.dimensions == 1:
+            return indexObj == slice(None)
+        return False
 
     def _sliceToIndices(self, sliceObj):
         raise NotImplementedError
@@ -4155,7 +4187,8 @@ class DiscreteComponent( DimensionedComponent ):
         # method; but since this has to do string processing, it is slower...
         # so use MFnComponent.addElements method if possible.
         handle = Component._makeComponentHandle(self)
-        if self._componentMObjEmpty(handle.object()):
+        if (self._componentMObjEmpty(handle.object())
+                and not (len(indices) == 1 and self._isCompleteIndex(indices[0]))):
             mayaArrays = []
             for dimIndices in zip(*indices):
                 mayaArrays.append(self._pyArrayToMayaArray(dimIndices))
