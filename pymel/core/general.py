@@ -3435,6 +3435,8 @@ class HashableSlice(ProxySlice):
     def __cmp__(self, other):
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
+        elif not isinstance(other, slice):
+            return -1 
         return slice.__cmp__(self._toNormalSlice(), other)
 
     @property
