@@ -4856,6 +4856,14 @@ class MeshUV( Component1D ):
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
     _apienum__ = _api.MFn.kMeshVtxFaceComponent
+    
+    # getting all the mel strings for MeshVertexFace is SLLOOOWW - so check if
+    # it's complete, and if so, just return the .vtxFace[*] form
+    def __melobject__(self):
+        if self.isComplete():
+            return self._completeNameString()
+        else:
+            return super(MeshVertexFace, self).__melobject__()
 
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
