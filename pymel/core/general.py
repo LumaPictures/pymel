@@ -3678,7 +3678,7 @@ class Component( PyNode ):
         return self._ComponentLabel__
 
     def isComplete(self, *args, **kwargs):
-        return self.__apicomponent__().isComplete()
+        return self._isCompleteMfnComp(self.__apicomponent__())
     
     def _isCompleteMfnComp(self, mfncomp):
         return mfncomp.isComplete()
