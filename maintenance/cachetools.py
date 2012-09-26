@@ -2,6 +2,9 @@
 #from pymel.all import mayautils
 import pprint
 import os.path
+import re
+
+import pymel.core as pm
 import pymel.internal.factories as factories
 #import pymel.internal.mayautils as mayautils
 import pymel.internal.startup as startup
@@ -330,3 +333,167 @@ def compareTrees(tree1, tree2):
                 childDiff = (n1[1] - n2[1], n2[1] - n1[1])
         diff[nodeType] = (parentDiff, childDiff)
     return only1, only2, diff
+
+def _getClassEnumDicts(pickleData, parser):
+    classInfos = pickleData[-1]
+    classEnums = {}; classPyEnums = {}
+    for className, classInfo in classInfos.iteritems():
+        enums = classInfo.get('enums')
+        if enums:
+            enums = dict( (enumName, data['values']) for enumName, data in enums.iteritems())
+            classEnums[className] = enums
+        pyEnums = classInfo.get('pymelEnums')
+        if pyEnums:
+            classPyEnums[className] = pyEnums
+    assert(set(classEnums.keys()) == set(classPyEnums.keys()))
+    return classEnums, classPyEnums
+
+def checkEnumConsistency(pickleData, docLocation=None, parser=None):
+    '''Check that the pymelEnums and enums have consistent index mappings
+    '''
+    class NotFound(object):
+        def __repr__(self):
+            return ':NOTFOUND:'
+    notFound = NotFound()
+    
+    if parser is None:
+        import pymel.internal.parsers as parsers
+        import maya.OpenMaya as om
+        parser = parsers.ApiDocParser(om, docLocation=docLocation)
+    classEnums, classPyEnums = _getClassEnumDicts(pickleData, parser)
+
+    badByEnum = {}
+
+    for className, enums in classEnums.iteritems():
+        for enumName, enum in enums.iteritems():
+            fullEnumName = "%s.%s" % (className, enumName)
+            badThisEnum = {}
+            try:
+                #print fullEnumName
+                #print enum
+                pyEnum = classPyEnums[className][enumName]
+                #print pyEnum
+                enumToPyNames = parser._apiEnumNamesToPymelEnumNames(enum)
+                for apiName, val in enum._keys.iteritems():
+                    pyName = enumToPyNames[apiName]
+                    try:
+                        pyIndex = pyEnum.getIndex(pyName)
+                    except ValueError:
+                        pyIndex = notFound
+                    try:
+                        apiIndex = enum.getIndex(apiName)
+                    except ValueError:
+                        apiIndex = notFound
+                    if pyIndex != apiIndex:
+                        badThisEnum.setdefault('mismatch', []).append(
+                                    {'api':(apiName, apiIndex),
+                                     'py':(pyName, pyIndex)})
+                    if pyIndex is None:
+                        badThisEnum.setdefault('badPyIndex', []).append((pyName, pyIndex))
+                    if apiIndex is None:
+                        badThisEnum.setdefault('badApiIndex', []).append((apiName, apiIndex))
+
+            except Exception:
+                import traceback
+                badThisEnum['exception'] = traceback.format_exc()
+            if badThisEnum:
+                badByEnum[fullEnumName] = badThisEnum
+    return classEnums, classPyEnums, badByEnum
+#    if bad:
+#        print
+#        print "!" * 80
+#        print "Bad results:"
+#        print '\n'.join(bad)
+#        print "!" * 80
+#        raise ValueError("inconsistent pickled enum data")
+
+# made a change to enums in apiClassInfo[apiClassName]['pymelEnums'] such that
+# they now have as keys BOTH the api form (kSomeName) and the python form
+# (someName) - this method converts over old caches on disk to the new format
+def convertPymelEnums(docLocation=None):
+    # Compatibility for pre-2012 caches... see note after ApiEnum def in
+    # apicache
+    import pymel.api
+    pymel.api.Enum = apicache.ApiEnum
+    apicache.Enum = apicache.ApiEnum
+    
+    import pymel.internal.parsers as parsers
+    import maya.OpenMaya as om
+    parser = parsers.ApiDocParser(om, docLocation=docLocation)    
+    
+    dummyCache = apicache.ApiCache()
+    dummyCache.version = '[0-9.]+'
+    cachePattern = pm.Path(dummyCache.path())
+    caches = sorted(cachePattern.parent.files(re.compile(cachePattern.name)))
+    rawCaches = {}
+    badByCache = {}
+    enumsByCache = {}
+    for cachePath in caches:
+        print "checking enum data for: %s" % cachePath
+        raw = pm.util.picklezip.load(unicode(cachePath))
+        rawCaches[cachePath] = raw
+        classEnums, classPyEnums, bad = checkEnumConsistency(raw, parser=parser)
+        if bad:
+            badByCache[cachePath] = bad
+        enumsByCache[cachePath] = {'api':classEnums, 'py':classPyEnums}
+    if badByCache:
+        pprint.pprint(badByCache)
+        print "Do you want to continue converting pymel enums? (y/n)"
+        print "(Pymel values will be altered to match the api values)"
+        answer = raw_input().lower().strip() 
+        if not answer or answer[0] != 'y':
+            print "aborting cache update"
+            return
+    fixedKeys = []
+    deletedEnums = []
+    for cachePath, raw in rawCaches.iteritems():
+        print '=' * 60
+        print "Fixing: %s" % cachePath
+        apiClassInfo = raw[-1]
+        apiEnums = enumsByCache[cachePath]['api']
+        pyEnums = enumsByCache[cachePath]['py']
+        assert(set(apiEnums.keys()) == set(pyEnums.keys()))
+        for className, apiEnumsForClass in apiEnums.iteritems():
+            pyEnumsForClass = pyEnums[className]
+            assert(set(apiEnumsForClass.keys()) == set(pyEnumsForClass.keys()))
+            for enumName, apiEnum in apiEnumsForClass.iteritems():
+                fullEnumName = '%s.%s' % (className, enumName) 
+                print fullEnumName
+                
+                # first, find any "bad" values - ie, values whose index is None
+                # - and delete them
+                badKeys = [key for key, index in apiEnum._keys.iteritems()
+                           if index is None]
+                if badKeys:
+                    print "!!!!!!!!"
+                    print "fixing bad keys in %s - %s" % (fullEnumName, badKeys)
+                    print "!!!!!!!!"
+                    assert(None in apiEnum._values)
+                    valueDocs =  apiClassInfo[className]['enums'][enumName]['valueDocs']
+                    for badKey in badKeys:
+                        valueDocs.pop(badKey, None)
+                        del apiEnum._keys[badKey]
+                    del apiEnum._values[None]
+                    
+                    if not apiEnum._keys:
+                        print "enum empty after removing bad keys - deleting..."
+                        del apiClassInfo[className]['enums'][enumName]
+                        del apiClassInfo[className]['pymelEnums'][enumName]
+                        deletedEnums.append(fullEnumName)
+                        continue
+                    else:
+                        fixedKeys.append(fullEnumName)
+                else:
+                    assert(None not in apiEnum._values)
+                
+                try:
+                    pyEnums[className] = parser._apiEnumToPymelEnum(apiEnum)
+                except Exception:
+                    globals()['rawCaches'] = rawCaches
+                    globals()['apiEnum'] = apiEnum
+                    raise
+        
+    # After making ALL changes, if there were NO errors, write them all out...
+    for cachePath, raw in rawCaches.iteritems():
+        pm.util.picklezip.dump(raw, unicode(cachePath))
+                
