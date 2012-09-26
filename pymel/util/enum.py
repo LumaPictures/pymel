@@ -98,7 +98,7 @@ class EnumBadDefaultKeyError(ValueError, EnumException):
         self.key = key
 
     def __str__(self):
-        return "Given default key %s for index %s not present in keys" % (self.key, self.val)
+        return "Given default key %r for index %r not present in keys" % (self.key, self.val)
 
 class EnumValue(object):
     """ A specific value of an enumerated type """
@@ -183,9 +183,9 @@ class Enum(object):
         """ Create an enumeration instance
 
         :Parameters:
-        name : `string`
+        name : `str`
             The name of this enumeration
-        keys : `dict` from `string` to `int`, or iterable of keys
+        keys : `dict` from `str` to `int`, or iterable of keys
             The keys for the enumeration; if this is a dict, it should map
             from key to it's value (ie, from string to int)
             Otherwise, it should be an iterable of keys, where their index
@@ -213,6 +213,9 @@ class Enum(object):
             present within keys (if not, a EnumBadDefaultKeyError is raised).
             If there are multiple keys for a given value, and no defaultKey is
             provided, which one is used is undefined.
+        docs : `dict` from `str` to `int, or None
+            if given, should provide a map from keys to an associated docstring
+            for that key; the dict need not provide an entry for every key
         """
 
         if not keys:
@@ -220,6 +223,7 @@ class Enum(object):
 
         defaultKeys = kwargs.pop('defaultKeys', {})
         multiKeys = kwargs.pop('multiKeys', False)
+        docs = kwargs.pop('docs', {})
 
         # Keys for which there are multiple keys mapping to the same
         # value, but are not the default key for that value 
@@ -254,23 +258,11 @@ class Enum(object):
             
         value_type= kwargs.get('value_type', EnumValue)
         #keys = tuple(keys)
-
-        docs = {}
-        def getDocs(key):
-            if isinstance(key, (tuple, list)) and len(key)==2:
-                key, doc = key
-                docs[val]=doc
-            else:
-                doc = None
-            return key, doc
         
         keyDict = {}
         for val, key in keygen:
             #print val, key
-            kwargs = {}
-            key, doc = getDocs(key)
-            kwargs['doc'] = doc
-            value = value_type(self, val, key, **kwargs)
+            value = value_type(self, val, key, docs.get(key))
             values[val] = value
             keyDict[key] = val
             try:
@@ -280,7 +272,6 @@ class Enum(object):
         
         for key, val in extraKeys.iteritems():
             # throw away any docs for the extra keys
-            key, _ = getDocs(key)
             keyDict[key] = val
 
         if not operator.isMappingType(values):
@@ -290,6 +281,10 @@ class Enum(object):
         super(Enum, self).__setattr__('_values', values)
         super(Enum, self).__setattr__('_docs', docs)
         super(Enum, self).__setattr__('_name', name)
+
+    @property
+    def name(self):
+        return self._name
         
     def __eq__(self, other):
         if not isinstance(other, Enum):
@@ -349,9 +344,11 @@ class Enum(object):
         return is_member
 
     def getIndex(self, key):
-        """
-        get an index value from a key. this method always returns an index. if a valid index is passed instead of a key, the index will
-        be returned unchanged.  this is useful when you need an index, but are not certain whether you are starting with a key or an index.
+        """Get an index value from a key
+        This method always returns an index. If a valid index is passed instead
+        of a key, the index will be returned unchanged.  This is useful when you
+        need an index, but are not certain whether you are starting with a key
+        or an index.
 
             >>> units = Enum('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.getIndex('inches')
@@ -382,8 +379,11 @@ class Enum(object):
 
     def getKey(self, index):
         """
-        get a key value from an index. this method always returns a key. if a valid key is passed instead of an index, the key will
-        be returned unchanged.  this is useful when you need a key, but are not certain whether you are starting with a key or an index.
+        Get a key value from an index
+        This method always returns a key. If a valid key is passed instead of an
+        index, the key will be returned unchanged.  This is useful when you need
+        a key, but are not certain whether you are starting with a key or an
+        index.
 
             >>> units = Enum('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.getKey(2)

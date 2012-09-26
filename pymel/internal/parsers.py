@@ -373,6 +373,11 @@ class CommandModuleDocParser(HTMLParser):
 class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
+    
+    # in enums with multiple keys per int value, which (pymel) key name to use
+    # as the default - ie, in MSpace, both object and preTransformed map to 2;
+    # since 'object' is in PYMEL_ENUM_DEFAULTS['Space'], that is preferred
+    PYMEL_ENUM_DEFAULTS = {'Space':('object',)} 
 
     def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple,
                  docLocation=None):
@@ -471,23 +476,24 @@ class ApiDocParser(object):
                     filename += tok
         return filename
 
-    def getPymelEnums(self, enumDict):
-        """remove all common prefixes from list of enum values"""
-        if len(enumDict) > 1:
-            enumList = enumDict.keys()
-            capitalizedRe =  re.compile('([A-Z0-9][a-z0-9]*)')
+    _capitalizedRe = re.compile('([A-Z0-9][a-z0-9]*)')
 
+    def _apiEnumNamesToPymelEnumNames(self, apiEnumNames):
+        """remove all common prefixes from list of enum values"""
+        if isinstance(apiEnumNames, util.Enum):
+            apiEnumNames = apiEnumNames._keys.keys()
+        if len(apiEnumNames) > 1:
             # We first aim to remove all similar 'camel-case-group' prefixes, ie:
             # if our enums look like:
             #    kFooBar
             #    kFooSomeThing
             #    kFooBunnies
             # we want to get Bar, SomeThing, Bunnies
-
+    
             # {'kFooBar':0, 'kFooSomeThing':1}
             #     => [['k', 'Foo', 'Some', 'Thing'], ['k', 'Foo', 'Bar']]
-            splitEnums = [ [ y for y in capitalizedRe.split( x ) if y ] for x in enumList ]
-
+            splitEnums = [ [ y for y in self._capitalizedRe.split( x ) if y ] for x in apiEnumNames ]
+    
             # [['k', 'Invalid'], ['k', 'Pre', 'Transform']]
             #     => [('k', 'k'), ('Foo', 'Foo'), ('Some', 'Bar')]
             splitZip = zip( *splitEnums )
@@ -496,7 +502,7 @@ class ApiDocParser(object):
                     [ x.pop(0) for x in splitEnums ]
                 else: break
             # splitEnums == [['Some', 'Thing'], ['Bar']]
-
+    
             joinedEnums = [ util.uncapitalize(''.join(x), preserveAcronymns=True ) for x in splitEnums]
             for i, enum in enumerate(joinedEnums):
                 if _iskeyword(enum):
@@ -505,17 +511,47 @@ class ApiDocParser(object):
                 elif enum[0].isdigit():
                     joinedEnums[i] = 'k' + enum
                     self.xprint( "bad enum", enum )
-
+    
                     #print joinedEnums
                     #print enumList
                     #break
+            
+            return dict(zip(apiEnumNames, joinedEnums))
+        else:
+            # if only 1 name or less, name is unaltered
+            return dict((name, name) for name in apiEnumNames) 
 
-            pymelEnumDict = dict( (new,enumDict[orig]) for orig, new in zip( enumList, joinedEnums ) )
-
-            #print "enums", joinedEnums
-            return pymelEnumDict
-
-        return enumDict
+    def _apiEnumToPymelEnum(self, apiEnum, apiToPymelNames=None):
+        defaultsSet = self.PYMEL_ENUM_DEFAULTS.get(apiEnum.name, set())
+        defaults = {}
+        if apiToPymelNames is None:
+            apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
+        pymelKeyDict = {}
+        docs = dict(apiEnum._docs)
+        for apiName, val in apiEnum._keys.iteritems():
+            # want to include docs, so make dict (key, doc) => val
+            pymelKeyDict[apiName] = val
+            pymelName = apiToPymelNames[apiName]
+            pymelKeyDict[pymelName] = val
+            
+            doc = apiEnum._docs.get(apiName)
+            if doc:
+                docs[pymelName] = doc
+            
+            # in the pymel dict, the pymel name should always be the default
+            # key for a value... but the original dict may also have multiple
+            # keys for a value... so:
+            #   if there is an entry in PYMEL_ENUM_DEFAULTS for this
+            #     class/pymelName, then use that as the default
+            #   otherwise, use the pymel equivalent of whatever the original
+            #     api default was
+            if (pymelName in defaultsSet
+                    # need to check val not in defaults, or else we can override
+                    # a value set due to defaultsSet
+                    or (val not in defaults and apiName == apiEnum.getKey(val))):
+                defaults[val] = pymelName
+        return util.Enum(apiEnum.name, pymelKeyDict, multiKeys=True,
+                         defaultKeys=defaults)
 
     def handleEnums( self, type ):
         missingTypes = ['MUint64']
@@ -695,7 +731,7 @@ class ApiDocParser(object):
             i+=1
         assert sorted(names) == sorted(types.keys()), 'name-type mismatch %s %s' %  (sorted(names), sorted(types.keys()) )
         return names, types, typeQualifiers, defaults
-
+    
     def parseEnums(self, proto):
         enumValues={}
         enumDocs={}
@@ -710,26 +746,29 @@ class ApiDocParser(object):
             # TODO:
             # do we want to feed the docstrings to the Enum object itself
             # (which seems to have support for docstrings)? Currently, we're
-            # not... if we did, though, we'd need to also account for them
-            # in getPymelEnums (probably by making getPymelEnums take a
-            # Enum object, instead of a dict)
+            # not...
             docItem = em.next.next.next.next.next
 
             if isinstance( docItem, NavigableString ):
                 enumDocs[enumKey] = str(docItem).strip()
             else:
                 enumDocs[enumKey] = str(docItem.contents[0]).strip()
+                
+        apiEnum = util.Enum(self.currentMethod, enumValues, multiKeys=True)
+        apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
+        pymelEnum = self._apiEnumToPymelEnum(apiEnum,
+                                             apiToPymelNames=apiToPymelNames)
+        for apiName, pymelName in apiToPymelNames.iteritems():
+            apiDoc = enumDocs.get(apiName)
+            if apiDoc is not None:
+                enumDocs[pymelName] = apiDoc
 
-        pymelEnumList = self.getPymelEnums( enumValues )
-        for val, pyval in zip(enumValues,pymelEnumList):
-            enumDocs[pyval] = enumDocs[val]
-
-        enumInfo = {'values' : util.Enum(self.currentMethod, enumValues, multiKeys=True),
+        enumInfo = {'values' : apiEnum,
                     'valueDocs' : enumDocs,
 
                       #'doc' : methodDoc
                     }
-        return enumInfo, util.Enum(self.currentMethod, pymelEnumList, multiKeys=True)
+        return enumInfo, pymelEnum
 
     def isObsolete(self, proto):
         # ARGUMENT DIRECTION AND DOCUMENTATION
@@ -954,6 +993,8 @@ class ApiDocParser(object):
 
                 except AttributeError, msg:
                     _logger.error("FAILED ENUM: %s", msg)
+                    import traceback
+                    _logger.debug(traceback.format_exc())
 
             # ARGUMENTS
             else:

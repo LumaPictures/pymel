@@ -1034,7 +1034,7 @@ class EquivalencePairs(TwoWayDict):
         ...
     KeyError: 'b'
 
-    # Similarly, if you set as a KEy something that
+    # Similarly, if you set as a KEY something that
     # already exists as a value...
     >>> eq = EquivalencePairs( {1:'a', 2:'b'} )
     >>> eq['b'] = 3
