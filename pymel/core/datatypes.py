@@ -1348,17 +1348,44 @@ class Space(_api.MSpace):
 
 Spaces = Space.Space
 
-def _fixSpace():
-    # fix the Space enumerator
-    keys = Space.Space._keys.copy()
-    #print keys
-    val = keys.pop('postTransform', None)
-    if val:
-        keys['object'] = val
-        Space.Space = util.Enum( 'Space', keys )
-    Spaces = Space.Space
-#_fixSpace()
-
+def equivalentSpace(space1, space2, rotationOnly=False):
+    '''Compare the two given space values to see if they are equal
+    
+    Parameters
+    ----------
+    space1 : int or str
+        the first space to compare (may be either the integer enum value, or the
+        api enum name - ie, "kPostTransform" - or the pymel enum name - ie,
+        "postTransform" ) 
+    space2 : int or str
+        the seoncd space to compare (may be either the integer enum value, or
+        the api enum name - ie, "kPostTransform" - or the pymel enum name - ie,
+        "postTransform")
+    rotationOnly : bool
+        If true, then compare the spaces, assuming we are only considering
+        rotation - in rotation, transform is the same as preTransform/object
+        (the reason being that in maya, preTransform means rotation +
+        translation are both defined in the preTransform/object coordinate
+        system, while transform means rotation is defined in preTransform/object
+        coordinates, while translate is given in the postTransform space...
+        which matches the way maya applies transforms)
+    '''
+    translated = []
+    for space in space1, space2:
+        space = _factories.ApiArgUtil.castInputEnum('MSpace', 'Space', space)
+        if rotationOnly:
+            # for the purposes of rotations, maya treats transform and
+            # preTransform/object as the same (the reason being that in maya,
+            # preTransform means both rotation + translation are both defined in
+            # the preTransform/object coordinate system, while transform means
+            # rotation is defined in preTransform/object coordinates, while
+            # translate is given in the postTransform space... which matches the
+            # way maya applies transforms)
+            if space == _api.MSpace.kTransform:
+                space = _api.MSpace.kPreTransform
+            translated.append(space)
+    
+        
 #kInvalid
 #    kTransform
 #Transform matrix (relative) space
