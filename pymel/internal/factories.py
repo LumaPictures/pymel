@@ -1524,13 +1524,14 @@ class ApiArgUtil(object):
 
     @classmethod
     def castInputEnum(cls, apiClassName, enumName, input):
+        # pymelEnums should now have both api key names ("kPostTransform") and
+        # pymel names ("postTransform") available as keys now, with the pymel
+        # form the default... so only need to check pymelEnum, not
+        #  apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
         try:
-            return apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
+            return apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
         except ValueError:
-            try:
-                return apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
-            except ValueError:
-                raise ValueError, "expected an enum of type %s.%s: got %r" % ( apiClassName, enumName, input )
+            raise ValueError, "expected an enum of type %s.%s: got %r" % ( apiClassName, enumName, input )
 
 
     def fromInternalUnits(self, result, instance=None):
@@ -2293,15 +2294,8 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 if 'pymelEnums' in classInfo:
                     # Enumerators
 
-                    for enumName, enumList in classInfo['pymelEnums'].items():
-                        #_logger.debug("adding enum %s to class %s" % ( enumName, classname ))
-#                        #enum = util.namedtuple( enumName, enumList )
-#                        #classdict[enumName] = enum( *range(len(enumList)) )
-#                        # group into (key, doc) pairs
-#                        enumKeyDocPairs = [ (k,classInfo['enums'][enumName]['valueDocs'][k] ) for k in enumList ]
-#                        enum = util.Enum( *enumKeyDocPairs )
-#                        classdict[enumName] = enum
-                        classdict[enumName] = enumList
+                    for enumName, enum in classInfo['pymelEnums'].items():
+                        classdict[enumName] = enum
 
 
             if not proxy:
