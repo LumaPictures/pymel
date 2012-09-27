@@ -4944,6 +4944,19 @@ class SubdVertex( Component1D64 ):
 class SubdEdge( Component1D64 ):
     _ComponentLabel__ = "sme"
     _apienum__ = _api.MFn.kSubdivEdgeComponent
+    
+    # There is a currently a bug with subd edges, where if you do:
+    #        import maya.cmds as cmds
+    #        cmds.file(new=1, f=1)
+    #        polyCube = cmds.polyCube()[0]
+    #        subd = cmds.polyToSubdiv(polyCube)[0]
+    #        cmds.select(subd + '.sme[*][*]')
+    # ...maya crashes. as a hack to to help avoid crashing, define the complete
+    # component as just containing the first edge...
+    
+    # GET RID OF THIS ONCE THE CRASH BUG IS FIXED!!!
+    def _completeNameString(self):
+        return Component._completeNameString(self) + '[0][0]'
 
 class SubdFace( Component1D64 ):
     _ComponentLabel__ = "smf"
