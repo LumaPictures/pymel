@@ -6,6 +6,10 @@ import maya.OpenMayaFX as fx
 
 from pymel.util.testing import TestCaseExtended
 
+#===============================================================================
+# Current Bugs
+#===============================================================================
+
 # Bug report 378211
 class TestConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
@@ -43,22 +47,6 @@ class TestEmptyMFnNurbsCurve(unittest.TestCase):
         except Exception:
             self.fail("MFnNurbs curve doesn't work with empty curve object")
 
-# Bug report 345382
-# Fixed ! Yay!  (...though I've only check on win64...)
-# (not sure when... was fixed by time of 2011 Hotfix 1 - api 201101,
-# and still broken in 2009 SP1a - api 200906)
-class TestFluidMFnCreation(unittest.TestCase):
-    def setUp(self):
-        cmds.file(new=1, f=1)
-        
-    def runTest(self):
-        fluid = cmds.createNode('fluidShape')
-        selList = om.MSelectionList()
-        selList.add(fluid)
-        dag = om.MDagPath()
-        selList.getDagPath(0, dag)
-        fx.MFnFluid(dag)
-        
 # Bug report 344037
 class TestSurfaceRangeDomain(unittest.TestCase):
     def setUp(self):
@@ -209,50 +197,9 @@ class TestGroupUniqueness(unittest.TestCase):
         elif len(sameNames) > 1:
             self.fail('cmds.group did not return a unique name')
 
-# Fixed ! Yay!  (...though I've only check on win64...)
-# (not sure when... was fixed by time of 2011 Hotfix 1 - api 201101,
-# and still broken in 2009 SP1a - api 200906)
-class TestMatrixSetAttr(unittest.TestCase):
-    def setUp(self):
-        cmds.file(new=1, f=1)
-        res = cmds.sphere(n='node')
-        cmds.addAttr(ln='matrixAttr',dt="matrix")
-
-    def runTest(self):
-        cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
-
-
-# Fixed in Maya 2009! yay!
-class TestConstraintVectorQuery(unittest.TestCase):
-    def setUp(self):
-        cmds.file(new=1, f=1)
-        
-    def _doTestForConstraintType(self, constraintType):
-        cmd = getattr(cmds, constraintType)
-        
-        if constraintType == 'tangentConstraint':
-            target = cmds.circle()[0]
-        else:
-            target = cmds.polyCube()[0]
-        constrained = cmds.polyCube()[0]
-        
-        constr = cmd(target, constrained)[0]
-        
-        self.assertEqual(cmd(constr, q=1, worldUpVector=1), [0,1,0])
-        self.assertEqual(cmd(constr, q=1, upVector=1), [0,1,0])
-        self.assertEqual(cmd(constr, q=1, aimVector=1), [1,0,0])
-
-    def test_aimConstraint(self):
-        self._doTestForConstraintType('aimConstraint')
-
-    def test_normalConstraint(self):
-        self._doTestForConstraintType('normalConstraint')
-
-    def test_tangentConstraint(self):
-        self._doTestForConstraintType('tangentConstraint')
-        
-
-
+#===============================================================================
+# Current bugs that will cause Maya to CRASH (and so are commented out!)
+#===============================================================================
 
 # This is commented out as it will cause a CRASH - uncomment out (or just
 # copy/ paste the relevant code into the script editor) to test if it's still
@@ -283,3 +230,64 @@ class TestConstraintVectorQuery(unittest.TestCase):
 #        selList.add(subd + '.sme[*][*]')
 
       
+
+#===============================================================================
+# FIXED (Former) Bugs
+#===============================================================================
+
+# Fixed in Maya 2009! yay!
+class TestConstraintVectorQuery(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        
+    def _doTestForConstraintType(self, constraintType):
+        cmd = getattr(cmds, constraintType)
+        
+        if constraintType == 'tangentConstraint':
+            target = cmds.circle()[0]
+        else:
+            target = cmds.polyCube()[0]
+        constrained = cmds.polyCube()[0]
+        
+        constr = cmd(target, constrained)[0]
+        
+        self.assertEqual(cmd(constr, q=1, worldUpVector=1), [0,1,0])
+        self.assertEqual(cmd(constr, q=1, upVector=1), [0,1,0])
+        self.assertEqual(cmd(constr, q=1, aimVector=1), [1,0,0])
+
+    def test_aimConstraint(self):
+        self._doTestForConstraintType('aimConstraint')
+
+    def test_normalConstraint(self):
+        self._doTestForConstraintType('normalConstraint')
+
+    def test_tangentConstraint(self):
+        self._doTestForConstraintType('tangentConstraint')
+
+# Fixed ! Yay!  (...though I've only check on win64...)
+# (not sure when... was fixed by time of 2011 Hotfix 1 - api 201101,
+# and still broken in 2009 SP1a - api 200906)
+class TestMatrixSetAttr(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        res = cmds.sphere(n='node')
+        cmds.addAttr(ln='matrixAttr',dt="matrix")
+
+    def runTest(self):
+        cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
+
+# Bug report 345382
+# Fixed ! Yay!  (...though I've only check on win64...)
+# (not sure when... was fixed by time of 2011 Hotfix 1 - api 201101,
+# and still broken in 2009 SP1a - api 200906)
+class TestFluidMFnCreation(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        
+    def runTest(self):
+        fluid = cmds.createNode('fluidShape')
+        selList = om.MSelectionList()
+        selList.add(fluid)
+        dag = om.MDagPath()
+        selList.getDagPath(0, dag)
+        fx.MFnFluid(dag)  
