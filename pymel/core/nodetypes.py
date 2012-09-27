@@ -1615,18 +1615,33 @@ class Transform(DagNode):
         # quaternions are the only method that support a space parameter
         if self._isRelativeArg(kwargs):
             return self.rotateBy(rotation, space, **kwargs)
-        space = self._getSpaceArg(space, kwargs )
-        rotation = list(rotation)
-
-        if not isinstance(rotation, _api.MQuaternion):
+        spaceIndex =  datatypes.Spaces.getIndex(self._getSpaceArg(space, kwargs))
+        
+        if not isinstance(rotation, (_api.MQuaternion, _api.MEulerRotation)):
+            rotation = list(rotation)
             if len(rotation) == 3:
+                # using datatypes.Angle(x) means current angle-unit should be
+                # respected 
                 rotation = [ datatypes.Angle( x ).asRadians() for x in rotation ]
-                quat = _api.MEulerRotation( *rotation ).asQuaternion()
+                rotation = _api.MEulerRotation( *rotation )
             elif len(rotation) == 4:
-                quat = _api.MQuaternion(*rotation)
+                rotation = _api.MQuaternion(*rotation)
             else:
                 raise ValueError("rotation given to setRotation must have either 3 or 4 elements (for euler or quaternion, respectively)")
-        _api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
+        if isinstance(rotation, _api.MEulerRotation):
+            # MFnTransform.setRotation doesn't have a (non-deprecated) override
+            # which takes euler angles AND a transform space... this sort of
+            # makes sense, since the "unique" information that euler angles can
+            # potentially carry - ie, rotation > 360 degress - only really makes
+            # sense within the "transform" space. So, only use EulerRotation if
+            # we're using transform space...
+            if datatypes.equivalentSpace(spaceIndex, _api.MSpace.kTransform,
+                                         rotationOnly=True):
+                self.__apimfn__().setRotation(rotation)
+                return
+            else:
+                rotation = rotation.asQuaternion()
+        self.__apimfn__().setRotation(rotation, spaceIndex )
 
 #    @_factories.addApiDocs( _api.MFnTransform, 'getRotation' )
 #    def getRotation(self, space='object', **kwargs):

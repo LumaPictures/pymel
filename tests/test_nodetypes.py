@@ -1713,6 +1713,98 @@ class testCase_DagNode(TestCaseExtended):
         self.assertEqual(tg3c1.getAllParents(), [tg3])
         self.assertEqual(tg3.getAllParents(), [])
         
+class testCase_transform(TestCaseExtended):
+    def setUp(self):
+        self.trans = pm.createNode('transform')
+        self.trans.setRotationOrder('XYZ', False)
+        
+    def tearDown(self):
+        pm.delete(self.trans)
+        
+    def test_setRotation(self):
+        #Check dt.EulerRotation when angle unit differs
+        oldUnit = pm.currentUnit(q=1, angle=1)
+        try:
+            pm.currentUnit(angle='degree')
+        
+            # Check dt.EulerRotation input
+            euler = pm.dt.EulerRotation(10, 20, 30)
+            self.trans.setRotation(euler)
+            self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+            
+            # Check dt.Quaternion input
+            euler = pm.dt.EulerRotation(5, 15, -16)
+            quat = pm.dt.Quaternion(euler.asQuaternion())
+            self.trans.setRotation(quat)
+            self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+    
+            # Check api.MEulerRotation input
+            angles = (10, 20, 30)
+            euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
+            self.trans.setRotation(euler)
+            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+            
+            # Check api.MQuaternion input
+            angles = (5, 15, -16)
+            euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
+            quat = euler.asQuaternion()
+            self.trans.setRotation(quat)
+            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+            
+            # Check list of size 3 input
+            angles = (10, 20, 30)
+            self.trans.setRotation(angles)
+            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+                    
+            # Check list of size 4 input
+            angles = (5, 15, -16)
+            euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
+            quat = pm.dt.Quaternion(euler.asQuaternion())
+            quatVals = list(quat)
+            self.trans.setRotation(quatVals)
+            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+            
+            #Check dt.EulerRotation when euler rotation order non-standard
+            origAngles = (10, 20, 30, 'YXZ')
+            euler = pm.dt.EulerRotation(*origAngles)
+            self.trans.setRotation(euler)
+            euler.reorderIt('XYZ')
+            self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+            self.trans.setRotationOrder('YXZ', True)
+            try:
+                self.checkRotationsEqual(origAngles[:3], self.trans.attr('rotate').get())
+            finally:
+                self.trans.setRotationOrder('XYZ', False)
+
+            #Check dt.EulerRotation when trans rotation order non-standard
+            origAngles = (10, 20, 30, 'XYZ')
+            euler = pm.dt.EulerRotation(*origAngles)
+            self.trans.setRotationOrder('ZYX', False)
+            try:
+                self.trans.setRotation(euler)
+                euler.reorderIt('ZYX')
+                self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+            finally:
+                self.trans.setRotationOrder('XYZ', True)
+            self.checkRotationsEqual(origAngles[:3], self.trans.attr('rotate').get())
+    
+            # Check dt.EulerRotation input with radian angles
+            degAngles = (5, 15, -16)
+            radAngles = [math.radians(x) for x in degAngles]
+            euler = pm.dt.EulerRotation(*radAngles, unit='radians')
+            self.trans.setRotation(euler)
+            self.checkRotationsEqual(degAngles, self.trans.attr('rotate').get())
+        finally:
+            pm.currentUnit(angle=oldUnit)
+                         
+    def checkRotationsEqual(self, rot1, rot2):
+        if not len(rot1) == len(rot2):
+            raise ValueError("rotation values must have same length: %r, %r" % (rot1, rot2))
+        for i, (aVal, bVal) in enumerate(zip(rot1, rot2)):
+            self.assertAlmostEqual(aVal, bVal,
+                                   msg="component %i of rotations not equal (%s != %s)"
+                                        % (i, aVal, bVal))
+        
 class testCase_nurbsSurface(TestCaseExtended):
     def setUp(self):
         self.negUSurf = PyNode(surface(name='periodicSurf', du=3, dv=1,
