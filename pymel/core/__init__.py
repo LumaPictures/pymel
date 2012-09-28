@@ -142,14 +142,15 @@ def _pluginLoaded( *args ):
     #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1)
     if mayaTypes :
         def addPluginPyNodes(*args):
-            id = _pluginData[pluginName].get('callbackId')
-        
-            if id is not None:
-                _api.MEventMessage.removeCallback( id )
-                if hasattr(id, 'disown'):
-                    id.disown()
-            else:
+            try:
+                id = _pluginData[pluginName].get('callbackId')
+            except KeyError:
                 _logger.warning("could not find callback id!")
+            else:
+                if id is not None:
+                    _api.MEventMessage.removeCallback( id )
+                    if hasattr(id, 'disown'):
+                        id.disown()
 
             _pluginData[pluginName]['dependNodes'] = []
             allTypes = set(cmds.ls(nodeTypes=1))
@@ -202,7 +203,9 @@ def _pluginLoaded( *args ):
             #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 )
         else:
             _logger.debug("Running plugin-loaded nodes callback")
-            # add the callback id as None so that if we fail to get an id in addPluginPyNodes we know something is wrong
+            # add the callback id as None, so addPluginPyNodes SHOULD know that
+            # SOMETHING is always in _pluginData[pluginName]['callbackId'], and
+            # if there isn't, then something is wrong...
             _pluginData[pluginName]['callbackId'] = None
             addPluginPyNodes()
 
