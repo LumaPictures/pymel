@@ -602,6 +602,10 @@ def setup():
     ip.set_hook('complete_command', open_completer , str_key = "openf" )
 
     ip.ex("from pymel.core import *")
+    # stuff in __main__ is not necessarily in ipython's 'main' namespace... so
+    # if the user has something in userSetup.py that he wants put in the
+    # "interactive" namespace, it won't be - unless we do this:
+    ip.ex('from __main__ import *')
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
 
