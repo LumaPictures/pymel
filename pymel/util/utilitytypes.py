@@ -296,7 +296,7 @@ class metaReadOnlyAttr(type) :
         definition. Alternatively methods can be marked as read only with the @readonly decorator and will then get
         added to the dictionary at class creation """
 
-    def __setattr__(cls, name, value):
+    def __setattr__(cls, name, value): #@NoSelf
         """ overload __setattr__ to forbid modification of read only class info """
         readonly = {}
         for c in inspect.getmro(cls) :
@@ -308,7 +308,7 @@ class metaReadOnlyAttr(type) :
             super(metaReadOnlyAttr, cls).__setattr__(name, value)
 
 
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(mcl, classname, bases, classdict): #@NoSelf
         """ Create a new metaReadOnlyAttr class """
 
         # checks for protected members, in base classes on in class to be created
@@ -537,6 +537,7 @@ class universalmethod(object):
             instance = cls
         def newfunc(*args, **kwargs):
             return self.f(instance, *args, **kwargs)
+        newfunc.__doc__ = self.f.__doc__
         return newfunc
 
 def LazyLoadModule(name, contents):
@@ -1034,7 +1035,7 @@ class EquivalencePairs(TwoWayDict):
         ...
     KeyError: 'b'
 
-    # Similarly, if you set as a KEY something that
+    # Similarly, if you set as a KEy something that
     # already exists as a value...
     >>> eq = EquivalencePairs( {1:'a', 2:'b'} )
     >>> eq['b'] = 3
