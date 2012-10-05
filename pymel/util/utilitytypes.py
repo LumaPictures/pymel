@@ -529,6 +529,7 @@ class universalmethod(object):
 
     def __init__(self, f):
         self.f = f
+        self.__doc__ = f.__doc__
 
     def __get__(self, instance, cls=None):
         if cls is None:
@@ -537,7 +538,7 @@ class universalmethod(object):
             instance = cls
         def newfunc(*args, **kwargs):
             return self.f(instance, *args, **kwargs)
-        newfunc.__doc__ = self.f.__doc__
+        newfunc.__doc__ = self.__doc__
         return newfunc
 
 def LazyLoadModule(name, contents):
