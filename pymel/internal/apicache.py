@@ -96,11 +96,12 @@ class _GhostObjMaker(object):
         #self.theMod = None
         
         self.manipError = manipError
+        self.byMayaType = {}
+        self.ghosts = set()
         
     def __enter__(self):
         import maya.cmds as cmds
         
-        byMayaType = {}
         for mayaType in self.mayaTypes:
             # check of an obj of the given type already exists in the scene, and if
             # so, use it
@@ -111,6 +112,7 @@ class _GhostObjMaker(object):
             else:
                 obj = _makeDgModGhostObject(mayaType, self.dagMod, self.dgMod)
                 if obj is not None:
+                    self.ghosts.add(mayaType)
                     madeGhost = True
         
             if obj is not None:
@@ -126,12 +128,12 @@ class _GhostObjMaker(object):
                    ):
                     raise ManipNodeTypeError
 
-                if madeGhost:
+                if madeGhost and not (self.dagGhosts and self.dgGhosts):
                     if obj.hasFn( api.MFn.kDagNode ):
                         self.dagGhosts = True
                     else:
                         self.dgGhosts = True
-            byMayaType[mayaType] = obj
+            self.byMayaType[mayaType] = obj
          
         # Note that we always create a "real" instance of the object by
         # calling doIt()... we used to not call doIt(), in which case
@@ -145,15 +147,60 @@ class _GhostObjMaker(object):
         if self.dgGhosts:
             self.dgMod.doIt()
         if self.multi:
-            return byMayaType
+            return self.byMayaType
         else:
             return obj
                     
     def __exit__(self, type, value, traceback):
-        if self.dagGhosts:
-            self.dagMod.undoIt()
-        if self.dgGhosts:
-            self.dgMod.undoIt()
+        try:
+            if self.dagGhosts:
+                self.dagMod.undoIt()
+            if self.dgGhosts:
+                self.dgMod.undoIt()
+        except RuntimeError:
+            stillExist = []
+            for mayaType in self.ghosts:
+                obj = self.byMayaType[mayaType]
+                if obj is not None and api.isValidMObjectHandle(api.MObjectHandle(obj)):
+                    stillExist.append(obj)
+            if stillExist:
+                mfnDag = api.MFnDagNode()
+                mfnDep = api.MFnDependencyNode()
+                names = []
+                for obj in stillExist:
+                    if obj.hasFn( api.MFn.kDagNode ):
+                        # we need to delete the parent, since it will have
+                        # created a parent transform too
+                        mfnDag.setObject(obj)
+                        mfnDag.setObject(mfnDag.parent(0))
+                        names.append(mfnDag.partialPathName())
+                    else:
+                        mfnDep.setObject(obj)
+                        names.append(mfnDep.name())
+                print names
+                #import maya.cmds as cmds
+                #cmds.delete(names)
+
+                mfnDag = api.MFnDagNode()
+                dagMod = api.MDagModifier()
+                dgMod = api.MDGModifier()
+                
+                delDag = False
+                delDg = False
+                
+                for obj in stillExist:
+                    if obj.hasFn( api.MFn.kDagNode ):
+                        # we need to delete the parent, since it will have
+                        # created a parent transform too
+                        mfnDag.setObject(obj)
+                        dagMod.deleteNode(mfnDag.parent(0))
+                    else:
+                        dgMod.deleteNode(obj)
+                if delDag:
+                    dagMod.doIt()
+                if delDg:
+                    dgMod.doIt()
+        
 
 def _defaultdictdict(cls, val=None):
     if val is None:

@@ -2674,7 +2674,7 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
     try:
         ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
     except AttributeError:
-        #_logger.info("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
+        _logger.debug("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
         return
    
     classDict = {'__melnode__':mayaType}
@@ -2687,10 +2687,11 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), classDict)
         except TypeError, msg:
             # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-            #_logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
+            _logger.error("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
             import new
             PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
             #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentPyNodeTypeName)))
+            
         PyNodeType.__module__ = dynModule.__name__
     setattr( dynModule, pyNodeTypeName, PyNodeType )
     return PyNodeType
