@@ -74,9 +74,16 @@ class _GhostObjMaker(object):
     
     Automatically does any steps need to create and destroy the mobj within
     the context
+    
+    (Note - None may be returned in the place of any mobj)
     '''
-    def __init__(self, mayaType, dagMod=None, dgMod=None):
-        self.mayaType = mayaType
+    def __init__(self, mayaTypes, dagMod=None, dgMod=None, manipError=None,
+                 multi=False):
+        self.multi = multi
+        if not multi:
+            mayaTypes = [mayaTypes]
+        self.mayaTypes = mayaTypes
+
         if dagMod is None:
             dagMod = api.MDagModifier()
         if dgMod is None:
@@ -84,52 +91,69 @@ class _GhostObjMaker(object):
         self.dagMod = dagMod
         self.dgMod = dgMod
         
-        self.ghostObj = False
+        self.dagGhosts = False
+        self.dgGhosts = False
         #self.theMod = None
+        
+        self.manipError = manipError
         
     def __enter__(self):
         import maya.cmds as cmds
-        # check of an obj of the given type already exists in the scene, and if
-        # so, use it
-        allObj = cmds.ls(type=self.mayaType)
-        if allObj:
-            obj = api.toApiObject(allObj[0])
-            self.ghostObj = False
-        else:
-            obj = _makeDgModGhostObject(self.mayaType, self.dagMod, self.dgMod)
-            self.ghostObj = obj is not None
-    
-        if obj is not None:
-            if (      obj.hasFn( api.MFn.kManipulator )      
-                   or obj.hasFn( api.MFn.kManipContainer )
-                   or obj.hasFn( api.MFn.kPluginManipContainer )
-                   or obj.hasFn( api.MFn.kPluginManipulatorNode )
-                   
-                   or obj.hasFn( api.MFn.kManipulator2D )
-                   or obj.hasFn( api.MFn.kManipulator3D )
-                   or obj.hasFn( api.MFn.kManip2DContainer) ):
-                raise ManipNodeTypeError
-     
-            # Note that we always create a "real" instance of the object by
-            # calling doIt()... we used to not call doIt(), in which case
-            # the mobject would actually still be queryable, but not in the
-            # scene - thus the "ghost" obj - but this would create problems in
-            # some cases - ie, if this was triggered during reference loading,
-            # the objects would actually be entered into the scene... and
-            # because we didn't call undoIt, they wouldn't get cleaned up
-            if obj.hasFn( api.MFn.kDagNode ):
-                if self.ghostObj:
-                    self.theMod = self.dagMod
-                    self.theMod.doIt()
+        
+        byMayaType = {}
+        for mayaType in self.mayaTypes:
+            # check of an obj of the given type already exists in the scene, and if
+            # so, use it
+            madeGhost = False
+            allObj = cmds.ls(type=mayaType)
+            if allObj:
+                obj = api.toMObject(allObj[0])
             else:
-                if self.ghostObj:
-                    self.theMod = self.dgMod
-                    self.theMod.doIt()
-        return obj
+                obj = _makeDgModGhostObject(mayaType, self.dagMod, self.dgMod)
+                if obj is not None:
+                    madeGhost = True
+        
+            if obj is not None:
+                if (self.manipError 
+                    and (obj.hasFn( api.MFn.kManipulator )      
+                         or obj.hasFn( api.MFn.kManipContainer )
+                         or obj.hasFn( api.MFn.kPluginManipContainer )
+                         or obj.hasFn( api.MFn.kPluginManipulatorNode )
+                         or obj.hasFn( api.MFn.kManipulator2D )
+                         or obj.hasFn( api.MFn.kManipulator3D )
+                         or obj.hasFn( api.MFn.kManip2DContainer)
+                        )
+                   ):
+                    raise ManipNodeTypeError
+
+                if madeGhost:
+                    if obj.hasFn( api.MFn.kDagNode ):
+                        self.dagGhosts = True
+                    else:
+                        self.dgGhosts = True
+            byMayaType[mayaType] = obj
+         
+        # Note that we always create a "real" instance of the object by
+        # calling doIt()... we used to not call doIt(), in which case
+        # the mobject would actually still be queryable, but not in the
+        # scene - thus the "ghost" obj - but this would create problems in
+        # some cases - ie, if this was triggered during reference loading,
+        # the objects would actually be entered into the scene... and
+        # because we didn't call undoIt, they wouldn't get cleaned up
+        if self.dagGhosts:
+            self.dagMod.doIt()
+        if self.dgGhosts:
+            self.dgMod.doIt()
+        if self.multi:
+            return byMayaType
+        else:
+            return obj
                     
     def __exit__(self, type, value, traceback):
-        if self.ghostObj:
-            self.theMod.undoIt()
+        if self.dagGhosts:
+            self.dagMod.undoIt()
+        if self.dgGhosts:
+            self.dgMod.undoIt()
 
 def _defaultdictdict(cls, val=None):
     if val is None:
@@ -239,30 +263,32 @@ class ApiCache(startup.SubItemCache):
             setattr(self, name, {})
 
     def _buildMayaToApiInfo(self, mayaTypes):
-        # Fixes for types that don't have a MFn by faking a node creation and testing it
-        # Make it faster by pre-creating the nodes used to test
-        dagMod = api.MDagModifier()
-        dgMod = api.MDGModifier()
-
-        # Put in a debug, because this can be crashy
-        _logger.debug("Starting to create ghost nodes...")
-
+        # Fixes for types that don't have a MFn by doing a node creation and testing it
         unknownTypes = set()
+        toCreate = []
 
+        # Put in a debug, because this can be problematic...
+        _logger.debug("Starting to create ghost nodes...")
+        
         for mayaType in mayaTypes :
             apiType = None
             if self.reservedMayaTypes.has_key(mayaType) :
                 apiType = self.reservedMayaTypes[mayaType]
-            else:
-                obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
-                if obj :
-                    apiType = obj.apiTypeStr()
-                else:
-                    unknownTypes.add(mayaType)
-            if apiType is not None:
                 self.mayaTypesToApiTypes[mayaType] = apiType
+            else:
+                toCreate.append(mayaType)
+            
+        if toCreate:
+            with _GhostObjMaker(toCreate, manipError=False, multi=True) as typeToObj:
+                for mayaType in toCreate:
+                    obj = typeToObj[mayaType]
+                    if obj :
+                        apiType = obj.apiTypeStr()
+                        self.mayaTypesToApiTypes[mayaType] = apiType
+                    else:
+                        unknownTypes.add(mayaType)
 
-        # Put in a debug, because this can be crashy
+        # Put in a debug, because this can be problematic...
         _logger.debug("...finished creating ghost nodes")
         
         if len(unknownTypes) > 0:
@@ -294,7 +320,7 @@ class ApiCache(startup.SubItemCache):
         invalidReservedTypes = {'deformableShape' : 'kInvalid', 'controlPoint' : 'kInvalid'}
 
         # filter to make sure all these types exist in current version (some are Maya2008 only)
-        self.reservedMayaTypes = dict( (item[0], item[1]) for item in filter(lambda i:i[1] in self.apiTypesToApiEnums, self.RESERVED_TYPES.iteritems()) )
+        self.reservedMayaTypes = dict( (item[0], item[1]) for item in self.RESERVED_TYPES.iteritems() if item[1] in self.apiTypesToApiEnums)
         self.reservedMayaTypes.update(invalidReservedTypes)
         # build reverse dict
         self.reservedApiTypes = dict( (item[1], item[0]) for item in self.reservedMayaTypes.iteritems() )
