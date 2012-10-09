@@ -66,6 +66,70 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         _logger.debug("Error trying to create ghost node for '%s'" %  mayaType)
         return None
 
+class InvalidNodeTypeError(Exception): pass
+class ManipNodeTypeError(InvalidNodeTypeError): pass
+
+class _GhostObjMaker(object):
+    '''Context used to get an mobject which we can query within this context.
+    
+    Automatically does any steps need to create and destroy the mobj within
+    the context
+    '''
+    def __init__(self, mayaType, dagMod=None, dgMod=None):
+        self.mayaType = mayaType
+        if dagMod is None:
+            dagMod = api.MDagModifier()
+        if dgMod is None:
+            dgMod = api.MDGModifier()
+        self.dagMod = dagMod
+        self.dgMod = dgMod
+        
+        self.ghostObj = False
+        #self.theMod = None
+        
+    def __enter__(self):
+        import maya.cmds as cmds
+        # check of an obj of the given type already exists in the scene, and if
+        # so, use it
+        allObj = cmds.ls(type=self.mayaType)
+        if allObj:
+            obj = api.toApiObject(allObj[0])
+            self.ghostObj = False
+        else:
+            obj = _makeDgModGhostObject(self.mayaType, self.dagMod, self.dgMod)
+            self.ghostObj = obj is not None
+    
+        if obj is not None:
+            if (      obj.hasFn( api.MFn.kManipulator )      
+                   or obj.hasFn( api.MFn.kManipContainer )
+                   or obj.hasFn( api.MFn.kPluginManipContainer )
+                   or obj.hasFn( api.MFn.kPluginManipulatorNode )
+                   
+                   or obj.hasFn( api.MFn.kManipulator2D )
+                   or obj.hasFn( api.MFn.kManipulator3D )
+                   or obj.hasFn( api.MFn.kManip2DContainer) ):
+                raise ManipNodeTypeError
+     
+            # Note that we always create a "real" instance of the object by
+            # calling doIt()... we used to not call doIt(), in which case
+            # the mobject would actually still be queryable, but not in the
+            # scene - thus the "ghost" obj - but this would create problems in
+            # some cases - ie, if this was triggered during reference loading,
+            # the objects would actually be entered into the scene... and
+            # because we didn't call undoIt, they wouldn't get cleaned up
+            if obj.hasFn( api.MFn.kDagNode ):
+                if self.ghostObj:
+                    self.theMod = self.dagMod
+                    self.theMod.doIt()
+            else:
+                if self.ghostObj:
+                    self.theMod = self.dgMod
+                    self.theMod.doIt()
+        return obj
+                    
+    def __exit__(self, type, value, traceback):
+        if self.ghostObj:
+            self.theMod.undoIt()
 
 def _defaultdictdict(cls, val=None):
     if val is None:

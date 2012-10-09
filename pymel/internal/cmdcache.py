@@ -913,22 +913,24 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         cmds.delete( newObjs )
     return cmdInfo
 
-class InvalidNodeTypeError(Exception): pass
-class ManipNodeTypeError(InvalidNodeTypeError): pass
-
 def getInheritance( mayaType, checkManip3D=True ):
     """Get parents as a list, starting from the node after dependNode, and
-    ending with the mayaType itself. To get the inheritance we use nodeType,
-    which requires a real node.  To do get these without poluting the scene we
-    use a dag/dg modifier, call the doIt method, get the lineage, then call
-    undoIt.
+    ending with the mayaType itself.
     
-    A ManipNodeTypeError is the node type fed in was a manipulator
+    Raises a ManipNodeTypeError if the node type fed in was a manipulator
     """
-    from . import apicache
+
+    # To get the inheritance post maya2012, we use nodeType(isTypeName=True),
+    # which means we don't need a real node. However, in maya < 2012, nodeType
+    # requires a real node.  To do get these without poluting the scene we use the
+    # _GhostObjMaker, which on enter, uses a dag/dg modifier, and calls the doIt
+    # method; we then get the lineage, and on exit, it calls undoIt.
+
+    import pymel.internal.apicache as apicache
     import pymel.api as api
     
-    if versions.current() >= versions.v2012:
+    if False:
+    #if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
         kwargs = dict(isTypeName=True, inherited=True)
         lineage = cmds.nodeType(mayaType, **kwargs)
@@ -949,38 +951,19 @@ def getInheritance( mayaType, checkManip3D=True ):
             else:
                 raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
         elif checkManip3D and 'manip3D' in lineage:
-            raise ManipNodeTypeError
+            raise apicache.ManipNodeTypeError
         assert lineage[-1] == mayaType
     else:
-        dagMod = api.MDagModifier()
-        dgMod = api.MDGModifier()
-    
-        obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
-    
-        lineage = []
-        if obj is not None:
-            if (      obj.hasFn( api.MFn.kManipulator )      
-                   or obj.hasFn( api.MFn.kManipContainer )
-                   or obj.hasFn( api.MFn.kPluginManipContainer )
-                   or obj.hasFn( api.MFn.kPluginManipulatorNode )
-                   
-                   or obj.hasFn( api.MFn.kManipulator2D )
-                   or obj.hasFn( api.MFn.kManipulator3D )
-                   or obj.hasFn( api.MFn.kManip2DContainer) ):
-                raise ManipNodeTypeError
-     
-            if obj.hasFn( api.MFn.kDagNode ):
-                mod = dagMod
-                mod.doIt()
-                name = api.MFnDagNode(obj).partialPathName()
-            else:
-                mod = dgMod
-                mod.doIt()
-                name = api.MFnDependencyNode(obj).name()
-        
-            if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
-                lineage = cmds.nodeType( name, inherited=1)
-            mod.undoIt()
+        with apicache._GhostObjMaker(mayaType) as obj:
+            lineage = []
+            if obj is not None:
+                if obj.hasFn( api.MFn.kDagNode ):
+                    name = api.MFnDagNode(obj).partialPathName()
+                else:
+                    name = api.MFnDependencyNode(obj).name()
+                if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
+                    lineage = cmds.nodeType( name, inherited=1)
+
     return lineage
 
 def _getNodeHierarchy( version=None ):
@@ -989,6 +972,7 @@ def _getNodeHierarchy( version=None ):
         ( nodeType, parents, children )
     """
     import pymel.util.trees as trees
+    import pymel.internal.apicache as apicache
     
     if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
@@ -996,7 +980,7 @@ def _getNodeHierarchy( version=None ):
         for nodeType in cmds.allNodeTypes():
             try:
                 inheritances[nodeType] = getInheritance(nodeType)
-            except ManipNodeTypeError:
+            except apicache.ManipNodeTypeError:
                 continue
         
         parentTree = {}

@@ -2706,7 +2706,7 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
     """
     try:
         inheritance = cmdcache.getInheritance( mayaType )
-    except cmdcache.ManipNodeTypeError:
+    except apicache.ManipNodeTypeError:
         _logger.warn( "could not create a PyNode for manipulator type %s" % mayaType)
         return
     except Exception:
@@ -3070,15 +3070,11 @@ def mayaTypeToApiType(mayaType) :
             # It's an abstract type
             apiType = reservedMayaTypes[mayaType]
         else :
-            # we create a dummy object of this type in a dgModifier
-            # as the dgModifier.doIt() method is never called, the object
-            # is never actually created in the scene
-            obj = api.MObject()
-            dagMod = api.MDagModifier()
-            dgMod = api.MDGModifier()
-            obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
-            if api.isValidMObject(obj):
-                apiType = obj.apiTypeStr()
+            # we need to actually create the obj to query it...
+            with apicache._GhostObjMaker(mayaType) as obj:
+                if obj is not None and api.isValidMObject(obj):
+                    apiType = obj.apiTypeStr()
+        mayaTypesToApiTypes[mayaType] = apiType
         return apiType
 
     
