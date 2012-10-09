@@ -550,6 +550,7 @@ def getPluginHierarchy():
     This command must be run from within a running maya session - ie, where
     maya.cmds, etc are accessible.
     '''
+    import pymel.internal.apicache as apicache
     import pymel.internal.cmdcache as cmdcache
     
     dummyClasses = createDummyNodePlugins()
@@ -560,7 +561,7 @@ def getPluginHierarchy():
         try:
             try:
                 inheritance = cmdcache.getInheritance(nodeType)
-            except cmdcache.ManipNodeTypeError:
+            except apicache.ManipNodeTypeError:
                 continue
         finally:
             dummyClass.deregister()
