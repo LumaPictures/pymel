@@ -77,7 +77,7 @@ class _GhostObjMaker(object):
     
     (Note - None may be returned in the place of any mobj)
     '''
-    def __init__(self, mayaTypes, dagMod=None, dgMod=None, manipError=None,
+    def __init__(self, mayaTypes, dagMod=None, dgMod=None, manipError=True,
                  multi=False):
         self.multi = multi
         if not multi:
