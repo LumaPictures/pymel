@@ -332,7 +332,7 @@ class DependNode( general.PyNode ):
                 raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
 
     @_util.universalmethod
-    def attrDefaults(obj,attr):
+    def attrDefaults(obj, attr): #@NoSelf
         """
         Access to an attribute of a node.  This does not require an instance:
 
@@ -355,18 +355,42 @@ class DependNode( general.PyNode ):
         attributes = cls.__apiobjects__.setdefault('MFnAttributes', {})
         attrObj = attributes.get(attr, None)
         if not _api.isValidMObject(attrObj):
+            def toAttrObj(apiObj):
+                try:
+                    attrObj = apiObj.attribute(attr)
+                    if attrObj.isNull():
+                        raise RuntimeError
+                except RuntimeError:
+                    # just try it first, then check if it has the attribute if
+                    # we errored (as opposed to always check first if the node
+                    # has the attribute), on the assumption that this will be
+                    # "faster" for most cases, where the node actually DOES have
+                    # the attribute...
+                    if not apiObj.hasAttribute(attr):
+                        raise general.MayaAttributeError('%s.%s' % (cls.__melnode__, attr))
+                    else:
+                        # don't know why we got this error, so just reraise
+                        raise
+                return attrObj
+            
             if self is None:
-                # We don't have an instance of the node, we need
-                # to make a ghost one...
-                dagMod = _api.MDagModifier()
-                dgMod = _api.MDGModifier()
-                nodeObj = _apicache._makeDgModGhostObject( cls.__melnode__,
-                                                           dagMod,
-                                                           dgMod )
-                nodeMfn = cls.__apicls__(obj)
+                #if hasattr(_api, 'MNodeClass'):
+                if False:
+                    # Yay, we have MNodeClass, use it!
+                    nodeCls = _api.MNodeClass(cls.__melnode__)
+                    attrObj = toAttrObj(nodeCls)
+                else:
+                    # We don't have an instance of the node, we need
+                    # to make a ghost one...
+                    with _apicache._GhostObjMaker(cls.__melnode__) as nodeObj:
+                        if nodeObj is None:
+                            # for instance, we get this if we have an abstract class...
+                            raise RuntimeError("Unable to get attribute defaults for abstract node class %s, in versions prior to 2012" % cls.__melnode__)
+                        nodeMfn = cls.__apicls__(nodeObj)
+                        attrObj = toAttrObj(nodeMfn)
             else:
                 nodeMfn = self.__apimfn__()
-            attrObj = nodeMfn.attribute(attr)
+                attrObj = toAttrObj(nodeMfn)
             attributes[attr] = attrObj
         return general.AttributeDefaults( attrObj )
 
