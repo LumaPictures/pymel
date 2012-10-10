@@ -219,25 +219,6 @@ def getInheritance( mayaType, checkManip3D=True ):
         # We now have nodeType(isTypeName)! yay!
         kwargs = dict(isTypeName=True, inherited=True)
         lineage = cmds.nodeType(mayaType, **kwargs)
-        if lineage is None:
-            controlPoint = cmds.nodeType('controlPoint', **kwargs)
-            # For whatever reason, nodeType(isTypeName) returns
-            # None for the following mayaTypes:
-            fixedLineages = {
-                'file':[u'texture2d', u'file'],
-                'lattice':controlPoint + [u'lattice'],
-                'mesh':controlPoint + [u'surfaceShape', u'mesh'],
-                'nurbsCurve':controlPoint + [u'curveShape', u'nurbsCurve'],
-                'nurbsSurface':controlPoint + [u'surfaceShape', u'nurbsSurface'],
-                'time':[u'time']
-            }
-            if mayaType in fixedLineages:
-                lineage = fixedLineages[mayaType]
-            else:
-                raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
-        elif checkManip3D and 'manip3D' in lineage:
-            raise ManipNodeTypeError
-        assert lineage[-1] == mayaType
     else:
         with _GhostObjMaker(mayaType) as obj:
             lineage = []
@@ -248,6 +229,25 @@ def getInheritance( mayaType, checkManip3D=True ):
                     name = api.MFnDependencyNode(obj).name()
                 if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
                     lineage = cmds.nodeType( name, inherited=1)
+    if lineage is None:
+        controlPoint = cmds.nodeType('controlPoint', **kwargs)
+        # For whatever reason, nodeType(isTypeName) returns
+        # None for the following mayaTypes:
+        fixedLineages = {
+            'file':[u'texture2d', u'file'],
+            'lattice':controlPoint + [u'lattice'],
+            'mesh':controlPoint + [u'surfaceShape', u'mesh'],
+            'nurbsCurve':controlPoint + [u'curveShape', u'nurbsCurve'],
+            'nurbsSurface':controlPoint + [u'surfaceShape', u'nurbsSurface'],
+            'time':[u'time']
+        }
+        if mayaType in fixedLineages:
+            lineage = fixedLineages[mayaType]
+        else:
+            raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
+    elif checkManip3D and 'manip3D' in lineage:
+        raise ManipNodeTypeError
+    assert lineage[-1] == mayaType
 
     return lineage
 
@@ -353,10 +353,11 @@ class ApiCache(startup.SubItemCache):
     }
 
 
-    def __init__(self):
+    def __init__(self, docLocation=None):
         super(ApiCache, self).__init__()
         for name in self.EXTRA_GLOBAL_NAMES:
             setattr(self, name, {})
+        self.docLocation = docLocation
 
     def _buildMayaToApiInfo(self, mayaTypes):
         # Fixes for types that don't have a MFn by doing a node creation and testing it
@@ -444,7 +445,7 @@ class ApiCache(startup.SubItemCache):
         _logger.debug("Starting ApiCache._buildApiClassInfo...") 
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
-        parser = ApiDocParser(api, enumClass=ApiEnum)
+        parser = ApiDocParser(api, enumClass=ApiEnum, docLocation=self.docLocation)
 
         for name, obj in inspect.getmembers( api, lambda x: type(x) == type and x.__name__.startswith('M') ):
             if not name.startswith( 'MPx' ):
@@ -454,7 +455,52 @@ class ApiCache(startup.SubItemCache):
                 except (IOError, ValueError,IndexError), e:
                     _logger.warn( "failed to parse docs for %r:\n%s" % (name, e) )
         _logger.debug("...finished ApiCache._buildApiClassInfo")
+        
+    def _buildApiTypeToApiClasses(self):
+        def _MFnType(x) :
+            if x == api.MFnBase :
+                return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
+            else :
+                try :
+                    return self.apiEnumsToApiTypes[ x().type() ]
+                except :
+                    return self.apiEnumsToApiTypes[ 0 ] # 'kInvalid'
 
+        # all of maya OpenMaya api is now imported in module api's namespace
+        mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
+        for name, mfnClass in mfnClasses:
+            current = _MFnType(mfnClass)
+            if not current:
+                _logger.warning("MFnClass gave MFnType %s" % current)
+            elif current == 'kInvalid':
+                _logger.warning("MFnClass gave MFnType %s" % current)
+            else:
+                self.apiTypesToApiClasses[ current ] = mfnClass
+        # we got our map by going from Mfn to enum; however, multiple enums can
+        # map to the same MFn, so need to fill in the gaps of missing enums for
+        # enums to MFn...
+        
+        # we do this by querying the maya hierarchy, and marching up it until
+        # we fin an entry that IS in apiTypesToApiClasses
+        for mayaType, apiType in self.mayaTypesToApiTypes.iteritems():
+            if apiType not in self.apiTypesToApiClasses:
+                mfnClass = None
+                try:
+                    inheritance = getInheritance(mayaType)
+                except Exception:
+                    continue
+                # inheritance always ends with that node type... so skip that...
+                for mayaParentType in reversed(inheritance[:-1]):
+                    parentApiType = self.mayaTypesToApiTypes.get(mayaParentType)
+                    if parentApiType:
+                        parentMfn = self.apiTypesToApiClasses.get(parentApiType)
+                        if parentMfn: 
+                            mfnClass = parentMfn
+                            break
+                if not mfnClass:
+                    mfnClass = api.MFnDependencyNode
+                self.apiTypesToApiClasses[apiType] = mfnClass
+                
     def _buildApiRelationships(self) :
         """
         Used to rebuild api info from scratch.
@@ -467,14 +513,6 @@ class ApiCache(startup.SubItemCache):
         # Put in a debug, because this can be crashy
         _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")        
         
-        def _MFnType(x) :
-            if x == api.MFnBase :
-                return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
-            else :
-                try :
-                    return self.apiEnumsToApiTypes[ x().type() ]
-                except :
-                    return self.apiEnumsToApiTypes[ 0 ] # 'kInvalid'
 
         if not startup.mayaStartupHasRun():
             startup.mayaInit()
@@ -514,21 +552,11 @@ class ApiCache(startup.SubItemCache):
         maya.mel.eval('source "initialPlugins.mel"')
         plugins.loadAllMayaPlugins()
 
-        # all of maya OpenMaya api is now imported in module api's namespace
-        mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-        for name, mfnClass in mfnClasses:
-            current = _MFnType(mfnClass)
-            if not current:
-                _logger.warning("MFnClass gave MFnType %s" % current)
-            elif current == 'kInvalid':
-                _logger.warning("MFnClass gave MFnType %s" % current)
-            else:
-                self.apiTypesToApiClasses[ current ] = mfnClass
-
         self._buildApiClassInfo()
 
         allMayaTypes = self.reservedMayaTypes.keys() + maya.cmds.ls(nodeTypes=True)
         self._buildMayaToApiInfo(allMayaTypes)
+        self._buildApiTypeToApiClasses()
         
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
