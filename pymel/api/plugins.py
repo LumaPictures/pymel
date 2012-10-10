@@ -88,12 +88,22 @@ import maya.OpenMayaMPx as mpx
 import maya.cmds
 
 #===============================================================================
+# Errors
+#===============================================================================
+class PluginError(Exception): pass
+class PluginRegistryError(PluginError): pass
+class AlreadyRegisteredError(PluginRegistryError): pass
+class NotRegisteredError(PluginRegistryError): pass
+
+#===============================================================================
 # General Info
 #===============================================================================
 
+# Gives a map from an MPx class name to it's enum name in MPxNode.Type
 # Because different versions of maya may not have all these MPxNodes, we need
-# to store as a list, and retrieve from mpx
-mpxToEnumNames = {
+# to store as strings, and retrieve from mpx
+# Constructed by manual inspection of names in MPxNode.Type
+mpxNamesToEnumNames = {
     'MPxNode':'kDependNode',
     'MPxPolyTrg':'kDependNode',             # has no unique enum
     'MPxLocatorNode':'kLocatorNode',
@@ -119,13 +129,50 @@ mpxToEnumNames = {
     'MPxRepresentation':'kRepresentation',
     }
 
+# Gives a map from an MPx class name to it's enum name in MFn.Type
+# Constructed by a combination of _buildMpxNamesToApiEnumNames and manual
+# inspection of names in MFn.Type
+mpxNamesToApiEnumNames = {
+    'MPxNode': 'kPluginDependNode',
+    'MPxPolyTrg': 'kPluginDependNode',   # has no unique enum
+    'MPxLocatorNode': 'kPluginLocatorNode',
+    'MPxDeformerNode': 'kPluginDeformerNode',
+    'MPxManipContainer': 'kPluginManipContainer',  # added manually
+    'MPxSurfaceShape': 'kPluginShape',
+    'MPxComponentShape': 'kPluginShape', # has no unique enum
+    'MPxFieldNode': 'kPluginFieldNode',
+    'MPxEmitterNode': 'kPluginEmitterNode',
+    'MPxSpringNode': 'kPluginSpringNode',
+    'MPxIkSolverNode': 'kPluginIkSolver',
+    'MPxHardwareShader': 'kPluginHardwareShader',
+    'MPxHwShaderNode': 'kPluginHwShaderNode',
+    'MPxTransform': 'kPluginTransformNode',
+    'MPxObjectSet': 'kPluginObjectSet',
+    'MPxFluidEmitterNode': 'kPluginEmitterNode',
+    'MPxImagePlane': 'kPluginImagePlaneNode',
+    'MPxParticleAttributeMapperNode' : 'kPluginParticleAttributeMapperNode', # added manually
+    'MPxCameraSet': 'kPluginCameraSet',
+    'MPxConstraint': 'kPluginConstraintNode',
+    'MPxManipulatorNode':'kPluginManipulatorNode', # added manually
+    'MPxRepMgr':'kPluginRepMgr',  # guessed?
+    'MPxRepresentation':'kPluginRepresentation', # guessed?    
+    }
 
 mpxToEnum = {}
-for nodeName, enumName in mpxToEnumNames.iteritems():
-    node = getattr(mpx, nodeName, None)
-    if node:
-        mpxToEnum[node] = getattr(mpx.MPxNode, enumName)
-        
+mpxToApiEnum = {}
+for mpxName, enumName in mpxNamesToEnumNames.iteritems():
+    mpxCls = getattr(mpx, mpxName, None)
+    if mpxCls:
+        mpxToEnum[mpxCls] = getattr(mpx.MPxNode, enumName)
+        apiEnumName = mpxNamesToApiEnumNames[mpxName]
+        mpxToApiEnum[mpxCls] = getattr(om.MFn, apiEnumName)
+
+
+NON_CREATABLE = set(['MPxManipContainer',
+                     'MPxManipulatorNode',
+                     'MPxParticleAttributeMapperNode',
+                    ])
+
 _enumToStr = None
 def enumToStr():
     '''Returns a dictionary mapping from an MPxNode node type enum to it's
@@ -281,7 +328,21 @@ class BasePluginMixin(object):
     
     @classmethod
     def create(cls):
-        return mpx.asMPxPtr( cls() )    
+        inst = cls()
+        return mpx.asMPxPtr( inst )
+    
+    @classmethod
+    def _getRegisteredPluginObj(cls):
+        # plugin registry should NOT be inherited from parents! 
+        if '_registeredPlugin_data' not in cls.__dict__:
+            cls._registeredPlugin_data = None
+        return cls._registeredPlugin_data
+    
+    @classmethod
+    def _setRegisteredPluginObj(cls, val):
+        if val and cls.isRegistered():
+            raise AlreadyRegisteredError("Class %s is already registered to a plugin" % cls.__name__)
+        cls._registeredPlugin_data = val
 
     @classmethod
     def register(cls, plugin=None):
@@ -299,6 +360,9 @@ class BasePluginMixin(object):
         global registered
         useThisPlugin = (plugin is None)
         mplugin = _getPlugin(plugin)
+        
+        cls._setRegisteredPluginObj(mplugin.object())
+        
         cls._registerOverride(mplugin, useThisPlugin)
         if useThisPlugin:
             registered.add(cls)
@@ -318,11 +382,16 @@ class BasePluginMixin(object):
         functions.
         """
         global registered
+        if not cls.isRegistered():
+            raise NotRegisteredError("Class %s is not registered to a plugin" % cls.__name__)
+        
         useThisPlugin = (plugin is None)
         mplugin = _getPlugin(plugin)
         cls._deregisterOverride(mplugin, useThisPlugin)
         if plugin is None:
             registered.remove(cls)
+            
+        cls._setRegisteredPluginObj(None)
 
     @classmethod
     def _deregisterOverride(cls, mplugin, useThisPlugin):
@@ -330,6 +399,10 @@ class BasePluginMixin(object):
         the MPx class. 
         '''
         return
+    
+    @classmethod
+    def isRegistered(cls):
+        return bool(cls._getRegisteredPluginObj())
 
 #===============================================================================
 # Plugin Classes - inherit from these!
@@ -507,6 +580,8 @@ class Transform(DependNode, mpx.MPxTransform):
             registerArgs.append(cls._classification)
         mplugin.registerTransform( *registerArgs )
 
+# these appear to temporary or debugging types? they existed at some point in
+# the beta for 2013, then went away?
 if hasattr(mpx, 'MPxRepMgr'):
     class RepMgr(DependNode, mpx.MPxRepMgr): pass
 
@@ -544,7 +619,7 @@ class PyNodeMethod(object):
 # Querying Plugin Hierarchy
 #===============================================================================
 
-def getPluginHierarchy():
+def _buildPluginHierarchy(dummyClasses=None):
     '''Dynamically query the mel node hierarchy for all plugin node types
     
     This command must be run from within a running maya session - ie, where
@@ -552,23 +627,53 @@ def getPluginHierarchy():
     '''
     import pymel.internal.apicache as apicache
     
-    dummyClasses = createDummyNodePlugins()
+    if dummyClasses is None:
+        dummyClasses = _createDummyPluginNodeClasses()
+
+    # note that we always try to query inheritance, even for node types in
+    # NON_CREATABLE, because post 2012, we should be able to query inheritance
+    # without needing to create a node...
     inheritances = {}
     for pluginType, dummyClass in dummyClasses.iteritems():
         nodeType = dummyClass.mayaName()
-        dummyClass.register()
+        wasRegistered = dummyClass.isRegistered()
+        if not wasRegistered:
+            dummyClass.register()
         try:
             try:
                 inheritance = apicache.getInheritance(nodeType)
             except apicache.ManipNodeTypeError:
                 continue
         finally:
-            dummyClass.deregister()
+            if not wasRegistered:
+                dummyClass.deregister()
+        if not inheritance:
+            # If there was a problem creating a node - for instance, in the
+            # case of MPxParticleAttributeMapperNode...
+            continue
         assert inheritance[-1] == nodeType
-        inheritances[pluginType] = inheritance[1:]
+        inheritances[pluginType] = inheritance[1:-1]
     return inheritances
 
-def createDummyNodePlugins():
+
+def _buildMpxNamesToApiEnumNames(dummyClasses=None, dummyNodes=None):
+    import pymel.api as api
+    mpxNamesToEnumNames = {}
+    with _DummyPluginNodesMaker(dummyClasses=dummyClasses,
+                                alreadyCreated=dummyNodes) as nodeMaker:
+        for mpxCls, mayaNode in nodeMaker.nodes.iteritems():
+            mobj = api.toMObject(mayaNode)
+            mpxNamesToEnumNames[mpxCls.__name__] = mobj.apiTypeStr()
+    return mpxNamesToEnumNames
+
+def _buildAll():
+    with _DummyPluginNodesMaker() as nodeMaker:
+        hierarchy = _buildPluginHierarchy(dummyClasses=nodeMaker.dummyClasses)
+        mpxToEnum = _buildMpxNamesToApiEnumNames(dummyClasses=nodeMaker.dummyClasses,
+                                                 dummyNodes=nodeMaker.nodes)
+    return hierarchy, mpxToEnum
+
+def _createDummyPluginNodeClasses():
     '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
     subclass
     
@@ -590,7 +695,42 @@ def createDummyNodePlugins():
         
     return dummyClasses
     
-
+class _DummyPluginNodesMaker(object):
+    def __init__(self, dummyClasses=None, alreadyCreated=None):
+        if dummyClasses is None:
+            dummyClasses = _createDummyPluginNodeClasses()
+        self.dummyClasses = dummyClasses
+        self.toUnregister = []
+        self.nodes = {}
+        if alreadyCreated is None:
+            alreadyCreated = {}
+        self.alreadyCreated = alreadyCreated
+        if self.alreadyCreated:
+            self.nodes.update(self.alreadyCreated)
+        self.toDelete = []
+    
+    def __enter__(self):
+        for mpxCls, pyCls in self.dummyClasses.iteritems():
+            if not pyCls.isRegistered():
+                self.toUnregister.append(pyCls)
+                pyCls.register()
+            if mpxCls not in self.alreadyCreated:
+                if mpxCls.__name__ in NON_CREATABLE:
+                    continue
+                newNode = maya.cmds.createNode(pyCls.mayaName())
+                parent = maya.cmds.listRelatives(newNode, parent=1)
+                self.nodes[mpxCls] = newNode
+                if parent:
+                    self.toDelete.append(parent)
+                else:
+                    self.toDelete.append(newNode)
+        return self
+                
+    def __exit__(self, type, value, traceback):
+        if self.toDelete:
+            maya.cmds.delete(*self.toDelete)
+        for pyCls in self.toUnregister:
+            pyCls.deregister()
 
 #def _repoplulate():
 #    print "repopulate"
