@@ -926,7 +926,7 @@ def _getNodeHierarchy( version=None ):
         inheritances = {}
         for nodeType in cmds.allNodeTypes():
             try:
-                inheritances[nodeType] = getInheritance(nodeType)
+                inheritances[nodeType] = apicache.getInheritance(nodeType)
             except apicache.ManipNodeTypeError:
                 continue
         
