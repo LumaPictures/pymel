@@ -929,8 +929,7 @@ def getInheritance( mayaType, checkManip3D=True ):
     import pymel.internal.apicache as apicache
     import pymel.api as api
     
-    if False:
-    #if versions.current() >= versions.v2012:
+    if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
         kwargs = dict(isTypeName=True, inherited=True)
         lineage = cmds.nodeType(mayaType, **kwargs)

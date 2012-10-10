@@ -374,8 +374,7 @@ class DependNode( general.PyNode ):
                 return attrObj
             
             if self is None:
-                #if hasattr(_api, 'MNodeClass'):
-                if False:
+                if hasattr(_api, 'MNodeClass'):
                     # Yay, we have MNodeClass, use it!
                     nodeCls = _api.MNodeClass(cls.__melnode__)
                     attrObj = toAttrObj(nodeCls)
