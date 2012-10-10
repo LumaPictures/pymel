@@ -2706,7 +2706,7 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
      
     """
     try:
-        inheritance = cmdcache.getInheritance( mayaType )
+        inheritance = apicache.getInheritance( mayaType )
     except apicache.ManipNodeTypeError:
         _logger.warn( "could not create a PyNode for manipulator type %s" % mayaType)
         return

@@ -913,58 +913,6 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         cmds.delete( newObjs )
     return cmdInfo
 
-def getInheritance( mayaType, checkManip3D=True ):
-    """Get parents as a list, starting from the node after dependNode, and
-    ending with the mayaType itself.
-    
-    Raises a ManipNodeTypeError if the node type fed in was a manipulator
-    """
-
-    # To get the inheritance post maya2012, we use nodeType(isTypeName=True),
-    # which means we don't need a real node. However, in maya < 2012, nodeType
-    # requires a real node.  To do get these without poluting the scene we use the
-    # _GhostObjMaker, which on enter, uses a dag/dg modifier, and calls the doIt
-    # method; we then get the lineage, and on exit, it calls undoIt.
-
-    import pymel.internal.apicache as apicache
-    import pymel.api as api
-    
-    if versions.current() >= versions.v2012:
-        # We now have nodeType(isTypeName)! yay!
-        kwargs = dict(isTypeName=True, inherited=True)
-        lineage = cmds.nodeType(mayaType, **kwargs)
-        if lineage is None:
-            controlPoint = cmds.nodeType('controlPoint', **kwargs)
-            # For whatever reason, nodeType(isTypeName) returns
-            # None for the following mayaTypes:
-            fixedLineages = {
-                'file':[u'texture2d', u'file'],
-                'lattice':controlPoint + [u'lattice'],
-                'mesh':controlPoint + [u'surfaceShape', u'mesh'],
-                'nurbsCurve':controlPoint + [u'curveShape', u'nurbsCurve'],
-                'nurbsSurface':controlPoint + [u'surfaceShape', u'nurbsSurface'],
-                'time':[u'time']
-            }
-            if mayaType in fixedLineages:
-                lineage = fixedLineages[mayaType]
-            else:
-                raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
-        elif checkManip3D and 'manip3D' in lineage:
-            raise apicache.ManipNodeTypeError
-        assert lineage[-1] == mayaType
-    else:
-        with apicache._GhostObjMaker(mayaType) as obj:
-            lineage = []
-            if obj is not None:
-                if obj.hasFn( api.MFn.kDagNode ):
-                    name = api.MFnDagNode(obj).partialPathName()
-                else:
-                    name = api.MFnDependencyNode(obj).name()
-                if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
-                    lineage = cmds.nodeType( name, inherited=1)
-
-    return lineage
-
 def _getNodeHierarchy( version=None ):
     """
     get node hierarchy as a list of 3-value tuples:

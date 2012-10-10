@@ -551,7 +551,6 @@ def getPluginHierarchy():
     maya.cmds, etc are accessible.
     '''
     import pymel.internal.apicache as apicache
-    import pymel.internal.cmdcache as cmdcache
     
     dummyClasses = createDummyNodePlugins()
     inheritances = {}
@@ -560,7 +559,7 @@ def getPluginHierarchy():
         dummyClass.register()
         try:
             try:
-                inheritance = cmdcache.getInheritance(nodeType)
+                inheritance = apicache.getInheritance(nodeType)
             except apicache.ManipNodeTypeError:
                 continue
         finally:
