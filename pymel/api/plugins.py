@@ -158,14 +158,45 @@ mpxNamesToApiEnumNames = {
     'MPxRepresentation':'kPluginRepresentation', # guessed?    
     }
 
+# Gives a map from an MPx class name to it's maya node type name
+# Constructed from a combination of buildMpxNamesToMayaNodes and manual
+# guess + check with nodeType(isTypeName=True)
+mpxNamesToMayaNodes = {
+    'MPxNode': u'THdependNode',
+    'MPxPolyTrg': u'THdependNode',
+    'MPxLocatorNode': u'THlocatorShape',
+    'MPxDeformerNode': u'THdeformer',
+    'MPxManipContainer': u'THmanipContainer',  # guessed + confirmed
+    'MPxSurfaceShape': u'THsurfaceShape',
+    'MPxComponentShape': u'THsurfaceShape',
+    'MPxFieldNode': u'THdynField',
+    'MPxEmitterNode': u'THdynEmitter',
+    'MPxSpringNode': u'THdynSpring',
+    'MPxIkSolverNode': u'THikSolverNode',
+    'MPxHardwareShader': u'THhardwareShader',
+    'MPxHwShaderNode': u'THhwShader',
+    'MPxTransform': u'THcustomTransform',
+    'MPxObjectSet': u'THobjectSet',
+    'MPxFluidEmitterNode': u'THfluidEmitter',
+    'MPxImagePlane': u'THimagePlane',
+    'MPxParticleAttributeMapperNode': u'THarrayMapper',
+    'MPxCameraSet': u'THcameraSet',
+    'MPxConstraint': u'THconstraint',
+    'MPxManipulatorNode':'THmanip', # guessed + confirmed
+    'MPxRepMgr':'THdependNode',  # no clue...?
+    'MPxRepresentation':'THdependNode', # no clue...?    
+    }
+
 mpxToEnum = {}
 mpxToApiEnum = {}
+mpxToMayaNode = {}
 for mpxName, enumName in mpxNamesToEnumNames.iteritems():
     mpxCls = getattr(mpx, mpxName, None)
     if mpxCls:
         mpxToEnum[mpxCls] = getattr(mpx.MPxNode, enumName)
         apiEnumName = mpxNamesToApiEnumNames[mpxName]
         mpxToApiEnum[mpxCls] = getattr(om.MFn, apiEnumName)
+        mpxToMayaNode[mpxCls] = mpxNamesToMayaNodes[mpxName]
 
 
 NON_CREATABLE = set(['MPxManipContainer',
@@ -652,7 +683,7 @@ def _buildPluginHierarchy(dummyClasses=None):
             # case of MPxParticleAttributeMapperNode...
             continue
         assert inheritance[-1] == nodeType
-        inheritances[pluginType] = inheritance[1:-1]
+        inheritances[pluginType] = inheritance[:-1]
     return inheritances
 
 
@@ -671,7 +702,20 @@ def _buildAll():
         hierarchy = _buildPluginHierarchy(dummyClasses=nodeMaker.dummyClasses)
         mpxToEnum = _buildMpxNamesToApiEnumNames(dummyClasses=nodeMaker.dummyClasses,
                                                  dummyNodes=nodeMaker.nodes)
-    return hierarchy, mpxToEnum
+        mpxToMaya = _buildMpxNamesToMayaNodes(hierarchy=hierarchy)
+    return hierarchy, mpxToMaya, mpxToEnum
+
+def _buildMpxNamesToMayaNodes(hierarchy=None):
+    if hierarchy is None:
+        hierarchy = _buildPluginHierarchy()
+    mpxNamesToMayaNodes = {}
+    for mpxCls, parents in hierarchy.iteritems():
+        if not parents:
+            mayaType = hierarchy[mpx.MPxNode][-1]
+        else:
+            mayaType = parents[-1]
+        mpxNamesToMayaNodes[mpxCls.__name__] = mayaType
+    return mpxNamesToMayaNodes
 
 def _createDummyPluginNodeClasses():
     '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
