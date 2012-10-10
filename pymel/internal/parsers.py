@@ -952,9 +952,7 @@ class ApiDocParser(object):
     def iterProto(self, apiClassName):
         self.apiClassName = apiClassName
         self.apiClass = getattr(self.apiModule, self.apiClassName)
-
-
-        self.docfile = os.path.join( self.docloc , 'API', self.getClassFilename() + '.html' )
+        self.docfile = self.getClassPath()
 
         _logger.info( "parsing file %s" , self.docfile )
 
@@ -964,6 +962,14 @@ class ApiDocParser(object):
 
         for proto in soup.body.findAll( 'div', **{'class':'memproto'} ):
             yield proto
+            
+    def getClassPath(self):
+        filename = self.getClassFilename() + '.html'
+        apiBase = os.path.join(self.docloc , 'API')
+        path = os.path.join(apiBase, filename)
+        if not os.path.isfile(path):
+            path = os.path.join(apiBase, 'cpp_ref', filename)
+        return path
 
     def parse(self, apiClassName):
 
