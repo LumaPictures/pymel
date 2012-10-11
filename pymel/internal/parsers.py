@@ -33,8 +33,10 @@ def mayaIsRunning():
         return False
 
 def mayaDocsLocation(version=None):
-    docLocation = None
-    if (version is None or version == versions.installName() ) and mayaIsRunning():
+    docLocation = os.environ.get('MAYA_DOC_DIR')
+    
+    if (not docLocation and (version is None or version == versions.installName() )
+            and mayaIsRunning()):
         # Return the doc location for the running version of maya
         from maya.cmds import showHelp
         docLocation = showHelp("", q=True, docs=True)
@@ -47,19 +49,22 @@ def mayaDocsLocation(version=None):
 
     # Want the docs for a different version, or maya isn't initialized yet
     if not docLocation or not os.path.isdir(docLocation):
-        docLocation = getMayaLocation(version) # use original version
-        if docLocation is None and version is not None:
-            docLocation = getMayaLocation(None)
-            _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation) )
+        docBaseDir = os.environ.get('MAYA_DOC_BASE_DIR')
+        if not docBaseDir:
+            docBaseDir = getMayaLocation(version) # use original version
+            if docBaseDir is None and version is not None:
+                docBaseDir = getMayaLocation(None)
+                _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docBaseDir) )
+    
+            if platform.system() == 'Darwin':
+                docBaseDir = os.path.dirname(os.path.dirname(docBaseDir))
+            docBaseDir = os.path.join(docBaseDir, 'docs')
 
         if version:
             short_version = versions.parseVersionStr(version, extension=False)
         else:
             short_version = versions.shortName()
-        if platform.system() == 'Darwin':
-            docLocation = os.path.dirname(os.path.dirname(docLocation))
-
-        docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
+        docLocation = os.path.join(docBaseDir , 'Maya%s' % short_version, 'en_US')
 
     return os.path.realpath(docLocation)
 
