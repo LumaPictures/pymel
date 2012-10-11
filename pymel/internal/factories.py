@@ -39,7 +39,6 @@ apiTypesToApiClasses = None
 apiClassInfo = None
 
 reservedMayaTypes = None
-reservedApiTypes = None
 mayaTypesToApiEnums = None
            
 # ApiMelBridgeCache

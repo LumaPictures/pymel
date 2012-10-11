@@ -1,11 +1,12 @@
 """ Imports Maya API methods in the 'api' namespace, and defines various utilities for Python<->API communication """
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
-import sys, inspect, time, os.path
+import inspect
+import re
+import itertools
 
 import pymel.api as api
 import pymel.versions as versions
-from pymel.util import expandArgs
 import pymel.util as _util
 import startup
 import plogging as _plogging
@@ -307,8 +308,8 @@ class ApiCache(startup.SubItemCache):
                    apiTypesToApiClasses apiClassInfo'''.split()
 
 
-    EXTRA_GLOBAL_NAMES = tuple('''reservedMayaTypes reservedApiTypes
-                            mayaTypesToApiEnums'''.split())
+    EXTRA_GLOBAL_NAMES = tuple('reservedMayaTypes',
+                               'mayaTypesToApiEnums'.split())
                             
     # Descriptions of various elements:
     
@@ -323,7 +324,6 @@ class ApiCache(startup.SubItemCache):
     # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
     # strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
     # self.reservedMayaTypes
-    # self.reservedApiTypes
 
     # Lookup of currently existing Maya types as keys with their corresponding API type as values.
     # Not a read only (static) dict as these can change (if you load a plugin)
@@ -453,8 +453,7 @@ class ApiCache(startup.SubItemCache):
         """
         # Must have already built apiTypesToApiEnums
         
-        if not force and (getattr(self, 'reservedMayaTypes', None)  
-                          and getattr(self, 'reservedApiTypes', None) ):
+        if not force and getattr(self, 'reservedMayaTypes', None):  
             return        
 
         # no known api types: these do not have valid api types, so we add them in to avoid querying them on each load
@@ -463,9 +462,6 @@ class ApiCache(startup.SubItemCache):
         # filter to make sure all these types exist in current version (some are Maya2008 only)
         self.reservedMayaTypes = dict( (item[0], item[1]) for item in self.RESERVED_TYPES.iteritems() if item[1] in self.apiTypesToApiEnums)
         self.reservedMayaTypes.update(invalidReservedTypes)
-        # build reverse dict
-        self.reservedApiTypes = dict( (item[1], item[0]) for item in self.reservedMayaTypes.iteritems() )
-
 
     ## Initialises MayaTypes for a faster later access
     #def _buildMayaTypesList() :
