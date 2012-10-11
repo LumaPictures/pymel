@@ -166,7 +166,6 @@ def _pluginLoaded( *args ):
                 if mayaType not in allTypes:
                     continue
                 _addPluginNode(pluginName, mayaType)
-                _logger.debug("Adding node: %s" % mayaType)
 
         # Note - in my testing, a single _api.MFileIO.isReadingFile() call would
         # also catch opening + referencing operations... but in commit
