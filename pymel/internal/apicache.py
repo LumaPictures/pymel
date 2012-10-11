@@ -200,6 +200,36 @@ class _GhostObjMaker(object):
                     dagMod.doIt()
                 if delDg:
                     dgMod.doIt()
+
+_ABSTRACT_SUFFIX = ' (abstract)'
+def _getAbstractMayaTypes(sorted=True, plugins=True):
+    import maya.cmds as cmds
+    import pymel.api.plugins as plugins
+    
+    rawAll = cmds.allNodeTypes(includeAbstract=True)
+    abstract = [x[:-len(_ABSTRACT_SUFFIX)] for x in rawAll
+                if x.endswith(_ABSTRACT_SUFFIX)]
+    if plugins:
+        abstract.extend(plugins.pluginMayaTypes)
+        abstract = set(abstract)
+    if sorted:
+        abstract = sorted(abstract)
+    return abstract
+
+def _getRealMayaTypes(sorted=True):
+    import maya.cmds as cmds
+    real = cmds.allNodeTypes()
+    if sorted:
+        real = sorted(real)
+    return real
+
+def _getAllMayaTypes(sorted=True, plugins=True):
+    all = _getAbstractMayaTypes(sorted=False) + _getRealMayaTypes(sorted=False,
+                                                                  plugins=plugins)
+    if sorted:
+        all = sorted(all)
+    return all
+
         
 def getInheritance( mayaType, checkManip3D=True ):
     """Get parents as a list, starting from the node after dependNode, and
@@ -302,55 +332,69 @@ class ApiCache(startup.SubItemCache):
     # lookup tables for a direct conversion between Maya type to their MFn::Types enum
     # self.mayaTypesToApiEnums
 
+    # creating these will crash Maya!
+    CRASH_TYPES = {
+        'xformManip':'kXformManip',
+        'moveVertexManip':'kMoveVertexManip',
+    }
 
     # TODO: may always need a manual map from reserved types to apiType,
     # but may want to dynamically generate the list of abstract types
     # (and possibly manipulators)?
     # see maintenance/inheritance.py for sample of how to create list
     # of abstract types
-    RESERVED_TYPES = { 'invalid':'kInvalid', 'base':'kBase',
-                'object':'kNamedObject',
-                'dependNode':'kDependencyNode', 'dagNode':'kDagNode',
-                'entity':'kDependencyNode',
-                'constraint':'kConstraint', 'field':'kField',
-                'geometryShape':'kGeometric', 'shape':'kShape',
-                'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter',
-                'dimensionShape':'kDimension',
-                'abstractBaseCreate':'kCreate', 'polyCreator':'kPolyCreator',
-                'polyModifier':'kMidModifier', 'subdModifier':'kSubdModifier',
-                'curveInfo':'kCurveInfo',
-                'curveFromSurface':'kCurveFromSurface',
-                'surfaceShape': 'kSurface',
-                'revolvedPrimitive':'kRevolvedPrimitive',
-                'plane':'kPlane', 'curveShape':'kCurve',
-                'animCurve': 'kAnimCurve',
-                'resultCurve':'kResultCurve', 'cacheBase':'kCacheBase',
-                'filter':'kFilter',
-                'blend':'kBlend', 'ikSolver':'kIkSolver',
-                'light':'kLight', 'renderLight':'kLight',
-                'nonAmbientLightShapeNode':'kNonAmbientLight',
-                'nonExtendedLightShapeNode':'kNonExtendedLight',
-                'texture2d':'kTexture2d', 'texture3d':'kTexture3d', 
-                'textureEnv':'kTextureEnv',
-                'primitive':'kPrimitive', 'reflect':'kReflect',
-                'smear':'kSmear',
-                'plugin':'kPlugin',
-                'THdependNode':'kPluginDependNode',
-                'THlocatorShape':'kPluginLocatorNode',
-                'pluginData':'kPluginData',
-                'THdeformer':'kPluginDeformerNode',
-                'pluginConstraint':'kPluginConstraintNode',
-                'unknown':'kUnknown', 'unknownDag':'kUnknownDag',
-                'unknownTransform':'kUnknownTransform',
-                'dynBase': 'kDynBase',
-                'polyPrimitive': 'kPolyPrimitive',
-                'nParticle': 'kNParticle',
-                'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry',
-
-                # creating these 2 crash Maya
-                'xformManip':'kXformManip',
-                'moveVertexManip':'kMoveVertexManip',
-    }
+    RESERVED_TYPES = {
+        'invalid':'kInvalid',
+        'base':'kBase',
+        'object':'kNamedObject',
+        'dependNode':'kDependencyNode',
+        'dagNode':'kDagNode',
+        'entity':'kDependencyNode',
+        'constraint':'kConstraint',
+        'field':'kField',
+        'geometryShape':'kGeometric',
+        'shape':'kShape',
+        'deformFunc':'kDeformFunc',
+        'cluster':'kClusterFilter',
+        'dimensionShape':'kDimension',
+        'abstractBaseCreate':'kCreate',
+        'polyCreator':'kPolyCreator',
+        'polyModifier':'kMidModifier',
+        'subdModifier':'kSubdModifier',
+        'curveInfo':'kCurveInfo',
+        'curveFromSurface':'kCurveFromSurface',
+        'surfaceShape': 'kSurface',
+        'revolvedPrimitive':'kRevolvedPrimitive',
+        'plane':'kPlane', 'curveShape':'kCurve',
+        'animCurve': 'kAnimCurve',
+        'resultCurve':'kResultCurve',
+        'cacheBase':'kCacheBase',
+        'filter':'kFilter',
+        'blend':'kBlend',
+        'ikSolver':'kIkSolver',
+        'light':'kLight',
+        'renderLight':'kLight',
+        'nonAmbientLightShapeNode':'kNonAmbientLight',
+        'nonExtendedLightShapeNode':'kNonExtendedLight',
+        'texture2d':'kTexture2d',
+        'texture3d':'kTexture3d', 
+        'textureEnv':'kTextureEnv',
+        'primitive':'kPrimitive',
+        'reflect':'kReflect',
+        'smear':'kSmear',
+        'plugin':'kPlugin',
+        'pluginData':'kPluginData',
+        'pluginConstraint':'kPluginConstraintNode',
+        'unknown':'kUnknown',
+        'unknownDag':'kUnknownDag',
+        'unknownTransform':'kUnknownTransform',
+        'dynBase': 'kDynBase',
+        'polyPrimitive': 'kPolyPrimitive',
+        'nParticle': 'kNParticle',
+        'birailSrf': 'kBirailSrf',
+        'pfxGeometry': 'kPfxGeometry',
+        }
+    RESERVED_TYPES.update(CRASH_TYPES)
 
 
     def __init__(self, docLocation=None):
@@ -481,7 +525,7 @@ class ApiCache(startup.SubItemCache):
         # enums to MFn...
         
         # we do this by querying the maya hierarchy, and marching up it until
-        # we fin an entry that IS in apiTypesToApiClasses
+        # we find an entry that IS in apiTypesToApiClasses
         for mayaType, apiType in self.mayaTypesToApiTypes.iteritems():
             if apiType not in self.apiTypesToApiClasses:
                 mfnClass = None
@@ -554,8 +598,7 @@ class ApiCache(startup.SubItemCache):
 
         self._buildApiClassInfo()
 
-        allMayaTypes = self.reservedMayaTypes.keys() + maya.cmds.ls(nodeTypes=True)
-        self._buildMayaToApiInfo(allMayaTypes)
+        self._buildMayaToApiInfo(_getAllMayaTypes())
         self._buildApiTypeToApiClasses()
         
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")

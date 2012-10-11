@@ -197,7 +197,8 @@ for mpxName, enumName in mpxNamesToEnumNames.iteritems():
         apiEnumName = mpxNamesToApiEnumNames[mpxName]
         mpxToApiEnum[mpxCls] = getattr(om.MFn, apiEnumName)
         mpxToMayaNode[mpxCls] = mpxNamesToMayaNodes[mpxName]
-
+        
+pluginMayaTypes = set(mpxNamesToMayaNodes.itervalues())
 
 NON_CREATABLE = set(['MPxManipContainer',
                      'MPxManipulatorNode',

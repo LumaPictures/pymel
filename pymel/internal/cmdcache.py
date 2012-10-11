@@ -924,7 +924,7 @@ def _getNodeHierarchy( version=None ):
     if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
         inheritances = {}
-        for nodeType in cmds.allNodeTypes():
+        for nodeType in apicache._getAllMayaTypes():
             try:
                 inheritances[nodeType] = apicache.getInheritance(nodeType)
             except apicache.ManipNodeTypeError:
@@ -956,7 +956,7 @@ def _getNodeHierarchy( version=None ):
         from .parsers import NodeHierarchyDocParser
         parser = NodeHierarchyDocParser(version)
         nodeHierarchyTree = trees.IndexedTree(parser.parse())
-    return [ (x.value, tuple( [y.value for y in x.parents()]), tuple( [y.value for y in x.childs()] ) ) \
+    return [ (x.value, tuple(y.value for y in x.parents()), tuple(y.value for y in x.childs()) ) \
              for x in nodeHierarchyTree.preorder() ]
 
 
