@@ -103,10 +103,10 @@ class _GhostObjMaker(object):
         import maya.cmds as cmds
         
         for mayaType in self.mayaTypes:
-            # check of an obj of the given type already exists in the scene, and if
-            # so, use it
+            # check if an obj of the given type already exists in the scene, and
+            # if so, use it
             madeGhost = False
-            allObj = cmds.ls(type=mayaType)
+            allObj = cmds.ls(exactType=mayaType)
             if allObj:
                 obj = api.toMObject(allObj[0])
             else:
