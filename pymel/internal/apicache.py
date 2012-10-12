@@ -320,7 +320,10 @@ def getInheritance( mayaType, checkManip3D=True ):
     if versions.current() >= versions.v2012:
         import maya.cmds as cmds
         # We now have nodeType(isTypeName)! yay!
-        lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
+        try:
+            lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
+        except RuntimeError:
+            lineage = None
     else:
         with _GhostObjMaker(mayaType) as obj:
             lineage = []
@@ -345,11 +348,16 @@ def getInheritance( mayaType, checkManip3D=True ):
                     u'geometryShape',
                     u'deformableShape',
                     u'controlPoint']
+            # maya2013 introduced shadingDependNode...
+            if versions.current() >= versions.v2013:
+                texture2d = ['shadingDependNode', 'texture2d']
+            else:
+                texture2d = ['texture2d']
             # For whatever reason, nodeType(isTypeName) returns
             # None for the following mayaTypes:
             _fixedLineages = {
                 'node':[],
-                'file':[u'texture2d', u'file'],
+                'file':texture2d + [u'file'],
                 'lattice':controlPoint + [u'lattice'],
                 'mesh':controlPoint + [u'surfaceShape', u'mesh'],
                 'nurbsCurve':controlPoint + [u'curveShape', u'nurbsCurve'],
@@ -362,7 +370,7 @@ def getInheritance( mayaType, checkManip3D=True ):
             raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
     elif checkManip3D and 'manip3D' in lineage:
         raise ManipNodeTypeError
-    assert lineage[-1] == mayaType or (mayaType == 'node' and lineage == [])
+    assert (mayaType == 'node' and lineage == []) or lineage[-1] == mayaType
 
     return lineage
 

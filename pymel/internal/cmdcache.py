@@ -938,10 +938,6 @@ def _getNodeHierarchy( version=None ):
                 if i == 0:
                     if child == 'dependNode':
                         continue
-                    # FIXME: this is a hack because something may be wrong with the file node.  
-                    # all other nodes that inherit from 'texture2d' identify its parent as 'shadingDependNode'
-                    elif nodeType == 'file':
-                        parent = 'shadingDependNode'
                     else:
                         parent = 'dependNode'
                 else:
