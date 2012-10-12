@@ -392,7 +392,8 @@ def _getApiOverrideNameAndData(classname, pymelName):
         try:
             nameType = data['useName']
         except KeyError:
-            _logger.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
+            # Not sure why it was a big deal if useName wasn't set...?
+            #_logger.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
             nameType = 'API'
 
         if nameType == 'API':
