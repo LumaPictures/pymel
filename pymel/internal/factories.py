@@ -38,7 +38,6 @@ mayaTypesToApiTypes = None
 apiTypesToApiClasses = None
 apiClassInfo = None
 
-reservedMayaTypes = None
 mayaTypesToApiEnums = None
            
 # ApiMelBridgeCache
@@ -3064,12 +3063,21 @@ def mayaTypeToApiType(mayaType) :
     try:
         return mayaTypesToApiTypes[mayaType]
     except KeyError:
-        apiType = 'kInvalid'
-        # Reserved types must be treated specially
-        if reservedMayaTypes.has_key(mayaType) :
-            # It's an abstract type
-            apiType = reservedMayaTypes[mayaType]
-        else :
+        apiType = None
+        if versions.current() >= versions.v2012:
+            import pymel.api.plugins as plugins
+            # this is generally going to be run for new plugin node types...
+            # for these, we can just look it up based on the plugin type...
+            inheritance = apicache.getInheritance(mayaType,
+                                                  checkManip3D=False)
+            if inheritance:
+                for mayaType in inheritance:
+                    apiType = mayaTypesToApiTypes.get(mayaType)
+                    if apiType:
+                        break
+                        
+        if not apiType:
+            apiType = 'kInvalid'
             # we need to actually create the obj to query it...
             with apicache._GhostObjMaker(mayaType) as obj:
                 if obj is not None and api.isValidMObject(obj):

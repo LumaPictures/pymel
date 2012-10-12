@@ -116,7 +116,7 @@ inheritances = {}
 badInheritances = {}
 goodInheritances = {}
 #for nodeType in melQueryableTypes:
-for nodeType in allTypes:
+for nodeType in realAndAbstract:
     try:
         inheritance = cmds.nodeType( nodeType, inherited=True, isTypeName=True)
     except Exception, e:
