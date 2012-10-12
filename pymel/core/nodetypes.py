@@ -3244,8 +3244,9 @@ def _createPyNodes():
 
         #className = _util.capitalize(mayaType)
         #if className not in __all__: __all__.append( className )
-
-        _factories.addPyNode( dynModule, mayaType, parentMayaType )
+        
+        if _factories.isMayaType(mayaType):
+            _factories.addPyNode( dynModule, mayaType, parentMayaType )
 
     sys.modules[__name__] = dynModule
 

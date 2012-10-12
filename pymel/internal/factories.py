@@ -3068,8 +3068,11 @@ def mayaTypeToApiType(mayaType) :
             import pymel.api.plugins as plugins
             # this is generally going to be run for new plugin node types...
             # for these, we can just look it up based on the plugin type...
-            inheritance = apicache.getInheritance(mayaType,
-                                                  checkManip3D=False)
+            try:
+                inheritance = apicache.getInheritance(mayaType,
+                                                      checkManip3D=False)
+            except Exception:
+                inheritance = None
             if inheritance:
                 for mayaType in inheritance:
                     apiType = mayaTypesToApiTypes.get(mayaType)
@@ -3085,6 +3088,12 @@ def mayaTypeToApiType(mayaType) :
         mayaTypesToApiTypes[mayaType] = apiType
         return apiType
 
+def isMayaType(mayaType):
+    '''Whether the given type is a currently-defined maya node name
+    '''
+    # using objectType instead of MNodeClass or nodeType(isTypeName) because
+    # it's available < 2012 
+    return bool(cmds.objectType(tagFromType=mayaType))
     
 # Keep around for debugging/info gathering...
 def getComponentTypes():
