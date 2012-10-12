@@ -5,7 +5,7 @@
 #import doctest
 from __future__ import with_statement
 
-import sys, platform, os, shutil, time, inspect, tempfile, doctest
+import sys, platform, os, shutil, time, inspect, tempfile, doctest, re
 
 # tee class adapted from http://shallowsky.com/blog/programming/python-tee.html
 class Tee(object):
@@ -41,28 +41,49 @@ except ImportError, e:
     print "To run pymel's tests you must have nose installed: http://code.google.com/p/python-nose"
     raise e
 
-# TODO: use mayautils.getMayaAppDir()
-if os.name == 'nt':
-    app_dir = os.environ['USERPROFILE']
-    
-    # Vista or newer... version() returns "6.x.x"
-    if int(platform.version().split('.')[0]) > 5:
-        app_dir = os.path.join( app_dir, 'Documents')
-    else:
-        app_dir = os.path.join( app_dir, 'My Documents')
+# Get the 'new' version of unittest
+if sys.version_info >= (2, 7, 0):
+    import unittest
 else:
-    app_dir = os.environ['HOME']
+    import unittest2 as unittest
+
+import argparse
+
+def getParser():
+    testsDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    pymelRoot = os.path.dirname( testsDir )
     
-if platform.system() == 'Darwin':
-    app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )    
-else:
-    app_dir = os.path.join( app_dir, 'maya' )
+    parser = argparse.ArgumentParser(description='Run the pymel tests')
+    parser.add_argument('extra_args', nargs='*', help='args to pass to nose or unit/unit2')
+    parser.add_argument('--app-dir', help='''make the tests use the given dir as
+        the MAYA_APP_DIR (ie, the base maya settings folder)''')
+    #parser.add_argument('--test', help='''specific TestCase or test function to
+        #run; if given, will be run using the "new" unittest"''')
+    parser.add_argument('--tests-dir', help='''The directory that contains the test modules''',
+        default=testsDir)
+    parser.add_argument('--pymel-root', help='''The directory that contains the test modules''',
+        default=pymelRoot)
+    return parser
 
-backup_dir = app_dir + '.bak'
+_PYTHON_DOT_NAME_RE = re.compile(r'[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)+')
 
-DELETE_BACKUP_ARG = '--delete-maya-user-backup'
+def isPythonDottedName(name):
+    return bool(_PYTHON_DOT_NAME_RE.match(name))
 
-class RemoveBackupError(Exception): pass
+def moduleObjNameSplit(moduleName):
+    '''Returns the name split into the module part and the object name part
+    '''
+    import imp
+    currentPath = None
+    split = moduleName.split('.')
+    moduleParts = []
+    for name in split:
+        try:
+            currentPath = imp.find_module(name, currentPath)[1]
+        except ImportError:
+            break
+        moduleParts.append(name)
+    return '.'.join(moduleParts), '.'.join(split[len(moduleParts):])
 
 def nose_test(module=None, extraArgs=None, pymelDir=None):
     """
@@ -118,94 +139,6 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
         print noseKwArgs
         nose.main( **noseKwArgs)
 
-def backupAndTest(extraNoseArgs):
-    if os.path.isdir(backup_dir):
-        print "backup dir %r already exists - aborting" % backup_dir
-    else:
-        print "backing up Maya user directory %s to %s" % ( app_dir, backup_dir )
-        shutil.move( app_dir, backup_dir )
-    
-        try:
-            nose_test( extraArgs=extraNoseArgs )
-        except Exception, e:
-            print e
-        finally:
-            try:
-                removeBackup()
-            except RemoveBackupError:
-                # on windows, maya never seems to exit cleanly unless the
-                # process is completely exited - it keeps open access to
-                # 'mayaLog', with the result that you can't delete the
-                # backup_dir.  only way I know of around this is to delete
-                # backup_dir in a completely separate process...
-                print "initial Maya user directory restore failed - trying from separate process"                
-                
-                os.spawnl(os.P_NOWAIT,
-                          sys.executable, os.path.basename(sys.executable),
-                          __file__, DELETE_BACKUP_ARG)
-
-def removeBackup():
-    assert os.path.isdir(backup_dir), "Maya user backup does not exist: %s" % backup_dir
-    
-    print "restoring Maya user directory", app_dir
-
-    tempdir = os.path.join(tempfile.gettempdir(), 'maya')
-    if os.path.exists(tempdir):
-        shutil.rmtree( tempdir )
-    try:            
-        shutil.move(app_dir, tempdir)
-    except Exception, e:
-            print('Error moving "%s" to temp dir for removal: "%s": %s' %
-                   (app_dir, tempdir, e))
-    
-    else:
-        try:
-            shutil.rmtree( tempdir )
-        except Exception, e:
-            print('Error deleting "%s" - manually delete and rename/move "%s": %s' %
-                   (tempdir, backup_dir, e))
-        else:
-            shutil.move( backup_dir, app_dir )
-            print "done"
-    
-def removeBackupLoop(retryTime=.1, printFailure=False):
-    assert os.path.isdir(backup_dir), "Maya user backup does not exist: %s" % backup_dir
-    
-    print "restoring Maya user directory", app_dir
-
-    lastException = None
-    start = time.time()
-    while os.path.isdir( app_dir ):
-        # Check elapsed time AFTER trying to delete dir -
-        # otherwise, if some other thread gets priority while we are
-        # sleeping, and it's a while before the thread wakes up, we might
-        # check once when almost no time has passed, sleep, wake up after
-        # a lot of time has passed, and not check again...
-        try:
-            tempdir = os.path.join(tempfile.gettempdir(), 'maya')
-            if os.path.exists(tempdir):
-                shutil.rmtree( tempdir )
-            shutil.move(app_dir, tempdir)
-            shutil.rmtree( tempdir )
-        except Exception, e:
-            lastException = e
-            # print("print - unable to delete '%s' - elapsed time: %f" %
-            #        (app_dir, time.time() - start))
-            time.sleep(.2)
-        else:
-            lastException = None
-            
-        if time.time() - start > retryTime:
-            break
-
-    if lastException is not None:
-        if printFailure:
-            print('Error deleting "%s" - manually delete and rename/move "%s": %s' %
-                   (app_dir, backup_dir, lastException))
-        raise RemoveBackupError
-    else:  
-        shutil.move( backup_dir, app_dir )
-        print "done"
 
 class DocTestPatcher(object):
     """
@@ -278,35 +211,55 @@ class DocTestPatcher(object):
             import nose.plugins.doctests
             nose.plugins.doctests.Doctest.wantFile = self.orig_wantFile
 
-if __name__ == '__main__':
-    if DELETE_BACKUP_ARG not in sys.argv:
-        #backupAndTest(sys.argv[1:])
-        oldPath = os.getcwd()
-        testsDir = os.path.dirname(os.path.abspath(sys.argv[0]) )
-        pymelRoot = os.path.dirname( testsDir )
-        noseArgs = sys.argv[1:]
+def main(argv):
+    parser = getParser()
+    parsed = parser.parse_args(argv[1:])
 
-        # make sure our cwd is the pymel project working directory
-        os.chdir( pymelRoot )
+    if parsed.app_dir:
+        if not os.path.exists(parsed.app_dir):
+            os.makedirs(parsed.app_dir)
+        os.environ['MAYA_APP_DIR'] = parsed.app_dir
+    
+    testsDir = parsed.tests_dir
+    pymelRoot = parsed.pymel_root
 
-        pypath = os.environ['PYTHONPATH'].split(os.pathsep)
-        # add the test dir to the python path - that way,
-        # we can do 'pymel_test test_general' in order to run just the tests
-        # in test_general
-        sys.path.append(testsDir)
-        pypath.append(testsDir)
+    pypath = os.environ['PYTHONPATH'].split(os.pathsep)
+    # add the test dir to the python path - that way,
+    # we can do 'pymel_test test_general' in order to run just the tests
+    # in test_general
+    sys.path.append(testsDir)
+    pypath.append(testsDir)
 
-        # ...and add this copy of pymel to the python path, highest priority,
-        # to make sure it overrides any 'builtin' pymel/maya packages
-        sys.path.insert(0, pymelRoot)
-        pypath.insert(0, pymelRoot)
+    # ...and add this copy of pymel to the python path, highest priority,
+    # to make sure it overrides any 'builtin' pymel/maya packages
+    sys.path.insert(0, pymelRoot)
+    pypath.insert(0, pymelRoot)
 
-        os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
+    os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
 
-        nose_test(extraArgs=noseArgs)
+    oldPath = os.getcwd()
+    # make sure our cwd is the pymel project working directory
+    os.chdir( pymelRoot )
+    try:
+        # Try to guess whether we were given an arg which is a TestCase or
+        # test method/function, and if so, run new unittest (because it can
+        # easily handle specific TestCase/method/function)... else run nose
+        # (because it's what the test suite was originally set up to use)
+        useNose = True
+        if parsed.extra_args:
+            name = parsed.extra_args[-1]
+            if isPythonDottedName(name):
+                modulePart, objPart = moduleObjNameSplit(name)
+                if modulePart and objPart:
+                    useNose = False
+            
+        if useNose:
+            nose_test(extraArgs=parsed.extra_args)
+        else:
+            unittestArgs = [argv[0]] + parsed.extra_args
+            unittest.main(module=None, argv=unittestArgs)
+    finally:
         os.chdir(oldPath)
-    else:
-        # Maya may take some time to shut down / finish writing to files - 
-        # give it 2 seconds
-        #removeBackupLoop(retryTime=2, printFailure=True)
-        removeBackup()
+
+if __name__ == '__main__':
+    main(sys.argv)
