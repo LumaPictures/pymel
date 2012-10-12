@@ -810,7 +810,7 @@ class ApiCache(startup.SubItemCache):
         # to have any plugins loaded before parsing api info...
         plugins.unloadAllPlugins()
 
-        #self._buildApiClassInfo()
+        self._buildApiClassInfo()
 
         self._buildMayaToApiInfo()
         self._buildApiTypeToApiClasses()
