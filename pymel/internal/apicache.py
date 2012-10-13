@@ -230,8 +230,32 @@ _ABSTRACT_SUFFIX = ' (abstract)'
 _ASSET_PREFIX = 'adskAssetInstanceNode_'
 # You'd think getting a comprehensive list of node types would be easy, but
 # due to strange behavior of various edge cases, it can be tricky...
-def _getMayaTypes(real=True, abstract=True, plugins=True, addAncestors=True,
-                  noManips=True):
+def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=True,
+                  noManips=True, noPlugins=False):
+    '''Returns a list of maya types
+    
+    Parameters
+    ----------
+    real : bool
+        Include the set of real/createable nodes
+    abstract : bool
+        Include the set of abstract nodes (as defined by allNodeTypes(includeAbstract=True)
+    basePluginTypes : bool
+        Include the set of "base" plugin maya types (these are not returned by
+        allNodeTypes(includeAbstract=True), and so, even though these types are
+        abstract, this set shares no members with those added by the abstract
+        flag
+    addAncestors : bool
+        If true, add to the list of nodes returned all of their ancestors as
+        well
+    noManips : bool
+        If true, filter out any manipulator node types
+    noPlugins : bool
+        If true, filter out any nodes defined in plugins (note - if
+        basePluginTypes is True, and noPlugins is False, the basePluginTypes
+        will still be returned, as these types are not themselves defined in
+        the plugin)
+    '''
     import maya.cmds as cmds
     
     if abstract:
@@ -260,7 +284,7 @@ def _getMayaTypes(real=True, abstract=True, plugins=True, addAncestors=True,
         nodes = cmds.allNodeTypes()
     else:
         nodes = []
-    if plugins:
+    if basePluginTypes:
         import pymel.api.plugins
         nodes.extend(pymel.api.plugins.pluginMayaTypes)
     if addAncestors or noManips:
@@ -281,6 +305,23 @@ def _getMayaTypes(real=True, abstract=True, plugins=True, addAncestors=True,
             else:
                 if addAncestors:
                     nodes.update(ancestors)
+    if noPlugins:
+        # if we have MNodeClass, this is easy...
+        if hasattr(api, 'MNodeClass'):
+            nonPluginNodes = set()
+            for node in nodes:
+                try:
+                    api.MNodeClass(node).pluginName()
+                except RuntimeError:
+                    nonPluginNodes.add(node)
+            nodes = nonPluginNodes
+        else:
+            # otherwise, we have to query all plugins...
+            if not isinstance(nodes, set):
+                nodes = set(nodes)
+            for plugin in cmds.pluginInfo(q=1, listPlugins=True):
+                nodes.difference_update(cmds.pluginInfo(plugin, q=1,
+                                                        dependNode=True))
     if not isinstance(nodes, set):
         nodes = set(nodes)
     return nodes
@@ -293,7 +334,7 @@ def _getAbstractMayaTypes(**kwargs):
 def _getRealMayaTypes(**kwargs):
     kwargs['real'] = True
     kwargs.setdefault('abstract', False)
-    kwargs.setdefault('plugins', False)
+    kwargs.setdefault('basePluginTypes', False)
     kwargs.setdefault('addAncestors', False)
     return _getMayaTypes(**kwargs)
 
