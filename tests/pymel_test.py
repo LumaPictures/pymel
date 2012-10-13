@@ -85,10 +85,13 @@ def moduleObjNameSplit(moduleName):
         moduleParts.append(name)
     return '.'.join(moduleParts), '.'.join(split[len(moduleParts):])
 
-def nose_test(module=None, extraArgs=None, pymelDir=None):
+def nose_test(argv, module=None, pymelDir=None):
     """
     Run pymel unittests / doctests
     """
+    arg0 = argv[0]
+    extraArgs = argv[1:]
+    
     if pymelDir:
         os.chdir(pymelDir)
             
@@ -136,9 +139,25 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
     noseKwArgs['argv'] = noseArgv
     
     with DocTestPatcher():
-        print noseKwArgs
+        print "running nose:", noseKwArgs
         nose.main( **noseKwArgs)
 
+def unit2_test(argv, **kwargs):
+    # insert the verbose flag
+    argv[1:1] = ['--verbose']
+
+    kwargs['module'] = None
+    kwargs['argv'] = argv
+
+    if sys.version_info < (2, 7, 0):
+        # if we try to specify a specific method, unittest2 checks to see if it
+        # is an unbound method on a unittest2.TestCase; if it is on a
+        # unittest.TestCase, it will not work; therefore, install unittest2 as
+        # unittest
+        sys.modules['unittest'] = sys.modules['unittest2']
+
+    print "running unittest:", kwargs
+    unittest.main(**kwargs)
 
 class DocTestPatcher(object):
     """
@@ -252,12 +271,12 @@ def main(argv):
                 modulePart, objPart = moduleObjNameSplit(name)
                 if modulePart and objPart:
                     useNose = False
-            
+
+        argv = [argv[0]] + parsed.extra_args
         if useNose:
-            nose_test(extraArgs=parsed.extra_args)
+            nose_test(argv)
         else:
-            unittestArgs = [argv[0]] + parsed.extra_args
-            unittest.main(module=None, argv=unittestArgs)
+            unit2_test(argv)
     finally:
         os.chdir(oldPath)
 
