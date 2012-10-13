@@ -16,20 +16,13 @@ from pymel.util.testing import TestCaseExtended, setCompare
 
 VERBOSE = False
 
-def getFundamentalTypes():
-    classList = sorted( set( [ key[0] for key in factories.apiToMelData.keys()] ) )
-    #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
-    leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
-    return sorted( set(classList).intersection(leaves) )
-
 class CrashError(Exception):
     """
     Raised to signal that doing something would have caused maya to crash.
     """
     pass
 
-EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
- 
+
 class testCase_attribs(unittest.TestCase):
     def setUp(self):
         newFile(f=1)
@@ -233,137 +226,166 @@ class testCase_attribs(unittest.TestCase):
         circleMaker = pm.circle()[1]
         self.assertEqual(circleMaker.attr('outputCurve').type(), 'nurbsCurve')
         
-
-def testInvertibles():
-    classList = getFundamentalTypes()
+class testCase_invertibles(unittest.TestCase):
+    EXCEPTIONS = [
+                  'MotionPath',   # setUEnd causes maya to crash
+                  'OldBlindDataBase',
+                  'TextureToGeom'
+                 ]
     
-    
-    for pynodeName in classList:
-        try:
-            pynode = getattr( core.nodetypes, pynodeName )
-        except AttributeError:
-            print "could not find", pynodeName
-            continue
-        
-        if not issubclass( pynode, PyNode ) or pynodeName in EXCEPTIONS:
-            continue
-
-        if issubclass(pynode, GeometryShape):
-            if pynode == Mesh :
-                obj = polyCube()[0].getShape()
-                obj.createColorSet( 'thingie' )
-            elif pynode == Subdiv:
-                obj = polyToSubdiv( polyCube()[0].getShape())[0].getShape()
-            elif pynode == NurbsSurface:
-                obj = sphere()[0].getShape()
-            elif pynode == NurbsCurve:
-                obj = circle()[0].getShape()
-            else:
-                print "skipping shape", pynode
-                continue
+    @classmethod
+    def getTypedArg(cls, type):
+        typeMap = {   'bool' : True,
+            'double' : 2.5, # min required for setFocalLength
+            'double3' : ( 1.0, 2.0, 3.0),
+            'MEulerRotation' : ( 1.0, 2.0, 3.0),
+            'float': 2.5,
+            'MFloatArray': [1.1, 2.2, 3.3],
+            'MString': 'thingie',
+            'float2': (.1, .2),
+            'MPoint' : [1,2,3],
+            'short': 1,
+            'MColor' : [1,0,0],
+            'MColorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ),
+            'MVector' : [1,0,0],
+            'MVectorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ),
+            'int' : 1,
+            'MIntArray': [1,2,3],
+            'MSpace.Space' : 'world'
+        }
+        if '.' in type:
+            return 1 # take a dumb guess at an enum
         else:
-            print "creating: %s" % util.uncapitalize(pynodeName)
-            obj = createNode( util.uncapitalize(pynodeName) )
+            return typeMap[type]
         
-        print repr(obj)
-    
-        for className, apiClassName in getClassHierarchy(pynodeName):
-            
-            if apiClassName not in factories.apiClassInfo:
+    @classmethod
+    def setattrUnique(cls, name, obj):
+        uniqueName = name
+        i = 1
+        while hasattr(cls, uniqueName):
+            i += 1
+            uniqueName = '%s%s' % (name, i)
+        #print "%s.%s = %r" % (cls.__name__, uniqueName, obj)
+        setattr(cls, uniqueName, obj)
+        return uniqueName  
+                            
+    @classmethod
+    def addTests(cls):
+        pyNodes = inspect.getmembers(pm.nodetypes,
+                                     lambda x: inspect.isclass(x) and issubclass(x, pm.PyNode))
+
+        realNodes = apicache._getRealMayaTypes(noPlugins=True)
+        realPyNodes = [node for name, node in pyNodes if node.__melnode__ in realNodes]
+        
+        for pynode in realPyNodes:
+            # for some reason, we sometimes return the same method twice...?
+            # ensure we don't make 2 tests for it...
+            methods = set() 
+
+            pynodeName = pynode.__name__
+            if pynodeName in cls.EXCEPTIONS:
                 continue
             
-            #print className, apiClassName
-            
-            classInfo = factories.apiClassInfo[apiClassName]
-            invertibles = classInfo['invertibles']
-            #print invertibles
-    
-                            
-            for setMethod, getMethod in invertibles:
-                info = classInfo['methods'][setMethod]
-                try:
-                    setMethod = info[0]['pymelName']
-                except KeyError: pass
+            for className, apiClassName in getClassHierarchy(pynodeName):
+                if apiClassName not in factories.apiClassInfo:
+                    continue
+
+                #print className, apiClassName
                 
-                setMethod, data = factories._getApiOverrideNameAndData( className, setMethod )
-                try:
-                    overloadIndex = data['overloadIndex']
-                    info = info[overloadIndex]
-                except (KeyError, TypeError): pass
-                else:
+                classInfo = factories.apiClassInfo[apiClassName]
+                invertibles = classInfo['invertibles']
+                #print invertibles
+
+                for setMethod, getMethod in invertibles:
+                    info = classInfo['methods'][setMethod]
+                    try:
+                        setMethod = info[0]['pymelName']
+                    except KeyError:
+                        pass
+
+                    setMethod, data = factories._getApiOverrideNameAndData( className, setMethod )
+                    try:
+                        overloadIndex = data['overloadIndex']
+                        info = info[overloadIndex]
+                    except (KeyError, TypeError):
+                        continue
                     # test if this invertible has been broken in pymelControlPanel
                     if not info['inverse']:
                         continue
-                    
                     try:
                         setter = getattr( pynode, setMethod )                      
-                    except AttributeError: pass
+                    except AttributeError:
+                        continue
+                    
+                    if setter in methods:
+                        continue
                     else:
-                        def getType(type):
-                            typeMap = {   'bool' : True,
-                                'double' : 2.5, # min required for setFocalLength
-                                'double3' : ( 1.0, 2.0, 3.0),
-                                'MEulerRotation' : ( 1.0, 2.0, 3.0),
-                                'float': 2.5,
-                                'MFloatArray': [1.1, 2.2, 3.3],
-                                'MString': 'thingie',
-                                'float2': (.1, .2),
-                                'MPoint' : [1,2,3],
-                                'short': 1,
-                                'MColor' : [1,0,0],
-                                'MColorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ),
-                                'MVector' : [1,0,0],
-                                'MVectorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ),
-                                'int' : 1,
-                                'MIntArray': [1,2,3],
-                                'MSpace.Space' : 'world'
-                            }
-                            if '.' in type:
-                                return 1 # take a dumb guess at an enum
-                            else:
-                                return typeMap[type]
-                            
-                        inArgs = [ arg for arg in info['inArgs'] if arg not in info['defaults'] ]
-                        types = [ str(info['types'][arg]) for arg in inArgs ]
-                        try:
-                            if apiClassName == 'MFnMesh' and setMethod == 'setUVs':
-                                args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
-                            elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
-                                args = [ [ [.5,.5,.5] ]*obj.numColors() ]
-                            elif apiClassName == 'MFnMesh' and setMethod == 'setColor':
-                                obj.setColors( [ [.5,.5,.5] ]*obj.numVertices() )
-                                args = [ 1, [1,0,0] ] 
-                            elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
-                                obj.createColorSet(setMethod + '_ColorSet' )
-                                args = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
-                            
-                            elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
-                                args = [ 6, 4.5 ]
-                            else:
-                                args = [ getType(typ) for typ in types ]
-                            descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
-    #                            try:
-    #                                setter( obj, *args )
-    #                            except Exception, e:
-    #                                print str(e)
-                            args = [obj] + args
-                            def checkSetter( setter, args ):
-                                setter( *args )
-                                
-                            def checkUndo(*args): 
-                                mel.undo()
+                        methods.add(setter)
+                    
+                    inArgs = [ arg for arg in info['inArgs'] if arg not in info['defaults'] ]
+                    argTypes = [ str(info['types'][arg]) for arg in inArgs ]
+                    newTestMethod = cls.makeInvertTest(pynode, apiClassName,
+                                                       setMethod, setter,
+                                                       argTypes)
+                    cls.setattrUnique(newTestMethod.__name__, newTestMethod)
+            
+    @classmethod
+    def makeInvertTest(cls, pynode, apiClassName, setMethod, setter, argTypes):
+        def testInvert(self):
+            print "testing %s.%s" % (pynode.__name__, setMethod)
+            sys.stdout.flush()
+            sys.stdout.flush()
+            melnodeName = pynode.__melnode__
+            if issubclass(pynode, GeometryShape):
+                if pynode == Mesh :
+                    obj = polyCube()[0].getShape()
+                    obj.createColorSet( 'thingie' )
+                elif pynode == Subdiv:
+                    obj = polyToSubdiv( polyCube()[0].getShape())[0].getShape()
+                elif pynode == NurbsSurface:
+                    obj = sphere()[0].getShape()
+                elif pynode == NurbsCurve:
+                    obj = circle()[0].getShape()
+                else:
+                    print "skipping shape", pynode
+                    return
+            else:
+                #print "creating: %s" % melnodeName
+                obj = createNode( melnodeName )
 
-                            checkSetter.description = descr
-                            yield checkSetter, setter, args
-                            checkUndo.description = descr + ' undo'
-                            yield checkUndo
-                            
-                        except KeyError, msg:
-                            print str(msg)
-        try: 
-            delete( obj )
-        except:
-            pass
+            try:
+                try:
+                    if apiClassName == 'MFnMesh' and setMethod == 'setUVs':
+                        args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
+                    elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
+                        args = [ [ [.5,.5,.5] ]*obj.numColors() ]
+                    elif apiClassName == 'MFnMesh' and setMethod == 'setColor':
+                        obj.setColors( [ [.5,.5,.5] ]*obj.numVertices() )
+                        args = [ 1, [1,0,0] ] 
+                    elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
+                        obj.createColorSet(setMethod + '_ColorSet' )
+                        args = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
+                    
+                    elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
+                        args = [ 6, 4.5 ]
+                    else:
+                        args = [ self.getTypedArg(typ) for typ in argTypes ]
+                    #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
+                    args = [obj] + args
+                    
+                    setter( *args )
+                    mel.undo()
+                except KeyError, msg:
+                    print str(msg)
+            finally:
+                try: 
+                    delete( obj )
+                except:
+                    pass
+        testInvert.__name__ = 'test_%s_%s_Invert' % (pynode.__name__, setMethod)
+        return testInvert
+    
+testCase_invertibles.addTests()
 
 # TODO: add tests for slices
 # test tricky / extended slices: ie, [:3], [:-1], [-3:-1], [5:1:-2], etc
