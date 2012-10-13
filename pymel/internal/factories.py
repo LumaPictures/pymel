@@ -2229,8 +2229,9 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 apicls = None
 
         if apicls is not None:
-            #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
-            apiClassNamesToPyNodeNames[apicls.__name__] = classname
+            if apicls.__name__ not in apiClassNamesToPyNodeNames:
+                #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
+                apiClassNamesToPyNodeNames[apicls.__name__] = classname
 
             if not proxy and apicls not in bases:
                 #_logger.debug("ADDING BASE %s" % classdict['apicls'])
