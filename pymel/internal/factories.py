@@ -3031,13 +3031,19 @@ def toApiFunctionSet( obj ):
         try:
             return apiTypesToApiClasses[ obj ]
         except KeyError:
+            if obj in mayaTypesToApiTypes:
+                mayaType = obj
+                apiType = mayaTypesToApiTypes[obj]
+                return _apiCacheInst._setApiClassFromMayaInheritance(apiType, mayaType)
+            else:
+                return None
             return apiTypesToApiClasses.get( mayaTypesToApiTypes.get( obj, None ) )
 
     elif isinstance( obj, int ):
         try:
             return apiTypesToApiClasses[ apiEnumsToApiTypes[ obj ] ]
         except KeyError:
-            return
+            return None
 
 def apiClassNameToPymelClassName(apiName, allowGuess=True):
     '''Given the name of an api class, such as MFnTransform, MSpace, MAngle,
