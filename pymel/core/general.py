@@ -1847,8 +1847,10 @@ class PyNode(_util.ProxyUnicode):
                         self.__apiobjects__['MFn'] = mfn
 
                     except RuntimeError:
-                        # when using PyNodes in strange places, like node creation callbacks, the proper MFn does not work yet, so we default to
-                        # a super class and we don't save it, so that we can get the right one later
+                        # when using PyNodes in strange places, like node
+                        # creation callbacks, the proper MFn does not work yet,
+                        # so we default to a super class and we don't save it,
+                        # so that we can get the right one later
                         if isinstance(obj, _api.MDagPath):
                             mfn = _api.MFnDagNode( obj )
                             _logger.warning( "Could not create desired MFn. Defaulting to MFnDagNode." )

@@ -518,6 +518,10 @@ class ApiCache(startup.SubItemCache):
                              'dependNode':'kDependencyNode',  # this is the name pymel uses
                              'smear':'kSmear',          # a strange one - a plugin node that has an apitype... is in studioImport.so... also has a doc entry... 
                             }
+    
+    API_TO_MFN_OVERRIDES = {
+                           }
+    
     DEFAULT_API_TYPE = 'kDependencyNode'
 
     def __init__(self, docLocation=None):
@@ -788,22 +792,31 @@ class ApiCache(startup.SubItemCache):
         # we find an entry that IS in apiTypesToApiClasses
         for mayaType, apiType in self.mayaTypesToApiTypes.iteritems():
             if apiType not in self.apiTypesToApiClasses:
+                self._setApiClassFromMayaInheritance(apiType, mayaType)
+                
+    def _setApiClassFromMayaInheritance(self, apiType, mayaType):
+        if apiType not in self.apiTypesToApiClasses:
+            if apiType in self.API_TO_MFN_OVERRIDES:
+                mfnClass = self.API_TO_MFN_OVERRIDES[apiType]
+            else:
                 mfnClass = None
                 try:
                     inheritance = getInheritance(mayaType)
                 except Exception:
-                    continue
-                # inheritance always ends with that node type... so skip that...
-                for mayaParentType in reversed(inheritance[:-1]):
-                    parentApiType = self.mayaTypesToApiTypes.get(mayaParentType)
-                    if parentApiType:
-                        parentMfn = self.apiTypesToApiClasses.get(parentApiType)
-                        if parentMfn: 
-                            mfnClass = parentMfn
-                            break
-                if not mfnClass:
-                    mfnClass = api.MFnDependencyNode
-                self.apiTypesToApiClasses[apiType] = mfnClass
+                    pass
+                else:
+                    # inheritance always ends with that node type... so skip that...
+                    for mayaParentType in reversed(inheritance[:-1]):
+                        parentApiType = self.mayaTypesToApiTypes.get(mayaParentType)
+                        if parentApiType:
+                            parentMfn = self.apiTypesToApiClasses.get(parentApiType)
+                            if parentMfn: 
+                                mfnClass = parentMfn
+                                break
+            if not mfnClass:
+                mfnClass = api.MFnDependencyNode
+            self.apiTypesToApiClasses[apiType] = mfnClass
+        return self.apiTypesToApiClasses[apiType]
                 
     def _buildApiRelationships(self) :
         """
