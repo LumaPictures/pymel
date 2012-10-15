@@ -519,7 +519,14 @@ class ApiCache(startup.SubItemCache):
                              'smear':'kSmear',          # a strange one - a plugin node that has an apitype... is in studioImport.so... also has a doc entry... 
                             }
     
+    # TODO: if nucleus bug ever fixed:
+    #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+    #   - remove hard-code setting of Nucleus's parent to DependNode
+
     API_TO_MFN_OVERRIDES = {
+                            'kNucleus':api.MFnDependencyNode, # fun one - even though it can be parented and inherits from transform, it's incompatible with MFnTransform or even MFnDagNode
+                            'kHikHandle':api.MFnTransform, # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
+                            'kFfdDualBase':api.MFnDependencyNode, # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
                            }
     
     DEFAULT_API_TYPE = 'kDependencyNode'

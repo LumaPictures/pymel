@@ -3218,6 +3218,25 @@ class SkinCluster(GeometryFilter):
     def numInfluenceObjects(self):
         return self._influenceObjects()[0]
 
+# TODO: if nucleus bug ever fixed:
+#   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+#   - remove hard-code setting of Nucleus's parent to DependNode
+
+# nucleus has a weird bug where, even though it inherits from transform, and can
+# be parented in the dag, etc, you can't create an MFnTransform or MFnDagNode
+# for it... therefore, hardcode it's PyNode to inherit from DependNode
+class Nucleus(DependNode):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+
+# TODO: if hikHandle bug ever fixed:
+#   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+#   - remove hard-code setting of HikHandle's parent to Transform
+class HikHandle(Transform):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+
+class JointFfd(DependNode): 
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+
 _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 
 

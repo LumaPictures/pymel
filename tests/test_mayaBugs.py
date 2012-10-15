@@ -2,9 +2,14 @@ import sys
 import unittest
 import maya.cmds as cmds
 import maya.OpenMaya as om
-import maya.OpenMayaFX as fx
+import maya.OpenMayaAnim as oma
+import maya.OpenMayaFX as omfx
 
 from pymel.util.testing import TestCaseExtended
+
+if not hasattr(cmds, 'about'):
+    import maya.standalone
+    maya.standalone.initialize()
 
 #===============================================================================
 # Current Bugs
@@ -290,4 +295,36 @@ class TestFluidMFnCreation(unittest.TestCase):
         selList.add(fluid)
         dag = om.MDagPath()
         selList.getDagPath(0, dag)
-        fx.MFnFluid(dag)  
+        omfx.MFnFluid(dag)  
+
+class TestMFnCompatibility(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        
+    def _assertInheritMFnConistency(self, nodeType, parentNodeType, mfnType):
+        nodeInstName = cmds.createNode(nodeType)
+        selList = om.MSelectionList()
+        selList.add(nodeInstName)
+        mobj = om.MObject()
+        selList.getDependNode(0, mobj)
+        
+        self.assertTrue(parentNodeType in cmds.nodeType(nodeInstName, inherited=True))
+        try:
+            mfnType(mobj)
+        except Exception, e:
+            raise self.fail("Error creating %s even though %s inherits from %s: %s" %
+                            (mfnType.__name__, nodeType, parentNodeType, e))
+        
+    def test_nucleus_MFnDagNode(self):
+        self._assertInheritMFnConistency('nucleus', 'dagNode', om.MFnDagNode)
+
+    def test_nucleus_MFnTransform(self):
+        self._assertInheritMFnConistency('nucleus', 'transform', om.MFnTransform)
+    
+    # These probably aren't strictly considered "bugs" by autodesk, though I
+    # think they should be...
+#    def test_hikHandle_MFnIkHandle(self):
+#        self._assertInheritMFnConistency('hikHandle', 'ikHandle', oma.MFnIkHandle)
+#        
+#    def test_jointFfd_MFnLatticeDeformer(self):
+#        self._assertInheritMFnConistency('jointFfd', 'ffd', oma.MFnLatticeDeformer)
