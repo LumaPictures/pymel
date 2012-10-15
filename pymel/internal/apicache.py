@@ -852,13 +852,9 @@ class ApiCache(startup.SubItemCache):
         
         # Anyway, for now, adding in the line to do sourcing of initialPlugins.mel
         # until I can figure out if it's possible to avoid this crash...
-#        import maya.mel
-#        maya.mel.eval('source "initialPlugins.mel"')
-#        plugins.loadAllMayaPlugins()
-
-        # Now that we have static info for all plugin types, we shouldn't need
-        # to have any plugins loaded before parsing api info...
-        plugins.unloadAllPlugins()
+        import maya.mel
+        maya.mel.eval('source "initialPlugins.mel"')
+        plugins.loadAllMayaPlugins()
 
         self._buildApiClassInfo()
 
