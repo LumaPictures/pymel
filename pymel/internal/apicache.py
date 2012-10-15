@@ -760,6 +760,7 @@ class ApiCache(startup.SubItemCache):
         _logger.debug("...finished ApiCache._buildApiClassInfo")
         
     def _buildApiTypeToApiClasses(self):
+        self.apiTypesToApiClasses = {}
         def _MFnType(x) :
             if x == api.MFnBase :
                 return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
