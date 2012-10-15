@@ -2464,7 +2464,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             classdict['__melcmdname__'] = melCmdName
             classdict['__melcmd_isinfo__'] = infoCmd
 
-            filterAttrs = ['name']+classdict.keys()
+            filterAttrs = ['name', 'getName', 'setName'] + classdict.keys()
             filterAttrs += overrideMethods.get( bases[0].__name__ , [] )
             #filterAttrs += newcls.__dict__.keys()
 
