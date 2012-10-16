@@ -233,6 +233,8 @@ class testCase_invertibles(unittest.TestCase):
                   'TextureToGeom'
                  ]
     
+    class GetTypedArgError(Exception): pass
+    
     @classmethod
     def getTypedArg(cls, type):
         typeMap = {   'bool' : True,
@@ -256,7 +258,10 @@ class testCase_invertibles(unittest.TestCase):
         if '.' in type:
             return 1 # take a dumb guess at an enum
         else:
-            return typeMap[type]
+            try:
+                return typeMap[type]
+            except KeyError:
+                raise cls.GetTypedArgError(type)
         
     @classmethod
     def setattrUnique(cls, name, obj):
@@ -268,7 +273,36 @@ class testCase_invertibles(unittest.TestCase):
         #print "%s.%s = %r" % (cls.__name__, uniqueName, obj)
         setattr(cls, uniqueName, obj)
         return uniqueName  
-                            
+    
+    @classmethod
+    def _getMethodAndArgTypes(cls, basePyClass, pyClassName, apiClassName,
+                       classInfo, methodName):
+        try:
+            info = classInfo['methods'][methodName]
+        except KeyError:
+            return None
+        try:
+            methodName = info[0]['pymelName']
+        except KeyError:
+            pass
+        
+        methodName, data = factories._getApiOverrideNameAndData( pyClassName, methodName )
+        try:
+            overloadIndex = data['overloadIndex']
+            info = info[overloadIndex]
+        except (KeyError, TypeError):
+            return None
+        # test if this invertible has been broken in pymelControlPanel
+        if not info.get('inverse', True):
+            return None
+        try:
+            method = getattr( basePyClass, methodName )            
+        except AttributeError:
+            return None
+        inArgs = [ arg for arg in info['inArgs'] if arg not in info['defaults'] ]
+        argTypes = [ str(info['types'][arg]) for arg in inArgs ]
+        return method, argTypes
+        
     @classmethod
     def addTests(cls):
         pyNodes = inspect.getmembers(pm.nodetypes,
@@ -297,40 +331,40 @@ class testCase_invertibles(unittest.TestCase):
                 #print invertibles
 
                 for setMethod, getMethod in invertibles:
-                    info = classInfo['methods'][setMethod]
-                    try:
-                        setMethod = info[0]['pymelName']
-                    except KeyError:
-                        pass
-
-                    setMethod, data = factories._getApiOverrideNameAndData( className, setMethod )
-                    try:
-                        overloadIndex = data['overloadIndex']
-                        info = info[overloadIndex]
-                    except (KeyError, TypeError):
+                    setMethodData = cls._getMethodAndArgTypes(pynode, className,
+                                                              apiClassName,
+                                                              classInfo,
+                                                              setMethod) 
+                    if setMethodData is None:
                         continue
-                    # test if this invertible has been broken in pymelControlPanel
-                    if not info['inverse']:
-                        continue
-                    try:
-                        setter = getattr( pynode, setMethod )                      
-                    except AttributeError:
-                        continue
-                    
+                    else:
+                        setter, setArgTypes = setMethodData
                     if setter in methods:
                         continue
                     else:
                         methods.add(setter)
-                    
-                    inArgs = [ arg for arg in info['inArgs'] if arg not in info['defaults'] ]
-                    argTypes = [ str(info['types'][arg]) for arg in inArgs ]
+                        
+                    getMethodData = cls._getMethodAndArgTypes(pynode, className,
+                                                              apiClassName,
+                                                              classInfo,
+                                                              getMethod)
+                    if getMethodData is None:
+                        getter = None
+                    else:
+                        getter, getArgTypes = getMethodData
+                        if getArgTypes:
+                            # if the getter requires args, don't bother testing
+                            # it
+                            getter = None
+                     
                     newTestMethod = cls.makeInvertTest(pynode, apiClassName,
                                                        setMethod, setter,
-                                                       argTypes)
+                                                       getter, setArgTypes)
                     cls.setattrUnique(newTestMethod.__name__, newTestMethod)
             
     @classmethod
-    def makeInvertTest(cls, pynode, apiClassName, setMethod, setter, argTypes):
+    def makeInvertTest(cls, pynode, apiClassName, setMethod, setter, getter,
+                       setArgTypes):
         def testInvert(self):
             print "testing %s.%s" % (pynode.__name__, setMethod)
             sys.stdout.flush()
@@ -369,14 +403,22 @@ class testCase_invertibles(unittest.TestCase):
                     elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
                         args = [ 6, 4.5 ]
                     else:
-                        args = [ self.getTypedArg(typ) for typ in argTypes ]
+                        args = [ self.getTypedArg(typ) for typ in setArgTypes ]
                     #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
                     args = [obj] + args
                     
+                    if getter:
+                        oldVal = getter(obj) 
                     setter( *args )
                     mel.undo()
-                except KeyError, msg:
-                    print str(msg)
+                    if getter:
+                        newVal = getter(obj)
+                        if isinstance(newVal, (int, long, float)) and not isinstance(newVal, bool):
+                            self.assertAlmostEqual(oldVal, newVal, 12)
+                        else:
+                            self.assertEqual(oldVal, newVal)
+                except cls.GetTypedArgError:
+                    pass
             finally:
                 try: 
                     delete( obj )
