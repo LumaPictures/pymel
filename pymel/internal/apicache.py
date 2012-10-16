@@ -48,12 +48,6 @@ def _defaultdictdict(cls, val=None):
 #===============================================================================
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
-    print '#' * 60
-    print "_makeDgModGhostObject(%s)" % mayaType
-    import traceback
-    print '\n'.join(traceback.format_stack())
-    print '#' * 60
-    
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
