@@ -529,6 +529,7 @@ class ApiCache(startup.SubItemCache):
                             'kNucleus':api.MFnDependencyNode, # fun one - even though it can be parented and inherits from transform, it's incompatible with MFnTransform or even MFnDagNode
                             'kHikHandle':api.MFnTransform, # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
                             'kFfdDualBase':api.MFnDependencyNode, # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
+                            'kTransferAttributes':api.MFnDependencyNode, # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
                            }
     
     DEFAULT_API_TYPE = 'kDependencyNode'

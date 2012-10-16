@@ -3238,7 +3238,10 @@ class HikHandle(Transform):
 
 class JointFfd(DependNode): 
     __metaclass__ = _factories.MetaMayaNodeWrapper
-
+    
+class TransferAttributes(DependNode):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    
 _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 
 

@@ -328,3 +328,9 @@ class TestMFnCompatibility(unittest.TestCase):
 #        
 #    def test_jointFfd_MFnLatticeDeformer(self):
 #        self._assertInheritMFnConistency('jointFfd', 'ffd', oma.MFnLatticeDeformer)
+#
+#    def test_transferAttributes_MFnWeightGeometryFilter(self):
+#        self._assertInheritMFnConistency('transferAttributes', 'weightGeometryFilter', oma.MFnWeightGeometryFilter)
+#
+#    def test_transferAttributes_MFnGeometryFilter(self):
+#        self._assertInheritMFnConistency('transferAttributes', 'geometryFilter', oma.MFnGeometryFilter)
