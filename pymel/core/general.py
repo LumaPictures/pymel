@@ -81,7 +81,10 @@ def _getPymelType(arg, name) :
     elif isinstance(arg, _api.MDagPath) :
         results['MDagPath'] = arg
         obj = arg.node()
-
+        # Just always do this here, for stupid cases like Nucleus, where it is a
+        # dag node, but isn't compatible with MFnDagNode
+        results['MObjectHandle'] = _api.MObjectHandle( obj )
+        
     elif isinstance(arg, _api.MPlug) :
         isAttribute = True
         obj = arg
