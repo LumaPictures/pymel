@@ -9,6 +9,9 @@ from path import path
 #  Pymel Internals
 #-----------------------------------------------
 
+#===============================================================================
+# Strings
+#===============================================================================
 
 def capitalize(s):
     """
@@ -50,6 +53,10 @@ def unescape( s ):
         s = ''.join(tokens)
     return s
 
+#===============================================================================
+# Deprecated types
+#===============================================================================
+
 def cacheProperty(getter, attr_name, fdel=None, doc=None):
     """a property type for getattr functions that only need to be called once per instance.
         future calls to getattr for this property will return the previous non-null value.
@@ -74,12 +81,33 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 
     return property( fget, fset, fdel, doc)
 
+#===============================================================================
+# System
+#===============================================================================
+
 def timer( command='pass', number=10, setup='import pymel' ):
     import timeit
     t = timeit.Timer(command, setup)
     time = t.timeit(number=number)
     print "command took %.2f sec to execute" % time
     return time
+
+def interpreterBits():
+    """
+    Returns the number of bits of the architecture the interpreter was compiled on
+    (ie, 32 or 64).
+
+    :rtype: `int`
+    """
+    # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
+    # even when Maya is running in 32-bit mode. The struct technique
+    # is more reliable.
+    return struct.calcsize("P") * 8    
+    return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
+
+#===============================================================================
+# Filesystem
+#===============================================================================
 
 def toZip( directory, zipFile ):
     """Sample for storing directory to a ZipFile"""
@@ -104,18 +132,9 @@ def toZip( directory, zipFile ):
     z.close()
     return zipFile
 
-def interpreterBits():
-    """
-    Returns the number of bits of the architecture the interpreter was compiled on
-    (ie, 32 or 64).
-
-    :rtype: `int`
-    """
-    # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
-    # even when Maya is running in 32-bit mode. The struct technique
-    # is more reliable.
-    return struct.calcsize("P") * 8    
-    return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
+#===============================================================================
+# inspection
+#===============================================================================
 
 def subpackages(packagemod):
     """
