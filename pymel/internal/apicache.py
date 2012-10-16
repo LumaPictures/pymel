@@ -358,8 +358,8 @@ def getInheritance( mayaType, checkManip3D=True ):
     # _GhostObjMaker, which on enter, uses a dag/dg modifier, and calls the doIt
     # method; we then get the lineage, and on exit, it calls undoIt.
     
+    import maya.cmds as cmds
     if versions.current() >= versions.v2012:
-        import maya.cmds as cmds
         # We now have nodeType(isTypeName)! yay!
         try:
             lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
