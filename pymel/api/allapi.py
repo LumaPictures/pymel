@@ -303,6 +303,15 @@ def toApiObject(nodeName, dagPlugs=True):
                 dag = MDagPath()
                 sel.getDagPath( 0, dag )
                 #if not isValidMDagPath(dag) : return
+                
+                # TODO: if nucleus bug ever fixed:
+                #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+                #   - remove hard-code setting of Nucleus's parent to DependNode
+                #   - remove check in allapi.toApiObject for objects which
+                #     can have an MDagPath but can't use MFnDagNode
+                
+                if not dag.node().hasFn(MFn.kDagNode):
+                    raise RuntimeError
                 return dag
          
             except RuntimeError:

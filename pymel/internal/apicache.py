@@ -522,6 +522,8 @@ class ApiCache(startup.SubItemCache):
     # TODO: if nucleus bug ever fixed:
     #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
     #   - remove hard-code setting of Nucleus's parent to DependNode
+    #   - remove check in allapi.toApiObject for objects which can have an
+    #     MDagPath but can't use MFnDagNode
 
     API_TO_MFN_OVERRIDES = {
                             'kNucleus':api.MFnDependencyNode, # fun one - even though it can be parented and inherits from transform, it's incompatible with MFnTransform or even MFnDagNode
