@@ -132,7 +132,13 @@ class _GhostObjMaker(object):
             if allObj:
                 obj = api.toMObject(allObj[0])
             else:
-                obj = _makeDgModGhostObject(mayaType, self.dagMod, self.dgMod)
+                if mayaType in ApiCache.CRASH_TYPES:
+                    # the two items in CRASH_TYPES are both manips...
+                    if self.manipError:
+                        raise ManipNodeTypeError
+                    obj = None
+                else:
+                    obj = _makeDgModGhostObject(mayaType, self.dagMod, self.dgMod)
                 if obj is not None:
                     self.ghosts.add(mayaType)
                     madeGhost = True
@@ -320,8 +326,9 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
             if not isinstance(nodes, set):
                 nodes = set(nodes)
             for plugin in cmds.pluginInfo(q=1, listPlugins=True):
-                nodes.difference_update(cmds.pluginInfo(plugin, q=1,
-                                                        dependNode=True))
+                pluginNodes = cmds.pluginInfo(plugin, q=1, dependNode=True)
+                if pluginNodes:
+                    nodes.difference_update()
     if not isinstance(nodes, set):
         nodes = set(nodes)
     return nodes
