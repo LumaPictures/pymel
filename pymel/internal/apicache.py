@@ -235,10 +235,31 @@ class _GhostObjMaker(object):
 #===============================================================================
 _ABSTRACT_SUFFIX = ' (abstract)'
 _ASSET_PREFIX = 'adskAssetInstanceNode_'
+
+if hasattr(api, 'MNodeClass'):
+    # if we have MNodeClass, this is easy...
+    def isPluginNode(nodeName):
+        try:
+            api.MNodeClass(nodeName).pluginName()
+            return True
+        except RuntimeError:
+            return False
+        
+else:
+    # otherwise, we have to query all plugins...
+    def isPluginNode(nodeName):
+        import maya.cmds as cmds
+        for plugin in cmds.pluginInfo(q=1, listPlugins=True):
+            plugNodes = cmds.pluginInfo(plugin, q=1, dependNode=True)
+            # plugNodes may be None...
+            if plugNodes and nodeName in plugNodes:
+                return True
+        return False
+
 # You'd think getting a comprehensive list of node types would be easy, but
 # due to strange behavior of various edge cases, it can be tricky...
 def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=True,
-                  noManips=True, noPlugins=False):
+                  noManips=True, noPlugins=False, returnRealAbstract=False):
     '''Returns a list of maya types
     
     Parameters
@@ -262,77 +283,92 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
         basePluginTypes is True, and noPlugins is False, the basePluginTypes
         will still be returned, as these types are not themselves defined in
         the plugin)
+    returnRealAbstract : bool
+        if True, will return two sets, realNodes and abstractNodes; otherwise,
+        returns a single set of all the desired nodes (more precisely, realNodes
+        is defined as the set of directly createdable nodes matching the
+        criteria, and abstract are all non-createable nodes matching the
+        criteria) 
     '''
     import maya.cmds as cmds
     
-    if abstract:
+    # keep track of which nodes were abstract - this can be useful later,
+    # especially pre-2012
+    abstractNodes = set()
+    realNodes = set()
+    if abstract or addAncestors:
         # if we want abstract, need to do extra processing to strip the
         # trailing ' (abstract)'
         raw = cmds.allNodeTypes(includeAbstract=True)
-        if real:
-            nodes = [x[:-len(_ABSTRACT_SUFFIX)]
-                     if x.endswith(_ABSTRACT_SUFFIX)
-                     else x for x in raw]
-        else:
-            nodes = [x[:-len(_ABSTRACT_SUFFIX)] for x in raw
-                     if x.endswith(_ABSTRACT_SUFFIX)]
-        
-        # For some reason, maya returns these names with cmds.allNodeTypes(includeAbstract=True):
-        #   adskAssetInstanceNode_TlightShape
-        #   adskAssetInstanceNode_TdnTx2D
-        #   adskAssetInstanceNode_TdependNode
-        # ...but they show up in parent hierarchies with a 'T' in front, ie:
-        #   cmds.nodeType(adskMaterial, isTypeName=True, inherited=True)
-        #           == [u'TadskAssetInstanceNode_TdependNode', u'adskMaterial']
-        # the 'T' form is also what is needed to use it as an arg to nodeType...
-        # ...so, stick the 'T' in front...
-        nodes = ['T' + x if x.startswith(_ASSET_PREFIX) else x for x in nodes]
+        for node in raw:
+            if node.endswith(_ABSTRACT_SUFFIX):
+                node = node[:-len(_ABSTRACT_SUFFIX)]
+                # For some reason, maya returns these names with cmds.allNodeTypes(includeAbstract=True):
+                #   adskAssetInstanceNode_TlightShape
+                #   adskAssetInstanceNode_TdnTx2D
+                #   adskAssetInstanceNode_TdependNode
+                # ...but they show up in parent hierarchies with a 'T' in front, ie:
+                #   cmds.nodeType(adskMaterial, isTypeName=True, inherited=True)
+                #           == [u'TadskAssetInstanceNode_TdependNode', u'adskMaterial']
+                # the 'T' form is also what is needed to use it as an arg to nodeType...
+                # ...so, stick the 'T' in front...
+                if node.startswith(_ASSET_PREFIX):
+                    node = 'T' + node
+                abstractNodes.add(node)
+            else:
+                if not real:
+                    continue
+                realNodes.add(node)
     elif real:
-        nodes = cmds.allNodeTypes()
-    else:
-        nodes = []
+        realNodes.update(cmds.allNodeTypes())
+        
     if basePluginTypes:
         import pymel.api.plugins
-        nodes.extend(pymel.api.plugins.pluginMayaTypes)
+        abstractNodes.update(pymel.api.plugins.pluginMayaTypes)
     if addAncestors or noManips:
         # There are a few nodes which will not be returned even by
         # allNodeTypes(includeAbstract=True), but WILL show up in the
         # inheritance hierarchies...
-        nodes = set(nodes)
-        # iterate over a copy of nodes, because we'll be updating it as we go
-        for mayaType in list(nodes):
+        
+        # iterate over first real nodes, then abstract nodes... this lets us
+        # take advantage of inheritance caching - especially pre-2012, where
+        # inheritance chain of abstract nodes is not directly queryable -
+        # since getInheritance will cache the inheritance chain of the given
+        # node, AND all it's parents
+        
+        # make a copy of what we iterate over, as we will be modifying
+        # realNodes and abstractNodes as we go...
+        for mayaType in list(itertools.chain(realNodes, abstractNodes)):
             try:
                 ancestors = getInheritance(mayaType, checkManip3D=noManips)
             except ManipNodeTypeError:
-                nodes.remove(mayaType)
+                realNodes.discard(mayaType)
+                abstractNodes.discard(mayaType)
             except RuntimeError:
                 # was an error querying - happens with some node types, like
                 # adskAssetInstanceNode_TdnTx2D
                 continue
             else:
-                if addAncestors:
-                    nodes.update(ancestors)
+                if addAncestors and ancestors:
+                    abstractNodes.update(set(ancestors) - realNodes)
     if noPlugins:
-        # if we have MNodeClass, this is easy...
-        if hasattr(api, 'MNodeClass'):
-            nonPluginNodes = set()
-            for node in nodes:
-                try:
-                    api.MNodeClass(node).pluginName()
-                except RuntimeError:
-                    nonPluginNodes.add(node)
-            nodes = nonPluginNodes
-        else:
-            # otherwise, we have to query all plugins...
-            if not isinstance(nodes, set):
-                nodes = set(nodes)
-            for plugin in cmds.pluginInfo(q=1, listPlugins=True):
-                pluginNodes = cmds.pluginInfo(plugin, q=1, dependNode=True)
-                if pluginNodes:
-                    nodes.difference_update()
-    if not isinstance(nodes, set):
-        nodes = set(nodes)
-    return nodes
+        for nodeSet in (realNodes, abstractNodes):
+            # need to modify in place, so make copy of nodeSet...
+            for node in list(nodeSet):
+                if isPluginNode(node):
+                    nodeSet.remove(node)
+                    
+    # we may have put nodes in realNodes or abstractNodes for info purposes...
+    # make sure they are cleared before returning results, if needed...
+    if not real:
+        realNodes = set()
+    if not abstract:
+        abstractNodes = set()
+    
+    if returnRealAbstract:
+        return realNodes, abstractNodes
+    else:
+        return realNodes | abstractNodes
 
 def _getAbstractMayaTypes(**kwargs):
     kwargs.setdefault('real', False)
@@ -352,8 +388,10 @@ def _getAllMayaTypes(**kwargs):
     return _getMayaTypes(**kwargs)
 
 _fixedLineages = {}
+_cachedInheritances = {}
         
-def getInheritance( mayaType, checkManip3D=True ):
+def getInheritance( mayaType, checkManip3D=True, checkCache=True,
+                    updateCache=True ):
     """Get parents as a list, starting from the node after dependNode, and
     ending with the mayaType itself.
     
@@ -365,17 +403,20 @@ def getInheritance( mayaType, checkManip3D=True ):
     # requires a real node.  To do get these without poluting the scene we use the
     # _GhostObjMaker, which on enter, uses a dag/dg modifier, and calls the doIt
     # method; we then get the lineage, and on exit, it calls undoIt.
+    global _cachedInheritances
+    if checkCache and mayaType in _cachedInheritances:
+        return _cachedInheritances[mayaType]
     
     import maya.cmds as cmds
+    lineage = None
     if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
         try:
             lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
         except RuntimeError:
-            lineage = None
+            pass
     else:
         with _GhostObjMaker(mayaType) as obj:
-            lineage = []
             if obj is not None:
                 if obj.hasFn( api.MFn.kDagNode ):
                     name = api.MFnDagNode(obj).partialPathName()
@@ -419,8 +460,21 @@ def getInheritance( mayaType, checkManip3D=True ):
             raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
     elif checkManip3D and 'manip3D' in lineage:
         raise ManipNodeTypeError
-    assert (mayaType == 'node' and lineage == []) or lineage[-1] == mayaType
+    try:
+        assert (mayaType == 'node' and lineage == []) or lineage[-1] == mayaType
+    except Exception:
+        print mayaType, lineage
+        raise
 
+    if updateCache and lineage:
+        # add not just this lineage, but all parent's lineages as well...
+        for i in xrange(len(lineage), 0, -1):
+            thisLineage = lineage[:i]
+            thisNode = thisLineage[-1]
+            oldVal = _cachedInheritances.get(thisNode)
+            if oldVal and oldVal != thisLineage:
+                _logger.raiseLog(_logger.WARNING, "lineage for node %s changed (from %s to %s)" % (thisNode, oldVal, thisLineage))
+            _cachedInheritances[thisNode] = thisLineage
     return lineage
 
 #===============================================================================
@@ -557,7 +611,12 @@ class ApiCache(startup.SubItemCache):
 
         self.mayaTypesToApiTypes = self._buildMayaReservedTypes()
         
-        for mayaType in self.allMayaTypes:
+        # do real nodes first - on pre-2012, can't directly query inheritance of
+        # abstract nodes, so relying on caching of parent hierarchies when
+        # querying a real hierarchy is the only way to get inheritance info
+        # for abstract types
+        for mayaType in itertools.chain(self.realMayaTypes,
+                                        self.abstractMayaTypes):
             if mayaType not in self.mayaTypesToApiTypes:
                 toCreate.append(mayaType)
 
@@ -581,7 +640,7 @@ class ApiCache(startup.SubItemCache):
                 # For unknown types, use the parent type
                 try:
                     inheritance = getInheritance(mayaType)
-                except ManipNodeTypeError:
+                except (ManipNodeTypeError, RuntimeError):
                     continue
                 apiType = None
                 
@@ -631,7 +690,7 @@ class ApiCache(startup.SubItemCache):
         for mpxName, mayaNode in plugins.mpxNamesToMayaNodes.iteritems():
             reservedMayaTypes[mayaNode] = plugins.mpxNamesToApiEnumNames[mpxName]
         
-        for mayaType in self.nonCreatableNodes:
+        for mayaType in self.abstractMayaTypes:
             if mayaType in reservedMayaTypes:
                 continue
             apiGuess = self._guessApiTypeByName(mayaType)
@@ -658,15 +717,8 @@ class ApiCache(startup.SubItemCache):
         if not self.apiTypesToApiEnums:
             self._buildApiTypesList()
         
-        self.allMayaTypes = _getAllMayaTypes()
-        
-        # use noManips=False just so it's faster... we're just using this to
-        # subtract out nodes from allNodes, so it won't matter if it has manip
-        # node types
-        realTypes = _getRealMayaTypes(noManips=False)
-        # this will actually give slightly different results than just calling
-        # _getAbstractNodes, due to addAncestors...
-        self.nonCreatableNodes = self.allMayaTypes - realTypes 
+        self.realMayaTypes, self.abstractMayaTypes = _getAllMayaTypes(returnRealAbstract=True)
+        self.allMayaTypes = self.realMayaTypes | self.abstractMayaTypes
         
         self.uniqueLowerMaya, self.multiLowerMaya = getLowerCaseMapping(self.allMayaTypes)
         self.allLowerMaya = set(self.uniqueLowerMaya) | set(self.multiLowerMaya)
@@ -886,8 +938,15 @@ class ApiCache(startup.SubItemCache):
         import maya.mel
         maya.mel.eval('source "initialPlugins.mel"')
         plugins.loadAllMayaPlugins()
-
-        self._buildApiClassInfo()
+        
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # DEBUG! UNCOMMENT THIS!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #self._buildApiClassInfo()
 
         self._buildMayaToApiInfo()
         self._buildApiTypeToApiClasses()
