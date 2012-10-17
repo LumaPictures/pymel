@@ -2,7 +2,12 @@
 Commonly used utilities
 """
 
-import os, re, sys, platform, pkgutil
+import os
+import re
+import sys
+import platform
+import pkgutil
+import inspect
 from re import escape
 from path import path
 #-----------------------------------------------
@@ -156,3 +161,48 @@ def subpackages(packagemod):
             yield modname, mod, ispkg
     else:
         yield packagemod.__name__, packagemod, False
+
+
+def isClassRunningFrame(cls, frameRecord):
+    '''Whether the given frameRecord is running code from a method in the given class
+    
+    Make sure to delete the frameRecord object after calling this (or else you
+    create cyclical references - see docs for the inspect module)
+    
+    This is not foolproof - for instance, if the name of a method has been
+    modified, it may not work - but should work in most cases  
+    '''
+    methodName = frameRecord[3]
+    frameCode = frameRecord[0].f_code
+    del frameRecord
+    method = getattr(cls, methodName, None)
+    if method is None or not inspect.ismethod(method):
+        return False
+    return method.im_func.func_code == frameCode
+
+def isClassRunningStack(cls, stack=None):
+    '''Whether the stack is running from "inside" a method on the given class
+    
+    Parameters
+    ----------
+    cls : class object
+        The class that we wish to check to see if we're inside one of it's
+        methods
+    stack : list of frame-record objects, or None
+        a list of frame-record objects representing the execution context to
+        check; if not given, uses the current execution stack; if passing in an
+        explicit stack, make sure to delete it after calling this (see docs for
+        the inspect module)
+    '''
+    if stack is None:
+        stack = inspect.stack()
+    try:
+        for frameRecord in stack:
+            try:
+                if isClassRunningFrame(cls, frameRecord):
+                    return True
+            finally:
+                del frameRecord
+    finally:
+        del stack
+    return False
