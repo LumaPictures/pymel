@@ -242,7 +242,7 @@ def main(argv):
     testsDir = parsed.tests_dir
     pymelRoot = parsed.pymel_root
 
-    pypath = os.environ['PYTHONPATH'].split(os.pathsep)
+    pypath = os.environ.get('PYTHONPATH', '').split(os.pathsep)
     # add the test dir to the python path - that way,
     # we can do 'pymel_test test_general' in order to run just the tests
     # in test_general
