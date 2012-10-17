@@ -48,6 +48,13 @@ def _defaultdictdict(cls, val=None):
 #===============================================================================
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
+    if versions.current() >= versions.v2012:
+        # only time post-2012 when we should have to call this func is when
+        # rebuilding caches - ie, running from inside ApiCache
+        buildMethods = re.compile(r'''build''', re.IGNORECASE)
+        if not _util.isClassRunningStack(ApiCache, methodFilter=buildMethods):
+            _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be unnecessary in maya versions past 2012 (except when rebuilding cache)')
+    
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
