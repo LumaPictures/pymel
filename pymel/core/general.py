@@ -17,9 +17,9 @@ import pymel.internal.pwarnings as _warnings
 import pymel.api as _api
 import pymel.versions as _versions
 import datatypes
-import logging
 from maya.cmds import about as _about
-_logger = logging.getLogger(__name__)
+from pymel.internal import getLogger as _getLogger
+_logger = _getLogger(__name__)
 
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
@@ -42,9 +42,10 @@ def _getPymelTypeFromObject(obj, name):
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
         if compTypes is None:
-            raise RuntimeError('Got an instance of a component which could not be mapped to a pymel class: %s' % obj.apiTypeStr())
+            _logger.raiseLog(_logger.WARNING, 'Got an instance of a component which could not be mapped to a pymel class: %s' % obj.apiTypeStr())
+            compTypes = [Component]
         if len(compTypes) != 1:
-            raise RuntimeError('Got an instance of a component with more than one possible PyNode type: %s' % obj.apiTypeStr())
+            _logger.raiseLog(_logger.WARNING, 'Got an instance of a component with more than one possible PyNode type: %s' % obj.apiTypeStr())
         pymelType = compTypes[0]
     elif obj.hasFn(_api.MFn.kAttribute):
         pymelType = AttributeDefaults
