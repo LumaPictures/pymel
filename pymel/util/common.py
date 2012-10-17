@@ -163,7 +163,7 @@ def subpackages(packagemod):
         yield packagemod.__name__, packagemod, False
 
 
-def isClassRunningFrame(cls, frameRecord):
+def isClassRunningFrame(cls, frameRecord, methodFilter=None):
     '''Whether the given frameRecord is running code from a method in the given class
     
     Make sure to delete the frameRecord object after calling this (or else you
@@ -172,15 +172,32 @@ def isClassRunningFrame(cls, frameRecord):
     This is not foolproof - for instance, if the name of a method has been
     modified, it may not work - but should work in most cases  
     '''
-    methodName = frameRecord[3]
     frameCode = frameRecord[0].f_code
     del frameRecord
-    method = getattr(cls, methodName, None)
-    if method is None or not inspect.ismethod(method):
-        return False
-    return method.im_func.func_code == frameCode
+    
+    for methodName, methodObj in inspect.getmembers(cls, inspect.ismethod):
+        if methodFilter is not None:
+            # think it's possible these two names may be different... for instance,
+            # if you were to do:
+            # class MyClass(object):
+            #     def func1(self): pass
+            #     func2 = func1
+            passed = False
+            for nameToCheck in methodName, methodObj.__name__:
+                if isinstance(methodFilter, re._pattern_type):
+                    passed = bool(methodFilter.search(nameToCheck))
+                else:
+                    passed = (nameToCheck == methodFilter)
+                if passed:
+                    break
+            if not passed:
+                continue
+        if methodObj.im_func.func_code == frameCode:
+            return True
+    return False
+    
 
-def isClassRunningStack(cls, stack=None):
+def isClassRunningStack(cls, stack=None, methodFilter=None):
     '''Whether the stack is running from "inside" a method on the given class
     
     Parameters
@@ -193,13 +210,19 @@ def isClassRunningStack(cls, stack=None):
         check; if not given, uses the current execution stack; if passing in an
         explicit stack, make sure to delete it after calling this (see docs for
         the inspect module)
+    methodFilter : str or re._pattern_type
+        if you only wish to return true if the stack is running inside a specifc
+        function, you may set this to the name of the function; or, if you want
+        to a apply a a filter by name, pass a compiled regular expression that
+        matches method names
     '''
     if stack is None:
         stack = inspect.stack()
     try:
         for frameRecord in stack:
             try:
-                if isClassRunningFrame(cls, frameRecord):
+                if isClassRunningFrame(cls, frameRecord,
+                                       methodFilter=methodFilter):
                     return True
             finally:
                 del frameRecord
