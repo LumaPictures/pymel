@@ -42,7 +42,7 @@ def _getPymelTypeFromObject(obj, name):
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
         if compTypes is None:
-            _logger.raiseLog(_logger.WARNING, 'Got an instance of a component which could not be mapped to a pymel class: %s' % obj.apiTypeStr())
+            _logger.raiseLog(_logger.DEBUG, 'Got an instance of a component which could not be mapped to a pymel class: %s' % obj.apiTypeStr())
             compTypes = [Component]
         if len(compTypes) != 1:
             _logger.raiseLog(_logger.WARNING, 'Got an instance of a component with more than one possible PyNode type: %s' % obj.apiTypeStr())
