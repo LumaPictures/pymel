@@ -289,7 +289,7 @@ def _setupLevelPreferenceHook():
 # ERROR LOGGER
 #===============================================================================
 ERRORLEVEL = None
-ERRORLEVEL_DEFAULT = 'ERROR'
+ERRORLEVEL_DEFAULT = logging.ERROR
 def raiseLog(logger, level, message, errorClass=RuntimeError):
     '''For use in situations in which you may wish to raise an error or simply
     print to a logger.
@@ -315,9 +315,11 @@ def raiseLog(logger, level, message, errorClass=RuntimeError):
     # only way to go
     global ERRORLEVEL
     if ERRORLEVEL is None:
-        levelName = os.environ.get(PYMEL_ERRORLEVEL_ENV_VAR,
-                                   ERRORLEVEL_DEFAULT)
-        ERRORLEVEL = nameToLevel(levelName)
+        levelName = os.environ.get(PYMEL_ERRORLEVEL_ENV_VAR)
+        if levelName is None:
+            ERRORLEVEL = ERRORLEVEL_DEFAULT
+        else:
+            ERRORLEVEL = nameToLevel(levelName)
     if level >= ERRORLEVEL:
         raise errorClass(message)
     else:
@@ -326,13 +328,14 @@ def raiseLog(logger, level, message, errorClass=RuntimeError):
 def addErrorLog(logger):
     '''Adds an 'raiseLog' method to the given logger instance
     '''
-    # because we're installing onto an instace, and not a class, we have to
-    # create our own wrapper which sets the logger
-    def instanceErrorLog(*args, **kwargs):
-        return raiseLog(logger, *args, **kwargs)
-    instanceErrorLog.__doc__ = raiseLog.__doc__
-    instanceErrorLog.__name__ = 'raiseLog'
-    logger.raiseLog = instanceErrorLog
+    if 'raiseLog' not in logger.__dict__:
+        # because we're installing onto an instance, and not a class, we have to
+        # create our own wrapper which sets the logger
+        def instanceErrorLog(*args, **kwargs):
+            return raiseLog(logger, *args, **kwargs)
+        instanceErrorLog.__doc__ = raiseLog.__doc__
+        instanceErrorLog.__name__ = 'raiseLog'
+        logger.raiseLog = instanceErrorLog
     return logger
         
 #_setupLevelPreferenceHook()
