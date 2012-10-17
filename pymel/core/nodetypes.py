@@ -2477,28 +2477,15 @@ class Lattice(ControlPoint):
                             'points': general.LatticePoint}
 
 class Particle(DeformableShape):
+    __apicls__ = _api.MFnParticleSystem
     __metaclass__ = _factories.MetaMayaNodeWrapper
+    _componentAttributes = {'pt'    : general.ParticleComponent,
+                            'points': general.ParticleComponent}
+    # for backwards compatibility
+    Point = general.ParticleComponent
 
-    class PointArray(general.ComponentArray):
-        def __init__(self, name):
-            general.ComponentArray.__init__(self, name)
-            self.returnClass = Particle.Point
-
-        def __len__(self):
-            return cmds.particle(self.node(), q=1,count=1)
-
-    class Point(general._Component):
-        def __str__(self):
-            return '%s.pt[%s]' % (self._node, self._item)
-        def __getattr__(self, attr):
-            return cmds.particle( self._node, q=1, attribute=attr, order=self._item)
-
-
-    def _getPointArray(self):
-        return Particle.PointArray( self + '.pt' )
-    pt = property(_getPointArray)
-    points = property(_getPointArray)
-
+    # for backwards compatibility, keep these two, even though the api wrap
+    # will also provide 'count'
     def pointCount(self):
         return cmds.particle( self, q=1,count=1)
     num = pointCount

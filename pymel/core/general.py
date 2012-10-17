@@ -1507,7 +1507,7 @@ class MayaNodeError(MayaObjectError):
 
 class MayaAttributeError(MayaObjectError, AttributeError):
     _objectDescription = 'Attribute'
-
+    
 class MayaAttributeEnumError(MayaAttributeError):
     _objectDescription = 'Attribute Enum'
     def __init__(self, node=None, enum=None):
@@ -1521,6 +1521,9 @@ class MayaAttributeEnumError(MayaAttributeError):
 
 class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
+
+class MayaParticleAttributeError(MayaComponentError):
+    _objectDescription = 'Per-Particle Attribute'
 
 def _objectError(objectName):
     # TODO: better name parsing
@@ -3689,6 +3692,10 @@ class Component( PyNode ):
 
     def node(self):
         return self._node
+    
+    # just for backward compatibility with old Component class (though the
+    # only place this WAS used was with particles...)
+    plugNode = node
 
     def plugAttr(self):
         return self._ComponentLabel__
@@ -5148,8 +5155,8 @@ class NurbsCurveKnot( Component1D ):
 ## NurbsSurface Components
 
 class NurbsSurfaceIsoparm( Component2DFloat ):
-    _apienum__ = _api.MFn.kIsoparmComponent
     _ComponentLabel__ = ("u", "v", "uv")
+    _apienum__ = _api.MFn.kIsoparmComponent
 
     def __init__(self, *args, **kwargs):
         super(NurbsSurfaceIsoparm, self).__init__(*args, **kwargs)
@@ -5321,117 +5328,136 @@ class LatticePoint( Component3D ):
         #    ffd1LatticeShape.pt[*]
         return Component._completeNameString(self) + '[*]'
 
-#-----------------------------------------
-# Pivot Components
-#-----------------------------------------
+## Pivot Components
 
 class Pivot( Component ):
-    _apienum__ = _api.MFn.kPivotComponent
     _ComponentLabel__ = ("rotatePivot", "scalePivot")
+    _apienum__ = _api.MFn.kPivotComponent
 
-class ComponentArray(object):
-    def __init__(self, name):
-        self._name = name
-        self._iterIndex = 0
-        self._node = self.node()
 
-    def __str__(self):
-        return self._name
+## Particle Components
 
-    def __repr__(self):
-        return "ComponentArray(u'%s')" % self
+class ParticleComponent( Component1D ):
+    _ComponentLabel__ = "pt"
+    _apienum__ = _api.MFn.kDynParticleSetComponent
+        
+    def attr(self, attr):
+        try:
+            return cmds.particle( self._node, q=1, attribute=attr, order=self._currentFlatIndex)
+        except RuntimeError:
+            raise MayaParticleAttributeError('%s.%s' % (self, attr))
+    
+    def __getattr__(self, attr):
+        # MayaParticleAttributeError is a subclass of AttributeError, so if
+        # it is raised, that should signal it was not found
+        return self.attr(attr)
 
-    #def __len__(self):
-    #    return 0
-
-    def __iter__(self):
-#        """iterator for multi-attributes
+    def _dimLength(self, partialIndex):
+        return self.node().pointCount()
+       
+#class ComponentArray(object):
+#    def __init__(self, name):
+#        self._name = name
+#        self._iterIndex = 0
+#        self._node = self.node()
 #
-#            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]:
-#            ...     print attr
+#    def __str__(self):
+#        return self._name
 #
-#        """
-        return self
-
-    def next(self):
-#        """iterator for multi-attributes
+#    def __repr__(self):
+#        return "ComponentArray(u'%s')" % self
 #
-#            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]:
-#            ...    print attr
+#    #def __len__(self):
+#    #    return 0
 #
-#        """
-        if self._iterIndex >= len(self):
-            raise StopIteration
-        else:
-            new = self[ self._iterIndex ]
-            self._iterIndex += 1
-            return new
-
-    def __getitem__(self, item):
-
-        def formatSlice(item):
-            step = item.step
-            if step is not None:
-                return '%s:%s:%s' % ( item.start, item.stop, step)
-            else:
-                return '%s:%s' % ( item.start, item.stop )
-
-
+#    def __iter__(self):
+##        """iterator for multi-attributes
+##
+##            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]:
+##            ...     print attr
+##
+##        """
+#        return self
+#
+#    def next(self):
+##        """iterator for multi-attributes
+##
+##            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]:
+##            ...    print attr
+##
+##        """
+#        if self._iterIndex >= len(self):
+#            raise StopIteration
+#        else:
+#            new = self[ self._iterIndex ]
+#            self._iterIndex += 1
+#            return new
+#
+#    def __getitem__(self, item):
+#
+#        def formatSlice(item):
+#            step = item.step
+#            if step is not None:
+#                return '%s:%s:%s' % ( item.start, item.stop, step)
+#            else:
+#                return '%s:%s' % ( item.start, item.stop )
+#
+#
+##        if isinstance( item, tuple ):
+##            return [ Component(u'%s[%s]' % (self, formatSlice(x)) ) for x in  item ]
+##
+##        elif isinstance( item, slice ):
+##            return Component(u'%s[%s]' % (self, formatSlice(item) ) )
+##
+##        else:
+##            return Component(u'%s[%s]' % (self, item) )
+#
 #        if isinstance( item, tuple ):
-#            return [ Component(u'%s[%s]' % (self, formatSlice(x)) ) for x in  item ]
+#            return [ self.returnClass( self._node, formatSlice(x) ) for x in  item ]
 #
-#        elif isinstance( item, slice ):
-#            return Component(u'%s[%s]' % (self, formatSlice(item) ) )
+#        elif isinstance( item, (slice, HashableSlice) ):
+#            return self.returnClass( self._node, formatSlice(item) )
 #
 #        else:
-#            return Component(u'%s[%s]' % (self, item) )
-
-        if isinstance( item, tuple ):
-            return [ self.returnClass( self._node, formatSlice(x) ) for x in  item ]
-
-        elif isinstance( item, (slice, HashableSlice) ):
-            return self.returnClass( self._node, formatSlice(item) )
-
-        else:
-            return self.returnClass( self._node, item )
-
-
-    def plugNode(self):
-        'plugNode'
-        return PyNode( str(self).split('.')[0])
-
-    def plugAttr(self):
-        """plugAttr"""
-        return '.'.join(str(self).split('.')[1:])
-
-    node = plugNode
-
-class _Component(object):
-    """
-    Abstract base class for component types like vertices, edges, and faces.
-
-    This class is deprecated.
-    """
-    def __init__(self, node, item):
-        self._item = item
-        self._node = node
-
-    def __repr__(self):
-        return "%s('%s')" % (self.__class__.__name__, self)
-
-    def node(self):
-        'plugNode'
-        return self._node
-
-    def item(self):
-        return self._item
-
-    def move( self, *args, **kwargs ):
-        return move( self, *args, **kwargs )
-    def scale( self, *args, **kwargs ):
-        return scale( self, *args, **kwargs )
-    def rotate( self, *args, **kwargs ):
-        return rotate( self, *args, **kwargs )
+#            return self.returnClass( self._node, item )
+#
+#
+#    def plugNode(self):
+#        'plugNode'
+#        return PyNode( str(self).split('.')[0])
+#
+#    def plugAttr(self):
+#        """plugAttr"""
+#        return '.'.join(str(self).split('.')[1:])
+#
+#    node = plugNode
+#
+#class _Component(object):
+#    """
+#    Abstract base class for component types like vertices, edges, and faces.
+#
+#    This class is deprecated.
+#    """
+#    def __init__(self, node, item):
+#        self._item = item
+#        self._node = node
+#
+#    def __repr__(self):
+#        return "%s('%s')" % (self.__class__.__name__, self)
+#
+#    def node(self):
+#        'plugNode'
+#        return self._node
+#
+#    def item(self):
+#        return self._item
+#
+#    def move( self, *args, **kwargs ):
+#        return move( self, *args, **kwargs )
+#    def scale( self, *args, **kwargs ):
+#        return scale( self, *args, **kwargs )
+#    def rotate( self, *args, **kwargs ):
+#        return rotate( self, *args, **kwargs )
 
 class AttributeDefaults(PyNode):
     __metaclass__ = _factories.MetaMayaTypeWrapper
