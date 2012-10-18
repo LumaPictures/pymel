@@ -187,16 +187,11 @@ mpxNamesToMayaNodes = {
     'MPxRepresentation':'THdependNode', # no clue...?    
     }
 
-mpxToEnum = {}
-mpxToApiEnum = {}
-mpxToMayaNode = {}
+mpxClassesToMpxEnums = {}
 for mpxName, enumName in mpxNamesToEnumNames.iteritems():
     mpxCls = getattr(mpx, mpxName, None)
     if mpxCls:
-        mpxToEnum[mpxCls] = getattr(mpx.MPxNode, enumName)
-        apiEnumName = mpxNamesToApiEnumNames[mpxName]
-        mpxToApiEnum[mpxCls] = getattr(om.MFn, apiEnumName)
-        mpxToMayaNode[mpxCls] = mpxNamesToMayaNodes[mpxName]
+        mpxClassesToMpxEnums[mpxCls] = getattr(mpx.MPxNode, enumName)
         
 pluginMayaTypes = set(mpxNamesToMayaNodes.itervalues())
 
@@ -233,7 +228,7 @@ def allMPx():
 
 # We want to make sure we know if maya adds a new MPx class!
 for _mpx in allMPx():
-    assert _mpx in mpxToEnum, 'new MPx class found: %s' % _mpx.__name__
+    assert _mpx in mpxClassesToMpxEnums, 'new MPx class found: %s' % _mpx.__name__
 
 #===============================================================================
 # Plugin Registration / loading
@@ -320,7 +315,7 @@ class BasePluginMixin(object):
     def getMpxType(cls):
         if cls._mpxType is None:
             for pClass in inspect.getmro(cls):
-                if pClass in mpxToEnum:
+                if pClass in mpxClassesToMpxEnums:
                     cls._mpxType = pClass
                     break
         return cls._mpxType
@@ -487,7 +482,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
     @classmethod
     def getTypeEnum(cls):
         if cls._typeEnum is None:
-            cls._typeEnum = mpxToEnum[cls.getMpxType()]
+            cls._typeEnum = mpxClassesToMpxEnums[cls.getMpxType()]
         return cls._typeEnum
     
     _classification = None
@@ -701,10 +696,10 @@ def _buildMpxNamesToApiEnumNames(dummyClasses=None, dummyNodes=None):
 def _buildAll():
     with _DummyPluginNodesMaker() as nodeMaker:
         hierarchy = _buildPluginHierarchy(dummyClasses=nodeMaker.dummyClasses)
-        mpxToEnum = _buildMpxNamesToApiEnumNames(dummyClasses=nodeMaker.dummyClasses,
+        mpxClassesToMpxEnums = _buildMpxNamesToApiEnumNames(dummyClasses=nodeMaker.dummyClasses,
                                                  dummyNodes=nodeMaker.nodes)
         mpxToMaya = _buildMpxNamesToMayaNodes(hierarchy=hierarchy)
-    return hierarchy, mpxToMaya, mpxToEnum
+    return hierarchy, mpxToMaya, mpxClassesToMpxEnums
 
 def _buildMpxNamesToMayaNodes(hierarchy=None):
     if hierarchy is None:

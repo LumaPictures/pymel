@@ -3034,11 +3034,9 @@ def toApiFunctionSet( obj ):
             if obj in mayaTypesToApiTypes:
                 mayaType = obj
                 apiType = mayaTypesToApiTypes[obj]
-                return _apiCacheInst._setApiClassFromMayaInheritance(apiType, mayaType)
+                return _apiCacheInst._getOrSetApiClass(apiType, mayaType)
             else:
                 return None
-            return apiTypesToApiClasses.get( mayaTypesToApiTypes.get( obj, None ) )
-
     elif isinstance( obj, int ):
         try:
             return apiTypesToApiClasses[ apiEnumsToApiTypes[ obj ] ]
@@ -3074,15 +3072,13 @@ def mayaTypeToApiType(mayaType) :
         apiType = None
         if versions.current() >= versions.v2012:
             import pymel.api.plugins as plugins
-            # this is generally going to be run for new plugin node types...
-            # for these, we can just look it up based on the plugin type...
             try:
                 inheritance = apicache.getInheritance(mayaType,
                                                       checkManip3D=False)
             except Exception:
                 inheritance = None
             if inheritance:
-                for mayaType in inheritance:
+                for mayaType in reversed(inheritance[:-1]):
                     apiType = mayaTypesToApiTypes.get(mayaType)
                     if apiType:
                         break
