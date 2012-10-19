@@ -10,6 +10,8 @@ import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as _versions
 
+from pymel.internal.factories import Callback, CallbackWithArgs
+
 from language import mel, melGlobals
 from system import Path as _Path
 # Don't import uitypes  - we want to finish setting up the commands in this
@@ -181,112 +183,6 @@ def getPanel(*args, **kwargs):
 #===============================================================================
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
-
-class BaseCallback(object):
-    """
-    Base class for callbacks.
-    """
-    def __init__(self,func,*args,**kwargs):
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        self.traceback = traceback.format_stack()
-
-if _versions.current() >= _versions.v2009:
-
-    class Callback(BaseCallback):
-        """
-        Enables deferred function evaluation with 'baked' arguments.
-        Useful where lambdas won't work...
-
-        It also ensures that the entire callback will be be represented by one
-        undo entry.
-
-        Example:
-
-        .. python::
-
-            import pymel as pm
-            def addRigger(rigger, **kwargs):
-                print "adding rigger", rigger
-
-            for rigger in riggers:
-                pm.menuItem(
-                    label = "Add " + str(rigger),
-                    c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
-        """
-        def __call__(self,*args):
-            cmds.undoInfo(openChunk=1)
-            try:
-                try:
-                    return self.func(*self.args, **self.kwargs)
-                except Exception, e:
-                    raise _factories.CallbackError(self, e)
-            finally:
-                cmds.undoInfo(closeChunk=1)
-
-    class CallbackWithArgs(Callback):
-        def __call__(self,*args,**kwargs):
-            # not sure when kwargs would get passed to __call__,
-            # but best not to remove support now
-            kwargsFinal = self.kwargs.copy()
-            kwargsFinal.update(kwargs)
-            cmds.undoInfo(openChunk=1)
-            try:
-                try:
-                    return self.func(*self.args + args, **kwargsFinal)
-                except Exception, e:
-                    raise _factories.CallbackError(self, e)                
-            finally:
-                cmds.undoInfo(closeChunk=1)
-else:
-
-    class Callback(BaseCallback):
-        """
-        Enables deferred function evaluation with 'baked' arguments.
-        Useful where lambdas won't work...
-        Example:
-
-        .. python::
-
-            import pymel as pm
-            def addRigger(rigger, **kwargs):
-                print "adding rigger", rigger
-
-            for rigger in riggers:
-                pm.menuItem(
-                    label = "Add " + str(rigger),
-                    c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
-        """
-
-        # This implementation of the Callback object uses private members
-        # to store static call information so that the call can be made through
-        # a mel call, thus making the entire function call undoable
-        _callData = None
-        @staticmethod
-        def _doCall():
-            (func, args, kwargs) = Callback._callData
-            Callback._callData = func(*args, **kwargs)
-
-        def __call__(self,*args):
-            Callback._callData = (self.func, self.args, self.kwargs)
-            try:
-                mel.python("%s.Callback._doCall()" % thisModuleCmd)
-            except Exception, e:
-                raise _factories.CallbackError(self.func, e)   
-            return Callback._callData
-
-    class CallbackWithArgs(Callback):
-        def __call__(self,*args,**kwargs):
-            kwargsFinal = self.kwargs.copy()
-            kwargsFinal.update(kwargs)
-            Callback._callData = (self.func, self.args + args, kwargsFinal)
-            try:
-                mel.python("%s.Callback._doCall()" % thisModuleCmd)
-            except Exception, e:
-                raise _factories.CallbackError(self.func, e)
-            return Callback._callData
-
 
 def verticalLayout(*args, **kwargs):
     kwargs['orientation'] = 'vertical'

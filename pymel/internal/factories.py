@@ -3,8 +3,14 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 """
 
 # Built-in imports
-import re, types, os, inspect, sys, textwrap
+import re
+import types
+import os
+import inspect
+import sys
+import textwrap
 import time
+import traceback
 from operator import itemgetter
 
 # Maya imports
@@ -619,37 +625,100 @@ def _getTimeRangeFlags(cmdName):
     return commandFlags
 
 
-class CallbackError(RuntimeError):
-    def __init__(self, callback, origException=None):
-        import traceback
-        self.callback = callback
-        self.origException = origException
-        # Should be called within an except clause, so
-        # this will give us what we want
-        self.origMsg = traceback.format_exc()
-        try:
-            callbackStr = " %r" % self.callback
-        except Exception:
-            callbackStr = ''
-        if hasattr(callback, 'traceback') and hasattr(callback, 'func'):
-            # callback is a windows.Callback object...
-            func = callback.func
-            callbackTraceback = ('\nCallback creation traceback:\n%s' % ''.join(callback.traceback))
-        else:
-            # callback is just a function..
-            func = callback
-            callbackTraceback = ''
-        if hasattr(func, '__name__'):
-            callbackStr += ' - %s' % pmcmds.getCmdName(func)
-        if hasattr(func, '__module__'):
-            callbackStr += ' - module %s' % func.__module__
-        if hasattr(func, 'func_code'):
-            callbackStr += ' - %s, line %d' % (func.func_code.co_filename, func.func_code.co_firstlineno)
-        if callbackTraceback:
-            callbackStr += callbackTraceback
+class Callback(object):
+    """
+    Enables deferred function evaluation with 'baked' arguments.
+    Useful where lambdas won't work...
 
-        newmsg = "Error executing callback%s\n\nOriginal message:\n%s\n" % (callbackStr, self.origMsg)
-        super(CallbackError, self).__init__(newmsg)
+    It also ensures that the entire callback will be be represented by one
+    undo entry.
+
+    Example:
+
+    .. python::
+
+        import pymel as pm
+        def addRigger(rigger, **kwargs):
+            print "adding rigger", rigger
+
+        for rigger in riggers:
+            pm.menuItem(
+                label = "Add " + str(rigger),
+                c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
+    """
+    
+    MAX_RECENT_ERRORS = 10
+    
+    # keeps information for the most recent callback errors
+    recentErrors = []
+    
+    CallbackErrorLog = util.namedtuple('CallbackErrorLog', 'callback exception trace creationTrace')
+    
+    @classmethod
+    def logCallbackError(cls, callback, exception=None, trace=None,
+                         creationTrace=None):
+        if exception is None:
+            exception = sys.exc_value
+        if trace is None:
+            trace = traceback.format_exc()
+        if creationTrace is None:
+            if isinstance(callback, Callback):
+                creationTrace = ''.join(callback.traceback)
+            else:
+                creationTrace = ''
+        cls.recentErrors.insert(0, cls.CallbackErrorLog(callback, exception,
+                                                        trace, creationTrace))
+        if len(cls.recentErrors) > cls.MAX_RECENT_ERRORS:
+            del cls.recentErrors[cls.MAX_RECENT_ERRORS:]
+
+    @classmethod
+    def formatRecentError(cls, index=0):
+        info = cls.recentErrors[index]
+        msg = '''Error calling %s in a callback:
+Callback Creation Trace:
+%s
+
+Error Trace:
+%s
+''' % (info.callback, info.creationTrace, info.trace)
+        return msg
+    
+    @classmethod
+    def printRecentError(cls, index=0):
+        print cls.formatRecentError(index=index)
+
+    def __init__(self,func,*args,**kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.traceback = traceback.format_stack()
+    
+    def __call__(self,*args):
+        cmds.undoInfo(openChunk=1)
+        try:
+            try:
+                return self.func(*self.args, **self.kwargs)
+            except Exception, e:
+                self.logCallbackError(self)
+                raise
+        finally:
+            cmds.undoInfo(closeChunk=1)
+
+class CallbackWithArgs(Callback):
+    def __call__(self,*args,**kwargs):
+        # not sure when kwargs would get passed to __call__,
+        # but best not to remove support now
+        kwargsFinal = self.kwargs.copy()
+        kwargsFinal.update(kwargs)
+        cmds.undoInfo(openChunk=1)
+        try:
+            try:
+                return self.func(*self.args + args, **kwargsFinal)
+            except Exception, e:
+                self.logCallbackError(self)
+                raise
+        finally:
+            cmds.undoInfo(closeChunk=1)
 
 def fixCallbacks(inFunc, commandFlags, funcName=None ):
     """
@@ -694,6 +763,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
         """this function is used to make the callback, so that we can ensure the origCallback gets
         "pinned" down"""
         #print "fixing callback", key
+        creationTraceback = ''.join(traceback.format_stack())
         def callback(*cb_args):
             if argCorrector:
                 newargs = [argCorrector(arg) for arg in cb_args]
@@ -706,7 +776,12 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
             try:
                 res = origCallback( *newargs )
             except Exception, e:
-                raise CallbackError(origCallback, e)
+                # if origCallback was ITSELF a Callback obj, it will have
+                # already logged the error..
+                if not isinstance(origCallback, Callback):
+                    Callback.logCallbackError(origCallback,
+                                              creationTrace=creationTraceback)
+                raise
             if isinstance(res, util.ProxyUnicode):
                 res = unicode(res)
             return res
