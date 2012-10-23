@@ -403,9 +403,9 @@ class Catch(object):
     #__metaclass__ = util.Singleton
     result = None
     success = None
-    def __call__(self, func ):
+    def __call__(self, func, *args, **kwargs ):
         try:
-            Catch.result = func()
+            Catch.result = func(*args, **kwargs)
             Catch.success = True
             return 0
         except:
