@@ -1,10 +1,9 @@
 import unittest, sys
 
 import maya.mel
+import pymel.core
 
 from pymel.tools.mel2py import mel2pyStr
-
-
 
 class TestStrings(unittest.TestCase):
     def assertMelAndPyStringsEqual(self, melString, verbose=False):
