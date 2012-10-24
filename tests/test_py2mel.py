@@ -81,7 +81,7 @@ class testCaseClassWrap(unittest.TestCase):
         self.assertEqual(mel.eval('''myCls3 -oneKwarg goober'''), None)
         
     def test_excludeFlagArg_orderChanged(self):
-        self.wrapClass(MyClassNoArgs, 'myCls3', excludeFlagArgs={'oneArgTwoKwarg':['kwarg1']})
-        self.assertEqual(mel.eval('''myCls3 -oneArgTwoKwarg foo'''), None)
-        self.assertEqual(mel.eval('''myCls3 -oneArgTwoKwarg "Little Bo PeeP" Batman'''), 'Little Bo PeeP ate Batman!')
-        self.assertEqual(mel.eval('''myCls3 -oneArgTwoKwarg defenestrated You Spiderman'''), None)
+        self.wrapClass(MyClassNoArgs, 'myCls4', excludeFlagArgs={'oneArgTwoKwarg':['kwarg1']})
+        self.assertEqual(mel.eval('''myCls4 -oneArgTwoKwarg foo'''), None)
+        self.assertEqual(mel.eval('''myCls4 -oneArgTwoKwarg "Little Bo PeeP" Batman'''), 'Little Bo PeeP ate Batman!')
+        self.assertEqual(mel.eval('''myCls4 -oneArgTwoKwarg defenestrated You Spiderman'''), None)
