@@ -412,6 +412,7 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
                     newArgNames.append(argName)
                 else:
                     del defaults[argName]
+            argNames = newArgNames
 
         # a variable number of args can be passed to the flag. set the maximum number
         if extraArgs:
