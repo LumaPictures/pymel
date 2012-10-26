@@ -86,138 +86,365 @@ class Parsed(ProxyUni): pass
 ''',
                            'precompmodule':''}
 
-    def docmodule(self, object, name=None, mod=None):
+    def docmodule(self, this_module, name=None, mod=None):
         """Produce text documentation for a given module object."""
 
-        name = object.__name__ # ignore the passed-in name
-        desc = splitdoc(getdoc(object))[1]
+        this_name = this_module.__name__ # ignore the passed-in name
+        desc = splitdoc(getdoc(this_module))[1]
         result = ''
         self.module_map = {}
         self.missing_modules = set([])
-        try:
-            all = object.__all__
-        except AttributeError:
-            all = None
-
-#        try:
-#            file = inspect.getabsfile(object)
-#        except TypeError:
-#            file = '(built-in)'
-#        result = result + self.section('FILE', file)
-#
-#        docloc = self.getdocloc(object)
-#        if docloc is not None:
-#            result = result + self.section('MODULE DOCS', docloc)
+        all = getattr(this_module, '__all__', None)
+        
+        # TODO:
+        # rework this so that we can ensure that ALL members of the module
+        # end up in the stub module (except things of __foo__ form)
+        #
+        # do this by doing ONE loop over ALL members of the module... and then
+        # for each member, making a choice of which bin to put it in (ie,
+        # fromall_modules, classes, funcs, etc), but making sure that EVERYTHING
+        # gets put in exactly 1 bin...
+        # ...also, should probably get rid of all the visibility checks - (not
+        # sure why they're there? we still need to see things starting with '_'
+        # for, ie, missing member detection in eclipse...). Only place where
+        # checking visibility makes sense is when doing the 'fromall' check...
 
         if desc:
             result += result + self.docstring(desc)
 
-        def classModule(classObj):
-            mod = inspect.getmodule(classObj)
-            if not mod:
-                mod = object
-            elif mod == __builtin__ and classObj not in builtins:
-                mod = object
+        def get_source_module(obj):
+            mod = inspect.getmodule(obj)
+            if (not mod or (mod == __builtin__ and obj not in builtins)
+                    or inspect.isbuiltin(obj) or isdata(obj) or
+                    not mod.__name__ or mod.__name__.startswith('_')):
+                mod = this_module
             return mod
+        
+        # set of all names in this module
+        all_names = set()
+        
+        def get_unique_name(basename=None):
+            if basename is None:
+                basename = '_unknown'
+            elif not basename.startswith('_'):
+                # we only use this in cases where the name wasn't orignally
+                # found in the module - ie, we're just trying to add in
+                # something that isn't really supposed to be in the module, but
+                # we need it there to refer to it...
+                # ...therefore, we want to make sure the name is at least
+                # hidden...
+                basename = '_' + basename
+            name = basename
+            num = 2
+            while name in all_names:
+                name = '%s%s' % (basename, num)
+                num += 1
+            return name
+        
+        # these are all dicts that key off the object id...
+        # we index by obj-id, instead of obj, because not all objects are
+        # hashable, and we really only care about 'is' comparisons, not
+        # equality comparisons...
 
-        untraversedClasses = []
-        for key, value in inspect.getmembers(object, inspect.isclass):
-            # if __all__ exists, believe it.  Otherwise use old heuristic.
-            if (all is not None
-                    or classModule(value) is object):
-                if visiblename(key, all):
-                    untraversedClasses.append((key, value))
-        # A visible class may have a non-visible baseClass from this module,
-        # which will still need to be included if the module is to import
-        # correctly - ie,
-        # class _AbstractClass(object): pass
-        # class InheritedClass(_AbstractClass): pass
-        classes = []
-        while untraversedClasses:
-            key, childClass = untraversedClasses.pop()
-            classes.append( (key, childClass) )
-            try:
-                [x for x in childClass.__bases__]
-            except Exception:
-                print "problem iterating %s.__bases__" % childClass
-            for parentClass in childClass.__bases__:
-                if classModule(parentClass) is object:
-                    newTuple = (parentClass.__name__, parentClass)
-                    if newTuple not in classes and newTuple not in untraversedClasses:
-                        untraversedClasses.append( newTuple )
+        # this is a dict that maps from object id to a tuple
+        #   (obj, objtype, source_module, names)
+        # where obj is the object itself, objtype is one of the strings
+        # module/class/func/data, and names is a list of the names/aliases under
+        # which the object can be found in this module.
+        id_to_data = {}
+        
+        OBJ = 0
+        OBJTYPE = 1
+        SOURCEMOD = 2
+        NAMES = 3
+        
+        def add_obj(obj, name=None, source_module=None):
+            id_obj = id(obj)
+            if id_obj in id_to_data:
+                # the object was already known - check that the source_module
+                # is consistent, and add the name if needed
+                objtype, old_source_module, names = id_to_data[id_obj][OBJTYPE:]
+                
+                if source_module is None:
+                    # use the old source module..
+                    source_module = old_source_module
+                # if the source modules are different, but the 'new' module
+                # is this module, we're okay - we couldn't find the object
+                # in the desired source_module, so we're just moving it
+                # into this one...
+                elif (source_module != old_source_module
+                        and source_module != this_module):
+                    # ...otherwise, something weird is going on...
+                    raise RuntimeError("got conflicting source modules for %s" % obj)
+                    
+                # If we don't know the name, and the object already exists in
+                # the module, then we don't need to do anything... we can just
+                # use one of the names already assigned to the object...
+                if name is not None:
+                    # ...otherwise, we need to add the name to list of
+                    # aliases for the object in this module...
+                    if name not in names:
+                        # if __name__ matches name, put the name at the
+                        # front of the list of names, to make it the
+                        # 'default' name...
+                        if getattr(obj, '__name__', None) == name:
+                            names.insert(0, name)
+                        else:
+                            names.append(name)
+            else:
+                # the object wasn't known... generate it's info...
+                if name is None:
+                    # we didn't know the name - generate a unique one, hopefully
+                    # based off the object's name...
+                    name = get_unique_name(getattr(obj, '__name__', None))
+                if source_module is None:
+                    source_module = get_source_module(obj)
+                
+                # now find the objtype...
+                if inspect.ismodule(obj):
+                    objtype = 'module'
+                elif inspect.isclass(obj):
+                    objtype = 'class'
+                elif inspect.isroutine(obj):
+                    objtype = 'func'
+                else:
+                    objtype = 'data'
+                names = [name]            
+            id_to_data[id_obj] = (obj, objtype, source_module, [name])
+            
 
-        funcs = []
-        for key, value in inspect.getmembers(object, inspect.isroutine):
-            # if __all__ exists, believe it.  Otherwise use old heuristic.
-            if (all is not None
-                    or inspect.getmodule(value) is object
-                    or inspect.isbuiltin(value)):
-                if visiblename(key, all):
-                    funcs.append((key, value))
-        data = []
-        for key, value in inspect.getmembers(object, isdata):
-            if visiblename(key, all):
-                data.append((key, value))
+        # add all the objects that we have names for / should be in this
+        # module
+        for name, obj in inspect.getmembers(this_module):
+            if name.startswith('__') and name.endswith('__'):
+                continue
+            add_obj(obj, name)
+            
+        def have_id_name(id_obj, name):
+            data = id_to_data.get(id_obj, None)
+            if data is None:
+                return False
+            return name in data[NAMES]
+
+        # We now need to do two things:
+        #  1) find the parent classes for any classes we will define in this
+        #     module, and make sure that they are accessible under some name
+        #     from within this module
+        #  2) for all objects we will be importing from other modules, make
+        #     sure we can actually find them under some name in that module;
+        #     if not, change their source_module to THIS module (ie, so we
+        #     define a dummy placeholder for it in this module)
+
+        
+        # Since both of these can end up adding new objects to the list of
+        # objects defined in this module (ie, whose source_module == this_module),
+        # which can then cause the need to check for updates on the other,
+        # we run both in a loop until neither task finds any new things added
+        # to this module's namespace
+
+        # maps from the id of a class to it's parent classes, for classes
+        # which we will define in this module...
+        class_parents = {}
+        def add_parent_classes():            
+            # deal with the classes - for classes in this module, we need to find
+            # their base classes, and make sure they are also defined, or imported
+            untraversed_classes = list(obj for (obj, objtype, source_module, names)
+                                       in id_to_data.itervalues()
+                                       if objtype == 'class'
+                                       and source_module == this_module
+                                       and id(obj) not in class_parents)
+            new_to_this_module = 0
+            while untraversed_classes:
+                child_class = untraversed_classes.pop()
+                try:
+                    parents = [x for x in child_class.__bases__]
+                except Exception:
+                    print "problem iterating %s.__bases__" % child_class
+                    parents = (object,)
+                class_parents[id(child_class)] = parents
+                    
+                for parent_class in parents:
+                    id_parent = id(parent_class)
+                    if id_parent not in id_to_data:
+                        # we've found a new class... add it...
+                        new_to_this_module += 1
+                        add_obj(parent_class)
+                        source_module = id_to_data[id_parent][SOURCEMOD]
+                        if source_module == this_module:
+                            untraversed_classes.append(parent_class)
+            return new_to_this_module
+        
+        # maps from an id_obj to it's ('default') name in the source module
+        import_other_name = {}
+        # maps from module to a dict, mapping from id to names within that module
+        other_module_names = {}
+        def find_import_data():
+            unknown_import_objs = list((obj, source_module) for (obj, objtype, source_module, names)
+                                       in id_to_data.itervalues()
+                                       if objtype != 'module'
+                                          and source_module != this_module
+                                          and id(obj) not in import_other_name)
+            new_to_this_module = 0
+            for obj, source_module in unknown_import_objs:
+                id_obj = id(obj)
+                other_id_names = other_module_names.get(source_module, None)
+                if other_id_names is None:
+                    other_id_names = {}
+                    for other_name, other_obj in inspect.getmembers(source_module):
+                        id_other = id(other_obj)
+                        other_id_names.setdefault(id_other, []).append(other_name)
+                    other_module_names[source_module] = other_id_names
+                other_names = other_id_names.get(id_obj, None)
+                if not other_names:
+                    # we couldn't find obj in the desired module - we'll
+                    # have to move it to this_module...
+                    new_to_this_module += 1
+                    # calling add_obj with the same obj but module as
+                    # this_module will update it...
+                    add_obj(obj, source_module=this_module)
+                else:
+                    # check to see if we've already found the object
+                    # in the module - if so, only update the name if it's the
+                    # __name__ of the object
+                    name = getattr(obj, '__name__', None)
+                    if name is None or name not in other_names:
+                        name = other_names[0]
+                    import_other_name[id_obj] = name
+                        
+            return new_to_this_module
+             
+        new_to_this_module = 1
+        while new_to_this_module:
+            new_to_this_module = add_parent_classes() + find_import_data()
+            
+        # check the other modules for possible "from mod import *" action...
+        importall_modules = []
+        for other_mod, other_id_names in other_module_names.iteritems():
+            other_all = getattr(other_mod, '__all__', None)
+            visible_other = 0
+            in_this = []
+            for id_obj, other_names in other_id_names.iteritems():
+                for other_name in other_names:
+                    if not visiblename(other_name, other_all):
+                        continue
+                    visible_other += 1
+                    if have_id_name(id_obj, other_name):
+                        in_this.append((id_obj, other_name))
+            # rough heuristic - if 90% of the objects can be found in this
+            # module, we assume an import all was done... note that we're not
+            # even checking if they're present in this module with the same
+            # name... it's a rough heuristic anyway...
+            if float(len(in_this)) / visible_other > .9:
+                importall_modules.append(other_mod)
+                # go through and REMOVE all the in_this entries from
+                # id_to_data...
+                for id_obj, other_name in in_this:
+                    data = id_to_data[id_obj]
+                    data[NAMES].remove(other_name)
+                    if not data[NAMES]:
+                        del id_to_data[id_obj]
+        
+        # We finally have all the objects that will be added to this module
+        # (with their names in this module), all the parent clases for classes
+        # defined here, and all the import names for objects being imported...
+        
+        # Now, sort them all into lists by type for objects defined in in
+        # this module, and a list of imported for things in other modules...
 
         modules = []
-        for key, value in inspect.getmembers(object, inspect.ismodule):
-            modules.append((key, value))
+        classes = []
+        funcs = []
+        data = []
+        imported = []
+        
+        bins = {'module':modules,
+                'class':classes,
+                'func':funcs,
+                'data':data
+               }
+        for id_obj, (obj, objtype, source_module, names) in id_to_data.iteritems():
+            if source_module == this_module or objtype == 'module':
+                bins[objtype].append((obj, names))
+            else:
+                imported.append((obj, names, source_module))
 
-        fromall_modules = set([])
-        for key, value in inspect.getmembers(object, lambda x: not inspect.ismodule(x) ):
-            if hasattr(value, '__module__') and value.__module__ not in [None, object.__name__] and not value.__module__.startswith('_'):
-                if object.__name__ == self.debugmodule and value.__module__ not in fromall_modules:
-                    print "import* %r" % value.__module__
-                fromall_modules.add( value.__module__ )
-
+        # Finally, go through and start writing stuff out! Go though by type:
+        #
+        #    1) module imports
+        #    2) from MODULE import *
+        #    3) from MODULE import OBJ
+        #    4) class definitions
+        #    5) func defs
+        #    6) data
+        
         if modules:
             contents = []
-            #print "modules", object
-            for key, value in modules:
-                realname = value.__name__
-                if realname == name:
-                    continue
-                import_text = self.import_mod_text(object, realname, key)
-                if import_text:
-                    contents.append(import_text)
+            #print "modules", this_module
+            for obj, names in modules:
+                for import_name in names:
+                    realname = getattr(obj, '__name__', None)
+                    if not realname:
+                        print "Warning - could not get a name for module %s" % obj
+                        continue
+                    if realname == this_name:
+                        continue
+                    import_text = self.import_mod_text(this_module, realname, import_name)
+                    if import_text:
+                        contents.append(import_text)
             result = result + join(contents, '\n') + '\n\n'
-        if fromall_modules:
+            
+        if importall_modules:
             # special-case handling for pymel.internal.pmcmds, which ends up
             # with a bunch of 'from pymel.core.X import *' commands
-            if name == 'pymel.internal.pmcmds':
-                fromall_modules = [x for x in fromall_modules if not x.startswith('pymel.core')]
-                fromall_modules.append('maya.cmds')
+            if this_name == 'pymel.internal.pmcmds':
+                importall_modules = [x for x in importall_modules
+                                     if not getattr(x, '__name__', 'pymel.core').startswith('pymel.core')]
+                if not any(x.__name__ == 'maya.cmds' for x in importall_modules):
+                    import maya.cmds
+                    importall_modules.append(maya.cmds)
+
             contents = []
-            for modname in fromall_modules:
-                import_text = self.import_mod_text(object, modname, '*')
+            for mod in importall_modules:
+                import_text = self.import_mod_text(this_module, mod.__name__, '*')
                 if import_text:
                     contents.append(import_text)
-            result = result + join(contents, '\n') + '\n\n'
-
+            result = result + '\n'.join(contents) + '\n\n' 
+                    
+        if imported:
+            contents = []
+            for obj, names, source_module in imported:
+                for name in names:
+                    import_text = self.import_obj_text(source_module.__name__,
+                                                       import_other_name[id(obj)],
+                                                       name)
+                    if import_text:
+                        contents.append(import_text)
+            result = result + '\n'.join(contents) + '\n\n'        
+        
         if classes:
             # sort in order of resolution
             def nonconflicting(classlist):
                 for cls in classlist:
-                    mro = set(inspect.getmro(cls)[1:])
-                    if not mro.intersection(classlist):
+                    ancestors = set(inspect.getmro(cls)[1:])
+                    if not ancestors.intersection(classlist):
                         yield cls
 
-            inspect.getmro(str)
             sorted = []
-            unsorted = set([x[1] for x in classes])
+            unsorted = set([x[0] for x in classes])
 
             while unsorted:
                 for cls in nonconflicting(unsorted):
                     sorted.append(cls)
                 unsorted.difference_update(sorted)
 
-#            classlist = map(lambda key_value: key_value[1], classes)
-#            contents = [self.formattree(
-#                inspect.getclasstree(classlist, 1), name)]
             contents = []
-            classes = dict([ (x[1], x[0]) for x in classes])
-            for key in sorted:
-                contents.append(self.document(key, classes[key], name))
+            classes = dict(classes)
+            for cls in sorted:
+                names = classes[cls]
+                name = names[0]
+                contents.append(self.document(cls, name, this_name))
+                for alias in names[1:]:
+                    contents.append('%s = %s' % (alias, name))
 
             classres = join(contents, '\n').split('\n')
 
@@ -236,31 +463,37 @@ class Parsed(ProxyUni): pass
 
         if funcs:
             contents = []
-            for key, value in funcs:
-                contents.append(self.document(value, key, name))
+            for obj, names in funcs:
+                name = names[0] 
+                contents.append(self.document(obj, name, this_name))
+            for alias in names[1:]:
+                contents.append('%s = %s' % (alias, name))
             result = result + join(contents, '\n')
 
         if data:
             contents = []
-            for key, value in data:
-                contents.append(self.docother(value, key, name, maxlen=70))
+            for obj, names in data:
+                name = names[0]
+                contents.append(self.docother(obj, name, this_name, maxlen=70))
+            for alias in names[1:]:
+                contents.append('%s = %s' % (alias, name))                
             result = result + join(contents, '\n')
 
-#        if hasattr(object, '__version__'):
-#            version = str(object.__version__)
+#        if hasattr(this_module, '__version__'):
+#            version = str(this_module.__version__)
 #            if version[:11] == '$' + 'Revision: ' and version[-1:] == '$':
 #                version = strip(version[11:-1])
 #            result = result + self.section('VERSION', version)
-#        if hasattr(object, '__date__'):
-#            result = result + self.section('DATE', str(object.__date__))
-#        if hasattr(object, '__author__'):
-#            result = result + self.section('AUTHOR', str(object.__author__))
-#        if hasattr(object, '__credits__'):
-#            result = result + self.section('CREDITS', str(object.__credits__))
+#        if hasattr(this_module, '__date__'):
+#            result = result + self.section('DATE', str(this_module.__date__))
+#        if hasattr(this_module, '__author__'):
+#            result = result + self.section('AUTHOR', str(this_module.__author__))
+#        if hasattr(this_module, '__credits__'):
+#            result = result + self.section('CREDITS', str(this_module.__credits__))
         if self.missing_modules:
             contents = []
             for mod in self.missing_modules:
-                import_text = self.import_mod_text(object, mod, mod)
+                import_text = self.import_mod_text(this_module, mod, mod)
                 if import_text:
                     contents.append(import_text)
             result = join(contents, '\n') + '\n\n'  + result
@@ -396,9 +629,6 @@ class Parsed(ProxyUni): pass
 
     def docroutine(self, object, name=None, mod=None, cl=None):
         """Produce text documentation for a function or method object."""
-        if 'display' in name:
-            print "documenting:", name
-
         realname = object.__name__
         name = name or realname
         skipdocs = 0
@@ -459,6 +689,8 @@ class Parsed(ProxyUni): pass
         return line
 
     def import_mod_text(self, currmodule, importmodule, asname):
+        # TODO: get rid of relative imports - do absolute imports on everything,
+        # and use asname if needed
         ispkg = hasattr(currmodule, '__path__')
         currname = currmodule.__name__
 
@@ -515,6 +747,13 @@ class Parsed(ProxyUni): pass
                 return self.importSubstitutions[importmodule]
             else:
                 return 'from ' + importmodule + ' import *'
+            
+    def import_obj_text(self, importmodule, importname, asname):
+        result = 'from %s import %s' % (importmodule, importname)
+        if asname and asname != importname:
+            result += (' as ' + asname)
+        return result
+        
 
 stubs = StubDoc()
 
