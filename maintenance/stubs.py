@@ -20,7 +20,6 @@ class StubDoc(Doc):
     """Formatter class for text documentation."""
 
     # ------------------------------------------- text formatting utilities
-    module_map = {}
     _repr_instance = NoUnicodeTextRepr()
     # We don't care if it's compact, we just want it to parse right...
     _repr_instance.maxlist = _repr_instance.maxtuple = _repr_instance.maxdict\
@@ -37,6 +36,8 @@ class StubDoc(Doc):
 
     def __init__(self, *args, **kwargs):
         self.missing_modules = set([])
+        self.module_map = {}
+        self.id_map = {}
         if hasattr(Doc, '__init__'):
             Doc.__init__(self, *args, **kwargs)
 
@@ -70,9 +71,9 @@ class StubDoc(Doc):
         for entry in tree:
             if type(entry) is type(()):
                 c, bases = entry
-                result = result + prefix + classname(c, modname)
+                result = result + prefix + self.classname(c, modname)
                 if bases and bases != (parent,):
-                    parents = map(lambda c, m=modname: classname(c, m), bases)
+                    parents = map(lambda c, m=modname: self.classname(c, m), bases)
                     result = result + '(%s)' % join(parents, ', ')
                 result = result + '\n'
             elif type(entry) is type([]):
@@ -80,11 +81,17 @@ class StubDoc(Doc):
                     entry, modname, c, prefix + '    ')
         return result
 
-    importSubstitutions = {'pymel.util.objectParser':'''
-class ProxyUni(object): pass
-class Parsed(ProxyUni): pass
-''',
-                           'precompmodule':''}
+    importSubstitutions = {
+                           # just leaving these here as examples of how to use,
+                           # in case we need to use it again at some point
+                           # in the future...
+                           
+                           #'pymel.util.objectParser':'''
+#class ProxyUni(object): pass
+#class Parsed(ProxyUni): pass
+#''',
+                           #'precompmodule':''
+                          }
 
     def docmodule(self, this_module, name=None, mod=None):
         """Produce text documentation for a given module object."""
@@ -93,22 +100,10 @@ class Parsed(ProxyUni): pass
         desc = splitdoc(getdoc(this_module))[1]
         result = ''
         self.module_map = {}
+        self.id_map = {}
         self.missing_modules = set([])
         all = getattr(this_module, '__all__', None)
         
-        # TODO:
-        # rework this so that we can ensure that ALL members of the module
-        # end up in the stub module (except things of __foo__ form)
-        #
-        # do this by doing ONE loop over ALL members of the module... and then
-        # for each member, making a choice of which bin to put it in (ie,
-        # fromall_modules, classes, funcs, etc), but making sure that EVERYTHING
-        # gets put in exactly 1 bin...
-        # ...also, should probably get rid of all the visibility checks - (not
-        # sure why they're there? we still need to see things starting with '_'
-        # for, ie, missing member detection in eclipse...). Only place where
-        # checking visibility makes sense is when doing the 'fromall' check...
-
         if desc:
             result += result + self.docstring(desc)
 
@@ -266,6 +261,27 @@ class Parsed(ProxyUni): pass
                 for parent_class in parents:
                     id_parent = id(parent_class)
                     if id_parent not in id_to_data:
+                        # We've found a class that's not in this namespace...
+                        # ...but perhaps it's parent module is?
+                        found_parent_mod = False
+                        parent_mod = inspect.getmodule(parent_class)
+                        if parent_mod:
+                            if id(parent_mod) in id_to_data:
+                                found_parent_mod = True
+                            else:
+                                mod_name = parent_mod.__name__
+                                mod_name_split =  mod_name.split('.')
+                                while mod_name_split:
+                                    mod_name_split.pop()
+                                    mod_name = '.'.join(mod_name_split)
+                                    parent_mod = sys.modules.get(mod_name, None)
+                                    if parent_mod is not None and id(parent_mod) in id_to_data:
+                                        found_parent_mod = True
+                                        break
+                            if found_parent_mod:
+                                # the parent module was there... skip this parent class..
+                                continue
+                        
                         # we've found a new class... add it...
                         new_to_this_module += 1
                         add_obj(parent_class)
@@ -368,6 +384,21 @@ class Parsed(ProxyUni): pass
             else:
                 imported.append((obj, names, source_module))
 
+        # Before adding things, prepopulate our module_map and id_map
+        
+        for obj, names in modules:
+            self.add_to_module_map(obj.__name__, names[0])
+
+        for mod in importall_modules:
+            self.add_to_module_map(mod.__name__, '')
+            
+        # eventually, might want to replace module_map and id_map
+        # with id_to_data...
+        for id_obj, (obj, objtype, source_module, names) in id_to_data.iteritems():
+            if objtype == 'module':
+                continue
+            self.id_map[id_obj] = names[0]
+
         # Finally, go through and start writing stuff out! Go though by type:
         #
         #    1) module imports
@@ -399,6 +430,9 @@ class Parsed(ProxyUni): pass
             if this_name == 'pymel.internal.pmcmds':
                 importall_modules = [x for x in importall_modules
                                      if not getattr(x, '__name__', 'pymel.core').startswith('pymel.core')]
+                imported = [(obj, names, source_module)
+                            for obj, names, source_module in imported
+                            if not getattr(source_module, '__name__', 'pymel.core').startswith('pymel.core')]
                 if not any(x.__name__ == 'maya.cmds' for x in importall_modules):
                     import maya.cmds
                     importall_modules.append(maya.cmds)
@@ -493,23 +527,63 @@ class Parsed(ProxyUni): pass
         if self.missing_modules:
             contents = []
             for mod in self.missing_modules:
-                import_text = self.import_mod_text(this_module, mod, mod)
+                import_text = self.import_mod_text(this_module, mod, '')
                 if import_text:
                     contents.append(import_text)
             result = join(contents, '\n') + '\n\n'  + result
 
         return result
+    
+    def add_to_module_map(self, realname, newname):
+        oldname = self.module_map.get(realname, None)
+        if oldname is None:
+            self.module_map[realname] = newname
+            return
+        else:
+            # if either old or new is a 'from realname import *', that's the
+            # best possible outcome...
+            if not oldname or not newname:
+                self.module_map[realname] = ''
+                return
+            # otherwise, check to see if one of the names matches the last
+            # part of realname...
+            final_name = realname.split('.')[-1]
+            if final_name in (oldname, newname):
+                self.module_map[realname] = final_name
+                return
+                
+            # otherwise, just take whatever one has the shorter number of
+            # parts, with tie going to the old_val...
+            oldnum = len(oldname.split('.'))
+            newnum = len(newname.split('.'))
+            
+            if oldnum < newnum:
+                self.module_map[realname] = oldname
+            elif oldnum > newnum:
+                self.module_map[realname] = newname
+            # tie, do nothing...
+            return
+            
+            
 
     def classname(self, object, modname):
         """Get a class name and qualify it with a module name if necessary."""
+        if id(object) in self.id_map:
+            return self.id_map[id(object)]
+        
         name = object.__name__
-        if object.__module__ not in [ modname,'__builtin__']:
-            #print object
-            try:
-                newmodname = self.module_map[object.__module__]
-                #print "from map", object.__module__, repr(modname)
-            except KeyError:
+        missing = None
+        realmodule = object.__module__
+        # first, see if the object's module is THIS module...
+        if realmodule not in [modname, '__builtin__']:
+            # next, check if the module is in map of 'known' modules...
+            if realmodule in self.module_map:
+                newmodname = self.module_map[realmodule]
+            else:
                 newmodname = None
+                missing = False
+                # check all known modules... see if any of them have this module
+                # in their contents...
                 for m in self.module_map.keys():
                     mod = sys.modules[m]
                     #print '\t', m, mod
@@ -518,8 +592,38 @@ class Parsed(ProxyUni): pass
                         newmodname = self.module_map[m]
                         break
                 if not newmodname:
-                    #print "missing"
-                    self.missing_modules.add(object.__module__)
+                    # try to see if any parent modules are known...
+                    mod_parts = realmodule.split('.')
+                    sub_parts = []
+                    while mod_parts:
+                        parentmod = '.'.join(mod_parts)
+                        if parentmod in self.module_map:
+                            # we have a parent module - so, ie,
+                            # our class is xml.sax.handler.ErrorHandler, 
+                            # and we found the parent class xml.sax
+                            # then our sub_parts will be ['handler']
+                            # so we want to set modname to
+                            #    (module_map['xml.sax']).handler...
+                            newmodname = '.'.join([self.module_map[parentmod]] + sub_parts)
+                            # we still need to make sure that the module gets imported,
+                            # so that the parent module has the correct
+                            # attributes on it - ie, if xml.sax exists, but
+                            # we've never imported xml.sax.handler, the 'handler'
+                            # attribute will not be on xml.sax
+                            if sub_parts:
+                                missing = True
+                                
+                            # ...though we can add an entry to the module map
+                            self.add_to_module_map(realmodule, newmodname)
+ 
+                        sub_parts.insert(0, mod_parts.pop())
+                            
+                if not newmodname:
+                    missing = True
+                    newmodname = realmodule
+                if missing:
+                    self.missing_modules.add(realmodule)
+                    self.add_to_module_map(realmodule, realmodule)
             if newmodname:
                 name = newmodname + '.' + name
         return name
@@ -530,13 +634,10 @@ class Parsed(ProxyUni): pass
         name = name or realname
         bases = object.__bases__
 
-        def makename(c, m=object.__module__):
-            return self.classname(c, m)
-
         title = 'class ' + name
 
         if bases:
-            parents = map(makename, bases)
+            parents = [self.classname(c, mod) for c in bases]
             title = title + '(%s)' % join(parents, ', ')
         title += ':\n'
 
@@ -689,15 +790,22 @@ class Parsed(ProxyUni): pass
         return line
 
     def import_mod_text(self, currmodule, importmodule, asname):
-        # TODO: get rid of relative imports - do absolute imports on everything,
-        # and use asname if needed
+        # unfortunately, we need to use relative imports to avoid circular
+        # import issues...
         ispkg = hasattr(currmodule, '__path__')
         currname = currmodule.__name__
-
+        
         if importmodule in self.MODULE_EXCLUDES.get(currname, ()):
             print "%s had %s in MODULE_EXCLUDES" % (currname, importmodule)
             return ''
-        elif asname != '*':
+        
+        if asname == '*':
+            if importmodule in self.importSubstitutions:
+                return self.importSubstitutions[importmodule]
+            else:
+                self.add_to_module_map(importmodule, '')
+                return 'from ' + importmodule + ' import *'            
+        else:
             realname = importmodule
 
             realparts = realname.split('.')
@@ -731,22 +839,16 @@ class Parsed(ProxyUni): pass
                     # relative to avoid circular imports
                     fromname = '.'
                     importname = '.'.join(realparts[len(currparts):])
-            self.module_map[realname] = asname if importname != asname else importname
+            self.add_to_module_map(realname, asname if asname else importname)
             if importname in self.importSubstitutions:
                 return '%s = None' % asname
             else:
                 result = 'import ' + importname
-                if importname != asname:
+                if importname != asname and asname:
                     result += ' as ' + asname
                 if fromname:
                     result = 'from ' + fromname + ' ' + result
                 return result
-        else:
-            self.module_map[importmodule] = ''
-            if importmodule in self.importSubstitutions:
-                return self.importSubstitutions[importmodule]
-            else:
-                return 'from ' + importmodule + ' import *'
             
     def import_obj_text(self, importmodule, importname, asname):
         result = 'from %s import %s' % (importmodule, importname)
@@ -797,12 +899,9 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), pymel=True, maya=True):
         os.makedirs(outputdir)
 
     if pymel:
-        packagestubs( 'pymel',
-                      outputdir=outputdir,
-                      extensions=extensions,
-                      exclude='pymel\.util\.scanf|pymel\.util\.objectParser|pymel\.tools\.ipymel')
+        packagestubs('pymel', outputdir=outputdir, extensions=extensions)
     if maya:
-        packagestubs( 'maya', outputdir=outputdir,extensions=extensions )
+        packagestubs('maya', outputdir=outputdir,extensions=extensions)
 
     return outputdir
 
