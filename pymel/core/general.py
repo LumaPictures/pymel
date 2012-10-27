@@ -3413,7 +3413,7 @@ def _formatSlice(sliceObj):
     return sliceStr
 
 
-ProxySlice = _util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', makeDefaultInit=True)
+ProxySlice = _util.proxyClass( slice, 'ProxySlice', module=__name__, dataAttrName='_slice', makeDefaultInit=True)
 # prevent auto-completion generator from getting confused
 ProxySlice.__module__ = __name__
 

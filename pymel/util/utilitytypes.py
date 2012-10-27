@@ -357,7 +357,8 @@ NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__'
                      '__reduce_ex__', '__reduce__', '__dict__', '__sizeof__',
                      '__module__', '__init__', '__doc__']
 def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
-                remove=(), makeDefaultInit = False, sourceIsImmutable=True ):
+                remove=(), makeDefaultInit = False, sourceIsImmutable=True,
+                module=None ):
     """
     This function will generate a proxy class which keeps the internal data separate from the wrapped class. This
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
@@ -485,6 +486,8 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
                     print "proxyClass: error adding proxy attribute %s.%s" % (classname, attrName)
 
     Proxy.__name__ = classname
+    if module is not None:
+        Proxy.__module__ = module
     return Proxy
 
 
@@ -495,7 +498,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
 
 # NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
-ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
+ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', module=__name__, dataFuncName='name',
             remove=[ '__doc__', '__getslice__', '__contains__',  '__len__',
             '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__', # reserved for higher levels
             'expandtabs', 'translate', 'decode', 'encode', 'splitlines',

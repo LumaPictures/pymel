@@ -30,7 +30,7 @@ try:
 except ImportError:
     print "maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support"
 
-#mutableStr = proxyClass(str, 'mutableStr')
+#mutableStr = proxyClass(str, 'mutableStr', module=__name__)
 
 class Token(str):
     def __new__(cls, val, type, lineno=None, **kwargs):
