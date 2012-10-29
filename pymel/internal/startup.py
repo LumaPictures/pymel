@@ -128,6 +128,7 @@ def mayaInit(forversion=None) :
     :return: returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
 
     """
+    _logger.debug( "startup.mayaInit: called" )
     setupFormatting()
 
     global isInitializing
@@ -143,15 +144,17 @@ def mayaInit(forversion=None) :
     
     if aboutExists and mayaStartupHasStarted():        
         # if this succeeded, we're initialized
+        _logger.debug( "startup.mayaInit: maya already started - exiting" )
         isInitializing = False
         return False
 
-    _logger.debug( "startup.mayaInit running" )
+    _logger.debug( "startup.mayaInit: running" )
     # for use with pymel compatible maya package
     os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
 
     if not aboutExists and not sys.modules.has_key('maya.standalone'):
         try :
+            _logger.debug( "startup.mayaInit: running standalone.initialize" )
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
 
