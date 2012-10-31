@@ -1502,7 +1502,7 @@ class MayaObjectError(TypeError):
     def __init__(self, node=None):
         self.node = unicode(node)
     def __str__(self):
-        msg = "Maya %s does not exist" % (self._objectDescription)
+        msg = "Maya %s does not uniquely exist" % (self._objectDescription)
         if self.node:
             msg += ": %r" % (self.node)
         return msg
