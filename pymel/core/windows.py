@@ -206,14 +206,44 @@ def promptBoxGenerator(*args, **kwargs):
         yield ret
 
 def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
-    """ Prompt for confirmation. Returns True/False, unless 'moreButtons' were specified, and then returns the button pressed"""
+    """ Prompt for confirmation.
+    
+    Parameters
+    ----------
+    title : str
+        The title of the confirmation window
+    message : str
+        The message in the body of the window
+    yes : str
+        The label of the first/'yes' button
+    no : str
+        The label of the second/'no' button
+    moreButtons : tuple of str
+        strings indicating the labels for buttons beyond the second
+    returnButton : boolean
+        by default, if there are only two buttons, the return value is a boolean
+        indicating whether the 'yes' button was pressed; if you wish to always
+        force the label of the pressed button to be returned, set this to True 
+    kwargs : dict of objects
+        keyword args to pass to the underlying confirmDialog call
+    
+    Returns
+    -------
+    result : bool or str
+        by default, if there are only two buttons, the return value is a boolean
+        indicating whether the 'yes' button was pressed; otherwise, if there
+        were more than two buttons or the returnButton keyword arg was set to
+        True, the name of the pressed button is returned (or the dismissString,
+        as explained in the docs for confirmDialog)
+    """
 
+    returnButton = kwargs.pop('returnButton', False)
     default = kwargs.get("db", kwargs.get("defaultButton")) or yes
 
     ret = confirmDialog(t=title,    m=message,     b=[yes,no] + list(moreButtons),
                            db=default,
                            ma="center", cb=no, ds=no)
-    if moreButtons:
+    if moreButtons or returnButton:
         return ret
     else:
         return (ret==yes)
