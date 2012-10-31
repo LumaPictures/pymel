@@ -1451,7 +1451,12 @@ Modifications:
 # New Commands
 #--------------------------
 
-
+def uniqueObjExists( name ):
+    '''Returns True if name uniquely describes an object in the scene.
+    '''
+    all = cmds.ls(name)
+    # in case result is None...
+    return all and len(all) == 1
 
 def selected( **kwargs ):
     """ls -sl"""
