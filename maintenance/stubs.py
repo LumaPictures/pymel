@@ -887,7 +887,8 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             f.close()
 
 
-def pymelstubs(extensions=('py', 'pypredef', 'pi'), pymel=True, maya=True):
+def pymelstubs(extensions=('py', 'pypredef', 'pi'), pymel=True, maya=True,
+               pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
 
     Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
@@ -902,7 +903,32 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), pymel=True, maya=True):
         packagestubs('pymel', outputdir=outputdir, extensions=extensions)
     if maya:
         packagestubs('maya', outputdir=outputdir,extensions=extensions)
+    if pyRealUtil:
+        # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
+        # useful to put on the path of non-maya python interpreters, in
+        # situations where you want to be able to import the "dummy" maya/pymel
+        # stubs, but still have acces to the handy non-maya-required pymel.util
+        def copyDir(src, dest):
+            #ignore if the source dir doesn't exist...
+            if os.path.isdir(src):
+                import shutil
+                if os.path.isdir(dest):
+                    shutil.rmtree(dest)
+                elif os.path.isfile(dest):
+                    raise RuntimeError("A file called %s existed (expected a dir or nothing)" % dest)
+                shutil.copytree(src, dest)
+            elif os.path.isfile(src):
+                raise RuntimeError("A file called %s existed (expected a dir or nothing)" % src)
 
+        pyDir = os.path.join(outputdir, 'py')
+        pyRealUtilDir = os.path.join(outputdir, 'pyRealUtil')
+        print "creating %s" % pyRealUtilDir
+        copyDir(pyDir, pyRealUtilDir)
+            
+        srcUtilDir = os.path.join(pymeldir, 'pymel', 'util')
+        destUtilDir = os.path.join(pyRealUtilDir, 'pymel', 'util')
+        copyDir(srcUtilDir, destUtilDir)
+    
     return outputdir
 
 # don't start name with test - don't want it automatically run by nose
