@@ -204,8 +204,8 @@ class StubDoc(Doc):
                     objtype = 'func'
                 else:
                     objtype = 'data'
-                names = [name]            
-            id_to_data[id_obj] = (obj, objtype, source_module, [name])
+                names = [name]
+            id_to_data[id_obj] = (obj, objtype, source_module, names)
             
 
         # add all the objects that we have names for / should be in this
@@ -493,7 +493,7 @@ class StubDoc(Doc):
                             print '-'*80
                     classres[i] = ''.join(line.split( u'\xa0'))
 
-            result = result + join(classres, '\n')
+            result = result + join(classres, '\n') + '\n\n'
 
         if funcs:
             contents = []
@@ -502,7 +502,7 @@ class StubDoc(Doc):
                 contents.append(self.document(obj, name, this_name))
             for alias in names[1:]:
                 contents.append('%s = %s' % (alias, name))
-            result = result + join(contents, '\n')
+            result = result + join(contents, '\n') + '\n\n'
 
         if data:
             contents = []
@@ -511,19 +511,19 @@ class StubDoc(Doc):
                 contents.append(self.docother(obj, name, this_name, maxlen=70))
             for alias in names[1:]:
                 contents.append('%s = %s' % (alias, name))                
-            result = result + join(contents, '\n')
+            result = result + join(contents, '\n') + '\n\n'
 
 #        if hasattr(this_module, '__version__'):
 #            version = str(this_module.__version__)
 #            if version[:11] == '$' + 'Revision: ' and version[-1:] == '$':
 #                version = strip(version[11:-1])
-#            result = result + self.section('VERSION', version)
+#            result = result + self.section('VERSION', version) + '\n\n'
 #        if hasattr(this_module, '__date__'):
-#            result = result + self.section('DATE', str(this_module.__date__))
+#            result = result + self.section('DATE', str(this_module.__date__)) + '\n\n'
 #        if hasattr(this_module, '__author__'):
-#            result = result + self.section('AUTHOR', str(this_module.__author__))
+#            result = result + self.section('AUTHOR', str(this_module.__author__)) + '\n\n'
 #        if hasattr(this_module, '__credits__'):
-#            result = result + self.section('CREDITS', str(this_module.__credits__))
+#            result = result + self.section('CREDITS', str(this_module.__credits__)) + '\n\n'
         if self.missing_modules:
             contents = []
             for mod in self.missing_modules:
