@@ -4,6 +4,7 @@ import __builtin__
 import os                   #@Reimport
 import pkgutil              #@Reimport
 import collections
+import inspect
 
 builtins = set(__builtin__.__dict__.values())
 
@@ -12,6 +13,16 @@ if 'bytes' not in globals():
     bytes = str
 if 'basestring' not in globals():
     basestring = str
+    
+def is_dict_like(obj):
+    '''Test whether the object is "similar" to a dict
+    '''
+    if isinstance(obj, collections.Mapping):
+        return True
+    for method in ('__getitem__', '__setitem__', 'keys'):
+        if not inspect.ismethod(getattr(obj, method, None)):
+            return False
+    return True
 
 # for the sake of stubtest, don't importy anything pymel/maya at module level
 #import pymel.util as util
@@ -38,6 +49,7 @@ class StubDoc(Doc):
     MODULE_EXCLUDES = {
                        'pymel.api':set(['pymel.internal.apicache']),
                        'pymel'    :set(['pymel.all']),
+                       'maya.precomp':set(['precompmodule']),
                       }
     debugmodule = 'pymel.core'
 
@@ -793,7 +805,7 @@ class StubDoc(Doc):
                 if isinstance(object, (basestring, bytes, bool, int, long, float,
                                        complex)):
                     value = self.repr(object)
-                elif isinstance(object, collections.Mapping):
+                elif is_dict_like(object):
                     value = '{}'
                 elif isinstance(object, tuple):
                     value = '()'
