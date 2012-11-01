@@ -20,6 +20,7 @@ import pymel.versions as versions
 
 from maya.cmds import about as _about
 import maya.mel as mm
+from pymel.core import mel
 
 #from general import *
 import general
@@ -3230,6 +3231,34 @@ class TransferAttributes(DependNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     
 _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
+
+
+class HIKCharacterNode(DependNode):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    
+    def getHIKpropertiesNode(self):
+        return self.attr( 'propertyState' ).listConnections()
+    
+    def createControlRig(self):
+        self.refreshCharacterControls()
+        # call mel
+        mel.characterizationControlRigCreate()
+        self.refreshCharacterControls()
+    
+    def bakeToSkeleton(self):
+        mel.hikBakeCharacter( 0 )
+        mel.hikSetCurrentSourceFromCharacter( mel.hikGetCurrentCharacter() )
+        mel.hikUpdateSourceList()
+        mel.hikUpdateContextualUI()
+    
+    def refreshCharacterControls(self):
+        # call up UI
+        mel.HIKCharacterControlsTool()
+        # refresh
+        mel.hikUpdateDefinitionUI()
+        mel.hikUpdateContextualUI()
+        mel.hikUpdateCharacterList()
+        mel.hikUpdateSourceList()
 
 
 def _createPyNodes():
