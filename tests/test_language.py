@@ -208,6 +208,40 @@ class testCase_MelGLobals(unittest.TestCase):
         meval('$melGlobals_test_getitem_str1 = "marlene"')
         self.assertEqual(lang.MelGlobals.get('$melGlobals_test_getitem_str1'), 'marlene')
 
+    def test_initVar_int(self):
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_int1')
+        lang.melGlobals.initVar('int', 'melGlobals_test_initVar_int1')
+        meval('print $melGlobals_test_initVar_int1')
+
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_int2')
+        lang.melGlobals.initVar('int', '$melGlobals_test_initVar_int2')
+        meval('print $melGlobals_test_initVar_int2')
+
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_int3')
+        lang.MelGlobals.initVar('int', 'melGlobals_test_initVar_int3')
+        meval('print $melGlobals_test_initVar_int3')
+
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_int4')
+        lang.MelGlobals.initVar('int', '$melGlobals_test_initVar_int4')
+        meval('print $melGlobals_test_initVar_int4')
+
+    def test_initVar_str(self):
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_str1')
+        lang.melGlobals.initVar('string', 'melGlobals_test_initVar_str1')
+        meval('print $melGlobals_test_initVar_str1')
+
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_str2')
+        lang.melGlobals.initVar('string', '$melGlobals_test_initVar_str2')
+        meval('print $melGlobals_test_initVar_str2')
+
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_str3')
+        lang.MelGlobals.initVar('string', 'melGlobals_test_initVar_str3')
+        meval('print $melGlobals_test_initVar_str3')
+
+        self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_str4')
+        lang.MelGlobals.initVar('string', '$melGlobals_test_initVar_str4')
+        meval('print $melGlobals_test_initVar_str4')
+    
     def test_getType_int(self):
         meval('global int $melGlobals_test_getType_int1')
         self.assertEqual(lang.melGlobals.getType('melGlobals_test_getType_int1'),

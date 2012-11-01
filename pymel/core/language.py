@@ -262,25 +262,24 @@ class MelGlobals( dict ):
         #__metaclass__ = util.metaStatic
         def __init__(self, type, variable, *args, **kwargs ):
 
-            decl_name = variable
             if type.endswith('[]'):
                 type = type[:-2]
-                decl_name += '[]'
 
             pyType = MelGlobals.melTypeToPythonType[ type ]
             util.defaultlist.__init__( self, pyType, *args, **kwargs )
 
-
-            self._setItemCmd = "global %s %s; %s" % ( type, decl_name, variable )
+            declaration = MelGlobals._get_decl_statement(type, variable)
+            self._setItemCmd = "%s; %s" % ( declaration, variable )
             self._setItemCmd += '[%s]=%s;'
 
 
-        def setItem(self, index, value ):
-            _mm.eval(self._setItemCmd % (index, value) )
+        def __setitem__(self, index, value ):
+            _mm.eval(self._setItemCmd % (index, pythonToMel(value) ))
+            super(MelGlobalArray, self).__setitem__(index, value)
+        setItem = __setitem__ 
 
         # prevent these from
         def append(self, val): raise AttributeError
-        def __setitem__(self, item, val): raise AttributeError
         def extend(self, val): raise AttributeError
 
 
@@ -300,6 +299,8 @@ class MelGlobals( dict ):
         # TODO : add validity check
         if not variable.startswith( '$'):
             variable = '$' + variable
+        if variable.endswith('[]'):
+            variable = variable[:-2]
         return variable
 
     @classmethod
@@ -307,14 +308,24 @@ class MelGlobals( dict ):
         variable = cls._formatVariable(variable)
         info = mel.whatIs( variable ).split()
         if len(info)==2 and info[1] == 'variable':
+            MelGlobals.typeMap[variable] = info[0]
             return info[0]
         raise TypeError, "Cannot determine type for this variable. Use melGlobals.initVar first."
+    
+    @classmethod
+    def _get_decl_statement(cls, type, variable):
+        decl_name = cls._formatVariable(variable)
+        if type.endswith('[]'):
+            type = type[:-2]
+            decl_name += '[]'
+        return "global %s %s" % (type, decl_name)
 
     @classmethod
     def initVar( cls, type, variable ):
         if type not in MELTYPES:
             raise TypeError, "type must be a valid mel type: %s" % ', '.join( [ "'%s'" % x for x in MELTYPES ] )
         variable = cls._formatVariable(variable)
+        _mm.eval( cls._get_decl_statement(type, variable)  )
         MelGlobals.typeMap[variable] = type
         return variable
 
@@ -335,24 +346,18 @@ class MelGlobals( dict ):
 
         variable = cls.initVar(type, variable)
 
-        ret_type = type
-        decl_name = variable
-
         if type.endswith('[]'):
             array=True
-            type = type[:-2]
-            proc_name = 'pymel_get_global_' + type + 'Array'
-            if not decl_name.endswith('[]'):
-                decl_name += '[]'
+            proc_name = 'pymel_get_global_' + type.replace('[]', 'Array')
         else:
             array=False
             proc_name = 'pymel_get_global_' + type
-
-        cmd = "global proc %s %s() { global %s %s; return %s; } %s();" % (ret_type, proc_name, type, decl_name, variable, proc_name )
-        #print cmd
+        declaration = cls._get_decl_statement(type, variable)
+        cmd = "global proc %s %s() { %s; return %s; } %s();" % (type, proc_name, declaration, variable, proc_name )
+        print cmd
         res = _mm.eval( cmd  )
         if array:
-            return MelGlobals.MelGlobalArray(ret_type, variable, res)
+            return MelGlobals.MelGlobalArray(type, variable, res)
         else:
             return MelGlobals.melTypeToPythonType[type](res)
 
@@ -367,12 +372,9 @@ class MelGlobals( dict ):
                 type = cls.getType(variable)
 
         variable = cls.initVar(type, variable)
-        decl_name = variable
-        if type.endswith('[]'):
-            type = type[:-2]
-            decl_name += '[]'
-
-        cmd = "global %s %s; %s=%s;" % ( type, decl_name, variable, pythonToMel(value) )
+        declaration = cls._get_decl_statement(type, variable)
+        cmd = "%s; %s=%s;" % ( declaration, variable, pythonToMel(value) )
+        
         #print cmd
         _mm.eval( cmd  )
 
