@@ -15,7 +15,7 @@ class testCase_pythonToMelCmd(unittest.TestCase):
         self.assertEqual(lang.pythonToMelCmd('xform', translation=(1,2,3)).strip(),
                          'xform -translation 1 2 3')
 
-class testCase_MelGLobals(unittest.TestCase):
+class testCase_MelGlobals(unittest.TestCase):
     def setUp(self):
         meval('''global proc int melGlobals_test_int_getter(int $inValue)
                 {
