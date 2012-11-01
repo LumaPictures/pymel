@@ -957,7 +957,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
 
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
     outputdir = os.path.join(pymeldir, 'extras', 'completion')
-    print outputdir
+    print "Stub output dir:", outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
     
