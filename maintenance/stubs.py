@@ -3,8 +3,15 @@ import pydoc, sys, pprint   #@Reimport
 import __builtin__
 import os                   #@Reimport
 import pkgutil              #@Reimport
+import collections
 
 builtins = set(__builtin__.__dict__.values())
+
+# some basic data types which may not exist...
+if 'bytes' not in globals():
+    bytes = str
+if 'basestring' not in globals():
+    basestring = str
 
 # for the sake of stubtest, don't importy anything pymel/maya at module level
 #import pymel.util as util
@@ -782,9 +789,27 @@ class StubDoc(Doc):
         if name == '__all__':
             value = pprint.pformat(object)
         else:
-            if isinstance(object, (basestring, int, long)):
-                value = self.repr(object)
-            else:
+            try:
+                if isinstance(object, (basestring, bytes, bool, int, long, float,
+                                       complex)):
+                    value = self.repr(object)
+                elif isinstance(object, collections.Mapping):
+                    return '{}'
+                elif isinstance(object, tuple):
+                    value = '()'
+                elif isinstance(object, collections.Sequence):
+                    value = '[]'
+                elif isinstance(object, frozenset):
+                    value = 'frozenset()'
+                elif isinstance(object, collections.Set):
+                    value = 'set()'
+                else:
+                    value = 'None'
+            except NameError:
+                # doing 'isinstance(object, collections.Mapping)' can cause:
+                # NameError: Unknown C global variable
+                # in some situations... ie, maya.OpenMaya.cvar...
+                # ...some sort of swig error?
                 value = 'None'
         line = (name and name + ' = ' or '') + value + '\n'
         return line
@@ -862,7 +887,44 @@ stubs = StubDoc()
 def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'), exclude=None):
     import pymel.util as util
 
-    packagemod = __import__(packagename, globals(), locals(), [], -1)
+    def get_python_file(modname, extension, ispkg):
+        basedir = os.path.join(outputdir, extension)
+        if extension == 'pypredef':
+            curfile = os.path.join(basedir, modname)
+        else:
+            curfile = os.path.join(basedir, *modname.split('.') )
+            if ispkg:
+                curfile = os.path.join(curfile, '__init__' )
+
+        curfile = curfile + os.extsep + extension
+        return curfile
+        
+
+    packagemod = __import__(packagename, globals(), locals(), ['dummy'], -1)
+    # first, check to see if the given package is not a 'top level' module...and
+    # if so, create any parent package dirs/__init__.py
+    if '.' in packagename:
+        for extension in extensions:
+            if extension == 'pypredef':
+                # pypredefs don't make directories / __init__.py
+                continue
+            parts = packagename.split('.')
+            # if, ie, our packagename is 'my.long.sub.package', this will give us
+            #   my
+            #   my.long
+            #   my.long.sub
+            for i in xrange(1, len(parts)):
+                parent_package = '.'.join(parts[:i])
+                parent_file = get_python_file(parent_package, extension, True)
+                parent_dir = os.path.dirname(parent_file) 
+                if not os.path.isdir(parent_dir):
+                    os.makedirs(parent_dir)
+                if not os.path.isfile(parent_file):
+                    print "making empty %s" % parent_file
+                    # this will "touch" the file - ie, create an empty one
+                    with open(parent_file, 'a'):
+                        pass
+    
     for modname, mod, ispkg in util.subpackages(packagemod):
         print modname, ":"
         contents = stubs.docmodule(mod)
@@ -887,7 +949,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             f.close()
 
 
-def pymelstubs(extensions=('py', 'pypredef', 'pi'), pymel=True, maya=True,
+def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
 
@@ -898,11 +960,10 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), pymel=True, maya=True,
     print outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
-
-    if pymel:
-        packagestubs('pymel', outputdir=outputdir, extensions=extensions)
-    if maya:
-        packagestubs('maya', outputdir=outputdir,extensions=extensions)
+    
+    for modulename in modules:
+        print "making stubs for: %s" % modulename
+        packagestubs(modulename, outputdir=outputdir, extensions=extensions)
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
         # useful to put on the path of non-maya python interpreters, in
