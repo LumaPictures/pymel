@@ -794,7 +794,7 @@ class StubDoc(Doc):
                                        complex)):
                     value = self.repr(object)
                 elif isinstance(object, collections.Mapping):
-                    return '{}'
+                    value = '{}'
                 elif isinstance(object, tuple):
                     value = '()'
                 elif isinstance(object, collections.Sequence):
