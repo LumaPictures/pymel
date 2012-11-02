@@ -13,6 +13,52 @@ if 'bytes' not in globals():
     bytes = str
 if 'basestring' not in globals():
     basestring = str
+
+def get_class(obj):
+    '''Retrives the class of the given object.
+
+    unfortunately, it seems there's no single way to query class that works in
+    all cases - .__class__ doesn't work on some builtin-types, like
+    re._pattern_type instances, and type() doesn't work on old-style
+    classes... 
+    '''
+    cls = type(obj)
+    if cls == types.InstanceType:
+        cls = obj.__class__
+    return cls
+
+def has_default_constructor(cls):
+    '''Returns true if it's possible to make an instance of the class with no args.
+    '''
+    # these classes's __init__/__new__ are slot_wrapper objects, which we can't
+    # query... but we know that they are ok...
+    safe_methods = set()
+    for safe_cls in (object, list, dict, tuple, set, frozenset, str, unicode):
+        safe_methods.add(safe_cls.__init__)
+        safe_methods.add(safe_cls.__new__)
+    
+    for method in (getattr(cls, '__init__', None), getattr(cls, '__new__', None)):
+        if method in safe_methods:
+            continue
+        if method is None:
+            # we got an old-style class that didn't define an __init__ or __new__...
+            # it's ok..
+            continue
+        
+        try:
+            args, _, _, defaults = inspect.getargspec(method)
+        except TypeError:
+            # sometimes we get 'slot_wrapper' objects, which we can't query...
+            # assume these are bad...
+            return False 
+        if defaults is None:
+            numDefaults = 0
+        else:
+            numDefaults = len(defaults)
+        # there can be one 'mandatory' arg - which will be cls or self
+        if len(args) > numDefaults + 1:
+            return False
+    return True
     
 def is_dict_like(obj):
     '''Test whether the object is "similar" to a dict
@@ -57,6 +103,7 @@ class StubDoc(Doc):
         self.missing_modules = set([])
         self.module_map = {}
         self.id_map = {}
+        self.safe_constructor_classes = set()
         if hasattr(Doc, '__init__'):
             Doc.__init__(self, *args, **kwargs)
 
@@ -121,6 +168,7 @@ class StubDoc(Doc):
         self.module_map = {}
         self.id_map = {}
         self.missing_modules = set([])
+        self.safe_constructor_classes = set()
         all = getattr(this_module, '__all__', None)
         
         if desc:
@@ -128,9 +176,10 @@ class StubDoc(Doc):
 
         def get_source_module(obj):
             mod = inspect.getmodule(obj)
-            if (not mod or (mod == __builtin__ and obj not in builtins)
-                    or inspect.isbuiltin(obj) or isdata(obj) or
-                    not mod.__name__ or mod.__name__.startswith('_')):
+            if mod == __builtin__ and obj in builtins:
+                return mod
+            if (not mod or inspect.isbuiltin(obj) or isdata(obj)
+                    or not mod.__name__ or mod.__name__.startswith('_')):
                 mod = this_module
             return mod
         
@@ -280,6 +329,9 @@ class StubDoc(Doc):
                 for parent_class in parents:
                     id_parent = id(parent_class)
                     if id_parent not in id_to_data:
+                        if parent_class in builtins:
+                            continue
+                        
                         # We've found a class that's not in this namespace...
                         # ...but perhaps it's parent module is?
                         found_parent_mod = False
@@ -498,6 +550,10 @@ class StubDoc(Doc):
                 contents.append(self.document(cls, name, this_name))
                 for alias in names[1:]:
                     contents.append('%s = %s' % (alias, name))
+                # check if it has a default constructor... if so, add to the
+                # list of classes that it is safe to create...
+                if has_default_constructor(cls):
+                    self.safe_constructor_classes.add(id(cls))
 
             classres = join(contents, '\n').split('\n')
 
@@ -550,7 +606,7 @@ class StubDoc(Doc):
                 if import_text:
                     contents.append(import_text)
             result = join(contents, '\n') + '\n\n'  + result
-
+        self.safe_constructor_classes = set()
         return result
     
     def add_to_module_map(self, realname, newname):
@@ -797,9 +853,38 @@ class StubDoc(Doc):
         if name in ['__metaclass__']:
             return ''
 
+        safe_constructors = {}
+        def has_safe_default_constructor(obj):
+            # if the object is of a class that's defined in 'the current' stub
+            # module, and that class has a default constructor, then we can
+            # assume that it's safe to create one...
+            cls = get_class(obj)
+            id_cls = id(cls)
+            if id_cls not in self.currentsafe_constructors:
+                def _is_safe_cls(cls):
+                    obj_module = getattr(cls, '__module__', None)
+                    if self.current_module != obj_module:
+                        return False
+                    # ok, the class of the object seems to be from the current module...
+                    # make doubly sure by checking the id_map
+                    name = self.id_map.get(id(cls))
+                    if not name:
+                        return False
+                    
+                    
+                    
+                result = _is_safe_cls(cls)
+                safe_constructors[id_cls] = result
+                return result
+            return safe_constructors[id_cls]
+            
+
         value = None
         if name == '__all__':
             value = pprint.pformat(object)
+        elif id(get_class(object)) in self.safe_constructor_classes:
+            cls_name = self.id_map[id(get_class(object))]
+            value = '%s()' % cls_name
         else:
             try:
                 if isinstance(object, (basestring, bytes, bool, int, long, float,
