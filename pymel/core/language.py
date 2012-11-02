@@ -354,7 +354,7 @@ class MelGlobals( dict ):
             proc_name = 'pymel_get_global_' + type
         declaration = cls._get_decl_statement(type, variable)
         cmd = "global proc %s %s() { %s; return %s; } %s();" % (type, proc_name, declaration, variable, proc_name )
-        print cmd
+        #print cmd
         res = _mm.eval( cmd  )
         if array:
             return MelGlobals.MelGlobalArray(type, variable, res)
