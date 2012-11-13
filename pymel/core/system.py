@@ -1259,8 +1259,8 @@ class FileReference(object):
         return cmds.file( loadReference=self.refNode,*args, **kwargs )
 
     @_factories.addMelDocs('file', 'loadReference')
-    def replaceWith(self, newFile):
-        return self.load(newFile)
+    def replaceWith(self, newFile, **kwargs):
+        return self.load(newFile, **kwargs)
 
     @_factories.addMelDocs('file', 'cleanReference')
     def clean(self, **kwargs):
