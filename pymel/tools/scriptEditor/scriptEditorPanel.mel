@@ -1,0 +1,45 @@
+float $mayaVer = getApplicationVersionAsFloat();
+
+global proc pymelScriptEditorPanel_dummyFunc()
+{}
+
+// should result in something like: "Mel procedure found in: /some/path/scriptEditorPanel.mel"
+string $whatIsResult = `whatIs "pymelScriptEditorPanel_dummyFunc"`;
+
+string $buffer[];
+tokenize($whatIsResult, ":", $buffer);
+string $THIS_FILE = strip($buffer[1]);
+string $THIS_DIR = dirname($THIS_FILE) + "/";
+
+string $filePrefix = "scriptEditorPanel.";
+string $fileSuffix = ".mel";
+string $scriptEditorVerFiles[] = `getFileList -folder $THIS_DIR -filespec ($filePrefix + "*" + $fileSuffix)`;
+
+string $foundFile = "";
+int $i;
+for($i = 0; $i < size($scriptEditorVerFiles); $i++)
+{
+    float $fileVer = 0;
+    float $foundVer;
+
+    $fileVer = substring($scriptEditorVerFiles[$i], size($filePrefix) + 1,
+                         size($scriptEditorVerFiles[$i]) - size($fileSuffix));
+    if($fileVer <= $mayaVer && $fileVer > $foundVer)
+    {
+        $foundFile = $scriptEditorVerFiles[$i];
+    }
+}
+
+if($foundFile != "")
+{
+    $foundFile = $THIS_DIR + $foundFile;
+    print $foundFile;
+    eval("source \"" + $foundFile + "\"");
+}
+else
+{
+    error("Could not find " + $filePrefix + $mayaVer + $fileSuffix + "\n");
+}
+
+
+

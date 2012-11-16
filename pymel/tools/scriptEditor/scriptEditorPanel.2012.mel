@@ -1,0 +1,3011 @@
+// Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+autoLoadPlugin "" "pymelScrollFieldReporter" "pymelScrollFieldReporter.py";
+
+proc scriptEditorPredefines() 
+//
+// Predefinitions such as:
+// Tagging for labels which are used multiple times.  We can call uiRes() for the specified
+// labels later in the file.
+//
+{
+	global string $gScriptEditorMenuBarPrefix = "scriptEditor";
+// Options Menu Item suffixes
+	global string $showLineNumbersMenuItemSuffix = "ShowLineNumbersMenuItem";
+	global string $useTabsForIndentMenuItemSuffix = "UseTabsForIndentMenuItem";
+	global string $commandCompletionMenuItemSuffix = "CommandCompletionMenuItem";
+	global string $pathCompletionMenuItemSuffix = "PathCompletionMenuItem";
+	global string $toolTipHelpMenuItemSuffix = "ToolTipHelpMenuItem";
+	global string $showQuickHelpMenuItemSuffix = "QuickHelpMenuItem";
+	global string $batchRenderMsgsMenuItemSuffix = "BatchRenderMessagesMenuItem";
+	global string $echoAllCmdsMenuItemSuffix = "EchoAllCmdsMenuItem";
+	global string $errorLineNumsMenuItemSuffix = "ErrorLineNumberMenuItem";
+	global string $stackTraceMenuItemSuffix = "StackTraceMenuItem";
+	global string $suppressResultsMenuItemSuffix = "SuppressResultsMenuItem";
+	global string $suppressInfoMenuItemSuffix = "SuppressInfoMenuItem";
+	global string $suppressWarningsMenuItemSuffix = "SuppressWarningsMenuItem";
+	global string $suppressErrorsMenuItemSuffix = "SuppressErrorsMenuItem";
+	global string $suppressStackTraceMenuItemSuffix = "SuppressStackTraceMenuItem";
+	global string $historyFilterNoneMenuItemSuffix = "FilterNoneMenuItem";
+	global string $historyFilterMELMenuItemSuffix = "FilterMELMenuItem";
+	global string $historyFilterPythonMenuItemSuffix = "FilterPythonMenuItem";
+	global string $historyFilterConvertToPythonSuffix = "ConvertToPythonItem";
+	global string $executerBackupFileName = "commandExecuter";
+	
+// Tagging
+	string $cancel					= (uiRes("m_scriptEditorPanel.kCancel"));
+	// * menus
+	string $file					= (uiRes("m_scriptEditorPanel.kFile"));
+	string $edit					= (uiRes("m_scriptEditorPanel.kEdit"));
+	string $history					= (uiRes("m_scriptEditorPanel.kHistory"));
+	string $command					= (uiRes("m_scriptEditorPanel.kCommand"));
+	string $help					= (uiRes("m_scriptEditorPanel.kHelp"));
+	// file
+	string $load					= (uiRes("m_scriptEditorPanel.kLoadScript"));
+	string $source					= (uiRes("m_scriptEditorPanel.kSourceScript"));
+	string $save					= (uiRes("m_scriptEditorPanel.kSaveScript"));
+	string $saveToShelf				= (uiRes("m_scriptEditorPanel.kSaveScriptToShelf"));
+	// edit
+	string $undo					= (uiRes("m_scriptEditorPanel.kUndo"));
+	string $redo					= (uiRes("m_scriptEditorPanel.kRedo")); 
+	string $cut						= (uiRes("m_scriptEditorPanel.kCut")); 
+	string $copy					= (uiRes("m_scriptEditorPanel.kCopy")); 
+	string $paste					= (uiRes("m_scriptEditorPanel.kPaste"));
+	string $selectAll				= (uiRes("m_scriptEditorPanel.kSelectAll"));
+	string $clearHistory			= (uiRes("m_scriptEditorPanel.kClearHistory"));
+	string $clearInput				= (uiRes("m_scriptEditorPanel.kClearInput"));
+	string $clearAll				= (uiRes("m_scriptEditorPanel.kClearAll"));
+	string $goto					= (uiRes("m_scriptEditorPanel.kGoto"));
+	string $indentSel				= (uiRes("m_scriptEditorPanel.kIndentSelection"));
+	string $unindentSel				= (uiRes("m_scriptEditorPanel.kUnindentSelection"));
+	// show
+	string $showHistory				= (uiRes("m_scriptEditorPanel.kShowHistory"));
+	string $showInput				= (uiRes("m_scriptEditorPanel.kShowInput"));
+	string $showBoth				= (uiRes("m_scriptEditorPanel.kShowBoth"));
+	string $searchAndReplace		= (uiRes("m_scriptEditorPanel.kSearchAndReplace"));
+	// history
+	string $batchRenderMessages		= (uiRes("m_scriptEditorPanel.kBatchRenderMessages"));
+	string $echoAllCommands			= (uiRes("m_scriptEditorPanel.kEchoAllCommands"));
+	string $showErrorLineNumbers	= (uiRes("m_scriptEditorPanel.kLineNumbersInErrors"));
+	string $showStackTrace			= (uiRes("m_scriptEditorPanel.kShowStackTrace"));
+	string $suppressCommandResults	= (uiRes("m_scriptEditorPanel.kSuppressCommandResults"));
+	string $suppressInfoMessages	= (uiRes("m_scriptEditorPanel.kSuppressInfoMessages"));
+	string $suppressWarningMessages = (uiRes("m_scriptEditorPanel.kSuppressWarningMessages"));
+	string $suppressErrorMessages	= (uiRes("m_scriptEditorPanel.kSuppressErrorMessages"));
+	string $suppressStackWindow		= (uiRes("m_scriptEditorPanel.kSuppressStackWindow"));
+	string $filterOutput			= (uiRes("m_scriptEditorPanel.kFilterOutput"));
+	// command
+	string $showLineNumbers			= (uiRes("m_scriptEditorPanel.kShowLineNumbers"));
+	string $useTabsForIndent		= (uiRes("m_scriptEditorPanel.kUseTabsForIndent"));	
+	string $showQuickHelp			= (uiRes("m_scriptEditorPanel.kShowQuickHelp"));
+	string $commandCompletion			= (uiRes("m_scriptEditorPanel.kCommandCompletion"));
+	string $pathCompletion			= (uiRes("m_scriptEditorPanel.kPathCompletion"));
+	string $toolTipHelp			= (uiRes("m_scriptEditorPanel.kToolTipHelp"));
+	string $showCommandHelp			= (uiRes("m_scriptEditorPanel.kShowCommandHelp"));
+	string $execute					= (uiRes("m_scriptEditorPanel.kExecute"));
+	string $executeAll				= (uiRes("m_scriptEditorPanel.kExecuteAll"));
+	// tabs
+	string $tabName					= (uiRes("m_scriptEditorPanel.kTabName"));
+	string $tabNameWarning			= (uiRes("m_scriptEditorPanel.kInvalidTabNameWarning"));
+	string $addTab					= (uiRes("m_scriptEditorPanel.kAddTab"));
+	string $rename					= (uiRes("m_scriptEditorPanel.kRename"));	
+	//
+	string $searchError				= (uiRes("m_scriptEditorPanel.kSearchFailed"));
+}
+
+global proc buildScriptEditorContextHelpItems(string $nameRoot, string $menuParent)
+//
+//  Description:
+//		Build context sensitive menu items for the script editor.  
+//		
+//  Input Arguments:
+//		$nameRoot - name to use as the root of all item names
+//		$menuParent - the name of the parent of this menu
+//
+//  Return Value:
+//      None
+//
+{
+	menuItem 
+		-label (uiRes("m_scriptEditorPanel.kHelpOnMEL"))
+		-annotation (uiRes("m_scriptEditorPanel.kHelpOnMELAnn"))
+		-enableCommandRepeat false
+		-command "showHelp MEL";
+	if (`exists python`) {
+		menuItem 
+			-label (uiRes("m_scriptEditorPanel.kHelpOnPython"))
+			-annotation (uiRes("m_scriptEditorPanel.kHelpOnPythonAnn"))
+			-enableCommandRepeat false
+			-command "showHelp Python";
+	}
+	menuItem 
+		-label (uiRes("m_scriptEditorPanel.kHelpOnSelCmd"))
+		-annotation (uiRes("m_scriptEditorPanel.kHelpOnSelCmdAnn"))
+		-enableCommandRepeat false
+		-command "handleScriptEditorAction showSelectedCmdHelp";	
+	menuItem 
+		-label (uiRes("m_scriptEditorPanel.kHelpOnScriptEditor"))
+		-annotation (uiRes("m_scriptEditorPanel.kHelpOnScriptEditorAnn"))
+		-enableCommandRepeat false
+		-command "showHelp ScriptEditor";
+}
+
+global proc handleScriptEditorAction(string $action)
+//
+// Delegation function for possible actions on the script editor.
+//
+{
+	global string $gCommandLayout;
+	global string $gCommandExecuterTabsForm;
+	global string $gCommandReporter;
+	//
+	global string $batchRenderMsgsMenuItemSuffix;
+	global string $echoAllCmdsMenuItemSuffix;
+	global string $errorLineNumsMenuItemSuffix;
+	global string $stackTraceMenuItemSuffix;
+	global string $suppressResultsMenuItemSuffix;
+	global string $suppressInfoMenuItemSuffix;
+	global string $suppressWarningsMenuItemSuffix;
+	global string $suppressErrorsMenuItemSuffix;
+	global string $suppressStackTraceMenuItemSuffix;
+	global string $historyFilterConvertToPythonSuffix;
+	
+	//
+
+	switch ($action) {
+		// file menu actions
+		case "load":
+			delegateCommandToFocusedExecuterWindow "-e -load" 0;
+			break;
+		case "source":
+			delegateCommandToFocusedExecuterWindow "-e -source" 0;
+			break;
+		case "save":			
+			{
+				// find the current tab label and use that as the default file name
+				// append the file extension to the name so that the save dialog knows the correct file type
+				string $tabName = `getCurrentExecuterTabLabel`;
+				string $fileExt = `getCurrentExecuterTabType`;
+				delegateCommandToFocusedWindow ("-e -saveSelection " + $tabName + $fileExt);
+			}
+			break;
+		case "saveToShelf":
+			delegateCommandToFocusedWindow "-e -saveSelectionToShelf";
+			break;
+
+		// edit menu actions
+		case "undo":
+			delegateCommandToFocusedExecuterWindow "-e -undo" 0;
+			break;
+		case "redo":
+			delegateCommandToFocusedExecuterWindow "-e -redo" 0;
+			break;
+		case "cut":
+			delegateCommandToFocusedWindow "-e -cutSelection";
+			break;
+		case "copy":
+			delegateCommandToFocusedWindow "-e -copySelection";
+			break;
+		case "paste":
+			delegateCommandToFocusedExecuterWindow "-e -pasteSelection" 0;
+			break;
+		case "selectAll":
+			delegateCommandToFocusedWindow "-e -selectAll";
+			break;
+		case "clearHistory":
+			if ($gCommandReporter != "") {
+				evalDeferred("pymelScrollFieldReporter -e -clear $gCommandReporter");
+            }
+			break;
+		case "clearInput":
+			delegateCommandToFocusedExecuterWindow "-e -clear" 0;
+			break;
+		case "clearAll":
+			// can't seem to recursively call this handler function, so manually clear both input and history 
+			if ($gCommandReporter != "") {
+                evalDeferred("pymelScrollFieldReporter -e -clear $gCommandReporter");
+            }
+			delegateCommandToFocusedExecuterWindow "-e -clear" 0;
+			break;	
+		case "searchAndReplace":
+			createSearchAndReplaceWindow;
+			break;
+		case "gotoLine":
+			gotoLinePrompt;
+			break;
+		case "indentSelection":
+			delegateCommandToFocusedExecuterWindow "-e -indentSelection" 0;
+			break;
+		case "unindentSelection":
+			delegateCommandToFocusedExecuterWindow "-e -unindentSelection" 0;
+			break;
+
+		// show actions
+		case "maximizeInput":
+			paneLayout -e -setPane $gCommandExecuterTabsForm 1 $gCommandLayout;
+			paneLayout -e -configuration "single" $gCommandLayout;
+			selectCurrentExecuterControl;
+			break;
+		case "maximizeHistory":
+			paneLayout -e -setPane $gCommandReporter 1 $gCommandLayout;
+			paneLayout -e -configuration "single" $gCommandLayout;
+			setFocus $gCommandReporter;
+			break;
+		case "maximizeBoth":
+			paneLayout -e -setPane $gCommandReporter 1 $gCommandLayout;
+			paneLayout -e -setPane $gCommandExecuterTabsForm 2 $gCommandLayout;
+			paneLayout -e -configuration "horizontal2" $gCommandLayout;
+			selectCurrentExecuterControl;
+			break;
+
+		// history menu actions
+		case "batchRenderMsgs":
+			int $newBatch = 0; 
+			if (`optionVar -q batchRenderMessagesVerbosity`) { 
+				// is on, turn off
+				batchRender -v 1; 
+			}else { 
+				// is off, turn on
+				batchRender -v 3; 
+				$newBatch = 1; 
+			} 
+			// set optionvar
+			optionVar -iv batchRenderMessagesVerbosity $newBatch;
+			
+			// synchronize history option
+			synchronizeScriptEditorOption($newBatch, $batchRenderMsgsMenuItemSuffix);
+			break;	
+		case "echoAllCommands":
+			toggleCommandReporterOption("-echoAllCommands", $echoAllCmdsMenuItemSuffix);
+			{
+				// toggle echo all commands icon state
+				string $icon = (`optionVar -q echoAllLines` ? "echoCommands.png" : "echoCommandsOff.png");
+				iconTextButton -e -image $icon echoAllCommandsButton;
+			}
+			break;
+		case "showErrorLineNumbers":
+			toggleCommandReporterOption("-lineNumbers", $errorLineNumsMenuItemSuffix);
+			break;
+		case "showStackTrace":
+			toggleCommandReporterOption("-stackTrace", $stackTraceMenuItemSuffix);
+			break;
+		case "toggleSuppressResults":
+			toggleCommandReporterOption("-suppressResults", $suppressResultsMenuItemSuffix);
+			break;
+		case "toggleSuppressInfos":
+			toggleCommandReporterOption("-suppressInfo", $suppressInfoMenuItemSuffix);
+			break;
+		case "toggleSuppressWarnings":
+			toggleCommandReporterOption("-suppressWarnings", $suppressWarningsMenuItemSuffix);
+			break;
+		case "toggleSuppressErrors":
+			toggleCommandReporterOption("-suppressErrors", $suppressErrorsMenuItemSuffix);
+			break;
+		case "toggleSuppressStackWindow":
+			toggleCommandReporterOption("-suppressStackTrace", $suppressStackTraceMenuItemSuffix);
+			break;
+		case "filterOutHistoryNone":
+			setCommandReporterFilter("");
+			break;
+		case "filterOutHistoryMEL":
+			setCommandReporterFilter("mel");
+			break;
+		case "filterOutHistoryPython":
+			setCommandReporterFilter("python");
+			break;
+
+		// chad
+		case "convertHistoryToPython":
+			toggleCommandReporterOption("-convertToPython", $historyFilterConvertToPythonSuffix );
+			break;
+			
+		// command menu actions
+		case "showLineNumbers":
+			toggleCommandExecuterShowLineNumbers;
+			break;
+		case "tabsForIndent":
+		    toggleCommandExecuterTabsForIndent;
+		    break;
+		case "commandCompletion":
+			toggleCommandExecuterCommandCompletion;
+			break;
+		case "pathCompletion":
+			toggleCommandExecuterPathCompletion;
+			break;
+		case "toolTipHelp":
+			toggleCommandExecuterToolTipHelp;
+			break;
+		case "showQuickHelp":
+			toggleCmdQuickHelp(-1, 0);
+			break;
+		case "execute":
+			delegateCommandToFocusedExecuterWindow "-e -execute" 1;
+			break;
+		case "executeAll":
+			delegateCommandToFocusedExecuterWindow "-e -executeAll" 1;
+			break;
+
+		// tab operations
+		case "addExecuterTab":
+			addNewExecuterTab("", 0);
+			break;
+		case "addMELExecuterTab":
+			addNewExecuterTab("mel", 1);
+			break;			
+		case "addPythonExecuterTab":
+			addNewExecuterTab("python", 1);
+			break;
+		case "renameCurrentExecuterTab":
+			renameCurrentExecuterTab;
+			break;
+		case "removeOtherExecuterTabs":
+			removeOtherExecuterTabs;
+			break;
+		case "removeCurrentExecuterTab":
+			// NOTE: MUST eval deferred as one can innocuously remove their current tab if they type
+			// this command in the current executer (not a problem if done through menu items)
+			evalDeferred("removeCurrentExecuterTab");
+			break;
+		case "selectPreviousExecuterTab":
+			selectExecuterTabOffset(-1);
+			break;
+		case "selectNextExecuterTab":
+			selectExecuterTabOffset(1);
+			break;
+
+		// help operations
+		case "showSelectedCmdHelp":
+			showSelectedCmdHelp(false);
+			break;		
+		case "showSelectedCmdQuickHelp":
+			showSelectedCmdHelp(true);
+			break;
+
+		// last case suppress options for scriptEditorInfo cmd workaround/hack, not to be used
+		// externally
+		case "suppressResults":
+			setCommandReporterOption("-suppressResults", $suppressResultsMenuItemSuffix, true);
+			break;
+		case "unsuppressResults":
+			setCommandReporterOption("-suppressResults", $suppressResultsMenuItemSuffix, false);
+			break;
+		case "suppressInfos":
+			setCommandReporterOption("-suppressInfo", $suppressInfoMenuItemSuffix, true);
+			break;
+		case "unsuppressInfos":
+			setCommandReporterOption("-suppressInfo", $suppressInfoMenuItemSuffix, false);
+			break;
+		case "suppressWarnings":
+			setCommandReporterOption("-suppressWarnings", $suppressWarningsMenuItemSuffix, true);
+			break;
+		case "unsuppressWarnings":
+			setCommandReporterOption("-suppressWarnings", $suppressWarningsMenuItemSuffix, false);
+			break;
+		case "suppressErrors":
+			setCommandReporterOption("-suppressErrors", $suppressErrorsMenuItemSuffix, true);
+			break;
+		case "unsuppressErrors":
+			setCommandReporterOption("-suppressErrors", $suppressErrorsMenuItemSuffix, false);
+			break;
+		case "suppressStackWindow":
+			setCommandReporterOption("-suppressStackTrace", $suppressStackTraceMenuItemSuffix, true);
+			break;
+		case "unsuppressStackWindow":
+			setCommandReporterOption("-suppressStackTrace", $suppressStackTraceMenuItemSuffix, false);
+			break;
+
+		default: 
+			{
+				// internal assertion, never expected to show
+				warning ("Invalid action specified (" + $action + ")\n");
+			}
+			break;
+	}
+}
+
+global proc string shortObjectName(string $longObjectName) 
+//
+// Given a long ui name path, return the short object name.
+//
+{
+	// 
+	string $buffer[];
+	$numTokens = `tokenize $longObjectName "|" $buffer`;
+	if ($numTokens > 0) {
+		return $buffer[size($buffer)-1];
+	}else {
+		return "";
+	}	
+}
+
+global proc buildScriptEditorCondensedPopupMenus(string $parent, int $isHistoryPopup)
+//
+// Builds all the necessary menus under the specified menubar/popup
+//
+{		
+	// build the default marking menus
+	menuItem -radialPosition "N" 
+			 -parent $parent 
+			 -label (uiRes("m_scriptEditorPanel.kNewExecuterTab"))
+			 -command "handleScriptEditorAction \"addExecuterTab\"";
+	menuItem -radialPosition "W" 
+			 -parent $parent 
+			 -label (uiRes("m_scriptEditorPanel.kSelectPreviousTab"))
+			 -command "handleScriptEditorAction \"selectPreviousExecuterTab\"";	 
+	menuItem -radialPosition "E" 
+			 -parent $parent 
+			 -label (uiRes("m_scriptEditorPanel.kSelectNextTab"))
+			 -command "handleScriptEditorAction \"selectNextExecuterTab\"";	 
+	$deleteSM = `menuItem -radialPosition "SE" 
+			 -parent $parent 
+			 -subMenu true
+			 -label (uiRes("m_scriptEditorPanel.kCloseMMLabel"))`;
+		menuItem -parent $deleteSM
+ 				 -radialPosition "E"
+				 -label (uiRes("m_scriptEditorPanel.kCloseCurrentMMLabel"))
+				 -command "handleScriptEditorAction \"removeCurrentExecuterTab\"";	 
+		menuItem -parent $deleteSM
+				 -radialPosition "W"
+				 -label (uiRes("m_scriptEditorPanel.kCloseOthersMMLabel"))
+				 -command "handleScriptEditorAction \"removeOtherExecuterTabs\"";	 
+		setParent -m ..;
+					
+	if (!$isHistoryPopup) {
+		// build the default short rmb menus
+		menuItem -label (uiRes("m_scriptEditorPanel.kExecute")) 
+				 -parent $parent
+				 -command "handleScriptEditorAction \"execute\"";		
+		menuItem -label (uiRes("m_scriptEditorPanel.kQuickHelp")) 
+				 -parent $parent
+				 -command "handleScriptEditorAction \"showSelectedCmdQuickHelp\"";	
+		menuItem -label (uiRes("m_scriptEditorPanel.kShowCommandHelp"))
+				 -parent $parent
+				 -command "handleScriptEditorAction showSelectedCmdHelp";	
+
+		menuItem -divider on;			
+		menuItem -label (uiRes("m_scriptEditorPanel.kUndo")) 
+				 -parent $parent
+				 -command "handleScriptEditorAction \"undo\"";		
+		menuItem -label (uiRes("m_scriptEditorPanel.kRedo")) 
+				 -parent $parent
+				 -command "handleScriptEditorAction \"redo\"";		
+		menuItem -divider on;		
+		
+		menuItem -label (uiRes("m_scriptEditorPanel.kCut")) 
+					-parent $parent
+					-command "handleScriptEditorAction \"cut\"";		
+		menuItem -label (uiRes("m_scriptEditorPanel.kCopy")) 
+					-parent $parent
+					-command "handleScriptEditorAction \"copy\"";		
+		menuItem -label (uiRes("m_scriptEditorPanel.kPaste")) 
+					-parent $parent
+					-command "handleScriptEditorAction \"paste\"";		
+		menuItem -divider on;
+	
+		menuItem -label (uiRes("m_scriptEditorPanel.kSelectAll"))
+				 -parent $parent
+				 -command "handleScriptEditorAction \"selectAll\"";		
+		menuItem -divider on;
+		menuItem -label (uiRes("m_scriptEditorPanel.kClearInput"))
+				 -parent $parent
+				 -command "handleScriptEditorAction \"clearInput\"";		
+		menuItem -label (uiRes("m_scriptEditorPanel.kClearAll")) 
+				 -parent $parent
+				 -command "handleScriptEditorAction \"clearAll\"";				
+	}else {
+		menuItem -label (uiRes("m_scriptEditorPanel.kCopy")) 
+		 		 -parent $parent
+				 -command "handleScriptEditorAction \"copy\"";				
+	
+		menuItem -label (uiRes("m_scriptEditorPanel.kSelectAll"))
+				 -parent $parent
+				 -command "handleScriptEditorAction \"selectAll\"";		
+		menuItem -divider on;
+		menuItem -label (uiRes("m_scriptEditorPanel.kClearHistory"))
+				 -parent $parent
+				 -command "handleScriptEditorAction \"clearHistory\"";		
+		menuItem -label (uiRes("m_scriptEditorPanel.kClearAll")) 
+				 -parent $parent
+				 -command "handleScriptEditorAction \"clearAll\"";						
+	}
+}
+
+global proc buildScriptEditorMenus(string $parent, string $prefix, int $isPopupParent, int $isHistoryPopup)
+//
+// Builds all the necessary menus under the specified menubar/popup
+//
+{
+	global int $gScriptEditorMenuBarVisible;
+
+	// scoped vars
+	string $fileMenu, $editMenu;
+	string $historyMenu, $commandMenu;
+
+	if ($isPopupParent) {
+		// check if we are creating the full menu bar popup (only done if the menu bar is not visible)
+		$fileMenu = `menuItem -parent $parent -label (uiRes("m_scriptEditorPanel.kFile")) -allowOptionBoxes true -subMenu true`;	
+		$editMenu = `menuItem -parent $parent -label (uiRes("m_scriptEditorPanel.kEdit")) -allowOptionBoxes true -subMenu true`;	
+		menuItem -parent $parent -divider on; 
+		$historyMenu = `menuItem -parent $parent -label (uiRes("m_scriptEditorPanel.kHistory")) -allowOptionBoxes true -subMenu true`;
+		$commandMenu = `menuItem -parent $parent -label (uiRes("m_scriptEditorPanel.kCommand")) -allowOptionBoxes true -subMenu true`;
+		// build popup help menus
+		menuItem -parent $parent -divider on;
+		$helpMenu = `menuItem -parent $parent -label (uiRes("m_scriptEditorPanel.kHelp")) -subMenu true`;
+		buildScriptEditorContextHelpItems($parent, $parent);
+		
+		// post menu commands
+		menuItem -e -postMenuCommand ("buildScriptEditorFileMenu " + $fileMenu) $fileMenu;
+		menuItem -e -postMenuCommand ("buildScriptEditorEditMenu(\"" + $editMenu + "\", 1, " + $isHistoryPopup + ")") $editMenu;
+		menuItem -e -postMenuCommand ("buildScriptEditorHistoryMenu(\"" + $historyMenu + "\", \"" + $prefix + "\")") $historyMenu;
+		menuItem -e -postMenuCommand ("buildScriptEditorCommandMenu(\"" + $commandMenu + "\", \"" + $prefix + "\", 1)") $commandMenu;
+	}else {
+		$fileMenu = `menu -parent $parent -label (uiRes("m_scriptEditorPanel.kFile")) -allowOptionBoxes true -tearOff true`;
+		$editMenu = `menu -parent $parent -label (uiRes("m_scriptEditorPanel.kEdit")) -allowOptionBoxes true -tearOff true`;			
+		$historyMenu = `menu -parent $parent -label (uiRes("m_scriptEditorPanel.kHistory")) -allowOptionBoxes true -tearOff true`;		
+		$commandMenu = `menu -parent $parent -label (uiRes("m_scriptEditorPanel.kCommand")) -allowOptionBoxes true -tearOff true`;	
+		
+		// post menu commands
+		menu -e -postMenuCommand ("buildScriptEditorFileMenu " + $fileMenu) $fileMenu;
+		menu -e -postMenuCommand ("buildScriptEditorEditMenu(\"" + $editMenu + "\", 0, 0)") $editMenu;
+		menu -e -postMenuCommand ("buildScriptEditorHistoryMenu(\"" + $historyMenu + "\", \"" + $prefix + "\")") $historyMenu;
+		menu -e -postMenuCommand ("buildScriptEditorCommandMenu(\"" + $commandMenu + "\", \"" + $prefix + "\", 0)") $commandMenu;	
+	}
+}
+
+global proc buildScriptEditorFileMenu(string $parentMenu)
+//
+// Builds the file menu items under the specified menu
+//
+{
+	setParent -menu $parentMenu;
+	if (`menu -query -numberOfItems $parentMenu` != 0) {
+		return;
+	}
+
+	string $loadMenu, $saveMenu;
+
+	// create the menus
+	$loadMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kLoadScript"))
+				-annotation (uiRes("m_scriptEditorPanel.kLoadAnnot"))	
+				-c "handleScriptEditorAction \"load\""`;
+	menuItem	-l (uiRes("m_scriptEditorPanel.kSourceScript"))
+				-annotation (uiRes("m_scriptEditorPanel.kSourceAnnot"))	
+				-c "handleScriptEditorAction \"source\"";
+	$saveMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kSaveScript"))
+				-annotation (uiRes("m_scriptEditorPanel.kSaveAnnot"))	
+				-c "handleScriptEditorAction \"save\""`;
+	menuItem	-l (uiRes("m_scriptEditorPanel.kSaveScriptToShelf"))
+				-annotation (uiRes("m_scriptEditorPanel.kSaveToShelfAnnot"))	
+				-c "handleScriptEditorAction \"saveToShelf\"";	
+
+	if (`about -mac`) {
+		menuItem -e -commandModifier on -keyEquivalent "o" $loadMenu;
+		menuItem -e -commandModifier on -keyEquivalent "s" $saveMenu;
+	}else {
+		menuItem -e -ctrlModifier on -keyEquivalent "o" $loadMenu;
+		menuItem -e -ctrlModifier on -keyEquivalent "s" $saveMenu;
+	}
+}
+
+global proc buildScriptEditorEditMenu(string $parentMenu, int $filterCondensedMenus, int $historyPopup)
+//
+// Builds the edit menu items under the specified menu
+//
+{	
+	setParent -menu $parentMenu;
+	if (`menu -query -numberOfItems $parentMenu` != 0) {
+		return;
+	}
+
+	int	$isLinux = `about -linux`,
+		$isWin = `about -win`,
+		$isMac = `about -mac`;
+
+	string $undoMenu, $redoMenu;
+	string $cutMenu, $copyMenu, $pasteMenu, $selectAllMenu;
+	string $indentSelMenu, $unindentSelMenu, $gotoMenu, $searchAndReplaceMenu;
+
+	// create the menus
+	if (!$filterCondensedMenus || $historyPopup) { 
+		$undoMenu = `menuItem -l (uiRes("m_scriptEditorPanel.kUndo"))
+					-annotation (uiRes("m_scriptEditorPanel.kUedoAnnot"))	
+			 		-c "handleScriptEditorAction \"undo\""`;
+		$redoMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kRedo"))
+					-annotation (uiRes("m_scriptEditorPanel.kRedoAnnot"))	
+					-c "handleScriptEditorAction \"redo\""`;
+			
+		if ($isMac) {
+			menuItem -e -commandModifier on -keyEquivalent "z" $undoMenu;
+			menuItem -e -commandModifier on -shiftModifier on -keyEquivalent "z" $redoMenu;
+		}else if ($isLinux) {	
+			menuItem -e -ctrlModifier on -keyEquivalent "z" $undoMenu;
+			menuItem -e -ctrlModifier on -shiftModifier on -keyEquivalent "y" $redoMenu;
+		}else {
+			menuItem -e -ctrlModifier on -keyEquivalent "z" $undoMenu;
+			menuItem -e -ctrlModifier on -keyEquivalent "y" $redoMenu;
+		}
+	}
+	
+	if (!$filterCondensedMenus || $historyPopup) { 	
+		menuItem -divider on;
+		$cutMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kCut"))
+					-annotation (uiRes("m_scriptEditorPanel.kCutAnnot"))	
+					-c "handleScriptEditorAction \"cut\""`;
+		
+		if ($isMac) {
+			menuItem -e -commandModifier on -keyEquivalent "x" $cutMenu;
+		}else {	
+			menuItem -e -ctrlModifier on -keyEquivalent "x" $cutMenu;
+		} 
+	}
+	if (!$filterCondensedMenus) { 			
+		$copyMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kCopy"))
+					-annotation (uiRes("m_scriptEditorPanel.kCopyAnnot"))	
+					-c "handleScriptEditorAction \"copy\""`;
+		if ($isMac) {
+			menuItem -e -commandModifier on -keyEquivalent "c" $copyMenu;
+		}else {	
+			menuItem -e -ctrlModifier on -keyEquivalent "c" $copyMenu;
+		}
+	}
+	if (!$filterCondensedMenus || $historyPopup) { 	
+		$pasteMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kPaste"))
+					-annotation (uiRes("m_scriptEditorPanel.kPasteAnnot"))	
+					-c "handleScriptEditorAction \"paste\""`;
+		$selectAllMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kSelectAll"))
+					-annotation (uiRes("m_scriptEditorPanel.kSelectAllAnnot"))
+					-c "handleScriptEditorAction \"selectAll\""`;
+		menuItem -divider on;
+		
+		if ($isMac) {
+			menuItem -e -commandModifier on -keyEquivalent "v" $pasteMenu;
+			menuItem -e -commandModifier on -keyEquivalent "a" $selectAllMenu;
+		}else if ($isLinux) {	
+			menuItem -e -ctrlModifier on -keyEquivalent "v" $pasteMenu;
+			menuItem -e -ctrlModifier on -keyEquivalent "/" $selectAllMenu;
+		}else {	
+			menuItem -e -ctrlModifier on -keyEquivalent "v" $pasteMenu;
+			menuItem -e -ctrlModifier on -keyEquivalent "a" $selectAllMenu;
+		}
+	}
+    
+	$gotoMenu = `menuItem -l (uiRes("m_scriptEditorPanel.kGoto"))
+		-annotation (uiRes("m_scriptEditorPanel.kGotoLineAnnot"))
+		-c "handleScriptEditorAction \"gotoLine\""`;
+	$searchAndReplaceMenu = `menuItem -l (uiRes("m_scriptEditorPanel.kSearchAndReplace"))
+		-annotation (uiRes("m_scriptEditorPanel.kSearchAndReplaceAnnot"))
+		-c "handleScriptEditorAction \"searchAndReplace\""`;
+	menuItem -divider on;
+
+	// currently, there's an issue with the indent on linux?
+	$indentSelMenu = `menuItem -l (uiRes("m_scriptEditorPanel.kIndentSelection"))
+		-annotation (uiRes("m_scriptEditorPanel.kIndentSelectionAnnot"))
+		-c "handleScriptEditorAction \"indentSelection\""`;
+	$unindentSelMenu = `menuItem -l (uiRes("m_scriptEditorPanel.kUnindentSelection"))
+		-annotation (uiRes("m_scriptEditorPanel.kUnindentSelectionAnnot"))
+		-c "handleScriptEditorAction \"unindentSelection\""`;
+	menuItem -divider on;
+
+	if ($isMac) {
+		menuItem -e -commandModifier on -keyEquivalent "f" $searchAndReplaceMenu;
+		menuItem -e -commandModifier on -keyEquivalent "l" $gotoMenu;
+		menuItem -e -commandModifier on -keyEquivalent "]" $indentSelMenu;
+		menuItem -e -commandModifier on -keyEquivalent "[" $unindentSelMenu;
+	}else if ($isWin) {
+		menuItem -e -ctrlModifier on -keyEquivalent "f" $searchAndReplaceMenu;
+		menuItem -e -ctrlModifier on -keyEquivalent "l" $gotoMenu;			
+		menuItem -e -ctrlModifier on -keyEquivalent "]" $indentSelMenu;
+		menuItem -e -ctrlModifier on -keyEquivalent "[" $unindentSelMenu;
+	}
+	
+	if (!$filterCondensedMenus || !$historyPopup) { 
+		menuItem	-l (uiRes("m_scriptEditorPanel.kClearHistory"))
+					-annotation (uiRes("m_scriptEditorPanel.kClearHistoryAnnot"))
+					-c "handleScriptEditorAction \"clearHistory\"";
+	}
+	if (!$filterCondensedMenus || $historyPopup) { 
+		menuItem	-l (uiRes("m_scriptEditorPanel.kClearInput"))
+					-annotation (uiRes("m_scriptEditorPanel.kClearInputAnnot"))
+					-c "handleScriptEditorAction \"clearInput\"";
+	}
+	if (!$filterCondensedMenus) { 	
+		menuItem	-l (uiRes("m_scriptEditorPanel.kClearAll"))
+					-annotation (uiRes("m_scriptEditorPanel.kClearAllAnnot"))
+					-c "handleScriptEditorAction \"clearAll\"";
+	}
+}
+
+global proc buildScriptEditorHistoryMenu(string $parentMenu, string $prefix)
+//
+// Builds the history menu items under the specified menu
+//
+{	
+	//
+	global string $batchRenderMsgsMenuItemSuffix;
+	global string $echoAllCmdsMenuItemSuffix;
+	global string $errorLineNumsMenuItemSuffix;
+	global string $stackTraceMenuItemSuffix;
+	global string $suppressResultsMenuItemSuffix;
+	global string $suppressInfoMenuItemSuffix;
+	global string $suppressWarningsMenuItemSuffix;
+	global string $suppressErrorsMenuItemSuffix;
+	global string $suppressStackTraceMenuItemSuffix;
+	global string $historyFilterNoneMenuItemSuffix;
+	global string $historyFilterMELMenuItemSuffix;
+	global string $historyFilterPythonMenuItemSuffix;
+	global string $historyFilterConvertToPythonSuffix;		
+	//
+	string $filter = `optionVar -q commandReporterSourceTypeFilter`;
+	$filter = `tolower $filter`;
+
+	setParent -menu $parentMenu;
+	if (`menu -query -numberOfItems $parentMenu` != 0) {
+
+		// update the filter menu item first first
+		string $menuName;
+		// update the no-filter menu item
+		$menuName = ($prefix + $historyFilterNoneMenuItemSuffix);
+		if (`menuItem -q -exists $menuName`) {
+			menuItem -e -radioButton ($filter == "") $menuName;
+		}
+		// update the mel-filter menu item
+		$menuName = ($prefix + $historyFilterMELMenuItemSuffix);
+		if (`menuItem -q -exists $menuName`) {
+			menuItem -e -radioButton ($filter == "python") $menuName;
+		}
+		// update the python-filter menu item
+		$menuName = ($prefix + $historyFilterPythonMenuItemSuffix);
+		if (`menuItem -q -exists $menuName`) {
+			menuItem -e -radioButton ($filter == "mel") $menuName;
+		}
+
+		return;
+	}
+
+	//
+	global string $gCommandReporter;
+
+	// create the menus
+	menuItem	-l (uiRes("m_scriptEditorPanel.kBatchRenderMessages"))
+				-checkBox `optionVar -q batchRenderMessagesVerbosity`
+				-annotation (uiRes("m_scriptEditorPanel.kShowBatchRenderMessagesAnnot"))
+				-c "handleScriptEditorAction \"batchRenderMsgs\""
+				($prefix + $batchRenderMsgsMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kEchoAllCommands"))
+				-checkBox `pymelScrollFieldReporter -q -echoAllCommands $gCommandReporter`
+				-annotation (uiRes("m_scriptEditorPanel.kEchoAllCommmandsAnnot"))
+				-c "handleScriptEditorAction \"echoAllCommands\""
+				($prefix + $echoAllCmdsMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kLineNumbersInErrors"))
+				-checkBox `pymelScrollFieldReporter -q -lineNumbers $gCommandReporter`
+				-annotation (uiRes("m_scriptEditorPanel.kShowLineNumInErrorsAnnot"))
+				-c "handleScriptEditorAction \"showErrorLineNumbers\""
+				($prefix + $errorLineNumsMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kShowStackTrace"))
+				-checkBox `pymelScrollFieldReporter -q -stackTrace $gCommandReporter`
+				-annotation (uiRes("m_scriptEditorPanel.kShowStackTraceAnnot"))
+				-c "handleScriptEditorAction \"showStackTrace\""
+				($prefix + $stackTraceMenuItemSuffix);
+	menuItem -divider on;		
+	menuItem	-subMenu true -tearOff true -l (uiRes("m_scriptEditorPanel.kFilterOutput"));
+	radioMenuItemCollection;
+	menuItem	-label (uiRes("m_scriptEditorPanel.kFilterNone"))
+				-radioButton ($filter == "")
+				-annotation (uiRes("m_scriptEditorPanel.kFilterNoneAnnot"))
+				-command "handleScriptEditorAction \"filterOutHistoryNone\""
+				($prefix + $historyFilterNoneMenuItemSuffix);
+	menuItem	-label (uiRes("m_scriptEditorPanel.kFilterMEL"))
+				-radioButton ($filter == "python")
+				-annotation (uiRes("m_scriptEditorPanel.kFilterMELAnnot"))
+				-command "handleScriptEditorAction \"filterOutHistoryPython\""
+				($prefix + $historyFilterMELMenuItemSuffix);	
+	menuItem	-label (uiRes("m_scriptEditorPanel.kFilterPython"))
+				-radioButton ($filter == "mel")
+				-annotation (uiRes("m_scriptEditorPanel.kFilterPythonAnnot"))
+				-command "handleScriptEditorAction \"filterOutHistoryMEL\""
+				($prefix + $historyFilterPythonMenuItemSuffix);	
+	// chad		
+	menuItem -divider on;
+	menuItem	//-l (uiRes("Convert Mel to Python"))
+				-l "Convert Mel to Python"
+				-checkBox `pymelScrollFieldReporter -q -convertToPython $gCommandReporter`
+				//-annotation (uiRes("m_scriptEditorPanel.kSuppressResultsAnnot"))
+				-c "handleScriptEditorAction \"convertHistoryToPython\""
+				($prefix + $historyFilterConvertToPythonSuffix);
+	// end chad
+	
+	setParent -m ..;
+	menuItem -divider on;
+	menuItem	-l (uiRes("m_scriptEditorPanel.kSuppressCommandResults"))
+				-checkBox `pymelScrollFieldReporter -q -suppressResults $gCommandReporter`
+				-annotation (uiRes("m_scriptEditorPanel.kSuppressResultsAnnot"))
+				-c "handleScriptEditorAction \"toggleSuppressResults\""
+				($prefix + $suppressResultsMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kSuppressInfoMessages"))
+				-checkBox `pymelScrollFieldReporter -q -suppressInfo $gCommandReporter`
+				-c "handleScriptEditorAction \"toggleSuppressInfos\""
+				-annotation (uiRes("m_scriptEditorPanel.kSuppressInfoMsgsAnnot"))
+				($prefix + $suppressInfoMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kSuppressWarningMessages"))
+				-checkBox `pymelScrollFieldReporter -q -suppressWarnings $gCommandReporter`
+				-annotation (uiRes("m_scriptEditorPanel.kSuppressWarningMsgsAnnot"))
+				-c "handleScriptEditorAction \"toggleSuppressWarnings\""
+				($prefix + $suppressWarningsMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kSuppressErrorMessages"))
+				-checkBox `pymelScrollFieldReporter -q -suppressErrors $gCommandReporter`
+				-annotation (uiRes("m_scriptEditorPanel.kSuppressErrorMsgsAnnot"))
+				-c "handleScriptEditorAction \"toggleSuppressErrors\""
+				($prefix + $suppressErrorsMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kSuppressStackWindow"))
+				-checkBox `pymelScrollFieldReporter -q -suppressStackTrace $gCommandReporter`
+				-annotation (uiRes("m_scriptEditorPanel.kSuppressStackWindowAnnot"))
+				-c "handleScriptEditorAction \"toggleSuppressStackWindow\""
+				($prefix + $suppressStackTraceMenuItemSuffix);
+}
+
+global proc buildScriptEditorCommandMenu(string $parentMenu, string $prefix, int $filterCondensedMenus)
+//
+// Builds the command menu items under the specified menu
+//
+{
+	//
+	global string $showLineNumbersMenuItemSuffix; 
+	global string $useTabsForIndentMenuItemSuffix;
+	global string $commandCompletionMenuItemSuffix;
+	global string $pathCompletionMenuItemSuffix;
+	global string $toolTipHelpMenuItemSuffix;
+	global string $showQuickHelpMenuItemSuffix;
+	global int $gCommandExecuterShowQuickHelp;
+	//
+	
+	setParent -menu $parentMenu;
+	if (`menu -query -numberOfItems $parentMenu` != 0) {		
+		return;
+	}
+
+	// 
+	string $curExecuter = `getCurrentExecuterControl`;
+	string $newTabMenu, $closeTabMenu, $selectNextTabMenu, $selectPreviousTabMenu;
+
+	// executer tabs control	
+	$newTabMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kNewExecuterTab"))
+				-annotation (uiRes("m_scriptEditorPanel.kNewTabAnnot"))
+				-c "handleScriptEditorAction \"addExecuterTab\""`;
+	menuItem	-l (uiRes("m_scriptEditorPanel.kRenameCurrentTab"))
+				-annotation (uiRes("m_scriptEditorPanel.kRenameTabAnnot"))
+				-c "handleScriptEditorAction \"renameCurrentExecuterTab\"";
+
+	menuItem	-subMenu true -label (uiRes("m_scriptEditorPanel.kSelectTab"));
+	$selectPreviousTabMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kSelectPreviousTab"))
+				-annotation (uiRes("m_scriptEditorPanel.kSelectPreviousTabAnnot"))
+				-c "handleScriptEditorAction \"selectPreviousExecuterTab\""`;
+	$selectNextTabMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kSelectNextTab"))
+				-annotation (uiRes("m_scriptEditorPanel.kSelectNextTabAnnot"))
+				-c "handleScriptEditorAction \"selectNextExecuterTab\""`;
+	
+	setParent -m $parentMenu;
+	$closeTabMenu = `menuItem -l (uiRes("m_scriptEditorPanel.kCloseCurrentTab"))
+				-annotation (uiRes("m_scriptEditorPanel.kCloseCurrentTabAnnot"))
+				-c "handleScriptEditorAction \"removeCurrentExecuterTab\""`;
+	
+	menuItem	-divider on;
+
+	// UNDECIDED - NOT CONFIRMED/FINALIZED
+	if (`about -mac`) {
+		menuItem -e -commandModifier on -keyEquivalent "t" $newTabMenu;
+		menuItem -e -commandModifier on -keyEquivalent "m" $closeTabMenu;
+		menuItem -e -commandModifier on -keyEquivalent "j" $selectPreviousTabMenu;
+		menuItem -e -commandModifier on -keyEquivalent "k" $selectNextTabMenu;
+	}else {		
+		menuItem -e -ctrlModifier on -keyEquivalent "t" $newTabMenu;
+		menuItem -e -ctrlModifier on -keyEquivalent "m" $closeTabMenu;
+		menuItem -e -ctrlModifier on -keyEquivalent "j" $selectPreviousTabMenu;
+		menuItem -e -ctrlModifier on -keyEquivalent "k" $selectNextTabMenu;
+	}
+
+	// executer options
+	menuItem	-l (uiRes("m_scriptEditorPanel.kShowLineNumbers"))
+				-checkBox `cmdScrollFieldExecuter -q -showLineNumbers $curExecuter`
+				-annotation (uiRes("m_scriptEditorPanel.kShowLineNumberAnnot"))
+				-c "handleScriptEditorAction \"showLineNumbers\""
+				($prefix + $showLineNumbersMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kUseTabsForIndent"))
+				-checkBox `cmdScrollFieldExecuter -q -tabsForIndent $curExecuter`
+				-annotation (uiRes("m_scriptEditorPanel.kUseTabsForIndentAnnot"))
+				-c "handleScriptEditorAction \"tabsForIndent\""
+				($prefix + $useTabsForIndentMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kCommandCompletion"))
+				-checkBox `cmdScrollFieldExecuter -q -commandCompletion $curExecuter`
+				-annotation (uiRes("m_scriptEditorPanel.kCommandCompletionAnnot"))
+				-c "handleScriptEditorAction \"commandCompletion\""
+				($prefix + $commandCompletionMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kPathCompletion"))
+				-checkBox `cmdScrollFieldExecuter -q -objectPathCompletion $curExecuter`
+				-annotation (uiRes("m_scriptEditorPanel.kPathCompletionAnnot"))
+				-c "handleScriptEditorAction \"pathCompletion\""
+				($prefix + $pathCompletionMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kToolTipHelp"))
+				-checkBox `cmdScrollFieldExecuter -q -showTooltipHelp $curExecuter`
+				-annotation (uiRes("m_scriptEditorPanel.kToolTipHelpAnnot"))
+				-c "handleScriptEditorAction \"toolTipHelp\""
+				($prefix + $toolTipHelpMenuItemSuffix);
+	menuItem	-l (uiRes("m_scriptEditorPanel.kShowQuickHelp"))
+				-checkBox $gCommandExecuterShowQuickHelp
+				-annotation (uiRes("m_scriptEditorPanel.kQuickHelpNumberAnnot"))
+				-c "handleScriptEditorAction \"showQuickHelp\""
+				($prefix + $showQuickHelpMenuItemSuffix);
+
+	if (!$filterCondensedMenus) {
+		menuItem -divider on;
+		string $executeMenu = `menuItem	-l (uiRes("m_scriptEditorPanel.kExecute"))
+					-annotation (uiRes("m_scriptEditorPanel.kExecuteAnnot"))
+					-c "handleScriptEditorAction \"execute\""`;
+					
+		if (`about -mac`) {
+			menuItem -e -commandModifier on -keyEquivalent "Enter" $executeMenu;
+		}else {
+			menuItem -e -ctrlModifier on -keyEquivalent "Enter" $executeMenu;
+		}
+	}
+}
+
+global proc synchronizeScriptEditorOption(int $newVal, string $menuItemSuffix) 
+//
+// Synchronizes the various option menu items on the given value for the given menu item.
+// Also affects the respective main menu bar menu item.
+//
+{
+	// toggle all the reporter menu items
+	global string $gCommandReporter;
+	string $objName = `shortObjectName $gCommandReporter`;
+	string $menuName = ($objName + $menuItemSuffix);
+	if (`menuItem -q -exists $menuName`) {
+		menuItem -e -cb $newVal $menuName;
+	}
+	// toggle all the executer reporter menu items
+	global string $gCommandExecuter[];
+	string $menu;
+	for ($menu in $gCommandExecuter) {
+		$objName = `shortObjectName $menu`;
+		$menuName = ($objName + $menuItemSuffix);
+		if (`menuItem -q -exists $menuName`) {
+			menuItem -e -cb $newVal $menuName;
+		}
+	}
+	
+	// toggle the main menubar menu item
+	global string $gScriptEditorMenuBarPrefix;
+	string $menuName = ($gScriptEditorMenuBarPrefix + $menuItemSuffix);
+	if (`menuItem -q -exists $menuName`) {
+		menuItem -e -cb $newVal $menuName;
+	}
+}
+
+global proc setCommandReporterOption( string $optionFlag, string $menuItemSuffix, int $newVal )
+//
+// Sets instead of toggles
+//
+{
+	global string $gLastFocusedCommandReporter;
+
+	if ($gLastFocusedCommandReporter != "") {			
+		// get the old value and swap it
+		int $curVal = `pymelScrollFieldReporter -q $optionFlag $gLastFocusedCommandReporter`;
+
+		if ($newVal != $curVal) {
+			// set the new value
+			eval("pymelScrollFieldReporter -e " + $optionFlag + " " + $newVal + " " + $gLastFocusedCommandReporter);
+
+			saveCommandReporterOptionVars($gLastFocusedCommandReporter);
+			synchronizeScriptEditorOption($newVal, $menuItemSuffix);
+		}
+	}
+}
+
+global proc toggleCommandReporterOption( string $optionFlag, string $menuItemSuffix ) 
+//
+// Toggles an pymelScrollFieldReporter option.
+//
+{
+	global string $gLastFocusedCommandReporter;
+
+	if ($gLastFocusedCommandReporter != "") {			
+		// get the old value and swap it
+		int $curVal = `pymelScrollFieldReporter -q $optionFlag $gLastFocusedCommandReporter`;
+		int $newVal = abs($curVal-1);	
+
+		// set the new value
+		eval("pymelScrollFieldReporter -e " + $optionFlag + " " + $newVal + " " + $gLastFocusedCommandReporter);
+
+		saveCommandReporterOptionVars($gLastFocusedCommandReporter);
+		synchronizeScriptEditorOption($newVal, $menuItemSuffix);
+	}
+}
+
+global proc toggleCommandExecuterShowLineNumbers() 
+//
+// Specifically toggles whether to show line numbers in the command executers or not.
+//
+{
+	global string $showLineNumbersMenuItemSuffix;
+	global string $gCommandExecuter[];
+
+	// get the old value and swap it
+	int $curVal = `cmdScrollFieldExecuter -q -showLineNumbers $gCommandExecuter[0]`;
+	int $newVal = abs($curVal-1);	
+
+	// set the new value
+	string $executer;
+	for ($executer in $gCommandExecuter) {
+		eval("cmdScrollFieldExecuter -e -showLineNumbers " + $newVal + " " + $executer);
+	}
+
+	string $icon = ($newVal ? "showLineNumbers.png" : "showLineNumbersOff.png");
+	iconTextButton -e -image $icon showLineNumbersButton;
+	
+	optionVar -iv commandExecuterShowLineNumbers $newVal;
+	synchronizeScriptEditorOption($newVal, $showLineNumbersMenuItemSuffix);
+}
+
+global proc toggleCommandExecuterTabsForIndent()
+//
+// Toggles whether tabs are inserted in the executer
+{
+    global string $useTabsForIndentMenuItemSuffix;
+	global string $gCommandExecuter[];
+
+	// get the old value and swap it
+	int $curVal = `cmdScrollFieldExecuter -q -tabsForIndent $gCommandExecuter[0]`;
+	int $newVal = abs($curVal-1);
+
+	// set the new value
+	string $executer;
+	for ($executer in $gCommandExecuter) {
+		eval("cmdScrollFieldExecuter -e -tabsForIndent " + $newVal + " " + $executer);
+	}
+
+	optionVar -iv commandExecuterTabsForIndent $newVal;
+	synchronizeScriptEditorOption($newVal, $useTabsForIndentMenuItemSuffix);	
+}
+
+global proc setCommandExecuterSpacesPerTab(int $newVal)
+//
+// Sets the number of spaces which are equivalent to one tab stop
+{
+	global string $gCommandExecuter[];
+
+	// set the new value
+	string $executer;
+	for ($executer in $gCommandExecuter) {
+		eval("cmdScrollFieldExecuter -e -spacesPerTab " + $newVal + " " + $executer);
+	}
+
+	optionVar -iv commandExecuterSpacesPerTab $newVal;
+}
+
+global proc toggleCommandExecuterCommandCompletion() 
+//
+// Toggles command completion 
+//
+{
+	global string $commandCompletionMenuItemSuffix;
+	global string $gCommandExecuter[];
+
+	// get the old value and swap it
+	int $curVal = `cmdScrollFieldExecuter -q -commandCompletion $gCommandExecuter[0]`;
+	int $newVal = abs($curVal-1);	
+
+	// set the new value
+	string $executer;
+	for ($executer in $gCommandExecuter) {
+		eval("cmdScrollFieldExecuter -e -commandCompletion " + $newVal + " " + $executer);
+	}
+
+	// TODO:
+	// No button for this yet
+	//string $icon = ($newVal ? "showLineNumbers.png" : "showLineNumbersOff.png");
+	//iconTextButton -e -image $icon showLineNumbersButton;
+	
+	optionVar -iv commandExecuterCommandCompletion $newVal;
+	synchronizeScriptEditorOption($newVal, $commandCompletionMenuItemSuffix);
+}
+
+global proc toggleCommandExecuterPathCompletion() 
+//
+// Toggles dag path completion 
+//
+{
+	global string $pathCompletionMenuItemSuffix;
+	global string $gCommandExecuter[];
+
+	// get the old value and swap it
+	int $curVal = `cmdScrollFieldExecuter -q -objectPathCompletion $gCommandExecuter[0]`;
+	int $newVal = abs($curVal-1);	
+
+	// set the new value
+	string $executer;
+	for ($executer in $gCommandExecuter) {
+		eval("cmdScrollFieldExecuter -e -objectPathCompletion " + $newVal + " " + $executer);
+	}
+
+	// TODO:
+	// No button for this yet
+	//string $icon = ($newVal ? "showLineNumbers.png" : "showLineNumbersOff.png");
+	//iconTextButton -e -image $icon showLineNumbersButton;
+	
+	optionVar -iv commandExecuterPathCompletion $newVal;
+	synchronizeScriptEditorOption($newVal, $pathCompletionMenuItemSuffix);
+}
+
+
+global proc toggleCommandExecuterToolTipHelp() 
+//
+// Toggles dag path completion 
+//
+{
+	global string $toolTipHelpMenuItemSuffix;
+	global string $gCommandExecuter[];
+
+	// get the old value and swap it
+	int $curVal = `cmdScrollFieldExecuter -q -showTooltipHelp $gCommandExecuter[0]`;
+	int $newVal = abs($curVal-1);	
+
+	// set the new value
+	string $executer;
+	for ($executer in $gCommandExecuter) {
+		eval("cmdScrollFieldExecuter -e -showTooltipHelp " + $newVal + " " + $executer);
+	}
+
+	// TODO:
+	// No button for this yet
+	//string $icon = ($newVal ? "showLineNumbers.png" : "showLineNumbersOff.png");
+	//iconTextButton -e -image $icon showLineNumbersButton;
+	
+	optionVar -iv commandExecuterToolTipHelp $newVal;
+	synchronizeScriptEditorOption($newVal, $toolTipHelpMenuItemSuffix);
+}
+
+
+global proc delegateCommandToFocusedExecuterWindow( string $cmd, int $deferred) 
+//
+// Delegates a command to the last focused executer control.
+// Parameter deferred means use evalDeferred instead of eval, this is important to avoid
+// instability because the MEL scanner is not reentrant.
+{
+	global string $gLastFocusedCommandExecuter;
+	
+	if ($gLastFocusedCommandExecuter != "") {
+        string $evalCmd = "cmdScrollFieldExecuter " + $cmd + " " + $gLastFocusedCommandExecuter;
+        if ($deferred == 1) {
+            evalDeferred($evalCmd);
+        } else { 
+		    eval($evalCmd);
+        }
+	}
+}
+global proc delegateCommandToFocusedReporterWindow( string $cmd ) 
+//
+// Delegates a command to the last focused reporter control.
+//
+{
+	global string $gLastFocusedCommandReporter;
+
+	if ($gLastFocusedCommandReporter != "") {
+		eval("pymelScrollFieldReporter " + $cmd + " " + $gLastFocusedCommandReporter);
+	}
+}
+global proc delegateCommandToFocusedWindow( string $cmd ) 
+//
+// Delegates a command to the currently focused control.
+// 
+{	
+	global string $gLastFocusedCommandReporter;
+	global string $gLastFocusedCommandExecuter;	
+	global string $gLastFocusedCommandControl;
+	
+	if ($gLastFocusedCommandControl == $gLastFocusedCommandReporter) {
+		eval("pymelScrollFieldReporter " + $cmd + " " + $gLastFocusedCommandControl);	
+	}else if ($gLastFocusedCommandControl == $gLastFocusedCommandExecuter) {
+		eval("cmdScrollFieldExecuter " + $cmd + " " + $gLastFocusedCommandControl);
+	}
+}
+
+global proc string getCurrentExecuterControl() 
+//
+// Returns the current executer control.
+//
+{
+	global string $gCommandExecuterTabs;
+
+	// get tab array
+	string $array[] = `tabLayout -q -ca $gCommandExecuterTabs`;
+	// get selected tab index
+	int $selTabIdx = `tabLayout -q -selectTabIndex $gCommandExecuterTabs` - 1;
+	// get the tab at the index
+	string $curFormLayout = $array[$selTabIdx];
+	// get the formLayout children in this tab (according to how we built it)
+	string $tabChldrn[] = `formLayout -q -ca $curFormLayout`;
+	// get the formLayout's first child which should be the cmdScrollFieldExecuter
+	string $curExecuter = $tabChldrn[0];
+
+	return $curExecuter;
+}
+
+global proc setLastFocusedCommandExecuter(string $controlName) {
+	global string $gLastFocusedCommandExecuter;
+	global string $gLastFocusedCommandControl;
+
+	$gLastFocusedCommandExecuter = $controlName;
+	$gLastFocusedCommandControl = $controlName;
+}
+global proc setLastFocusedCommandReporter(string $controlName) {	
+	global string $gLastFocusedCommandReporter;
+	global string $gLastFocusedCommandControl;
+	
+	$gLastFocusedCommandReporter = $controlName;
+	$gLastFocusedCommandControl = $controlName;	
+}
+
+global proc selectCurrentExecuterControl() {
+	string $curExecuter = `getCurrentExecuterControl`;
+	setLastFocusedCommandExecuter $curExecuter;
+	setFocus $curExecuter;
+	syncExecuterTabState();
+}
+
+global proc
+setCommandReporterFilter(string $filter)
+//
+// Updates the command reporter filter to filter the specified source from showing.
+//
+{
+	global string $gScriptEditorMenuBarPrefix;
+	global string $gCommandReporter;
+
+	// set the filter for the only command reporter
+	pymelScrollFieldReporter -e -filterSourceType $filter $gCommandReporter;
+
+	// set the global option var
+	optionVar -sv commandReporterSourceTypeFilter $filter;
+}
+
+global proc loadCommandReporterOptionVars(string $reporter) 
+//
+// Updates the command reporter with the saved preferences.
+//
+{
+	// load command reporter options
+	string $buffer[];
+	$numTokens = `tokenize $reporter "|" $buffer`;
+	if (size($buffer) == 0)
+		return;
+	string $optionVarKey = "commandReporter" + $buffer[size($buffer)-1];
+
+	if (!`optionVar -exists commandReporterSourceTypeFilter`) {
+		optionVar -sv commandReporterSourceTypeFilter "";
+	}
+	
+	pymelScrollFieldReporter	-e 
+   							-lineNumbers `optionVar -q "showLineNumbersIsOn"`
+							-stackTrace `optionVar -q "stackTraceIsOn"`
+							-echoAllCommands `optionVar -q "echoAllLines"`
+							-suppressResults `optionVar -q ($optionVarKey + "SuppressResults")`
+							-suppressInfo `optionVar -q ($optionVarKey + "SuppressInfo")`
+							-suppressWarnings `optionVar -q ($optionVarKey + "SuppressWarnings")`
+							-suppressErrors `optionVar -q ($optionVarKey + "SuppressErrors")`
+							-suppressStackTrace `optionVar -q ($optionVarKey + "SuppressStackTrace")`
+							-convertToPython `optionVar -q ($optionVarKey + "ConvertToPython")`// CHAD
+							-filterSourceType `optionVar -q commandReporterSourceTypeFilter`
+							$reporter;
+}
+
+global proc saveCommandReporterOptionVars(string $reporter) 
+//
+// Save preferences with the command reporter's options state.
+//
+{
+	// save command reporter options.  	
+	// first, we need to get the short reoprter name
+	string $buffer[];
+	$numTokens = `tokenize $reporter "|" $buffer`;
+	if (size($buffer) == 0)
+		return;
+	string $optionVarKey = "commandReporter" + $buffer[size($buffer)-1];
+	optionVar -iv "showLineNumbersIsOn" `pymelScrollFieldReporter -q -lineNumbers $reporter`;
+	optionVar -iv "stackTraceIsOn" `pymelScrollFieldReporter -q -stackTrace $reporter`;
+	optionVar -iv "echoAllLines" `pymelScrollFieldReporter -q -echoAllCommands $reporter`;
+	optionVar -iv ($optionVarKey + "SuppressResults") `pymelScrollFieldReporter -q -suppressResults $reporter`;
+	optionVar -iv ($optionVarKey + "SuppressInfo") `pymelScrollFieldReporter -q -suppressInfo $reporter`;
+	optionVar -iv ($optionVarKey + "SuppressWarnings") `pymelScrollFieldReporter -q -suppressWarnings $reporter`;
+	optionVar -iv ($optionVarKey + "SuppressErrors") `pymelScrollFieldReporter -q -suppressErrors $reporter`;
+	optionVar -iv ($optionVarKey + "SuppressStackTrace") `pymelScrollFieldReporter -q -suppressStackTrace $reporter`;
+	optionVar -iv ($optionVarKey + "ConvertToPython") `pymelScrollFieldReporter -q -convertToPython $reporter`; // CHAD
+}
+
+global proc verifyCommandPopupMenus() 
+//
+// On RMB, we check if the state of the menubar has changed from before, if so, then we need
+// to delete the old popup menus and rebuild a new set (either condensed or full)
+//
+{
+	global int $gScriptEditorMenuBarVisible;
+	global string $gCommandPopupMenus[];
+	global string $gCommandReporter;
+	global string $gCommandExecuter[];
+	
+	int $menuBarVisible = `scriptedPanel -q -menuBarVisible scriptEditorPanel1`;
+	if ($menuBarVisible != $gScriptEditorMenuBarVisible) {
+		// delete all the sub menus for each popup menu
+		// handle the reporters first
+		int $index = 0;		
+		int $i = 0, $j;
+		
+		if (size($gCommandPopupMenus) > 0) {
+			// delete the history sub menus
+			// history only has 5 default menu items (including dividers)
+			string $menuItems[] = `popupMenu -q -itemArray $gCommandPopupMenus[0]`;
+			if (size($menuItems) > 5) {
+				int $end = size($menuItems);
+				for ($i = 5; $i < $end; $i++) {
+					deleteUI $menuItems[$i];
+				}
+			}
+			int $j = 1;
+			
+			// delete executer sub menus
+			// executer only has 13 default menu items (including dividers)			
+			for (; $j < size($gCommandPopupMenus); $j++) {
+				string $menu = $gCommandPopupMenus[$j];				
+				string $menuItems[] = `popupMenu -q -itemArray $menu`;			
+				if (size($menuItems) > 13) {
+					int $end = size($menuItems);
+					for ($i = 13; $i < $end; $i++) {
+						deleteUI $menuItems[$i];
+					}
+				}
+			}
+		}
+				
+		// set new state
+		$gScriptEditorMenuBarVisible = $menuBarVisible;		
+		
+		// rebuild sub menus again if necessary
+		if (!$gScriptEditorMenuBarVisible) {	
+			// then build the sub menus under the condensed menus
+			// assert - size($gCommandPopupMenus) == size($gCommandReporters) + size($gCommandExecuters)
+			$index = 0;
+			
+			menuItem -parent $gCommandPopupMenus[$index] -divider on; 
+			// fill history sub menus
+			buildScriptEditorMenus($gCommandPopupMenus[$index], `shortObjectName $gCommandReporter`, true, true);
+			$index++;
+			
+			// fill the executer sub menus
+			for ($control in $gCommandExecuter) {
+				menuItem -parent $gCommandPopupMenus[$index] -divider on; 			
+				buildScriptEditorMenus($gCommandPopupMenus[$index], `shortObjectName $control`, true, false);
+				$index++;
+			}			
+		}	
+
+	}
+}
+
+global proc
+doubleClickCmdQuickHelp() 
+//
+// Handles a double click in the cmd quick help results
+//
+{
+	global string $gCommandExecuterSideBarHelpField;
+	global string $gCommandExecuterSideBarHelpResults;
+
+	string $curExec = `getCurrentExecuterControl`;
+	string $sels[] = `textScrollList -q -selectItem $gCommandExecuterSideBarHelpResults`;
+	string $cmd = `textField -q -text $gCommandExecuterSideBarHelpField`;
+	$cmd = `strip $cmd`;
+
+	if (size($sels) == 0) {
+		return;
+	}
+
+	// otherwise, go through the list and add the selected flags into the script editor
+	// mapping the types as we go along?
+	string $sel;	
+	string $line;
+
+	// we replace the selection with the command if there is one (usually from the 
+	// command -> quick help menu/ shortcut).
+	// TODO: reconsider if we can move the cursor past the selection and the first space
+	// OR: just find the next space and replace that?
+	if (`cmdScrollFieldExecuter -q -hasSelection $curExec`) {
+		$line = $cmd;
+	}
+
+	for ($sel in $sels) {
+		
+		// we know that it is in the format of -shortFlag/-longFlag <arg1> <arg2> ...
+		// for now, we only want to append the long flag on		
+		string $buffer[];
+		$numTokens = `tokenize $sel "/" $buffer`;
+
+		// append line
+		if ($numTokens > 1) {
+			$line += (" " + $buffer[1]);	
+		}
+	}
+
+	// replace certain keywords (the values) with some defaults
+	$line = `substituteAllString $line  " on|off"  " false"`;		// default boolean to false
+	$line = `substituteAllString $line " UnsignedInt" " 0"`;		// default uint to 0
+	$line = `substituteAllString $line " Int" " 0"`;				// default int to 0
+	$line = `substituteAllString $line " Float" " 1.0"`;			// default float to 0.0
+
+	// insert the text into the current executer
+	cmdScrollFieldExecuter -e -insertText $line $curExec;
+}
+
+global proc
+toggleCmdQuickHelp(int $show, int $forceToggle)
+//
+// Toggles the visibility of the sidebar panel.
+// $show -> -1 = toggle, 0 = hide, 1 = show
+//
+{
+	global string $gCommandExecuterSideBar;
+	global string $gCommandExecuterTabsForm;
+	global string $gCommandExecuterTabs;
+	global int $gCommandExecuterShowQuickHelp;
+	global string $showQuickHelpMenuItemSuffix;
+
+	// toggle
+	int $curVis = `tabLayout -q -visible $gCommandExecuterSideBar`;
+	if ($show < 0) {		
+		$show = abs($curVis-1);
+	}
+
+	// return if already in that state
+	if (($show == $curVis) && !$forceToggle) {
+		return;
+	}
+
+	if ($show) {
+
+		// show and re-layout form
+		tabLayout -e -visible true -width 120 $gCommandExecuterSideBar;
+
+		formLayout -e 
+					-attachForm $gCommandExecuterSideBar top 0
+					-attachNone $gCommandExecuterSideBar left 
+					-attachForm $gCommandExecuterSideBar right 0
+					-attachForm $gCommandExecuterSideBar bottom 0
+
+					-attachForm $gCommandExecuterTabs left 0
+					-attachControl $gCommandExecuterTabs right 0 $gCommandExecuterSideBar
+					-attachForm $gCommandExecuterTabs top 0
+					-attachForm $gCommandExecuterTabs bottom 0 $gCommandExecuterTabsForm;
+
+		// if showing, then set the field
+		global string $gCommandExecuterSideBarHelpField;
+		setFocus $gCommandExecuterSideBarHelpField;
+
+	}else {
+
+		// hide and re-layout form
+		tabLayout -e -visible false $gCommandExecuterSideBar;
+
+		formLayout -e 
+					-attachForm $gCommandExecuterSideBar top 0
+					-attachNone $gCommandExecuterSideBar left 
+					-attachForm $gCommandExecuterSideBar right 0
+					-attachForm $gCommandExecuterSideBar bottom 0
+
+					-attachForm $gCommandExecuterTabs left 0
+					-attachForm $gCommandExecuterTabs right 0
+					-attachForm $gCommandExecuterTabs top 0
+					-attachForm $gCommandExecuterTabs bottom 0 $gCommandExecuterTabsForm;
+	}
+
+	// save optionVar
+	$gCommandExecuterShowQuickHelp = $show;
+    synchronizeScriptEditorOption($show, $showQuickHelpMenuItemSuffix); 
+}
+
+global proc string
+commandHelpExists(string $cmd) 
+//
+// Returns whether quick help for the specified command exists, and if so,
+// the command name for which it exists under.
+//
+{
+	$cmd = `strip $cmd`;
+
+	if (size($cmd) > 0) {
+		// take the first word if multple are selected
+		string $buffer[];
+		int $numTokens = tokenize($cmd, $buffer);
+
+		string $helpExists[] = `help -list $buffer[0]`;
+
+		// if help exists
+		if (size($helpExists) > 0) {
+
+			return $helpExists[0];
+
+		}else {
+
+			// if none found, then show help result
+			help $cmd;
+		}
+	}
+
+	// return empty string
+	return "";
+}
+
+global proc
+showFieldCmdDocumentation()
+//
+// Loads the detailed docs for the field command if it exists.
+//
+{
+	global string $gCommandExecuterSideBarHelpField;
+
+	string $cmd = `textField -q -text $gCommandExecuterSideBarHelpField`;
+	$cmd = `strip $cmd`;
+	$cmd = `commandHelpExists($cmd)`;
+
+	// help exists? then load docs
+	if (size($cmd) > 0) {
+		help -doc $cmd;
+	}
+}
+
+global proc 
+showFieldCmdQuickHelp()
+//
+// Shows the list of flags in the sidebar given that the sidebar field already contains the cmd name.
+//
+{
+	global string $gCommandExecuterSideBarHelpForm;
+	global string $gCommandExecuterSideBarHelpField;
+	global string $gCommandExecuterSideBarHelpResults;
+
+	// clear results first
+	textScrollList -e -removeAll $gCommandExecuterSideBarHelpResults;
+
+	string $cmd = `textField -q -text $gCommandExecuterSideBarHelpField`;
+	$cmd = `strip $cmd`;
+	string $res = `help $cmd`;
+
+	int $cmdFlagsFound = false;
+	string $flags[];
+	$numTokens = `tokenize $res "\r\n" $flags`;
+
+	string $flag;
+	for ($flag in $flags) {
+		
+		string $flagArgs[];
+		$numTokens = `tokenize $flag $flagArgs`;
+
+		if ($numTokens >= 2) {
+			
+			if (startsWith( $flagArgs[0], "-") && startsWith( $flagArgs[1], "-")) {
+
+				$cmdFlagsFound = true;
+
+				// then build string
+				string $line = ($flagArgs[0] + "/" + $flagArgs[1]);
+				int $i = 2; 
+				
+				// skip last arg if it is the multi use descriptor
+				if ($flagArgs[size($flagArgs)-1] == "(multi-use)") {
+					--$numTokens;
+				}
+				
+				// build line
+				while ($i < $numTokens) {
+					$line += (" " + $flagArgs[$i]);
+					++$i;
+				}
+
+				// and add to the results
+				textScrollList -e -append $line $gCommandExecuterSideBarHelpResults;
+			}
+		}
+	}
+
+	// if none found, then show help result
+	if (!$cmdFlagsFound) {
+		print $res;
+	}
+
+	setFocus `getCurrentExecuterControl`;
+}
+
+global proc 
+showSelectedCmdHelp(int $quickHelp)
+//
+// Shows either the quick or detailed help for the selected command text.
+//
+{
+	// get the current executer
+	string $curExec = `getCurrentExecuterControl`;
+
+	// show warning if we want quick help and there is no selection
+	if ($quickHelp && !(`cmdScrollFieldExecuter -q -hasSelection $curExec`)) {
+		warning (uiRes("m_scriptEditorPanel.kNoSelectionForHelp"));
+		return;
+	}
+
+	// get the selected text from the executer control
+	string $cmd = `cmdScrollFieldExecuter -q -selectedText $curExec`;
+	$cmd = `commandHelpExists($cmd)`;
+
+	// help exists
+	if (size($cmd) > 0) {
+		if (!$quickHelp) {
+
+			//	Want to show either the Mel or the Python docs.
+			string $curExecuter = `getCurrentExecuterControl`;
+			string $scriptLang = `cmdScrollFieldExecuter -query -sourceType $curExecuter`;
+			help -language $scriptLang -doc $cmd;
+
+		}else {
+
+			// set the field and update side bar quick help
+			global string $gCommandExecuterSideBarHelpField;
+			textField -e -text $cmd $gCommandExecuterSideBarHelpField;
+			showFieldCmdQuickHelp;
+
+			// show side bar if not visible
+			toggleCmdQuickHelp(1, 0);
+
+		}
+	}
+}
+
+global proc
+addToSearchAndSelectHistory(string $query) 
+{
+	// check if we already have this line number in the history
+	global string $gCommandExecuterSearch[];		
+	int $found = `stringArrayContains $query $gCommandExecuterSearch`;
+	int $len = size($gCommandExecuterSearch);
+	
+	// if not, then append to history
+	if (!$found) {			
+		if ($len == 4) {
+			// shift history up by one and append this last
+			for ($i = 1; $i < 4; ++$i) {
+				$gCommandExecuterSearch[$i-1] = $i;
+			}
+			--$len;
+		}		
+		// add to end
+		$gCommandExecuterSearch[$len++] = $query;
+	}
+}
+
+global proc 
+searchAndSelectToolbarPopupUpdate()
+//
+//
+//
+{
+	global string $gCommandExecuterSearch[];
+	popupMenu -e -deleteAllItems scriptEditorToolbarSearchFieldPopupMenu;
+	
+	// create the new menu items
+	int $i = size($gCommandExecuterSearch) - 1;
+	while ($i >= 0) {
+		string $val = $gCommandExecuterSearch[$i];
+		menuItem -parent scriptEditorToolbarSearchFieldPopupMenu
+				 -label $val
+				 -command ("textField -e -text \"" + $val + "\" scriptEditorToolbarSearchField; setFocus scriptEditorToolbarSearchField;");
+		--$i;
+	}
+}
+
+global proc
+searchAndSelectToolbarCmd(int $down)
+//
+// Runs search and select with the text in the toolbar search field.
+//
+{
+	string $text = `textField -q -text scriptEditorToolbarSearchField`;
+	if (size($text) > 0) {
+		$curExecuter = `getCurrentExecuterControl`;	
+
+		cmdScrollFieldExecuter -e
+				-searchDown $down
+				-searchMatchCase false
+				-searchWraps false            
+				-searchString $text
+				$curExecuter;
+			
+		int $res = `cmdScrollFieldExecuter -q -searchAndSelect $curExecuter`;
+		if (!$res) {
+			warning (uiRes("m_scriptEditorPanel.kSearchFailed"));
+		}
+		addToSearchAndSelectHistory($text);
+		
+		selectCurrentExecuterControl;
+	}
+}
+
+global proc updateSearchOptions(string $executer) {
+	if (size($executer) == 0)
+		$executer = `getCurrentExecuterControl`;	
+
+	cmdScrollFieldExecuter -e
+			-searchDown `checkBoxGrp -q -value1 commandSearchOptions`
+			-searchMatchCase `checkBoxGrp -q -value2 commandSearchOptions`
+			-searchWraps `checkBoxGrp -q -value3 commandSearchOptions`
+			-searchString `textField -q -text commandSearchField`
+			$executer;
+}
+
+global proc searchAndSelect() {
+	string $curExecuter = `getCurrentExecuterControl`;			
+	updateSearchOptions($curExecuter);
+	int $res = `cmdScrollFieldExecuter -q -searchAndSelect $curExecuter`;
+	if (!$res) {
+		warning (uiRes("m_scriptEditorPanel.kSearchFailed"));
+	}
+	addToSearchAndSelectHistory(`textField -q -text commandSearchField`);
+}
+
+global proc searchAndReplace() {
+	string $curExecuter = `getCurrentExecuterControl`;			
+	updateSearchOptions($curExecuter);
+	string $sel = `cmdScrollFieldExecuter -q -selectedText $curExecuter`;	
+	string $searchText = `textField -q -text commandSearchField`;
+	string $replaceText = `textField -q -text commandReplaceField`;
+
+	// either we are starting from a previous find, and the text is already selected, in which case
+	// we will replace then move on ...
+	if ($sel == $searchText) {
+		cmdScrollFieldExecuter -e -insertText $replaceText $curExecuter;
+		cmdScrollFieldExecuter -q -searchAndSelect $curExecuter;
+
+	// or we are starting out without a selection, so find the next string, and replace.
+	// the next iteration will be for case 1 above
+	}else {	
+		$res = `cmdScrollFieldExecuter -q -searchAndSelect $curExecuter`;
+		if ($res) {
+			cmdScrollFieldExecuter -e -insertText $replaceText $curExecuter;
+			// search again for next spot to replace
+			cmdScrollFieldExecuter -q -searchAndSelect $curExecuter;
+		}else {
+			warning (uiRes("m_scriptEditorPanel.kSearchReplaceFailed"));
+		}
+	}
+}
+
+global proc searchAndReplaceAll() {
+	string $curExecuter = `getCurrentExecuterControl`;			
+	updateSearchOptions($curExecuter);
+	string $searchText = `textField -q -text commandSearchField`;
+	string $replaceText = `textField -q -text commandReplaceField`;
+	cmdScrollFieldExecuter -e -replaceAll $searchText $replaceText $curExecuter;
+	setFocus $curExecuter;
+}
+
+global proc destroySearchAndReplaceWindow() {	
+	if (`window -q -exists commandSearchAndReplaceWnd`) {
+		updateSearchOptions(""); 
+		deleteUI -window commandSearchAndReplaceWnd;
+
+		string $curExecuter = `getCurrentExecuterControl`;			
+		setFocus $curExecuter;
+	}
+}
+
+global proc createSearchAndReplaceWindow() {
+	if (`window -q -exists commandSearchAndReplaceWnd`) {
+		// update the search field with the selected text
+		string $executer = `getCurrentExecuterControl`;	
+		string $selText = `cmdScrollFieldExecuter -q -selectedText $executer`;
+
+		if (size($selText) > 0) {
+			textField -e -text $selText commandSearchField;
+		}else {
+			textField -e -text `cmdScrollFieldExecuter -q -searchString $executer` commandSearchField;
+		}
+
+		showWindow commandSearchAndReplaceWnd;
+		return;
+	}else {
+		string $curExecuter = `getCurrentExecuterControl`;			
+
+		window	-title (uiRes("m_scriptEditorPanel.kSearchAndReplaceWndTitle"))
+				-sizeable false 
+				-minimizeButton false 
+				-maximizeButton false 
+				-toolbox true 
+				-width 440 -height 160 
+				commandSearchAndReplaceWnd;
+			
+		$fl = `formLayout`;
+			string $fwl = `text -width 80 -label (uiRes("m_scriptEditorPanel.kFindWhatLabel")) -align "right"`;
+			string $fwtf = `textField -width 120 -enterCommand "searchAndSelect" -alwaysInvokeEnterCommandOnReturn true commandSearchField`;
+			string $sb = `button -width 80 -label (uiRes("m_scriptEditorPanel.kSearch")) -command "searchAndSelect"`;
+			string $rwl = `text -width 80 -label (uiRes("m_scriptEditorPanel.kReplaceWithLabel")) -align "right"`;
+			string $rwtf = `textField -width 120 -enterCommand "searchAndReplace" -alwaysInvokeEnterCommandOnReturn true commandReplaceField`;
+			string $rb = `button -width 80 -label (uiRes("m_scriptEditorPanel.kReplace")) -command "searchAndReplace"`;	
+			string $rab = `button -width 80 -label (uiRes("m_scriptEditorPanel.kReplaceAll")) -command "searchAndReplaceAll"`;	
+			string $cwb = `button -width 80 -label (uiRes("m_scriptEditorPanel.kClose")) -command "destroySearchAndReplaceWindow"`;	
+
+			string $execc = `getCurrentExecuterControl`;			
+			// update the text field texts
+			if (`cmdScrollFieldExecuter -q -hasSelection $execc`) {
+				string $selectedText = `cmdScrollFieldExecuter -q -selectedText $execc`;
+				textField -e -text $selectedText $fwtf;
+				textField -e -text $selectedText $rwtf;
+			}else {
+				string $prevSearchString = `cmdScrollFieldExecuter -q -searchString $execc`;
+				textField -e -text $prevSearchString $fwtf;
+				textField -e -text $prevSearchString $rwtf;
+			}
+
+			string $sol = `text -width 80 -label (uiRes("m_scriptEditorPanel.kSAROptions")) -align "right"`;
+			string $so = `checkBoxGrp 
+				-numberOfCheckBoxes 3
+				-label1 (uiRes("m_scriptEditorPanel.kSAROptionsSearchDown"))
+				-label2 (uiRes("m_scriptEditorPanel.kSAROptionsMatchCase"))
+				-label3 (uiRes("m_scriptEditorPanel.kSAROptionsWrap"))
+				-valueArray3 true false true
+				-vertical
+				commandSearchOptions`;
+
+			if (size($curExecuter) > 0) {
+				int $isSearchDown = `cmdScrollFieldExecuter -q -searchDown $curExecuter`;
+				int $isMatchCase = `cmdScrollFieldExecuter -q -searchMatchCase $curExecuter`; 
+				int $isWraps = `cmdScrollFieldExecuter -q -searchWraps $curExecuter`; 
+				checkBoxGrp -e 
+					-valueArray3 $isSearchDown $isMatchCase $isWraps
+					commandSearchOptions;
+			}
+
+		// we'll build the search form from right to left
+		int $formMargin = 5;
+		int $controlMargin = 5;
+		formLayout -e 
+			-attachNone		$cwb	"top"
+			-attachForm		$cwb	"bottom"	$formMargin
+			-attachForm		$cwb	"right"		$formMargin
+			-attachNone		$cwb	"left"	
+			
+			-attachForm		$sb		"top"		$formMargin
+			-attachForm		$sb		"right"		$formMargin
+			-attachNone		$sb		"bottom"
+			-attachNone		$sb		"left"
+			-attachControl	$rb		"top"		$controlMargin	$sb
+			-attachForm		$rb		"right"		$formMargin
+			-attachNone		$rb		"bottom"
+			-attachNone		$rb		"left"	
+			-attachControl	$rab	"top"		$controlMargin	$rb
+			-attachForm		$rab	"right"		$formMargin
+			-attachNone		$rab	"bottom"
+			-attachNone		$rab	"left"
+
+			-attachForm		$fwl 	"top"		$formMargin
+			-attachNone		$fwl	"right"
+			-attachNone		$fwl 	"bottom" 
+			-attachForm		$fwl 	"left"		$formMargin
+			-attachControl	$rwl	"top"		$controlMargin	$fwtf
+			-attachNone		$rwl	"right"
+			-attachNone		$rwl	"bottom"
+			-attachForm		$rwl	"left"		$formMargin
+			
+			-attachForm		$fwtf	"top"		$formMargin
+			-attachControl	$fwtf	"right"		$controlMargin	$sb
+			-attachNone		$fwtf	"bottom"
+			-attachControl	$fwtf	"left"		$controlMargin	$fwl
+			-attachControl	$rwtf	"top"		$controlMargin	$fwtf
+			-attachControl	$rwtf	"right"		$controlMargin	$rb
+			-attachNone		$rwtf	"bottom"
+			-attachControl	$rwtf	"left"		$controlMargin	$rwl	
+			
+			-attachControl	$sol	"top"		$controlMargin	$rwtf
+			-attachNone 	$sol	"right"
+			-attachNone		$sol	"bottom"
+			-attachForm 	$sol	"left"		$formMargin
+			-attachControl	$so		"top"		$controlMargin	$rwtf	
+			-attachControl	$so		"right"		$controlMargin	$rab
+			-attachForm		$so		"bottom"	$formMargin
+			-attachControl	$so		"left"		$controlMargin	$sol
+			
+			$fl;
+			
+		showWindow;
+		
+		// set focus
+		setFocus commandSearchField;
+	}
+}
+
+
+global proc addNewExecuterTab( string $sourceType, int $promptRename) {
+	int $commitChange = false;
+	string $line;
+
+	int $hasPython = `exists python`;
+	if (!$hasPython) {
+		$sourceType = "mel";
+		// go ahead and build tab if we aren't prompting rename, otherwise,
+		// check that first
+		if (!$promptRename) {
+			$commitChange = true;
+			$line = "MEL";		
+		}
+	}
+	
+	string $cancel	= (uiRes("m_scriptEditorPanel.kCancel"));
+
+	if ($hasPython && (size($sourceType) == 0)) {
+		// if the input source type if not given (empty), then prompt user for type to add
+		// "Python" and "MEL" are not localized because they are used in the logic
+		$sourceType = `confirmDialog -title (uiRes("m_scriptEditorPanel.kSourceTypeTitle"))
+			-message (uiRes("m_scriptEditorPanel.kSourceTypeChoiceMsg"))
+			-button "MEL"
+			-button "Python"
+			-button $cancel
+			-defaultButton "MEL"
+			-dismissString $cancel`;
+
+		// if user canceled then skip
+		if ($sourceType == $cancel) {
+			return;
+		}else {
+			// go ahead and build tab if we aren't prompting rename, otherwise,
+			// check that first
+			if (!$promptRename) {
+				$commitChange = true;
+				$line = $sourceType;		
+			}
+		}
+	}
+	
+	if ($promptRename) {
+		// prompt the user for the name of the new tab
+		string $add = (uiRes("m_scriptEditorPanel.kAddTab"));
+		string $namePrompt = `promptDialog -title (uiRes("m_scriptEditorPanel.kNewTab"))
+							-text $sourceType
+							-message (uiRes("m_scriptEditorPanel.kTabName"))
+							-button $add 
+							-cancelButton $cancel`;
+		if ($namePrompt == $add) {
+			$line = `promptDialog -q -text`;
+			if (size($line) > 0) {
+				$commitChange = true;
+			}else {
+				warning (uiRes("m_scriptEditorPanel.kInvalidTabNameWarning"));
+			}
+		}
+	}
+
+	// commit to building new tab
+	if ($commitChange) {
+		$sourceType = `tolower $sourceType`;
+		if ($sourceType != "python") {
+			// default to mel if not python
+			$sourceType = "mel";
+		}
+		
+		buildNewExecuterTab(-1, $line, $sourceType, 1);
+		
+		// select the last tab created
+		global string $gCommandExecuterTabs;
+		tabLayout -e -selectTabIndex `tabLayout -q -numberOfChildren $gCommandExecuterTabs` $gCommandExecuterTabs;
+		selectCurrentExecuterControl;
+	}
+	syncExecuterTabState();
+}
+
+global proc renameCurrentExecuterTab() {
+	// prompt the user for a name to rename to, must not be empty
+	string $rename = (uiRes("m_scriptEditorPanel.kRename"));
+	string $namePrompt = `promptDialog -title (uiRes("m_scriptEditorPanel.kRenameTab"))
+						-message (uiRes("m_scriptEditorPanel.kTabName"))
+						-button $rename`;
+	if ($namePrompt == $rename) {
+		string $line = `promptDialog -q -text`;
+		if (size($line) > 0) {
+			// get the current tab, then rename it
+			global string $gCommandExecuterTabs;
+			global string $gCommandExecuterName[];
+			// get selected tab index (1 based)
+			int $selTabIdx = `tabLayout -q -selectTabIndex $gCommandExecuterTabs`;
+			// set the new name
+			tabLayout -e -tabLabelIndex $selTabIdx $line $gCommandExecuterTabs;
+
+			// update the global array 
+			$gCommandExecuterName[$selTabIdx-1] = $line;
+
+		}else {
+			warning (uiRes("m_scriptEditorPanel.kInvalidTabNameWarning"));
+		}
+	}
+	syncExecuterTabState();
+}
+
+global proc string getCurrentExecuterTabLabel() {
+	global string $gCommandExecuterTabs;
+
+	// get selected tab index (0 based)
+	int $selTabIdx = `tabLayout -q -selectTabIndex $gCommandExecuterTabs` - 1;
+	// get tab label array
+	string $tabLabels[] = `tabLayout -q -tabLabel $gCommandExecuterTabs`;
+
+	if (size($tabLabels) > 0) {
+		return $tabLabels[$selTabIdx];
+	}else {
+		return "";
+	}
+}
+
+global proc string getCurrentExecuterTabType() {
+
+	// get selected tab
+	string $curExecuter = `getCurrentExecuterControl`;
+	// get tab's source type
+	string $executerTabType = `cmdScrollFieldExecuter -q -sourceType $curExecuter`;
+
+	if ($executerTabType == "python") {
+		return ".py";
+	}else if ($executerTabType == "mel") {
+		return ".mel";
+	}else {
+		return "";
+	}
+}
+
+global proc
+removeOtherExecuterTabs() 
+{
+	global string $gCommandExecuterTabs;
+
+	// go through every other tab, and prompt user to remove (all, yes, no, cancel), build array of answers
+	int $numTabs = `tabLayout -q -numberOfChildren $gCommandExecuterTabs`;
+	int $curTab = `tabLayout -q -selectTabIndex $gCommandExecuterTabs` - 1;	 // 0 based value
+	int $remTab[];
+	
+	// get the controls
+	string $array[] = `tabLayout -q -childArray $gCommandExecuterTabs`;
+	string $execs[];
+	
+	// if there is only one tab left, then do not delete!
+	if ($numTabs <= 1) {
+		warning (uiRes("m_scriptEditorPanel.kLastExecuterTabWarning"));
+		return;
+	}
+		
+	// for all other tabs
+	int $i;
+	string $all = (uiRes("m_scriptEditorPanel.kAll"));
+	string $cancel = (uiRes("m_scriptEditorPanel.kCancel"));
+	string $yes = (uiRes("m_scriptEditorPanel.kYes"));
+	string $no = (uiRes("m_scriptEditorPanel.kNo"));
+	
+	// save the executers first
+	for ($i = 0; $i < $numTabs; ++$i) {
+		
+		if ($i != $curTab) {
+			
+			// get current executer --
+			// get the tab at the index
+			string $curFormLayout = $array[$i];
+			// get the formLayout children in this tab (according to how we built it)
+			string $tabChldrn[] = `formLayout -q -childArray $curFormLayout`;
+			// get the formLayout's first child which should be the cmdScrollFieldExecuter
+			string $curExecuter = $tabChldrn[0];
+			// save for use below
+			$execs[$i] = $curExecuter;
+		
+		}	
+	}
+	
+	// now go through and prompt (exec stored above as we may skip iterations here yet still need it later)
+	for ($i = 0; $i < $numTabs; ++$i) {
+		
+		if ($i != $curTab) {
+			
+			// automatically remove if there is no text
+			if (`cmdScrollFieldExecuter -q -textLength $execs[$i]` > 0) {	
+			
+				// select
+				tabLayout -e -selectTabIndex ($i+1) $gCommandExecuterTabs;
+				
+				// prompt to remove
+				string $confirmRemove = `confirmDialog -title (uiRes("m_scriptEditorPanel.kRemoveExecuterTabTitle"))
+					-message (uiRes("m_scriptEditorPanel.kRemoveExecuterTabPromptMsg"))
+					-button $all 
+					-button $yes
+					-button $no
+					-button $cancel 
+					-cancelButton $cancel
+					-defaultButton $yes
+					-dismissString $cancel`;
+					
+				// if user canceled then skip
+				if ($confirmRemove == $cancel) {
+					return;
+				}else if ($confirmRemove == $all) {
+					// set everything afterwards to yes
+					while ($i < $numTabs) {
+						$remTab[$i] = 1;
+						++$i;
+					} 
+					break;
+				}else if ($confirmRemove == $yes) {
+					$remTab[$i] = 1;
+				}else if ($confirmRemove == $no) {
+					$remTab[$i] = 0;
+				}
+			}else {
+				$remTab[$i] = 1;
+			}
+		}
+	}
+
+	// select the old tab
+	tabLayout -e -selectTabIndex ($curTab+1) $gCommandExecuterTabs;
+	selectCurrentExecuterControl;
+	
+	// rebuild all the global arrays
+	string $newExecuter[], $newExecuterLayout[], $newExecuterName[], $newExecuterBackup[];
+	string $newExecuterType[], $newPopupMenus[];
+	global string $gCommandExecuter[];
+	global string $gCommandExecuterLayout[];
+	global string $gCommandExecuterName[];
+	global string $gCommandExecuterType[];
+	global string $gCommandPopupMenus[];
+		
+	// now go through array and remove the ones which are to be removed.
+	for ($i = 0; $i < $numTabs; ++$i) {
+		
+		if ( ($remTab[$i] == 0) || ($i == $curTab) ) {
+						
+			// copy array value if not to delete
+			$newExecuter[size($newExecuter)] = $gCommandExecuter[$i];
+			$newExecuterLayout[size($newExecuterLayout)] = $gCommandExecuterLayout[$i];
+			$newExecuterName[size($newExecuterName)] = $gCommandExecuterName[$i];
+			$newExecuterType[size($newExecuterType)] = $gCommandExecuterType[$i];
+			$newPopupMenus[size($newPopupMenus)] = $gCommandPopupMenus[$i];
+				
+		}else {
+			// otherwise, we remove the tab
+		
+			// delete the actual control
+			deleteUI $array[$i];
+		}
+	} 
+	
+	// save the new global arrays
+	$gCommandExecuter = $newExecuter;
+	$gCommandExecuterLayout = $newExecuterLayout;
+	$gCommandExecuterName = $newExecuterName;
+	$gCommandExecuterType = $newExecuterType;
+	$gCommandPopupMenus = $newPopupMenus;
+	
+	syncExecuterTabState();
+}
+
+global proc
+removeCurrentExecuterTab()
+{
+	global string $gCommandExecuter[];
+	global string $gCommandExecuterLayout[];
+	global string $gCommandExecuterName[];
+	global string $gCommandExecuterType[];
+	global string $gCommandPopupMenus[];
+	global string $gCommandExecuterTabs;
+
+	// if there is only one tab left, then do not delete!
+	if (`tabLayout -q -numberOfChildren $gCommandExecuterTabs` <= 1) {
+		warning (uiRes("m_scriptEditorPanel.kLastExecuterTabWarning"));
+		return;
+	}
+	
+	// prompt the user to see if they actually want to remove (only if there is text in this tab)
+	string $curExecuter = `getCurrentExecuterControl`;
+	if (`cmdScrollFieldExecuter -q -textLength $curExecuter` > 0) {
+		string $cancel = (uiRes("m_scriptEditorPanel.kCancel"));
+		string $confirmRemove = `confirmDialog -title (uiRes("m_scriptEditorPanel.kRemoveExecuterTabTitle"))
+			-message (uiRes("m_scriptEditorPanel.kRemoveExecuterTabPromptMsg"))
+			-button (uiRes("m_scriptEditorPanel.kYes")) 
+			-button $cancel 
+			-cancelButton $cancel
+			-defaultButton $cancel
+			-dismissString $cancel`;
+		// if user canceled then skip
+		if ($confirmRemove == $cancel)
+			return;
+	}
+	
+	// tab controls array
+	string $array[] = `tabLayout -q -childArray $gCommandExecuterTabs`;
+	// get selected tab index (now zero based)
+	int $selTabIdx = `tabLayout -q -selectTabIndex $gCommandExecuterTabs` - 1;
+
+	// the executer form to delete
+	string $executerFormToDelete = $array[$selTabIdx];
+
+	// rebuild all the global arrays
+	string $newExecuter[], $newExecuterLayout[], $newExecuterName[], $newExecuterBackup[];
+	string $newExecuterType[], $newPopupMenus[];
+	int $i, $len = size($gCommandExecuter);
+
+	for ($i = 0; $i < $len; ++$i) {
+
+		if ($i != $selTabIdx) {
+			// copy array value if not the one to delete
+			$newExecuter[size($newExecuter)] = $gCommandExecuter[$i];
+			$newExecuterLayout[size($newExecuterLayout)] = $gCommandExecuterLayout[$i];
+			$newExecuterName[size($newExecuterName)] = $gCommandExecuterName[$i];
+			$newExecuterType[size($newExecuterType)] = $gCommandExecuterType[$i];
+			$newPopupMenus[size($newPopupMenus)] = $gCommandPopupMenus[$i];
+		}
+	}
+
+	// save the new global arrays
+	$gCommandExecuter = $newExecuter;
+	$gCommandExecuterLayout = $newExecuterLayout;
+	$gCommandExecuterName = $newExecuterName;
+	$gCommandExecuterType = $newExecuterType;
+	$gCommandPopupMenus = $newPopupMenus;
+
+	// actually delete the ui element
+	deleteUI $executerFormToDelete;
+
+	// assert; -numChildren < size($array)
+	// select new tab, make it focused
+	int $numChildren = `tabLayout -q -numberOfChildren $gCommandExecuterTabs`;
+	int $newIdx = `min ($selTabIdx+1) $numChildren`;
+	tabLayout -e -selectTabIndex $newIdx $gCommandExecuterTabs;
+	selectCurrentExecuterControl;
+	
+	syncExecuterTabState();
+}
+
+global proc
+buildNewExecuterTab(int $index, string $name, string $sourceType, int $userRequested)
+{		
+	global int $gScriptEditorMenuBarVisible;
+	global string $gCommandExecuterTabs;
+	global string $gCommandExecuter[];
+	global string $gCommandExecuterLayout[];
+	global string $gCommandExecuterName[];
+	global string $gCommandExecuterType[];
+	global string $gCommandPopupMenus[];
+	global string $executerBackupFileName;
+
+	int $hasPython = `exists python`;
+	
+	if (!$hasPython && ($sourceType == "python")) {
+		$sourceType = "mel";
+	}
+
+	// if $index is out of bounds, we append to the current executer list
+	if ( ($index < 0) || ($index > size($gCommandExecuter)) ){
+		$index = size($gCommandExecuter);
+	}
+
+	$gCommandExecuterType[$index] = $sourceType;
+	$gCommandExecuterName[$index] = $name;
+
+	// set tab layout as parent
+	setParent $gCommandExecuterTabs;
+
+	$gCommandExecuterLayout[$index] = `formLayout`;
+		$gCommandExecuter[$index] = `eval("cmdScrollFieldExecuter -sourceType " + $sourceType + " ")`;
+		cmdScrollFieldExecuter -e -showLineNumbers `optionVar -q commandExecuterShowLineNumbers` $gCommandExecuter[$index];
+		cmdScrollFieldExecuter -e -commandCompletion `optionVar -q commandExecuterCommandCompletion` $gCommandExecuter[$index];
+		cmdScrollFieldExecuter -e -objectPathCompletion `optionVar -q commandExecuterPathCompletion` $gCommandExecuter[$index];
+		cmdScrollFieldExecuter -e -showTooltipHelp `optionVar -q commandExecuterToolTipHelp` $gCommandExecuter[$index];
+		cmdScrollFieldExecuter -e -tabsForIndent `optionVar -q commandExecuterTabsForIndent` $gCommandExecuter[$index];
+		cmdScrollFieldExecuter -e -spacesPerTab `optionVar -q commandExecuterSpacesPerTab` $gCommandExecuter[$index];
+		cmdScrollFieldExecuter -e -searchWraps true $gCommandExecuter[$index];
+	int $curPopupIdx = size($gCommandPopupMenus);
+		$gCommandPopupMenus[$curPopupIdx] = `popupMenu -markingMenu true -postMenuCommand "verifyCommandPopupMenus"`;
+		buildScriptEditorCondensedPopupMenus($gCommandPopupMenus[$curPopupIdx], false);	
+
+	// fix form layout for executer
+	formLayout -e	-attachForm $gCommandExecuter[$index] "left" 0
+					-attachForm $gCommandExecuter[$index] "right" 0
+					-attachForm $gCommandExecuter[$index] "top" 0
+					-attachForm $gCommandExecuter[$index] "bottom" 2 $gCommandExecuterLayout[$index];
+
+	// rename the tab labels
+	tabLayout -edit -tabLabel $gCommandExecuterLayout[$index] $gCommandExecuterName[$index] $gCommandExecuterTabs;
+	cmdScrollFieldExecuter -e -receiveFocusCommand ("setLastFocusedCommandExecuter " + $gCommandExecuter[$index]) $gCommandExecuter[$index];
+	
+	
+	//Set up file name of executer tab contents
+	string $currentExecuterBackupFileName = $executerBackupFileName;
+	int $fileIndex;
+	
+	if ($index > 0){
+		$fileIndex = $index - 1;
+		$currentExecuterBackupFileName += ("-"+$fileIndex);
+	}
+	
+	// load contents if it is not a new pane created by the user.
+	// No need to error check as -loadContents does not throw errors to screen.
+	if($userRequested == 0){
+		cmdScrollFieldExecuter -e -loadContents $currentExecuterBackupFileName $gCommandExecuter[$index];
+	}
+	cmdScrollFieldExecuter -e -select 0 0 $gCommandExecuter[$index];
+
+	// reset the current menubar visibility state, as the new tab assumes menu bar visible, 
+	//	and is built only with condensed menus
+	$gScriptEditorMenuBarVisible = 1;
+}
+
+global proc 
+selectExecuterTabOffset(int $offset) 
+//
+// Selected the executer tab with the offset from the current index.
+// ie. (0) -> current tab, (-1) -> previous tab, etc.
+// indices are modulated, and remain within the bounds of the number of tabs visible
+//
+{
+	global string $gCommandExecuterTabs;
+
+    int $numTabs = `tabLayout -q -numberOfChildren $gCommandExecuterTabs`;
+	// return if there are no tabs
+	if ($numTabs == 0)
+		return;
+
+	// get selected tab index, and from that, the new index (now zero based)
+	int $selTabIdx = `tabLayout -q -selectTabIndex $gCommandExecuterTabs` - 1;
+	int $newTabIdx = $selTabIdx + $offset;
+
+	// modulate so within bounds
+	while ($newTabIdx < 0)
+		$newTabIdx += $numTabs;
+	while ($newTabIdx >= $numTabs)
+		$newTabIdx -= $numTabs;
+
+	// assertion: 0 <= $newTabIdx < $numTabs
+
+	// select the new tab (now one based)
+	tabLayout -e -selectTabIndex ($newTabIdx + 1) $gCommandExecuterTabs;
+	selectCurrentExecuterControl;
+}
+
+global proc syncExecuterTabState(){
+	global string $gCommandExecuterName[];
+	global string $gCommandExecuterType[];
+	global string $gCommandExecuterTabs;
+	
+	//sync the currently selected tab index
+	optionVar -iv ScriptEditorExecuterTabIndex `tabLayout -q -selectTabIndex $gCommandExecuterTabs`;
+	
+	//sync the rest of the tab info
+	int $i;
+	if (`optionVar -exists ScriptEditorExecuterLabelArray`) {
+		optionVar -clearArray ScriptEditorExecuterLabelArray;
+		optionVar -clearArray ScriptEditorExecuterTypeArray;
+	}
+	for ($i = 0; $i < size($gCommandExecuterName); $i++){
+		optionVar -stringValueAppend ScriptEditorExecuterLabelArray $gCommandExecuterName[$i];
+		optionVar -stringValueAppend ScriptEditorExecuterTypeArray $gCommandExecuterType[$i];
+	}
+}
+
+global proc syncExecuterBackupFiles(){
+	global string $gCommandExecuter[];
+	global string $executerBackupFileName;
+	
+	if(`optionVar -q saveActionsScriptEditor`) {
+		// clear the script editor temp dir first before writing temp files
+		string $scriptEditorTempDir = (`internalVar -userPrefDir` + "scriptEditorTemp/");
+		string $tempFiles[] = `getFileList -folder $scriptEditorTempDir`;
+		string $file;
+		for ($file in $tempFiles) {
+			sysFile -delete ($scriptEditorTempDir + $file);
+		}
+
+		// save all the executer control text to files
+		int $i = 0;
+		for($i = 0; $i < size($gCommandExecuter); $i++) {
+			cmdScrollFieldExecuter -e -storeContents $executerBackupFileName $gCommandExecuter[$i];
+		}
+	}
+}
+
+global proc 
+gotoLine(string $line) 
+//
+// Parses and goes to the specified line.
+//
+{	
+	string $validLine = `match "^[0-9]+$" $line`;
+	int $numLine;
+	if (size($validLine) > 0) {
+		$numLine = int($validLine);
+		selectCurrentExecuterControl;
+		delegateCommandToFocusedExecuterWindow ("-e -currentLine " + $numLine, 0);
+		
+		// check if we already have this line number in the history
+		global int $gCommandExecuterGoto[];		
+		int $found = false;
+		int $len = size($gCommandExecuterGoto);
+		int $i;
+		for ($i in $gCommandExecuterGoto) {
+			if ($i == $numLine) {
+				$found = true;
+			}
+		}
+		
+		// if not, then append to history
+		if (!$found) {			
+			if ($len == 4) {
+				// shift history up by one and append this last
+				for ($i = 1; $i < 4; ++$i) {
+					$gCommandExecuterGoto[$i-1] = $i;
+				}
+				--$len;
+			}		
+			// add to end
+			$gCommandExecuterGoto[$len++] = $validLine;
+		}
+		
+		// select the executer
+		selectCurrentExecuterControl;
+	}else {
+		warning (uiRes("m_scriptEditorPanel.kInvalidLineNumWarning"));
+	}	
+}
+
+global proc
+gotoLineToolbarCmd()
+//
+//
+//
+{
+	string $line = `textField -q -text scriptEditorToolbarGotoField`;
+	gotoLine($line);
+}
+
+global proc
+gotoLineToolbarPopupUpdate()
+//
+// Updates the RMB popups for the toolbar goto line field.
+//
+{
+	global int $gCommandExecuterGoto[];
+	popupMenu -e -deleteAllItems scriptEditorToolbarGotoFieldPopupMenu;
+	
+	// create the new menu items
+	int $i = size($gCommandExecuterGoto) - 1;
+	while ($i >= 0) {
+		int $val = $gCommandExecuterGoto[$i];
+		menuItem -parent scriptEditorToolbarGotoFieldPopupMenu
+				 -label ("" + $val)
+				 -command ("gotoLine(" + $val + ")");
+		--$i;
+	}
+}
+
+global proc
+gotoLinePrompt() 
+//
+// Prompts the user for the line to move the cursor to in the current command executer.
+//
+{
+	string $goStr = (uiRes("m_scriptEditorPanel.kGo"));
+	string $prompt = `promptDialog -title (uiRes("m_scriptEditorPanel.kLineNumber"))
+						-message (uiRes("m_scriptEditorPanel.kLineNumMessage"))
+						-button $goStr`;
+	if ($prompt == $goStr) {
+		string $line = `promptDialog -q -text`;
+		gotoLine($line);
+	}
+}
+
+global proc
+addScriptEditorPanel (string $whichPanel)
+//
+//  Description:
+//		Add the panel to a layout.
+//		Parent the editors to that layout and create any other
+//		controls required.
+//
+{
+	// Predefines
+	scriptEditorPredefines;	
+	//
+	global int $gScriptEditorMenuBarVisible;
+	global string $gCommandPopupMenus[];
+		
+	global string $gCommandLayout;
+	global string $gCommandReporter;
+	global string $gCommandExecuter[];
+	global string $gCommandExecuterLayout[];
+	global string $gCommandExecuterName[];
+	global string $gCommandExecuterType[];
+	global string $gLastFocusedCommandExecuter;
+	global string $gLastFocusedCommandReporter;
+	global string $gLastFocusedCommandControl;
+
+	$gScriptEditorMenuBarVisible = 1;
+	$gLastFocusedCommandControl = "";
+	$gLastFocusedCommandReporter = "";
+	$gLastFocusedCommandExecuter = "";
+
+	$gCommandExecuterLayout = {};
+	$gCommandExecuter = {};
+	$gCommandPopupMenus = {};
+
+	global string $gCommandExecuterTabs;
+	global string $gCommandExecuterTabsForm;
+	string $editorControl = ($whichPanel + "EditorControl");
+
+	int $hasPython = `exists python`;
+
+	// Make sure that there is no template active
+	setUITemplate -pushTemplate NONE;
+
+	// clear the option vars from before first;
+	if (size($gCommandExecuter) == 0) {
+		// on the first instance of the script editor, we load the arrays from the option vars
+        if (`optionVar -exists ScriptEditorExecuterTypeArray`) {
+			$gCommandExecuterName = `optionVar -q ScriptEditorExecuterLabelArray`;
+			$gCommandExecuterType = `optionVar -q ScriptEditorExecuterTypeArray`;
+		}
+	}else {
+		if (`optionVar -exists ScriptEditorExecuterTypeArray`) {
+			optionVar -clearArray ScriptEditorExecuterLabelArray;
+			optionVar -clearArray ScriptEditorExecuterTypeArray;
+		}
+	}
+
+	// Define the standard panel
+	//
+	string $widgetList[];
+
+	$widgetList[2] = `scriptedPanel -query -control $whichPanel`;
+	$widgetList[0] = `formLayout`;
+	$widgetList[3] = `frameLayout -visible true -borderVisible false
+			-labelVisible false -collapsable false -collapse true
+			-borderStyle "in"`;
+	$widgetList[4] = `formLayout -visible true`;
+	$widgetList[5] = `flowLayout -columnSpacing 4`;
+	setParent $widgetList[0];
+	$widgetList[6] = `formLayout -visible true`;
+
+	formLayout -edit
+		-attachForm $widgetList[3] top 0 
+		-attachForm $widgetList[3] right 0
+		-attachForm $widgetList[3] left 0
+
+		-attachControl $widgetList[6] top 0 $widgetList[3]
+		-attachForm $widgetList[6] bottom 0
+		-attachForm $widgetList[6] right 0
+		-attachForm $widgetList[6] left 0
+		$widgetList[0];
+
+	setParent $widgetList[0];
+
+	
+	// Add tools to the tool layout
+	//
+	int $iconSize = 23;
+	setParent $widgetList[5];
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kLoadScript"))
+			-image "openScript.png"
+			-command "handleScriptEditorAction \"load\""
+			openScriptButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kSourceScript"))
+			-image "sourceScript.png"
+			-command "handleScriptEditorAction \"source\""
+			sourceScriptButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kSaveScript"))
+			-image "save.png"
+			-command "handleScriptEditorAction \"save\""
+			saveScriptButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kSaveScriptToShelf"))
+			-image "saveToShelf.png"
+			-command "handleScriptEditorAction \"saveToShelf\""
+			saveScriptToShelfButton;
+
+		separator -height $iconSize -horizontal false -style single fileSeperator;
+
+		iconTextButton 
+			-width $iconSize -height$iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kClearHistory"))
+			-image "clearHistory.png"
+			-command "handleScriptEditorAction \"clearHistory\""
+			clearHistoryButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kClearInput"))
+			-image "clearInput.png"
+			-command "handleScriptEditorAction \"clearInput\""
+			clearInputButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kClearAll"))
+			-image "clearAll.png"
+			-command "handleScriptEditorAction \"clearAll\""
+			clearAllButton;
+
+		separator -height $iconSize -horizontal false -style single clearSeperator;
+
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kShowHistory"))
+			-image "showHistory.png"
+			-command "handleScriptEditorAction \"maximizeHistory\""
+			showHistoryButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kShowInput"))
+			-image "showInput.png"
+			-command "handleScriptEditorAction \"maximizeInput\""
+			showInputButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kShowBoth"))
+			-image "showBoth.png"
+			-command "handleScriptEditorAction \"maximizeBoth\""
+			showBothButton;
+
+		separator -height $iconSize -horizontal false -style single showSeperator;
+
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kEchoAllCommands"))			
+			-command "handleScriptEditorAction \"echoAllCommands\""
+			echoAllCommandsButton;
+		// echo all commands initial icon state
+		if (`optionVar -exists echoAllLines`) {
+			string $icon = (`optionVar -q echoAllLines` ? "echoCommands.png" : "echoCommandsOff.png");
+			iconTextButton -e -image $icon echoAllCommandsButton;
+		}	
+
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kShowLineNumbers"))			
+			-command "handleScriptEditorAction \"showLineNumbers\""
+			showLineNumbersButton;
+		// show line numbers initial icon state
+		if (`optionVar -exists commandExecuterShowLineNumbers`) {
+			string $icon = (`optionVar -q commandExecuterShowLineNumbers` ? "showLineNumbers.png" : "showLineNumbersOff.png");
+			iconTextButton -e -image $icon showLineNumbersButton;
+		}
+
+		separator -height $iconSize -horizontal false -style single optionsSeperator;
+
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kExecuteAll"))
+			-image "executeAll.png"
+			-command "handleScriptEditorAction \"executeAll\""
+			executeAllButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kExecute"))
+			-image "execute.png"
+			-command "handleScriptEditorAction \"execute\""
+			executeButton;
+
+		separator -height $iconSize -horizontal false -style single executeSeperator;
+
+		textField 
+			-width 120 -height 20
+			-annotation (uiRes("m_scriptEditorPanel.kSASToolbarField"))
+			-enterCommand "searchAndSelectToolbarCmd(true)"
+			-alwaysInvokeEnterCommandOnReturn true
+			scriptEditorToolbarSearchField;
+		popupMenu -postMenuCommand "searchAndSelectToolbarPopupUpdate" 
+			scriptEditorToolbarSearchFieldPopupMenu;	
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kSASToolbarDownButton"))
+			-image "searchDown.png"
+			-command "searchAndSelectToolbarCmd(true)"
+			scriptEditorToolbarSearchDownButton;
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kSASToolbarUpButton"))
+			-image "searchUp.png"
+			-command "searchAndSelectToolbarCmd(false)"
+			scriptEditorToolbarSearchDownUp;
+
+		separator -height $iconSize -horizontal false -style single searchSeperator;
+
+		textField 
+			-width 30 -height 20
+			-annotation (uiRes("m_scriptEditorPanel.kGotoLineToolbarField"))
+			-enterCommand "gotoLineToolbarCmd"
+			-alwaysInvokeEnterCommandOnReturn true
+			scriptEditorToolbarGotoField;
+		popupMenu -postMenuCommand "gotoLineToolbarPopupUpdate" 
+			scriptEditorToolbarGotoFieldPopupMenu;							
+		iconTextButton 
+			-width $iconSize -height $iconSize
+			-annotation (uiRes("m_scriptEditorPanel.kGotoLineToolbarButton"))
+			-image "gotoLine.png"
+			-command "gotoLineToolbarCmd"
+			scriptEditorToolbarGotoLineButton;
+		
+
+	int $formMargin = 2;
+	//	Layout the toolbar
+	//
+	setParent $widgetList[4];
+	formLayout -edit
+		-attachForm	$widgetList[5] "left"	$formMargin
+		-attachForm $widgetList[5] "top"    $formMargin
+		-attachForm $widgetList[5] "bottom" $formMargin
+		-attachForm $widgetList[5] "right"  0
+		
+		$widgetList[4];
+	// Parent the editors to the editor layout
+	//
+	setParent $widgetList[6];
+
+	{
+		// build the panels first
+		$gCommandLayout = `paneLayout -configuration "horizontal2"`;
+		//$gCommandLayout = `paneLayout -configuration "horizontal3"`;
+			//print "creating reporter\n";
+			$gCommandReporter = `pymelScrollFieldReporter`;
+			//print ("created " + $gCommandReporter + "\n");
+			// CHAD: removed receiveFocusCommand, bc i cannot implement this
+			//pymelScrollFieldReporter -e -receiveFocusCommand ("setLastFocusedCommandReporter " + $gCommandReporter) $gCommandReporter;	
+				$gCommandPopupMenus[size($gCommandPopupMenus)] = `popupMenu -markingMenu true -postMenuCommand "verifyCommandPopupMenus"`;
+				buildScriptEditorCondensedPopupMenus($gCommandPopupMenus[size($gCommandPopupMenus)-1], true);
+			setLastFocusedCommandReporter $gCommandReporter;
+
+			$gCommandExecuterTabsForm = `formLayout`;
+			$gCommandExecuterTabs = `tabLayout -selectCommand "selectCurrentExecuterControl"`;
+			if (size($gCommandExecuterName) == 0) {
+				// build all new	
+				buildNewExecuterTab(-1, "MEL", "mel", 0);
+				if ($hasPython) {
+					buildNewExecuterTab(-1, "Python", "python", 0);
+				}
+			}else {
+
+				// don't need to update name, just build with the other info
+				int $len = size($gCommandExecuterName);
+				int $i;
+				for ($i = 0; $i < $len; ++$i) {
+					buildNewExecuterTab($i, $gCommandExecuterName[$i], $gCommandExecuterType[$i], 0);						
+				}	
+			}
+
+			if (size($gCommandExecuterName) > 0)
+				setLastFocusedCommandExecuter $gCommandExecuter[0];		
+
+			// help sidebar
+			setParent $gCommandExecuterTabsForm;
+
+			global string $gCommandExecuterSideBar;
+			global string $gCommandExecuterSideBarHelpForm;
+			global string $gCommandExecuterSideBarHelpField;
+			global string $gCommandExecuterSideBarHelpResults;
+			global int $gCommandExecuterShowQuickHelp;
+
+			$gCommandExecuterSideBar = `tabLayout`;
+			$gCommandExecuterSideBarHelpForm = `formLayout -width 120`;
+				$gCommandExecuterSideBarHelpField = `textField -height 24 -enterCommand "showFieldCmdQuickHelp" -alwaysInvokeEnterCommandOnReturn true`;
+				$gCommandExecuterSideBarHelpResults = `textScrollList -doubleClickCommand "doubleClickCmdQuickHelp" -allowMultiSelection on`;
+
+					// popup menu to hide quick help
+					popupMenu;
+						menuItem -radialPosition "N"
+								-label (uiRes("m_scriptEditorPanel.kShowDetailedHelp"))
+								-command "showFieldCmdDocumentation";
+						menuItem -radialPosition "S"
+								-label (uiRes("m_scriptEditorPanel.kHideQuickHelp"))
+								-command "toggleCmdQuickHelp(0, 0)";
+			
+			tabLayout -e -tabLabel $gCommandExecuterSideBarHelpForm (uiRes("m_scriptEditorPanel.kQuickHelp")) $gCommandExecuterSideBar;
+			
+			formLayout -e 
+						-attachForm $gCommandExecuterSideBarHelpField top 0
+						-attachForm $gCommandExecuterSideBarHelpField left 0
+						-attachForm $gCommandExecuterSideBarHelpField right 0
+						-attachNone $gCommandExecuterSideBarHelpField bottom
+
+						-attachControl $gCommandExecuterSideBarHelpResults top 2 $gCommandExecuterSideBarHelpField
+						-attachForm $gCommandExecuterSideBarHelpResults left 0
+						-attachForm $gCommandExecuterSideBarHelpResults right 0
+						-attachForm $gCommandExecuterSideBarHelpResults bottom 0
+
+					$gCommandExecuterSideBarHelpForm;
+		
+			// show and attach forms accordingly
+			// NOTE: move formLayout attachments out of func if we add new side bars!
+			toggleCmdQuickHelp($gCommandExecuterShowQuickHelp, 1);
+
+		// CHAD: this is a hack that i'm not proud of:
+		// lineNumbers, echoAllCommands, stackTrace are controlled by cmdScrollFieldReporter. 
+		// i do not yet know how to toggle these through the API so i have to create a hidden cmdScrollFieldReporter
+		// whose name is passed to the pymelScrollFieldReporter to manage.
+		setParent $gCommandLayout;
+		string $cmdReporter = `cmdScrollFieldReporter`;
+		pymelScrollFieldReporter -e -cmdReporter $cmdReporter $gCommandReporter;
+				//buildScriptEditorCondensedPopupMenus($gCommandPopupMenus[size($gCommandPopupMenus)-1], true);		
+				loadCommandReporterOptionVars($gCommandReporter);
+					
+		formLayout -e 
+					-attachForm $gCommandLayout left 0
+					-attachForm $gCommandLayout right 0
+					-attachForm $gCommandLayout top 0
+					-attachForm $gCommandLayout bottom 0 $widgetList[6];
+	}
+
+	//	menuBarLayout is turned on for this editor -
+	//	create the top level menus
+	//
+	setParent $widgetList[2];
+
+	// build the menus
+	{ 
+		global string $gScriptEditorMenuBarPrefix;
+		buildScriptEditorMenus($widgetList[2], $gScriptEditorMenuBarPrefix, false, false);
+
+		addContextHelpProc $whichPanel "buildScriptEditorContextHelpItems";
+		doHelpMenu $whichPanel $whichPanel;
+	}
+
+	// select the previous executer tab (if one was saved)
+	//
+	if (`optionVar -exists ScriptEditorExecuterTabIndex`) {
+		int $prevIdx = `optionVar -q ScriptEditorExecuterTabIndex`;
+		if ( (0 < $prevIdx) && ($prevIdx <= `tabLayout -q -numberOfChildren $gCommandExecuterTabs`) ) {
+			tabLayout -e -selectTabIndex $prevIdx $gCommandExecuterTabs;
+		}
+	}
+
+	setUITemplate -popTemplate;
+
+	selectCurrentExecuterControl;
+	
+	scriptJob -parent $whichPanel -event "quitApplication" ("removeScriptEditorPanel " + $whichPanel);
+		
+}
+
+global proc
+removeScriptEditorPanel (string $whichPanel)
+//
+//  Description:
+//		Remove the panel from a layout.
+//		Delete controls.
+//
+{   
+	string $editorControl = ($whichPanel + "EditorControl");
+
+	global string $gCommandExecuterTabs;
+	global string $gCommandExecuterHistory[];
+	global string $gCommandReporter;
+	global string $gCommandExecuter[];
+	global string $gCommandExecuterName[];
+	global string $gCommandExecuterType[];
+	global string $gLastFocusedCommandExecuter;
+	global string $gLastFocusedCommandReporter;
+	global string $gLastFocusedCommandControl;
+
+	// save reporter options
+	saveCommandReporterOptionVars($gCommandReporter);
+
+	// save out the tab index
+	optionVar -iv ScriptEditorExecuterTabIndex `tabLayout -q -selectTabIndex $gCommandExecuterTabs`;
+
+	// store contents of script editor tabs into backup files
+	syncExecuterBackupFiles();
+
+	// update the optionvar keeping the the arrays
+	if (`optionVar -exists ScriptEditorExecuterLabelArray`) {
+		optionVar -clearArray ScriptEditorExecuterLabelArray;
+		optionVar -clearArray ScriptEditorExecuterTypeArray;
+	}
+	
+	for ($i = 0; $i < size($gCommandExecuter); ++$i) {
+		optionVar -stringValueAppend ScriptEditorExecuterLabelArray $gCommandExecuterName[$i];
+		optionVar -stringValueAppend ScriptEditorExecuterTypeArray $gCommandExecuterType[$i];
+	}
+	
+	// no controls are showing, so we clear all the focused control vars
+	$gLastFocusedCommandExecuter = "";
+	$gLastFocusedCommandReporter = "";
+	$gLastFocusedCommandControl = "";
+
+	destroySearchAndReplaceWindow;
+}
+
+global proc createScriptEditorPanel (string $whichPanel)
+//
+//  Description:
+//		Define the editors that are used in this panel.
+//		No controls are created at this point.
+//
+{
+	//  create unique names for editors based on panel name
+	//
+	string $editorControl = ($whichPanel + "EditorControl");
+}
+
+global proc
+deleteScriptEditorPanel (string $whichPanel)
+//
+//  Description:
+//		This proc will delete the contents of the panel, but not
+//		the panel itself.
+//
+//  Note:
+//		We only need to delete editors here.  Other UI will be taken care of
+//		by the remove proc.
+//
+{
+	string $editorControl = ($whichPanel + "EditorControl");
+}
+
+global proc string
+saveStateScriptEditorPanel (string $whichPanel)
+//
+//  Description:
+//		This proc returns a string that when executed will restore the
+//		current state of the panel elements.
+//
+{	
+	string $editorControl = ($whichPanel + "EditorControl");
+
+	return ("");
+}
+
+global proc
+showScriptEditorPanel ()
+//
+//  Description:
+//		This proc replaces the currently focused panel with script editor panel
+//		if it's not among visible panels.
+{
+	global string $gScriptEditorPanel;
+
+	string $panels[] = `getPanel -visiblePanels`;
+	if(stringArrayCount("scriptEditorPanel1", $panels) == 0) {
+		string $currentPanel = `getPanel -withFocus`;
+		if(stringArrayCount($currentPanel, $panels) == 0) 
+		{
+			$currentPanel = $panels[0];
+		}
+
+		scriptedPanel -edit -replacePanel $currentPanel "scriptEditorPanel1";
+	}
+}
