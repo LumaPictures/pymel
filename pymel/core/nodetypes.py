@@ -3208,7 +3208,7 @@ class SkinCluster(GeometryFilter):
 # TODO: if nucleus bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
 #   - remove hard-code setting of Nucleus's parent to DependNode
-#   - remove check in allapi.toApiObject for objects which can have an MDagPath
+#   - remove 2 checks in allapi.toApiObject for objects which can have an MDagPath
 #     but can't use MFnDagNode
 
 # nucleus has a weird bug where, even though it inherits from transform, and can
