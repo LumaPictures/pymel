@@ -1947,6 +1947,8 @@ class ApiUndoItem(object):
         self._setter(*self._undo_args, **self._undo_kwargs)
         
 class ApiRedoUndoItem(ApiUndoItem):
+    """Similar to the base ApiUndoItem, but allows specifying a separate
+    function for the redoer and the undoer"""
     __slots__ = ['_undoer']
     def __init__(self, redoer, redoArgs, undoer, undoArgs, redoKwargs=None,
                  undoKwargs=None):
