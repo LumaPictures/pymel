@@ -1926,16 +1926,38 @@ apiUndo = ApiUndo()
 
 class ApiUndoItem(object):
     """A simple class that reprsents an undo item to be undone or redone."""
-    __slots__ = ['_setter', '_redo_args', '_undo_args' ]
-    def __init__(self, setter, redoArgs, undoArgs):
+    __slots__ = ['_setter', '_redo_args', '_undo_args', '_redo_kwargs',
+                 '_undo_kwargs']
+    def __init__(self, setter, redoArgs, undoArgs, redoKwargs=None,
+                 undoKwargs=None):
         self._setter = setter
         self._redo_args = redoArgs
         self._undo_args = undoArgs
+        if redoKwargs is None:
+            redoKwargs = {}
+        self._redo_kwargs = redoKwargs
+        if undoKwargs is None:
+            undoKwargs = {}
+        self._undo_kwargs = undoKwargs
+        
     def redoIt(self):
-        self._setter(*self._redo_args)
+        self._setter(*self._redo_args, **self._redo_kwargs)
 
     def undoIt(self):
-        self._setter(*self._undo_args)
+        self._setter(*self._undo_args, **self._undo_kwargs)
+        
+class ApiRedoUndoItem(ApiUndoItem):
+    __slots__ = ['_undoer']
+    def __init__(self, redoer, redoArgs, undoer, undoArgs, redoKwargs=None,
+                 undoKwargs=None):
+        super(ApiRedoUndoItem, self).__init__(redoer, redoArgs, undoArgs,
+                                              redoKwargs=redoKwargs,
+                                              undoKwargs=undoKwargs)
+        self._undoer = undoer
+
+    def undoIt(self):
+        self._undoer(*self._undo_args, **self._undo_kwargs)
+    
 
 def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex=None ):
     """
