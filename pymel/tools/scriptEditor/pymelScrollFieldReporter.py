@@ -1,3 +1,11 @@
+# TODO:
+# modify this so that it uses MCommandMessage.addCommandOutputFilterCallback,
+# and filters messages that we will be converting to python, and then just
+# write the converted message ourselves straight to sys.stdout (which has been
+# set to a maya.utils.MayaOutput)
+# also, set this to just use pymel's pymel.api.plugin "plugin", so no need to
+# install a this file as a plugin anywhere...
+
 
 """
 to create a window:
