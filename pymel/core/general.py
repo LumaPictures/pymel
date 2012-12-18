@@ -1498,15 +1498,23 @@ Maya Bug Fix:
 # PyNode Exceptions
 #--------------------------
 class MayaObjectError(TypeError):
+    SINGLE_MSG_FORMAT = "Maya %s does not exist"
+    MULTI_MSG_FORMAT = "Multiple maya %ss existed"
+    
     _objectDescription = 'Object'
-    def __init__(self, node=None):
+    def __init__(self, node=None, num=0):
         self.node = unicode(node)
+        self.num = num
     def __str__(self):
-        msg = "Maya %s does not uniquely exist" % (self._objectDescription)
+        if self.num:
+            format = self.MULTI_MSG_FORMAT
+        else:
+            format = self.SINGLE_MSG_FORMAT
+        msg = format % (self._objectDescription,)
         if self.node:
             msg += ": %r" % (self.node)
         return msg
-
+    
 class MayaNodeError(MayaObjectError):
     _objectDescription = 'Node'
 
@@ -1530,11 +1538,11 @@ class MayaComponentError(MayaAttributeError):
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
 
-def _objectError(objectName):
+def _objectError(objectName, num=0):
     # TODO: better name parsing
     if '.' in objectName:
-        return MayaAttributeError(objectName)
-    return MayaNodeError(objectName)
+        return MayaAttributeError(objectName, num=num)
+    return MayaNodeError(objectName, num=num)
 
 #--------------------------
 # Object Wrapper Classes
@@ -1648,7 +1656,8 @@ class PyNode(_util.ProxyUnicode):
                     except Exception:
                         raise MayaNodeError
                     else:
-                        res = _api.toApiObject( name, dagPlugs=True )
+                        res = _api.toApiObject( name, dagPlugs=True,
+                                                numMultiple=True )
                         # DagNode Plug
                         if isinstance(res, tuple):
                             # Plug or Component
@@ -1671,9 +1680,11 @@ class PyNode(_util.ProxyUnicode):
                                 if attrNode.hasAttr(attrName):
                                     return attrNode.attr(attrName)
                         # DependNode Plug
-                        elif isinstance(res,_api.MPlug):
+                        elif isinstance(res, _api.MPlug):
                             attrNode = PyNode(res.node())
                             argObj = res
+                        elif isinstance(res, int):
+                            raise _objectError( name, num=res )
                         # Other Object
                         elif res:
                             argObj = res
@@ -3650,7 +3661,7 @@ class Component( PyNode ):
         if not component and self.plugAttr():
             try:
                 component = _api.toApiObject(self._completeNameString())[1]
-            except:
+            except Exception:
                 pass
             else:
                 if not _api.isValidMObject(component):
