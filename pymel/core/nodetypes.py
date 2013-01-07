@@ -1241,14 +1241,17 @@ class DagNode(Entity):
     def show(self):
         self.visibility.set(1)
 
-    def isVisible(self):
+    def isVisible(self, checkOverride=True):
         if not self.attr('visibility').get():
+            return False
+        if (checkOverride and self.attr('overrideEnabled').get()
+                and not self.attr('overrideVisibility').get()):
             return False
         parent = self.getParent()
         if not parent:
             return True
         else:
-            return parent.isVisible()
+            return parent.isVisible(checkOverride=checkOverride)
 
     def setObjectColor( self, color=None ):
         """This command sets the dormant wireframe color of the specified objects to an integer

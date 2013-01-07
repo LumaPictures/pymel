@@ -1834,6 +1834,44 @@ class testCase_DagNode(TestCaseExtended):
         self.assertEqual(tg3c1.getAllParents(), [tg3])
         self.assertEqual(tg3.getAllParents(), [])
 
+    def test_isVisible(self):
+        setA = []
+        setB = []
+        vis = [1,1,0,0,1,0,0,1]
+        z = 0
+        for x in range(8):
+            setA.append(pm.createNode('transform', name='setA%d' % x))
+            setB.append(pm.createNode('transform', name='setB%d' % x))
+
+        for x in range(4):
+            setA[x+4].setParent(setA[x])
+            setB[x+4].setParent(setB[x])
+
+        for x in range(8):
+            setA[x].visibility.set(vis[x])
+            setB[x].visibility.set(vis[x])
+
+        for x in range(8):
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible())
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible(checkOverride=True))
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible(checkOverride=False))
+
+        for x in range(8):
+            setB[x].overrideEnabled.set(1)
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible())
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible(checkOverride=True))
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible(checkOverride=False))
+
+        for x in range(8):
+            setB[x].overrideVisibility.set(1)
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible())
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible(checkOverride=True))
+            self.assertEqual(setA[x].isVisible(), setB[x].isVisible(checkOverride=False))
+
+        for x in range(8):
+            setB[x].overrideVisibility.set(0)
+            self.assertFalse(setB[x].isVisible())
+
 class testCase_transform(TestCaseExtended):
     def setUp(self):
         self.trans = pm.createNode('transform')
