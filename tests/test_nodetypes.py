@@ -28,17 +28,17 @@ class testCase_attribs(unittest.TestCase):
     def setUp(self):
         pm.newFile(f=1)
         self.sphere1, hist = pm.polySphere()
-        
+
         class AttributeData(object):
             node = self.sphere1
-            
+
             def __init__(self, name, **initArgs):
                 self.name = name
                 self.initArgs = initArgs
-                
+
             def add(self):
                 pm.addAttr(self.node, longName=self.name, **self.initArgs)
-        
+
         self.newAttrs = [
                         AttributeData('angle', attributeType='doubleAngle'),
                         AttributeData('multiByte', multi=True, attributeType='byte'),
@@ -53,7 +53,7 @@ class testCase_attribs(unittest.TestCase):
                         AttributeData('multiCompound_enum', attributeType='enum', parent='multiCompound'),
                         AttributeData('multiCompound_curve', dataType='nurbsCurve', parent='multiCompound'),
                         ]
-        
+
         self.attrTypes = {}
         for attrData in self.newAttrs:
             attrType = attrData.initArgs.get('attributeType',attrData.initArgs.get('dataType'))
@@ -63,20 +63,20 @@ class testCase_attribs(unittest.TestCase):
 
         for attr in self.newAttrs:
             attr.add()
-            
+
         self.newAttrs = dict([(newAttr.name, pm.Attribute(str(self.sphere1) + "." + newAttr.name)) for newAttr in self.newAttrs ])
-        
+
         self.setIndices = (1, 3, 5, 12)
         for i in self.setIndices:
             self.newAttrs['multiByte'][i].set(1)
-        
+
         self.setMultiElement = self.newAttrs['multiByte'][self.setIndices[0]]
-        
+
         self.unsetMultiElement = self.newAttrs['multiByte'][200]
-        
+
     def tearDown(self):
         pm.delete(self.sphere1)
-        
+
     def test_newAttrsExists(self):
         for attrName, attr in self.newAttrs.iteritems():
 #            print "Testing existence of:", attr.name()
@@ -84,11 +84,11 @@ class testCase_attribs(unittest.TestCase):
                 self.assertFalse(attr.exists(), 'attr %r existed' % attr)
             else:
                 self.assertTrue(attr.exists(), 'attr %r did not exist' % attr)
-            
+
     def test_setMultiElementExists(self):
         attr = self.setMultiElement
         self.assertTrue(attr.exists(), '%s should exist' % attr)
-        
+
     def test_unsetMultiElementExists(self):
         attr = self.unsetMultiElement
         self.assertFalse(attr.exists(), '%s should not exist' % attr)
@@ -103,10 +103,10 @@ class testCase_attribs(unittest.TestCase):
         self.assertFalse(attr.exists())
         attr = self.newAttrs['multiCompound_string']
         self.assertFalse(attr.exists())
-        
+
     def test_getParent(self):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(), self.newAttrs['compound_compound'])
-                
+
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(0), self.newAttrs['compound_compound_long'])
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=1), self.newAttrs['compound_compound'])
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(2), self.newAttrs['compound'])
@@ -119,12 +119,12 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=4), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)
-        
+
         self.assertEqual(self.newAttrs['compound_compound_long'].getAllParents(),
                          [  self.newAttrs['compound_compound'],
                             self.newAttrs['compound'],
                          ])
-        
+
         self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=1).array(),
                          self.newAttrs['multiCompound'])
         self.assertEqual(self.newAttrs['multiCompound_string'].getParent(generations=2, arrays=True),
@@ -148,11 +148,11 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['multiCompound'].getAllParents(arrays=True), [])
         self.assertEqual(self.newAttrs['angle'].getAllParents(), [])
         self.assertEqual(self.newAttrs['angle'].getAllParents(arrays=True), [])
-        
+
     def test_comparison(self):
         for attr in self.newAttrs.itervalues():
             self.assertEqual(attr, pm.PyNode(attr.name()))
-            
+
     def test_comparisonOtherObject(self):
         self.assertNotEqual(self.newAttrs['compound'], self.sphere1)
 
@@ -161,7 +161,7 @@ class testCase_attribs(unittest.TestCase):
         self.assert_( pm.PyNode('persp').hasAttr('foo') )
         pm.PyNode('persp').deleteAttr('foo')
         self.assert_(  not pm.PyNode('persp').hasAttr('foo') )
-        
+
     def test_elements(self):
         self.assertEqual(self.newAttrs['multiByte'].elements(), ['multiByte[%d]' % x for x in self.setIndices])
         self.assertEqual(self.newAttrs['multiCompound'].elements(), [])
@@ -171,7 +171,7 @@ class testCase_attribs(unittest.TestCase):
         iterList = [x for x in self.newAttrs['multiByte']]
         expectedList = [self.newAttrs['multiByte'][i] for i in self.setIndices]
         self.assertEqual(iterList, expectedList)
-        
+
     def test_iter_independence(self):
         iter1 = iter(self.newAttrs['multiByte'])
         iter2 = iter(self.newAttrs['multiByte'])
@@ -179,9 +179,9 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(zipped, [ (self.newAttrs['multiByte'][i],
                                     self.newAttrs['multiByte'][i])
                                    for i in self.setIndices ])
-        
+
     def test_settable(self):
-        
+
         def testLockUnlock(attr, child=None):
             if child is None:
                 attr.lock()
@@ -195,7 +195,7 @@ class testCase_attribs(unittest.TestCase):
                 child.unlock()
                 self.assertTrue(child.isSettable(), '%s was unlocked - should be settable' % attr)
                 self.assertTrue(attr.isSettable(), '%s had unlocked child - should be settable' % attr)
-                
+
         for attr in self.newAttrs.itervalues():
             if not attr.exists():
                 continue
@@ -217,38 +217,38 @@ class testCase_attribs(unittest.TestCase):
             self.assertEqual(self.newAttrs[attrName].type(), attrType)
         self.assertEqual(self.newAttrs['multiCompound'].numElements(), 0)
         self.assertEqual(self.newAttrs['multiByte'].numElements(), len(self.setIndices))
-        
+
         # Try some non-dynamic attrs...
         self.assertEqual(self.sphere1.attr('translateX').type(), 'doubleLinear')
         self.assertEqual(self.sphere1.attr('translate').type(), 'double3')
         self.assertEqual(self.sphere1.attr('message').type(), 'message')
-        
+
         # Try a more unusual attr type...
         circleMaker = pm.circle()[1]
         self.assertEqual(circleMaker.attr('outputCurve').type(), 'nurbsCurve')
-        
+
 class testCase_invertibles(unittest.TestCase):
     EXCEPTIONS = [
                   'MotionPath',   # setUEnd causes maya to crash
                   'OldBlindDataBase',
                   'TextureToGeom'
                  ]
-    
-    GETTER_SKIPS = [ 
+
+    GETTER_SKIPS = [
                     # calling setAbsoluteChannelSettings([1,2,3]) will
                     # effectively set the number of channels to three, and
                     # calling setAbsoluteChannelSettings([0]) does not set it
                     # back to 1... and there doesn't seem to be a way to set it
                     # back to 1 channel... forgiving this because I'm assuming
                     # that the number of channels isn't "supposed" to change
-                    ('AnimClip', 'getAbsoluteChannelSettings'),  
-                    
+                    ('AnimClip', 'getAbsoluteChannelSettings'),
+
                     # calling setExpression seems to trigger some sort of mel
                     # callback - if you check cmds.undoInfo(q=1, printQueue=1),
                     # it shows a call like:
                     #   expression -e -ae 0  -o ""  -a ""  -s "" expression1;
                     # ...that happens after the apiUndo.cmdCount increment
-                    
+
                     # Could wrap the adding of the apiUndo item and actual
                     # execution of the cmd into a single undo chunk, but I'm
                     # worried about unforeseen consequences... going to forgive,
@@ -257,12 +257,12 @@ class testCase_invertibles(unittest.TestCase):
                     # callbacks...)
                     ('Expression', 'isAnimated'),
                    ]
-    
+
     class GetTypedArgError(Exception): pass
-    
+
     @classmethod
     def getTypedArg(cls, type):
-        typeMap = {   
+        typeMap = {
             'bool' : True,
             'double' : 2.5, # min required for setFocalLength
             'double3' : ( 1.0, 2.0, 3.0),
@@ -288,7 +288,7 @@ class testCase_invertibles(unittest.TestCase):
                 return typeMap[type]
             except KeyError:
                 raise cls.GetTypedArgError(type)
-        
+
     @classmethod
     def setattrUnique(cls, name, obj):
         uniqueName = name
@@ -298,8 +298,8 @@ class testCase_invertibles(unittest.TestCase):
             uniqueName = '%s%s' % (name, i)
         #print "%s.%s = %r" % (cls.__name__, uniqueName, obj)
         setattr(cls, uniqueName, obj)
-        return uniqueName  
-    
+        return uniqueName
+
     @classmethod
     def _getMethodAndArgTypes(cls, basePyClass, pyClassName, apiClassName,
                        classInfo, methodName):
@@ -311,7 +311,7 @@ class testCase_invertibles(unittest.TestCase):
             methodName = info[0]['pymelName']
         except KeyError:
             pass
-        
+
         methodName, data = factories._getApiOverrideNameAndData( pyClassName, methodName )
         try:
             overloadIndex = data['overloadIndex']
@@ -322,13 +322,13 @@ class testCase_invertibles(unittest.TestCase):
         if not info.get('inverse', True):
             return None
         try:
-            method = getattr( basePyClass, methodName )            
+            method = getattr( basePyClass, methodName )
         except AttributeError:
             return None
         inArgs = [ arg for arg in info['inArgs'] if arg not in info['defaults'] ]
         argTypes = [ str(info['types'][arg]) for arg in inArgs ]
         return method, argTypes
-        
+
     @classmethod
     def addTests(cls):
         pyNodes = inspect.getmembers(pm.nodetypes,
@@ -336,22 +336,22 @@ class testCase_invertibles(unittest.TestCase):
 
         realNodes = apicache._getRealMayaTypes(noPlugins=True)
         realPyNodes = [node for name, node in pyNodes if node.__melnode__ in realNodes]
-        
+
         for pynode in realPyNodes:
             # for some reason, we sometimes return the same method twice...?
             # ensure we don't make 2 tests for it...
-            methods = set() 
+            methods = set()
 
             pynodeName = pynode.__name__
             if pynodeName in cls.EXCEPTIONS:
                 continue
-            
+
             for className, apiClassName in getClassHierarchy(pynodeName):
                 if apiClassName not in factories.apiClassInfo:
                     continue
 
                 #print className, apiClassName
-                
+
                 classInfo = factories.apiClassInfo[apiClassName]
                 invertibles = classInfo['invertibles']
                 #print invertibles
@@ -360,7 +360,7 @@ class testCase_invertibles(unittest.TestCase):
                     setMethodData = cls._getMethodAndArgTypes(pynode, className,
                                                               apiClassName,
                                                               classInfo,
-                                                              setMethod) 
+                                                              setMethod)
                     if setMethodData is None:
                         continue
                     else:
@@ -370,7 +370,7 @@ class testCase_invertibles(unittest.TestCase):
                     else:
                         methods.add(setter)
 
-                    getter = None                    
+                    getter = None
                     if (pynodeName, getMethod) not in cls.GETTER_SKIPS:
                         getMethodData = cls._getMethodAndArgTypes(pynode, className,
                                                                   apiClassName,
@@ -382,12 +382,12 @@ class testCase_invertibles(unittest.TestCase):
                                 # if the getter requires args, don't bother testing
                                 # it
                                 getter = None
-                     
+
                     newTestMethod = cls.makeInvertTest(pynode, apiClassName,
                                                        setMethod, setter,
                                                        getter, setArgTypes)
                     cls.setattrUnique(newTestMethod.__name__, newTestMethod)
-            
+
     @classmethod
     def makeInvertTest(cls, pynode, apiClassName, setMethod, setter, getter,
                        setArgTypes):
@@ -421,18 +421,18 @@ class testCase_invertibles(unittest.TestCase):
                         args = [ [ [.5,.5,.5] ]*obj.numColors() ]
                     elif apiClassName == 'MFnMesh' and setMethod == 'setColor':
                         obj.setColors( [ [.5,.5,.5] ]*obj.numVertices() )
-                        args = [ 1, [1,0,0] ] 
+                        args = [ 1, [1,0,0] ]
                     elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
                         obj.createColorSet(setMethod + '_ColorSet' )
                         args = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
-                    
+
                     elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
                         args = [ 6, 4.5 ]
                     else:
                         args = [ self.getTypedArg(typ) for typ in setArgTypes ]
                     #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
                     args = [obj] + args
-                    
+
                     if getter:
                         oldVal = getter(obj)
                     setter( *args )
@@ -446,13 +446,13 @@ class testCase_invertibles(unittest.TestCase):
                 except cls.GetTypedArgError:
                     pass
             finally:
-                try: 
+                try:
                     pm.delete( obj )
                 except:
                     pass
         testInvert.__name__ = 'test_%s_%s' % (pynode.__name__, setMethod)
         return testInvert
-    
+
 testCase_invertibles.addTests()
 
 # TODO: add tests for slices
@@ -488,27 +488,27 @@ class ComponentData(object):
         if melIndices is None:
             melIndices = []
         if isinstance(melIndices, (int, float, basestring)):
-            melIndices = [melIndices]            
+            melIndices = [melIndices]
         self.melIndices = melIndices
         self.neverUnindexed = neverUnindexed
-        
+
         if indices:
             # just want the first one, since all we need in a component
             # mobject of the right type
             for x in self.melIndexedComps():
                 compObjStr = x
-                break 
+                break
         else:
             compObjStr = self.melUnindexedComp()
         self._compObj = api.toApiObject(compObjStr)[1]
 
-        
+
     def pyUnindexedComp(self):
         return self.nodeName + "." + self.compName
-    
+
     def melUnindexedComp(self):
         return self.nodeName + "." + self.melCompName
-    
+
     def _makeIndicesString(self, indexObj):
         return ''.join([('[%s]' % x) for x in indexObj.index])
 
@@ -522,14 +522,14 @@ class ComponentData(object):
                     for partialIndexLen in xrange(1, len(index.index)):
                         yield self.pyUnindexedComp() + self._makeIndicesString(IndexData(*index.index[:partialIndexLen]))
                 yield self.pyUnindexedComp() + self._makeIndicesString(index)
-    
+
     def melIndexedComps(self):
         if not self.hasMelIndices():
             raise ValueError("no indices stored - %s" % self.melUnindexedComp())
         else:
             for index in itertools.chain(self.indices, self.melIndices):
                 yield self.melUnindexedComp() + self._makeIndicesString(index)
-                
+
     def bothIndexedComps(self):
         """
         For indices which are same for mel/pymel, returns a pair (melComp, pyComp)
@@ -545,23 +545,23 @@ class ComponentData(object):
             for index in self.indices:
                 indiceString = self._makeIndicesString(index)
                 yield (self.melUnindexedComp() + indiceString,
-                       self.pyUnindexedComp() + indiceString)        
-    
+                       self.pyUnindexedComp() + indiceString)
+
     def hasPyIndices(self):
         return self.indices or self.pythonIndices
-    
+
     def hasMelIndices(self):
         return self.indices or self.melIndices
 
     def hasBothIndices(self):
-        return bool(self.indices)    
+        return bool(self.indices)
 
     def typeEnum(self):
         return self._compObj.apiType()
 
     def typeName(self):
         return self._compObj.apiTypeStr()
-    
+
 class IndexData(object):
     def __init__(self, *index):
         self.index = index
@@ -570,7 +570,7 @@ class IndexData(object):
 def makeComponentCreationTests(evalStringCreator, funcName=None):
     """
     Outputs a function suitable for use as a unittest test that tests creation of components.
-    
+
     For every ComponentData item in in self.compData, it will call
         'evalStringCreator(self, componentData)'
     evalStringCreator should output
@@ -578,16 +578,16 @@ def makeComponentCreationTests(evalStringCreator, funcName=None):
     where evalStrings is a list of strings, each of which when called like:
         eval(anEvalString)
     evaluates to a component.
-    
+
     The function returns
         (successfulComps, failedComps)
     where each item of successfulComps is a successfully created component
     object, and each item of failedComps is the evalString that was not made.
-    
+
     If any component cannot be created, the test will fail, and output a list of the components that
     could not be made in the fail message.
     """
-    
+
     def test_makeComponents(self):
         successfulComps = []
         failedComps = []
@@ -616,31 +616,31 @@ class MakeEvalStringCreator(object):
     """
     Used to transform a 'compString evalString creator' function to a
     a 'compData evalString creator' function.
-    
+
     The generated 'compData evalString creator' is a function of the form:
        compDataEvalStringCreator(testCase, compDataObject)
     It takes a testCase_components object and a ComponentData object,
     and returns a list of strings, each of which can be fed as an argument
     to eval to generate a component.
-    
+
     The input function, the 'compString evalString creator', is of the form:
         compStringEvalStringCreator(testCase, compString)
     It takes a testCase_components object and a component string, such as
        'myCube.vtx[1]'
     and returns a single string, which may be fed to eval to generate a
     component.
-    
+
     melOrPymel determines whether mel-style or pymel-style syntax will be used.
     (in general, pymel-style indices are similar to mel-style, but can allow
     things such as [:-1].  Also, different component names may be used - for
     instance, the mel-syntax 'myNurbsSphere.v' will result in a v-isoparm,
     whereas PyNode('myNurbsSphere').v will give you the visibility attribute,
     so PyNode('myNurbsSphere').vIsoparm must be used. )
-    
+
     If indexed is True, then the returned components will have an index. In this
     case, only compData which have associated index data (of the correct mel-or-
     pymel syntax type) will generate evalStrings.
-    
+
     If indexed is False, then returned components will not have an index.
     In this case, alwaysMakeUnindexed will control whether given compData
     objects generate an evalString - if alwaysMakeUnindexed, all compData will
@@ -653,7 +653,7 @@ class MakeEvalStringCreator(object):
         self.melOrPymel = melOrPymel
         self.indexed = indexed
         self.alwaysMakeUnindexed = alwaysMakeUnindexed
-        
+
     def __call__(self, evalStringCreator):
         def wrappedEvalStringCreator(testCase, compData):
             strings = []
@@ -744,16 +744,16 @@ class testCase_components(unittest.TestCase):
         self.compData['scalePivot'] = ComponentData(pm.Pivot,
                                                     self.nodes['subd'],
                                                     "scalePivot", [], [])
-        
+
         self.nodes['curve'] = cmds.circle()[0]
         self.compData['curveCV'] = ComponentData(pm.NurbsCurveCV,
                                                  self.nodes['curve'], "cv",
                                                  [IndexData(6)],
                                                  [(0,7)])
         self.compData['curvePt'] = ComponentData(pm.NurbsCurveParameter,
-                                                 self.nodes['curve'], "u", 
+                                                 self.nodes['curve'], "u",
                                                  [IndexData(7.26580365007639)],
-                                                 [(0,8)])        
+                                                 [(0,8)])
         self.compData['curveEP'] = ComponentData(pm.NurbsCurveEP,
                                                  self.nodes['curve'], "ep",
                                                  [IndexData(7)],
@@ -836,8 +836,8 @@ class testCase_components(unittest.TestCase):
                                                      self.nodes['negUSurf'], "uv",
                                                      [IndexData(-3.4, .5)],
                                                      [(-11,-3),(0,1)],
-                                                     neverUnindexed=True)                                                     
-        
+                                                     neverUnindexed=True)
+
         # Done in effort to prevent crash which happens after making a subd,
         # then adding any subd edges to an MSelectionList
         # see http://groups.google.com/group/python_inside_maya/browse_thread/thread/9415d03bac9e712b/0b94edb468fbe6bd
@@ -858,13 +858,13 @@ class testCase_components(unittest.TestCase):
 #        while not edgeIt.isDone():
 #            edgeIt.index()
 #            edgeIt.next()
-        
+
     def tearDown(self):
         for node in self.nodes.itervalues():
             if cmds.objExists(node):
                 cmds.delete(node)
                 #pass
-            
+
     def test_allCompsRepresented(self):
         unableToCreate = ('kEdgeComponent',
                           'kDecayRegionCapComponent',
@@ -876,13 +876,13 @@ class testCase_components(unittest.TestCase):
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)
         flatCompTypes = flatCompTypes - set([factories.apiTypesToApiEnums[x] for x in unableToCreate])
-        
+
         notFoundCompTypes = set(flatCompTypes)
         for compDatum in self.compData.itervalues():
             testedType = compDatum.typeEnum()
             self.assert_(testedType in flatCompTypes)
             notFoundCompTypes.discard(testedType)
-        
+
         if notFoundCompTypes:
             failMsg = "component types not tested:\n"
             for x in notFoundCompTypes:
@@ -890,14 +890,14 @@ class testCase_components(unittest.TestCase):
             self.fail(failMsg)
 
     _indicesRe = re.compile( r'\[([^]]*)\]')
-    
+
     @classmethod
     def _compStrSplit(cls, compStr):
         """
         Returns a tuple (nodeName, compName, indices).
-        
+
         Indices will itself be a list.
-        
+
         Example:
         >> testCase_components._compStrSplit('mySurf.uv[4][*]') # doctest: +SKIP
         ('mySurf', 'uv', ['4', '*'])
@@ -915,15 +915,15 @@ class testCase_components(unittest.TestCase):
             else:
                 compName = rest.split('[', 1)[0]
         return nodeName, compName, indices
-    
+
     @classmethod
     def _compStrJoin(cls, nodeName, compName, indices):
         """
         Inverse of _compStrSplit
-        
+
         Given three items, nodeName, compName, indices, will
         return a component string representing that comp.
-        
+
         Example:
         >> testCase_components._joinCompStr('mySurf', 'uv', ['4', '*']) # doctest: +SKIP
         'mySurf.uv[4][*]'
@@ -932,25 +932,25 @@ class testCase_components(unittest.TestCase):
         for indice in indices:
             indicesStr += '[%s]' % indice
         return '%s.%s%s' % (nodeName, compName, indicesStr)
-        
+
     def _compStringsEqual(self, comp1, comp2, compData):
         # We assume that these comps have a '.' in them,
         # and that they've already been fed through
         # filterExpand, so myCube.vtx / myCubeShape.vtx
-        # have been standardized 
+        # have been standardized
         if comp1==comp2:
             return True
-        
+
         node1, comp1Name, indices1 = self._compStrSplit(comp1)
         node2, comp2Name, indices2 = self._compStrSplit(comp2)
-        
+
         if node1 != node2:
             return False
 
         if not (comp1Name and comp2Name and
                 indices1 and indices2):
             return False
-        
+
         if comp1Name != comp2Name:
             # If the component names are not equal,
             # they're different components, unless
@@ -959,7 +959,7 @@ class testCase_components(unittest.TestCase):
             if (comp1Name not in uvNames or
                 comp2Name not in uvNames):
                 return False
-        
+
         if comp1Name in ('vtxFace', 'smp', 'sme', 'smf'):
             # these types (really, any discrete component)
             # should be found
@@ -968,7 +968,7 @@ class testCase_components(unittest.TestCase):
             # so just fail these, as
             # the range information is hard to get
             return False
-                
+
         # If one of them is v, we need to
         # flip the indices...
         if comp1Name == 'v':
@@ -989,16 +989,16 @@ class testCase_components(unittest.TestCase):
                 indices2 = [indices2[1], indices2[0]]
             else:
                 return ValueError(comp2)
-            
+
         if len(indices1) < len(indices2):
             indices1 += (['*'] * (len(indices2) - len(indices1)))
         elif len(indices1) > len(indices2):
             indices2 += (['*'] * (len(indices1) - len(indices2)))
-            
+
         if len(indices1) > len(compData.ranges):
             return False
         # it's ok if we have less indices than possible dimensions...
-            
+
         for indice1, indice2, range in zip(indices1, indices2, compData.ranges):
             if indice1 == indice2:
                 continue
@@ -1006,7 +1006,7 @@ class testCase_components(unittest.TestCase):
                 not self._isCompleteIndiceString(indice2, range)):
                 return False
         return True
-    
+
     def _isCompleteIndiceString(self, indice, range):
         """
         Returns true if the given mel indice string would
@@ -1017,17 +1017,17 @@ class testCase_components(unittest.TestCase):
         if indice.count(':') != 1:
             return False
         start, stop = indice.split(':')
-        return float(start) == range[0] and float(stop) == range[1] 
+        return float(start) == range[0] and float(stop) == range[1]
 
     def compsEqual(self, comp1, comp2, compData, failOnEmpty=True):
         """
         Compares two components for equality.
 
         The two args should either be pymel components objects, strings
-        which can be selected, or a tuple or list of such objects. 
-        
+        which can be selected, or a tuple or list of such objects.
+
         It will also return False if either component is empty, if failOnEmpty
-        is True (default). 
+        is True (default).
         """
         # First, make sure comp1, comp2 are both lists
         bothComps = [comp1, comp2]
@@ -1036,8 +1036,8 @@ class testCase_components(unittest.TestCase):
                 bothComps[i] = [comp]
             else:
                 # ensure it's a list, so we can modify it
-                bothComps[i] = list(comp) 
-        
+                bothComps[i] = list(comp)
+
         # there's a bug where a comp such as:
         #   myNurbSurf.u[2]
         # will get converted to
@@ -1062,9 +1062,9 @@ class testCase_components(unittest.TestCase):
                                 indices.append('*')
                         comp = self._compStrJoin(nodePart, compName, indices)
                     compIterable[i] = comp
-                    
+
         comp1, comp2 = bothComps
-            
+
 
 
 #        Comps are compared through first converting to strings
@@ -1074,7 +1074,7 @@ class testCase_components(unittest.TestCase):
 #        myNurbShape.v[3][0:4] and myNurb.v[3] (when the u range is 0-4,
 #        and myNurbShape is the first shape of myNurb) to compare equal.
 
-        
+
         # First, filter the results through filterExpand...
         if failOnEmpty:
             if not comp1: return False
@@ -1083,7 +1083,7 @@ class testCase_components(unittest.TestCase):
         comp1 = cmds.filterExpand(sm=tuple(x for x in xrange(74)))
         pm.select(comp2)
         comp2 = cmds.filterExpand(sm=tuple(x for x in xrange(74)))
-        
+
         # first, filter out components whose strings are identical
         only1, both, only2 = setCompare(comp1, comp2)
         # Then, do pairwise comparison...
@@ -1105,7 +1105,7 @@ class testCase_components(unittest.TestCase):
     def _pyCompFromString(self, compString):
         self._failIfWillMakeMayaCrash(compString)
         return eval(compString)
-    
+
     # Need separate tests for PyNode / Component, b/c was bug where
     # Component('pCube1.vtx[3]') would actually return a Component
     # object, instead of a MeshVertex object, and fail, while
@@ -1113,7 +1113,7 @@ class testCase_components(unittest.TestCase):
 
     def pyNodeMaker(self, compString):
         return 'pm.PyNode(%r)' % compString
-    
+
     # cubeShape1.vtx[1] => PyNode('cubeShape1.vtx[1]')
     indexed_PyNode_evalStrings = MakeEvalStringCreator('mel', indexed=True)(pyNodeMaker)
     # cubeShape1.vtx[1] => PyNode('cubeShape1.vtx')
@@ -1121,7 +1121,7 @@ class testCase_components(unittest.TestCase):
 
     def componentMaker(self, compString):
         return 'pm.Component(%r)' % compString
-    
+
     # cubeShape1.vtx[1] => Component('cubeShape1.vtx[1]')
     indexed_Component_evalStrings = MakeEvalStringCreator('mel', indexed=True)(componentMaker)
     # cubeShape1.vtx[1] => Component('cubeShape1.vtx')
@@ -1136,7 +1136,7 @@ class testCase_components(unittest.TestCase):
             return []
         pymelClass = compData.pymelType
         return ['pm.%s(%r)' % (pymelClass.__name__, compData.nodeName)]
-    
+
     def node_dot_comptypeMaker(self, compString):
         # node.scalePivot / node.rotatePivot returns the ATTRIBUTE,
         # so skip these.
@@ -1145,7 +1145,7 @@ class testCase_components(unittest.TestCase):
             return ''
         nodeName, compName = compString.split('.', 1)
         return 'pm.PyNode(%r).%s' % (nodeName, compName)
-    
+
     # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx[1]
     node_dot_comptypeIndex_evalStrings = MakeEvalStringCreator('pymel', indexed=True)(node_dot_comptypeMaker)
     # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx
@@ -1165,7 +1165,7 @@ class testCase_components(unittest.TestCase):
         compName = compNameAndIndex[:indexSplit]
         indexString = compNameAndIndex[indexSplit:]
         return 'pm.PyNode(%r).comp(%r)%s' % (nodeName, compName, indexString)
-        
+
     def test_objectComponentsClassEqual(self):
         successfulComps = []
         failedComps = []
@@ -1184,19 +1184,19 @@ class testCase_components(unittest.TestCase):
                         failedComps.append(compString)
         if failedComps:
             self.fail('Following components wrong class (or not created):\n   ' + '\n   '.join(failedComps))
-                    
+
     def getComponentStrings(self, returnCompData=False, evalStringFuncs=None):
         """
         Return a list of all component strings made using this object's
         component data.
-        
+
         If evalStringFuncs is given, it should be an iterable which returns
         evalString functions.
-        
+
         Otherwise, the eval string function returned by
         getEvalStringFunctions(self.__class__).itervalues()
         will be used.
-        
+
         If returnCompData is True, the returned list will be of tuples
             (evalString, compData)
         """
@@ -1210,7 +1210,7 @@ class testCase_components(unittest.TestCase):
                     newStrings = [(x, componentData) for x in newStrings]
                 componentStrings.update(newStrings)
         return list(componentStrings)
-    
+
     def test_componentSelection(self):
         failedCreation  = []
         failedSelections = []
@@ -1249,7 +1249,7 @@ class testCase_components(unittest.TestCase):
     def test_component_repr(self):
         failedCreation  = []
         failedRepr = []
-        
+
         for compString in self.getComponentStrings():
             printedDone = False
             if VERBOSE:
@@ -1271,7 +1271,7 @@ class testCase_components(unittest.TestCase):
                         print "done!"
                         printedDone = True
             if VERBOSE and not printedDone:
-                print "FAIL!!!"                                
+                print "FAIL!!!"
 
         if failedCreation or failedRepr:
             failMsgs = []
@@ -1286,7 +1286,7 @@ class testCase_components(unittest.TestCase):
         failedIterations = []
         failedSelections = []
         iterationUnequal = []
-        
+
         for compString,compData in self.getComponentStrings(returnCompData=True):
             printedDone = False
             if VERBOSE:
@@ -1299,7 +1299,7 @@ class testCase_components(unittest.TestCase):
                 # only test iteration for discrete components!
                 if not isinstance(pymelObj, pm.DiscreteComponent):
                     continue
-                
+
                 if VERBOSE:
                     print "iterating...",
                 try:
@@ -1331,7 +1331,7 @@ class testCase_components(unittest.TestCase):
                                 print "done!"
                                 printedDone = True
             if VERBOSE and not printedDone:
-                print "FAIL!!!"                                
+                print "FAIL!!!"
 
         if failedCreation or failedIterations or failedSelections or iterationUnequal:
             failMsgs = []
@@ -1350,7 +1350,7 @@ class testCase_components(unittest.TestCase):
             dotSplit = compString.split('.')
             if len(dotSplit) > 1:
                 return re.split(r'\W+', dotSplit[1])[0]
-                
+
         failedCreation  = []
         failedComparisons = []
         for compString, compData in self.getComponentStrings(returnCompData=True):
@@ -1363,7 +1363,7 @@ class testCase_components(unittest.TestCase):
                         failedComparisons.append(compString +
                             ' - expected: %s got: %s' % (compData.pymelType,
                                                          pymelObj.__class__))
-                        
+
         if failedCreation or failedComparisons:
             failMsgs = []
             if failedCreation:
@@ -1371,7 +1371,7 @@ class testCase_components(unittest.TestCase):
             if failedComparisons:
                 failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
             self.fail('\n\n'.join(failMsgs))
-            
+
     # There's a bug - if you add x.sme[*][*] to an
     # MSelectionList immediately
     # after creating the component, without any idle events
@@ -1379,7 +1379,7 @@ class testCase_components(unittest.TestCase):
     # In gui mode, we process idle events after creation,
     # but we can't do that in batch... so if we're
     # in batch, just fail x.sme[*][*]...
-    
+
     # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
     def _failIfWillMakeMayaCrash(self, comp):
         try:
@@ -1420,7 +1420,7 @@ class testCase_components(unittest.TestCase):
         except CrashError, e:
             print "Auto-failing %r to avoid crash..." % comp
             raise
-            
+
     def test_multiComponentName(self):
         compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
         mfnComp = api.MFnSingleIndexedComponent(compMobj)
@@ -1440,7 +1440,7 @@ class testCase_components(unittest.TestCase):
         cubeName = self.nodes['cube']
         self.assertEqual(set(cmds.ls(sl=1)),
                          set(['%s.%s' % (cubeName, pivot) for pivot in ('rotatePivot', 'scalePivot')]))
-        
+
     def test_mixedIsoparm(self):
         pm.select(self.nodes['sphere'] + '.u[1]', r=1)
         pm.select(self.nodes['sphere'] + '.v[0]', add=1)
@@ -1468,14 +1468,14 @@ class testCase_components(unittest.TestCase):
 
     def test_nurbsIsoPrintedRange(self):
         # Maya has a bug -running:
-        # 
+        #
         # import maya.cmds as cmds
         # cmds.sphere()
         # cmds.select('nurbsSphere1.uv[*][*]')
         # print cmds.ls(sl=1)
         # cmds.select('nurbsSphere1.u[*][*]')
         # print cmds.ls(sl=1)
-        # 
+        #
         # Gives two different results:
         # [u'nurbsSphere1.u[0:4][0:1]']
         # [u'nurbsSphere1.u[0:4][0:8]']
@@ -1493,11 +1493,11 @@ class testCase_components(unittest.TestCase):
         pynodeStr = str(pm.PyNode(self.nodes['sphere']).uv)
         self.assertTrue(pynodeStr in nameAliases,
                         '%s not equivalent to %s.uv[0:4][0:8]' % (pynodeStr,sphereShape))
-        
+
     def test_meshVertConnnectedFaces(self):
         # For a standard cube, vert 3 should be connected to
         # faces 0,1,4
-        desiredFaceStrings = ['%s.f[%d]' % (self.nodes['cube'], x) for x in (0,1,4)] 
+        desiredFaceStrings = ['%s.f[%d]' % (self.nodes['cube'], x) for x in (0,1,4)]
         connectedFaces = pm.PyNode(self.nodes['cube']).vtx[3].connectedFaces()
         self.assertTrue(self.compsEqual(desiredFaceStrings, connectedFaces, self.compData['meshFace']))
 
@@ -1533,17 +1533,17 @@ class testCase_components(unittest.TestCase):
     def test_melIndexing(self):
         melString = '%s.vtx[1:4]' % self.nodes['cube']
         self.assertTrue(self.compsEqual(melString, pm.PyNode(melString), self.compData['meshVtx']))
-        
+
 
     # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx[1]
     node_dot_comptypeIndex_evalStrings = MakeEvalStringCreator('pymel', indexed=True)(node_dot_comptypeMaker)
-        
+
     def test_melPyMelCompsEqual(self):
         def pairedStrings(self, compStringPair):
             # The mel compString we don't need to alter...
             # For the PyNode, use PyNode('cubeShape1').vtx[1] syntax
             return (compStringPair[0], self.node_dot_comptypeMaker(compStringPair[1]))
-        
+
         unindexedPairedStrings = MakeEvalStringCreator('both', indexed=False)(pairedStrings)
         indexedPairedStrings = MakeEvalStringCreator('both', indexed=True)(pairedStrings)
         failedCreation  = []
@@ -1562,7 +1562,7 @@ class testCase_components(unittest.TestCase):
                     failedCreation.append(pyString)
                 else:
                     if VERBOSE:
-                        print "comparing...",                        
+                        print "comparing...",
                     try:
                         areEqual = self.compsEqual(melString, pymelObj, componentData)
                     except Exception:
@@ -1577,7 +1577,7 @@ class testCase_components(unittest.TestCase):
                             printedDone = True
                 if not printedDone and VERBOSE:
                     print "FAIL!!!"
-                
+
         if any( (failedCreation, failedDuringCompare, failedComparison) ):
             failMsgs = []
             if failedCreation:
@@ -1587,7 +1587,7 @@ class testCase_components(unittest.TestCase):
             if failedComparison:
                 failMsgs.append('Following components unequal:\n   ' + '\n   '.join(failedComparison))
             self.fail('\n\n'.join(failMsgs))
-            
+
     def test_extendedSlices(self):
         failedComps = []
         def check(pynode, expectedStrings, compData):
@@ -1607,7 +1607,7 @@ class testCase_components(unittest.TestCase):
               self.compData['nurbsCV'])
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
-            
+
     def test_continuousCompRanges(self):
         failedComps = []
         def check(pynode, expectedStrings, compData):
@@ -1622,7 +1622,7 @@ class testCase_components(unittest.TestCase):
               self.compData['curvePt'])
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
-            
+
     def test_negativeDiscreteIndices(self):
         failedComps = []
         def check(pynode, expectedStrings, compData):
@@ -1644,7 +1644,7 @@ class testCase_components(unittest.TestCase):
                'ffd1LatticeShape.pt[2][2][2]'),
               self.compData['lattice'])
         if failedComps:
-            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))        
+            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
 
     def test_negativeContinuousIndices(self):
         # For continous comps, these should behave just like positive ones...
@@ -1660,24 +1660,24 @@ class testCase_components(unittest.TestCase):
         check(surf.uv[-8:-5.1][0],
               'surfaceShape1.u[-8:-5.1][0]',
               self.compData['negNurbsIso'])
-        
+
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
-            
+
     def test_multipleIterations(self):
         """
-        Make sure that, on repeated iterations through a component, we get the same result. 
+        Make sure that, on repeated iterations through a component, we get the same result.
         """
         comp = pm.PyNode(self.nodes['cube']).e[3:10]
         iter1 = [x for x in comp]
         iter2 = [x for x in comp]
         self.assertEqual(iter1, iter2)
-        
+
     # Disabling this for now - such indicing wasn't possible in 0.9.x, either,
     # so while I'd like to get this working at some point, it's not necessary for now...
 #    def test_multipleNoncontiguousIndices(self):
 #        """
-#        test things like .vtx[1,2,5:7] 
+#        test things like .vtx[1,2,5:7]
 #        """
 #        failedComps = []
 #        def check(pynode, expectedStrings, compData):
@@ -1693,7 +1693,7 @@ class testCase_components(unittest.TestCase):
 #               'pCubeShape1.vtx[6]',
 #               'pCubeShape1.vtx[7]'),
 #              self.compData['meshVtx'])
-#        
+#
 #        ffd = pm.PyNode('ffd1LatticeShape')
 #        pt = ffd.pt
 #        check(pt[0,1][1,2,4,][0,2],
@@ -1711,7 +1711,7 @@ class testCase_components(unittest.TestCase):
 #               'ffd1LatticeShape.pt[1][4][2]',
 #               ),
 #               self.compData['lattice'])
-#        
+#
 #        if failedComps:
 #            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
 
@@ -1722,7 +1722,7 @@ class testCase_components(unittest.TestCase):
     def test_totalSize_meshFace(self):
         self.assertEqual(pm.PyNode(self.nodes['cube']).faces.totalSize(), 6)
     def test_totalSize_meshUV(self):
-        # default cube uv layout is "t-shape" - so 14 uvs 
+        # default cube uv layout is "t-shape" - so 14 uvs
         self.assertEqual(pm.PyNode(self.nodes['cube']).uvs.totalSize(), 14)
     def test_totalSize_meshVtxFace(self):
         self.assertEqual(pm.PyNode(self.nodes['cube']).vtxFace.totalSize(), 24)
@@ -1743,12 +1743,12 @@ class testCase_components(unittest.TestCase):
     def test_totalSize_lattice(self):
         self.assertEqual(pm.PyNode(self.nodes['lattice']).pt.totalSize(),
                          self.latticeSize[0] * self.latticeSize[1] * self.latticeSize[2])
-        
+
     def test_stringComp_indexing(self):
         comp = pm.PyNode('%s.vtx[*]' % self.nodes['cube'])
         compIndex = comp[2];
         self.assertEqual(compIndex.getPosition(), pm.dt.Point(-0.5, 0.5, 0.5))
-        
+
     def test_listComp(self):
         nodeTypes = {'cube':pm.nt.Mesh,
                      'subd':pm.nt.Subdiv,
@@ -1756,7 +1756,7 @@ class testCase_components(unittest.TestCase):
                      'sphere':pm.nt.NurbsSurface,
                      'lattice':pm.nt.Lattice,
                     }
-        
+
         def assertListCompForNodeClass(node, nodeClass):
             compNames = sorted(nodeClass._componentAttributes)
             compTypes = set()
@@ -1771,8 +1771,8 @@ class testCase_components(unittest.TestCase):
             for name in uniqueNames:
                 comps.append(node.comp(name))
             self.assertEqual(node.listComp(), comps)
-            
-        
+
+
         for typeName, nodeClass in nodeTypes.iteritems():
             print typeName, nodeClass
             trans = pm.PyNode(self.nodes[typeName])
@@ -1780,7 +1780,7 @@ class testCase_components(unittest.TestCase):
             shape = trans.getShape()
             assertListCompForNodeClass(shape, nodeClass)
 
-        
+
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
     evalStringId = '_evalStrings'
@@ -1793,7 +1793,7 @@ for propName, evalStringFunc in \
 class testCase_DagNode(TestCaseExtended):
     def setUp(self):
         cmds.file(new=1, f=1)
-        
+
     def test_getParent(self):
         tg1     = pm.createNode('transform', name='topGroup1')
         tg1c1   = pm.createNode('transform',    name='tg1_child1', parent='topGroup1')
@@ -1808,9 +1808,9 @@ class testCase_DagNode(TestCaseExtended):
         tg3c1c1 = pm.createNode('transform',        name='child1', parent='topGroup3|child1')
         tg4     = pm.createNode('transform', name='topGroup4')
         tg4c1   = pm.createNode('transform',    name='child1', parent='topGroup4')
-            
+
         self.assertEqual(tg1c1g1.getParent(), tg1c1)
-                
+
         self.assertEqual(tg1c1g1.getParent(0), tg1c1g1)
         self.assertEqual(tg1c1g1.getParent(generations=1), tg1c1)
         self.assertEqual(tg1c1g1.getParent(2), tg1)
@@ -1823,9 +1823,9 @@ class testCase_DagNode(TestCaseExtended):
         self.assertEqual(tg1c1g1.getParent(generations=4), None)
         self.assertEqual(tg1c1g1.getParent(-63), None)
         self.assertEqual(tg1c1g1.getParent(generations=32), None)
-        
+
         self.assertEqual(tg1c1g1.getAllParents(), [tg1c1, tg1])
-        
+
         self.assertEqual(tg3c1.getParent(generations=1), tg3)
         self.assertEqual(tg3c1c1.getParent(generations=2), tg3)
         self.assertEqual(tg3c1.getParent(generations=-1), tg3)
@@ -1833,50 +1833,50 @@ class testCase_DagNode(TestCaseExtended):
         self.assertEqual(tg3c1c1.getAllParents(), [tg3c1, tg3])
         self.assertEqual(tg3c1.getAllParents(), [tg3])
         self.assertEqual(tg3.getAllParents(), [])
-        
+
 class testCase_transform(TestCaseExtended):
     def setUp(self):
         self.trans = pm.createNode('transform')
         self.trans.setRotationOrder('XYZ', False)
-        
+
     def tearDown(self):
         pm.delete(self.trans)
-        
+
     def test_setRotation(self):
         #Check dt.EulerRotation when angle unit differs
         oldUnit = pm.currentUnit(q=1, angle=1)
         try:
             pm.currentUnit(angle='degree')
-        
+
             # Check dt.EulerRotation input
             euler = pm.dt.EulerRotation(10, 20, 30)
             self.trans.setRotation(euler)
             self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
-            
+
             # Check dt.Quaternion input
             euler = pm.dt.EulerRotation(5, 15, -16)
             quat = pm.dt.Quaternion(euler.asQuaternion())
             self.trans.setRotation(quat)
             self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
-    
+
             # Check api.MEulerRotation input
             angles = (10, 20, 30)
             euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
             self.trans.setRotation(euler)
             self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
-            
+
             # Check api.MQuaternion input
             angles = (5, 15, -16)
             euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
             quat = euler.asQuaternion()
             self.trans.setRotation(quat)
             self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
-            
+
             # Check list of size 3 input
             angles = (10, 20, 30)
             self.trans.setRotation(angles)
             self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
-                    
+
             # Check list of size 4 input
             angles = (5, 15, -16)
             euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
@@ -1884,7 +1884,7 @@ class testCase_transform(TestCaseExtended):
             quatVals = list(quat)
             self.trans.setRotation(quatVals)
             self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
-            
+
             #Check dt.EulerRotation when euler rotation order non-standard
             origAngles = (10, 20, 30, 'YXZ')
             euler = pm.dt.EulerRotation(*origAngles)
@@ -1908,7 +1908,7 @@ class testCase_transform(TestCaseExtended):
             finally:
                 self.trans.setRotationOrder('XYZ', True)
             self.checkRotationsEqual(origAngles[:3], self.trans.attr('rotate').get())
-    
+
             # Check dt.EulerRotation input with radian angles
             degAngles = (5, 15, -16)
             radAngles = [math.radians(x) for x in degAngles]
@@ -1917,7 +1917,7 @@ class testCase_transform(TestCaseExtended):
             self.checkRotationsEqual(degAngles, self.trans.attr('rotate').get())
         finally:
             pm.currentUnit(angle=oldUnit)
-                         
+
     def checkRotationsEqual(self, rot1, rot2):
         if not len(rot1) == len(rot2):
             raise ValueError("rotation values must have same length: %r, %r" % (rot1, rot2))
@@ -1925,7 +1925,7 @@ class testCase_transform(TestCaseExtended):
             self.assertAlmostEqual(aVal, bVal,
                                    msg="component %i of rotations not equal (%s != %s)"
                                         % (i, aVal, bVal))
-        
+
 class testCase_nurbsSurface(TestCaseExtended):
     def setUp(self):
         self.negUSurf = pm.PyNode(pm.surface(name='periodicSurf', du=3, dv=1,
@@ -1942,10 +1942,10 @@ class testCase_nurbsSurface(TestCaseExtended):
                                            (4, -4, 0, 1), (4, -4, -2.5, 1),
                                            (5.5, 0, 0, 1), (5.5, 0, -2.5, 1),
                                            (4, 4, 0, 1), (4, 4, -2.5, 1)] ))
-        
+
     def tearDown(self):
         pm.delete(self.negUSurf)
-    
+
     def test_knotDomain(self):
         # Was a bug with this, due to automatic wrapping of api 'unsigned int &' args
         self.assertEqual(self.negUSurf.getKnotDomain(), (-11.0, -3.0, 0.0, 1.0))
@@ -1953,14 +1953,14 @@ class testCase_nurbsSurface(TestCaseExtended):
 class testCase_joint(TestCaseExtended):
     def setUp(self):
         self.j = pm.nt.Joint(radius=3.3, a=1, p=(4,5,6))
-        
+
     def tearDown(self):
         pm.delete(self.j)
-    
+
 #    def test_getAbsolute(self):
 #        # Was a bug with this, due to handling of methods which needed casting AND unpacking
 #        self.assertEqual(self.j.getAbsolute(), (4,5,6))
-        
+
     def test_getRadius(self):
         # Was a bug with this, due to handling of methods which needed unpacking (but not casting)
         self.assertEqual(self.j.getRadius(), 3.3)
@@ -1973,12 +1973,12 @@ class testCase_sets(TestCaseExtended):
         self.cube = pm.polyCube()[0]
         self.sphere = pm.sphere()[0]
         self.set = pm.sets()
-    def assertSetSelect(self, setClass, *items): 
+    def assertSetSelect(self, setClass, *items):
         """
-        Generator function which tests the given set type. 
+        Generator function which tests the given set type.
         It first selects the items, saves the list of the selected items, and makes a set
         from the selected items. Then it
-            - selects the items in the set 
+            - selects the items in the set
             - calls set.members()
         and compares each of the results to the initial selection.
         """
@@ -1998,34 +1998,34 @@ class testCase_sets(TestCaseExtended):
         pm.select(myList)
         newSel = cmds.ls(sl=1)
         self.assertIteration(initialSel, newSel, orderMatters=False)
-        
+
     def test_ObjectSet_singleObject(self):
         self.assertSetSelect(pm.nt.ObjectSet, self.cube)
-        
+
     def test_ObjectSet_multiObject(self):
         self.assertSetSelect(pm.nt.ObjectSet, self.cube, self.sphere)
-        
+
     def test_ObjectSet_vertices(self):
         self.assertSetSelect(pm.nt.ObjectSet, self.cube.vtx[1:3])
-    
+
     def test_ObjectSet_mixedObjectsComponents(self):
         self.assertSetSelect(pm.nt.ObjectSet, self.cube.edges[4:6], self.sphere)
 
     def test_SelectionSet_singleObject(self):
         self.assertSetSelect(pm.nt.SelectionSet, self.cube)
-        
+
     def test_SelectionSet_multiObject(self):
         self.assertSetSelect(pm.nt.SelectionSet, self.cube, self.sphere)
-        
+
     def test_SelectionSet_vertices(self):
         self.assertSetSelect(pm.nt.SelectionSet, self.cube.vtx[1:3])
-    
+
     def test_SelectionSet_mixedObjectsComponents(self):
         self.assertSetSelect(pm.nt.SelectionSet, self.cube.edges[4:6], self.sphere)
 
     def test_SelectionSet_nestedSets(self):
         self.assertSetSelect(pm.nt.SelectionSet, self.set)
-        
+
     def test_ObjectSet_len(self):
         mySet = pm.sets(name='mySet', empty=True)
         self.assertEqual(len(mySet), 0)
@@ -2033,7 +2033,7 @@ class testCase_sets(TestCaseExtended):
         self.assertEqual(len(mySet), 1)
         mySet.add('perspShape')
         self.assertEqual(len(mySet), 2)
-    
+
     def test_SelectionSet_len(self):
         mySet = pm.nt.SelectionSet([])
         self.assertEqual(len(mySet), 0)
@@ -2041,28 +2041,28 @@ class testCase_sets(TestCaseExtended):
         self.assertEqual(len(mySet), 1)
         mySet.add('perspShape')
         self.assertEqual(len(mySet), 2)
-        
 
-        
+
+
 #class testCase_0_7_compatabilityMode(unittest.TestCase):
 #    # Just used to define a value that we know won't be stored in
 #    # 0_7_compatability mode...
 #    class NOT_SET(object): pass
-#    
+#
 #    def setUp(self):
 #        self.stored_0_7_compatability_mode = factories.pymel_options.get( '0_7_compatibility_mode', False)
 #        factories.pymel_options['0_7_compatibility_mode'] = True
-#        
+#
 #    def tearDown(self):
 #        if self.stored_0_7_compatability_mode == NOT_SET:
 #            del factories.pymel_options['0_7_compatibility_mode']
 #        else:
 #            factories.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
-#            
+#
 #    def test_nonexistantPyNode(self):
 #        # Will raise an error if not in 0_7_compatability_mode
 #        pm.PyNode('I_Dont_Exist_3142341324')
-#        
+#
 
 class testCase_apiArgConversion(unittest.TestCase):
     def test_unsignedIntRef_out_args(self):
@@ -2072,7 +2072,7 @@ class testCase_apiArgConversion(unittest.TestCase):
         res = (3,4,5)
         latticeObj = pm.lattice(cmds.polyCube()[0], divisions=res)[1]
         self.assertEqual(latticeObj.getDivisions(), res)
-        
+
     def test_float2Ref_out_arg(self):
         """
         Test api functions that have an output arg of type float2 &
@@ -2081,7 +2081,7 @@ class testCase_apiArgConversion(unittest.TestCase):
         mesh = pm.polyCube()[0].getShape()
         self.assertEqual(mesh.getUVAtPoint([0,0,0], space='world'),
                          [0.49666666984558105, 0.125])
-        
+
     def test_int2Ref_out_arg(self):
         """
         Test api functions that have an output arg of type int2 &
@@ -2096,7 +2096,7 @@ class testCase_Mesh(unittest.TestCase):
         self.trans = pm.polyCube()[0]
         self.cube = self.trans.getShape()
         self.mesh = pm.createNode('mesh')
-        
+
     def test_emptyMeshOps(self):
         mesh = self.mesh
         for comp in (mesh.vtx, mesh.faces, mesh.edges):
@@ -2124,7 +2124,7 @@ class testCase_MeshVert(unittest.TestCase):
         pm.newFile(f=1)
         self.trans = pm.polyCube()[0]
         self.cube = self.trans.getShape()
-        
+
     def test_setVertexColor(self):
         for i in range(8):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
@@ -2132,11 +2132,11 @@ class testCase_MeshVert(unittest.TestCase):
         for i in range(8):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
             self.assertEqual(self.cube.vtx[i].getColor(), color)
-            
+
     def test_connections(self):
         self.assertTrue(self.cube.vtx[2].isConnectedTo(self.cube.vtx[3]))
         self.assertFalse(self.cube.vtx[2].isConnectedTo(self.cube.vtx[7]))
-        
+
         self.assertTrue(self.cube.vtx[5].isConnectedTo(self.cube.e[7]))
         self.assertFalse(self.cube.vtx[5].isConnectedTo(self.cube.e[5]))
 
@@ -2148,7 +2148,7 @@ class testCase_MeshEdge(unittest.TestCase):
         pm.newFile(f=1)
         self.trans = pm.polyCube()[0]
         self.cube = self.trans.getShape()
-        
+
     def test_connections(self):
         self.assertTrue(self.cube.e[7].isConnectedTo(self.cube.vtx[5]))
         self.assertFalse(self.cube.e[5].isConnectedTo(self.cube.vtx[5]))
@@ -2165,7 +2165,7 @@ class testCase_MeshFace(unittest.TestCase):
         pm.newFile(f=1)
         self.trans = pm.polyCube()[0]
         self.cube = self.trans.getShape()
-        
+
     def test_connections(self):
         # Oddly enough, in a cube, all the verts 'connected' to the face
         # are the ones NOT contained in it, and all the ones that are
@@ -2177,29 +2177,29 @@ class testCase_MeshFace(unittest.TestCase):
         self.assertFalse(self.cube.f[4].isConnectedTo(self.cube.e[4]))
 
         self.assertTrue(self.cube.f[2].isConnectedTo(self.cube.f[1]))
-        self.assertFalse(self.cube.f[5].isConnectedTo(self.cube.f[4]))        
+        self.assertFalse(self.cube.f[5].isConnectedTo(self.cube.f[4]))
 
 class testCase_ConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
-        
+
     def runTest(self):
         for cmdName in ('aimConstraint', 'orientConstraint'):
             cube1 = pm.polyCube()[0]
             cube2 = pm.polyCube()[0]
             cube2.translate.set( (2,0,0) )
-            cmd = getattr(pm, cmdName)            
+            cmd = getattr(pm, cmdName)
             constraint = cmd(cube1, cube2)
-            
+
             setVals = (12, 8, 7)
             cmd(constraint, e=1, offset=setVals)
             getVals = tuple(cmd(constraint, q=1, offset=1))
             self.assertVectorsEqual(setVals, getVals)
-            
+
 class testCase_Container(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
-        
+
     def testPublishedAttribute(self):
         c=pm.container( current=1 )
         g=pm.group( em=True )
@@ -2211,39 +2211,39 @@ class testCase_Container(TestCaseExtended):
         self.assertTrue( isinstance(fromAttr, pm.Attribute))
         self.assertEqual( fromAttr.name(), 'container1.canBeParent[0]' )
         self.assertEqual( fromPyNode, fromAttr )
-        
+
 class testCase_AnimCurve(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
-        
+
     def testAddKeys(self):
         import maya.OpenMayaAnim as omAn
         import maya.OpenMaya as om
-        
+
         # Test thanks to Mark Therrell, from issue 234
-        
+
         pm.sphere()
-        
+
         nodeAttr = 'nurbsSphere1.tx'
         times = [1, 2, 4, 7]
         values = [-1.444, 2.461, 7.544, 11.655]
-        
+
         ## get the the MPlug of the node.attr using pymel (could use api, this way just to see it work)
         mplug = pm.PyNode(nodeAttr).__apimplug__()
-         
+
         ## instantiate the MFnAnimaCurve function, get the curve type needed
         crvFnc = omAn.MFnAnimCurve()
         crvtype = crvFnc.timedAnimCurveTypeForPlug(mplug)
-        
+
         ## make a curve on the attr using API
         ## how do i create the curve with pymel?? no docs on this??
         crv = crvFnc.create(mplug,crvtype)
-        
+
         ## try to add keyframes to the curve using .addKeys function in Pymel
         name = om.MFnDependencyNode(crv).name()
         pyAnimCurve = pm.PyNode(name)
         pyAnimCurve.addKeys(times,values,'step','step',False)
-        
+
         for time, val in zip(times, values):
             pm.currentTime(time)
             self.assertEqual(pm.getAttr(nodeAttr), val)
@@ -2251,14 +2251,14 @@ class testCase_AnimCurve(TestCaseExtended):
 class testCase_rename(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
-    
+
     def testBasicRename(self):
         sphere = pm.polySphere()[0]
         sphere.rename('firstName')
         self.assertEqual('firstName', sphere.nodeName())
         sphere.rename('newName')
         self.assertEqual('newName', sphere.nodeName())
-        
+
     def testPreserveNamespace(self):
         sphere1 = pm.polySphere()[0]
         sphere2 = pm.polySphere()[0]
@@ -2276,7 +2276,7 @@ class testCase_rename(TestCaseExtended):
         sphere2.rename('sphere4', preserveNamespace=False)
         self.assertEqual('sphere3', sphere1.nodeName())
         self.assertEqual('sphere4', sphere2.nodeName())
-        
+
         pm.namespace(set=":myNS")
         # set to sphere1, myNS:sphere2
         sphere1.rename(':sphere1')
@@ -2320,7 +2320,7 @@ class testCase_renderLayers(TestCaseExtended):
         self.sphere = pm.polySphere()[0]
         pm.select(None)
         self.layer = pm.createRenderLayer(name="diffuse")
-        
+
     def test_add_single(self):
         self.assertEqual(self.layer.listMembers(), [])
         self.layer.addMembers(self.cube)
@@ -2334,7 +2334,7 @@ class testCase_renderLayers(TestCaseExtended):
         self.layer.addMembers([self.cube, self.sphere])
         self.assertEqual(set(self.layer.listMembers()),
                          set([self.cube, self.sphere]))
-        
+
     def test_remove_single(self):
         self.layer.addMembers([self.cube, self.sphere])
         self.assertEqual(set(self.layer.listMembers()),
@@ -2343,29 +2343,29 @@ class testCase_renderLayers(TestCaseExtended):
         self.assertEqual(self.layer.listMembers(), [self.cube])
         self.layer.removeMembers(self.cube)
         self.assertEqual(self.layer.listMembers(), [])
-        
+
     def test_remove_multi(self):
         self.layer.addMembers([self.cube, self.sphere])
         self.assertEqual(set(self.layer.listMembers()),
                          set([self.cube, self.sphere]))
         self.layer.removeMembers([self.sphere, self.cube])
         self.assertEqual(self.layer.listMembers(), [])
-        
+
     def test_setCurrent(self):
         self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
                          pm.nt.RenderLayer.currentLayer())
         self.layer.setCurrent()
         self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
-        
+
     def test_adjustments(self):
         widthAttr = pm.PyNode("defaultResolution.width")
         self.assertEqual(self.layer.listAdjustments(), [])
         self.layer.addAdjustments(widthAttr)
         self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
-        
+
         origVal = widthAttr.get()
         adjVal = origVal + 5
-        
+
         self.layer.setCurrent()
         widthAttr.set(adjVal)
         self.assertEqual(widthAttr.get(), adjVal)
@@ -2373,29 +2373,29 @@ class testCase_renderLayers(TestCaseExtended):
         self.assertEqual(widthAttr.get(), origVal)
         self.layer.setCurrent()
         self.assertEqual(widthAttr.get(), adjVal)
-        
+
         self.layer.removeAdjustments(widthAttr)
         self.assertEqual(self.layer.listAdjustments(), [])
         self.assertEqual(widthAttr.get(), origVal)
         pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
         self.assertEqual(widthAttr.get(), origVal)
-        
-        
+
+
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
-#    
+#
 #    #cam = pm.PyNode('persp')
 #    # change units from default
 #    currentUnit(linear='meter')
-#    
+#
 #    light = directionalLight()
-#    
+#
 #    testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', datatypes.Vector([3.0,2.0,1.0]) ),  # Distance datatypes.Vector
 #                  ('persp.shutterAngle' , 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
 #                  ('persp.verticalShake' , 'getVerticalShake', 'setVerticalShake', 1.0 ),  # Unitless
 #                  ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
 #                  ('%s.penumbraAngle' % light, 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
-#                  
+#
 #                 ]
 #
 #    for attrName, getMethodName, setMethodName, realValue in testPairs:
@@ -2406,7 +2406,7 @@ class testCase_renderLayers(TestCaseExtended):
 #
 #
 #        descr =  '%s / %s / %s' % ( attrName, getMethodName, setMethodName )
-#        
+#
 #        def checkUnits( *args ):
 #            print repr(at)
 #            print "Real Value:", repr(realValue)
@@ -2417,7 +2417,7 @@ class testCase_renderLayers(TestCaseExtended):
 #            print "Got Value:", repr(gotValue)
 #            # compare
 #            self.assertEqual( realValue, gotValue )
-#            
+#
 #            # set using wrapped api method
 #            setter( realValue )
 #            # get attribute using "safe" method
@@ -2426,7 +2426,7 @@ class testCase_renderLayers(TestCaseExtended):
 #            self.assertEqual( realValue, gotValue )
 #        checkUnits.description = descr
 #        yield checkUnits
-#                            
+#
 #    # reset units
 #    currentUnit(linear=startLinear)
 #    pm.delete( light )

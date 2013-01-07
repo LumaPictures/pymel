@@ -128,15 +128,15 @@ class DependNode( general.PyNode ):
         :rtype: `DependNode`
         """
         #self.setName( name ) # no undo support
-        
+
         #check for preserveNamespace a pymel unique flag
         if kwargs.pop('preserveNamespace', False):
             name = self.namespace(root=True) + name
-        
+
         #ensure shortname
         if '|' in name:
             name = name.split('|')[-1]
-        
+
         return general.rename(self, name, **kwargs)
 
     def __apiobject__(self) :
@@ -306,12 +306,12 @@ class DependNode( general.PyNode ):
     def shadingGroups(self):
         """list any shading groups in the future of this object - works for
         shading nodes, transforms, and shapes
-        
+
         Also see listSets(type=1) - which returns which 'rendering sets' the
         object is a member of (and 'rendering sets' seem to consist only of
         shading groups), whereas this method searches the object's future for
-        any nodes of type 'shadingEngine'.   
-        
+        any nodes of type 'shadingEngine'.
+
         :rtype: `DependNode` list
         """
         return self.future(type='shadingEngine')
@@ -351,7 +351,7 @@ class DependNode( general.PyNode ):
         else:
             self = obj # keep things familiar
             cls = type(obj)
-        
+
         attributes = cls.__apiobjects__.setdefault('MFnAttributes', {})
         attrObj = attributes.get(attr, None)
         if not _api.isValidMObject(attrObj):
@@ -372,7 +372,7 @@ class DependNode( general.PyNode ):
                         # don't know why we got this error, so just reraise
                         raise
                 return attrObj
-            
+
             if self is None:
                 if hasattr(_api, 'MNodeClass'):
                     # Yay, we have MNodeClass, use it!
@@ -401,7 +401,7 @@ class DependNode( general.PyNode ):
         :rtype: `Attribute`
         """
         return self._attr(attr, False)
-        
+
     # Just have this alias because it will sometimes return attributes for an
     # underlying shape, which we may want for DagNode.attr, but don't want for
     # DependNode.attr (and using the on-shape result, instead of throwing it
@@ -455,7 +455,7 @@ class DependNode( general.PyNode ):
                     #obj = _api.MObject()
                     #self.__apimfn__().findAlias( attr, obj )
                     #plug = self.__apimfn__().findPlug( obj, False )
-                    
+
                     # the following technique gets aliased attributes as well. turning dagPlugs to off saves time because we already
                     # know the dagNode. however, certain attributes, such as rotatePivot, are detected as components,
                     # despite the fact that findPlug finds them as MPlugs. need to look into this
@@ -466,7 +466,7 @@ class DependNode( general.PyNode ):
                         raise
                     if not isinstance(plug, _api.MPlug):
                         raise RuntimeError
-                    
+
                 if not (allowOtherNode or plug.node() == self.__apimobject__()):
                     # we could have gotten an attribute on a shape object,
                     # which we don't want
@@ -711,13 +711,13 @@ class DagNode(Entity):
             shape = self.getShape()
             if shape:
                 return shape.comp(compName)
-            
+
     def listComp(self, names=False):
         """Will return a list of all component objects for this object
-        
+
         Is to .comp() what .listAttr() is to .attr(); will NOT check the shape
         node.
-        
+
         Parameters
         ----------
         names : bool
@@ -728,11 +728,11 @@ class DagNode(Entity):
         keys = sorted(self._componentAttributes.keys())
         if names:
             return keys
-        
+
         compTypes = set()
         comps = []
         # use the sorted keys, so the order matches that returned by names,
-        # minus duplicate entries for aliases 
+        # minus duplicate entries for aliases
         for name in keys:
             compType = self._componentAttributes[name]
             if compType not in compTypes:
@@ -1100,7 +1100,7 @@ class DagNode(Entity):
 
               If generations is None, it will be interpreted as 'return all
               parents', and a list will be returned.
-              
+
               Since the original command returned None if there is no parent, to sync with this behavior, None will
               be returned if generations is out of bounds (no IndexError will be thrown).
 
@@ -1111,14 +1111,14 @@ class DagNode(Entity):
         # and string processing seems unreliable...
 
         res = general._getParent(self._getDagParent, self.__apimdagpath__(), generations)
-        
+
         if generations is None:
             if res is None:
                 return []
             return [general.PyNode(x) for x in res]
         elif res is not None:
             return general.PyNode( res )
-        
+
     def getAllParents(self):
         """
         Return a list of all parents above this.
@@ -1186,8 +1186,8 @@ class DagNode(Entity):
         currentParent = self.getParent()
         if ( (currentParent is None and kwargs.get('w', False))
             or (args and currentParent == args[-1]) ):
-            return self 
-        
+            return self
+
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
 
     def addChild( self, child, **kwargs ):
@@ -1234,13 +1234,13 @@ class DagNode(Entity):
             if len( sg.attr('displacementShader').inputs() ):
                 return True
         return False
-    
+
     def hide(self):
         self.visibility.set(0)
 
     def show(self):
         self.visibility.set(1)
-        
+
     def isVisible(self):
         if not self.attr('visibility').get():
             return False
@@ -1272,7 +1272,7 @@ class DagNode(Entity):
 class Shape(DagNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     def getTransform(self): pass
-    
+
     def setParent(self, *args, **kwargs):
         if 'shape' not in kwargs and 's' not in kwargs:
             kwargs['s'] = True
@@ -1667,12 +1667,12 @@ class Transform(DagNode):
         if self._isRelativeArg(kwargs):
             return self.rotateBy(rotation, space, **kwargs)
         spaceIndex =  datatypes.Spaces.getIndex(self._getSpaceArg(space, kwargs))
-        
+
         if not isinstance(rotation, (_api.MQuaternion, _api.MEulerRotation)):
             rotation = list(rotation)
             if len(rotation) == 3:
                 # using datatypes.Angle(x) means current angle-unit should be
-                # respected 
+                # respected
                 rotation = [ datatypes.Angle( x ).asRadians() for x in rotation ]
                 rotation = _api.MEulerRotation( *rotation )
             elif len(rotation) == 4:
@@ -2426,7 +2426,7 @@ def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
 
     baseMethod = getattr(Mesh, baseMethodName)
 
-    @_factories.addApiDocs( _api.MFnMesh, apiMethodName )        
+    @_factories.addApiDocs( _api.MFnMesh, apiMethodName )
     def methodWrapForEmptyMesh(self, *args, **kwargs):
         # If we have an empty mesh, we will get an MFnDagNode...
         mfn = self.__apimfn__()
@@ -3094,12 +3094,12 @@ class ShadingEngine(ObjectSet):
 
 class AnimLayer(ObjectSet):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    
+
     def getAttribute(self):
         '''Retrieve the attributes animated on this AnimLayer
         '''
         # Unfortunately, cmds.animLayer('MyAnimLayer', q=1, attribute=1)
-        # returns none unique attribute names, ie, 
+        # returns none unique attribute names, ie,
         #   MyNode.myAttr
         # even if there are foo|MyNode and bar|MyNode in the scene, and there
         # doesn't seem to be a flag to tell it to give unique / full paths.
@@ -3108,9 +3108,9 @@ class AnimLayer(ObjectSet):
         # dnSetMembers - if you add a non-dag node to an animLayer, it makes
         # a connection to dagSetMembers; and even if you manually make a connection
         # to dnSetMembers, those connections don't seem to show up in
-        # animLayer(q=1, attribute=1) 
+        # animLayer(q=1, attribute=1)
         return self.attr('dagSetMembers').inputs(plugs=1)
-    
+
     getAttributes = getAttribute
 
 class AnimCurve(DependNode):
@@ -3223,12 +3223,12 @@ class Nucleus(DependNode):
 class HikHandle(Transform):
     __metaclass__ = _factories.MetaMayaNodeWrapper
 
-class JointFfd(DependNode): 
+class JointFfd(DependNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    
+
 class TransferAttributes(DependNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    
+
 _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 
 
@@ -3242,7 +3242,7 @@ def _createPyNodes():
         # This seems like the more 'correct' way of doing it - only node types
         # that are currently available have PyNodes created for them - but
         # changing it so some PyNodes are no longer available until their
-        # plugin is loaded may create backwards incompatibility issues... 
+        # plugin is loaded may create backwards incompatibility issues...
 #        if (mayaType == 'dependNode'
 #                or mayaType not in _factories.mayaTypesToApiTypes):
             continue
@@ -3255,7 +3255,7 @@ def _createPyNodes():
 
         #className = _util.capitalize(mayaType)
         #if className not in __all__: __all__.append( className )
-        
+
         if _factories.isMayaType(mayaType):
             _factories.addPyNode( dynModule, mayaType, parentMayaType )
 
