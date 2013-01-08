@@ -54,7 +54,7 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         buildMethods = re.compile(r'''build''', re.IGNORECASE)
         if not _util.isClassRunningStack(ApiCache, methodFilter=buildMethods):
             _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be unnecessary in maya versions past 2012 (except when rebuilding cache)')
-    
+
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
@@ -94,10 +94,10 @@ class ManipNodeTypeError(InvalidNodeTypeError): pass
 
 class _GhostObjMaker(object):
     '''Context used to get an mobject which we can query within this context.
-    
+
     Automatically does any steps need to create and destroy the mobj within
     the context
-    
+
     (Note - None may be returned in the place of any mobj)
     '''
     def __init__(self, mayaTypes, dagMod=None, dgMod=None, manipError=True,
@@ -113,18 +113,18 @@ class _GhostObjMaker(object):
             dgMod = api.MDGModifier()
         self.dagMod = dagMod
         self.dgMod = dgMod
-        
+
         self.dagGhosts = False
         self.dgGhosts = False
         #self.theMod = None
-        
+
         self.manipError = manipError
         self.byMayaType = {}
         self.ghosts = set()
-        
+
     def __enter__(self):
         import maya.cmds as cmds
-        
+
         for mayaType in self.mayaTypes:
             # check if an obj of the given type already exists in the scene, and
             # if so, use it
@@ -143,10 +143,10 @@ class _GhostObjMaker(object):
                 if obj is not None:
                     self.ghosts.add(mayaType)
                     madeGhost = True
-        
+
             if obj is not None:
-                if (self.manipError 
-                    and (obj.hasFn( api.MFn.kManipulator )      
+                if (self.manipError
+                    and (obj.hasFn( api.MFn.kManipulator )
                          or obj.hasFn( api.MFn.kManipContainer )
                          or obj.hasFn( api.MFn.kPluginManipContainer )
                          or obj.hasFn( api.MFn.kPluginManipulatorNode )
@@ -163,7 +163,7 @@ class _GhostObjMaker(object):
                     else:
                         self.dgGhosts = True
             self.byMayaType[mayaType] = obj
-         
+
         # Note that we always create a "real" instance of the object by
         # calling doIt()... we used to not call doIt(), in which case
         # the mobject would actually still be queryable, but not in the
@@ -179,7 +179,7 @@ class _GhostObjMaker(object):
             return self.byMayaType
         else:
             return obj
-                    
+
     def __exit__(self, type, value, traceback):
         try:
             if self.dagGhosts:
@@ -213,10 +213,10 @@ class _GhostObjMaker(object):
                 mfnDag = api.MFnDagNode()
                 dagMod = api.MDagModifier()
                 dgMod = api.MDGModifier()
-                
+
                 delDag = False
                 delDg = False
-                
+
                 for obj in stillExist:
                     if obj.hasFn( api.MFn.kDagNode ):
                         # we need to delete the parent, since it will have
@@ -244,7 +244,7 @@ if hasattr(api, 'MNodeClass'):
             return True
         except RuntimeError:
             return False
-        
+
 else:
     # otherwise, we have to query all plugins...
     def isPluginNode(nodeName):
@@ -261,7 +261,7 @@ else:
 def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=True,
                   noManips=True, noPlugins=False, returnRealAbstract=False):
     '''Returns a list of maya types
-    
+
     Parameters
     ----------
     real : bool
@@ -288,10 +288,10 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
         returns a single set of all the desired nodes (more precisely, realNodes
         is defined as the set of directly createdable nodes matching the
         criteria, and abstract are all non-createable nodes matching the
-        criteria) 
+        criteria)
     '''
     import maya.cmds as cmds
-    
+
     # keep track of which nodes were abstract - this can be useful later,
     # especially pre-2012
     abstractNodes = set()
@@ -321,7 +321,7 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
                 realNodes.add(node)
     elif real:
         realNodes.update(cmds.allNodeTypes())
-        
+
     if basePluginTypes:
         import pymel.api.plugins
         abstractNodes.update(pymel.api.plugins.pluginMayaTypes)
@@ -329,13 +329,13 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
         # There are a few nodes which will not be returned even by
         # allNodeTypes(includeAbstract=True), but WILL show up in the
         # inheritance hierarchies...
-        
+
         # iterate over first real nodes, then abstract nodes... this lets us
         # take advantage of inheritance caching - especially pre-2012, where
         # inheritance chain of abstract nodes is not directly queryable -
         # since getInheritance will cache the inheritance chain of the given
         # node, AND all it's parents
-        
+
         # make a copy of what we iterate over, as we will be modifying
         # realNodes and abstractNodes as we go...
         for mayaType in list(itertools.chain(realNodes, abstractNodes)):
@@ -357,14 +357,14 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
             for node in list(nodeSet):
                 if isPluginNode(node):
                     nodeSet.remove(node)
-                    
+
     # we may have put nodes in realNodes or abstractNodes for info purposes...
     # make sure they are cleared before returning results, if needed...
     if not real:
         realNodes = set()
     if not abstract:
         abstractNodes = set()
-    
+
     if returnRealAbstract:
         return realNodes, abstractNodes
     else:
@@ -389,12 +389,12 @@ def _getAllMayaTypes(**kwargs):
 
 _fixedLineages = {}
 _cachedInheritances = {}
-        
+
 def getInheritance( mayaType, checkManip3D=True, checkCache=True,
                     updateCache=True ):
     """Get parents as a list, starting from the node after dependNode, and
     ending with the mayaType itself.
-    
+
     Raises a ManipNodeTypeError if the node type fed in was a manipulator
     """
 
@@ -406,7 +406,7 @@ def getInheritance( mayaType, checkManip3D=True, checkCache=True,
     global _cachedInheritances
     if checkCache and mayaType in _cachedInheritances:
         return _cachedInheritances[mayaType]
-    
+
     import maya.cmds as cmds
     lineage = None
     if versions.current() >= versions.v2012:
@@ -531,11 +531,11 @@ apiSuffixes = ['', 'node', 'shape', 'shapenode']
 
 class ApiMelBridgeCache(startup.SubItemCache):
     NAME = 'mayaApiMelBridge'
-    DESC = 'the API-MEL bridge' 
+    DESC = 'the API-MEL bridge'
     COMPRESSED = True
     USE_VERSION = False
     _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
-    
+
     CACHE_TYPES = {'apiToMelData':_defaultdictdict}
     STORAGE_TYPES = {'apiToMelData':dict}
 
@@ -550,9 +550,9 @@ class ApiCache(startup.SubItemCache):
 
 
     EXTRA_GLOBAL_NAMES = tuple(['mayaTypesToApiEnums'])
-                            
+
     # Descriptions of various elements:
-    
+
     # Maya static info :
     # Initializes various static look-ups to speed up Maya types conversions
     # self.apiClassInfo
@@ -578,9 +578,9 @@ class ApiCache(startup.SubItemCache):
     MAYA_TO_API_OVERRIDES = {
                              'node':'kDependencyNode',  # this what is returned by allNodeTypes(includeAbstract=True)
                              'dependNode':'kDependencyNode',  # this is the name pymel uses
-                             'smear':'kSmear',          # a strange one - a plugin node that has an apitype... is in studioImport.so... also has a doc entry... 
+                             'smear':'kSmear',          # a strange one - a plugin node that has an apitype... is in studioImport.so... also has a doc entry...
                             }
-    
+
     # TODO: if nucleus bug ever fixed:
     #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
     #   - remove hard-code setting of Nucleus's parent to DependNode
@@ -593,7 +593,7 @@ class ApiCache(startup.SubItemCache):
                             'kFfdDualBase':api.MFnDependencyNode, # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
                             'kTransferAttributes':api.MFnDependencyNode, # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
                            }
-    
+
     DEFAULT_API_TYPE = 'kDependencyNode'
 
     def __init__(self, docLocation=None):
@@ -610,7 +610,7 @@ class ApiCache(startup.SubItemCache):
         toCreate = []
 
         self.mayaTypesToApiTypes = self._buildMayaReservedTypes()
-        
+
         # do real nodes first - on pre-2012, can't directly query inheritance of
         # abstract nodes, so relying on caching of parent hierarchies when
         # querying a real hierarchy is the only way to get inheritance info
@@ -633,7 +633,7 @@ class ApiCache(startup.SubItemCache):
                         unknownTypes.add(mayaType)
             # Put in a debug, because ghost nodes can be problematic...
             _logger.debug("...finished creating ghost nodes")
-        
+
         if len(unknownTypes) > 0:
             _logger.warn("Unable to get maya-to-api type info for the following nodes: %s" % ", ".join(unknownTypes))
             for mayaType in unknownTypes:
@@ -643,7 +643,7 @@ class ApiCache(startup.SubItemCache):
                 except (ManipNodeTypeError, RuntimeError):
                     continue
                 apiType = None
-                
+
                 # if we have a node A, and we get back it's inheritance as:
                 #    [E, D, C, B, A]
                 # ...and 'D' is the first parent that we can find info for, we
@@ -651,7 +651,7 @@ class ApiCache(startup.SubItemCache):
                 # also, this means that we may already have set THIS mayaType
                 # (if it was the parent of another unknown node we already set),
                 # so we loop through all nodes in inheritance, including this
-                # type 
+                # type
                 toSet = [mayaType]
                 if inheritance:
                     for parent in reversed(inheritance):
@@ -679,71 +679,71 @@ class ApiCache(startup.SubItemCache):
     def _buildMayaReservedTypes(self, force=False):
         """
         Build a list of Maya reserved types.
-        
+
         These cannot be created directly from the API, thus the dgMod trick to
         find the corresponding Maya type won't work
         """
         reservedMayaTypes = {}
-        
+
         # start with plugin types
         import pymel.api.plugins as plugins
         for mpxName, mayaNode in plugins.mpxNamesToMayaNodes.iteritems():
             reservedMayaTypes[mayaNode] = plugins.mpxNamesToApiEnumNames[mpxName]
-        
+
         for mayaType in self.abstractMayaTypes:
             if mayaType in reservedMayaTypes:
                 continue
             apiGuess = self._guessApiTypeByName(mayaType)
             if apiGuess:
                 reservedMayaTypes[mayaType] = apiGuess
-        
+
         reservedMayaTypes.update(self.MAYA_TO_API_OVERRIDES)
         # filter to make sure all these types exist in current version (some are Maya2008 only)
         reservedMayaTypes = dict((item[0], item[1])
                                       for item in reservedMayaTypes.iteritems()
                                       if item[1] in self.apiTypesToApiEnums)
-        
+
         return reservedMayaTypes
-    
+
     # TODO: eventually, would like to move the node-heirarchy-building stuff
     # from cmdcache into here... we could then cache the node inheritance info,
     # instead of constantly re-querying it in various places...
     def _buildMayaNodeInfo(self):
-        '''Stores tempory information about maya nodes + names 
+        '''Stores tempory information about maya nodes + names
         '''
         if getattr(self, '_builtMayaNodeInfo', False):
             return
-        
+
         if not self.apiTypesToApiEnums:
             self._buildApiTypesList()
-        
+
         self.realMayaTypes, self.abstractMayaTypes = _getAllMayaTypes(returnRealAbstract=True)
         self.allMayaTypes = self.realMayaTypes | self.abstractMayaTypes
-        
+
         self.uniqueLowerMaya, self.multiLowerMaya = getLowerCaseMapping(self.allMayaTypes)
         self.allLowerMaya = set(self.uniqueLowerMaya) | set(self.multiLowerMaya)
         self.uniqueLowerApi, self.multiLowerApi = getLowerCaseMapping(self.apiTypesToApiEnums)
         self._builtMayaNodeInfo = True
         return
-        
+
     # _buildMayaNodeInfo must already have been called...
     def _guessApiTypeByName(self, nodeName):
         # first, try the easy case...
         apiName = nodeToApiName(nodeName)
         if apiName in self.apiTypesToApiEnums:
             return apiName
-        
+
         lowerNode = nodeName.lower()
         if lowerNode not in self.uniqueLowerMaya:
             return None
-        
+
         # now, try with various modifications...
         possibleApiNames = set()
-        
+
         possibleModifications = [(find, replace)
                                  for find, replace in API_NAME_MODIFIERS
                                  if find.search(lowerNode)]
-        
+
         # find all possible combinations of all possible modifications
         for modifyNum in xrange(len(possibleModifications) + 1):
             for modifyCombo in itertools.combinations(possibleModifications, modifyNum):
@@ -766,11 +766,11 @@ class ApiCache(startup.SubItemCache):
                         apiWithSuffix = apiLower + suffix
                         if apiWithSuffix in self.uniqueLowerApi:
                             possibleApiNames.add(self.uniqueLowerApi[apiWithSuffix])
-        
+
         if len(possibleApiNames) == 1:
             return list(possibleApiNames)[0]
         return None
-    
+
     # Note - it's possible there are multiple substrings of the same length
     # that are all "tied" for longest - this method will only return the first
     # it finds
@@ -778,7 +778,7 @@ class ApiCache(startup.SubItemCache):
     def _longestCommonSubstring(str1, str2):
         if str1 == str2:
             return [str1]
-        
+
         if len(str1) > len(str2):
             longer = str1
             shorter = str2
@@ -792,7 +792,7 @@ class ApiCache(startup.SubItemCache):
                 if subStr in longer:
                     return subStr
         return ''
-    
+
     @staticmethod
     def _bestMatches(theStr, otherStrings, minLength=2, caseSensitive=False):
         if not caseSensitive:
@@ -812,7 +812,7 @@ class ApiCache(startup.SubItemCache):
             return []
 
     def _buildApiClassInfo(self):
-        _logger.debug("Starting ApiCache._buildApiClassInfo...") 
+        _logger.debug("Starting ApiCache._buildApiClassInfo...")
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
         parser = ApiDocParser(api, enumClass=ApiEnum, docLocation=self.docLocation)
@@ -830,9 +830,9 @@ class ApiCache(startup.SubItemCache):
                     else:
                         import traceback
                         _logger.warn(traceback.format_exc())
-                        
+
         _logger.debug("...finished ApiCache._buildApiClassInfo")
-        
+
     def _buildApiTypeToApiClasses(self):
         self.apiTypesToApiClasses = {}
         def _MFnType(x) :
@@ -857,13 +857,13 @@ class ApiCache(startup.SubItemCache):
         # we got our map by going from Mfn to enum; however, multiple enums can
         # map to the same MFn, so need to fill in the gaps of missing enums for
         # enums to MFn...
-        
+
         # we do this by querying the maya hierarchy, and marching up it until
         # we find an entry that IS in apiTypesToApiClasses
         for mayaType, apiType in self.mayaTypesToApiTypes.iteritems():
             if apiType not in self.apiTypesToApiClasses:
                 self._getOrSetApiClass(apiType, mayaType)
-                
+
     def _getOrSetApiClass(self, apiType, mayaType):
         if apiType not in self.apiTypesToApiClasses:
             if apiType in self.API_TO_MFN_OVERRIDES:
@@ -872,7 +872,7 @@ class ApiCache(startup.SubItemCache):
                 mfnClass = self._getApiClassFromMayaInheritance(apiType, mayaType)
             self.apiTypesToApiClasses[apiType] = mfnClass
         return self.apiTypesToApiClasses[apiType]
-                
+
     def _getApiClassFromMayaInheritance(self, apiType, mayaType):
         mfnClass = None
         try:
@@ -885,25 +885,25 @@ class ApiCache(startup.SubItemCache):
                 parentApiType = self.mayaTypesToApiTypes.get(mayaParentType)
                 if parentApiType:
                     parentMfn = self.apiTypesToApiClasses.get(parentApiType)
-                    if parentMfn: 
+                    if parentMfn:
                         mfnClass = parentMfn
                         break
         if not mfnClass:
             mfnClass = api.MFnDependencyNode
         return mfnClass
-                
+
     def _buildApiRelationships(self) :
         """
         Used to rebuild api info from scratch.
-        
+
         WARNING: will load all maya-installed plugins, without making an
         attempt to return the loaded plugins to the state they were at before
         this command is run.  Also, the act of loading all the plugins may
         crash maya, especially if done from a non-GUI session
         """
         # Put in a debug, because this can be crashy
-        _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")        
-        
+        _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")
+
 
         if not startup.mayaStartupHasRun():
             startup.mayaInit()
@@ -911,38 +911,38 @@ class ApiCache(startup.SubItemCache):
 
         import pymel.api.plugins as plugins
         # load all maya plugins
-        
+
         # There's some weirdness with plugin loading on windows XP x64... if
         # you have a fresh user profile, and do:
-        
+
         # import maya.standalone
         # maya.standalone.initialize()
         # import maya.mel as mel
         # mel.eval('''source "initialPlugins.mel"''')
-        
+
         # ..then things work.  But if you import maya.OpenMaya:
-        
+
         # import maya.standalone
         # maya.standalone.initialize()
         # import maya.OpenMaya
         # import maya.mel as mel
         # mel.eval('''source "initialPlugins.mel"''')
-        
+
         # ...it crashes when loading Mayatomr.  Also, oddly, if you load
         # Mayatomr directly, instead of using initialPlugins.mel, it also
         # crashes:
-        
+
         # import maya.standalone
         # maya.standalone.initialize()
         # import maya.cmds
         # maya.cmds.loadPlugin('C:\\3D\\Autodesk\\Maya2012\\bin\\plug-ins\\Mayatomr.mll')
-        
+
         # Anyway, for now, adding in the line to do sourcing of initialPlugins.mel
         # until I can figure out if it's possible to avoid this crash...
         import maya.mel
         maya.mel.eval('source "initialPlugins.mel"')
         plugins.loadAllMayaPlugins()
-        
+
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -954,7 +954,7 @@ class ApiCache(startup.SubItemCache):
 
         self._buildMayaToApiInfo()
         self._buildApiTypeToApiClasses()
-        
+
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
     def addMayaType(self, mayaType, apiType=None, updateObj=None):
@@ -962,7 +962,7 @@ class ApiCache(startup.SubItemCache):
 
             - mayaTypesToApiTypes
             - mayaTypesToApiEnums
-            
+
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
         """
@@ -977,7 +977,7 @@ class ApiCache(startup.SubItemCache):
 
             - mayaTypesToApiTypes
             - mayaTypesToApiEnums
-            
+
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
         """
@@ -999,7 +999,7 @@ class ApiCache(startup.SubItemCache):
 
     def rebuild(self):
         """Rebuild the api cache from scratch
-        
+
         Unlike 'build', this does not attempt to load a cache file, but always
         rebuilds it by parsing the docs, etc.
         """
@@ -1008,7 +1008,7 @@ class ApiCache(startup.SubItemCache):
         # fill out the data structures
         self._buildApiTypesList()
         #_buildMayaTypesList()
-        
+
         self._buildApiRelationships()
 
         # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
@@ -1023,6 +1023,6 @@ class ApiCache(startup.SubItemCache):
 
     def melBridgeContents(self):
         return self._mayaApiMelBridge.contents()
-    
+
     def extraDicts(self):
         return tuple( getattr(self, x) for x in self.EXTRA_GLOBAL_NAMES )

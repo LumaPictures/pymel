@@ -50,8 +50,8 @@ def _testDecorator(function):
 
 def getCmdName(inFunc):
     '''Use in place of inFunc.__name__ when inFunc could be a maya.cmds cmd
-    
-    handles stubFuncs 
+
+    handles stubFuncs
     '''
     cmdName = inFunc.__name__
     if cmdName == 'stubFunc':

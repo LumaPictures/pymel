@@ -76,7 +76,7 @@ def pythonToMel(arg):
 
 def pythonToMelCmd(command, *args, **kwargs):
     '''Given a mel command name, and a set of python args / kwargs, return
-    a mel string used to call the given command. 
+    a mel string used to call the given command.
     '''
     strArgs = [pythonToMel(arg) for arg in args]
 
@@ -88,7 +88,7 @@ def pythonToMelCmd(command, *args, **kwargs):
             shortFlags = _factories.cmdlist[command]['shortFlags']
         else:
 #            # Make a dummy flags dict - basically, just assume that q / e
-#            # are bool flags with no args... 
+#            # are bool flags with no args...
 #            flags = {'query':{'args': bool,
 #                              'longname': 'query',
 #                              'numArgs': 0,
@@ -98,11 +98,11 @@ def pythonToMelCmd(command, *args, **kwargs):
 #                              'numArgs': 0,
 #                              'shortname': 'e'}}
 #            shortFlags = {'q':'query', 'e':'edit'}
-            # Changed my mind - decided it's safest for unknown commands to 
+            # Changed my mind - decided it's safest for unknown commands to
             # make no assumptions.  If they want a flag that takes no args,
             # they can use arg=None...
             flags = {}
-            shortFlags = {} 
+            shortFlags = {}
         for key, val in kwargs.iteritems():
             flagInfo = None
             if key in flags:
@@ -113,7 +113,7 @@ def pythonToMelCmd(command, *args, **kwargs):
                          and flagInfo.get('numArgs') == 0):
                 # we have a boolean argument that takes no args!
                 # doing something like '-q 1' will raise an error, just
-                # do '-q' 
+                # do '-q'
                 strFlags.append('-%s' % key)
             elif (isinstance(val, (tuple, list))
                     and len(val) == flagInfo.get('numArgs')):
@@ -276,7 +276,7 @@ class MelGlobals( dict ):
         def __setitem__(self, index, value ):
             _mm.eval(self._setItemCmd % (index, pythonToMel(value) ))
             super(MelGlobalArray, self).__setitem__(index, value)
-        setItem = __setitem__ 
+        setItem = __setitem__
 
         # prevent these from
         def append(self, val): raise AttributeError
@@ -311,7 +311,7 @@ class MelGlobals( dict ):
             MelGlobals.typeMap[variable] = info[0]
             return info[0]
         raise TypeError, "Cannot determine type for this variable. Use melGlobals.initVar first."
-    
+
     @classmethod
     def _get_decl_statement(cls, type, variable):
         decl_name = cls._formatVariable(variable)
@@ -374,7 +374,7 @@ class MelGlobals( dict ):
         variable = cls.initVar(type, variable)
         declaration = cls._get_decl_statement(type, variable)
         cmd = "%s; %s=%s;" % ( declaration, variable, pythonToMel(value) )
-        
+
         #print cmd
         _mm.eval( cmd  )
 
@@ -431,7 +431,7 @@ class OptionVarList(tuple):
         # tuple's init is object.__init__, which takes no args...
         #tuple.__init__(self, val)
         self.key = key
-        
+
     def __setitem__(self, key, val):
         raise TypeError, '%s object does not support item assignment - try casting to a list, and assigning the whole list to the optionVar' % self.__class__.__name__
 
@@ -596,7 +596,7 @@ class Env(object):
     def setMaxTime( self, val ):
         cmds.playbackOptions( maxTime=val )
     maxTime = property( getMaxTime, setMaxTime )
-    
+
     def getAnimStartTime( self ):
         return cmds.playbackOptions( q=1, animationStartTime=1 )
     def setAnimStartTime( self, val ):

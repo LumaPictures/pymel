@@ -19,15 +19,15 @@ if not hasattr(cmds, 'about'):
 class TestConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
         cmds.file(new=1, f=1)
-        
+
     def runTest(self):
         for cmdName in ('aimConstraint', 'orientConstraint'):
             cube1 = cmds.polyCube()[0]
             cube2 = cmds.polyCube()[0]
 
-            cmd = getattr(cmds, cmdName)            
+            cmd = getattr(cmds, cmdName)
             constraint = cmd(cube1, cube2)[0]
-            
+
             setVals = (12, 8, 7)
             cmd(constraint, e=1, offset=setVals)
             getVals = tuple(cmd(constraint, q=1, offset=1))
@@ -44,7 +44,7 @@ class TestEmptyMFnNurbsCurve(unittest.TestCase):
         selList.add(shapeStr)
         node = om.MObject()
         selList.getDependNode(0, node)
-        
+
         mnc = om.MFnNurbsCurve()
         self.assertTrue(mnc.hasObj(node))
         try:
@@ -56,13 +56,13 @@ class TestEmptyMFnNurbsCurve(unittest.TestCase):
 class TestSurfaceRangeDomain(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
-        
+
     def runTest(self):
         # create a nurbs sphere
         mySphere = cmds.sphere()[0]
         # a default sphere should have u/v
         # parameter ranges of 0:4/0:8
-        
+
         # The following selections should
         # result in one of these:
         desiredResults = ('nurbsSphere1.u[2:3][0:8]',
@@ -74,19 +74,19 @@ class TestSurfaceRangeDomain(unittest.TestCase):
                           'nurbsSphere1.v[0:8][2:3]',
                           'nurbsSphere1.v[*][2:3]')
 
-                
+
         # Passes
         cmds.select('nurbsSphere1.u[2:3][*]')
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
-        
+
         # Passes
         cmds.select('nurbsSphere1.v[*][2:3]')
-        self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)        
+        self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
 
         # Fails! - returns 'nurbsSphere1.u[2:3][0:1]'
         cmds.select('nurbsSphere1.u[2:3]')
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
-        
+
         # Fails! - returns 'nurbsSphere1.u[2:3][0:1]'
         cmds.select('nurbsSphere1.uv[2:3][*]')
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
@@ -100,7 +100,7 @@ class TestSurfaceRangeDomain(unittest.TestCase):
                           'nurbsSphere1.v[2:3][0:4]',
                           'nurbsSphere1.v[2:3][*]',
                           'nurbsSphere1.v[2:3]')
-                
+
         # Passes
         cmds.select('nurbsSphere1.u[*][2:3]')
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
@@ -118,7 +118,7 @@ class TestSurfaceRangeDomain(unittest.TestCase):
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
 
 
-# Bug report 345384 
+# Bug report 345384
 
 # This bug only seems to affect windows (or at least, Win x64 -
 # haven't tried on 32-bit).
@@ -135,12 +135,12 @@ class TestMMatrixSetAttr(unittest.TestCase):
             self.fixedSetAttr = om.MMatrix.__setattr__
             om.MMatrix.__setattr__ = self.origSetAttr
         cmds.file(new=1, f=1)
-        
+
     def runTest(self):
         class MyClass1(object):
             def __init__(self):
                 self._bar = 'not set'
-            
+
             def _setBar(self, val):
                 print "setting bar to:", val
                 self._bar = val
@@ -148,9 +148,9 @@ class TestMMatrixSetAttr(unittest.TestCase):
                 print "getting bar..."
                 return self._bar
             bar = property(_getBar, _setBar)
-        
+
             # These two are just so we can trace what's going on...
-            def __getattribute__(self, name): 
+            def __getattribute__(self, name):
                 # don't just use 'normal' repr, as that will
                 # call __getattribute__!
                 print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
@@ -158,16 +158,16 @@ class TestMMatrixSetAttr(unittest.TestCase):
             def __setattr__(self, name, val):
                 print "__setattr__(%r, %r, %r)" % (self, name, val)
                 return super(MyClass1, self).__setattr__(name, val)
-        
+
         foo1 = MyClass1()
         # works like we expect...
         foo1.bar = 7
         print "foo1.bar:", foo1.bar
         self.assertTrue(foo1.bar == 7)
-        
-        
+
+
         class MyClass2(MyClass1, om.MMatrix): pass
-        
+
         foo2 = MyClass2()
         foo2.bar = 7
         # Here, on windows, MMatrix's __setattr__ takes over, and
@@ -175,21 +175,21 @@ class TestMMatrixSetAttr(unittest.TestCase):
         # whatever special case thing it was designed to do)
         # instead of calling the super's __setattr__, which would
         # use the property, inserts it into the object's __dict__
-        # manually 
+        # manually
         print "foo2.bar:", foo2.bar
         self.assertTrue(foo2.bar == 7)
-        
+
     def tearDown(self):
         # Restore the 'fixed' __setattr__'s
         if self.origSetAttr:
             om.MMatrix.__setattr__ = self.fixedSetAttr
-        
+
 class TestGroupUniqueness(unittest.TestCase):
     '''Test to check whether cmds.group returns a unique name
     '''
     def setUp(self):
         cmds.file(new=1, f=1)
-        
+
     def runTest(self):
         cmds.select(cl=1)
         cmds.group(n='foo', empty=1)
@@ -224,17 +224,17 @@ class TestGroupUniqueness(unittest.TestCase):
 #        polyCube = cmds.polyCube()[0]
 #        subd = cmds.polyToSubdiv(polyCube)[0]
 #        cmds.select(subd + '.sme[*][*]')
-#        
+#
 #    def testApi(self):
 #        import maya.cmds as cmds
 #        import maya.OpenMaya as om
-#        
+#
 #        polyCube = cmds.polyCube()[0]
 #        subd = cmds.polyToSubdiv(polyCube)[0]
 #        selList = om.MSelectionList()
 #        selList.add(subd + '.sme[*][*]')
 
-      
+
 
 #===============================================================================
 # FIXED (Former) Bugs
@@ -244,18 +244,18 @@ class TestGroupUniqueness(unittest.TestCase):
 class TestConstraintVectorQuery(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
-        
+
     def _doTestForConstraintType(self, constraintType):
         cmd = getattr(cmds, constraintType)
-        
+
         if constraintType == 'tangentConstraint':
             target = cmds.circle()[0]
         else:
             target = cmds.polyCube()[0]
         constrained = cmds.polyCube()[0]
-        
+
         constr = cmd(target, constrained)[0]
-        
+
         self.assertEqual(cmd(constr, q=1, worldUpVector=1), [0,1,0])
         self.assertEqual(cmd(constr, q=1, upVector=1), [0,1,0])
         self.assertEqual(cmd(constr, q=1, aimVector=1), [1,0,0])
@@ -288,44 +288,44 @@ class TestMatrixSetAttr(unittest.TestCase):
 class TestFluidMFnCreation(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
-        
+
     def runTest(self):
         fluid = cmds.createNode('fluidShape')
         selList = om.MSelectionList()
         selList.add(fluid)
         dag = om.MDagPath()
         selList.getDagPath(0, dag)
-        omfx.MFnFluid(dag)  
+        omfx.MFnFluid(dag)
 
 class TestMFnCompatibility(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
-        
+
     def _assertInheritMFnConistency(self, nodeType, parentNodeType, mfnType):
         nodeInstName = cmds.createNode(nodeType)
         selList = om.MSelectionList()
         selList.add(nodeInstName)
         mobj = om.MObject()
         selList.getDependNode(0, mobj)
-        
+
         self.assertTrue(parentNodeType in cmds.nodeType(nodeInstName, inherited=True))
         try:
             mfnType(mobj)
         except Exception, e:
             raise self.fail("Error creating %s even though %s inherits from %s: %s" %
                             (mfnType.__name__, nodeType, parentNodeType, e))
-        
+
     def test_nucleus_MFnDagNode(self):
         self._assertInheritMFnConistency('nucleus', 'dagNode', om.MFnDagNode)
 
     def test_nucleus_MFnTransform(self):
         self._assertInheritMFnConistency('nucleus', 'transform', om.MFnTransform)
-    
+
     # These probably aren't strictly considered "bugs" by autodesk, though I
     # think they should be...
 #    def test_hikHandle_MFnIkHandle(self):
 #        self._assertInheritMFnConistency('hikHandle', 'ikHandle', oma.MFnIkHandle)
-#        
+#
 #    def test_jointFfd_MFnLatticeDeformer(self):
 #        self._assertInheritMFnConistency('jointFfd', 'ffd', oma.MFnLatticeDeformer)
 #

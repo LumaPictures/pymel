@@ -85,7 +85,7 @@ def _constraint( func ):
         """
 Maya Bug Fix:
   - when queried, angle offsets would be returned in radians, not current angle unit
-        
+
 Modifications:
   - added new syntax for querying the weight of a target object, by passing the constraint first::
 
@@ -96,8 +96,8 @@ Modifications:
         if kwargs.get( 'query', kwargs.get('q', False) and len(args)==1) :
             # Fix the big with angle offset query always being in radians
             if kwargs.get( 'offset', kwargs.get('o', None) ):
-                return _general.getAttr(str(args[0]) + ".offset")            
-            
+                return _general.getAttr(str(args[0]) + ".offset")
+
             # try seeing if we can apply the new weight query syntax
             targetObjects =  kwargs.get( 'weight', kwargs.get('w', None) )
             if targetObjects is not None:
@@ -130,16 +130,16 @@ Modifications:
             """
     Maya Bug Fix:
       - when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
-    
+
             """
             if kwargs.get( 'query', kwargs.get('q', False) and len(args)==1) :
-    
+
                 # Fix the big with upVector, worldUpVector, and aimVector
                 attrs = [
                 'upVector', 'u',
                 'worldUpVector', 'wu',
                 'aimVector', 'a' ]
-    
+
                 for attr in attrs:
                     if attr in kwargs:
                         return _general.datatypes.Vector( _general.getAttr(str(args[0]) + "." + attr ) )

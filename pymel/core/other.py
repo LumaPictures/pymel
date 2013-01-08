@@ -71,7 +71,7 @@ class NameParser(unicode):
                 attrSplit[0] = spaceSplit[-1]
             nodes.append( '.'.join( attrSplit ) )
         return self.__class__( '|'.join( nodes) )
-    
+
     def stripGivenNamespace(self, namespace, partial=True):
         """
         Returns a new instance of the object with any occurrences of the given namespace removed.  The calling instance is unaffected.
@@ -79,10 +79,10 @@ class NameParser(unicode):
         If partial is True (the default), and the given namespace has parent namespaces (ie, 'one:two:three'),
         then any occurrences of any parent namespaces are also stripped - ie, 'one' and 'one:two' would
         also be stripped.  If it is false, only namespaces
-    
+
             >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar')
             AttributeName(u'top|middle|extra:guy.spangle')
-            
+
             >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar', partial=False)
             AttributeName(u'top|foo:middle|extra:guy.spangle')
         """
@@ -302,7 +302,7 @@ class DependNodeName( NameParser ):
     def node(self):
         """for compatibility with AttributeName class"""
         return self
-    
+
     def nodeName(self):
         """for compatibility with DagNodeName class"""
         return self
@@ -463,13 +463,13 @@ def _getParserClass(strObj):
     if 'PyNode' in mro:
         if 'DagNode' in mro:
             newcls = DagNodeName
-        elif 'Attribute' in mro: 
+        elif 'Attribute' in mro:
             newcls = AttributeName
         else:
             newcls = DependNodeName
     else:
         strObj = unicode(strObj)
-    
+
         if '.' in strObj:
             newcls = AttributeName
                 # Return Component Arrays ======================================================
@@ -480,8 +480,8 @@ def _getParserClass(strObj):
                 #            else:
                 #                return obj
                 #===============================================================================
-    
-    
+
+
         elif '|' in strObj:
             newcls = DagNodeName
         else:

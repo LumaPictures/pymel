@@ -21,9 +21,9 @@ def doIt(obj):
             l = edg.getLength()
             #print "length", l
             totalLen += l
-   
+
         avgLen=totalLen / edgCnt
-       
+
         currColor = vtx.getColor()
         color = Color.black
         # only set blue if it has not been set before
@@ -36,5 +36,5 @@ def doIt(obj):
     print len(colors)
     obj.setColors( colors )
     obj.updateSurface()
-       
+
     polyColorPerVertex( obj, e=1, colorDisplayOption=1 )

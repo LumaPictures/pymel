@@ -7,7 +7,7 @@ A quick example::
     class testCmd(Command):
         def doIt(self, args):
             print "doIt..."
-    
+
     testCmd.register()
     cmds.testCmd()
     testCmd.deregister()
@@ -15,13 +15,13 @@ A quick example::
 An example of a plugin which creates a node:
 
     import math
-    
+
     import pymel.api.plugins as plugins
     import maya.OpenMaya as om
-    
+
     class PymelSineNode(plugins.DependNode):
         '''Example node adapted from maya's example sine node plugin
-    
+
         Shows how much easier it is to create a plugin node using pymel.api.plugins
         '''
         # For quick testing, if _typeId is not defined, pymel will create one by
@@ -33,11 +33,11 @@ An example of a plugin which creates a node:
         # to dynamic library linking issues (ie, libssl, libcrypto), this
         # may not always be the case out-of-the-box on some linux distros
         _typeId = om.MTypeId(0x900FF)
-        
+
         # by default, the name of the node will be the name of the class - to
         # override and set your own maya node name, do this:
-        #_name = 'PymelSineNode' 
-    
+        #_name = 'PymelSineNode'
+
         @classmethod
         def initialize(cls):
             # input
@@ -45,16 +45,16 @@ An example of a plugin which creates a node:
             cls.input = nAttr.create( "input", "in", om.MFnNumericData.kFloat, 0.0 )
             nAttr.setStorable(1)
             cls.addAttribute( cls.input )
-    
+
             # output
             cls.output = nAttr.create( "output", "out", om.MFnNumericData.kFloat, 0.0 )
             nAttr.setStorable(1)
             nAttr.setWritable(1)
             cls.addAttribute( cls.output )
-    
+
             # set attributeAffects relationships
             cls.attributeAffects( cls.input, cls.output )
-    
+
         def compute(self, plug, dataBlock):
             if ( plug == self.output ):
                 dataHandle = dataBlock.inputValue( self.input )
@@ -65,11 +65,11 @@ An example of a plugin which creates a node:
                 dataBlock.setClean( plug )
                 return om.MStatus.kSuccess
             return om.MStatus.kUnknownParameter
-    
+
     ## initialize the script plug-in
     def initializePlugin(mobject):
         PymelSineNode.register(mobject)
-    
+
     # uninitialize the script plug-in
     def uninitializePlugin(mobject):
         PymelSineNode.deregister(mobject)
@@ -155,7 +155,7 @@ mpxNamesToApiEnumNames = {
     'MPxConstraint': 'kPluginConstraintNode',
     'MPxManipulatorNode':'kPluginManipulatorNode', # added manually
     'MPxRepMgr':'kPluginRepMgr',  # guessed?
-    'MPxRepresentation':'kPluginRepresentation', # guessed?    
+    'MPxRepresentation':'kPluginRepresentation', # guessed?
     }
 
 # Gives a map from an MPx class name to it's maya node type name
@@ -184,7 +184,7 @@ mpxNamesToMayaNodes = {
     'MPxConstraint': u'THconstraint',
     'MPxManipulatorNode':'THmanip', # guessed + confirmed
     'MPxRepMgr':'THdependNode',  # no clue...?
-    'MPxRepresentation':'THdependNode', # no clue...?    
+    'MPxRepresentation':'THdependNode', # no clue...?
     }
 
 mpxClassesToMpxEnums = {}
@@ -192,7 +192,7 @@ for mpxName, enumName in mpxNamesToEnumNames.iteritems():
     mpxCls = getattr(mpx, mpxName, None)
     if mpxCls:
         mpxClassesToMpxEnums[mpxCls] = getattr(mpx.MPxNode, enumName)
-        
+
 pluginMayaTypes = set(mpxNamesToMayaNodes.itervalues())
 
 NON_CREATABLE = set(['MPxManipContainer',
@@ -213,7 +213,7 @@ def enumToStr():
             if name.startswith('k'):
                 _enumToStr[val] = name
     return _enumToStr
-    
+
 _allMPx = None
 def allMPx():
     '''
@@ -306,11 +306,11 @@ def uninitializePlugin(mobject):
 class BasePluginMixin(object):
     # The name of the command or the node type
     _name = None
-    
+
     # You can manually set this, or just leave it at None to let pymel
     # automatically determine it from the base classes
     _mpxType = None
-    
+
     @classmethod
     def getMpxType(cls):
         if cls._mpxType is None:
@@ -319,7 +319,7 @@ class BasePluginMixin(object):
                     cls._mpxType = pClass
                     break
         return cls._mpxType
-    
+
     @classmethod
     def mayaName(cls):
         if cls._name is None:
@@ -327,7 +327,7 @@ class BasePluginMixin(object):
         return cls._name
 
     _typeId = None
-    
+
     # Defined here just so it can be shared between MPxTransformationMatrix
     # and DependNode
     @classmethod
@@ -352,19 +352,19 @@ class BasePluginMixin(object):
         md5.update(name)
         id = start + long(md5.hexdigest(), 16) % size
         return om.MTypeId(id)
-    
+
     @classmethod
     def create(cls):
         inst = cls()
         return mpx.asMPxPtr( inst )
-    
+
     @classmethod
     def _getRegisteredPluginObj(cls):
-        # plugin registry should NOT be inherited from parents! 
+        # plugin registry should NOT be inherited from parents!
         if '_registeredPlugin_data' not in cls.__dict__:
             cls._registeredPlugin_data = None
         return cls._registeredPlugin_data
-    
+
     @classmethod
     def _setRegisteredPluginObj(cls, val):
         if val and cls.isRegistered():
@@ -374,33 +374,33 @@ class BasePluginMixin(object):
     @classmethod
     def register(cls, plugin=None):
         """Used to register this MPx object wrapper with the maya plugin.
-        
+
         By default the command will be registered to a dummy plugin provided by pymel.
 
         If using from within a plugin module's ``initializePlugin`` or
         ``uninitializePlugin`` callback, pass along the MObject given to these
         functions.
-        
+
         When implementing the derived MPx wrappers, do not override this -
         instead, override _registerOverride
         """
         global registered
         useThisPlugin = (plugin is None)
         mplugin = _getPlugin(plugin)
-        
+
         cls._setRegisteredPluginObj(mplugin.object())
-        
+
         cls._registerOverride(mplugin, useThisPlugin)
         if useThisPlugin:
             registered.add(cls)
-            
+
     @classmethod
     def _registerOverride(cls, mplugin, useThisPlugin):
         '''Override this to implement the actual registration behavior for
         the MPx class.
         '''
         return
-    
+
     @classmethod
     def deregister(cls, plugin=None):
         """
@@ -411,22 +411,22 @@ class BasePluginMixin(object):
         global registered
         if not cls.isRegistered():
             raise NotRegisteredError("Class %s is not registered to a plugin" % cls.__name__)
-        
+
         useThisPlugin = (plugin is None)
         mplugin = _getPlugin(plugin)
         cls._deregisterOverride(mplugin, useThisPlugin)
         if plugin is None:
             registered.remove(cls)
-            
+
         cls._setRegisteredPluginObj(None)
 
     @classmethod
     def _deregisterOverride(cls, mplugin, useThisPlugin):
         '''Override this to implement the actual deregistration behavior for
-        the MPx class. 
+        the MPx class.
         '''
         return
-    
+
     @classmethod
     def isRegistered(cls):
         return bool(cls._getRegisteredPluginObj())
@@ -435,7 +435,7 @@ class BasePluginMixin(object):
 # Plugin Classes - inherit from these!
 #===============================================================================
 
-            
+
 class Command(BasePluginMixin, mpx.MPxCommand):
     """create a subclass of this with a doIt method"""
     @classmethod
@@ -453,14 +453,14 @@ class Command(BasePluginMixin, mpx.MPxCommand):
     @classmethod
     def _deregisterOverride(cls, mplugin, useThisPlugin):
         '''Override this to implement the actual deregistration behavior for
-        the MPx class. 
+        the MPx class.
         '''
         name = cls.mayaName()
         mplugin.deregisterCommand( name )
         if useThisPlugin:
             import pymel.core
             pymel.core._removePluginCommand(mplugin.name(), name)
-            
+
 class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
     _typeId = None
     # Override to do nothing - should be (de)registered by the transform!
@@ -468,7 +468,7 @@ class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
     def register(cls, plugin=None): pass
     @classmethod
     def deregister(cls, plugin=None): pass
-                
+
 class DependNode(BasePluginMixin, mpx.MPxNode):
     # You can manually set this, or just leave it at None to let pymel
     # automatically determine it from the MPxType
@@ -478,17 +478,17 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
     # hash of the node name in the user range... to ensure no name clashes,
     # though, you should get a node id from Autodesk!
     _typeId = None
-    
+
     @classmethod
     def getTypeEnum(cls):
         if cls._typeEnum is None:
             cls._typeEnum = mpxClassesToMpxEnums[cls.getMpxType()]
         return cls._typeEnum
-    
+
     _classification = None
-    
+
     _callbacks = defaultdict(list)
-    
+
     @classmethod
     def initialize(cls):
         return
@@ -504,9 +504,9 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         for _, clsObj in inspect.getmembers(cls):
             if isinstance(clsObj, PyNodeMethod):
                 pluginPynodeMethods[nodeName][clsObj.name] = clsObj.func
-            
+
         cls._nodeRegisterOverride( nodeName, mplugin )
-        
+
         if useThisPlugin:
             import pymel.core
             pymel.core._addPluginNode(mplugin.name(), nodeName)
@@ -523,26 +523,26 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
                 # TODO: assert cb is a classmethod, maybe check number of inputs too
                 cls._callbacks[nodeName].append(reg(cb, nodeName))
 
-    @classmethod                
+    @classmethod
     def _nodeRegisterOverride( cls, nodeName, mplugin ):
         registerArgs = [ nodeName, cls.getTypeId(), cls.create, cls.initialize,
                          cls.getTypeEnum() ]
         if cls._classification:
             registerArgs.append(cls._classification)
         mplugin.registerNode( *registerArgs )
-        
-                
+
+
     @classmethod
     def _deregisterOverride(cls, mplugin, useThisPlugin):
         '''Override this to implement the actual deregistration behavior for
-        the MPx class. 
+        the MPx class.
         '''
         nodeName = cls.mayaName()
 
         # PyNodeMethods
         global pyNodeMethods
         pyNodeMethods.get(mplugin.name(), {}).pop(nodeName, None)
-        
+
         mplugin.deregisterNode( cls.getTypeId() )
         if useThisPlugin:
             import pymel.core
@@ -554,9 +554,9 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
     def isAbstractClass(cls):
         # MPxPolyTrg returns True
         return False
-            
+
 class CameraSet(DependNode, mpx.MPxCameraSet): pass
-        
+
 class Constraint(DependNode, mpx.MPxConstraint): pass
 
 class DeformerNode(DependNode, mpx.MPxDeformerNode): pass
@@ -566,7 +566,7 @@ class EmitterNode(DependNode, mpx.MPxEmitterNode): pass
 class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode): pass
 
 class FieldNode(DependNode, mpx.MPxFieldNode): pass
-    
+
 class HardwareShader(DependNode, mpx.MPxHardwareShader): pass
 
 class HwShaderNode(DependNode, mpx.MPxHwShaderNode): pass
@@ -592,13 +592,13 @@ class SpringNode(DependNode, mpx.MPxSpringNode): pass
 class SurfaceShape(DependNode, mpx.MPxSurfaceShape): pass
 
 class ComponentShape(SurfaceShape, mpx.MPxComponentShape): pass
-    
+
 class Transform(DependNode, mpx.MPxTransform):
     # Bug in python - can't just use MPxTransformationMatrix, as there's a
     # problem with MPxTransformationMatrix.baseTransformationMatrixId
     _transformMatrix = TransformationMatrix
-    
-    @classmethod                
+
+    @classmethod
     def _nodeRegisterOverride( cls, nodeName, mplugin ):
         registerArgs = [ nodeName, cls.getTypeId(), cls.create, cls.initialize,
                          cls._transformMatrix.create,
@@ -623,7 +623,7 @@ class PyNodeMethod(object):
     '''Used as a decorator, placed on methods on a plugin node class, to signal
     that these methods should be placed on to PyNode objects constructed for
     the resulting depend nodes.
-    
+
     >>> class FriendlyNode(DependNode):
     ...     _typeId = om.MTypeId(654748)
     ...     @PyNodeMethod
@@ -648,12 +648,12 @@ class PyNodeMethod(object):
 
 def _buildPluginHierarchy(dummyClasses=None):
     '''Dynamically query the mel node hierarchy for all plugin node types
-    
+
     This command must be run from within a running maya session - ie, where
     maya.cmds, etc are accessible.
     '''
     import pymel.internal.apicache as apicache
-    
+
     if dummyClasses is None:
         dummyClasses = _createDummyPluginNodeClasses()
 
@@ -716,25 +716,25 @@ def _buildMpxNamesToMayaNodes(hierarchy=None):
 def _createDummyPluginNodeClasses():
     '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
     subclass
-    
+
     returns a dictionary mapping from MPx class to a pymel dummy class of that
     type
     '''
     pymelPlugClasses = []
-    
+
     for obj in globals().itervalues():
         if inspect.isclass(obj) and issubclass(obj, DependNode):
             pymelPlugClasses.append(obj)
-            
+
     dummyClasses = {}
     for cls in pymelPlugClasses:
         class DummyClass(cls):
             _name = 'dummy' + cls.__name__
         DummyClass.__name__ = 'Dummy' + cls.__name__
         dummyClasses[DummyClass.getMpxType()] = DummyClass
-        
+
     return dummyClasses
-    
+
 class _DummyPluginNodesMaker(object):
     def __init__(self, dummyClasses=None, alreadyCreated=None):
         if dummyClasses is None:
@@ -748,7 +748,7 @@ class _DummyPluginNodesMaker(object):
         if self.alreadyCreated:
             self.nodes.update(self.alreadyCreated)
         self.toDelete = []
-    
+
     def __enter__(self):
         for mpxCls, pyCls in self.dummyClasses.iteritems():
             if not pyCls.isRegistered():
@@ -765,7 +765,7 @@ class _DummyPluginNodesMaker(object):
                 else:
                     self.toDelete.append(newNode)
         return self
-                
+
     def __exit__(self, type, value, traceback):
         if self.toDelete:
             maya.cmds.delete(*self.toDelete)
@@ -808,7 +808,7 @@ def mayaPlugins():
 
 def loadAllMayaPlugins():
     '''will load all maya-installed plugins
-    
+
     WARNING: tthe act of loading all the plugins may crash maya, especially if
     done from a non-GUI session
     '''
@@ -824,7 +824,7 @@ def loadAllMayaPlugins():
 def unloadAllPlugins(skipErrors=False, exclude=('DirectConnect',)):
     import logging
     logger = logging.getLogger('pymel')
-    
+
     logger.debug("unloading all plugins...")
     loadedPlugins = maya.cmds.pluginInfo(q=True, listPlugins=True)
     # loadedPlugins may be None
@@ -864,11 +864,11 @@ UNREPORTED_COMMANDS = {
     'contextCommand':{}, # currently no pluginInfo flag for this in any version, but I'm an optimist...
     #'other':{}, # just to hold any commands we may want that don't fall in other categories
     }
-    
+
 def pluginCommands(pluginName, reportedOnly=False):
     '''Returns the list of all commands that the plugin provides, to the best
     of our knowledge.
-    
+
     Note that depending on your version of maya, this may not actually be the
     list of all commands provided.
     '''

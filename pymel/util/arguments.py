@@ -400,10 +400,10 @@ def reorder( x, indexList=[], indexDict={} ):
 class RemovedKey(object):
     def __init__(self, oldVal):
         self.oldVal = oldVal
-        
+
     def __eq__(self, other):
         return self.oldVal == other.oldVal
-    
+
     def __ne__(self, other):
         return self.oldVal != other.oldVal
 
@@ -438,7 +438,7 @@ def compareCascadingDicts(dict1, dict2):
     both = v1 & v2
     only1 = v1 - both
     only2 = v2 - both
-    
+
     recurseTypes = (dict, list, tuple)
     differences = dict( (key, dict2[key]) for key in only2)
     differences.update( (key, RemovedKey(dict1[key])) for key in only1 )
@@ -451,26 +451,26 @@ def compareCascadingDicts(dict1, dict2):
                 differences[key] = subDiffs
             else:
                 differences[key] = val2
-    
+
     return both, only1, only2, differences
 
 def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False,
                          allowNewListMembers=False ):
     """
     recursively update to_dict with values from from_dict.
-    
+
     if any entries in 'from_dict' are instances of the class RemovedKey,
     then the key containing that value will be removed from to_dict
-    
+
     if allowDictToListMerging is True, then if to_dict contains a list,
     from_dict can contain a dictionary with int keys which can be used to
     sparsely update the list.
-    
+
     if allowNewListMembers is True, and allowDictToListMerging is also True,
     then if merging an index into a list that currently isn't long enough to
     contain that index, then the list will be extended to be long enough (with
     None inserted in any intermediate indices)
-    
+
     Note: if using RemovedKey objects and allowDictToList merging, then only
     indices greater than all of any indices updated / added should be removed,
     because the order in which items are updated / removed is indeterminate.

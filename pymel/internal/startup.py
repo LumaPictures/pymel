@@ -59,7 +59,7 @@ def mayaStartupHasRun():
 def mayaStartupHasStarted():
     """
     Returns True if maya.app.startup has begun running, False otherwise.
-    
+
     It's possible that maya.app.startup is in the process of running (ie,
     in maya.app.startup.basic, calling executeUserSetup) - unlike mayaStartup,
     this will attempt to detect if this is the case.
@@ -141,8 +141,8 @@ def mayaInit(forversion=None) :
         aboutExists = True
     except ImportError:
         pass
-    
-    if aboutExists and mayaStartupHasStarted():        
+
+    if aboutExists and mayaStartupHasStarted():
         # if this succeeded, we're initialized
         _logger.debug( "startup.mayaInit: maya already started - exiting" )
         isInitializing = False
@@ -160,7 +160,7 @@ def mayaInit(forversion=None) :
 
             if versions.current() < versions.v2009:
                 refreshEnviron()
-                
+
         except ImportError, e:
             raise e, str(e) + ": pymel was unable to intialize maya.standalone"
 
@@ -300,7 +300,7 @@ def fixMayapy2011SegFault():
                 # to do a 'normal' sys.exit, it will crash with a segmentation
                 # fault..
                 # do a 'hard' os._exit to avoid this
-                
+
                 # note that, since there is no built-in support to tell from
                 # within atexit functions what the exit code is, we cannot
                 # guarantee returning the "correct" exit code... for instance,
@@ -308,14 +308,14 @@ def fixMayapy2011SegFault():
                 #    raise SystemExit(300)
                 # we will instead return a 'normal' exit code of 0
                 # ... but in general, the return code is a LOT more reliable now,
-                # since it used to ALWAYS return non-zero... 
-                
+                # since it used to ALWAYS return non-zero...
+
                 import sys
                 import atexit
-                
+
                 # First, wrap sys.exit to store the exit code...
                 _orig_exit = sys.exit
-                
+
                 # This is just in case anybody else needs to access the
                 # original exit function...
                 if not hasattr('sys', '_orig_exit'):
@@ -326,7 +326,7 @@ def fixMayapy2011SegFault():
                 sys.exit = exit
 
                 def hardExit():
-                    # run all the other exit handlers registered with 
+                    # run all the other exit handlers registered with
                     # atexit, then hard exit... this is easy, because
                     # atexit._run_exitfuncs pops funcs off the stack as it goes...
                     # so all we need to do is call it again
@@ -345,7 +345,7 @@ def fixMayapy2011SegFault():
                         if last_value is not None:
                             if isinstance(last_value, SystemExit):
                                 try:
-                                    exitStatus = last_value.args[0]  
+                                    exitStatus = last_value.args[0]
                                 except Exception: pass
                             if exitStatus is None:
                                 exitStatus = 1
@@ -398,7 +398,7 @@ class PymelCache(object):
     NAME = ''   # ie, 'mayaApi'
     DESC = ''   # ie, 'the API cache' - used in error messages, etc
     COMPRESSED = True
-    
+
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
 
@@ -408,9 +408,9 @@ class PymelCache(object):
             func = picklezip.load
         else:
             func = _load
-    
+
         _logger.debug(self._actionMessage('Loading', 'from', newPath))
-    
+
         try:
             return func(newPath)
         except Exception, e:
@@ -422,14 +422,14 @@ class PymelCache(object):
             func = picklezip.dump
         else:
             func = _dump
-    
+
         _logger.info(self._actionMessage('Saving', 'to', newPath))
-    
+
         try :
             func( data, newPath, 2)
         except Exception, e:
             self._errorMsg('write', 'to', newPath, e)
-            
+
     def path(self):
         if self.USE_VERSION:
             if hasattr(self, 'version'):
@@ -438,14 +438,14 @@ class PymelCache(object):
                 short_version = shortName()
         else:
             short_version = ''
-    
+
         newPath = _moduleJoin( 'cache', self.NAME+short_version )
         if self.COMPRESSED:
             newPath += '.zip'
         else:
             newPath += '.bin'
         return newPath
-                        
+
     @classmethod
     def _actionMessage(cls, action, direction, location):
         '''_actionMessage('eat', 'at', 'Joes') =>
@@ -455,7 +455,7 @@ class PymelCache(object):
         if description:
             description = ' ' + description
         return "%s%s %s %r" % (action, description, direction, location)
-            
+
     @classmethod
     def _errorMsg(cls, action, direction, path, error):
         '''_errorMessage('eat', 'at', 'Joes') =>
@@ -465,27 +465,27 @@ class PymelCache(object):
         _logger.error("Unable to %s: %s" % (actionMsg, error))
         import traceback
         _logger.debug(traceback.format_exc())
-     
+
 
 
 # Considered using named_tuple, but wanted to make data stored in cache
 # have as few dependencies as possible - ie, just a simple tuple
 class SubItemCache(PymelCache):
     '''Used to store various maya information
-    
+
     ie, api / cmd data parsed from docs
-    
-    To implement, create a subclass, which overrides at least the NAME, DESC, 
+
+    To implement, create a subclass, which overrides at least the NAME, DESC,
     and _CACHE_NAMES attributes, and implements the rebuild method.
-    
+
     Then to access data, you should initialize an instance, then call build;
     build will load the data from the cache file if possible, or call rebuild
     to build the data from scratch if not.  If the data had to be rebuilt,
     a new file cache will be saved.
-    
+
     The data may then be accessed through attributes on the instance, with
     the names given in _CACHE_NAMES.
-    
+
     >>> class NodeCache(SubItemCache):
     ...     NAME = 'mayaNodes'
     ...     DESC = 'the maya nodes cache'
@@ -502,7 +502,7 @@ class SubItemCache(PymelCache):
     # Provides a front end for a pickled file, which should contain a
     # tuple of items; each item in the tuple is associated with a name from
     # _CACHE_NAMES
-    
+
     # override this with a list of names for the items within the cache
     _CACHE_NAMES = []
 
@@ -518,14 +518,14 @@ class SubItemCache(PymelCache):
     ITEM_TYPES = {}
     STORAGE_TYPES = {}
     DEFAULT_TYPE = dict
-    
+
     def __init__(self):
         for name in self._CACHE_NAMES:
             self.initVal(name)
-            
+
     def cacheNames(self):
         return tuple(self._CACHE_NAMES)
-            
+
     def initVal(self, name):
         itemType = self.itemType(name)
         if itemType is None:
@@ -533,10 +533,10 @@ class SubItemCache(PymelCache):
         else:
             val = itemType()
         setattr(self, name, val)
-            
+
     def itemType(self, name):
         return self.ITEM_TYPES.get(name, self.DEFAULT_TYPE)
-    
+
     def build(self):
         """
         Used to rebuild cache, either by loading from a cache file, or rebuilding from scratch.
@@ -545,16 +545,16 @@ class SubItemCache(PymelCache):
         if data is None:
             self.rebuild()
             self.save()
-    
+
     # override this...
     def rebuild(self):
         """Rebuild cache from scratch
-        
+
         Unlike 'build', this does not attempt to load a cache file, but always
         rebuilds it by parsing the docs, etc.
         """
         pass
-    
+
     def update(self, obj, cacheNames=None):
         '''Update all the various data from the given object, which should
         either be a dictionary, a list or tuple with the right number of items,
@@ -562,7 +562,7 @@ class SubItemCache(PymelCache):
         '''
         if cacheNames is None:
             cacheNames = self.cacheNames()
-            
+
         if isinstance(obj, dict):
             for key, val in obj.iteritems():
                 setattr(self, key, val)
@@ -574,10 +574,10 @@ class SubItemCache(PymelCache):
         else:
             for cacheName in cacheNames:
                 setattr(self, cacheName, getattr(obj, cacheName))
-    
+
     def load(self):
         '''Attempts to load the data from the cache on file.
-        
+
         If it succeeds, it will update itself, and return the loaded items;
         if it fails, it will return None
         '''
@@ -591,14 +591,14 @@ class SubItemCache(PymelCache):
                     index = self._CACHE_NAMES.index(name)
                     val = data[index]
                     val = self.itemType(name)(val)
-                    data[index] = val 
+                    data[index] = val
             data = tuple(data)
             self.update(data, cacheNames=self._CACHE_NAMES)
         return data
-    
+
     def save(self, obj=None):
         '''Saves the cache
-        
+
         Will optionally update the caches from the given object (which may be
         a dictionary, or an object with the caches stored in attributes on it)
         before saving
@@ -613,13 +613,13 @@ class SubItemCache(PymelCache):
                     val = self.STORAGE_TYPES[name](val)
                 newData.append(val)
             data = tuple(newData)
-                
-        self.write(data)            
-            
-    # was called 'caches' 
+
+        self.write(data)
+
+    # was called 'caches'
     def contents(self):
         return tuple( getattr(self, x) for x in self.cacheNames() )
-                
+
 #===============================================================================
 # Config stuff
 #===============================================================================

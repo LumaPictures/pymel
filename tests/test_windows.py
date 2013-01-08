@@ -11,7 +11,7 @@ class TestMenu(unittest.TestCase):
         self.win = cmds.window()
     def tearDown(self):
         cmds.deleteUI(self.win, window=True)
-        
+
     def testOptionMenuAsMenu(self):
         cmds.formLayout()
         om = ui.OptionMenu('someOptionMenu', create=True)
@@ -21,8 +21,8 @@ class TestMenu(unittest.TestCase):
         self.assertEqual(windows.menu(om.shortName(), q=1, numberOfItems=1), 1)
         ui.Menu(om)
         ui.Menu(om.name())
-        ui.Menu(om.shortName())        
-        
+        ui.Menu(om.shortName())
+
 if not pm.about(batch=1):
     for key, obj in globals().items():
         if isinstance(obj, unittest.TestCase):

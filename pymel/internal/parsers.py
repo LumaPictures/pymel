@@ -34,7 +34,7 @@ def mayaIsRunning():
 
 def mayaDocsLocation(version=None):
     docLocation = os.environ.get('MAYA_DOC_DIR')
-    
+
     if (not docLocation and (version is None or version == versions.installName() )
             and mayaIsRunning()):
         # Return the doc location for the running version of maya
@@ -55,7 +55,7 @@ def mayaDocsLocation(version=None):
             if docBaseDir is None and version is not None:
                 docBaseDir = getMayaLocation(None)
                 _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docBaseDir) )
-    
+
             if platform.system() == 'Darwin':
                 docBaseDir = os.path.dirname(os.path.dirname(docBaseDir))
             docBaseDir = os.path.join(docBaseDir, 'docs')
@@ -378,11 +378,11 @@ class CommandModuleDocParser(HTMLParser):
 class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
-    
+
     # in enums with multiple keys per int value, which (pymel) key name to use
     # as the default - ie, in MSpace, both object and preTransformed map to 2;
     # since 'object' is in PYMEL_ENUM_DEFAULTS['Space'], that is preferred
-    PYMEL_ENUM_DEFAULTS = {'Space':('object',)} 
+    PYMEL_ENUM_DEFAULTS = {'Space':('object',)}
 
     def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple,
                  docLocation=None):
@@ -494,11 +494,11 @@ class ApiDocParser(object):
             #    kFooSomeThing
             #    kFooBunnies
             # we want to get Bar, SomeThing, Bunnies
-    
+
             # {'kFooBar':0, 'kFooSomeThing':1}
             #     => [['k', 'Foo', 'Some', 'Thing'], ['k', 'Foo', 'Bar']]
             splitEnums = [ [ y for y in self._capitalizedRe.split( x ) if y ] for x in apiEnumNames ]
-    
+
             # [['k', 'Invalid'], ['k', 'Pre', 'Transform']]
             #     => [('k', 'k'), ('Foo', 'Foo'), ('Some', 'Bar')]
             splitZip = zip( *splitEnums )
@@ -507,7 +507,7 @@ class ApiDocParser(object):
                     [ x.pop(0) for x in splitEnums ]
                 else: break
             # splitEnums == [['Some', 'Thing'], ['Bar']]
-    
+
             joinedEnums = [ util.uncapitalize(''.join(x), preserveAcronymns=True ) for x in splitEnums]
             for i, enum in enumerate(joinedEnums):
                 if _iskeyword(enum):
@@ -516,15 +516,15 @@ class ApiDocParser(object):
                 elif enum[0].isdigit():
                     joinedEnums[i] = 'k' + enum
                     self.xprint( "bad enum", enum )
-    
+
                     #print joinedEnums
                     #print enumList
                     #break
-            
+
             return dict(zip(apiEnumNames, joinedEnums))
         else:
             # if only 1 name or less, name is unaltered
-            return dict((name, name) for name in apiEnumNames) 
+            return dict((name, name) for name in apiEnumNames)
 
     def _apiEnumToPymelEnum(self, apiEnum, apiToPymelNames=None):
         defaultsSet = self.PYMEL_ENUM_DEFAULTS.get(apiEnum.name, set())
@@ -538,11 +538,11 @@ class ApiDocParser(object):
             pymelKeyDict[apiName] = val
             pymelName = apiToPymelNames[apiName]
             pymelKeyDict[pymelName] = val
-            
+
             doc = apiEnum._docs.get(apiName)
             if doc:
                 docs[pymelName] = doc
-            
+
             # in the pymel dict, the pymel name should always be the default
             # key for a value... but the original dict may also have multiple
             # keys for a value... so:
@@ -736,7 +736,7 @@ class ApiDocParser(object):
             i+=1
         assert sorted(names) == sorted(types.keys()), 'name-type mismatch %s %s' %  (sorted(names), sorted(types.keys()) )
         return names, types, typeQualifiers, defaults
-    
+
     def parseEnums(self, proto):
         enumValues={}
         enumDocs={}
@@ -758,7 +758,7 @@ class ApiDocParser(object):
                 enumDocs[enumKey] = str(docItem).strip()
             else:
                 enumDocs[enumKey] = str(docItem.contents[0]).strip()
-                
+
         apiEnum = util.Enum(self.currentMethod, enumValues, multiKeys=True)
         apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
         pymelEnum = self._apiEnumToPymelEnum(apiEnum,
@@ -794,7 +794,7 @@ class ApiDocParser(object):
         docs={}
         deprecated = False
         returnDoc = ''
- 
+
         addendum = proto.findNextSiblings( 'div', limit=1)[0]
         #if self.currentMethod == 'createColorSet': raise NotImplementedError
         if addendum.findAll( text=lambda x: x in self.DEPRECATED_MSG ):
@@ -839,14 +839,14 @@ class ApiDocParser(object):
                         tds = tr.findAll(lambda tag: tag.name == 'td')
                         assert tds, "could not find name td"
                         assert len(tds) == 3, "td list is unexpected length: %d" % len(tds)
-    
+
                         tt = tds[0].findNext(lambda tag: tag.name == 'tt')
                         dir = tt.findAll( text=True, limit=1 )[0]
                         tmpDirs.append(dir.encode('ascii', 'ignore'))
-    
+
                         name = tds[1].findAll( text=True, limit=1 )[0]
                         tmpNames.append(name.encode('ascii', 'ignore'))
-                        
+
                         doc = ''.join(tds[2].findAll( text=True))
                         tmpDocs.append(doc.encode('ascii', 'ignore'))
 
@@ -951,7 +951,7 @@ class ApiDocParser(object):
             returnType = None
         else:
             returnType = self.handleEnums(returnType)
-        
+
         return methodName, returnType
 
     def iterProto(self, apiClassName):
@@ -967,7 +967,7 @@ class ApiDocParser(object):
 
         for proto in soup.body.findAll( 'div', **{'class':'memproto'} ):
             yield proto
-            
+
     def getClassPath(self):
         filename = self.getClassFilename() + '.html'
         apiBase = os.path.join(self.docloc , 'API')
@@ -1047,7 +1047,7 @@ class ApiDocParser(object):
                 argList=[]
                 inArgs=[]
                 outArgs=[]
-                
+
                 for argname in names[:] :
                     type = types[argname]
                     if argname not in directions:

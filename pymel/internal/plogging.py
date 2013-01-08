@@ -293,18 +293,18 @@ ERRORLEVEL_DEFAULT = logging.ERROR
 def raiseLog(logger, level, message, errorClass=RuntimeError):
     '''For use in situations in which you may wish to raise an error or simply
     print to a logger.
-    
+
     Ie, if checking for things that "shouldn't" happen, may want to raise an
     error if a developer, but simply issue a warning and continue as gracefully
     as possible for normal end-users.
-    
+
     So, if we make a call:
         raiseLog(_logger, _logger.INFO, "oh noes! something weird happened!")
     ...then what happens will depend on what the value of ERRORLEVEL (controlled
     by the environment var %s) is - if it was not set, or set to ERROR, or
     WARNING, then the call will result in issuing a _logger.info(...) call;
-    if it was set to INFO or DEBUG, then an error would be raised. 
-    
+    if it was set to INFO or DEBUG, then an error would be raised.
+
     For convenience, raiseLog is installed onto logger instances created with
     the getLogger function in this module, so you can do:
         _logger.raiseLog(_logger.INFO, "oh noes! something weird happened!")
@@ -324,7 +324,7 @@ def raiseLog(logger, level, message, errorClass=RuntimeError):
         raise errorClass(message)
     else:
         logger.log(level, message)
-        
+
 def addErrorLog(logger):
     '''Adds an 'raiseLog' method to the given logger instance
     '''
@@ -337,6 +337,6 @@ def addErrorLog(logger):
         instanceErrorLog.__name__ = 'raiseLog'
         logger.raiseLog = instanceErrorLog
     return logger
-        
+
 #_setupLevelPreferenceHook()
 

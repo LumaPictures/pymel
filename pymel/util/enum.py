@@ -90,7 +90,7 @@ class EnumImmutableError(TypeError, EnumException):
 
     def __str__(self):
         return "Enumeration does not allow modification"
-    
+
 class EnumBadDefaultKeyError(ValueError, EnumException):
     """ Raised when a supplied default key for a value was not present """
     def __init__(self, val, key):
@@ -141,7 +141,7 @@ class EnumValue(object):
                 self.__index,
                 self.__key,
             )
-            
+
     def _asTuple(self):
         return (self.__index, self.__key, self.__doc)
 
@@ -193,7 +193,7 @@ class Enum(object):
             would give the same result:
                 {'Red':0,'Green':1,'Blue':2}
                 ('Red', 'Green', 'Blue')
-        multiKeys : `bool` 
+        multiKeys : `bool`
             Defaults to False
             If True, allows multiple keys per value - ie,
                 Enum('Names', {'Bob':0,'Charles':1,'Chuck':1}, multiKeys=True)
@@ -226,9 +226,9 @@ class Enum(object):
         docs = kwargs.pop('docs', {})
 
         # Keys for which there are multiple keys mapping to the same
-        # value, but are not the default key for that value 
+        # value, but are not the default key for that value
         extraKeys = {}
-        
+
         if operator.isMappingType(keys):
             if not multiKeys:
                 reverse = dict( [ (v,k) for k,v in keys.items() ] )
@@ -255,10 +255,10 @@ class Enum(object):
         else:
             keygen = enumerate( keys )
             values = [None] * len(keys)
-            
+
         value_type= kwargs.get('value_type', EnumValue)
         #keys = tuple(keys)
-        
+
         keyDict = {}
         for val, key in keygen:
             #print val, key
@@ -269,7 +269,7 @@ class Enum(object):
                 super(Enum, self).__setattr__(key, value)
             except TypeError, e:
                 raise EnumBadKeyError(key)
-        
+
         for key, val in extraKeys.iteritems():
             # throw away any docs for the extra keys
             keyDict[key] = val
@@ -285,7 +285,7 @@ class Enum(object):
     @property
     def name(self):
         return self._name
-        
+
     def __eq__(self, other):
         if not isinstance(other, Enum):
             return False
@@ -299,7 +299,7 @@ class Enum(object):
             return dict((key, val._asTuple()) for (key, val)
                         in enum._values.iteritems())
         return valTuples(self) == valTuples(other)
-    
+
     def __ne__(self, other):
         return not self == other
 
@@ -335,7 +335,7 @@ class Enum(object):
         if isinstance(value, basestring):
             is_member = (value in self._keys)
         else:
-            # EnumValueCompareError was never defined... 
+            # EnumValueCompareError was never defined...
 #            try:
 #                is_member = (value in self._values)
 #            except EnumValueCompareError:

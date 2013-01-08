@@ -11,7 +11,7 @@
 #        return self.theList.__iter__()
 #    def __repr__(self):
 #        return "Mylist(%s)" % repr(self.theList)
-#    
+#
 ##class Mystring(object):
 ##    def __init__(self, inputString):
 ##        self.theString = str(inputString)
@@ -19,7 +19,7 @@
 ##        return self.theString
 ##    def __repr__(self):
 ##        return "Mystring(%s)" % repr(self.theString)
-#    
+#
 #
 ## If this is true, we will test that the maya cmds (not just the pymel commands!)
 ## fail / succeed when we expect them to... really, this is just informational
@@ -46,7 +46,7 @@
 #        maya.cmds.connectAttr(str(self.cubeTrans1.scaleY), str(self.cubeTrans2.scaleZ))
 #        self.lists['attribute2'] = [self.cubeTrans1.scaleY, self.cubeTrans2.scaleZ]
 #
-#        
+#
 #    @classmethod
 #    def addTestsForCmd(cls, cmdName, typeOfArgs,  \
 #                       mayaFailsOnCustomStrings=False, mayaFailsOnCustomLists=False, \
@@ -56,7 +56,7 @@
 #        cmdName - name of the command to test (ie, we will be testing maya.cmds.cmdName and pymel.cmdName)
 #        typeOfArgs - the type of the non-keyword arguments for the command (ie, transform, attribute, etc)
 #        args - extra non-keyword args to pass to the command
-#        
+#
 #        mayaFailsOnCustomStrings - if true, then maya.cmds.cmdName should fail when called with non-string objects,
 #            and pymel.cmdName should handle it - test this
 #        mayaFailsOnCustomLists -  if true, then maya.cmds.cmdName should fail when called with non-list sequences,
@@ -80,7 +80,7 @@
 #        if extraKwArgs==None: extraKwArgs = {}
 ##         print extraArgs
 ##         print extraKwArgs
-#        
+#
 #        mayaCmd = getattr(maya.cmds, cmdName)
 #        wrappedCmd = getattr(pmcmds, cmdName)
 #
@@ -91,7 +91,7 @@
 #        # 4. cmdname([arg1PyNode, arg2Pynode])
 #        # 5. cmdname(Mylist([arg1String, arg2String]))
 #        # 6. cmdname(Mylist([arg1PyNode, arg2Pynode]))
-#        
+#
 #        def addTestPair(mayaCmdWillFail=True, testPyNodes=False, useListArg=False, testCustomLists=False):
 #            nameSuffixList = [typeOfArgs]
 #            if testPyNodes:
@@ -118,11 +118,11 @@
 ##                    print "args: %s" % args
 ##                    print "kwargs: %s" % extraKwArgs
 #                    return function(self, *args, **extraKwArgs)
-#                
+#
 #                methodWithAutomaticArgs.__name__ = function.__name__
 #                methodWithAutomaticArgs.__doc__ = function.__doc__
 #                return methodWithAutomaticArgs
-#                        
+#
 #            if mayaCmdWillFail:
 #                @feedArgs
 #                def mayaTest(self, *args, **kwargs):
@@ -130,7 +130,7 @@
 #                    self.assertRaises(TypeError, mayaCmd, *args, **kwargs)
 #            else:
 #                # if the maya command succeeds, no need to test the wrapped
-#                @feedArgs 
+#                @feedArgs
 #                def mayaTest(self, *args, **kwargs):
 #                    '''maya.cmds.%s handles %s'''
 ##                    print "%s(" % mayaCmd.__name__,
@@ -149,28 +149,28 @@
 #                self.assertNoError(wrappedCmd, *args, **kwargs)
 #
 #            for testMethod in (mayaTest, wrappedTest):
-#                testMethod.__name__ = "_".join(["test", cmdName, testMethod.__name__, "on"] + nameSuffixList) 
+#                testMethod.__name__ = "_".join(["test", cmdName, testMethod.__name__, "on"] + nameSuffixList)
 #                testMethod.__doc__ = testMethod.__doc__ % (cmdName, " ".join(nameSuffixList))
 #                while(hasattr(cls, testMethod.__name__)):
 #                    testMethod.__name__ += '1'
 #                setattr(cls, testMethod.__name__, testMethod)
-#                
+#
 #            if mayaCmdWillFail:
 #                mayaTests_shouldFail.append(mayaTest.__name__)
 #            else:
 #                mayaTests_shouldPass.append(mayaTest.__name__)
 #            wrappedTests.append(wrappedTest.__name__)
-#        
+#
 #        # 1. cmdName(arg1String, arg2String)
 #        addTestPair(mayaCmdWillFail=False)
 #
 #        # 2. cmdName(arg1PyNode, arg2Pynode)
 #        addTestPair(mayaCmdWillFail=mayaFailsOnCustomStrings, testPyNodes=True)
-#            
+#
 #        if canTakeListArg:
 #            # 3. cmdName([arg1String, arg2String])
 #            addTestPair(mayaCmdWillFail=False, useListArg=True)
-#            
+#
 #            # 4. cmdname([arg1PyNode, arg2Pynode])
 #            addTestPair(mayaCmdWillFail=mayaFailsOnCustomStringsInNormalLists,
 #                        useListArg=True, testPyNodes=True)
@@ -178,7 +178,7 @@
 #            # 5. cmdname(Mylist([arg1String, arg2String]))
 #            addTestPair(mayaCmdWillFail=mayaFailsOnCustomLists,
 #                        useListArg=True, testCustomLists=True)
-#                
+#
 #            # 6. cmdname(Mylist([arg1PyNode, arg2Pynode]))
 #            addTestPair(mayaCmdWillFail=mayaFailsOnCustomLists,
 #                        useListArg=True, testPyNodes=True, testCustomLists=True),
@@ -203,13 +203,13 @@
 #            if testCustomLists:
 #                testedArgs = [Mylist(testedArgs)]
 #            else:
-#                testedArgs = [testedArgs] 
-#                
+#                testedArgs = [testedArgs]
+#
 ##        print "testedArgs: %s" % testedArgs
 #        return testedArgs + list(args)
 #
 ## Reference:
-##TestWrappedCmds.addTestsForCmd(cmdName, typeOfArgs,  
+##TestWrappedCmds.addTestsForCmd(cmdName, typeOfArgs,
 ##                       failsOnCustomStrings=False, failsOnCustomLists=False, \
 ##                       numOfArgs=None, canTakeListArg=False, *args, **kwargs)
 #
@@ -242,7 +242,7 @@
 #mayaCmdsSuite = unittest.TestSuite()
 #mayaCmdsSuite.addTests(mayaCmdsSuite_shouldPass)
 #if testMayaFailures:
-#    mayaCmdsSuite.addTests(mayaCmdsSuite_shouldFail) 
+#    mayaCmdsSuite.addTests(mayaCmdsSuite_shouldFail)
 #
 #allSuite = unittest.TestSuite()
 #allSuite.addTests( (mayaCmdsSuite, wrappedCmdsSuite) )
@@ -255,5 +255,5 @@
 #
 #def main():
 #    unittest.TextTestRunner(stream=sys.stdout, verbosity=2).run(suite())
-#    
+#
 #setupUnittestModule(__name__)

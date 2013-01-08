@@ -7,7 +7,7 @@ class testCase_typeTrees(TestCase):
         self.tree = trees.Tree( *(self.types) )
     def test01_parentMethod(self):
         """ Test the parent method on type tree """
-        pass     
+        pass
     def tearDown(self):
         pass
 
@@ -173,7 +173,7 @@ class testCase_typeTrees(TestCase):
 #for k in A['aca'].path(A) :
 #    if k.value :
 #        print k.value
-#      
+#
 
 
 #def getParent(c) :
@@ -182,7 +182,7 @@ class testCase_typeTrees(TestCase):
 #        return res[0]
 #
 #def isExactChildFn(c, p) :
-#    """ a function to check if c is a direct child of p """    
+#    """ a function to check if c is a direct child of p """
 #    if (c is not None) and (p is not None) :
 #        #print "checking if "+c+" is child of "+p
 #        prt = getParent(c)
@@ -209,10 +209,10 @@ class testCase_typeTrees(TestCase):
 #        >>> skel.find('FBX_Head')
 #        >>> Tree(Joint('FBX_Head'), Tree(Joint('FBX_LeftEye')), Tree(Joint('FBX_RightEye')))
 #        >>> skel.parent('FBX_Head')
-#        >>> Joint('FBX_Neck1')      
+#        >>> Joint('FBX_Neck1')
 #        >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
 #        >>> True """
-#        
+#
 #    if len(args) == 0 :
 #        nargs = cmds.ls( selection=True)
 #    else :
@@ -238,10 +238,10 @@ class testCase_typeTrees(TestCase):
 #        >>> skel.find('FBX_Head')
 #        >>> Tree(Joint('FBX_Head'), Tree(Joint('FBX_LeftEye')), Tree(Joint('FBX_RightEye')))
 #        >>> skel.parent('FBX_Head')
-#        >>> Joint('FBX_Neck1')      
+#        >>> Joint('FBX_Neck1')
 #        >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
 #        >>> True """
-#        
+#
 #    if len(args) == 0 :
 #        nargs = cmds.ls( selection=True)
 #    else :
@@ -267,10 +267,10 @@ class testCase_typeTrees(TestCase):
 #        >>> skel.find('FBX_Head')
 #        >>> Tree(Joint('FBX_Head'), Tree(Joint('FBX_LeftEye')), Tree(Joint('FBX_RightEye')))
 #        >>> skel.parent('FBX_Head')
-#        >>> Joint('FBX_Neck1')      
+#        >>> Joint('FBX_Neck1')
 #        >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
 #        >>> True """
-#        
+#
 #    if len(args) == 0 :
 #        nargs = cmds.ls( selection=True)
 #    else :
@@ -296,10 +296,10 @@ class testCase_typeTrees(TestCase):
 #        >>> skel.find('FBX_Head')
 #        >>> Tree(Joint('FBX_Head'), Tree(Joint('FBX_LeftEye')), Tree(Joint('FBX_RightEye')))
 #        >>> skel.parent('FBX_Head')
-#        >>> Joint('FBX_Neck1')      
+#        >>> Joint('FBX_Neck1')
 #        >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
 #        >>> True """
-#        
+#
 #    if len(args) == 0 :
 #        nargs = cmds.ls( selection=True)
 #    else :
@@ -325,8 +325,8 @@ class testCase_typeTrees(TestCase):
 #    >>>     print tree
 #    A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
 #    >>> def isChild(s1, s2) :
-#    >>>     return s1.startswith(s2) 
-#    >>> forest = treeFromChildLink (isChild, lst)    
+#    >>>     return s1.startswith(s2)
+#    >>> forest = treeFromChildLink (isChild, lst)
 #    """
 #    deq = deque()
 #    for arg in args :
@@ -341,20 +341,20 @@ class testCase_typeTrees(TestCase):
 #        # print "iteration %i" % it
 #        c = deq.popleft()
 #    r = c.root
-#        hasParent = False 
+#        hasParent = False
 #    fulllist = list(deq)+lst
-#    sd = len(deq) 
+#    sd = len(deq)
 #    nextlist = []
 #        for p in fulllist :
 #        plist = []
 #        for n in p.nodes_iter() :
-#        # print "Is %s child of %s?" % (r, n) 
+#        # print "Is %s child of %s?" % (r, n)
 #                if isExactChildFn(r, n) :
 #                    plist.append(n)
-#                    # print "%s is child of %s!" % (r, n) 
-#        for pr in plist :                      
+#                    # print "%s is child of %s!" % (r, n)
+#        for pr in plist :
 #                if not hasParent :
-#                    # print "graft %s on %s, under %s" % (r, p.root, pr) 
+#                    # print "graft %s on %s, under %s" % (r, p.root, pr)
 #                    np = p.union_sub(c, v_from=p.root, v_to=c.root)
 #            np.root = p.root
 #            p = np
@@ -369,11 +369,11 @@ class testCase_typeTrees(TestCase):
 #        if not hasParent :
 #            # print "%s has no parent, it goes to the list as root" % str(c.root)
 #            lst.append(c)
-#    
+#
 #    # print "final list %s" % str(lst)
 #    if len(lst) == 1 :
 #        return lst[0]
 #    else :
 #        return tuple(lst)
- 
+
 setupUnittestModule(__name__)

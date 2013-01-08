@@ -137,10 +137,10 @@ Modifications:
 
 class UndoChunk(object):
     '''Context manager for encapsulating code in a single undo.
-    
+
     Use in a with statement
     Wrapper for cmds.undoInfo(openChunk=1)/cmds.undoInfo(closeChunk=1)
-    
+
     >>> import pymel.core as pm
     >>> pm.ls("MyNode*", type='transform')
     []
@@ -157,7 +157,7 @@ class UndoChunk(object):
     def __enter__(self):
         cmds.undoInfo(openChunk=1)
         return self
-        
+
     def __exit__(*args, **kwargs):
         cmds.undoInfo(closeChunk=1)
 
@@ -210,7 +210,7 @@ class Namespace(unicode):
 
     def splitAll(self):
         return self.strip(":").split(":")
-    
+
     def shortName(self):
         return self.splitAll()[-1]
 
@@ -229,7 +229,7 @@ class Namespace(unicode):
 
     def listNamespaces(self, recursive=False, internal=False):
         '''List the namespaces contained within this namespace.
-        
+
         :parameters:
         recursive : `bool`
             Set to True to enable recursive search of sub (and sub-sub, etc)
@@ -262,7 +262,7 @@ class Namespace(unicode):
 
     def listNodes(self, recursive=False, internal=False):
         '''List the nodes contained within this namespace.
-        
+
         :parameters:
         recursive : `bool`
             Set to True to enable recursive search of sub (and sub-sub, etc)
@@ -281,7 +281,7 @@ class Namespace(unicode):
                 nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True)
                 if recursive:
                     namespaces = self.listNamespaces(recursive=False, internal=internal)
-    
+
                     for ns in namespaces:
                         nodes.extend(ns.listNodes(recursive=recursive,
                                                       internal=internal))
@@ -292,20 +292,20 @@ class Namespace(unicode):
             curNS.setCurrent()
 
         return nodes
-    
+
     def setCurrent(self):
         cmds.namespace(set=self)
 
 
     def clean(self, haltOnError=True, reparentOtherChildren=True):
         '''Deletes all nodes in this namespace
-        
+
         Parameters
         ----------
         haltOnError : bool
             If true, and reparentOtherChildren is set, and there is an error in
             reparenting, then raise an Exception (no rollback is performed);
-            otherwise, ignore the failed reparent, and continue 
+            otherwise, ignore the failed reparent, and continue
         reparentOtherChildren : bool
             If True, then if any transforms in this namespace have children NOT
             in this namespace, then will attempt to reparent these children
@@ -332,7 +332,7 @@ class Namespace(unicode):
                                 if haltOnError:
                                     raise
                                 _logger.error("Could not preserve %r (%s)" % (c,e))
-    
+
                 toDelete = general.ls(toDelete)
             if toDelete:
                 _logger.debug("Deleting %d nodes from namespace '%s'" % (len(toDelete), self))
@@ -353,24 +353,24 @@ class Namespace(unicode):
     # - need to investigate exact way in which 2013 flags work (with sub-
     #   namespaces, with children in other namespaces, etc), and possibly
     #   add in support for flags to control recursive behavior, and handling of
-    #   children of transforms that are NOT in this namespace 
+    #   children of transforms that are NOT in this namespace
     def remove(self, haltOnError=True, reparentOtherChildren=True):
         '''Removes this namespace
-        
+
         Recursively deletes any nodes and sub-namespaces
-        
+
         Parameters
         ----------
         haltOnError : bool
             If true, and reparentOtherChildren is set, and there is an error in
             reparenting, then raise an Exception (no rollback is performed);
-            otherwise, ignore the failed reparent, and continue 
+            otherwise, ignore the failed reparent, and continue
         reparentOtherChildren : bool
             If True, then if any transforms in this namespace have children NOT
             in this namespace, then will attempt to reparent these children
             under world (errors during these reparenting attempts is controlled
             by haltOnError)
-        '''        
+        '''
         self.clean(haltOnError=haltOnError,
                    reparentOtherChildren=reparentOtherChildren)
         for subns in self.listNamespaces():
@@ -406,12 +406,12 @@ Modifications:
         kwargs['dagPath'] = True
 
     res = cmds.namespaceInfo(*args, **kwargs)
-    
+
     if any( kwargs.get(x, False) for x in ('ls', 'listNamespace',
                                            'lod', 'listOnlyDependencyNodes',
                                            'lon', 'listOnlyNamespaces') ):
         res = _util.listForNone(res)
-        
+
     if pyNodeWrap:
         import general
         nodes = []
@@ -423,7 +423,7 @@ Modifications:
                 # get returned... so just ignore any nodes we can't create
                 pass
         res = nodes
-    
+
     return res
 
 #-----------------------------------------------
@@ -671,7 +671,7 @@ class FileInfo( object ):
 
     def __setitem__(self, item, value):
         cmds.fileInfo( item, value )
-        
+
     def __delitem__(self, item):
         cmds.fileInfo( remove=item )
 
@@ -791,7 +791,7 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False,
 
     """
     import general
-    
+
     validRecurseTypes = ('breadth', 'width')
     if recurseType not in validRecurseTypes:
         ValueError('%s was not an acceptable value for recurseType - must be one of %s' % (recurseType, ', '.join(validRecurseTypes)))
@@ -800,7 +800,7 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False,
         refs = cmds.file(q=1, reference=1)
     else:
         refs = cmds.file(parentReference, q=1, reference=1)
-        
+
     #print "reference", parentReference
     while refs:
         #if recursive and recurseType == 'breadth':
@@ -1164,7 +1164,7 @@ class FileReference(object):
         return self.withCopyNumber().__eq__(unicode(other))
     def __ne__(self, other):
         return self.withCopyNumber().__ne__(unicode(other))
-    
+
     def __hash__(self):
         return hash(self.withCopyNumber())
 
@@ -1364,7 +1364,7 @@ def referenceQuery(*args, **kwargs):
                 target = PyNode(args[0])
             except (MayaNodeError, MayaAttributeError):
                 pass
-            
+
             if target:
                 if target.type()=='reference':
                     fr = FileReference(refnode=target)
@@ -1374,7 +1374,7 @@ def referenceQuery(*args, **kwargs):
                 target = Path(args[0])
                 if target.isfile():
                     fr = FileReference(target)
-                
+
             if not isinstance(fr, FileReference):
                 # Last ditch - just try casting to a FileReference
                 fr = FileReference(args[0])

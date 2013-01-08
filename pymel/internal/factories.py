@@ -45,7 +45,7 @@ apiTypesToApiClasses = None
 apiClassInfo = None
 
 mayaTypesToApiEnums = None
-           
+
 # ApiMelBridgeCache
 apiToMelData  = None
 apiClassOverrides = None
@@ -55,7 +55,7 @@ cmdlist = None
 nodeHierarchy = None
 uiClassList = None
 nodeCommandList = None
-moduleCmds = None       
+moduleCmds = None
 
 
 # Though the global variables and the attributes on _apiCacheInst SHOULD
@@ -63,28 +63,28 @@ moduleCmds = None
 #    _apiCacheInst.apiClassInfo is apiClassInfo
 # should be true, I'm paranoid they will get out of sync, so I'm
 # treating _apiCacheInst as though it ISN'T in sync, and needs to be updated
-# whenever we interact with it... 
+# whenever we interact with it...
 
 def loadApiCache():
     _logger.debug("Loading api cache...")
     _start = time.time()
-    
+
     global _apiCacheInst
     global _apiMelBridgeCacheInst
-    
+
     _apiCacheInst = apicache.ApiCache()
     _apiCacheInst.build()
     _apiMelBridgeCacheInst = apicache.ApiMelBridgeCache()
     _apiMelBridgeCacheInst.build()
     _setApiCacheGlobals()
-    
+
     _elapsed = time.time() - _start
     _logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
-    
+
 def _setApiCacheGlobals():
     global _apiCacheInst
     global _apiMelBridgeCacheInst
-    
+
     for names, values in [ (_apiCacheInst.cacheNames(),
                                 _apiCacheInst.contents()),
                            (_apiMelBridgeCacheInst.cacheNames(),
@@ -93,25 +93,25 @@ def _setApiCacheGlobals():
                                 _apiCacheInst.extraDicts()) ]:
         for name, val in zip(names, values):
             globals()[name] = val
-    
+
 def loadCmdCache():
     _logger.debug("Loading cmd cache...")
     _start = time.time()
-    
+
     global _cmdCacheInst
-    
+
     global cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds
-    
+
     _cmdCacheInst = cmdcache.CmdCache()
     _cmdCacheInst.build()
     _setCmdCacheGlobals()
-    
+
     _elapsed = time.time() - _start
     _logger.debug( "Initialized Cmd Cache in in %.2f sec" % _elapsed )
 
 def _setCmdCacheGlobals():
     global _cmdCacheInst
-    
+
     for name, val in zip(_cmdCacheInst.cacheNames(), _cmdCacheInst.contents()):
         globals()[name] = val
 
@@ -119,11 +119,11 @@ def _setCmdCacheGlobals():
 def saveApiCache():
     global _apiCacheInst
     _apiCacheInst.save(globals())
-    
+
 def saveApiMelBridgeCache():
     global _apiMelBridgeCacheInst
     _apiMelBridgeCacheInst.save(globals())
-    
+
 def mergeApiClassOverrides():
     global _apiCacheInst
     global _apiMelBridgeCacheInst
@@ -131,7 +131,7 @@ def mergeApiClassOverrides():
     _apiMelBridgeCacheInst.update(globals())
     _apiCacheInst._mergeClassOverrides(_apiMelBridgeCacheInst)
     _setApiCacheGlobals()
-    
+
 loadApiCache()
 loadCmdCache()
 
@@ -187,12 +187,12 @@ def toPyUI(res):
     if res is not None:
         import pymel.core.uitypes
         return pymel.core.uitypes.PyUI(res)
-    
+
 def toPyType(moduleName, objectName):
     """
     Returns a function which casts it's single argument to
     an object with the given name in the given module (name).
-    
+
     The module / object are given as strings, so that the module
     may be imported when the function is called, to avoid
     making factories dependent on, say, pymel.core.general or
@@ -203,7 +203,7 @@ def toPyType(moduleName, objectName):
         # __import__, because that guarantees it returns the
         # 'bottom' module (ie, myPackage.myModule, NOT myPackage),
         # note that __import__ doesn't actually insert objectName into
-        # the locals... which we don't really want anyway 
+        # the locals... which we don't really want anyway
         module = __import__(moduleName, globals(), locals(), [objectName], -1)
         cls = getattr(module, objectName)
         if res is not None:
@@ -237,7 +237,7 @@ def toPyTypeList(moduleName, objectName):
     """
     def toGivenClassList(res):
         module = __import__(moduleName, globals(), locals(), [objectName], -1)
-        cls = getattr(module, objectName)        
+        cls = getattr(module, objectName)
         if res is None:
             return []
         return [ cls(x) for x in res ]
@@ -646,14 +646,14 @@ class Callback(object):
                 label = "Add " + str(rigger),
                 c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
     """
-    
+
     MAX_RECENT_ERRORS = 10
-    
+
     # keeps information for the most recent callback errors
     recentErrors = []
-    
+
     CallbackErrorLog = util.namedtuple('CallbackErrorLog', 'callback exception trace creationTrace')
-    
+
     @classmethod
     def logCallbackError(cls, callback, exception=None, trace=None,
                          creationTrace=None):
@@ -682,7 +682,7 @@ Error Trace:
 %s
 ''' % (info.callback, info.creationTrace, info.trace)
         return msg
-    
+
     @classmethod
     def printRecentError(cls, index=0):
         print cls.formatRecentError(index=index)
@@ -692,7 +692,7 @@ Error Trace:
         self.args = args
         self.kwargs = kwargs
         self.traceback = traceback.format_stack()
-    
+
     def __call__(self,*args):
         cmds.undoInfo(openChunk=1)
         try:
@@ -725,7 +725,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
     Prior to maya 2011, when a user provides a custom callback functions for a
     UI elements, such as a checkBox, when the callback is triggered it is passed
     a string instead of a real python values.
-    
+
     For example, a checkBox changeCommand returns the string 'true' instead of
     the python boolean True. This function wraps UI commands to correct the
     problem and also adds an extra flag to all commands with callbacks called
@@ -1050,7 +1050,7 @@ def makeQueryFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName
     #name = 'get' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = pmcmds.getCmdName(inFunc)
-        
+
 
     if returnFunc:
         def wrappedMelFunc(self, **kwargs):
@@ -1832,7 +1832,7 @@ class ApiUndo:
         Note that we don't want to use Maya commands here because they
         would pollute Maya's undo queue, so we use API calls instead.
         """
-        
+
         ns = api.MNamespace.currentNamespace()
         api.MNamespace.setCurrentNamespace(':')
         self.flushUndo()
@@ -1841,9 +1841,9 @@ class ApiUndo:
         self.undoNode = dgmod.createNode('facade')
         dgmod.renameNode(self.undoNode, self.node_name)
         dgmod.doIt()
-        
+
         api.MNamespace.setCurrentNamespace(ns)
-        
+
         # Add an attribute to keep a count of the commands in the stack.
         attrFn = api.MFnNumericAttribute()
         self.cmdCountAttr = attrFn.create( 'cmdCount', 'cc',
@@ -1939,13 +1939,13 @@ class ApiUndoItem(object):
         if undoKwargs is None:
             undoKwargs = {}
         self._undo_kwargs = undoKwargs
-        
+
     def redoIt(self):
         self._setter(*self._redo_args, **self._redo_kwargs)
 
     def undoIt(self):
         self._setter(*self._undo_args, **self._undo_kwargs)
-        
+
 class ApiRedoUndoItem(ApiUndoItem):
     """Similar to the base ApiUndoItem, but allows specifying a separate
     function for the redoer and the undoer"""
@@ -1959,7 +1959,7 @@ class ApiRedoUndoItem(ApiUndoItem):
 
     def undoIt(self):
         self._undoer(*self._undo_args, **self._undo_kwargs)
-    
+
 
 def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex=None ):
     """
@@ -2043,7 +2043,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             getterInArgs = []
             # query method ( getter )
             #if argHelper.getGetterInfo() is not None:
-            
+
             # temporarily supress this warning, until we get a deeper level
 #            if getterArgHelper is not None:
 #                _logger.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
@@ -2365,7 +2365,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         removeAttrs.append(methodName)
                     except KeyError:
                         pymelName = methodName
-                        
+
 #                    if classname == 'DependNode' and pymelName in ('setName','getName'):
 #                        raise Exception('debug')
 
@@ -2775,7 +2775,7 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
     except AttributeError:
         _logger.debug("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
         return
-   
+
     classDict = {'__melnode__':mayaType}
     if extraAttrs:
         classDict.update(extraAttrs)
@@ -2790,7 +2790,7 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
             import new
             PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
             #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentPyNodeTypeName)))
-            
+
         PyNodeType.__module__ = dynModule.__name__
     setattr( dynModule, pyNodeTypeName, PyNodeType )
     return PyNodeType
@@ -2798,11 +2798,11 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
 def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
-    
+
     This function is used for creating PyNodes via plugins, where the nodes parent's might be abstract
     types not yet created by pymel.  also, this function ensures that the newly created node types are
     added to pymel.all, if that module has been imported.
-     
+
     """
     try:
         inheritance = apicache.getInheritance( mayaType )
@@ -2813,7 +2813,7 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
         import traceback
         _logger.debug(traceback.format_exc())
         inheritance = None
-        
+
     if not inheritance or not util.isIterable(inheritance):
         _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
     else:
@@ -2828,7 +2828,7 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
             if 'pymel.all' in sys.modules:
                 # getattr forces loading of Lazy object
                 setattr( sys.modules['pymel.all'], nodeName, getattr(dynModule,nodeName) )
-                            
+
 def addPyNode( dynModule, mayaType, parentMayaType, extraAttrs=None ):
     """
     create a PyNode type for a maya node.
@@ -2858,14 +2858,14 @@ def addPyNode( dynModule, mayaType, parentMayaType, extraAttrs=None ):
 def removePyNode( dynModule, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     removePyNodeType( pyNodeTypeName )
-    
+
     _logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
     dynModule.__dict__.pop(pyNodeTypeName,None)
 
     # delete the lazy loader too, so it does not regenerate the object
     # Note - even doing a 'hasattr' will trigger the lazy loader, so just
     # delete blind!
-    try: 
+    try:
         delattr(dynModule.__class__, pyNodeTypeName)
     except Exception:
         pass
@@ -2896,7 +2896,7 @@ def addMayaType(mayaType, apiType=None):
     """
     if apiType is None:
         apiType = mayaTypeToApiType(mayaType)
-        
+
     global _apiCacheInst
     _apiCacheInst.addMayaType(mayaType, apiType, globals())
     _setApiCacheGlobals()
@@ -2920,16 +2920,16 @@ class VirtualClassManager(object):
     def __init__(self):
         self._byVirtualClass = {}
         self._byParentClass = util.defaultdict(list)
-        
+
     def register( self, vclass, nameRequired=False, isVirtual='_isVirtual',
                   preCreate='_preCreateVirtual',
                   create='_createVirtual',
                   postCreate='_postCreateVirtual', ):
         """Register a new virtual class
-         
+
         Allows a user to create their own subclasses of leaf PyMEL node classes,
         which are returned by `general.PyNode` and all other pymel commands.
-    
+
         The process is fairly simple:
             1.  Subclass a PyNode class.  Be sure that it is a leaf class,
                 meaning that it represents an actual Maya node type and not an
@@ -2947,12 +2947,12 @@ class VirtualClassManager(object):
                 immediately available and may take an extra calculation to
                 retrieve, so if nameRequired is not set the name argument
                 passed to your callback could be None.
-            
+
         The creation of custom nodes may be customized with the use of
         isVirtual, preCreate, create, and postCreate functions; these are
         functions (or classmethods) which are called before / during / after
         creating the node.
-        
+
         The isVirtual method is required - it is the callback used on instances
         of the base (ie, 'real') objects to determine whether they should be
         considered an instance of this virtual class. It's input is an MObject
@@ -2968,31 +2968,31 @@ class VirtualClassManager(object):
         the creation command, and return either 1 or 2 dictionaries; the first
         dictionary is the one actually passed to the creation command; the
         second, if present, is passed to the postCreate command.
-        
+
         The create method can be used to override the 'default' node creation
         command;  it is given the kwargs given on node creation (possibly
         altered by the preCreate), and must return the string name of the
         created node. (...or any another type of object (such as an MObject),
         as long as the postCreate and class.__init__ support it.)
-        
+
         The postCreate function is called after creating the new node, and
         gives you a chance to modify it.  The method is passed the PyNode of
         the newly created node, as well as the second dictionary returned from
         the preCreate function as kwargs (if it was returned). You can use
         PyMEL code here, but you should avoid creating any new nodes.
-        
+
         By default, any method named '_isVirtual', '_preCreateVirtual',
         '_createVirtual', or '_postCreateVirtual' on the class is used; if
         present, these must be classmethods or staticmethods.
-        
+
         Other methods / functions may be used by passing a string or callable
         to the preCreate / postCreate kwargs.  If a string, then the method
         with that name on the class is used; it should be a classmethod or
         staticmethod present at the time it is registered.
-        
+
         The value None may also be passed to any of these args (except isVirtual)
         to signal that no function is to be used for these purposes.
-        
+
         If more than one subclass is registered for a node type, the registered
         callbacks will be run newest to oldest until one returns True. If no
         test returns True, then the standard node class is used. Also, for each
@@ -3000,7 +3000,7 @@ class VirtualClassManager(object):
         same name and module, then it is removed. (This helps alleviate
         registered callbacks from piling up if, for instance, a module is
         reloaded.)
-        
+
         For a usage example, see examples/customClasses.py
 
         :parameters:
@@ -3030,7 +3030,7 @@ class VirtualClassManager(object):
             create = getattr(vclass, create, None)
         if isinstance(postCreate, basestring):
             postCreate = getattr(vclass, postCreate, None)
-        
+
         # assert that we are a leaf class
         parentCls = None
         for each_cls in inspect.getmro(vclass):
@@ -3044,10 +3044,10 @@ class VirtualClassManager(object):
                 badAttrs = set(specialAttrs).difference(validSpecialAttrs)
                 if badAttrs:
                     raise ValueError, 'invalid attribute name(s) %s: special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
-    
+
         assert parentCls, "passed class must be a subclass of a PyNode type"
         #assert issubclass( vclass, parentCls ), "%s must be a subclass of %s" % ( vclass, parentCls )
-    
+
         vclass.__melnode__ = parentCls.__melnode__
 
         # filter out any pre-existing classes with the same name / module as
@@ -3057,7 +3057,7 @@ class VirtualClassManager(object):
             otherVcls = vClassInfo.vclass
             if otherVcls.__name__ == vclass.__name__ and otherVcls.__module__ == vclass.__module__:
                 self.unregister(otherVcls)
-                
+
         #TODO:
         # inspect callbacks to ensure proper number of args and kwargs ( create callback must support **kwargs )
         # ensure that the name of our node does not conflict with a real node
@@ -3065,14 +3065,14 @@ class VirtualClassManager(object):
         vClassInfo = VirtualClassInfo(vclass, parentCls, nameRequired, isVirtual, preCreate, create, postCreate)
         self._byParentClass[parentCls].append( vClassInfo )
         self._byVirtualClass[vclass] = vClassInfo
-        
+
     def unregister(self, vcls):
         try:
             vClassInfo = self._byVirtualClass.pop(vcls)
         except KeyError:
-            raise VirtualClassError('%r was not registered as a virtual class' % vcls) 
+            raise VirtualClassError('%r was not registered as a virtual class' % vcls)
         self._byParentClass[vClassInfo.parent].remove(vClassInfo)
-        
+
     def getVirtualClass(self, baseClass, obj, name=None, fnDepend=None):
         '''Returns the virtual class to use for the given baseClass + obj, or
         the original baseClass if no virtual class matches.
@@ -3089,7 +3089,7 @@ class VirtualClassManager(object):
             if vClassInfo.isVirtual(obj, name):
                 return vClassInfo.vclass
         return baseClass
-    
+
     def getVirtualClassInfo(self, vclass):
         '''Given a virtual class, returns it's registered VirtualClassInfo
         '''
@@ -3123,8 +3123,8 @@ def toApiTypeEnum( obj, default=None ):
     try:
         return apiTypesToApiEnums[obj]
     except KeyError:
-        return mayaTypesToApiEnums.get(obj, default)        
-    
+        return mayaTypesToApiEnums.get(obj, default)
+
 def toApiFunctionSet( obj ):
     if isinstance( obj, basestring ):
         try:
@@ -3145,10 +3145,10 @@ def toApiFunctionSet( obj ):
 def apiClassNameToPymelClassName(apiName, allowGuess=True):
     '''Given the name of an api class, such as MFnTransform, MSpace, MAngle,
     returns the name of the corresponding pymel class.
-    
+
     If allowGuessing, and we cannot find a registered type that matches, will
     try to do string parsing to guess the pymel name.
-    
+
     Returns None if it was unable to determine the name.
     '''
     pymelName = apiClassNamesToPyNodeNames.get(apiName, None)
@@ -3181,7 +3181,7 @@ def mayaTypeToApiType(mayaType) :
                     apiType = mayaTypesToApiTypes.get(mayaType)
                     if apiType:
                         break
-                        
+
         if not apiType:
             apiType = 'kInvalid'
             # we need to actually create the obj to query it...
@@ -3195,9 +3195,9 @@ def isMayaType(mayaType):
     '''Whether the given type is a currently-defined maya node name
     '''
     # using objectType instead of MNodeClass or nodeType(isTypeName) because
-    # it's available < 2012 
+    # it's available < 2012
     return bool(cmds.objectType(tagFromType=mayaType))
-    
+
 # Keep around for debugging/info gathering...
 def getComponentTypes():
     # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,

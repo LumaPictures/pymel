@@ -37,7 +37,7 @@ class testCase_MelGlobals(unittest.TestCase):
                     return $inValue;
                 }''')
 
-    
+
     def test_set_int(self):
         meval('global int $melGlobals_test_set_int1')
 
@@ -53,7 +53,7 @@ class testCase_MelGlobals(unittest.TestCase):
         lang.MelGlobals.set('$melGlobals_test_set_int1', 67)
         self.assertEqual(meval('melGlobals_test_int_getter($melGlobals_test_set_int1)'),
                          67)
-        
+
     def test_set_int_arr(self):
         meval('global int $melGlobals_test_set_int_arr1[]')
 
@@ -72,7 +72,7 @@ class testCase_MelGlobals(unittest.TestCase):
 
     def test_set_str(self):
         meval('global string $melGlobals_test_set_str1')
-        
+
         lang.melGlobals.set('melGlobals_test_set_str1', 'albatross')
         self.assertEqual(meval('melGlobals_test_str_getter($melGlobals_test_set_str1)'),
                          'albatross')
@@ -89,7 +89,7 @@ class testCase_MelGlobals(unittest.TestCase):
 
     def test_set_str_arr(self):
         meval('global string $melGlobals_test_set_str_arr1[]')
-        
+
         lang.melGlobals.set('melGlobals_test_set_str_arr1', ['albatross', 'macaroni'])
         self.assertEqual(meval('melGlobals_test_str_arr_getter($melGlobals_test_set_str_arr1)'),
                          ['albatross', 'macaroni'])
@@ -103,7 +103,7 @@ class testCase_MelGlobals(unittest.TestCase):
         lang.MelGlobals.set('$melGlobals_test_set_str_arr1', ['parakeet', 'dougnuts'])
         self.assertEqual(meval('melGlobals_test_str_arr_getter($melGlobals_test_set_str_arr1)'),
                          ['parakeet', 'dougnuts'])
-        
+
     def test_setitem_int(self):
         meval('int $melGlobals_test_setitem_int1')
 
@@ -123,7 +123,7 @@ class testCase_MelGlobals(unittest.TestCase):
         lang.melGlobals['$melGlobals_test_setitem_str1'] = 'apple'
         self.assertEqual(meval('melGlobals_test_str_getter($melGlobals_test_setitem_str1)'),
                          'apple')
-        
+
     def test_get_int(self):
         meval('global int $melGlobals_test_get_int1')
 
@@ -152,7 +152,7 @@ class testCase_MelGlobals(unittest.TestCase):
         self.assertEqual(lang.MelGlobals.get('melGlobals_test_get_int_arr1'), [5, 6])
 
         meval('$melGlobals_test_get_int_arr1 = {7, 8}')
-        self.assertEqual(lang.MelGlobals.get('$melGlobals_test_get_int_arr1'), [7, 8])        
+        self.assertEqual(lang.MelGlobals.get('$melGlobals_test_get_int_arr1'), [7, 8])
 
     def test_get_str(self):
         meval('global string $melGlobals_test_get_str1')
@@ -241,7 +241,7 @@ class testCase_MelGlobals(unittest.TestCase):
         self.assertRaises(RuntimeError, meval, 'print $melGlobals_test_initVar_str4')
         lang.MelGlobals.initVar('string', '$melGlobals_test_initVar_str4')
         meval('print $melGlobals_test_initVar_str4')
-    
+
     def test_getType_int(self):
         meval('global int $melGlobals_test_getType_int1')
         self.assertEqual(lang.melGlobals.getType('melGlobals_test_getType_int1'),
@@ -275,7 +275,7 @@ class testCase_MelGlobals(unittest.TestCase):
         meval('global string $melGlobals_test_getType_str4')
         self.assertEqual(lang.MelGlobals.getType('$melGlobals_test_getType_str4'),
                          'string')
-    
+
     def test_keys(self):
         self.assertFalse('$melGlobals_test_keys_int1' in lang.melGlobals.keys())
         meval('global int $melGlobals_test_keys_int1')
@@ -286,7 +286,7 @@ class testCase_MelGlobals(unittest.TestCase):
         meval('global int $melGlobals_test_keys_int2')
         self.assertTrue('$melGlobals_test_keys_int2' in lang.MelGlobals.keys())
         self.assertFalse('melGlobals_test_keys_int2' in lang.MelGlobals.keys())
-        
+
         self.assertFalse('$melGlobals_test_keys_str1' in lang.melGlobals.keys())
         meval('global string $melGlobals_test_keys_str1')
         self.assertTrue('$melGlobals_test_keys_str1' in lang.melGlobals.keys())
@@ -295,22 +295,22 @@ class testCase_MelGlobals(unittest.TestCase):
         self.assertFalse('$melGlobals_test_keys_str2' in lang.MelGlobals.keys())
         meval('global string $melGlobals_test_keys_str2')
         self.assertTrue('$melGlobals_test_keys_str2' in lang.MelGlobals.keys())
-        self.assertFalse('melGlobals_test_keys_str2' in lang.MelGlobals.keys())        
+        self.assertFalse('melGlobals_test_keys_str2' in lang.MelGlobals.keys())
 
     def test_noInit_set(self):
         self.assertRaises(TypeError, lang.melGlobals.set, 'melGlobals_test_nonexistant1', 37)
         self.assertRaises(TypeError, lang.melGlobals.set, 'melGlobals_test_nonexistant2', 'foo')
-        
+
     def test_noInit_setitem(self):
         self.assertRaises(TypeError, lang.melGlobals.__setitem__, 'melGlobals_test_nonexistant3', 37)
         self.assertRaises(TypeError, lang.melGlobals.__setitem__, 'melGlobals_test_nonexistant4', 'foo')
-        
+
     def test_noInit_get(self):
         self.assertRaises(KeyError, lang.melGlobals.get, 'melGlobals_test_nonexistant5')
-        
+
     def test_noInit_getitem(self):
         self.assertRaises(KeyError, lang.melGlobals.__getitem__, 'melGlobals_test_nonexistant6')
-        
+
     def test_noInit_getType(self):
         self.assertRaises(TypeError, lang.melGlobals.getType, 'melGlobals_test_nonexistant7')
-    
+

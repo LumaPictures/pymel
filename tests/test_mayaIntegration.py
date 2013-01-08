@@ -23,12 +23,12 @@ def replacePath(match):
     if file:
         dir = groups.get('dir', '')
         if dir:
-            dir = '<py_dir>/' 
+            dir = '<py_dir>/'
         path = '%s%s.py' % (dir, file)
     else:
         path = groups['special_file']
     return path
-    
+
 def fileLineReplacer1(match):
     return 'file %s line <lineno>' % replacePath(match)
 
@@ -99,7 +99,7 @@ class TestMayaIntegration(unittest.TestCase):
                         res = res.replace('test_guiExceptionFormatting', '<module>')
                         res = res.replace('<py_dir>/test_mayaIntegration.py', '<maya console>')
                         res = res.replace('#     eval(codeStr)\n', '')
-                        
+
                         expected = messages[level]
                         if res != expected:
                             print 'level: %d' % level
@@ -107,12 +107,12 @@ class TestMayaIntegration(unittest.TestCase):
                             print "raw res:"
                             print rawres
                             print '*' * 60
-    
+
                             print '*' * 60
                             print "res:"
                             print res
                             print '*' * 60
-    
+
                             print '*' * 60
                             print "expected:"
                             print expected

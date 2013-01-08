@@ -1095,7 +1095,7 @@ class EquivalencePairs(TwoWayDict):
     def __contains__(self, key):
         return (dict.__contains__(self, key) or
                 key in self._reverse)
-        
+
     def get(self, key, d=None):
         try:
             return self.__getitem__(key)
@@ -1137,7 +1137,7 @@ def alias(origAttrName):
 
 class propertycache(object):
     '''Class for creating properties where the value is initially calculated then stored.
-    
+
     Intended for use as a descriptor, ie:
 
     class MyClass(object):
@@ -1146,7 +1146,7 @@ class propertycache(object):
             return calcValue()
     c = MyClass()
     c.aValue
-    
+
     '''
     def __init__(self, func):
         self.func = func

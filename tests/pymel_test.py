@@ -15,7 +15,7 @@ class Tee(object):
 
     def __del__(self) :
         self.close()
-            
+
     def close(self):
         for toClose in (self.fd1, self.fd2):
             if toClose not in (sys.stdout, sys.stderr,
@@ -52,7 +52,7 @@ import argparse
 def getParser():
     testsDir = os.path.dirname(os.path.abspath(sys.argv[0]))
     pymelRoot = os.path.dirname( testsDir )
-    
+
     parser = argparse.ArgumentParser(description='Run the pymel tests')
     parser.add_argument('extra_args', nargs='*', help='args to pass to nose or unit/unit2')
     parser.add_argument('--app-dir', help='''make the tests use the given dir as
@@ -91,13 +91,13 @@ def nose_test(argv, module=None, pymelDir=None):
     """
     arg0 = argv[0]
     extraArgs = argv[1:]
-    
+
     if pymelDir:
         os.chdir(pymelDir)
-            
+
     os.environ['MAYA_PSEUDOTRANS_MODE']='5'
     os.environ['MAYA_PSEUDOTRANS_VALUE']=','
-    
+
     noseKwArgs={}
     noseArgv = "dummyArg0 --with-doctest -vv".split()
     if module is None:
@@ -127,9 +127,9 @@ def nose_test(argv, module=None, pymelDir=None):
         # if we're not in gui mode, disable the gui tests
         if not inGui:
             excludes.extend('^test_uitypes ^test_windows'.split())
-         
+
         noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in excludes ] )  ]
-           
+
     if inspect.ismodule(module):
         noseKwArgs['module']=module
     elif module:
@@ -137,7 +137,7 @@ def nose_test(argv, module=None, pymelDir=None):
     if extraArgs is not None:
         noseArgv.extend(extraArgs)
     noseKwArgs['argv'] = noseArgv
-    
+
     with DocTestPatcher():
         print "running nose:", noseKwArgs
         nose.main( **noseKwArgs)
@@ -166,25 +166,25 @@ class DocTestPatcher(object):
     some problems with this.  Eventually, we may experiment with setting the LazyLoadModule
     and original module's dict's to be the same... for now, we use this class to override
     DocTestFinder._from_module to return the results we want.
-    
+
     Also, the doctest will override the 'wantFile' setting for ANY .py file,
     even it it matches the 'exclude' - it does this so that it can search all
     python files for docs to add to the doctests.
-    
+
     Unfortunately, if some modules are simply loaded, they can affect things -
     ie, if pymel.all is loaded, it will trigger the lazy-loading of all class
     objects, which will make our lazy-loading tests fail.
-    
+
     To get around this, override the Doctest plugin object's wantFile to also
     exclude the 'excludes'.
     """
     def __enter__(self):
         self.set_from_module()
         self.set_wantFile()
-        
+
     def set_from_module(self):
         self.orig_from_module = doctest.DocTestFinder.__dict__['_from_module']
-        
+
         def _from_module(docTestFinder_self, module, object):
             """
             Return true if the given object is defined in the given
@@ -197,16 +197,16 @@ class DocTestPatcher(object):
                         return True
             return self.orig_from_module(docTestFinder_self, module, object)
         doctest.DocTestFinder._from_module = _from_module
-        
+
     def set_wantFile(self):
         import nose
 #        if nose.__versioninfo__ > (1,0,0):
 #            self.orig_wantFile = None
-#            return 
+#            return
 
         import nose.plugins.doctests
         self.orig_wantFile = nose.plugins.doctests.Doctest.__dict__['wantFile']
-        
+
         def wantFile(self, file):
             """Override to select all modules and any file ending with
             configured doctest extension.
@@ -216,14 +216,14 @@ class DocTestPatcher(object):
                                            and anyp(file.endswith, self.extension)) )
                  # ...and that it isn't excluded
                  and (not self.conf.exclude
-                      or not filter(None, 
+                      or not filter(None,
                                     [exc.search(file)
                                      for exc in self.conf.exclude]))):
                 return True
             return None
 
         nose.plugins.doctests.Doctest.wantFile = wantFile
-        
+
     def __exit__(self, *args, **kwargs):
         doctest.DocTestFinder._from_module = self.orig_from_module
         if self.orig_wantFile is not None:
@@ -238,7 +238,7 @@ def main(argv):
         if not os.path.exists(parsed.app_dir):
             os.makedirs(parsed.app_dir)
         os.environ['MAYA_APP_DIR'] = parsed.app_dir
-    
+
     testsDir = parsed.tests_dir
     pymelRoot = parsed.pymel_root
 

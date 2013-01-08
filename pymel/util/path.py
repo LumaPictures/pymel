@@ -827,14 +827,14 @@ class path(_base):
 
     def truepath(self):
         """The absolute, real, normalized path.
-        
+
         Shortcut for .abspath().realpath().normpath()
-        
+
         Unlike canonicalpath, on case-sensitive filesystems, two different paths
         may refer the same file, and so should only be used in cases where a
         "normal" path from root is desired, but we wish to preserve case; in
         situations where comparison is desired, canonicalpath (or samepath)
-        should be used.  
+        should be used.
         """
         return self.__class__(self.abspath().realpath().normpath())
 

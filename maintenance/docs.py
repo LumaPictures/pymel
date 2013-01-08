@@ -69,18 +69,18 @@ def build(clean=True,  **kwargs):
     if clean:
         clean_generated()
         clean_build()
-    
+
     #mkdir -p build/html build/doctrees
-    
+
     #import pymel.internal.cmdcache as cmdcache
     #cmdcache.fixCodeExamples()
     opts = ['']
     opts += '-b html -d build/doctrees'.split()
-    
+
     # set some defaults
     if 'graphviz_dot' not in kwargs:
         kwargs['graphviz_dot'] = find_dot()
-    
+
     for key, value in kwargs.iteritems():
         opts.append('-D')
         opts.append( key.strip() + '=' + value.strip() )

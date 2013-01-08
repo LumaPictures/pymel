@@ -82,7 +82,7 @@ def _getPymelType(arg, name) :
     elif isinstance(arg, _api.MDagPath) :
         results['MDagPath'] = arg
         obj = arg.node()
-        
+
     elif isinstance(arg, _api.MPlug) :
         isAttribute = True
         obj = arg
@@ -238,7 +238,7 @@ Modifications:
             disconnectionDirs.append('inputs')
         if outputs:
             disconnectionDirs.append('outputs')
-            
+
         for disconnectDir in disconnectionDirs:
             disconnectingInputs = (disconnectDir == 'inputs')
             connections = cmds.listConnections(source,
@@ -655,8 +655,8 @@ Modifications:
             # Because it will be more consistent with maya.cmds, and because
             # attributeType already behaves like this, we will do the same -
             # allow maya.cmds to print it's error message, and return None, but
-            # not raise an exception  
-            if res is not None: 
+            # not raise an exception
+            if res is not None:
                 res = res[0]
         elif queriedArg in ('p', 'parent'):
             node = None
@@ -926,7 +926,7 @@ Modifications:
     the string name of returned objects are ignored (ie, 'long'); note that
     the 'allPaths' flag DOES have an effect, as PyNode objects are aware of
     their dag paths (ie, two different instances of the same object will result
-    in two unique PyNodes) 
+    in two unique PyNodes)
   - Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
   - Added new keyword: 'regex' - pass a valid regular expression string, compiled regex pattern, or list thereof.
 
@@ -1135,7 +1135,7 @@ def nodeType( node, **kwargs ):
         # don't spend the extra time converting to MObject
         # don't do unicode(node) - let pmcmds wrap handle it - 'node' may
         #     actually be a single item list, which cmds.nodeType accepts as a
-        #    valid arg 
+        #    valid arg
         return cmds.nodeType( node, **kwargs )
         #raise TypeError, "Invalid input %r." % node
 
@@ -1500,7 +1500,7 @@ Maya Bug Fix:
 class MayaObjectError(TypeError):
     SINGLE_MSG_FORMAT = "Maya %s does not exist"
     MULTI_MSG_FORMAT = "Multiple maya %ss existed"
-    
+
     _objectDescription = 'Object'
     def __init__(self, node=None, num=0):
         self.node = unicode(node)
@@ -1514,13 +1514,13 @@ class MayaObjectError(TypeError):
         if self.node:
             msg += ": %r" % (self.node)
         return msg
-    
+
 class MayaNodeError(MayaObjectError):
     _objectDescription = 'Node'
 
 class MayaAttributeError(MayaObjectError, AttributeError):
     _objectDescription = 'Attribute'
-    
+
 class MayaAttributeEnumError(MayaAttributeError):
     _objectDescription = 'Attribute Enum'
     def __init__(self, node=None, enum=None):
@@ -1988,7 +1988,7 @@ class PyNode(_util.ProxyUnicode):
 
     def namespace(self, root=False):
         """Returns the namespace of the object with trailing colon included.
-        
+
         See `DependNode.parentNamespace` for a variant which does not include
         the trailing colon.
 
@@ -2924,10 +2924,10 @@ class Attribute(PyNode):
         :rtype: `bool`
         """
         return cmds.isDirty(self, **kwargs)
-    
+
     def setDirty(self, **kwargs):
         cmds.dgdirty(self, **kwargs)
-        
+
     def evaluate(self, **kwargs):
         cmds.dgeval(self, **kwargs)
 
@@ -3450,15 +3450,15 @@ class HashableSlice(ProxySlice):
         if not hasattr(self, '_hash'):
             self._hash = (self.start, self.stop, self.step).__hash__()
         return self._hash
-    
+
     def _toNormalSlice(self):
         return slice(self.start, self.stop, self.step)
-    
+
     def __cmp__(self, other):
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
         elif not isinstance(other, slice):
-            return -1 
+            return -1
         return slice.__cmp__(self._toNormalSlice(), other)
 
     @property
@@ -3708,7 +3708,7 @@ class Component( PyNode ):
 
     def node(self):
         return self._node
-    
+
     # just for backward compatibility with old Component class (though the
     # only place this WAS used was with particles...)
     plugNode = node
@@ -3718,7 +3718,7 @@ class Component( PyNode ):
 
     def isComplete(self, *args, **kwargs):
         return self._isCompleteMfnComp(self.__apicomponent__())
-    
+
     def _isCompleteMfnComp(self, mfncomp):
         return mfncomp.isComplete()
 
@@ -3833,7 +3833,7 @@ class DimensionedComponent( Component ):
                 selList.add(compName)
             except RuntimeError:
                 raise MayaComponentError(compName)
-        
+
         if len(indices) == 1 and self._isCompleteIndex(indices[0]):
             addComp(self._completeNameString())
         else:
@@ -3872,7 +3872,7 @@ class DimensionedComponent( Component ):
         return _api.MObjectHandle(compMobj)
 
     VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
-    
+
     # For situations in which we want a component object to represent ALL the
     # possible components of that type - ie, all the vertices - it is a LOT
     # faster to special case that situation, rather than the default behavior,
@@ -3881,7 +3881,7 @@ class DimensionedComponent( Component ):
     # component types (ie, subdiv components), so this function controls whether
     # it will be used.
     _ALLOW_COMPLETE_SHORTCUT = True
-    
+
     # in addition, for some types, it may USUALLY be allowable to use [*]
     # syntax, but in some specific instances, it will cause problems... ie,
     # for empty meshes, doing
@@ -3893,8 +3893,8 @@ class DimensionedComponent( Component ):
         return (self._ALLOW_COMPLETE_SHORTCUT
                 and not issubclass(_api.MFnDagNode,
                                    type(self.node().__apimfn__())))
-        
-    
+
+
     def _standardizeIndices(self, indexObjs, allowIterable=True, label=None,
                             allowComplete=True):
         """
@@ -3908,7 +3908,7 @@ class DimensionedComponent( Component ):
         # without flattening... but only if "allowComplete" is True
         if not self._allowCompleteShortcut():
             allowComplete = False
-        
+
         if indexObjs is None:
             indexObjs = ComponentIndex(label=label)
 
@@ -3950,10 +3950,10 @@ class DimensionedComponent( Component ):
         else:
             raise IndexError("Invalid indices for component: %r" % (indexObjs,) )
         return tuple(indices)
-    
+
     def _completeIndex(self, label=None):
         return ComponentIndex((HashableSlice(None),) * self.dimensions, label=label)
-    
+
     def _isCompleteIndex(self, indexObj):
         '''Return true if the indexObj represents the entire set of indices possible for this component'''
         if isinstance(indexObj, ComponentIndex):
@@ -4189,7 +4189,7 @@ class DiscreteComponent( DimensionedComponent ):
     def __init__(self, *args, **kwargs):
         self.reset()
         super(DiscreteComponent, self).__init__(*args, **kwargs)
-        
+
     def _isCompleteMfnComp(self, mfncomp):
         # for components created through MSelectionList - ie, pm.PyNode('pCube1.vtx[0]')
         # - we may get back an MFnComponent object that actually has all the
@@ -4358,7 +4358,7 @@ class DiscreteComponent( DimensionedComponent ):
 
     def count(self):
         return len(self)
-    
+
     # default implementation assumes that each dimension has a consistent
     # number of components - so total number of components is
     #   sizeDim1 * sizeDim2 * ... * sizeDimN
@@ -4367,7 +4367,7 @@ class DiscreteComponent( DimensionedComponent ):
     # NotImplementedError
     def totalSize(self):
         '''The maximum possible number of components
-        
+
         ie, for a polygon cube, the totalSize for verts would be 8, for edges
         would be 12, and for faces would be 6
         '''
@@ -4509,7 +4509,7 @@ class ContinuousComponent( DimensionedComponent ):
 
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1
-    
+
     def index(self):
         return self.indices()[0]
 
@@ -4621,7 +4621,7 @@ class MItComponent1D( MItComponent, Component1D ): pass
 
 class Component1D64( DiscreteComponent ):
     _ALLOW_COMPLETE_SHORTCUT = False
-    
+
     if Component._hasUint64:
         _mfncompclass = _api.MFnUint64SingleIndexedComponent
         _apienum__ = _api.MFn.kUint64SingleIndexedComponent
@@ -4629,7 +4629,7 @@ class Component1D64( DiscreteComponent ):
     else:
         _mfncompclass = _api.MFnComponent
         _apienum__ = _api.MFn.kComponent
-        
+
     def totalSize(self):
         raise NotImplementedError
 
@@ -4882,7 +4882,7 @@ class MeshUV( Component1D ):
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
     _apienum__ = _api.MFn.kMeshVtxFaceComponent
-    
+
     # getting all the mel strings for MeshVertexFace is SLLOOOWW - so check if
     # it's complete, and if so, just return the .vtxFace[*] form
     def __melobject__(self):
@@ -4896,7 +4896,7 @@ class MeshVertexFace( Component2D ):
             return self._node.numVertices()
         elif len(partialIndex) == 1:
             return self._node.vtx[partialIndex[0]].numConnectedFaces()
-        
+
     def totalSize(self):
         return self.node().numFaceVertices()
 
@@ -4970,7 +4970,7 @@ class SubdVertex( Component1D64 ):
 class SubdEdge( Component1D64 ):
     _ComponentLabel__ = "sme"
     _apienum__ = _api.MFn.kSubdivEdgeComponent
-    
+
     # There is a currently a bug with subd edges, where if you do:
     #        import maya.cmds as cmds
     #        cmds.file(new=1, f=1)
@@ -4979,7 +4979,7 @@ class SubdEdge( Component1D64 ):
     #        cmds.select(subd + '.sme[*][*]')
     # ...maya crashes. as a hack to to help avoid crashing, define the complete
     # component as just containing the first edge...
-    
+
     # GET RID OF THIS ONCE THE CRASH BUG IS FIXED!!!
     def _completeNameString(self):
         return Component._completeNameString(self) + '[0][0]'
@@ -4992,7 +4992,7 @@ class SubdUV( Component1D ):
     # ...because you can't select subduv comps with '*' - ie, this doesn't work:
     #    cmds.select('subdivCube1Shape.smm[*]')
     _ALLOW_COMPLETE_SHORTCUT = False
-    
+
     _ComponentLabel__ = "smm"
     _apienum__ = _api.MFn.kSubdivMapComponent
 
@@ -5119,7 +5119,7 @@ class SubdUV( Component1D ):
         except AttributeError:
             raise RuntimeError("Couldn't determine max index for %s" %
                                Component._completeNameString(self))
-            
+
     def totalSize(self):
         raise NotImplementedError
 
@@ -5335,7 +5335,7 @@ class LatticePoint( Component3D ):
             raise ValueError('partialIndex %r too long for %s._dimLength' %
                              (partialIndex, self.__class__.__name__))
         return self.node().getDivisions()[len(partialIndex)]
-    
+
     def _completeNameString(self):
         # ...However, some multi-indexed components (well, only LatticePoint
         # that I know of) will give incorrect results with
@@ -5356,13 +5356,13 @@ class Pivot( Component ):
 class ParticleComponent( Component1D ):
     _ComponentLabel__ = "pt"
     _apienum__ = _api.MFn.kDynParticleSetComponent
-        
+
     def attr(self, attr):
         try:
             return cmds.particle( self._node, q=1, attribute=attr, order=self._currentFlatIndex)
         except RuntimeError:
             raise MayaParticleAttributeError('%s.%s' % (self, attr))
-    
+
     def __getattr__(self, attr):
         # MayaParticleAttributeError is a subclass of AttributeError, so if
         # it is raised, that should signal it was not found
@@ -5370,7 +5370,7 @@ class ParticleComponent( Component1D ):
 
     def _dimLength(self, partialIndex):
         return self.node().pointCount()
-       
+
 #class ComponentArray(object):
 #    def __init__(self, name):
 #        self._name = name

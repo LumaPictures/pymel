@@ -53,7 +53,7 @@ _module = sys.modules[__name__]
 
 def _addPluginCommand(pluginName, funcName):
     global _pluginData
-    
+
     if funcName not in _pluginData[pluginName].setdefault('commands', []):
         _pluginData[pluginName]['commands'].append(funcName)
     _logger.debug("Adding command: %s" % funcName)
@@ -70,7 +70,7 @@ def _addPluginCommand(pluginName, funcName):
                 setattr( sys.modules[coreModule], funcName, func )
             # Note that we add the function to both a core module (ie,
             # pymel.core.other), the pymel.core itself, and pymel.all; this
-            # way, we mirror the behavior of 'normal' functions 
+            # way, we mirror the behavior of 'normal' functions
             setattr( _module, funcName, func )
             if 'pymel.all' in sys.modules:
                 setattr( sys.modules['pymel.all'], funcName, func )
@@ -78,16 +78,16 @@ def _addPluginCommand(pluginName, funcName):
             _logger.warning( "failed to create function" )
     except Exception, msg:
         _logger.warning("exception: %s" % str(msg) )
-        
+
 def _addPluginNode(pluginName, mayaType):
     global _pluginData
-    
+
     if mayaType not in _pluginData[pluginName].setdefault('dependNodes', []):
-        _pluginData[pluginName]['dependNodes'].append(mayaType)    
+        _pluginData[pluginName]['dependNodes'].append(mayaType)
     _logger.debug("Adding node: %s" % mayaType)
     extraAttrs = _plugins.pyNodeMethods.get(pluginName, {}).get(mayaType, {})
     _factories.addCustomPyNode(nodetypes, mayaType, extraAttrs=extraAttrs)
-    
+
 
 def _removePluginCommand(pluginName, command):
     global _pluginData
@@ -111,7 +111,7 @@ def _removePluginNode(pluginName, node):
 
 def _pluginLoaded( *args ):
     global _pluginData
-    
+
     if len(args) > 1:
         # 2009 API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
         pluginName = args[0][1]
@@ -126,12 +126,12 @@ def _pluginLoaded( *args ):
 
     # Commands
     commands = _plugins.pluginCommands(pluginName)
-    
+
     if commands:
         # clear out the command list first
         _pluginData[pluginName]['commands'] = []
         for funcName in commands:
-            _addPluginCommand(pluginName, funcName) 
+            _addPluginCommand(pluginName, funcName)
 
     # Nodes
     try:
@@ -173,7 +173,7 @@ def _pluginLoaded( *args ):
         # isReadingFile is commented out... so I'm playing it safe, and assuming
         # there are edge cases where isOpeningFile is True but isReadingFile is
         # not
-        
+
         # Detect if we are currently opening/importing a file and load as a callback versus execute now
         if (_api.MFileIO.isReadingFile() or  _api.MFileIO.isOpeningFile() or
                 ( _versions.current() >= _versions.v2012
@@ -222,7 +222,7 @@ def _pluginUnloaded(*args):
         pluginName = args[0]
 
     _logger.debug("Plugin unloaded: %s" % pluginName)
-    
+
     try:
         data = _pluginData.pop(pluginName)
     except KeyError:

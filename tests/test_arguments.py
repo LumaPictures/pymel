@@ -7,12 +7,12 @@ class testCase_mergeCascadingDicts(unittest.TestCase):
         orig = {1:'a'}
         arguments.mergeCascadingDicts( {2:'b'}, orig )
         self.assertEqual(orig, {1:'a',2:'b'})
-        
+
     def test_subAdd(self):
         orig = {1:{'meat':'deinonychus'}}
         arguments.mergeCascadingDicts( {1:{'plants':'stegosaurus'}}, orig )
         self.assertEqual(orig, {1:{'plants':'stegosaurus', 'meat':'deinonychus'}})
-        
+
     def test_simpleRemove(self):
         orig = {1:'a'}
         arguments.mergeCascadingDicts( {1:arguments.RemovedKey('old')}, orig )
@@ -22,7 +22,7 @@ class testCase_mergeCascadingDicts(unittest.TestCase):
         orig = {1:{'plants':'stegosaurus'}}
         arguments.mergeCascadingDicts( {1:{'plants':arguments.RemovedKey('old')}}, orig )
         self.assertEqual(orig, {1:{}})
-        
+
     def test_simpleUpdate(self):
         orig = {1:'a'}
         arguments.mergeCascadingDicts( {1:'b'}, orig )
@@ -39,7 +39,7 @@ class testCase_mergeCascadingDicts(unittest.TestCase):
         arguments.mergeCascadingDicts( {1:{0:'samuel', 1:'jackson'}}, orig )
         self.assertEqual(orig, {1:{0:'samuel', 1:'jackson'}})
         self.assertTrue(origList is not orig[1])
-        
+
     def test_subListReplace(self):
         origList = ['bad', 'mother', 'Fer']
         orig = {1:{'a':origList}}
@@ -54,7 +54,7 @@ class testCase_mergeCascadingDicts(unittest.TestCase):
                                        allowDictToListMerging=True )
         self.assertEqual(orig, {1:['samuel', 'jackson', 'Fer']})
         self.assertTrue(origList is orig[1])
-        
+
     def test_subListUpdate(self):
         origList = ['bad', 'mother', 'Fer']
         orig = {1:{'a':origList}}
@@ -78,7 +78,7 @@ class testCase_mergeCascadingDicts(unittest.TestCase):
                                        allowDictToListMerging=True )
         self.assertEqual(orig, {1:['mother', 'Fer']})
         self.assertTrue(origList is orig[1])
-        
+
 class testCase_compareCascadingDicts(unittest.TestCase):
     def test_simpleAdd(self):
         orig = {1:'a'}
@@ -90,7 +90,7 @@ class testCase_compareCascadingDicts(unittest.TestCase):
         self.assertEqual(diff, {2:'b'})
         arguments.mergeCascadingDicts( diff, orig )
         self.assertEqual(orig, new)
-        
+
     def test_subAdd(self):
         orig = {1:{'meat':'deinonychus'}}
         new = {1:{'plants':'stegosaurus', 'meat':'deinonychus'}}
@@ -101,7 +101,7 @@ class testCase_compareCascadingDicts(unittest.TestCase):
         self.assertEqual(diff, {1:{'plants':'stegosaurus'}})
         arguments.mergeCascadingDicts( diff, orig )
         self.assertEqual(orig, new)
-        
+
     def test_simpleRemove(self):
         orig = {1:'a'}
         new = {}
@@ -123,7 +123,7 @@ class testCase_compareCascadingDicts(unittest.TestCase):
         self.assertEqual(diff, {1:{'plants':arguments.RemovedKey('stegosaurus')}})
         arguments.mergeCascadingDicts( diff, orig )
         self.assertEqual(orig, new)
-        
+
     def test_simpleUpdate(self):
         orig = {1:'a'}
         new = {1:'b'}
@@ -159,7 +159,7 @@ class testCase_compareCascadingDicts(unittest.TestCase):
         arguments.mergeCascadingDicts( diff, orig )
         self.assertEqual(orig, {1:{0:'samuel', 1:'jackson', 2:arguments.RemovedKey('Fer')}, 'foo':'bar'})
         self.assertTrue(origList is not orig[1])
-        
+
     def test_subListReplace(self):
         origList = ['bad', 'mother', 'Fer']
         orig = {1:{'a':origList}, 'foo':'bar'}
@@ -186,7 +186,7 @@ class testCase_compareCascadingDicts(unittest.TestCase):
                                        allowDictToListMerging=True )
         self.assertEqual(orig, new)
         self.assertTrue(origList is orig[1])
-        
+
     def test_subListUpdate(self):
         origList = ['bad', 'mother', 'Fer']
         orig = {1:{'a':origList}}

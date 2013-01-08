@@ -107,7 +107,7 @@ def interpreterBits():
     # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
     # even when Maya is running in 32-bit mode. The struct technique
     # is more reliable.
-    return struct.calcsize("P") * 8    
+    return struct.calcsize("P") * 8
     return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
 
 #===============================================================================
@@ -165,16 +165,16 @@ def subpackages(packagemod):
 
 def isClassRunningFrame(cls, frameRecord, methodFilter=None):
     '''Whether the given frameRecord is running code from a method in the given class
-    
+
     Make sure to delete the frameRecord object after calling this (or else you
     create cyclical references - see docs for the inspect module)
-    
+
     This is not foolproof - for instance, if the name of a method has been
-    modified, it may not work - but should work in most cases  
+    modified, it may not work - but should work in most cases
     '''
     frameCode = frameRecord[0].f_code
     del frameRecord
-    
+
     for methodName, methodObj in inspect.getmembers(cls, inspect.ismethod):
         if methodFilter is not None:
             # think it's possible these two names may be different... for instance,
@@ -195,11 +195,11 @@ def isClassRunningFrame(cls, frameRecord, methodFilter=None):
         if methodObj.im_func.func_code == frameCode:
             return True
     return False
-    
+
 
 def isClassRunningStack(cls, stack=None, methodFilter=None):
     '''Whether the stack is running from "inside" a method on the given class
-    
+
     Parameters
     ----------
     cls : class object

@@ -20,7 +20,7 @@ class testCase_raiseLog(unittest.TestCase):
 
         if logger:
             funcType = 'method'
-            func = logger.raiseLog 
+            func = logger.raiseLog
             args = []
         else:
             funcType = 'function'
@@ -28,7 +28,7 @@ class testCase_raiseLog(unittest.TestCase):
             args = [cls.DEFAULT_LOGGER]
         msg = "attempting %s raiseLog %s (ERRORLEVEL set to %s):" % (logLvlName, funcType, errorLvlName)
         args.extend([logLvl, msg])
-        
+
         def raiseLogTest(self):
             oldLvl = plogging.ERRORLEVEL
             plogging.ERRORLEVEL = errorLvl
@@ -47,7 +47,7 @@ class testCase_raiseLog(unittest.TestCase):
                 plogging.ERRORLEVEL = oldLvl
         raiseLogTest.__name__ = 'test_raiseLog_%s_emit_%s_err_%s' % (funcType, logLvlName, errorLvlName)
         return raiseLogTest
-        
+
 
     @classmethod
     def addTests(cls):

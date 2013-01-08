@@ -23,22 +23,22 @@ def setupScriptPaths():
         sys.path.append( os.path.join(p,'lib-tk') )
     except:
         pass
-    
+
     # Per-version prefs scripts dir (eg .../maya8.5/prefs/scripts)
     #
     prefsDir = cmds.internalVar( userPrefDir=True )
     sys.path.append( os.path.join( prefsDir, 'scripts' ) )
-    
+
     # Per-version scripts dir (eg .../maya8.5/scripts)
     #
     scriptDir = cmds.internalVar( userScriptDir=True )
     sys.path.append( os.path.dirname(scriptDir) )
-    
+
     # User application dir (eg .../maya/scripts)
     #
     appDir = cmds.internalVar( userAppDir=True )
     sys.path.append( os.path.join( appDir, 'scripts' ) )
-    
+
 def executeSetup(filename):
     """
     Look for the given file name in the search path and execute it in the "__main__"
@@ -70,7 +70,7 @@ def executeUserSetup():
 
 def executeSiteSetup():
     executeSetup('siteSetup.py')
-    
+
 # Set up sys.path to include Maya-specific user script directories.
 setupScriptPaths()
 
@@ -101,12 +101,12 @@ atexit.register( maya.app.finalize )
 # international treaties.
 #
 # The Data is provided for use exclusively by You. You have the right to use,
-# modify, and incorporate this Data into other products for purposes authorized 
+# modify, and incorporate this Data into other products for purposes authorized
 # by the Autodesk software license agreement, without fee.
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
 # DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
 # INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
-# MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+# MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE
 # OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
 # LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
 # DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS

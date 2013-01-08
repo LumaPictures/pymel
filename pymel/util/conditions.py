@@ -29,7 +29,7 @@ class Condition(object):
 
     def __nonzero__(self):
         return self.eval()
-    
+
     def __str__(self):
         return str(self.value)
 

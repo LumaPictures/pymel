@@ -370,7 +370,7 @@ def _getShortNames(objects, nonUniqueName):
 def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
                 filter=None):
     '''Returns a dict giving info about the arugments for the function/property
-    
+
     If obj is None, will return the 'defaults'.
     '''
     # per flag query and edit settings
@@ -617,7 +617,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
 
         for flag in flags:
             # currently keyword args only support one item per flag. eventually we may
-            # detect when a keyword expects a list as an argument            
+            # detect when a keyword expects a list as an argument
             flagInfo[flag] = {'maxArgs':1}
 
     elif inspect.isclass(pyObj):
@@ -669,7 +669,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
             continue
         if len(longname) < 4:
             longname = longname.ljust(4, 'x')
-        
+
         # TODO: currently no check that LONG name is unique...
         # ...maybe roll this into _getShortNames... make it _getNames?
         if longname != origname:

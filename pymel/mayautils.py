@@ -80,9 +80,9 @@ def getMayaAppDir(versioned=False):
     """
     Determine the Maya application directory, first by checking MAYA_APP_DIR, then by
     trying OS-specific defaults.
-    
+
     if versioned is True, the current Maya version including '-x64' suffix, if applicable, will be appended.
-    """ 
+    """
     appDir = os.environ.get('MAYA_APP_DIR',None)
     if appDir is None :
         if os.name == 'nt':
@@ -104,10 +104,10 @@ def getMayaAppDir(versioned=False):
             appDir = os.path.join( appDir, 'Library/Preferences/Autodesk/maya' )
         else:
             appDir = os.path.join( appDir, 'maya' )
-    
+
     if versioned and appDir:
         appDir = os.path.join(appDir, versions.installName())
-    
+
     return appDir
 
 def getUserPrefsDir():
@@ -119,7 +119,7 @@ def getUserScriptsDir():
     appDir = getMayaAppDir(versioned=True)
     if appDir:
         return os.path.join(appDir, 'scripts')
-    
+
 def executeDeferred(func, *args, **kwargs):
     """
     This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this
@@ -159,7 +159,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
     Given a path or list of paths, recurses through directories appending to
     the MAYA_SCRIPT_PATH environment variable any found directories containing
     mel scripts
-    
+
     The root directories, if given, are always added to the MAYA_SCRIPT_PATH,
     even if they don't contain any mel scripts.
 
@@ -200,7 +200,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
             else:
                 _logger.debug("Appending script path directory %s" % toAdd)
                 varList.append(toAdd)
-                
+
     if roots:
         if isinstance( roots, list) or isinstance( roots, tuple):
             rootVars = list(roots)
@@ -214,8 +214,8 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
     else:
         rootVars = varList[:]
 
-   
-    
+
+
     _logger.debug("Recursing Maya script path")
     _logger.debug( "Only directories which match %s will be traversed" % includeRegex )
     for rootVar in rootVars:

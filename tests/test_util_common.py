@@ -12,7 +12,7 @@ class testCase_isClassRunningStack(unittest.TestCase):
     def test_frame1of1(self):
         class Different(object):
             pass
-        
+
         class Alike(object):
             def methodCheckForDifferent(self):
                 pass
@@ -20,7 +20,7 @@ class testCase_isClassRunningStack(unittest.TestCase):
                 pass
             def methodCheckForTheClass(self):
                 pass
-            
+
         class TheClass(object):
             def methodCheckForDifferent(self):
                 return util.isClassRunningStack(Different)
@@ -29,15 +29,15 @@ class testCase_isClassRunningStack(unittest.TestCase):
         def methodCheckForTheClass(self):
             return util.isClassRunningStack(TheClass)
         TheClass.methodCheckForTheClass = methodCheckForTheClass
-        
+
         self.assertFalse(TheClass().methodCheckForDifferent())
         self.assertFalse(TheClass().methodCheckForAlike())
         self.assertTrue(TheClass().methodCheckForTheClass())
-        
+
     def test_frame1of2(self):
         class Different(object):
             pass
-        
+
         class Alike(object):
             def methodCheckForDifferent(self):
                 pass
@@ -45,7 +45,7 @@ class testCase_isClassRunningStack(unittest.TestCase):
                 pass
             def methodCheckForTheClass(self):
                 pass
-            
+
         class TheClass(object):
             def methodCheckForDifferent(self):
                 return util.isClassRunningStack(Different)
@@ -54,14 +54,14 @@ class testCase_isClassRunningStack(unittest.TestCase):
         def methodCheckForTheClass(self):
             return util.isClassRunningStack(TheClass)
         TheClass.methodCheckForTheClass = methodCheckForTheClass
-        
+
         def outerFuncDifferent():
             return TheClass().methodCheckForDifferent()
         def outerFuncAlike():
             return TheClass().methodCheckForAlike()
         def outerFuncTheClass():
             return TheClass().methodCheckForTheClass()
-        
+
         self.assertFalse(outerFuncDifferent())
         self.assertFalse(outerFuncAlike())
         self.assertTrue(outerFuncTheClass())
@@ -69,40 +69,40 @@ class testCase_isClassRunningStack(unittest.TestCase):
     def test_frame2of2(self):
         class Different(object):
             pass
-        
+
         class Alike(object):
             def methodCheckRunner(self):
                 pass
-            
+
         class TheClass(object):
             def methodCheckRunner(self, innerCheckFunc):
                 return innerCheckFunc()
-        
+
         def innerFuncDifferent():
             return util.isClassRunningStack(Different)
         def innerFuncAlike():
             return util.isClassRunningStack(Alike)
         def innerFuncTheClass():
             return util.isClassRunningStack(TheClass)
-        
+
         self.assertFalse(TheClass().methodCheckRunner(innerFuncDifferent))
         self.assertFalse(TheClass().methodCheckRunner(innerFuncAlike))
         self.assertTrue(TheClass().methodCheckRunner(innerFuncTheClass))
-        
+
     def test_frame2of2_filtered_str(self):
         class Different(object):
             pass
-        
+
         class Alike(object):
             def methodCheckRunner(self):
                 pass
-            
+
         class TheClass(object):
             def methodCheckRunner(self, innerCheckFunc):
                 return innerCheckFunc()
             def anotherMethod(self):
                 pass
-        
+
         def innerFuncDifferent_filterPass():
             return util.isClassRunningStack(Different, methodFilter='methodCheckRunner')
         def innerFuncAlike_filterPass():
@@ -117,32 +117,32 @@ class testCase_isClassRunningStack(unittest.TestCase):
         def innerFuncTheClass_filterFail():
             return util.isClassRunningStack(TheClass, methodFilter='anotherMethod')
 
-        
+
         self.assertFalse(TheClass().methodCheckRunner(innerFuncDifferent_filterPass))
         self.assertFalse(TheClass().methodCheckRunner(innerFuncAlike_filterPass))
         self.assertTrue(TheClass().methodCheckRunner(innerFuncTheClass_filterPass))
-                
+
         self.assertFalse(TheClass().methodCheckRunner(innerFuncDifferent_filterFail))
         self.assertFalse(TheClass().methodCheckRunner(innerFuncAlike_filterFail))
         self.assertFalse(TheClass().methodCheckRunner(innerFuncTheClass_filterFail))
-                 
+
     def test_frame2of2_filtered_re(self):
         class Different(object):
             pass
-        
+
         class Alike(object):
             def methodCheckRunner(self):
                 pass
-            
+
         class TheClass(object):
             def methodCheckRunner(self, innerCheckFunc):
                 return innerCheckFunc()
             def anotherMethod(self):
                 pass
-        
+
         passRe = re.compile('Check|Foo')
         failRe = re.compile('nother')
-        
+
         def innerFuncDifferent_filterPass():
             return util.isClassRunningStack(Different, methodFilter=passRe)
         def innerFuncAlike_filterPass():
@@ -157,12 +157,12 @@ class testCase_isClassRunningStack(unittest.TestCase):
         def innerFuncTheClass_filterFail():
             return util.isClassRunningStack(TheClass, methodFilter=failRe)
 
-        
+
         self.assertFalse(TheClass().methodCheckRunner(innerFuncDifferent_filterPass))
         self.assertFalse(TheClass().methodCheckRunner(innerFuncAlike_filterPass))
         self.assertTrue(TheClass().methodCheckRunner(innerFuncTheClass_filterPass))
-                
+
         self.assertFalse(TheClass().methodCheckRunner(innerFuncDifferent_filterFail))
         self.assertFalse(TheClass().methodCheckRunner(innerFuncAlike_filterFail))
         self.assertFalse(TheClass().methodCheckRunner(innerFuncTheClass_filterFail))
-                 
+

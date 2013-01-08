@@ -31,14 +31,14 @@ if _versions.current() >= _versions.v2011:
 
     def toQtObject(mayaName):
         """
-        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction. 
+        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
         If the object does not exist, returns None
-        
-        When using this function you don't need to specify whether UI type is a control, layout, 
+
+        When using this function you don't need to specify whether UI type is a control, layout,
         window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
         this should always be correct, however, if you only have the short name of the UI object,
         consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -52,12 +52,12 @@ if _versions.current() >= _versions.v2011:
                 ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtcore.QObject)
-        
+
     def toQtControl(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget. 
+        Given the name of a May UI control, return the corresponding QWidget.
         If the object does not exist, returns None
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -67,12 +67,12 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QWidget)
-        
+
     def toQtLayout(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget. 
+        Given the name of a May UI control, return the corresponding QWidget.
         If the object does not exist, returns None
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -82,12 +82,12 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findLayout(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QWidget)
-    
+
     def toQtWindow(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget. 
+        Given the name of a May UI control, return the corresponding QWidget.
         If the object does not exist, returns None
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -97,14 +97,14 @@ if _versions.current() >= _versions.v2011:
         ptr = mui.MQtUtil.findWindow(mayaName)
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QWidget)
-        
+
     def toQtMenuItem(mayaName):
         """
-        Given the name of a May UI menuItem, return the corresponding QAction. 
+        Given the name of a May UI menuItem, return the corresponding QAction.
         If the object does not exist, returns None
-        
+
         This only works for menu items. for Menus, use toQtControl or toQtObject
-        
+
         .. note:: Requires PyQt
         """
         import maya.OpenMayaUI as mui
@@ -144,7 +144,7 @@ def objectTypeUI(name, **kwargs):
             if uiType:
                 return uiType
             raise topError
-        
+
 class PyUI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
@@ -256,7 +256,7 @@ class PyUI(unicode):
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtControl
-        
+
 class Panel(PyUI):
     """pymel panel class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -314,7 +314,7 @@ class Layout(PyUI):
             for child in self.children():
                 if child.shortName() == shortName:
                     return child
-        
+
     def addChild(self, uiType, name=None, **kwargs):
         if isinstance(uiType, basestring):
             uiType = getattr(dynModule, uiType)
@@ -352,10 +352,10 @@ class Layout(PyUI):
         if children:
             for child in self.getChildArray():
                 cmds.deleteUI(child)
-    
+
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtLayout
-        
+
 # customized ui classes
 class Window(Layout):
     """pymel window class"""
@@ -404,7 +404,7 @@ class Window(Layout):
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtWindow
-    
+
 class FormLayout(Layout):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
@@ -555,7 +555,7 @@ class TextScrollList(PyUI):
 
 class Menu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    
+
     def __enter__(self):
         global _withParentMenuStack
         _withParentMenuStack.append(self)
@@ -590,12 +590,12 @@ class Menu(PyUI):
             return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
         else:
             return []
-        
+
     def makeDefault(self):
         """
         set this layout as the default parent
         """
-        cmds.setParent(self, menu=True)        
+        cmds.setParent(self, menu=True)
 
 class PopupMenu(Menu):
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -615,17 +615,17 @@ class OptionMenu(PopupMenu):
         for t in self.getItemListLong() or []:
             cmds.deleteUI(t)
     addItems = addMenuItems
-    
+
 class OptionMenuGrp(RowLayout):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    
+
     def menu(self):
         for child in self.children():
             if isinstance(child, OptionMenu):
                 return child
-    
+
     # Want to set both the menu to the child |OptionMenu item, and the normal
-    # parent to this... 
+    # parent to this...
     def __enter__(self):
         self.menu().__enter__()
         return super(OptionMenuGrp, self).__enter__()
@@ -640,10 +640,10 @@ class SubMenuItem(Menu):
 
     def getItalicized(self):
         return cmds.menuItem(self,query=True,italicized=True)
-    
+
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtMenuItem
-        
+
 class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = 'menuItem'
@@ -769,7 +769,7 @@ class AELoader(type):
             if template not in cls._loaded:
                 cls._loaded.append(template)
         return newcls
-    
+
     @staticmethod
     def makeAEProc(modname, classname, procname):
         _logger.debug("making AE loader procedure: %s" % procname)
@@ -795,7 +795,7 @@ class AELoader(type):
     def loadedTemplates(cls):
         "Return the names of the loaded templates"
         return cls._loaded
-    
+
 class AETemplate(object):
     """
     To create an Attribute Editor template using python, do the following:
@@ -808,10 +808,10 @@ class AETemplate(object):
     Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
 
         import AETemplates
-        AETemplates.AEmib_amb_occlusionTemplate.nodeType()  
+        AETemplates.AEmib_amb_occlusionTemplate.nodeType()
 
     As a convenience, when pymel is imported it will automatically import the module ``AETemplates``, if it exists,
-    thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel 
+    thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel
     or modules containing your ``AETemplate`` classes before opening the Atrribute Editor for the node types in question.
 
     To check which python templates are loaded::
@@ -821,7 +821,7 @@ class AETemplate(object):
     """
 
     __metaclass__ = AELoader
-    
+
     _nodeType = None
     def __init__(self, nodeName):
         self._nodeName = nodeName
@@ -940,7 +940,7 @@ def _createUIClasses():
             if classname.endswith( ('Layout', 'Grp') ):
                 bases = (Layout,)
             elif classname.endswith('Panel'):
-                bases = (Panel,)                
+                bases = (Panel,)
             else:
                 bases = (PyUI,)
             dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}) )
@@ -956,7 +956,7 @@ class MainProgressBar(dynModule.ProgressBar):
      :Parameters:
         minValue : int
             Minimum or startingvalue of progress indicatior. If the progress
-            value is less than the minValue, the progress value will be set 
+            value is less than the minValue, the progress value will be set
             to the minimum.  Default value is 0
 
         maxValue : int
@@ -982,7 +982,7 @@ class MainProgressBar(dynModule.ProgressBar):
     '''
     def __new__(cls, minValue=0, maxValue=100, interruptable=True):
         from language import melGlobals
-        bar = dynModule.ProgressBar.__new__( 
+        bar = dynModule.ProgressBar.__new__(
             cls, melGlobals['gMainProgressBar'], create=False)
         bar.setMinValue(minValue)
         bar.setMaxValue(maxValue)
@@ -1017,7 +1017,7 @@ class VectorFieldGrp( dynModule.FloatFieldGrp ):
 
 class PathButtonGrp( dynModule.TextFieldButtonGrp ):
     PROMPT_FUNCTION = 'promptForPath'
-    
+
     def __new__(cls, name=None, create=False, *args, **kwargs):
 
         if create:

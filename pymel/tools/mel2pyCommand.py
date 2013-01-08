@@ -23,7 +23,7 @@ class Options(dict):
 def main():
     from optparse import OptionParser
     import sys
-    
+
     usage = """%prog [options] input (outputDir)
 Arguments:
   input
@@ -31,7 +31,7 @@ Arguments:
     the name of a mel file, a comma-separated list
     of mel files, or the name of a sourced procedure.
     If only the name of the mel file is passed,
-    mel2py will attempt to determine the location 
+    mel2py will attempt to determine the location
     of the file using the 'whatIs' mel command, which relies
     on the script already being sourced by maya."""
     parser = OptionParser(usage=usage)
@@ -59,7 +59,7 @@ without any manual cleanup.""")
                       help="""If true, will only translate mel files found on the mel script path.""")
     parser.add_option("-b", "--basePackage",
                       help="""Gives the package that all translated modules will be a part of; if None or an empty string, all translated modules are assumed to have no base package.""")
-                
+
     parser.set_defaults(outputDir=None,
             pymelNamespace='', forceCompatibility=False,
             verbosity=0 , test=False,
@@ -80,6 +80,6 @@ without any manual cleanup.""")
     if args and ',' in args[0]:
         args[0] = args[0].split(',')
     mel2py(*args, **options)
-    
+
 if __name__ == '__main__':
     main()

@@ -1350,13 +1350,13 @@ Spaces = Space.Space
 
 def equivalentSpace(space1, space2, rotationOnly=False):
     '''Compare the two given space values to see if they are equal
-    
+
     Parameters
     ----------
     space1 : int or str
         the first space to compare (may be either the integer enum value, or the
         api enum name - ie, "kPostTransform" - or the pymel enum name - ie,
-        "postTransform" ) 
+        "postTransform" )
     space2 : int or str
         the seoncd space to compare (may be either the integer enum value, or
         the api enum name - ie, "kPostTransform" - or the pymel enum name - ie,
@@ -1384,8 +1384,8 @@ def equivalentSpace(space1, space2, rotationOnly=False):
             if space == _api.MSpace.kTransform:
                 space = _api.MSpace.kPreTransform
             translated.append(space)
-    
-        
+
+
 #kInvalid
 #    kTransform
 #Transform matrix (relative) space
@@ -1901,7 +1901,7 @@ class TransformationMatrix(Matrix):
 
     def rotateTo(self, value):
         '''Set to the given rotation (and result self)
-        
+
         Value may be either a Quaternion, EulerRotation object, or a list of
         floats; if it is floats, if it has length 4 it is interpreted as
         a Quaternion; if 3, as a EulerRotation.
@@ -1915,7 +1915,7 @@ class TransformationMatrix(Matrix):
             else:
                 raise ValueError('arg to rotateTo must be a Quaternion, EulerRotation, or an iterable of 3 or 4 floats')
         return self.__class__(self.apicls.rotateTo(self, value))
-    
+
     def eulerRotation(self):
         return EulerRotation(self.apicls.eulerRotation(self))
     def _getEuler(self):
@@ -2068,11 +2068,11 @@ class EulerRotation(Array):
         # we may do:
         # apicls.assign(*args)
         # This means that either:
-        #   args is a list/tuple of 
+        #   args is a list/tuple of
 
         if 'unit' in kwargs:
             self.unit = kwargs['unit']
-        elif self.unit is None: 
+        elif self.unit is None:
             self.unit = Angle.getUIUnit()
 
         if len(args) == 1 and isinstance(args[0], _api.MTransformationMatrix):
@@ -2091,16 +2091,16 @@ class EulerRotation(Array):
             else:
                 # convert to list, as we may have to do modifications
                 args = list(args)
-            
+
             # If only 3 rotation angles supplied, and current order is
             # not default, make sure we maintain it
             if self.order != 'XYZ' and len(args) == 3:
-                args.append(self.apicls.__dict__['order'].__get__(self, self.apicls))  
-            
+                args.append(self.apicls.__dict__['order'].__get__(self, self.apicls))
+
             elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue) ) :
                 # allow to initialize directly from 3 rotations and a rotation order as string
                 args[3] = self.RotationOrder.getIndex(args[3])
-                
+
             # In case they do something like pass in a mix of Angle objects and
             # float numbers, convert to correct unit one-by-one...
             for i in xrange(3):
@@ -2109,7 +2109,7 @@ class EulerRotation(Array):
                 elif self.unit != 'radians' and not isinstance(args[i], Angle):
                     args[i] = Angle(args[i], self.unit).asUnit('radians')
             self.apicls.setValue(self, *args)
-            
+
         # We do kwargs as a separate step after args, instead of trying to combine
         # them, in case they do something like pass in a EulerRotation(myMatrix, y=2)
         if hasattr(self, 'cnames') and len(set(self.cnames) & set(kwargs)) :
@@ -2127,7 +2127,7 @@ class EulerRotation(Array):
                 except :
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
-        
+
         return self
 
     # API get, actually not faster than pulling self[i] for such a short structure
@@ -2315,7 +2315,7 @@ class Quaternion(Matrix):
     def __init__(self, *args, **kwargs):
         """ __init__ method for Quaternion """
         cls = self.__class__
-        
+
         if args :
             # allow both forms for arguments
             if len(args)==1 and hasattr(args[0], '__iter__') :
@@ -2723,7 +2723,7 @@ _factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, r
 #                       }
 #def _floatUpConvert(input):
 #    """Will convert various Float* objects to their corresponding double object
-#    
+#
 #    ie, api.MFloatMatrix => api.MMatrix, FloatPoint => Point
 #    """
 #    newClass = _floatUpConvertDict.get(input.__class__)

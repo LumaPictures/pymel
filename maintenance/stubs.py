@@ -21,7 +21,7 @@ def get_class(obj):
     unfortunately, it seems there's no single way to query class that works in
     all cases - .__class__ doesn't work on some builtin-types, like
     re._pattern_type instances, and type() doesn't work on old-style
-    classes... 
+    classes...
     '''
     cls = type(obj)
     if cls == types.InstanceType:
@@ -37,7 +37,7 @@ def has_default_constructor(cls):
     for safe_cls in (object, list, dict, tuple, set, frozenset, str, unicode):
         safe_methods.add(safe_cls.__init__)
         safe_methods.add(safe_cls.__new__)
-    
+
     for method in (getattr(cls, '__init__', None), getattr(cls, '__new__', None)):
         if method in safe_methods:
             continue
@@ -45,13 +45,13 @@ def has_default_constructor(cls):
             # we got an old-style class that didn't define an __init__ or __new__...
             # it's ok..
             continue
-        
+
         try:
             args, _, _, defaults = inspect.getargspec(method)
         except TypeError:
             # sometimes we get 'slot_wrapper' objects, which we can't query...
             # assume these are bad...
-            return False 
+            return False
         if defaults is None:
             numDefaults = 0
         else:
@@ -60,7 +60,7 @@ def has_default_constructor(cls):
         if len(args) > numDefaults + 1:
             return False
     return True
-    
+
 def is_dict_like(obj):
     '''Test whether the object is "similar" to a dict
     '''
@@ -74,13 +74,13 @@ def is_dict_like(obj):
 
 class ModuleNamesVisitor(ast.NodeVisitor):
     def __init__(self):
-        self.names = set() 
+        self.names = set()
 
     def visit(self, node):
         # if we have the module, recurse
         if isinstance(node, ast.Module):
             self.generic_visit(node)
-        
+
         # we are looking for statements which could define a new name...
         elif isinstance(node, (ast.Assign,
                              ast.ClassDef,
@@ -139,7 +139,7 @@ class ModuleNamesVisitor(ast.NodeVisitor):
             self.addNames(obj.handlers)
         elif isinstance(obj, ast.ExceptHandler):
             self.addNames(obj.name)
-            
+
 def get_static_module_names(module):
     '''Given a module object, tries to do static code analysis to find the names
     that will be defined at module level.
@@ -155,7 +155,7 @@ def get_static_module_names(module):
     moduleAst = ast.parse(text, path)
     visitor = ModuleNamesVisitor()
     visitor.visit(moduleAst)
-    return visitor.names  
+    return visitor.names
 
 
 # for the sake of stubtest, don't importy anything pymel/maya at module level
@@ -240,7 +240,7 @@ class StubDoc(Doc):
                            # just leaving these here as examples of how to use,
                            # in case we need to use it again at some point
                            # in the future...
-                           
+
                            #'pymel.util.objectParser':'''
 #class ProxyUni(object): pass
 #class Parsed(ProxyUni): pass
@@ -259,7 +259,7 @@ class StubDoc(Doc):
         self.missing_modules = set([])
         self.safe_constructor_classes = set()
         all = getattr(this_module, '__all__', None)
-        
+
         if desc:
             result += result + self.docstring(desc)
 
@@ -271,10 +271,10 @@ class StubDoc(Doc):
                     or not mod.__name__ or mod.__name__.startswith('_')):
                 mod = this_module
             return mod
-        
+
         # set of all names in this module
         all_names = set()
-        
+
         def get_unique_name(basename=None):
             if basename is None:
                 basename = '_unknown'
@@ -292,7 +292,7 @@ class StubDoc(Doc):
                 name = '%s%s' % (basename, num)
                 num += 1
             return name
-        
+
         # these are all dicts that key off the object id...
         # we index by obj-id, instead of obj, because not all objects are
         # hashable, and we really only care about 'is' comparisons, not
@@ -304,19 +304,19 @@ class StubDoc(Doc):
         # module/class/func/data, and names is a list of the names/aliases under
         # which the object can be found in this module.
         id_to_data = {}
-        
+
         OBJ = 0
         OBJTYPE = 1
         SOURCEMOD = 2
         NAMES = 3
-        
+
         def add_obj(obj, name=None, source_module=None):
             id_obj = id(obj)
             if id_obj in id_to_data:
                 # the object was already known - check that the source_module
                 # is consistent, and add the name if needed
                 objtype, old_source_module, names = id_to_data[id_obj][OBJTYPE:]
-                
+
                 if source_module is None:
                     # use the old source module..
                     source_module = old_source_module
@@ -328,7 +328,7 @@ class StubDoc(Doc):
                         and source_module != this_module):
                     # ...otherwise, something weird is going on...
                     raise RuntimeError("got conflicting source modules for %s" % obj)
-                    
+
                 # If we don't know the name, and the object already exists in
                 # the module, then we don't need to do anything... we can just
                 # use one of the names already assigned to the object...
@@ -351,7 +351,7 @@ class StubDoc(Doc):
                     name = get_unique_name(getattr(obj, '__name__', None))
                 if source_module is None:
                     source_module = get_source_module(obj)
-                
+
                 # now find the objtype...
                 if inspect.ismodule(obj):
                     objtype = 'module'
@@ -363,7 +363,7 @@ class StubDoc(Doc):
                     objtype = 'data'
                 names = [name]
             id_to_data[id_obj] = (obj, objtype, source_module, names)
-            
+
 
         # add all the objects that we have names for / should be in this
         # module
@@ -371,7 +371,7 @@ class StubDoc(Doc):
             if name.startswith('__') and name.endswith('__'):
                 continue
             add_obj(obj, name)
-            
+
         def have_id_name(id_obj, name):
             data = id_to_data.get(id_obj, None)
             if data is None:
@@ -387,7 +387,7 @@ class StubDoc(Doc):
         #     if not, change their source_module to THIS module (ie, so we
         #     define a dummy placeholder for it in this module)
 
-        
+
         # Since both of these can end up adding new objects to the list of
         # objects defined in this module (ie, whose source_module == this_module),
         # which can then cause the need to check for updates on the other,
@@ -397,7 +397,7 @@ class StubDoc(Doc):
         # maps from the id of a class to it's parent classes, for classes
         # which we will define in this module...
         class_parents = {}
-        def add_parent_classes():            
+        def add_parent_classes():
             # deal with the classes - for classes in this module, we need to find
             # their base classes, and make sure they are also defined, or imported
             untraversed_classes = list(obj for (obj, objtype, source_module, names)
@@ -414,13 +414,13 @@ class StubDoc(Doc):
                     print "problem iterating %s.__bases__" % child_class
                     parents = (object,)
                 class_parents[id(child_class)] = parents
-                    
+
                 for parent_class in parents:
                     id_parent = id(parent_class)
                     if id_parent not in id_to_data:
                         if parent_class in builtins:
                             continue
-                        
+
                         # We've found a class that's not in this namespace...
                         # ...but perhaps it's parent module is?
                         found_parent_mod = False
@@ -441,7 +441,7 @@ class StubDoc(Doc):
                             if found_parent_mod:
                                 # the parent module was there... skip this parent class..
                                 continue
-                        
+
                         # we've found a new class... add it...
                         new_to_this_module += 1
                         add_obj(parent_class)
@@ -449,7 +449,7 @@ class StubDoc(Doc):
                         if source_module == this_module:
                             untraversed_classes.append(parent_class)
             return new_to_this_module
-        
+
         # maps from an id_obj to it's ('default') name in the source module
         import_other_name = {}
         # maps from module to a dict, mapping from id to names within that module
@@ -486,13 +486,13 @@ class StubDoc(Doc):
                     if name is None or name not in other_names:
                         name = other_names[0]
                     import_other_name[id_obj] = name
-                        
+
             return new_to_this_module
-             
+
         new_to_this_module = 1
         while new_to_this_module:
             new_to_this_module = add_parent_classes() + find_import_data()
-            
+
         # check the other modules for possible "from mod import *" action...
         importall_modules = []
         for other_mod, other_id_names in other_module_names.iteritems():
@@ -519,11 +519,11 @@ class StubDoc(Doc):
                     data[NAMES].remove(other_name)
                     if not data[NAMES]:
                         del id_to_data[id_obj]
-        
+
         # We finally have all the objects that will be added to this module
         # (with their names in this module), all the parent clases for classes
         # defined here, and all the import names for objects being imported...
-        
+
         # Now, sort them all into lists by type for objects defined in in
         # this module, and a list of imported for things in other modules...
 
@@ -532,7 +532,7 @@ class StubDoc(Doc):
         funcs = []
         data = []
         imported = []
-        
+
         bins = {'module':modules,
                 'class':classes,
                 'func':funcs,
@@ -545,13 +545,13 @@ class StubDoc(Doc):
                 imported.append((obj, names, source_module))
 
         # Before adding things, prepopulate our module_map and id_map
-        
+
         for obj, names in modules:
             self.add_to_module_map(obj.__name__, names[0])
 
         for mod in importall_modules:
             self.add_to_module_map(mod.__name__, '')
-            
+
         # eventually, might want to replace module_map and id_map
         # with id_to_data...
         for id_obj, (obj, objtype, source_module, names) in id_to_data.iteritems():
@@ -567,7 +567,7 @@ class StubDoc(Doc):
         #    4) class definitions
         #    5) func defs
         #    6) data
-        
+
         if modules:
             contents = []
             #print "modules", this_module
@@ -583,7 +583,7 @@ class StubDoc(Doc):
                     if import_text:
                         contents.append(import_text)
             result = result + join(contents, '\n') + '\n\n'
-            
+
         if importall_modules:
             # special-case handling for pymel.internal.pmcmds, which ends up
             # with a bunch of 'from pymel.core.X import *' commands
@@ -602,8 +602,8 @@ class StubDoc(Doc):
                 import_text = self.import_mod_text(this_module, mod.__name__, '*')
                 if import_text:
                     contents.append(import_text)
-            result = result + '\n'.join(contents) + '\n\n' 
-                    
+            result = result + '\n'.join(contents) + '\n\n'
+
         if imported:
             contents = []
             for obj, names, source_module in imported:
@@ -613,8 +613,8 @@ class StubDoc(Doc):
                                                        name)
                     if import_text:
                         contents.append(import_text)
-            result = result + '\n'.join(contents) + '\n\n'        
-        
+            result = result + '\n'.join(contents) + '\n\n'
+
         if classes:
             # sort in order of resolution
             def nonconflicting(classlist):
@@ -662,7 +662,7 @@ class StubDoc(Doc):
         if funcs:
             contents = []
             for obj, names in funcs:
-                name = names[0] 
+                name = names[0]
                 contents.append(self.document(obj, name, this_name))
             for alias in names[1:]:
                 contents.append('%s = %s' % (alias, name))
@@ -674,7 +674,7 @@ class StubDoc(Doc):
                 name = names[0]
                 contents.append(self.docother(obj, name, this_name, maxlen=70))
             for alias in names[1:]:
-                contents.append('%s = %s' % (alias, name))                
+                contents.append('%s = %s' % (alias, name))
             result = result + join(contents, '\n') + '\n\n'
 
 #        if hasattr(this_module, '__version__'):
@@ -697,7 +697,7 @@ class StubDoc(Doc):
             result = join(contents, '\n') + '\n\n'  + result
         self.safe_constructor_classes = set()
         return result
-    
+
     def add_to_module_map(self, realname, newname):
         oldname = self.module_map.get(realname, None)
         if oldname is None:
@@ -715,25 +715,25 @@ class StubDoc(Doc):
             if final_name in (oldname, newname):
                 self.module_map[realname] = final_name
                 return
-                
+
             # otherwise, just take whatever one has the shorter number of
             # parts, with tie going to the old_val...
             oldnum = len(oldname.split('.'))
             newnum = len(newname.split('.'))
-            
+
             if oldnum < newnum:
                 self.module_map[realname] = oldname
             elif oldnum > newnum:
                 self.module_map[realname] = newname
             # tie, do nothing...
             return
-        
+
     def module_has_static_name(self, module, name):
         if isinstance(module, basestring):
             module = sys.modules[module]
         elif not isinstance(module, types.ModuleType):
             raise TypeError(module)
-        
+
         if module not in self.static_module_names:
             self.static_module_names[module] = get_static_module_names(module)
         return name in self.static_module_names[module]
@@ -742,7 +742,7 @@ class StubDoc(Doc):
         """Get a class name and qualify it with a module name if necessary."""
         if id(object) in self.id_map:
             return self.id_map[id(object)]
-        
+
         name = object.__name__
         missing = None
         realmodule = object.__module__
@@ -771,7 +771,7 @@ class StubDoc(Doc):
                         parentmod = '.'.join(mod_parts)
                         if parentmod in self.module_map:
                             # we have a parent module - so, ie,
-                            # our class is xml.sax.handler.ErrorHandler, 
+                            # our class is xml.sax.handler.ErrorHandler,
                             # and we found the parent class xml.sax
                             # then our sub_parts will be ['handler']
                             # so we want to set modname to
@@ -784,12 +784,12 @@ class StubDoc(Doc):
                             # attribute will not be on xml.sax
                             if sub_parts:
                                 missing = True
-                                
+
                             # ...though we can add an entry to the module map
                             self.add_to_module_map(realmodule, newmodname)
- 
+
                         sub_parts.insert(0, mod_parts.pop())
-                            
+
                 if not newmodname:
                     missing = True
                     newmodname = realmodule
@@ -967,14 +967,14 @@ class StubDoc(Doc):
                     name = self.id_map.get(id(cls))
                     if not name:
                         return False
-                    
-                    
-                    
+
+
+
                 result = _is_safe_cls(cls)
                 safe_constructors[id_cls] = result
                 return result
             return safe_constructors[id_cls]
-            
+
 
         value = None
         if name == '__all__':
@@ -1013,17 +1013,17 @@ class StubDoc(Doc):
         # import issues...
         ispkg = hasattr(currmodule, '__path__')
         currname = currmodule.__name__
-        
+
         if importmodule in self.MODULE_EXCLUDES.get(currname, ()):
             print "%s had %s in MODULE_EXCLUDES" % (currname, importmodule)
             return ''
-        
+
         if asname == '*':
             if importmodule in self.importSubstitutions:
                 return self.importSubstitutions[importmodule]
             else:
                 self.add_to_module_map(importmodule, '')
-                return 'from ' + importmodule + ' import *'            
+                return 'from ' + importmodule + ' import *'
         else:
             realname = importmodule
 
@@ -1074,13 +1074,13 @@ class StubDoc(Doc):
                 if fromname:
                     result = 'from ' + fromname + ' ' + result
                 return result
-            
+
     def import_obj_text(self, importmodule, importname, asname):
         result = 'from %s import %s' % (importmodule, importname)
         if asname and asname != importname:
             result += (' as ' + asname)
         return result
-        
+
 
 stubs = StubDoc()
 
@@ -1098,7 +1098,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
 
         curfile = curfile + os.extsep + extension
         return curfile
-        
+
 
     packagemod = __import__(packagename, globals(), locals(), ['dummy'], -1)
     # first, check to see if the given package is not a 'top level' module...and
@@ -1116,7 +1116,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             for i in xrange(1, len(parts)):
                 parent_package = '.'.join(parts[:i])
                 parent_file = get_python_file(parent_package, extension, True)
-                parent_dir = os.path.dirname(parent_file) 
+                parent_dir = os.path.dirname(parent_file)
                 if not os.path.isdir(parent_dir):
                     os.makedirs(parent_dir)
                 if not os.path.isfile(parent_file):
@@ -1124,7 +1124,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                     # this will "touch" the file - ie, create an empty one
                     with open(parent_file, 'a'):
                         pass
-    
+
     for modname, mod, ispkg in util.subpackages(packagemod):
         print modname, ":"
         contents = stubs.docmodule(mod)
@@ -1160,7 +1160,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
     print "Stub output dir:", outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
-    
+
     for modulename in modules:
         print "making stubs for: %s" % modulename
         packagestubs(modulename, outputdir=outputdir, extensions=extensions)
@@ -1185,11 +1185,11 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
         pyRealUtilDir = os.path.join(outputdir, 'pyRealUtil')
         print "creating %s" % pyRealUtilDir
         copyDir(pyDir, pyRealUtilDir)
-            
+
         srcUtilDir = os.path.join(pymeldir, 'pymel', 'util')
         destUtilDir = os.path.join(pyRealUtilDir, 'pymel', 'util')
         copyDir(srcUtilDir, destUtilDir)
-    
+
     return outputdir
 
 # don't start name with test - don't want it automatically run by nose

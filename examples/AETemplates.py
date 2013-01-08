@@ -9,10 +9,10 @@ AETemplates which do not meet one of the two requirements listed in step 2 will 
 Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
 
     import AETemplates
-    AETemplates.AEmib_amb_occlusionTemplate.nodeType()  
+    AETemplates.AEmib_amb_occlusionTemplate.nodeType()
 
 As a convenience, when pymel is imported it will automatically import the module ``AETemplates``, if it exists,
-thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel 
+thereby causing any AETemplates within it or its sub-modules to be registered. Be sure to import pymel
 or modules containing your ``AETemplate`` classes before opening the Atrribute Editor for the node types in question.
 
 To check which python templates are loaded::
@@ -20,10 +20,10 @@ To check which python templates are loaded::
 	from pymel.core.uitypes import AELoader
 	print AELoader.loadedTemplates()
 
-The example below demonstrates the simplest case, which is the first. It provides a layout for the mib_amb_occlusion 
+The example below demonstrates the simplest case, which is the first. It provides a layout for the mib_amb_occlusion
 mental ray shader.
 """
-    
+
 from pymel.core import *
 
 class LocalizedTemplate(ui.AETemplate):
@@ -36,7 +36,7 @@ class LocalizedTemplate(ui.AETemplate):
     def addControl(self, control, label=None, **kwargs):
         label = self._applyLocalization(label)
         ui.AETemplate.addControl(self, control, label=label, **kwargs)
-    
+
     def beginLayout(self, name, collapse=True):
         name =  self._applyLocalization(name)
         ui.AETemplate.beginLayout(self, name, collapse=collapse)
@@ -49,13 +49,13 @@ class MentalRayTemplate(LocalizedTemplate):
         self.buildBody(nodeName)
         mel.AEmentalrayBaseTemplate(nodeName)
         self.endScrollLayout()
-    
+
 class AEmib_amb_occlusionTemplate(MentalRayTemplate):
     def colorChanged(self, node):
         print "changed", node
     def new(self, attr):
         print "new", attr
-        self.samplesCtrl = cmds.attrFieldSliderGrp(attribute=attr, min=0, 
+        self.samplesCtrl = cmds.attrFieldSliderGrp(attribute=attr, min=0,
             sliderMinValue=2, sliderMaxValue=256,
             step=1.0, sliderStep=1.0, label=self._applyLocalization("kSamples"))
     def replace(self, attr):

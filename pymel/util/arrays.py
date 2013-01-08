@@ -1586,7 +1586,7 @@ class Array(object):
                                            inspect.isdatadescriptor(cls_size)):
             size = 0
 
-        
+
         shape, ndim, size = cls._expandshape(shape, ndim, size)
 
         # default value is set here (0 or [] for Arrays)

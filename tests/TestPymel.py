@@ -30,7 +30,7 @@ if not gCantRun:
             import traceback
             print('** error importing pymel_test: **')
             traceback.print_exc()
-            
+
 if not gCantRun:
     class TestPymel(unittest.TestCase):
         pymelDir = os.path.dirname(thisDir)

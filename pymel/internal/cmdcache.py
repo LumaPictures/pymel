@@ -409,7 +409,7 @@ def fixCodeExamples(style='maya', force=False):
             DOC_TEST_SKIP = ''
 
         lines[0] = 'import pymel.core as pm' + DOC_TEST_SKIP
-        
+
         if command in skipCmds:
             example = '\n'.join( lines )
             processedExamples[command] = example
@@ -556,10 +556,10 @@ def getModule(funcName, knownModuleCmds):
 _cmdArgMakers = {}
 def cmdArgMakers(force=False):
     global _cmdArgMakers
-    
+
     if _cmdArgMakers and not force:
         return _cmdArgMakers
-    
+
     def makeCircle():
         return cmds.circle()[0]
     def makeEp():
@@ -579,32 +579,32 @@ def cmdArgMakers(force=False):
         j2 = cmds.joint()
         sphere = makeSphere()
         return cmds.skinCluster(j1, j2, sphere)[0]
-    
+
     _cmdArgMakers = \
         { 'tangentConstraint'   : ( makeCircle, makeCube ),
           'poleVectorConstraint': ( makeSphere, makeIk ),
           'pointCurveConstraint': ( makeEp, ),
           'skinCluster'         : ( makeJoint, makeJoint, makeSphere ),
         }
-    
+
     constraintCmds = [x for x in dir(cmds)
                       if x.endswith('onstraint')
                          and not cmds.runTimeCommand(x, q=1, exists=1)
                          and x != 'polySelectConstraint']
-    
+
     for constrCmd in constraintCmds:
-        if constrCmd not in _cmdArgMakers: 
+        if constrCmd not in _cmdArgMakers:
             _cmdArgMakers[constrCmd] = ( makeSphere, makeCube )
-    
+
     return _cmdArgMakers
 
 def nodeCreationCmd(func, nodeType):
     argMakers = cmdArgMakers()
-    
+
     # compile the args list for node creation
     createArgs = argMakers.get(nodeType, [])
     if createArgs:
-        createArgs = [argMaker() for argMaker in createArgs] 
+        createArgs = [argMaker() for argMaker in createArgs]
 
     # run the function
     return func(*createArgs)
@@ -616,7 +616,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
         _logger.debug("skipping")
         return cmdInfo
-    
+
     # These cause crashes... confirmed that pointOnPolyConstraint still
     # crashes in 2012
     dangerousCmds = ['doBlur', 'pointOnPolyConstraint']
@@ -755,7 +755,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         singleItemList = (isinstance( resultType, list)
                                           and len(resultType) ==1
                                           and 'multiuse' not in flagInfo.get('modes', []))
-                        
+
                         # [bool] --> bool
                         if singleItemList and resultType[0] == argtype:
                             _logger.info("%s, %s: query flag return values need unpacking" % (funcName, flag))
@@ -920,7 +920,7 @@ def _getNodeHierarchy( version=None ):
     """
     import pymel.util.trees as trees
     import pymel.internal.apicache as apicache
-    
+
     if versions.current() >= versions.v2012:
         # We now have nodeType(isTypeName)! yay!
         inheritances = {}
@@ -929,7 +929,7 @@ def _getNodeHierarchy( version=None ):
                 inheritances[nodeType] = apicache.getInheritance(nodeType)
             except apicache.ManipNodeTypeError:
                 continue
-        
+
         parentTree = {}
         # Convert inheritance lists node=>parent dict
         for nodeType, inheritance in inheritances.iteritems():
@@ -942,7 +942,7 @@ def _getNodeHierarchy( version=None ):
                         parent = 'dependNode'
                 else:
                     parent = inheritance[i - 1]
-                
+
                 if child in parentTree:
                     assert parentTree[child] == parent, "conflicting parents: node type '%s' previously determined parent was '%s'. now '%s'" % (child, parentTree[child], parent)
                 else:
@@ -977,19 +977,19 @@ class CmdCache(startup.SubItemCache):
                    'uiClassList':list,
                    'nodeCommandList':list,
                    }
-        
+
     def rebuild(self) :
         """Build and save to disk the list of Maya Python commands and their arguments
-        
+
         WARNING: will unload existing plugins, then (re)load all maya-installed
         plugins, without making an attempt to return the loaded plugins to the
         state they were at before this command is run.  Also, the act of
         loading all the plugins may crash maya, especially if done from a
-        non-GUI session        
+        non-GUI session
         """
         # Put in a debug, because this can be crashy
         _logger.debug("Starting CmdCache.rebuild...")
-        
+
         # With extension can't get docs on unix 64
         # path is
         # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
@@ -997,12 +997,12 @@ class CmdCache(startup.SubItemCache):
         # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
 
         long_version = versions.installName()
-        
+
         _logger.info("Rebuilding the maya node hierarchy...")
-        
+
         # Load all plugins to get the nodeHierarchy / nodeFunctions
         import pymel.api.plugins as plugins
-        
+
         # We don't want to add in plugin nodes / commands - let that be done
         # by the plugin callbacks.  However, unloading mechanism is not 100%
         # ... sometimes functions get left in maya.cmds... and then trying
@@ -1017,7 +1017,7 @@ class CmdCache(startup.SubItemCache):
                 plugCmds = plugins.pluginCommands(plug)
                 if plugCmds:
                     pluginCommands.update(plugCmds)
-        
+
         plugins.unloadAllPlugins()
 
         self.nodeHierarchy = _getNodeHierarchy(long_version)
@@ -1083,7 +1083,7 @@ class CmdCache(startup.SubItemCache):
         for funcName, _ in tmpCmdlist :
             if funcName in pluginCommands:
                 _logger.debug("command %s was a plugin command that should have been unloaded - skipping" % funcName)
-                continue 
+                continue
             addCommand(funcName)
 
         # split the cached data for lazy loading
@@ -1106,10 +1106,10 @@ class CmdCache(startup.SubItemCache):
 
             if newCmdInfo:
                 cmdDocList[cmdName] = newCmdInfo
-    
+
         CmdDocsCache().write(cmdDocList)
         CmdExamplesCache().write(examples)
-        
+
     def build(self):
         super(CmdCache, self).build()
 
@@ -1118,8 +1118,8 @@ class CmdCache(startup.SubItemCache):
         # add in any nodeCommands added after cache rebuild
         self.nodeCommandList = set(self.nodeCommandList).union(nodeTypeToNodeCommand.values())
         self.nodeCommandList = sorted( self.nodeCommandList )
-    
-    
+
+
         for module, funcNames in moduleCommandAdditions.iteritems():
             for funcName in funcNames:
                 currModule = self.cmdlist[funcName]['type']

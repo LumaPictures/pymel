@@ -19,7 +19,7 @@ from system import Path as _Path
 # uitypes classes can use the functions from THIS module, and inherit things
 # like simpleCommandWraps, etc
 #import uitypes as _uitypes
-    
+
 _logger = _internal.getLogger(__name__)
 
 _thisModule = sys.modules[__name__]
@@ -88,7 +88,7 @@ Maya Bug Fix:
     - fixed getCellCmd to work with python functions, previously only worked with mel callbacks
         IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
     """
-    import uitypes    
+    import uitypes
     cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',None) )
     cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
 
@@ -207,7 +207,7 @@ def promptBoxGenerator(*args, **kwargs):
 
 def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     """ Prompt for confirmation.
-    
+
     Parameters
     ----------
     title : str
@@ -223,10 +223,10 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     returnButton : boolean
         by default, if there are only two buttons, the return value is a boolean
         indicating whether the 'yes' button was pressed; if you wish to always
-        force the label of the pressed button to be returned, set this to True 
+        force the label of the pressed button to be returned, set this to True
     kwargs : dict of objects
         keyword args to pass to the underlying confirmDialog call
-    
+
     Returns
     -------
     result : bool or str
@@ -276,13 +276,13 @@ class PopupError( Exception ):
         be the displayed message.
     icon : str
         icon to use for the confirm dialog (see confirmDialog docs for available
-        icons)    
+        icons)
     """
     def __new__(cls, msgOrException, title='Error', button='Ok', msg=None,
                 icon='critical'):
         if not isinstance(msgOrException, (basestring, Exception)):
             raise TypeError(msgOrException)
-        
+
         if not cmds.about(batch=1):
             if not isinstance(msgOrException, Exception):
                 msg = msgOrException
@@ -331,14 +331,14 @@ def promptForPath(**kwargs):
 
         kwargs.pop('fileCommand',None)
         kwargs['fc'] = getfolder
-        
+
         if 'mode' not in kwargs:
             kwargs['mode'] = 0
 
         kwargs['an'] = kwargs.pop('an', kwargs.pop('actionName', "Select File"))
         ret = cmds.fileBrowserDialog(**kwargs)
         folder = _Path(folder[0])
-        if folder: 
+        if folder:
             #Ensure something was entered/selected. But don't test if it exists
             # as this would break mode 1/100+ causing them to return None
             return folder
@@ -365,7 +365,7 @@ def showsHourglass(func):
 
 
 def pathButtonGrp( name=None, *args, **kwargs ):
-    import uitypes    
+    import uitypes
     if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
         create = True
     else:
@@ -374,7 +374,7 @@ def pathButtonGrp( name=None, *args, **kwargs ):
     return uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs )
 
 def folderButtonGrp( name=None, *args, **kwargs ):
-    import uitypes    
+    import uitypes
     if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
         create = True
     else:
@@ -388,7 +388,7 @@ def vectorFieldGrp( *args, **kwargs ):
 
 
 def uiTemplate(name=None, force=False, exists=None):
-    import uitypes    
+    import uitypes
     if exists:
         return cmds.uiTemplate(name, exists=1)
     else:
@@ -399,7 +399,7 @@ def setParent(*args, **kwargs):
 Modifications
   - returns None object instead of the string 'NONE'
     """
-    import uitypes    
+    import uitypes
     result = cmds.setParent(*args, **kwargs)
     if kwargs.get('query', False) or kwargs.get('q', False):
         if result == 'NONE':
@@ -410,7 +410,7 @@ Modifications
 
 def currentParent():
     "shortcut for ``ui.PyUI(setParent(q=1))`` "
-    
+
     return setParent(q=1)
 
 def currentMenuParent():

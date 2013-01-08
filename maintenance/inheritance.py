@@ -38,13 +38,13 @@ else:
     allTypesReal = set(allTypesReal)
     assert num == len(allTypesReal), "The result of allNodeTypes() contained duplicates"
     print num
-    
+
     print 'got allNodeTypes(), confirmed no dupes'
 
     assert lsTypes == allTypesReal, "ls(nodeTypes=1) and allNodeTypes() returned different result"
-    
+
     print 'confirmed allNodeTypes() == ls(nodeTypes=1)'
-    
+
     abstractSuffix = ' (abstract)'
     rawRealAndAbstract = cmds.allNodeTypes(includeAbstract=True)
     realAndAbstract = set()
@@ -53,11 +53,11 @@ else:
             x = x[:-len(abstractSuffix)]
         assert x not in realAndAbstract
         realAndAbstract.add(x)
-    
+
     abstractTypes = realAndAbstract - realTypes
     assert len(abstractTypes) + len(realTypes) == len(realAndAbstract)
 
-    
+
     print 'got allNodeTypes(includeAbstract=True), separated nodes into real + abstract'
 # TODO - make and load a plugin which makes one of every possible plugin node
 # type...
@@ -102,12 +102,12 @@ else:
     #    else:
     #        melQueryableTypes.add(nodeType)
     #print "num non queryable types:", len(nonMelQueryableTypes)
-    #        
+    #
     ##nodeDict = {}
     ##for nodeType in realTypes:
     ##    result = cmds.createNode(nodeType)
     ##    nodeDict[nodeType] = result
-    #    
+    #
     #assert len(nodeDict) == len(realTypes)
     #assert len(nonMelQueryableTypes) + len(melQueryableTypes) == len(realTypes)
     #assert nonMelQueryableTypes | melQueryableTypes == realTypes
@@ -128,7 +128,7 @@ for nodeType in realAndAbstract:
         badInheritances[nodeType] = inheritance
     else:
         goodInheritances[nodeType] = inheritance
-        
+
 if badInheritances:
     print "#" * 60
     print "Warning!!!"
@@ -151,7 +151,7 @@ if discoveredNodes:
     print "%s nodes were not in realAndAbstract" % ', '.join(discoveredNodes)
     print "#" * 60
 allKnownNodes = realAndAbstract | discoveredNodes
-        
+
 def compareTrees(tree1, tree2):
     def convertTree(oldTree):
         if isinstance(oldTree, dict):
@@ -172,11 +172,11 @@ def compareTrees(tree1, tree2):
         n1 = tree1[nodeType]
         n2 = tree2[nodeType]
         if n1 != n2:
-            if n1[0] == n2[0]: 
+            if n1[0] == n2[0]:
                 parentDiff = 'same'
             else:
                 parentDiff = (n1[0], n2[0])
-            if n1[1] == n2[1]: 
+            if n1[1] == n2[1]:
                 childDiff = 'same'
             else:
                 childDiff = (n1[1] - n2[1], n2[1] - n1[1])
@@ -192,17 +192,17 @@ for nodeType, inheritance in goodInheritances.iteritems():
     for i in xrange(len(inheritance) - 1):
         parent = inheritance[i]
         child = inheritance[i + 1]
-        
+
         # add the child to the parent
         nodeTypeTree[parent][1].add(child)
-        
+
         # set the parents for the child
         parents = list(reversed(inheritance[:i+1]))
         if nodeTypeTree[child][0]:
             assert nodeTypeTree[child][0] == parents
         else:
             nodeTypeTree[child][0] = parents
-    
+
 #eliminate manipulators
 nonManipTree = {}
 manipulators = set()
@@ -212,8 +212,8 @@ for name, data in nodeTypeTree.iteritems():
         manipulators.add(name)
     else:
         nonManipTree[name] = data
-        
-nonManipNonPlugin = {}        
+
+nonManipNonPlugin = {}
 for name, data in nonManipTree.iteritems():
     parents = data[0]
     if parents is not None:
@@ -248,7 +248,7 @@ print "-" * 60
 print
 
 #===============================================================================
-# api type hierarchy info 
+# api type hierarchy info
 #===============================================================================
 
 def getApiTypes(mobj):
@@ -274,7 +274,7 @@ with apicache._GhostObjMaker(toCreate, manipError=False, multi=True) as typeToOb
             unknownTypes.add(mayaType)
 
 assert mayaToApi.get('containerBase') == 'kContainerBase'
-            
+
 if unknownTypes:
     print "#" * 60
     print "Warning!!!"
@@ -291,7 +291,7 @@ allApiTypes = set(ac.apiTypesToApiEnums)
 # First attempt at querying hierarchy info, by finding common types in children,
 # and filtering types found in parents
 #===============================================================================
-    
+
 #missingApiInfo = set(nonManipTree) - set(mayaToApi)
 ##missingNonAbstract = missingApiInfo - abstractTypes
 #
@@ -317,7 +317,7 @@ allApiTypes = set(ac.apiTypesToApiEnums)
 #        noSharedByChildren.add(missingType)
 #
 ## these are strange, because every node should at least all have things like
-## kBase, kNamedObject, kDependencyNode...        
+## kBase, kNamedObject, kDependencyNode...
 #if noSharedByChildren:
 #    print "#" * 60
 #    print "Warning!!!"
@@ -325,7 +325,7 @@ allApiTypes = set(ac.apiTypesToApiEnums)
 #    for x in sorted(noSharedByChildren):
 #        print "   ", x
 #    print "#" * 60
-#    
+#
 ## these are api types which are shared by all dependency nodes
 #baseApiTypes = set(['kBase', 'kNamedObject', 'kDependencyNode'])
 #
@@ -353,7 +353,7 @@ allApiTypes = set(ac.apiTypesToApiEnums)
 def commonAncestor(mayaType1, mayaType2):
     if None in (mayaType1, mayaType2):
         return None
-    
+
     def reversedParents(mayaType):
         # want the parents in order from most generic to most specific - that
         # way, we can go from left to right, comparing items until we get to one
@@ -361,7 +361,7 @@ def commonAncestor(mayaType1, mayaType2):
         return list(reversed(nodeTypeTree[mayaType][0])) + [mayaType]
     parents1 = reversedParents(mayaType1)
     parents2 = reversedParents(mayaType2)
-    
+
     commonAncestor = None
     for i in xrange(min(len(parents1), len(parents2))):
         if parents1[i] == parents2[i]:
@@ -383,7 +383,7 @@ for mayaType, apiTypes in mayaToAllApi.iteritems():
         else:
             apiTypeToCommonMayaAncestor[apiType] = commonAncestor(mayaType,
                                                               apiTypeToCommonMayaAncestor[apiType])
-            
+
 # now build the reverse dict - from maya type to a list of all api types that
 # it is the common ancestor for
 commonMayaAncestorToApiTypes = {}
@@ -444,16 +444,16 @@ if multiLowerMaya:
     print "Warning!!!"
     print "maya node names differed only in case:"
     for types in multiLowerMaya.itervalues():
-        print "    %s" % ', '.join(types) 
+        print "    %s" % ', '.join(types)
     print "#" * 60
-    
+
 if multiLowerApi:
     print "#" * 60
     print "Warning!!!"
     print "api type names differed only in case:"
     for types in multiLowerApi.itervalues():
-        print "    %s" % ', '.join(types) 
-    print "#" * 60    
+        print "    %s" % ', '.join(types)
+    print "#" * 60
 
 modifiers = {
              'base':'',
@@ -482,7 +482,7 @@ modifiers = [(re.compile(find), replace)
              for find, replace in modifiers.iteritems()]
 
 apiSuffixes = ['', 'node', 'shape', 'shapenode']
-        
+
 def guessApiTypeByName(nodeName, debug=False):
     # first, try the easy case...
     apiName = nodeToApiName(nodeName)
@@ -490,19 +490,19 @@ def guessApiTypeByName(nodeName, debug=False):
         if debug:
             print 'basic transform worked!'
         return apiName
-    
+
     lowerNode = nodeName.lower()
     if lowerNode not in uniqueLowerMaya:
         if debug:
             print 'lower-case node name not unique...'
         return None
-    
+
     # now, try with various modifications...
     possibleApiNames = set()
-    
+
     possibleModifications = [(find, replace) for find, replace in modifiers
-                             if find.search(lowerNode)]  
-    
+                             if find.search(lowerNode)]
+
     # find all possible combinations of all possible modifications
     for modifyNum in xrange(len(possibleModifications) + 1):
         for modifyCombo in itertools.combinations(possibleModifications, modifyNum):
@@ -512,7 +512,7 @@ def guessApiTypeByName(nodeName, debug=False):
             if debug:
                 print [x[0].pattern for x in modifyCombo], baseName
             if not baseName:
-                # if we've eliminated the name with our changes - ie, 
+                # if we've eliminated the name with our changes - ie,
                 # 'shape' would go to '' - then skip
                 continue
             if baseName != lowerNode and (baseName in uniqueLowerMaya
@@ -530,7 +530,7 @@ def guessApiTypeByName(nodeName, debug=False):
                         possibleApiNames.add(uniqueLowerApi[apiWithSuffix])
     if debug:
         print possibleApiNames
-    
+
     if len(possibleApiNames) == 1:
         return list(possibleApiNames)[0]
     return None
@@ -538,7 +538,7 @@ def guessApiTypeByName(nodeName, debug=False):
 #def guessApiTypeByName(nodeName):
 #    def isApiType(apiName):
 #        return isinstance(getattr(api.MFn, apiName, None), int)
-#    
+#
 #    for suffix in ('', 'node', 'shape', 'shapenode'):
 #        if suffix:
 #            if not nodeName.lower().endswith(suffix):
@@ -553,12 +553,12 @@ def guessApiTypeByName(nodeName, debug=False):
 #            return apiName
 #    return None
 
-# now going from bases to leaves, 
+# now going from bases to leaves,
 for currentTree in nodeTreeObj.preorder():
     mayaType = currentTree.value
     if mayaType is None:
         continue
-    
+
     if mayaType in manipulators:
         continue
 
@@ -568,7 +568,7 @@ for currentTree in nodeTreeObj.preorder():
         continue
 
     uniqueApiTypes = set()
-    
+
     # find intersection of all types shared by all children (for which we have info)
     childIntersection = None
     childUnion = set()
@@ -594,7 +594,7 @@ for currentTree in nodeTreeObj.preorder():
         noChildIntersection.add(mayaType)
     childUnions[mayaType] = childUnion
     childPreorders[mayaType] = childPreorder
-                
+
     # find union of parent types
     parentUnion = set(baseApiTypes)
     for parentTreeNode in currentTree.parents():
@@ -602,20 +602,20 @@ for currentTree in nodeTreeObj.preorder():
         if parentType is not None:
             parentUnion |= set(mayaToAllApi[parentType])
     parentUnions[mayaType] = parentUnion
-    
+
     # unique types were found in children, but weren't found in parents
     uniqueApiTypes = childIntersection - parentUnion
-    
+
     # information gathering is done... now try to figure out the apiType!
     apiType = None
 
     # see if there's exactly one api type that this maya type is the
     # most-specific-common-ancestor of...
     commonAncestorGuess = commonMayaAncestorToSingleApi.get(mayaType, None)
-    
+
     # ...and see if we can guess by name...
     apiNameGuess = guessApiTypeByName(mayaType)
-    
+
     if apiNameGuess:
         apiType = apiNameGuess
         guessedByName[mayaType] = apiType
@@ -625,7 +625,7 @@ for currentTree in nodeTreeObj.preorder():
         apiType = commonAncestorGuess
         guessedByCommonAncestor[mayaType] = apiType
     elif uniqueApiTypes:
-        # if we did have unique types... 
+        # if we did have unique types...
         if len(uniqueApiTypes) == 1:
             # ...we're golden if there was only 1...
             apiType = list(uniqueApiTypes)[0]
@@ -633,16 +633,16 @@ for currentTree in nodeTreeObj.preorder():
         else:
             # ...but a little stuck if there's more.
             multiplePossibilities[mayaType] = uniqueApiTypes
-    else: 
+    else:
         # if name guess failed, and we have no unique ApiTypes, we'll have to
-        # fall back on using the parent type 
+        # fall back on using the parent type
         parentType = currentTree.parent.value
         if parentType is None:
             apiType = 'kDependencyNode'
         else:
             apiType = mayaToApi.get(parentType)
         noUnique[mayaType] = apiType
-            
+
     allApi = uniqueApiTypes | parentUnion
     if apiType is not None:
         allApi |= set([apiType])
@@ -654,7 +654,7 @@ if nameAncestorConflicts:
     print "Warning!!!"
     print "had conflicting name / common ancestor guess for these maya nodes:"
     for mayaType, (nameGuess, ancestorGuess) in nameAncestorConflicts.iteritems():
-        print "    %20s - %20s / %s" % (mayaType, nameGuess, ancestorGuess) 
+        print "    %20s - %20s / %s" % (mayaType, nameGuess, ancestorGuess)
     print "#" * 60
 
 if multiplePossibilities:
@@ -662,5 +662,5 @@ if multiplePossibilities:
     print "Warning!!!"
     print "could not find a unique api type for these nodes:"
     for mayaType in sorted(multiplePossibilities):
-        print "    %20s - %s" % (mayaType, ', '.join(sorted(multiplePossibilities[mayaType]))) 
+        print "    %20s - %s" % (mayaType, ', '.join(sorted(multiplePossibilities[mayaType])))
     print "#" * 60

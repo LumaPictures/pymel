@@ -16,13 +16,13 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_defaults_04_missingNonUniqueElements(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f'])
-    
+
     def test_defaults_05_extraUniqueElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'f'])
 
     def test_defaults_06_extraNonUniqueElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'o'])
-                
+
     def test_defaults_07_extraNewElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'x'])
 
@@ -31,10 +31,10 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_defaults_09_nonUniqueElementReplacedWithUniqueElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'f'])
-    
+
     def test_defaults_10_wrongOrder(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['o', 'f', 'o'])
-        
+
     def test_defaults_11_noRepeatedElementsWrongOrder(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['o', 'f'])
 
@@ -54,13 +54,13 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_onlyMembership_04_missingNonUniqueElements(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f'], onlyMembershipMatters=True)
-    
+
     def test_onlyMembership_05_extraUniqueElement(self):
         self.assertIteration("foo", ['f', 'o', 'o', 'f'], onlyMembershipMatters=True)
 
     def test_onlyMembership_06_extraNonUniqueElement(self):
         self.assertIteration("foo", ['f', 'o', 'o', 'o'], onlyMembershipMatters=True)
-                
+
     def test_onlyMembership_07_extraNewElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'x'], onlyMembershipMatters=True)
 
@@ -69,10 +69,10 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_onlyMembership_09_nonUniqueElementReplacedWithUniqueElement(self):
         self.assertIteration("foo", ['f', 'o', 'f'], onlyMembershipMatters=True)
-    
+
     def test_onlyMembership_10_wrongOrder(self):
         self.assertIteration("foo", ['o', 'f', 'o'], onlyMembershipMatters=True)
-        
+
     def test_onlyMembership_11_noRepeatedElementsWrongOrder(self):
         self.assertIteration("foo", ['o', 'f'], onlyMembershipMatters=True)
 
@@ -92,13 +92,13 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_unorderedOnlyMembership_04_missingNonUniqueElements(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f'], orderMatters=False, onlyMembershipMatters=True)
-    
+
     def test_unorderedOnlyMembership_05_extraUniqueElement(self):
         self.assertIteration("foo", ['f', 'o', 'o', 'f'], orderMatters=False, onlyMembershipMatters=True)
 
     def test_unorderedOnlyMembership_06_extraNonUniqueElement(self):
         self.assertIteration("foo", ['f', 'o', 'o', 'o'], orderMatters=False, onlyMembershipMatters=True)
-                
+
     def test_unorderedOnlyMembership_07_extraNewElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'x'], orderMatters=False, onlyMembershipMatters=True)
 
@@ -107,15 +107,15 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_unorderedOnlyMembership_09_nonUniqueElementReplacedWithUniqueElement(self):
         self.assertIteration("foo", ['f', 'o', 'f'], orderMatters=False, onlyMembershipMatters=True)
-    
+
     def test_unorderedOnlyMembership_10_wrongOrder(self):
         self.assertIteration("foo", ['o', 'f', 'o'], orderMatters=False, onlyMembershipMatters=True)
-        
+
     def test_unorderedOnlyMembership_11_noRepeatedElementsWrongOrder(self):
         self.assertIteration("foo", ['o', 'f'], orderMatters=False, onlyMembershipMatters=True)
 
 
-    
+
     #################################################
     ## orderMatters=False, onlyMembershipMatters=False
     #################################################
@@ -130,13 +130,13 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_unordered_04_missingNonUniqueElements(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f'], orderMatters=False)
-    
+
     def test_unordered_05_extraUniqueElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'f'], orderMatters=False)
 
     def test_unordered_06_extraNonUniqueElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'o'], orderMatters=False)
-                
+
     def test_unordered_07_extraNewElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'o', 'x'], orderMatters=False)
 
@@ -145,49 +145,49 @@ class TestAssertIteration(testingutils.TestCaseExtended):
 
     def test_unordered_09_nonUniqueElementReplacedWithUniqueElement(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['f', 'o', 'f'], orderMatters=False)
-    
+
     def test_unordered_10_wrongOrder(self):
         self.assertIteration("foo", ['o', 'f', 'o'], orderMatters=False)
-        
+
     def test_unordered_11_noRepeatedElementsWrongOrder(self):
         self.assertRaises(self.failureException, self.assertIteration, "foo", ['o', 'f'], orderMatters=False)
 
 
 
-        
+
 class TestPermutations(testingutils.TestCaseExtended):
-    
+
     def doPermuteTest(self, sequence, length, expectedResults):
         self.assertIteration(testingutils.permutations(sequence, length), expectedResults, orderMatters=False)
-        
+
     def testEmptyStr(self):
         self.doPermuteTest("", None, [[]])
-        
+
     def testEmptyList(self):
         self.doPermuteTest([], None, [[]])
-    
+
     def testEmptyTuple(self):
         self.doPermuteTest(tuple(), None, [[]])
 
     def test1ElementList(self):
         """Test the permutation works on a list of length 1"""
         self.doPermuteTest([1], None, [[1]])
-        
+
     def test2ElementList(self):
         """Test the permutation works on a list of length 2"""
         self.doPermuteTest([1, 2], None, [[2, 1], [1, 2]])
-        
+
     def test3ElementList(self):
         """Test the permutation works on a list of length 3"""
         self.doPermuteTest([1, 2, 3], None,
                       [[1, 2, 3], [1, 3, 2],
                        [2, 1, 3], [2, 3, 1],
                        [3, 1, 2], [3, 2, 1]])
-        
+
     def testRepeatedElements(self):
         """Test that repeated elements are handled correctly."""
         self.doPermuteTest("aa", None, [['a','a'],['a','a']])
-        
+
     def testMisc(self):
         """Miscellaneous tests for validity."""
         testObj = object()
@@ -198,7 +198,7 @@ class TestPermutations(testingutils.TestCaseExtended):
                ['r', 'b', 'a'], ['r', 'a', 'b']]),
              ('bar', 3,
               [['b', 'a', 'r'], ['b', 'r', 'a'],
-               ['a', 'b', 'r'], ['a', 'r', 'b'], 
+               ['a', 'b', 'r'], ['a', 'r', 'b'],
                ['r', 'b', 'a'], ['r', 'a', 'b']]),
              ('bar', 2,
               [['b', 'a'], ['b', 'r'],
@@ -244,10 +244,10 @@ def suite():
 
 def test_main():
     unittest.TextTestRunner(stream=sys.stdout, verbosity=2).run(suite())
-    
+
 if __name__ == '__main__':
     test_main()
 
 
-        
-        
+
+

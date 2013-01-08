@@ -28,10 +28,10 @@ def separateExampleCache():
                           factories.nodeHierarchy,
                           factories.uiClassList,
                           factories.nodeCommandList,
-                          factories.moduleCmds), 
+                          factories.moduleCmds),
                           'mayaCmdsList', 'the list of Maya commands', compressed=False )
-    
-    mayautils.writeCache( examples, 
+
+    mayautils.writeCache( examples,
                           'mayaCmdsExamples', 'the list of Maya command examples',compressed=False )
 
 def separateApiDocs():
@@ -65,16 +65,16 @@ def separateApiDocs():
             #print mfn, type(mfnInfo)
     #pprint.pprint(newApiDocs['MFnTransform'])
     data[7] = apiClassInfo
-    
-    mayautils.writeCache( tuple(data), 
+
+    mayautils.writeCache( tuple(data),
                           'mayaApi', compressed=True )
-    
-    mayautils.writeCache( newApiDocs, 
+
+    mayautils.writeCache( newApiDocs,
                           'mayaApiDocs',compressed=True )
-    
+
 def upgradeCmdCaches():
     import pymel.internal.cmdcache as cmdcache
-    
+
     data = list(mayautils.loadCache('mayaCmdsList',compressed=False))
     cmdlist = data[0]
     nodeHierarchy = data[1]
@@ -82,16 +82,16 @@ def upgradeCmdCaches():
     examples = {}
     succ = fail = 0
     for cmdName, cmdInfo in cmdlist.iteritems():
-        
+
         flags = cmdcache.getCallbackFlags(cmdInfo)
         if flags:
             cmdlist[cmdName]['callbackFlags'] = flags
-        
+
         try:
             examples[cmdName] = cmdInfo.pop('example')
         except KeyError:
             pass
-        
+
         newCmdInfo = {}
         if 'description' in cmdInfo:
             newCmdInfo['description'] = cmdInfo.pop('description')
@@ -100,10 +100,10 @@ def upgradeCmdCaches():
             for flag, flagInfo in cmdInfo['flags'].iteritems():
                 newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
             newCmdInfo['flags'] = newFlagInfo
-        
+
         if newCmdInfo:
             cmdDocList[cmdName] = newCmdInfo
-            
+
         if 'shortFlags' in cmdInfo:
             d = {}
             #print cmdName
@@ -118,23 +118,23 @@ def upgradeCmdCaches():
 
     hierarchy = [ (x.key, tuple( [y.key for y in x.parents()]), tuple( [y.key for y in x.childs()] ) ) \
                    for x in nodeHierarchy.preorder() ]
-    
+
     data[0] = cmdlist
     data[1] = hierarchy
-    
-    mayautils.writeCache( tuple(data), 
+
+    mayautils.writeCache( tuple(data),
                           'mayaCmdsList', 'the list of Maya commands',compressed=True )
-    
-    mayautils.writeCache( cmdDocList, 
+
+    mayautils.writeCache( cmdDocList,
                           'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
 
-    mayautils.writeCache( examples, 
+    mayautils.writeCache( examples,
                           'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
 
 #    for cache, useVersion in [ ('mayaApiMelBridge',False), ('mayaApi',True) ]:
 #        data = mayautils.loadCache(cache, useVersion=useVersion, compressed=False)
 #        mayautils.writeCache(data, cache, useVersion=useVersion, compressed=True)
-        
+
 def addCallbackFlags():
     data = list(mayautils.loadCache('mayaCmdsList',compressed=True))
     cmdlist = data[0]
@@ -144,11 +144,11 @@ def addCallbackFlags():
         if flags:
             cmdlist[cmdName]['callbackFlags'] = flags
             succ += 1
-    
+
     data[0] = cmdlist
-    mayautils.writeCache( tuple(data), 
+    mayautils.writeCache( tuple(data),
                           'mayaCmdsList', 'the list of Maya commands',compressed=True )
-      
+
 def reduceShortFlags():
     succ = 0
     for cmdName, cmdInfo in factories.cmdlist.iteritems():
@@ -169,18 +169,18 @@ def reduceShortFlags():
                           factories.nodeHierarchy,
                           factories.uiClassList,
                           factories.nodeCommandList,
-                          factories.moduleCmds), 
+                          factories.moduleCmds),
                           'mayaCmdsList', 'the list of Maya commands' )
 
 def flattenNodeHier():
-    
+
     hierarchy = [ (x.key, tuple( [y.key for y in x.parents()]) ) for x in factories.nodeHierarchy.preorder() ]
     factories.nodeHierarchy = hierarchy
     mayautils.writeCache( (factories.cmdlist,
                           factories.nodeHierarchy,
                           factories.uiClassList,
                           factories.nodeCommandList,
-                          factories.moduleCmds), 
+                          factories.moduleCmds),
                           'mayaCmdsList', 'the list of Maya commands' )
 
 caches = [ ('mayaCmdsList', True), ('mayaApiMelBridge',False), ('mayaApi',True) ]
@@ -198,11 +198,11 @@ def mergedTest():
     for cache, useVersion in caches:
         mayautils.loadCache(cache, useVersion=useVersion)
     print time.time()-s1
-    
+
     s2 = time.time()
     mayautils.loadCache('mayaAll')
     print time.time() - s2
-    
+
 
 def compressAll():
     for cache, useVersion in caches + [('mayaCmdsListAll', True), ('mayaCmdsDocs', True) ]:
@@ -212,18 +212,18 @@ def compress(cache, useVersion=True):
     useVersion = dict(caches).get(cache,useVersion)
     data = mayautils.loadCache(cache, useVersion=useVersion, compressed=False)
     mayautils.writeCache(data, cache, useVersion=useVersion, compressed=True)
-    
+
 def decompress():
     caches2 = [ ('mayaCmdsListAll', True), ('mayaApiMelBridge',False), ('mayaApi',True) ]
-    
+
     num = 3
-    
+
     s = time.time()
     for i in range(num):
         for cache, useVersion in caches2:
             data = mayautils.loadCache(cache, useVersion=useVersion, compressed=False)
     print "compress=0, docstrings=1:", time.time()-s
-    
+
     s1 = time.time()
     for i in range(num):
         for cache, useVersion in caches:
@@ -245,7 +245,7 @@ def decompress():
 def prepdiff(cache, outputDir='' ):
     pprintCache(cache, True, outputDir)
     pprintCache(cache, False, outputDir)
-     
+
 def pprintCache(cache, compressed, outputDir):
     useVersion = dict(caches).get(cache,True)
     data = mayautils.loadCache(cache, useVersion=useVersion, compressed=compressed)
@@ -255,7 +255,7 @@ def pprintCache(cache, compressed, outputDir):
 
     pprint.pprint( data, f)
     f.close()
-    
+
 def compareDicts(dict1, dict2, showDiff=True, showOnlys=False, indent=0):
     if isinstance(dict1, (list, tuple)):
         dict1 = dict(enumerate(dict1))
@@ -269,13 +269,13 @@ def compareDicts(dict1, dict2, showDiff=True, showOnlys=False, indent=0):
     print "\t" * indent, "both:", len(both)
     print "\t" * indent, "only1:", len(only1)
     print "\t" * indent, "only2:", len(only2)
-    
+
     differences = {}
     for mayaType in both:
         if dict1[mayaType] != dict2[mayaType]:
             differences[mayaType] = (dict1[mayaType], dict2[mayaType])
     print "\t" * indent, "differences:", len(differences)
-    
+
     #print "\t" * indent, "*" * 60
     if showDiff and differences:
         print "\t" * indent, "different: (%d)" % len(differences)
@@ -323,11 +323,11 @@ def compareTrees(tree1, tree2):
         n1 = tree1[nodeType]
         n2 = tree2[nodeType]
         if n1 != n2:
-            if n1[0] == n2[0]: 
+            if n1[0] == n2[0]:
                 parentDiff = 'same'
             else:
                 parentDiff = (n1[0], n2[0])
-            if n1[1] == n2[1]: 
+            if n1[1] == n2[1]:
                 childDiff = 'same'
             else:
                 childDiff = (n1[1] - n2[1], n2[1] - n1[1])
@@ -355,7 +355,7 @@ def checkEnumConsistency(pickleData, docLocation=None, parser=None):
         def __repr__(self):
             return ':NOTFOUND:'
     notFound = NotFound()
-    
+
     if parser is None:
         import pymel.internal.parsers as parsers
         import maya.OpenMaya as om
@@ -416,11 +416,11 @@ def convertPymelEnums(docLocation=None):
     import pymel.api
     pymel.api.Enum = apicache.ApiEnum
     apicache.Enum = apicache.ApiEnum
-    
+
     import pymel.internal.parsers as parsers
     import maya.OpenMaya as om
-    parser = parsers.ApiDocParser(om, docLocation=docLocation)    
-    
+    parser = parsers.ApiDocParser(om, docLocation=docLocation)
+
     dummyCache = apicache.ApiCache()
     dummyCache.version = '[0-9.]+'
     cachePattern = pm.Path(dummyCache.path())
@@ -440,7 +440,7 @@ def convertPymelEnums(docLocation=None):
         pprint.pprint(badByCache)
         print "Do you want to continue converting pymel enums? (y/n)"
         print "(Pymel values will be altered to match the api values)"
-        answer = raw_input().lower().strip() 
+        answer = raw_input().lower().strip()
         if not answer or answer[0] != 'y':
             print "aborting cache update"
             return
@@ -457,9 +457,9 @@ def convertPymelEnums(docLocation=None):
             pyEnumsForClass = pyEnums[className]
             assert(set(apiEnumsForClass.keys()) == set(pyEnumsForClass.keys()))
             for enumName, apiEnum in apiEnumsForClass.iteritems():
-                fullEnumName = '%s.%s' % (className, enumName) 
+                fullEnumName = '%s.%s' % (className, enumName)
                 print fullEnumName
-                
+
                 # first, find any "bad" values - ie, values whose index is None
                 # - and delete them
                 badKeys = [key for key, index in apiEnum._keys.iteritems()
@@ -474,7 +474,7 @@ def convertPymelEnums(docLocation=None):
                         valueDocs.pop(badKey, None)
                         del apiEnum._keys[badKey]
                     del apiEnum._values[None]
-                    
+
                     if not apiEnum._keys:
                         print "enum empty after removing bad keys - deleting..."
                         del apiClassInfo[className]['enums'][enumName]
@@ -485,15 +485,15 @@ def convertPymelEnums(docLocation=None):
                         fixedKeys.append(fullEnumName)
                 else:
                     assert(None not in apiEnum._values)
-                
+
                 try:
                     pyEnums[className] = parser._apiEnumToPymelEnum(apiEnum)
                 except Exception:
                     globals()['rawCaches'] = rawCaches
                     globals()['apiEnum'] = apiEnum
                     raise
-        
+
     # After making ALL changes, if there were NO errors, write them all out...
     for cachePath, raw in rawCaches.iteritems():
         pm.util.picklezip.dump(raw, unicode(cachePath))
-                
+

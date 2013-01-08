@@ -101,10 +101,10 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
             if True, and the output from the executable contains a final newline,
             it is removed from the return value
             Note: the newline that is stripped is the one given by os.linesep, not \\n
-            
+
         returnCode : bool
             if True, the return will be a tuple, (output, returnCode)
-            
+
         input : string
             if non-none, a string that will be sent to the stdin of the executable
 
@@ -121,7 +121,7 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
 
     kwargs.setdefault('stdout', subprocess.PIPE)
     kwargs.setdefault('stderr', subprocess.STDOUT)
-    
+
     if input:
         kwargs.setdefault('stdin', subprocess.PIPE)
 
@@ -150,7 +150,7 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
             if True, and the output from the executable contains a final newline,
             it is removed from the return value
             Note: the newline that is stripped is the one given by os.linesep, not \\n
-            
+
         returnCode: bool
             if True, the return will be a tuple, (output, returnCode)
 
@@ -177,5 +177,5 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
     kwargs['stripTrailingNewline'] = stripTrailingNewline
     kwargs['returnCode'] = returnCode
     kwargs['input'] = input
- 
+
     return executableOutput(shellCommand, **kwargs)

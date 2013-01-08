@@ -18,7 +18,7 @@ class TestWithStatement(unittest.TestCase):
         self.win = cmds.window()
     def tearDown(self):
         cmds.deleteUI(self.win, window=True)
-        
+
     def test_classInit(self):
         with ui.FormLayout() as fl:
             self.assertEqual(pm.currentParent(), fl)
@@ -97,7 +97,7 @@ class TestWithStatement(unittest.TestCase):
                 self.assertEqual(pm.currentMenuParent(), m)
             self.assertEqual(pm.currentParent(), cl)
         self.assertEqual(pm.currentParent(), self.win)
-        
+
     def test_rowGroupLayout(self):
         self.assertEqual(pm.currentParent(), self.win)
         self.assertEqual(pm.currentMenuParent(), None)
@@ -131,7 +131,7 @@ class TestWithStatement(unittest.TestCase):
                 self.assertEqual(pm.currentMenuParent(), m)
             self.assertEqual(pm.currentParent(), cl)
         self.assertEqual(pm.currentParent(), fl)
-        
+
     def test_optionMenuGrp(self):
         self.assertEqual(pm.currentParent(), self.win)
         self.assertEqual(pm.currentMenuParent(), None)
@@ -144,11 +144,11 @@ class TestWithStatement(unittest.TestCase):
                 self.assertEqual(pm.currentMenuParent(), m.menu())
             self.assertEqual(pm.currentParent(), cl)
         self.assertEqual(pm.currentParent(), self.win)
-        
+
     def test_windowExit(self):
         self.assertEqual(pm.currentParent(), self.win)
         newWin = ui.Window()
-        try: 
+        try:
             with newWin:
                 self.assertEqual(pm.currentParent(), newWin)
                 with pm.formLayout() as fl:
@@ -157,7 +157,7 @@ class TestWithStatement(unittest.TestCase):
             self.assertTrue(pm.currentParent() in (None, newWin, fl))
         finally:
             pm.deleteUI(newWin, window=True)
-            
+
         otherWin = ui.Window()
         # try NOT using with statement, to make sure the last newWin
         # statement's exit popped it off the stack correctly
@@ -182,8 +182,8 @@ class TestTextScrollList(unittest.TestCase):
                 tsl.extend(['a','b','c'])
         # Make sure this is NOT None
         self.assertEqual(tsl.getSelectItem(), [])
-    
-        
+
+
 if not pm.about(batch=1):
     for key, obj in globals().items():
         if isinstance(obj, unittest.TestCase):
