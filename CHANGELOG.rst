@@ -5,7 +5,8 @@ Version 1.0.5
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
-- DagNode.isVisible has a new flag, checkOverride, which is on by default, and considers visibility override settings
+- DagNode.isVisible:  has a new flag, checkOverride, which is on by default, and considers visibility override settings
+- referenceQuery/FileReference.getReferenceEdits: if only one of successfulEdits/failedEdits is given, and it is false, we now assume that the desire is to return the other type (and set that flag to true); formerly, this would result in NO edits being returned
 
 ----------------------------------
 Changes

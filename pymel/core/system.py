@@ -1328,30 +1328,86 @@ class FileReference(object):
 
 
     def getReferenceEdits(self, **kwargs):
-        """referenceQuery -editString -onReferenceNode <self.refNode>"""
+        """Get a list of ReferenceEdit objects for this node
 
-        kwargs.pop('editStrings',None)
-        kwargs.pop('es',None)
-        edits = referenceQuery(self.refNode, editStrings=True, onReferenceNode=self.refNode, **kwargs)
-        return edits
+        Adapted from:
+        referenceQuery -editString -onReferenceNode <self.refNode>
 
-    def removeReferenceEdits(self, editCommand=None, force=False):
-        """Remove edits from the reference.
-        @param editCommand: If specified, remove only edits of a particular type: addAttr, setAttr, connectAttr, disconnectAttr or parent
-        @param force: Unload the reference if it is not unloaded already
+        Notes
+        -----
+        By default, removes all edits. If neither of successfulEdits or
+        failedEdits is given, they both default to True. If only one is given,
+        the other defaults to the opposite value.
         """
 
-        if self.isLoaded():
+        kwargs.pop('editStrings', None)
+        kwargs.pop('es', None)
+        edits = referenceQuery(self.refNode, editStrings=True,
+                               onReferenceNode=self.refNode, **kwargs)
+        return edits
+
+    def removeReferenceEdits(self, editCommand=None, force=False, **kwargs):
+        """Remove edits from the reference.
+
+        Parameters
+        ----------
+        editCommand : str
+            If specified, remove only edits of a particular type: addAttr,
+            setAttr, connectAttr, disconnectAttr or parent
+        force : bool
+            Unload the reference if it is not unloaded already
+        successfulEdits : bool
+            Whether to remove successful edits
+        failedEdits : bool
+            Whether to remove failed edits
+
+        Notes
+        -----
+        By default, removes all edits. If neither of successfulEdits or
+        failedEdits is given, they both default to True. If only one is given,
+        the other defaults to the opposite value.
+        """
+
+        if force and self.isLoaded():
             self.unload()
 
-        kwargs = {}
         if editCommand:
             kwargs['editCommand'] = editCommand
-        cmds.file(cleanReference=self.refNode, **kwargs)
+
+        _translateEditFlags(kwargs)
+        kwargs.pop('r', None)
+        kwargs['removeEdits'] = True
+        cmds.referenceEdit(str(self.refNode), **kwargs)
+
+def _translateEditFlags(kwargs, addKwargs=True):
+    '''Given the pymel values for successfulEdits/failedEdits (which may be
+    True, False, or None), returns the corresponding maya.cmds values to use
+    '''
+    successful = kwargs.pop('successfulEdits', kwargs.pop('scs', None))
+    failed = kwargs.pop('failedEdits', kwargs.pop('fld', None))
+
+    if successful is None and failed is None:
+        successful = True
+        failed = True
+    elif successful is None:
+        successful = not failed
+    elif failed is None:
+        failed = not successful
+
+    if addKwargs:
+        kwargs['successfulEdits'] = successful
+        kwargs['failedEdits'] = failed
+    return successful, failed
 
 
 def referenceQuery(*args, **kwargs):
-    """When queried for 'es/editStrings', returned a list of ReferenceEdit objects"""
+    """
+    Modifications:
+    - When queried for 'es/editStrings', returned a list of ReferenceEdit objects
+    - By default, removes all edits. If neither of successfulEdits or
+      failedEdits is given, they both default to True. If only one is given,
+      the other defaults to the opposite value.
+    """
     if kwargs.get("editStrings", kwargs.get("es")):
         from general import PyNode, MayaNodeError, MayaAttributeError
 
@@ -1379,14 +1435,12 @@ def referenceQuery(*args, **kwargs):
                 # Last ditch - just try casting to a FileReference
                 fr = FileReference(args[0])
 
-        failedEdits = kwargs.pop('failedEdits', kwargs.pop('fld', None))
-        successfulEdits = kwargs.pop('successfulEdits', kwargs.pop('scs', None))
+        successfulEdits, failedEdits = _translateEditFlags(kwargs,
+                                                           addKwargs=False)
+
         modes = []
-        if failedEdits is None and successfulEdits is None:
-            modes = [True, False]
-        else:
-            if failedEdits:     modes.append(False)
-            if successfulEdits: modes.append(True)
+        if failedEdits:     modes.append(False)
+        if successfulEdits: modes.append(True)
 
         allEdits = []
         for mode in modes:

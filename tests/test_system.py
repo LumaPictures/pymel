@@ -14,6 +14,23 @@ class testCase_references(unittest.TestCase):
         if not os.path.isdir(self.temp):
             os.makedirs(self.temp)
 
+        # Refs:
+        #  sphere.ma
+        #    (no refs)
+        #  cube.ma
+        #    :sphere => sphere.ma
+        #  cone.ma
+        #    :cubeInCone => cube.ma
+        #      :cubeInCone:sphere => sphere.ma
+        #  master.ma
+        #    :sphere1 => sphere.ma
+        #    :sphere2 => sphere.ma
+        #    :cube1 => cube.ma
+        #      :cube1:sphere => sphere.ma
+        #    :cone1 => cone.ma
+        #      :cone1:cubeInCone => cube.ma
+        #        :cone1:cubeInCone:sphere => sphere.ma
+
         # create sphere file
         print "sphere file"
 #        cmds.file(new=1, f=1)
@@ -51,6 +68,38 @@ class testCase_references(unittest.TestCase):
         pm.PyNode('cube1:pCube1').attr('translateY').set(6)
         self.coneRef1 = pm.createReference( self.coneFile, namespace='cone1' )
 
+    def createFailedEdits(self):
+        # Animate the zombieAttrs
+        for transform in [x.getParent() for x in pm.ls(type='mesh')]:
+            try:
+                zombie = transform.attr('zombieAttr')
+            except pm.MayaAttributeError:
+                continue
+            zombie.setKey(t=1, v=1)
+            zombie.setKey(t=2, v=2)
+            zombie.setKey(t=3, v=4)
+
+        # want to create another successful edit, so we can tell just by number of edits
+        # whether we got failed, successful, or both
+        #   failed = 1
+        #   successful = 2
+        #   both = 3
+        pm.setAttr(self.sphereRef1.namespace + ':pSphere1.rotate', (30,0,0))
+
+        self.masterFile = pm.saveAs(os.path.join(self.temp, 'master.ma'), f=1)
+
+
+        # deleting the attr should give some failed ref edits in the master...
+        pm.openFile(self.sphereFile, f=1)
+        pm.SCENE.pSphere1.zombieAttr.delete()
+        pm.saveFile(f=1)
+
+        pm.openFile(self.masterFile, f=1)
+        self.sphereRef1 = pm.FileReference(namespace='sphere1')
+        self.sphereRef2 = pm.FileReference(namespace='sphere2')
+        self.cubeRef1 = pm.FileReference(namespace='cube1')
+        self.coneRef1 = pm.FileReference(namespace='cone1')
+
     def test_iterRefs_depth(self):
         # Test that each subsequent ref is either a child of the previous ref,
         # or the sibling of of some ref higher in the stack'''
@@ -77,7 +126,7 @@ class testCase_references(unittest.TestCase):
         print "Exporting all", os.path.join( self.temp, 'all.ma' )
         expFile = pm.exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
         print "Importing"
-        impFile = pm.importFile( expFile )
+        pm.importFile( expFile )
         print "Exporting all"
         pm.exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
         print "Exporting animation"
@@ -109,23 +158,7 @@ class testCase_references(unittest.TestCase):
             self.assertEqual(ref, pm.FileReference(namespace=ref.fullNamespace))
 
     def test_failed_ref_edits(self):
-        # Animate the zombieAttrs
-        for transform in [x.getParent() for x in pm.ls(type='mesh')]:
-            try:
-                zombie = transform.attr('zombieAttr')
-            except pm.MayaAttributeError:
-                continue
-            zombie.setKey(t=1, v=1)
-            zombie.setKey(t=2, v=2)
-            zombie.setKey(t=3, v=4)
-        self.masterFile = pm.saveAs( os.path.join( self.temp, 'master.ma' ), f=1 )
-
-        pm.openFile(self.sphereFile, f=1)
-        pm.SCENE.pSphere1.zombieAttr.delete()
-        pm.saveFile(f=1)
-
-        # deleting the attr should give some failed ref edits...
-        pm.openFile(self.masterFile, f=1)
+        self.createFailedEdits()
 
         sphereRefs = [x for x in pm.listReferences(recursive=True)
                       if x.path.endswith('sphere.ma')]
@@ -151,9 +184,108 @@ class testCase_references(unittest.TestCase):
         self.assertFalse(pm.objExists(nsSphere))
         self.assertFalse(pm.PyNode(noNsSphere).isReferenced())
 
+    def test_getReferenceEdits(self):
+        def doTest(successfulEdits, failedEdits, force, expectedNum):
+            self.setUp()
+            self.createFailedEdits()
+
+            # Should have 3 total, 2 successful, 1 failed
+            refNode = str(self.sphereRef1.refNode)
+            testKwargs = {'editStrings':True, 'onReferenceNode':refNode}
+
+            testKwargs['successfulEdits'] = False
+            testKwargs['failedEdits'] = True
+            self.assertEqual(len(cmds.referenceQuery(refNode, **testKwargs)), 1)
+
+            testKwargs['successfulEdits'] = True
+            testKwargs['failedEdits'] = False
+            self.assertEqual(len(cmds.referenceQuery(refNode, **testKwargs)), 2)
+
+            testKwargs['successfulEdits'] = True
+            testKwargs['failedEdits'] = True
+            self.assertEqual(len(cmds.referenceQuery(refNode, **testKwargs)), 3)
+
+            kwargs = {}
+            if successfulEdits is not None:
+                kwargs['successfulEdits'] = successfulEdits
+            if failedEdits is not None:
+                kwargs['failedEdits'] = failedEdits
+
+            self.assertEqual(len(self.sphereRef1.getReferenceEdits(**kwargs)),
+                             expectedNum)
+
+        for force in (True, False):
+            doTest(None, None, force, 3)    # should get all
+            doTest(None, True, force, 1)    # should get failed
+            doTest(None, False, force, 2)   # should get successful
+
+            doTest(True, None, force, 2)    # should get successful
+            doTest(True, True, force, 3)    # should get all
+            doTest(True, False, force, 2)   # should get successful
+
+            doTest(False, None, force, 1)   # should get failed
+            doTest(False, True, force, 1)   # should get failed
+            doTest(False, False, force, 0)  # should get none
+
+
+    def test_removeReferenceEdits(self):
+        def doTest(successfulEdits, failedEdits, force, expectedNum):
+            self.setUp()
+            self.createFailedEdits()
+
+            # Should have 3 total, 2 successful, 1 failed
+            refNode = str(self.sphereRef1.refNode)
+            getKwargs = {'editStrings':True, 'onReferenceNode':refNode}
+
+            getKwargs['successfulEdits'] = False
+            getKwargs['failedEdits'] = True
+            self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)), 1)
+
+            getKwargs['successfulEdits'] = True
+            getKwargs['failedEdits'] = False
+            self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)), 2)
+
+            getKwargs['successfulEdits'] = True
+            getKwargs['failedEdits'] = True
+            self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)), 3)
+
+            kwargs = {'removeEdits':True}
+            if successfulEdits is not None:
+                kwargs['successfulEdits'] = successfulEdits
+            if failedEdits is not None:
+                kwargs['failedEdits'] = failedEdits
+
+            # check that trying to remove edits before it's unloaded raises
+            # an error...
+            self.assertRaises(RuntimeError, self.sphereRef1.removeReferenceEdits(**kwargs))
+
+            if force:
+                kwargs['force'] = True
+            else:
+                self.sphereRef1.unload()
+
+            self.sphereRef1.removeReferenceEdits(**kwargs)
+
+            self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)),
+                             expectedNum)
+
+        for force in (True, False):
+            doTest(None, None, force, 0)    # should remove all
+            doTest(None, True, force, 2)    # should remove failed
+            doTest(None, False, force, 1)   # should remove successful
+
+            doTest(True, None, force, 1)    # should remove successful
+            doTest(True, True, force, 0)    # should remove all
+            doTest(True, False, force, 1)   # should remove successful
+
+            doTest(False, None, force, 2)   # should remove failed
+            doTest(False, True, force, 2)   # should remove failed
+            doTest(False, False, force, 3)  # should remove none
+
+
     def tearDown(self):
         pm.newFile(f=1)
-        shutil.rmtree(self.temp, ignore_errors =True)
+        shutil.rmtree(self.temp, ignore_errors=True)
 
 class testCase_fileInfo(unittest.TestCase):
     def setUp(self):
