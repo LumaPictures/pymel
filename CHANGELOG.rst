@@ -3,6 +3,11 @@ Version 1.0.5
 ==================================
 
 ----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- DagNode.isVisible has a new flag, checkOverride, which is on by default, and considers visibility override settings
+
+----------------------------------
 Changes
 ----------------------------------
 - for maya versions >= 2012, creation of "ghost" plugin nodes no longer needed
@@ -16,9 +21,9 @@ Changes
 ----------------------------------
 
 - core.uitypes: improved AETemplates to work when created from within a scripted plugin
-- tools.mel2py: now output exact same filename as input on Windows 
+- tools.mel2py: now output exact same filename as input on Windows
 - core.nodetypes: Transform.getRotation  - can get as euler or quaternion
-- extras: improved reliability of stub files (for pydev, wing, etc) 
+- extras: improved reliability of stub files (for pydev, wing, etc)
 - core: doing select([], replace=True) should clear selection
 - api.allapi: replace toMObjectName with MObjectName
 - core: namespace - root option is now False (for backward compatibility)
@@ -104,7 +109,7 @@ Non-Backward Compatible Changes
 - skinCluster, tangentConstraint, poleVectorConstraint, and
   pointOnPolyConstraint commands now return a PyNode when creating, instead of a
   list with one item
-- skinCluster command / node's methods / flags for querying deformerTools, 
+- skinCluster command / node's methods / flags for querying deformerTools,
   influence, weightedInfluence now return PyNodes, not strings
 - Attribute.elements now returns an empty list instead of None
 - general: Attribute.affects/affected return empty list when affects returns None
@@ -310,7 +315,7 @@ Non-Backward Compatible Changes
 - ``pymel.mayahook.mayautils.getMayaVersion(extension=True)`` replaced with ``pymel.versions.shortName()``
 - removed 0_7_compatibility_mode
 
-- removed deprecated and inapplicable string methods from , base of all PyNodes: 
+- removed deprecated and inapplicable string methods from , base of all PyNodes:
 
 - removed Smart Layout Creator in favor of 'with' statement support
 - ``DagNode.getParent()`` no longer accepts keyword arguments
@@ -417,7 +422,7 @@ Bugfixes
 ----------------------------------
 
 - fixed instantiation of PyNode from MPlug instance
-- fixed a bug where Maya version was incorrectly detected when Maya was installed to a custom location 
+- fixed a bug where Maya version was incorrectly detected when Maya was installed to a custom location
 - fixed bug where wrap of function which took multiple refs all pointed to same ``MScriptUtil``
 - fixed wrapping of unsigned ptr api types
 - fixed negative comp indices
@@ -478,8 +483,8 @@ Changes and Additions
 - new feature:  virtual subclasses.  allows the user to create their own subclasses which are returned by ``PyNode``
 - added ``v2009sp1`` and ``v2009sp1a`` to ``Version``
 - changed ``MelGlobals.__getitem__`` to raise a KeyError on missing global, instead of a typeError
-- ``util.path`` now supports regular expression filtering in addition to globs.  
-- moved ``moduleDir()`` from ``util`` to ``mayahook`` since it is explicitly for pymel.  
+- ``util.path`` now supports regular expression filtering in addition to globs.
+- moved ``moduleDir()`` from ``util`` to ``mayahook`` since it is explicitly for pymel.
 - ensured that all default plugins are loaded when creating the api cache so that we can avoid calculating those each time the plugins are loaded
 - added a new `errors` flag to recurseMayaScriptPath for controlling how to handle directory walking errors: warn or ignore
 - moved ``pwarnings`` to ensure that ``pymel.util`` is completely separated from maya
@@ -501,7 +506,7 @@ Bugfixes
 - fixed a bug in ``undoInfo()``
 - fixed a bug that was breaking ``mel2py``
 - fixed a bug with logging that was locking it to INFO level.  INFO is now the default, but it can be properly changed in ``pymel.conf``
-- fixed input casting of ``datatypes.Time`` 
+- fixed input casting of ``datatypes.Time``
 - bug fixes in error handling within path class
 - fixed issue 65: ``DependencyNode.listAttr()`` broken
 - made sure ``NameParse`` objects are stringified before fed to ``MFnDependencyNode.findPlug()``
@@ -521,7 +526,7 @@ Bugfixes
 - fixed a bug where selectionSets can't be selected
 - fixed a bug with ``sets()`` when it returns lists
 - fixed issue 76, where non-unique joint names were returned by ``pymel.joint`` and thus were unsuccessfully cast to ``nodetypes.Joint``
-- fixed issue 80, regading incorrect association of ``nodetypes.File`` with ``cmds.file.`` 
+- fixed issue 80, regading incorrect association of ``nodetypes.File`` with ``cmds.file.``
 - fixed a bug in ``connectAttr()`` that was preventing connection errors from being raised when the force flag was used
 
 
