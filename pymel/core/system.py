@@ -1220,6 +1220,17 @@ class FileReference(object):
         path = cmds.referenceQuery( self.refNode, filename=1, unresolvedName=1, withoutCopyNumber=1 )
         return Path(path)
 
+    def parent(self):
+        '''Returns the parent FileReference object, or None
+        '''
+        parentNode = cmds.referenceQuery(self.refNode, referenceNode=1,
+                                         parent=1)
+        if parentNode is None:
+            return None
+        else:
+            return FileReference(refnode=parentNode)
+
+
 #    @_factories.createflag('file', 'importReference')
 #    def importContents(self, **kwargs):
 #        return cmds.file( self.withCopyNumber(), **kwargs )

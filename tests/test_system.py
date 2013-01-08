@@ -282,6 +282,18 @@ class testCase_references(unittest.TestCase):
             doTest(False, True, force, 2)   # should remove failed
             doTest(False, False, force, 3)  # should remove none
 
+    def test_parent(self):
+        self.assertEqual(pm.FileReference(namespace='sphere1').parent(), None)
+        self.assertEqual(pm.FileReference(namespace='sphere2').parent(), None)
+        self.assertEqual(pm.FileReference(namespace='cube1').parent(), None)
+        self.assertEqual(pm.FileReference(namespace='cone1').parent(), None)
+
+        self.assertEqual(pm.FileReference(namespace='cube1:sphere').parent(),
+                         pm.FileReference(namespace='cube1'))
+        self.assertEqual(pm.FileReference(namespace='cone1:cubeInCone').parent(),
+                         pm.FileReference(namespace='cone1'))
+        self.assertEqual(pm.FileReference(namespace='cone1:cubeInCone:sphere').parent(),
+                         pm.FileReference(namespace='cone1:cubeInCone'))
 
     def tearDown(self):
         pm.newFile(f=1)
