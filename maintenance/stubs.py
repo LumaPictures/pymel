@@ -5,6 +5,7 @@ import os                   #@Reimport
 import pkgutil              #@Reimport
 import collections
 import inspect
+import ast
 
 builtins = set(__builtin__.__dict__.values())
 
@@ -70,6 +71,93 @@ def is_dict_like(obj):
             return False
     return True
 
+
+class ModuleNamesVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.names = set() 
+
+    def visit(self, node):
+        # if we have the module, recurse
+        if isinstance(node, ast.Module):
+            self.generic_visit(node)
+        
+        # we are looking for statements which could define a new name...
+        elif isinstance(node, (ast.Assign,
+                             ast.ClassDef,
+                             ast.FunctionDef,
+                             ast.Import,
+                             ast.ImportFrom,
+                             ast.For,
+                             ast.With,
+                             ast.TryExcept,
+                            )):
+            self.addNames(node)
+
+    def addNames(self, obj):
+        #print "addNames: %r" % obj
+        # string... add it!
+        if isinstance(obj, basestring):
+            self.names.add(obj)
+
+        # A name node... add if the context is right
+        elif isinstance(obj, ast.Name):
+            if isinstance(obj.ctx, (ast.Store, ast.AugStore, ast.Param)):
+                self.addNames(obj.id)
+
+        # An alias... check for 'foo as bar'
+        elif isinstance(obj, ast.alias):
+            if obj.asname:
+                name = obj.asname
+            else:
+                name = obj.name
+            if name != '*':
+                self.addNames(name)
+
+        # list/tuple.. iterate...
+        elif isinstance(obj, (list, tuple)):
+            for item in obj:
+                self.addNames(item)
+        elif isinstance(obj, (ast.Tuple, ast.List)):
+            self.addNames(obj.elts)
+
+        # Statements (or subparts)...
+        elif isinstance(obj, ast.Assign):
+            self.addNames(obj.targets)
+        elif isinstance(obj, ast.ClassDef):
+            self.addNames(obj.name)
+        elif isinstance(obj, ast.FunctionDef):
+            self.addNames(obj.name)
+        elif isinstance(obj, ast.Import):
+            self.addNames(obj.names)
+        elif isinstance(obj, ast.ImportFrom):
+            self.addNames(obj.names)
+        elif isinstance(obj, ast.For):
+            self.addNames(obj.target)
+        elif isinstance(obj, ast.With):
+            self.addNames(obj.optional_vars)
+        elif isinstance(obj, ast.TryExcept):
+            self.addNames(obj.handlers)
+        elif isinstance(obj, ast.ExceptHandler):
+            self.addNames(obj.name)
+            
+def get_static_module_names(module):
+    '''Given a module object, tries to do static code analysis to find the names
+    that will be defined at module level.
+    '''
+    path = module.__file__
+    if path.endswith(('.pyc', '.pyo')):
+        path = path[:-1]
+    with open(path, 'r') as f:
+        text = f.read()
+    if not text.endswith('\n'):
+        # for some reason, the parser requires the text end with a newline...
+        text += '\n'
+    moduleAst = ast.parse(text, path)
+    visitor = ModuleNamesVisitor()
+    visitor.visit(moduleAst)
+    return visitor.names  
+
+
 # for the sake of stubtest, don't importy anything pymel/maya at module level
 #import pymel.util as util
 
@@ -103,6 +191,7 @@ class StubDoc(Doc):
         self.missing_modules = set([])
         self.module_map = {}
         self.id_map = {}
+        self.static_module_names = {}
         self.safe_constructor_classes = set()
         if hasattr(Doc, '__init__'):
             Doc.__init__(self, *args, **kwargs)
@@ -638,8 +727,16 @@ class StubDoc(Doc):
                 self.module_map[realname] = newname
             # tie, do nothing...
             return
-            
-            
+        
+    def module_has_static_name(self, module, name):
+        if isinstance(module, basestring):
+            module = sys.modules[module]
+        elif not isinstance(module, types.ModuleType):
+            raise TypeError(module)
+        
+        if module not in self.static_module_names:
+            self.static_module_names[module] = get_static_module_names(module)
+        return name in self.static_module_names[module]
 
     def classname(self, object, modname):
         """Get a class name and qualify it with a module name if necessary."""
@@ -944,7 +1041,7 @@ class StubDoc(Doc):
                         print "\t\tsibling"
                     fromname = '.'
                     importname = realparts[-1]
-            # test if importing a child - ie, pymel will have a .core attribute,
+            # test if importing a child - ie, pymel may have a .core attribute,
             # simply because at some point we imported pymel.core, but we don't
             # need / want an explicit import statement
             elif len(realparts) > len(currparts):
@@ -953,9 +1050,15 @@ class StubDoc(Doc):
                     #     import pymel.core.nt as nt
                     # from inside pymel.core, we still get the nt showing up
                     if asname == realparts[-1]:
-                        if currname == self.debugmodule:
-                            print "\t\tparent - no import"
-                        return ''
+                        # Ok, we have a child module, with the standard name,
+                        # inside the parent module... it's still possible the
+                        # parent module explicitly imported the child... so
+                        # use the static code analysis of the module to see if
+                        # this name is in the expected module names...
+                        if not self.module_has_static_name(currmodule, asname):
+                            if currname == self.debugmodule:
+                                print "\t\tparent, and not in static module names - no import"
+                            return ''
 
                     # if we're doing a renamed parent import, we want to make it
                     # relative to avoid circular imports
