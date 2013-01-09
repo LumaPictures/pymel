@@ -773,22 +773,50 @@ class Path(pathClass):
 #===============================================================================
 
 def iterReferences( parentReference=None, recursive=False, namespaces=False,
-                    refNodes=False, references=True, recurseType='depth'):
+                    refNodes=False, references=True, recurseType='depth',
+                    loaded=None, unloaded=None):
     """
-    returns references in the scene as a list of value tuples. The values in the tuples can be namespaces, refNodes (as PyNodes),
-    and/or references (as FileReferences), and are controlled by their respective keywords.  If only one of the three options is True,
-    the result will not be a list of value tuples, but will simply be a list of values.
+    returns references in the scene as a list of value tuples.
 
-    :param parentReference: a reference to get sub-references from. If None (default), the current scene is used.
-    :type parentReference: string, `Path`, or `FileReference`
+    The values in the tuples can be namespaces, refNodes (as PyNodes), and/or
+    references (as FileReferences), and are controlled by their respective
+    keywords (and are returned in that order).  If only one of the three options
+    is True, the result will not be a list of value tuples, but will simply be a
+    list of values.
 
-    :param recursive: recursively determine all references and sub-references
-    :type recursive: bool
+    Parameters
+    ----------
+    parentReference : string, `Path`, or `FileReference`
+        a reference to get sub-references from. If None (default), the current
+        scene is used.
 
-    :param recurseType: if recursing, whether to do a 'breadth' or 'depth'
-        first search; defaults to a 'depth' first
-    :type recurseType: string
+    recursive : bool
+        recursively determine all references and sub-references
 
+    namespaces : bool
+        controls whether namespaces are returned
+
+    refNodes : bool
+        controls whether reference PyNodes are returned
+
+    refNodes : bool
+        controls whether FileReferences returned
+
+    recurseType : string
+        if recursing, whether to do a 'breadth' or 'depth' first search;
+        defaults to a 'depth' first
+
+    loaded : bool or None
+        whether to return loaded references in the return result; if both of
+        loaded/unloaded are not given (or None), then both are assumed True;
+        if only one is given, the other is assumed to have the opposite boolean
+        value
+
+    unloaded : bool or None
+        whether to return unloaded references in the return result; if both of
+        loaded/unloaded are not given (or None), then both are assumed True;
+        if only one is given, the other is assumed to have the opposite boolean
+        value
     """
     import general
 
@@ -801,33 +829,55 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False,
     else:
         refs = cmds.file(parentReference, q=1, reference=1)
 
+    if loaded is None and unloaded is None:
+        loaded = True
+        unloaded = True
+    elif loaded is None:
+        loaded = not unloaded
+    elif unloaded is None:
+        unloaded = not loaded
+
+    if not (loaded or unloaded):
+        return
+
     #print "reference", parentReference
     while refs:
         #if recursive and recurseType == 'breadth':
         ref = refs.pop(0)
         row = []
 
-        refNode = cmds.file( ref, q=1, referenceNode=1)
+        refNode = cmds.file(ref, q=1, referenceNode=1)
         refNode = general.PyNode( refNode )
 
+        wasLoaded = cmds.referenceQuery(refNode, isLoaded=1)
+
+        # If we are only looking for loaded, and this isn't, we can bail
+        # immediately... any child references will also be unloaded
+        if not unloaded and not wasLoaded:
+            continue
+
         if namespaces:
-            row.append( refNode.namespace() + cmds.file( ref, q=1, namespace=1)  )
+            row.append(refNode.namespace() + cmds.file(ref, q=1, namespace=1))
         if refNodes:
-            row.append( refNode )
+            row.append(refNode)
         if references:
-            row.append( FileReference(refNode) )
+            row.append(FileReference(refNode))
         if len(row) == 1:
             row = row[0]
         else:
             row = tuple(row)
-        yield row
+
+        if ((loaded and wasLoaded) or (unloaded and not wasLoaded)):
+            yield row
         if recursive:
             if recurseType == 'depth':
                 for x in iterReferences(parentReference=ref,
                                         recursive=True,
                                         namespaces=namespaces,
                                         refNodes=refNodes,
-                                        references=references):
+                                        references=references,
+                                        loaded=loaded,
+                                        unloaded=unloaded):
                     #print "yield sub"
                     yield x
             elif recurseType == 'breadth':
@@ -835,16 +885,20 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False,
         #print "for done"
     #print "done"
 
-def listReferences( parentReference=None, recursive=False, namespaces=False, refNodes=False, references=True ):
+def listReferences(parentReference=None, recursive=False, namespaces=False,
+                   refNodes=False, references=True, loaded=None, unloaded=None):
     """
     Like iterReferences, except returns a list instead of an iterator.
 
     """
-    return list(iterReferences( parentReference=parentReference,
-                                recursive=recursive,
-                                namespaces=namespaces,
-                                refNodes=refNodes,
-                                references=references ))
+    return list(iterReferences(parentReference=parentReference,
+                               recursive=recursive,
+                               namespaces=namespaces,
+                               refNodes=refNodes,
+                               references=references,
+                               loaded=loaded,
+                               unloaded=unloaded))
+
 listReferences.__doc__ += iterReferences.__doc__
 
 #def getReferences( reference=None, recursive=False, namespaces=True, refNodes=False, asDict=True ):
@@ -1292,11 +1346,6 @@ class FileReference(object):
     @_factories.addMelDocs('file', 'deferReference')
     def isDeferred(self):
         return cmds.file( rfn=self.refNode, q=1, deferReference=1 )
-
-#    @_factories.addMelDocs('file', 'deferReference')
-#    def isLoaded(self):
-#        return not cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
-
 
     @_factories.addMelDocs('file', 'deferReference')
     def isLoaded(self):

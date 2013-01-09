@@ -2,6 +2,8 @@ import os
 import unittest
 import tempfile
 import shutil
+import itertools
+from pprint import pprint
 
 import pymel.core as pm
 import maya.cmds as cmds
@@ -67,6 +69,7 @@ class testCase_references(unittest.TestCase):
         pm.PyNode('cube1:sphere:pSphere1').attr('translateY').set(6)
         pm.PyNode('cube1:pCube1').attr('translateY').set(6)
         self.coneRef1 = pm.createReference( self.coneFile, namespace='cone1' )
+        self.masterFile = pm.saveAs(os.path.join(self.temp, 'master.ma'), f=1)
 
     def createFailedEdits(self):
         # Animate the zombieAttrs
@@ -295,9 +298,193 @@ class testCase_references(unittest.TestCase):
         self.assertEqual(pm.FileReference(namespace='cone1:cubeInCone:sphere').parent(),
                          pm.FileReference(namespace='cone1:cubeInCone'))
 
-    def tearDown(self):
-        pm.newFile(f=1)
-        shutil.rmtree(self.temp, ignore_errors=True)
+#    def tearDown(self):
+#        pm.newFile(f=1)
+#        shutil.rmtree(self.temp, ignore_errors=True)
+
+
+    def test_listReferences(self):
+        self.assertEqual(set(pm.listReferences()),
+                         set([pm.FileReference(namespace='sphere1'),
+                              pm.FileReference(namespace='sphere2'),
+                              pm.FileReference(namespace='cube1'),
+                              pm.FileReference(namespace='cone1'),
+                             ]))
+
+    def test_listReferences_recursive(self):
+        self.assertEqual(set(pm.listReferences(recursive=True)),
+                         set([pm.FileReference(namespace='sphere1'),
+                              pm.FileReference(namespace='sphere2'),
+                              pm.FileReference(namespace='cube1'),
+                              pm.FileReference(namespace='cone1'),
+                              pm.FileReference(namespace='cube1:sphere'),
+                              pm.FileReference(namespace='cone1:cubeInCone'),
+                              pm.FileReference(namespace='cone1:cubeInCone:sphere'),
+                             ]))
+
+    def _test_listReferences_options(self, expectedRefs, kwargs):
+        for namespaces in (True, False):
+            for refNodes in (True, False):
+                for references in (True, False):
+                    expected = set()
+                    for ref in expectedRefs:
+                        thisExpected = []
+                        if namespaces:
+                            thisExpected.append(ref.fullNamespace)
+                        if refNodes:
+                            thisExpected.append(ref.refNode)
+                        if references:
+                            thisExpected.append(ref)
+                        if len(thisExpected) == 1:
+                            thisExpected = thisExpected[0]
+                        else:
+                            thisExpected = tuple(thisExpected)
+                        expected.add(thisExpected)
+                    result = pm.listReferences(namespaces=namespaces,
+                                               refNodes=refNodes,
+                                               references=references,
+                                               **kwargs)
+                    self.assertEqual(set(result), expected)
+
+    def test_listReferences_options(self):
+        expectedRefs = set([pm.FileReference(namespace='sphere1'),
+                            pm.FileReference(namespace='sphere2'),
+                            pm.FileReference(namespace='cube1'),
+                            pm.FileReference(namespace='cone1'),
+                           ])
+        self._test_listReferences_options(expectedRefs, {})
+
+    def test_listReferences_options_recursive(self):
+        expectedRefs = set([pm.FileReference(namespace='sphere1'),
+                            pm.FileReference(namespace='sphere2'),
+                            pm.FileReference(namespace='cube1'),
+                            pm.FileReference(namespace='cone1'),
+                            pm.FileReference(namespace='cube1:sphere'),
+                            pm.FileReference(namespace='cone1:cubeInCone'),
+                            pm.FileReference(namespace='cone1:cubeInCone:sphere'),
+                           ])
+        self._test_listReferences_options(expectedRefs, {'recursive':True})
+
+    def test_listReferences_loaded_unloaded(self):
+        def doTestForKwargPermutation(loaded, unloaded, expected):
+            kwargs = {}
+            if loaded is not None:
+                kwargs['loaded'] = loaded
+            if unloaded is not None:
+                kwargs['unloaded'] = unloaded
+
+            allRefs = pm.listReferences(recursive=True)
+
+            if expected == 'all':
+                expected = set(allRefs)
+            elif expected == 'loaded':
+                expected = set(x for x in allRefs if x.isLoaded())
+            elif expected == 'unloaded':
+                expected = set(x for x in allRefs if not x.isLoaded())
+            elif expected == 'none':
+                expected = set()
+            else:
+                raise ValueError(expected)
+
+            result = set(pm.listReferences(recursive=True, **kwargs))
+            self.assertEqual(result, expected)
+
+            expected = set(x for x in expected if x.parent() is None)
+            result = set(pm.listReferences(recursive=False, **kwargs))
+            self.assertEqual(result, expected)
+
+        def doTestForRefPermuation(loadedByNS):
+            self.setUp()
+
+            # Note that we always need to track by namespace... we cannot use
+            # persistant FileReferences objects, since they are tied to
+            # a reference node... and if a parent reference node is unloaded,
+            # they may be come invalid
+
+            for ns, loaded in loadedByNS.iteritems():
+                if not loaded:
+                    ref = pm.FileReference(namespace=ns)
+                    if not loaded:
+                        print "unloading: %r" % ns
+                        ref.unload()
+
+            pprint(loadedByNS)
+
+            # All files should now be set up with the appropriate
+            # loaded/unloaded refs... confirm
+            for ns, loaded in loadedByNS.iteritems():
+                try:
+                    wasLoaded = pm.FileReference(namespace=ns).isLoaded()
+                except RuntimeError:
+                    wasLoaded = False
+                self.assertEqual(loaded, wasLoaded)
+
+            doTestForKwargPermutation(None, None, 'all')
+            doTestForKwargPermutation(None, True, 'unloaded')
+            doTestForKwargPermutation(None, False, 'loaded')
+
+            doTestForKwargPermutation(True, None, 'loaded')
+            doTestForKwargPermutation(True, True, 'all')
+            doTestForKwargPermutation(True, False, 'loaded')
+
+            doTestForKwargPermutation(False, None, 'unloaded')
+            doTestForKwargPermutation(False, True, 'unloaded')
+            doTestForKwargPermutation(False, False, 'none')
+
+        def loadedRefPermutations(parentReference=None):
+            '''Returns dicts mapping from namespaces to whether they are loaded
+            or not
+
+            Returns all possible such dicts, taking into account the fact that
+            if a ref is unloaded, all it's subrefs will also be unloaded (and,
+            in fact, won't even seem to exist)
+            '''
+            finalPermutations = []
+
+            namespaces = pm.listReferences(parentReference=parentReference,
+                                           namespaces=True,
+                                           references=False)
+
+            # now, get all the possible permutations for each sub-ref, assuming
+            # that sub-ref is loaded
+
+            subPermutationsByNS = {}
+            for namespace in namespaces:
+                subsForNS = loadedRefPermutations(parentReference=pm.FileReference(namespace=namespace))
+                if subsForNS:
+                    subPermutationsByNS[namespace] = subsForNS
+
+            # Now get all loaded/unloaded permutations for top namespaces...
+            for loadedVals in itertools.product((True, False),
+                                                repeat=len(namespaces)):
+                topByNamespace = dict(zip(namespaces, loadedVals))
+
+                # then, find any sub-permutations for refs which are loaded
+                possibleSubPermutations = []
+                for ns, loaded in topByNamespace.iteritems():
+                    if loaded and ns in subPermutationsByNS:
+                        possibleSubPermutations.append(subPermutationsByNS[ns])
+
+                # finally, if we iterate over all the products of all possible
+                # sub-perms, and combine all the resulting dicts, we should
+                # get all the final permutations...
+                if possibleSubPermutations:
+                    for subPermSelections in itertools.product(*possibleSubPermutations):
+                        topCopy = dict(topByNamespace)
+                        for subPermItem in subPermSelections:
+                            topCopy.update(subPermItem)
+                        finalPermutations.append(topCopy)
+                else:
+                    # there are no sub-permutations, just append the current
+                    # permutation for top-level refs
+                    finalPermutations.append(topByNamespace)
+            return finalPermutations
+
+        allPerms = loadedRefPermutations()
+        # sanity check - should be 48 perms
+        self.assertEqual(len(allPerms), 48)
+        for loadedByNS in allPerms:
+            doTestForRefPermuation(loadedByNS)
 
 class testCase_fileInfo(unittest.TestCase):
     def setUp(self):
