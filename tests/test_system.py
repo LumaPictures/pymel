@@ -298,9 +298,9 @@ class testCase_references(unittest.TestCase):
         self.assertEqual(pm.FileReference(namespace='cone1:cubeInCone:sphere').parent(),
                          pm.FileReference(namespace='cone1:cubeInCone'))
 
-#    def tearDown(self):
-#        pm.newFile(f=1)
-#        shutil.rmtree(self.temp, ignore_errors=True)
+    def tearDown(self):
+        pm.newFile(f=1)
+        shutil.rmtree(self.temp, ignore_errors=True)
 
 
     def test_listReferences(self):
