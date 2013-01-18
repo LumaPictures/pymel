@@ -1169,6 +1169,50 @@ Maya Bug Fix:
     #        kwargs['empty'] = True
     #        return Transform( cmds.group(**kwargs) )
 
+def parent( *args, **kwargs ):
+    """
+Modifications:
+    - if parent is 'None', world=True is automatically set
+    - if the given parent is the current parent, don't error (similar to mel)
+    """
+    if args and args[-1] is None:
+        if not kwargs.get('w', kwargs.get('world', True)):
+            raise ValueError('No parent given, but parent to world explicitly set to False')
+        if 'world' in kwargs:
+            del kwargs['world']
+        kwargs['w']=True
+    elif 'world' in kwargs:
+        # Standardize on 'w', for easier checking later
+        kwargs['w'] = kwargs['world']
+        del kwargs['world']
+
+    # if you try to parent to the current parent, maya errors...
+    # check for this and return if that's the case
+    if args:
+        nodes = cmds.ls(args, type='dagNode')
+    else:
+        nodes = cmds.ls(sl=1, type='dagNode')
+
+    if nodes:
+        if kwargs.get('w', False):
+            parent = None
+            children = nodes
+        else:
+            parent = PyNode(nodes[-1])
+            children = nodes[:-1]
+
+        def getParent(obj):
+            parent = cmds.listRelatives(obj, parent=1)
+            if not parent:
+                return None
+            else:
+                return parent[0]
+        if all(getParent(child) == parent for child in children):
+            return [PyNode(x) for x in children]
+
+    result = cmds.parent(*args, **kwargs)
+    return [PyNode(x) for x in result]
+
 def duplicate( *args, **kwargs ):
     """
 Modifications:

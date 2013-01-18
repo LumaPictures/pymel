@@ -1168,27 +1168,14 @@ class DagNode(Entity):
         parent
 
         Modifications:
-            if parent is 'None', world=True is automatically set
+            - if parent is 'None', world=True is automatically set
+            - if the given parent is the current parent, don't error
+
         """
-        if args and args[-1] is None:
-            if not kwargs.get('w', kwargs.get('world', True)):
-                raise ValueError('No parent given, but parent to world explicitly set to False')
-            if 'world' in kwargs:
-                del kwargs['world']
-            kwargs['w']=True
-        elif 'world' in kwargs:
-            # Standardize on 'w', for easier checking later
-            kwargs['w'] = kwargs['world']
-            del kwargs['world']
-
-        # if you try to parent to the current parent, maya errors...
-        # check for this and return if that's the case
-        currentParent = self.getParent()
-        if ( (currentParent is None and kwargs.get('w', False))
-            or (args and currentParent == args[-1]) ):
-            return self
-
-        return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
+        result = general.parent(self, *args, **kwargs)
+        if result:
+            result = result[0]
+        return result
 
     def addChild( self, child, **kwargs ):
         """parent (reversed)

@@ -964,6 +964,67 @@ class test_move(unittest.TestCase):
         pm.move(0,0,1, xyz=True, r=1)
         self.assertEqual(cube.getTranslation(), dt.Vector(1,1,1))
 
+class test_parent(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.sphere = pm.polySphere()[0]
+        self.cube = pm.polyCube()[0]
+        self.cone = pm.polyCone()[0]
+
+    def test_parent_world2obj(self):
+        self.assertEqual(self.sphere.getParent(), None)
+        pm.parent(self.sphere, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+
+    def test_parent_world2world_1(self):
+        self.assertEqual(self.sphere.getParent(), None)
+        pm.parent(self.sphere, None)
+        self.assertEqual(self.sphere.getParent(), None)
+
+    def test_parent_world2world_2(self):
+        self.assertEqual(self.sphere.getParent(), None)
+        pm.parent(self.sphere, w=1)
+        self.assertEqual(self.sphere.getParent(), None)
+
+    def test_parent_world2world_3(self):
+        self.assertEqual(self.sphere.getParent(), None)
+        pm.parent(self.sphere, world=True)
+        self.assertEqual(self.sphere.getParent(), None)
+
+    def test_parent_obj2obj(self):
+        pm.parent(self.sphere, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+        pm.parent(self.sphere, self.cone)
+        self.assertEqual(self.sphere.getParent(), self.cone)
+
+    def test_parent_obj2sameObj(self):
+        pm.parent(self.sphere, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+        pm.parent(self.sphere, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+
+    def test_parent_obj2world(self):
+        pm.parent(self.sphere, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+        pm.parent(self.sphere, None)
+        self.assertEqual(self.sphere.getParent(), None)
+
+    def test_parent_multiWorld2obj(self):
+        self.assertEqual(self.sphere.getParent(), None)
+        self.assertEqual(self.cube.getParent(), None)
+        pm.parent(self.sphere, self.cube, self.cone)
+        self.assertEqual(self.sphere.getParent(), self.cone)
+        self.assertEqual(self.cube.getParent(), self.cone)
+
+    def test_parent_multiWorld2obj_sel(self):
+        self.assertEqual(self.sphere.getParent(), None)
+        self.assertEqual(self.cube.getParent(), None)
+        pm.select(self.sphere, self.cube, self.cone)
+        pm.parent()
+        self.assertEqual(self.sphere.getParent(), self.cone)
+        self.assertEqual(self.cube.getParent(), self.cone)
+
+
 class test_lazyDocs(unittest.TestCase):
     # Test can't be reliably run if pymel.all is imported... re-stubbing
     # doesn't work
