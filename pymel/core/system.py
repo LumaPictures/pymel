@@ -1425,7 +1425,8 @@ class FileReference(object):
         -----
         By default, removes all edits. If neither of successfulEdits or
         failedEdits is given, they both default to True. If only one is given,
-        the other defaults to the opposite value.
+        the other defaults to the opposite value. This will only succeed on
+        unapplied edits (ie, on unloaded nodes, or failed edits).
         """
 
         if force and self.isLoaded():
