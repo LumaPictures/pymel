@@ -47,12 +47,26 @@ def _defaultdictdict(cls, val=None):
 # ghost objects
 #===============================================================================
 
+class GhostObjsOkHere(object):
+    _OK = False
+
+    @classmethod
+    def OK(cls):
+        return cls._OK
+
+    def __enter__(self):
+        self.oldOK = self.OK()
+        type(self)._OK = True
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        type(self)._OK = self.oldOK
+
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     if versions.current() >= versions.v2012:
         # only time post-2012 when we should have to call this func is when
         # rebuilding caches - ie, running from inside ApiCache
-        buildMethods = re.compile(r'''build''', re.IGNORECASE)
-        if not _util.isClassRunningStack(ApiCache, methodFilter=buildMethods):
+        if not GhostObjsOkHere.OK():
             _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be unnecessary in maya versions past 2012 (except when rebuilding cache)')
 
     # we create a dummy object of this type in a dgModifier (or dagModifier)
@@ -180,7 +194,7 @@ class _GhostObjMaker(object):
         else:
             return obj
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         try:
             if self.dagGhosts:
                 self.dagMod.undoIt()
@@ -623,14 +637,16 @@ class ApiCache(startup.SubItemCache):
         if toCreate:
             # Put in a debug, because ghost nodes can be problematic...
             _logger.debug("Starting to create ghost nodes...")
-            with _GhostObjMaker(toCreate, manipError=False, multi=True) as typeToObj:
-                for mayaType in toCreate:
-                    obj = typeToObj[mayaType]
-                    if obj :
-                        apiType = obj.apiTypeStr()
-                        self.mayaTypesToApiTypes[mayaType] = apiType
-                    else:
-                        unknownTypes.add(mayaType)
+
+            with GhostObjsOkHere():
+                with _GhostObjMaker(toCreate, manipError=False, multi=True) as typeToObj:
+                    for mayaType in toCreate:
+                        obj = typeToObj[mayaType]
+                        if obj :
+                            apiType = obj.apiTypeStr()
+                            self.mayaTypesToApiTypes[mayaType] = apiType
+                        else:
+                            unknownTypes.add(mayaType)
             # Put in a debug, because ghost nodes can be problematic...
             _logger.debug("...finished creating ghost nodes")
 
