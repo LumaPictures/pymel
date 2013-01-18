@@ -292,7 +292,7 @@ def finalize():
 # Have all the checks inside here, in case people want to insert this in their
 # userSetup... it's currently not always on
 def fixMayapy2011SegFault():
-    if versions.current() >= versions.v2011:
+    if versions.v2011 <= versions.current() < versions.v2013 :
         import platform
         if platform.system() == 'Linux':
             if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
