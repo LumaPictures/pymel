@@ -1426,7 +1426,10 @@ class FileReference(object):
         By default, removes all edits. If neither of successfulEdits or
         failedEdits is given, they both default to True. If only one is given,
         the other defaults to the opposite value. This will only succeed on
-        unapplied edits (ie, on unloaded nodes, or failed edits).
+        unapplied edits (ie, on unloaded nodes, or failed edits)... However,
+        like maya.cmds.file/maya.cmds.referenceEdit, no error will be raised
+        if there are no unapplied edits to work on. This may change in the
+        future, however...
         """
 
         if force and self.isLoaded():
