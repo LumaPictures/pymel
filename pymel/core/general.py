@@ -3078,13 +3078,34 @@ class Attribute(PyNode):
                     dt = dt[0]
                 return dt
 
-    def lock(self):
-        "setAttr -locked 1"
-        return self.setLocked(True)
+    def setLocked(self, locked, checkReference=False):
+        '''
+        Sets the locked state for this plug's value. A plug's locked state determines whether or not the plug's value can be changed.
 
-    def unlock(self):
+        :Parameters:
+            locked : `bool`
+                True if this plug's value is to be locked
+            checkReference : `bool`
+                Set True to raise errors on referenced attributes.
+
+                By default pymel and the maya api do not check if the node is referenced before
+                setting the locked state. This is unsafe because changes to the locked state on
+                referenced nodes are not saved with the scene.
+        '''
+
+        if checkReference and self.node().isReferenced():
+            raise AttributeError("The attribute '%s' is from a referenced file, and cannot be %s."
+                                 % (self, ('unlocked', 'locked')[locked]))
+        else:
+            self._setLocked(locked)
+
+    def lock(self, checkReference=False):
+        "setAttr -locked 1"
+        return self.setLocked(True, checkReference=checkReference)
+
+    def unlock(self, checkReference=False):
         "setAttr -locked 0"
-        return self.setLocked(False)
+        return self.setLocked(False, checkReference=checkReference)
 
 
     def isSettable(self):
