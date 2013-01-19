@@ -25,6 +25,15 @@ _logger = _getLogger(__name__)
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
 
+# Get config settings for checking if an attribute is referenced before changing the lock state
+CHECK_ATTR_BEFORE_LOCK = False
+try:
+    from pymel.internal.startup import pymel_options as _pymel_options
+    if _pymel_options['check_attr_before_lock'] == 'on':
+        CHECK_ATTR_BEFORE_LOCK = True
+except:
+    pass
+
 def _getPymelTypeFromObject(obj, name):
     if obj.hasFn(_api.MFn.kDependencyNode):
         fnDepend = _api.MFnDependencyNode( obj )
@@ -3078,7 +3087,7 @@ class Attribute(PyNode):
                     dt = dt[0]
                 return dt
 
-    def setLocked(self, locked, checkReference=False):
+    def setLocked(self, locked, checkReference=CHECK_ATTR_BEFORE_LOCK):
         '''
         Sets the locked state for this plug's value. A plug's locked state determines whether or not the plug's value can be changed.
 
@@ -3099,11 +3108,11 @@ class Attribute(PyNode):
         else:
             self._setLocked(locked)
 
-    def lock(self, checkReference=False):
+    def lock(self, checkReference=CHECK_ATTR_BEFORE_LOCK):
         "setAttr -locked 1"
         return self.setLocked(True, checkReference=checkReference)
 
-    def unlock(self, checkReference=False):
+    def unlock(self, checkReference=CHECK_ATTR_BEFORE_LOCK):
         "setAttr -locked 0"
         return self.setLocked(False, checkReference=checkReference)
 

@@ -7,6 +7,7 @@ import pymel.internal.factories as factories
 import pymel.internal.pmcmds as pmcmds
 import pymel.core.datatypes as dt
 import pymel.core.nodetypes as nt
+import tempfile
 #import pymel
 #import maya.cmds as cmds
 
@@ -260,6 +261,102 @@ def test_pymel_setAttr():
             #print typ
             #testSetAttr()
             yield testSetAttr,
+
+class testCase_mayaLockAttr(unittest.TestCase):
+
+    def setUp(self):
+        self.temp = os.path.join(tempfile.gettempdir(), 'referencesTest')
+        if not os.path.isdir(self.temp):
+            os.makedirs(self.temp)
+        print "created temp dir: %s" % self.temp
+
+        # Refs:
+        #  sphere.ma
+        #    (no refs)
+
+        #  master.ma
+        #    :sphere1 => sphere.ma
+        #    :sphere2 => sphere.ma
+
+
+        # create sphere file
+        print "sphere file"
+#        cmds.file(new=1, f=1)
+        pm.newFile(f=1)
+        sphere = pm.polySphere()[0]
+
+        pm.addAttr(sphere, ln='zombieAttr1')
+        pm.addAttr(sphere, ln='zombieAttr2')
+        cmds.setAttr('%s.v' % sphere, lock=1)
+        cmds.setAttr('%s.zombieAttr1' % sphere, lock=1)
+
+        self.sphereFile = pm.saveAs( os.path.join( self.temp, 'sphere.ma' ), f=1 )
+
+        print "master file"
+        pm.newFile(f=1)
+        self.sphereRef1 = pm.createReference( self.sphereFile, namespace='sphere1' )
+        self.sphereRef2 = pm.createReference( self.sphereFile, namespace='sphere2' )
+        self.sphere1 = pm.PyNode('sphere1:pSphere1')
+        self.sphere2 = pm.PyNode('sphere2:pSphere1')
+        self.sphere1.attr('translateY').set(2)
+        self.sphere2.attr('translateY').set(4)
+
+        self.cube = pm.polyCube()[0]
+        pm.addAttr(self.cube, ln='zombieAttr1')
+        pm.addAttr(self.cube, ln='zombieAttr2')
+        cmds.setAttr('%s.v' % self.cube, lock=1)
+        cmds.setAttr('%s.zombieAttr1' % self.cube, lock=1)
+
+        self.masterFile = pm.saveAs(os.path.join(self.temp, 'master.ma'), f=1)
+
+    def test_isLocked(self):
+        nodes = [self.cube, self.sphere1, self.sphere2]
+        attrs = ['v', 'zombieAttr1', 'zombieAttr2', 'rotateX']
+        for node in nodes:
+            for attr in attrs:
+                pmAttr = getattr(node, attr)
+                strAttr = '%s.%s' % (node, attr)
+                self.assertEqual(pmAttr.isLocked(), cmds.getAttr(strAttr, lock=1))
+
+    def test_lock(self):
+        node = self.cube
+        lockedAttrs = ['v', 'zombieAttr1']
+        unlockedAttrs = ['zombieAttr2', 'rotateX']
+
+        for attr in lockedAttrs:
+            pmAttr = getattr(node, attr)
+            strAttr = '%s.%s' % (node, attr)
+            pmAttr.lock()
+            self.assertTrue(cmds.getAttr(strAttr, lock=1))
+            pmAttr.unlock()
+            self.assertFalse(cmds.getAttr(strAttr, lock=1))
+            pmAttr.lock()
+
+        for attr in unlockedAttrs:
+            pmAttr = getattr(node, attr)
+            strAttr = '%s.%s' % (node, attr)
+            pmAttr.unlock()
+            self.assertFalse(cmds.getAttr(strAttr, lock=1))
+            pmAttr.lock()
+            self.assertTrue(cmds.getAttr(strAttr, lock=1))
+            pmAttr.unlock()
+
+    def test_lockRefs(self):
+        nodes = [self.sphere1, self.sphere2]
+        attrs = ['v', 'zombieAttr1', 'zombieAttr2', 'rotateX']
+        for node in nodes:
+            for attr in attrs:
+                pmAttr = getattr(node, attr)
+                lock = pmAttr.isLocked()
+
+                # Check references
+                self.assertRaises(AttributeError, pmAttr.lock, checkReference=True)
+                self.assertEqual(pmAttr.isLocked(), lock)
+
+                # Don't check references
+                pmAttr.setLocked(not lock, checkReference=False)
+                self.assertEqual(pmAttr.isLocked(), not lock)
+                pmAttr.setLocked(lock, checkReference=False)
 
 class testCase_enumAttr(unittest.TestCase):
     def setUp(self):
