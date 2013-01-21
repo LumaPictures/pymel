@@ -358,6 +358,11 @@ class testCase_mayaLockAttr(unittest.TestCase):
                 self.assertEqual(pmAttr.isLocked(), not lock)
                 pmAttr.setLocked(lock, checkReference=False)
 
+                # Don't check references (default)
+                pmAttr.setLocked(not lock)
+                self.assertEqual(pmAttr.isLocked(), not lock)
+                pmAttr.setLocked(lock)
+
 class testCase_enumAttr(unittest.TestCase):
     def setUp(self):
         self.node = cmds.createNode('transform')
