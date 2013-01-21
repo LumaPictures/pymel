@@ -630,8 +630,12 @@ def getConfigFile():
 def parsePymelConfig():
     import ConfigParser
 
-    types = { 'skip_mel_init' : 'boolean' }
-    defaults = {'skip_mel_init' : 'off' }
+    types = {'skip_mel_init' : 'boolean',
+             'check_attr_before_lock' : 'boolean',
+            }
+    defaults = {'skip_mel_init' : 'off',
+                'check_attr_before_lock' : 'off',
+               }
 
     config = ConfigParser.ConfigParser(defaults)
     config.read( getConfigFile() )

@@ -14,6 +14,7 @@ import pymel.internal.pmcmds as cmds
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal.pwarnings as _warnings
+import pymel.internal.startup as _startup
 import pymel.api as _api
 import pymel.versions as _versions
 import datatypes
@@ -26,13 +27,7 @@ _logger = _getLogger(__name__)
 #       ...so we shouldn't always have to do it here as well?
 
 # Get config settings for checking if an attribute is referenced before changing the lock state
-CHECK_ATTR_BEFORE_LOCK = False
-try:
-    from pymel.internal.startup import pymel_options as _pymel_options
-    if _pymel_options['check_attr_before_lock'] == 'on':
-        CHECK_ATTR_BEFORE_LOCK = True
-except:
-    pass
+CHECK_ATTR_BEFORE_LOCK = _startup.pymel_options.get('check_attr_before_lock', False)
 
 def _getPymelTypeFromObject(obj, name):
     if obj.hasFn(_api.MFn.kDependencyNode):
