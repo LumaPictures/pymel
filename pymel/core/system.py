@@ -75,9 +75,19 @@ except (KeyError, AssertionError):
     pathClass = _util.path
 
 
-def _getTypeFromExtension( path ):
+def _getTypeFromExtension(path):
     ext = Path(path).ext
     return str(Translator.fromExtension(ext))
+
+def _setTypeKwargFromExtension(path, kwargs):
+    if 'type' not in kwargs and 'typ' not in kwargs:
+        try:
+            fileType = _getTypeFromExtension(path)
+        except Exception:
+            pass
+        else:
+            if fileType and fileType != 'None':
+                kwargs['type'] = fileType
 
 # Bring the MGlobal.display* methods into this namespace, for convenience
 displayError = _OpenMaya.MGlobal.displayError
@@ -1373,17 +1383,13 @@ class FileReference(object):
     @_factories.addMelDocs('file', 'exportAnimFromReference')
     def exportAnim( self, exportPath, **kwargs ):
         kwargs['exportAnimFromReference'] = 1
-        if 'type' not in kwargs and 'typ' not in kwargs:
-            try: kwargs['type'] = _getTypeFromExtension(exportPath)
-            except: pass
+        _setTypeKwargFromExtension(exportPath, kwargs)
         return Path(cmds.file( exportPath, rfn=self.refNode, **kwargs))
 
     @_factories.addMelDocs('file', 'exportSelectedAnimFromReference')
     def exportSelectedAnim( self, exportPath, **kwargs ):
         kwargs['exportSelectedAnimFromReference'] =1
-        if 'type' not in kwargs and 'typ' not in kwargs:
-            try: kwargs['type'] = _getTypeFromExtension(exportPath)
-            except: pass
+        _setTypeKwargFromExtension(exportPath, kwargs)
         return Path(cmds.file( exportPath, rfn=self.refNode, **kwargs))
 
 
@@ -1656,9 +1662,7 @@ def loadReference( filepath, **kwargs ):
 
 @_factories.addMelDocs('file', 'exportAll')
 def exportAll( exportPath, **kwargs ):
-    if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(exportPath)
-        except: pass
+    _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAll'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
@@ -1667,9 +1671,7 @@ def exportAll( exportPath, **kwargs ):
 
 @_factories.addMelDocs('file', 'exportAsReference')
 def exportAsReference( exportPath, **kwargs ):
-    if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(exportPath)
-        except: pass
+    _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAsReference'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
@@ -1678,9 +1680,7 @@ def exportAsReference( exportPath, **kwargs ):
 
 @_factories.addMelDocs('file', 'exportSelected')
 def exportSelected( exportPath, **kwargs ):
-    if 'type' not in kwargs and 'typ' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(exportPath)
-        except: pass
+    _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportSelected'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
@@ -1689,9 +1689,7 @@ def exportSelected( exportPath, **kwargs ):
 
 @_factories.addMelDocs('file', 'exportAnim')
 def exportAnim( exportPath, **kwargs ):
-    if 'type' not in kwargs and 'typ' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(exportPath)
-        except: pass
+    _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAnim'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
@@ -1700,9 +1698,7 @@ def exportAnim( exportPath, **kwargs ):
 
 @_factories.addMelDocs('file', 'exportSelectedAnim')
 def exportSelectedAnim( exportPath, **kwargs ):
-    if 'type' not in kwargs and 'typ' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(exportPath)
-        except: pass
+    _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportSelectedAnim'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
@@ -1711,9 +1707,7 @@ def exportSelectedAnim( exportPath, **kwargs ):
 
 @_factories.addMelDocs('file', 'exportAnimFromReference')
 def exportAnimFromReference( exportPath, **kwargs ):
-    if 'type' not in kwargs and 'typ' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(exportPath)
-        except: pass
+    _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAnimFromReference'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
@@ -1722,9 +1716,7 @@ def exportAnimFromReference( exportPath, **kwargs ):
 
 @_factories.addMelDocs('file', 'exportSelectedAnimFromReference')
 def exportSelectedAnimFromReference( exportPath, **kwargs ):
-    if 'type' not in kwargs and 'typ' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(exportPath)
-        except: pass
+    _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportSelectedAnimFromReference'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
@@ -1744,9 +1736,9 @@ def newFile( **kwargs ):
     """
 Modifications:
     - returns empty string, for consistency with sceneName()
-      ...if you wish to know the untitled scenen name, use untitledFileName()
+      ...if you wish to know the untitled scene name, use untitledFileName()
     """
-    cmds.file( **kwargs)
+    cmds.file(**kwargs)
     return ''
 
 @_factories.createflag('file', 'open')
@@ -1762,22 +1754,44 @@ def openFile( filepath, **kwargs ):
     return sceneName()
 
 @_factories.addMelDocs('file', 'rename')
-def renameFile( *args, **kwargs ):
-    return Path(cmds.file(rename=args[0]))
+def renameFile(newname, *args, **kwargs):
+    # we take args and kwargs just for backward compatibility... (only kwarg
+    # we use is type/typ)
+
+    # maya retains some sense of whether a file is .ma or .mb, independent of
+    # the file name - you can confirm this by doing:
+    #    >> cmds.file(new=1, f=1)
+    #    >> print cmds.file(q=1, type=1)
+    #    ['mayaBinary']
+    #    >> cmds.file(rename='foo.ma')
+    #    >> print cmds.file(q=1, type=1)
+    #    ['mayaBinary']
+    #    >> cmds.file(type='mayaAscii')
+    #    >> print cmds.file(q=1, type=1)
+    #    ['mayaAscii']
+
+    # therefore, we need to set the type OURSELVES when renaming, since this
+    # is what is normally desired...
+
+    _setTypeKwargFromExtension(newname, kwargs)
+    # for backwards compatability, and because the rename flag cannot be used
+    # with any other flags, we mostly throw out the given kwargs...
+    fileType = kwargs.get('type', kwargs.get('typ'))
+    if fileType is not None:
+        cmds.file(type=fileType)
+    return Path(cmds.file(rename=newname))
 
 @_factories.addMelDocs('file', 'save')
-def saveFile(**kwargs ):
+def saveFile(**kwargs):
     kwargs.pop('s', None)
     kwargs['save'] = True
     return Path(cmds.file(**kwargs))
 
 
 def saveAs(newname, **kwargs):
-    cmds.file( rename=newname )
+    _setTypeKwargFromExtension(newname, kwargs)
+    cmds.file(rename=newname )
     kwargs['save']=True
-    if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(newname)
-        except: pass
     cmds.file( **kwargs)
     return Path( newname )
 
