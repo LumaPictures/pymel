@@ -1903,7 +1903,10 @@ class PyNode(_util.ProxyUnicode):
 
     def __apimfn__(self):
         try:
-            # if we have it, use it
+            # if we have it, check that the mobject is still valid by calling
+            # __apimobject__
+            self.__apimobject__()
+            # ...if it is valid, go ahead and return the cached MFn
             return self.__apiobjects__['MFn']
         except KeyError:
             if self.__apicls__:
