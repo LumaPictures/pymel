@@ -8,7 +8,11 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 """
 from __future__ import with_statement
 
-import sys, os, re, itertools, inspect
+import sys
+import os
+import re
+import itertools
+import inspect
 
 import pymel.internal.pmcmds as cmds
 import pymel.util as _util
@@ -777,6 +781,10 @@ def listConnections(*args, **kwargs):
     """
 Modifications:
   - returns an empty list when the result is None
+  - returns an empty list (with a warning) when the arg is an empty list, tuple,
+        set, or frozenset, making it's behavior consistent with when None is
+        passed, or no args and nothing is selected (would formerly raise a
+        TypeError)
   - When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
 
         [['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']]
@@ -792,6 +800,8 @@ Modifications:
     # if we are returning plugs, because PyNode will prefer component
     # objects over attributes when there is amibiguity - ie,
     # PyNode('myNode.rotatePivot') will give a component
+    args = tuple(None if isinstance(x, (list, tuple, set, frozenset)) and not x
+                 else x for x in args)
     plugs = kwargs.get('plugs', kwargs.get('p', False))
     if plugs:
         CastObj = Attribute
@@ -852,13 +862,17 @@ def listHistory( *args, **kwargs ):
     """
 Modifications:
   - returns an empty list when the result is None
+  - raises a RuntimeError when the arg is an empty list, tuple, set, or
+        frozenset, making it's behavior consistent with when None is passed, or
+        no args and nothing is selected (would formerly raise a TypeError)
   - added a much needed 'type' filter
   - added an 'exactType' filter (if both 'exactType' and 'type' are present, 'type' is ignored)
 
     :rtype: `DependNode` list
 
     """
-
+    args = tuple(None if isinstance(x, (list, tuple, set, frozenset)) and not x
+                 else x for x in args)
     type = exactType = None
     if 'type' in kwargs:
         type = kwargs.pop('type')
@@ -898,11 +912,16 @@ Maya Bug Fix:
 
 Modifications:
   - returns an empty list when the result is None
+  - returns an empty list when the arg is an empty list, tuple, set, or
+        frozenset, making it's behavior consistent with when None is passed, or
+        no args and nothing is selected (would formerly raise a TypeError)
   - returns wrapped classes
   - fullPath is forced on to ensure that all returned node paths are unique
 
     :rtype: `DependNode` list
     """
+    args = tuple(None if isinstance(x, (list, tuple, set, frozenset)) and not x
+                 else x for x in args)
     kwargs['fullPath'] = True
     kwargs.pop('f', None)
     # Stringify Fix
