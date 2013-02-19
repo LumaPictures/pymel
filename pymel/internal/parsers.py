@@ -11,6 +11,8 @@ except ImportError:
     from BeautifulSoup import BeautifulSoup, NavigableString
 from keyword import iskeyword as _iskeyword
 
+FLAGMODES = ('create', 'query', 'edit', 'multiuse')
+
 _logger = plogging.getLogger(__name__)
 
 def mayaIsRunning():
@@ -86,17 +88,24 @@ class CommandDocParser(HTMLParser):
         self.emptyModeFlags = [] # when flags are in a sequence ( lable1, label2, label3 ), only the last flag has queryedit modes. we must gather them up and fill them when the last one ends
         HTMLParser.__init__(self)
 
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.command)
+
     def startFlag(self, data):
         #_logger.debug(self, data)
         #assert data == self.currFlag
         self.iData = 0
-        self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None, 'numArgs': None, 'docstring': '', 'modes': [] }
+        self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None,
+                                     'numArgs': None, 'docstring': '', 'modes': [] }
 
     def addFlagData(self, data):
+        # encode our non-unicode 'data' string to unicode
+        data = data.decode('utf-8')
+        # now saftely encode it to non-unicode ascii, ignorning unknown characters
         data = data.encode('ascii', 'ignore')
         # Shortname
         if self.iData == 0:
-            self.flags[self.currFlag]['shortname'] = data.lstrip('-')
+            self.flags[self.currFlag]['shortname'] = data.lstrip('-\r\n')
 
         # Arguments
         elif self.iData == 1:
@@ -108,14 +117,24 @@ class CommandDocParser(HTMLParser):
              'angle'   : float,
              'int'     : int,
              'uint'    : int,
+             'int64'   : int,
              'index'   : int,
              'integer'  : int,
              'boolean'  : bool,
              'script'   : 'script',
              'name'     : 'PyNode',
-             'select'   : 'PyNode'
+             'select'   : 'PyNode',
+             'time'     : 'time',
+             'timerange': 'timerange',
+             'floatrange':'floatrange',
+             '...'      : '...' # means that there is a variable number of args. we don't do anything with this yet
             }
-            args = [ typemap.get( x.strip(), x.strip() ) for x in data.strip('[]').split(',') ]
+            args = [x.strip() for x in data.replace('[', '').replace(']', '').split(',') if x.strip()]
+            for i, arg in enumerate(args):
+                if arg not in typemap:
+                    _logger.error("%s: %s: unknown arg type %r" % (self, self.currFlag, arg))
+                else:
+                    args[i] = typemap[arg]
             numArgs = len(args)
             if numArgs == 0:
                 args = bool
@@ -168,27 +187,30 @@ class CommandDocParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         #_logger.debug("begin: %s tag: %s" % (tag, attrs))
+        attrmap = dict(attrs)
         if not self.active:
             if tag == 'a':
-                if attrs[0][1] == 'hFlags':
+                name = attrmap.get('name', None)
+                if name == 'hFlags':
                     #_logger.debug('ACTIVE')
                     self.active = 'flag'
-                elif attrs[0][1] == 'hExamples':
+                elif name == 'hExamples':
                     #_logger.debug("start examples")
                     self.active = 'examples'
-        elif tag == 'a' and attrs[0][0] == 'name':
+        elif tag == 'a' and 'name' in attrmap:
             self.endFlag()
-            newFlag = attrs[0][1][4:]
+            newFlag = attrmap['name'][4:]
             newFlag = newFlag.lstrip('-')
             self.currFlag = newFlag
             self.iData = 0
             #_logger.debug("NEW FLAG", attrs)
             #self.currFlag = attrs[0][1][4:]
 
-
-        elif tag == 'img' and len(attrs) > 4:
-            #_logger.debug("MODES", attrs[1][1])
-            self.flags[self.currFlag]['modes'].append(attrs[1][1])
+        elif tag == 'img':
+            mode = attrmap.get('title', None)
+            if mode in FLAGMODES:
+                #_logger.debug("MODES", attrs[1][1])
+                self.flags[self.currFlag]['modes'].append(mode)
         elif tag == 'h2':
             self.active = False
 
