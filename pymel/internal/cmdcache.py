@@ -275,7 +275,7 @@ def getCmdInfoBasic( command ):
         res['removedFlags'] = removedFlags
     return res
 
-def getCmdInfo( command, version='8.5', python=True ):
+def getCmdInfo( command, version, python=True ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
@@ -350,7 +350,7 @@ def getCmdInfo( command, version='8.5', python=True ):
 
 
     except IOError:
-        #_logger.debug("could not find docs for %s" % command)
+        _logger.debug("could not find docs for %s" % command)
         return basicInfo
 
         #raise IOError, "cannot find maya documentation directory"
@@ -805,7 +805,11 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
                 except RuntimeError, msg:
                     _logger.info(cmd)
-                    _logger.info("\t" + str(msg).rstrip('\n') )
+                    _logger.info("\tRuntimeError: " + str(msg).rstrip('\n') )
+                    val = None
+                except ValueError, msg:
+                    _logger.info(cmd)
+                    _logger.info("\tValueError: " + str(msg).rstrip('\n') )
                     val = None
                 else:
                     # some flags are only in mel help and not in maya docs, so we don't know their
@@ -902,6 +906,10 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     _logger.info("\tpredicted arg: %s", argtype)
                     if not 'query' in modes:
                         _logger.info("\tedit only")
+                except ValueError, msg:
+                    _logger.info(cmd)
+                    _logger.info("\tValueError: " + str(msg).rstrip('\n') )
+                    val = None
                 else:
                     if 'edit' not in flagInfo['modes']:
                         flagInfo['modes'].append('edit')
@@ -997,6 +1005,10 @@ class CmdCache(startup.SubItemCache):
         # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
 
         long_version = versions.installName()
+
+        from parsers import mayaDocsLocation
+        cmddocs = os.path.join(mayaDocsLocation(long_version), 'CommandsPython')
+        assert os.path.exists(cmddocs), "Command documentation does not exist: %s" % cmddocs
 
         _logger.info("Rebuilding the maya node hierarchy...")
 

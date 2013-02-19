@@ -842,7 +842,7 @@ class ApiCache(startup.SubItemCache):
                     import errno
                     _logger.warn( "failed to parse docs for %r:" % name)
                     if isinstance(e, (IOError, OSError)) and e.errno == errno.ENOENT:
-                        _logger.warn("%s" % name, e)
+                        _logger.warn("%s: %s" % (name, e))
                     else:
                         import traceback
                         _logger.warn(traceback.format_exc())
@@ -959,14 +959,7 @@ class ApiCache(startup.SubItemCache):
         maya.mel.eval('source "initialPlugins.mel"')
         plugins.loadAllMayaPlugins()
 
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # DEBUG! UNCOMMENT THIS!
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #self._buildApiClassInfo()
+        self._buildApiClassInfo()
 
         self._buildMayaToApiInfo()
         self._buildApiTypeToApiClasses()
