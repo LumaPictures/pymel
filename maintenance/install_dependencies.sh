@@ -12,15 +12,18 @@ else
     # ensures that other eggs are not found
     export PYTHONPATH=''
 
-    # downloads setuptools
-    mayapy -c "import ez_setup; ez_setup.use_setuptools(); import setuptools.command.easy_install"
-    # setuptools is hardwired to look for "python2.6" on PATH
-    ln -s "$1/bin/mayapy" "$1/bin/python2.6"
-    sh setuptools-*-py2.6.egg
-    rm "$1/bin/python2.6"
+    # downloads distribute (setuptools)
+    curl -O http://python-distribute.org/distribute_setup.py
+    mayapy ./distribute_setup.py
+ 
+    # easy_install is not installed to $MAYA_LOCATION/bin on osx, so it's not on the PATH yet.
+    # it's easier to mimic easy_install with mayapy than to try to find the executable
+    #mayapy `which easy_install` nose
+    #mayapy `which easy_install` sphinx
 
-    mayapy `which easy_install` nose
-    mayapy `which easy_install` sphinx
+    mayapy -c "from setuptools.command.easy_install import main;main(['nose'])"
+    mayapy -c "from setuptools.command.easy_install import main;main(['sphinx'])"
+
 fi
 
 
