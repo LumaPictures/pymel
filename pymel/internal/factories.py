@@ -144,7 +144,8 @@ DOC_WIDTH = 120
 
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
-#: examples are usually only included when creating documentation
+#: controls whether command docstrings will contain examples parsed from autodesk docs
+# examples are usually only included when creating documentation, otherwise it's too much info
 includeDocExamples = bool( os.environ.get( 'PYMEL_INCLUDE_EXAMPLES', False ) )
 
 #Lookup from PyNode type name as a string to PyNode type as a class

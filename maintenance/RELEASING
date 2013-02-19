@@ -2,12 +2,15 @@
 Building an Official PyMEL Release
 ==================================
 
-Before proceeding, install the necessary third party modules
+Before proceeding, install the necessary third party dependencies.  You will need access to the internets
+for this.
 
-  - setuptools and easy_install. from the base pymel directory:
+  - nose (for tests) and sphinx (for docs) via distribute (aka setuptools). 
+    from the base pymel directory:
 
 ./maintenance/install_dependencies.sh $MAYA_LOCATION
 
+  - graphviz, for building the docs: http://www.graphviz.org/Download..php
 
 1) Build cache(s)
 -----------------
@@ -19,7 +22,9 @@ Before proceeding, install the necessary third party modules
     start GUI version of maya you wish to rebuild
     in script editor, run following, substituting location of your dev
     version of pymel::
-      
+
+  - ensure that the CommandsPython, API, and Nodes doc subdirectories are installed.
+
 import sys
 pymelPath = r'C:\Dev\Projects\eclipse\workspace\pymelProject\pymel'   # ...or wherever YOUR pymel version is installed
 if sys.path[0] != pymelPath:
@@ -41,6 +46,7 @@ import pymel.core as pm
 
     OR, if on linux/mac:
 
+        export PATH=$PATH:$MAYA_LOCATION/bin
         ./pymel_test_output.bash
 
 
@@ -61,9 +67,13 @@ python -c "import maintenance.stubs; maintenance.stubs.stubstest('./extras/compl
 4) changelog
 ------------
 
-  - run changelog script in this folder::
+  - run changelog script::
 
-        changelog $PREVIOUS_PYMEL_VERSION $CURRENT_REVISION
+        ./maintenance/changelog $PREVIOUS_PYMEL_VERSION $CURRENT_REVISION
+
+  - the args are git tags or commit hashes. for example:
+
+        ./maintenance/changelog 1.0.4 HEAD
 
   - copy results from resulting maintenance/CHANGELOG file to CHANGELOG.rst
     edit as necessary
@@ -71,6 +81,20 @@ python -c "import maintenance.stubs; maintenance.stubs.stubstest('./extras/compl
 
 5) build docs 
 -------------
+
+  - first, you should process any new autodesk doc examples, converting them from 'maya.cmds' to 'pymel'. 
+    (as always, be sure to use your dev copy of pymel by placing it first on the PYTHONPATH)
+
+import sys, os
+pymelPath = r'/Volumes/sv-dev01/devRepo/chad/pymel'   # ...or wherever YOUR pymel version is installed
+if sys.path[0] != pymelPath:
+    sys.path.insert(0, pymelPath)
+os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
+import pymel.internal.cmdcache as cmdcache
+cmdcache.fixCodeExamples()
+
+    if you need to rebuild all the examples, remove the unversioned mayaCmdsExamples.zip and run again.
+    be prepared for your computer to freak out and possibly crash as it runs all of the examples from the Autodesk docs.
 
   - from a clean/default environment maya gui *without pymel imported*, run:
 

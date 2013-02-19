@@ -5,15 +5,92 @@ Version 1.0.5
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
+
 - DagNode.isVisible:  has a new flag, checkOverride, which is on by default, and considers visibility override settings
 - referenceQuery/FileReference.getReferenceEdits: if only one of successfulEdits/failedEdits is given, and it is false, we now assume that the desire is to return the other type (and set that flag to true); formerly, this would result in NO edits being returned
 - parent no longer raises an error if setting an object's parent to it's current parent; this makes it behave similarly to the mel command, and to DagNode.setParent
 - renameFile now automatically sets the 'type' if none is supplied (helps avoid renaming a file to 'foo.ma', then saving it as 'mayaBinary')
+- general: 1D components have index() method: can no longer use string.index()
+- uitypes: make PyUI.parent return None instead of PyUI('')
 
 ----------------------------------
 Changes
 ----------------------------------
+
 - for maya versions >= 2012, creation of "ghost" plugin nodes no longer needed
+- general: change to Component to speed up len(PyNode('pCube1Shape').vtx)
+- general: parent and DagNode.setParent now share common codebase
+- general: when find unknown component type, default to just printing a warning and returning generic Component
+- general: demoted raiseLog warning about unknown component type to DEBUG
+- general: added uniqueObjExists function
+- general: speedup for string representation of complete MeshVertexFace
+- general: made listRelatives/listHistory/listConnections have same behavior for None and empty list
+- system: clarified doc not about removeReferenceEdits not erroring
+- system: FileReference.replaceWith - enable kwargs
+- system: renameFile automatically sets type
+- system: changed referenceQuery so when only one of successful/failed passed, other flag is opposite value
+- language: make catch take args/kwargs
+- nodetypes: attrDefaults - use MNodeClass in versions >= 2012, _GhostObjMaker otherwise
+- nodetypes: Transform.setRotation now takes args as EulerRotation, Quaternion, or iterable of 3 or 4 elements
+- nodetypes: isVisible checks overrideVisibility
+- stubs: catch more dict-like-objects; special case exclude for maya.precomp.precompmodule
+- stubs: create dummy data objects when safe; better handling of builtins
+- stubs: use static code analysis to decide whether to include a child module in a parent module's namespace
+- stubs: better representations for builtin data types
+- stubs: get all names in module, better 'import *' detection
+- plogging: added raiseLog func/method
+- plogging: small tweaks to way default ERRORLEVEL is set, and raiseLog is added onto loggers
+- ipymel: make sure stuff imported into global namespace in userSetup.py is available in IPython
+
+----------------------------------
+Additions
+----------------------------------
+
+- nodetypes: add stripNamespace option to DependNode.name
+- general: disconnectAttr - support for disconnecting only certain directions
+- general: MeshFace - added numVertices as alias for polygonVertexCount
+- general: add DiscreteComponent.totalSize method
+- general: added ParticleComponent class
+- other: added DependNodeName.nodeName (for compatibility with DagNodeName)
+- nodetypes: added DagNode.listComp
+- datatypes: add equivalentSpace
+- utilitytypes: proxyClass - added module kwarg to control __module__
+- system: added FileReference.parent()
+- system: listReferences - added loaded/unloaded kwargs
+- system: added UndoChunk context manager
+- system: Namespace.remove/.clean - add reparentOtherChildren kwarg
+- system: added support for regexps to path.listdir/.files/.dirs
+- system: added successful/failedEdits flags to FileReference.removeReferenceEdits
+- windows: confirmBox - add returnButton kwarg to force return of button label
+- plugins: added an example for creating plugin nodes
+- util.enum: added Enum.__eq__/__ne__
+- py2mel: add include/excludeFlagArgs
+- system: added proper hash function for FileReference
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- general: fix for potential crashes due to using cached/invalid MFn
+- general: fix pm.PyNode('pCube1.vtx[*]')[2] to work like like pm.PyNode('pCube1').vtx[2]
+- general: fix for HashableSlice comparison (fixes bug with component indexing)
+- general: Component - fixes for complete-component shortcut don't use with empty meshes don't use for subd components (including SubdUV) use ffd1LatticeShape.pt[*], not .pt[*][*][*]
+- general: SubdEdge - hack to avoid a maya bug which causes crash
+- language: MelGlobal.initVar now initializes in mel
+- language: remove annoying callback error spam; instead make info available in a log from Callback.printRecentError()
+- uitypes: fix for 2012 SP2 issue with objectTypeUI not working for windows with menu bars
+- nodetypes: Transform.setRotation - fix for setting with EulerRotation object and non-standard rotation order or unit
+- nodetypes: fix for ObjectSet.__len__
+- nodetypes: AnimLayer.getAttribute - query dagSetMembers.inputs() to get full/unique path
+- nodetypes: fix typo in name of NurbsCurve/Surface.controlVerts (not conrolVerts)
+- core: _pluginLoaded - add fix for addPluginPyNodes triggered on reference load (fix for 2012+ only)
+- core: fix erroneous 'could not find callback id' warnings
+- utilitytypes: universalmethod now has doc pulled from original func
+- util.conditions: bugfix for __ror__, added __str__
+- allapi: toApiObject - low-level fix for Nucleus attributes
+- startup: don't use fixMayapy2011SegFault in >= 2013, seg fault was addressed by Autodesk
+- stubs: fixes for objects with multiple aliases in a module
+- py2mel: bugfixes, bugfix for excludeFlagArgs
 
 ==================================
 Version 1.0.4

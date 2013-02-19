@@ -377,7 +377,8 @@ def fixCodeExamples(style='maya', force=False):
     allCmds = set(examples.keys())
     # put commands that require manual interaction first
     manualCmds = ['fileBrowserDialog', 'fileDialog', 'fileDialog2', 'fontDialog']
-    skipCmds = ['colorEditor', 'emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor', 'ogsRender', 'webBrowser', 'deleteAttrPattern']
+    skipCmds = ['colorEditor', 'emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor',
+                'ogsRender', 'webBrowser', 'deleteAttrPattern', 'grabColor']
     allCmds.difference_update(manualCmds)
     sortedCmds = manualCmds + sorted(allCmds)
     for command in sortedCmds:
@@ -389,9 +390,16 @@ def fixCodeExamples(style='maya', force=False):
 
         _logger.info("Starting command %s", command)
 
+        if style == 'doctest' :
+            DOC_TEST_SKIP = ' #doctest: +SKIP'
+        else:
+            DOC_TEST_SKIP = ''
+
         # change from cmds to pymel
         reg = re.compile(r'\bcmds\.')
+        example = example.replace('import maya.cmds as cmds', 'import pymel.core as pm' + DOC_TEST_SKIP, 1)
         example = reg.sub( 'pm.', example )
+
         #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
 
         lines = example.split('\n')
@@ -402,13 +410,6 @@ def fixCodeExamples(style='maya', force=False):
             # write out after each success so that if we crash we don't have to start from scratch
             CmdProcessedExamplesCache().write(processedExamples)
             continue
-
-        if style == 'doctest' :
-            DOC_TEST_SKIP = ' #doctest: +SKIP'
-        else:
-            DOC_TEST_SKIP = ''
-
-        lines[0] = 'import pymel.core as pm' + DOC_TEST_SKIP
 
         if command in skipCmds:
             example = '\n'.join( lines )
@@ -504,6 +505,7 @@ def fixCodeExamples(style='maya', force=False):
     # restore manipulators and anim options
     print manipOptions
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
+    print animOptions
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
 
     #CmdExamplesCache(examples)
