@@ -1,5 +1,8 @@
 import sys
 import os, glob, shutil
+from sphinx import main as sphinx_build
+from sphinx.ext.autosummary.generate import main as sphinx_autogen
+
 assert 'pymel' not in sys.modules or 'PYMEL_INCLUDE_EXAMPLES' in os.environ, "to generate docs PYMEL_INCLUDE_EXAMPLES env var must be set before pymel is imported"
 
 # remember, the processed command examples are not version specific. you must
@@ -32,22 +35,24 @@ BUILD = os.path.join('build', version)
 from pymel.internal.cmdcache import fixCodeExamples
 
 def generate():
-    from sphinx.ext.autosummary.generate import main
+    "delete build and generated directories and generate a top-level documentation source file for each module."
 
     clean_build()
     clean_generated()
     os.chdir( os.path.join(docsdir,SOURCE) )
 
-    main( [''] + '--templates ../templates index.rst'.split() )
-    main( [''] + '--templates ../templates'.split() + glob.glob('generated/pymel.*.rst') )
+    sphinx_autogen( [''] + '--templates ../templates index.rst'.split() )
+    sphinx_autogen( [''] + '--templates ../templates'.split() + glob.glob('generated/pymel.*.rst') )
 
 def clean_build():
+    "delete existing build directory"
     builddir = os.path.join(docsdir, BUILD)
     if os.path.exists(builddir):
         print "removing", builddir
         shutil.rmtree(builddir)
 
 def clean_generated():
+    "delete existing generated directory"
     gendir = os.path.join(docsdir,SOURCE, 'generated')
     if os.path.exists(gendir):
         print "removing", gendir
@@ -63,8 +68,7 @@ def find_dot():
             return d
     raise TypeError( 'cannot find graphiz dot executable in the following locations: %s' % ', '.join(dots) )
 
-def build(clean=True,  **kwargs):
-    from sphinx import main
+def build(clean=True, **kwargs):
     os.chdir( docsdir )
     if clean:
         clean_generated()
@@ -87,4 +91,4 @@ def build(clean=True,  **kwargs):
     opts.append('-P')
     opts.append(SOURCE)
     opts.append(BUILD)
-    main(opts)
+    sphinx_build(opts)
