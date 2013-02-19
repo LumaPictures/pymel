@@ -159,7 +159,7 @@ mpxNamesToApiEnumNames = {
     }
 
 # Gives a map from an MPx class name to it's maya node type name
-# Constructed from a combination of buildMpxNamesToMayaNodes and manual
+# Constructed from a combination of _buildMpxNamesToMayaNodes and manual
 # guess + check with nodeType(isTypeName=True)
 mpxNamesToMayaNodes = {
     'MPxNode': u'THdependNode',
@@ -188,10 +188,16 @@ mpxNamesToMayaNodes = {
     }
 
 mpxClassesToMpxEnums = {}
-for mpxName, enumName in mpxNamesToEnumNames.iteritems():
-    mpxCls = getattr(mpx, mpxName, None)
-    if mpxCls:
-        mpxClassesToMpxEnums[mpxCls] = getattr(mpx.MPxNode, enumName)
+
+for _mpxName, _enumName in mpxNamesToEnumNames.iteritems():
+    _mpxCls = getattr(mpx, _mpxName, None)
+    if _mpxCls:
+        _enum = getattr(mpx.MPxNode, _enumName, None)
+        if _enum is not None:
+            mpxClassesToMpxEnums[_mpxCls] = _enum
+        else:
+            print "warning: could not find enum MPxNode.%s for class %s" % (_enumName, _mpxName)
+del _mpxName, _enumName, _enum
 
 pluginMayaTypes = set(mpxNamesToMayaNodes.itervalues())
 
@@ -227,8 +233,8 @@ def allMPx():
     return _allMPx
 
 # We want to make sure we know if maya adds a new MPx class!
-for _mpx in allMPx():
-    assert _mpx in mpxClassesToMpxEnums, 'new MPx class found: %s' % _mpx.__name__
+_new = [_mpx.__name__ for _mpx in allMPx() if _mpx not in mpxClassesToMpxEnums]
+if _new: print 'new MPx classes found: %s' % ', '.join(_new)
 
 #===============================================================================
 # Plugin Registration / loading
@@ -554,6 +560,8 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
     def isAbstractClass(cls):
         # MPxPolyTrg returns True
         return False
+
+class Assembly(DependNode, mpx.MPxAssembly): pass
 
 class CameraSet(DependNode, mpx.MPxCameraSet): pass
 
