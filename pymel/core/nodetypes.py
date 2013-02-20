@@ -3195,7 +3195,7 @@ class SkinCluster(GeometryFilter):
     def numInfluenceObjects(self):
         return self._influenceObjects()[0]
 
-# TODO: if nucleus bug ever fixed:
+# TODO: if nucleus/symmetryConstraint bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
 #   - remove hard-code setting of Nucleus's parent to DependNode
 #   - remove 2 checks in allapi.toApiObject for objects which can have an MDagPath
@@ -3208,6 +3208,11 @@ if _apicache.NUCLEUS_MFNDAG_BUG:
     # DependNode
     class Nucleus(DependNode):
         __metaclass__ = _factories.MetaMayaNodeWrapper
+
+if _apicache.SYMMETRY_CONSTRAINT_MFNDAG_BUG:
+    class SymmetryConstraint(DependNode):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
+
 
 # TODO: if hikHandle bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES

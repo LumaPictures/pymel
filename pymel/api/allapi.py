@@ -282,7 +282,7 @@ def toApiObject(nodeName, dagPlugs=True, numMultiple=False):
                         dag = MDagPath()
                         sel.getDagPath( 1, dag )
 
-                        # TODO: if nucleus bug ever fixed:
+                        # TODO: if nucleus/symmetryConstraint bug ever fixed:
                         #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
                         #   - remove hard-code setting of Nucleus's parent to DependNode
                         #   - remove 2 checks in allapi.toApiObject for objects which
@@ -341,7 +341,7 @@ def toApiObject(nodeName, dagPlugs=True, numMultiple=False):
                 sel.getDagPath( 0, dag )
                 #if not isValidMDagPath(dag) : return
 
-                # TODO: if nucleus bug ever fixed:
+                # TODO: if nucleus/symmetryConstraint bug ever fixed:
                 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
                 #   - remove hard-code setting of Nucleus's parent to DependNode
                 #   - remove 2 checks in allapi.toApiObject for objects which
