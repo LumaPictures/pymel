@@ -74,12 +74,3 @@ Appendices:
 	pymel.tools.loggingControl
 	pymel.api.plugins
 
-
-=======================================
-    Special Thanks
-=======================================
-
-Special thanks to those studios with the foresight to support an open-source project of this nature:  Luma Pictures, 
-Attitude Studio, and ImageMovers Digital.
-
-

@@ -108,5 +108,11 @@ docs.build()
 6) run makerelease
 ------------------
 
-./maintenance/makerelease $PYMEL_VERSION
+   - before releasing, make sure to tag the release (TODO: make this part of makerelease?).
+   
+        git tag -a 1.0.5rc1 -m "pymel release 1.0.5rc1"
+
+   - then run the release script
+
+        ./maintenance/makerelease $PYMEL_VERSION
 
