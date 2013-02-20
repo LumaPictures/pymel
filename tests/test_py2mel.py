@@ -2,6 +2,7 @@ import unittest
 
 import maya.mel as mel
 import pymel.core as pm
+import pymel.versions as versions
 
 import pymel.tools.py2mel as py2mel
 
@@ -32,6 +33,14 @@ class testCaseClassWrap(unittest.TestCase):
         elif WRAPPED_CMDS[cmdName] != toWrap:
             raise RuntimeError('error - already another command called %s' % cmdName)
 
+    def assertMelError(self, cmd):
+        # in maya 2014, a RuntimeError is raised... yay!
+        if versions.current() >= versions.v2014:
+            self.assertRaises(RuntimeError, mel.eval, cmd)
+        else:
+            # tried catch/catchQuiet, but they always return 0...
+            self.assertEqual(mel.eval(cmd), None)
+
     def test_autoName(self):
         self.wrapClass(MyClassNoArgs, None)
         self.assertEqual(mel.eval('''MyClassNoArgs -noArgs'''), 'foo')
@@ -50,8 +59,7 @@ class testCaseClassWrap(unittest.TestCase):
 
     def test_oneKwarg_notEnoughArgsErr(self):
         self.wrapClass(MyClassNoArgs, 'myCls')
-        # tried catch/catchQuiet, but they always return 0...
-        self.assertEqual(mel.eval('''myCls -oneKwarg'''), None)
+        self.assertMelError('''myCls -oneKwarg''')
 
     def test_oneArgOneKwarg(self):
         self.wrapClass(MyClassNoArgs, 'myCls')
@@ -59,8 +67,8 @@ class testCaseClassWrap(unittest.TestCase):
 
     def test_oneArgOneKwarg_notEnoughArgsErr(self):
         self.wrapClass(MyClassNoArgs, 'myCls')
-        self.assertEqual(mel.eval('''myCls -oneArgOneKwarg'''), None)
-        self.assertEqual(mel.eval('''myCls -oneArgOneKwarg stuff'''), None)
+        self.assertMelError('''myCls -oneArgOneKwarg''')
+        self.assertMelError('''myCls -oneArgOneKwarg stuff''')
 
     def test_nameTooShort(self):
         class ShortFuncCls(object):
@@ -73,15 +81,15 @@ class testCaseClassWrap(unittest.TestCase):
     def test_excludeFlag(self):
         self.wrapClass(MyClassNoArgs, 'myCls2', excludeFlags=['oneKwarg'])
         self.assertEqual(mel.eval('''myCls2 -oneArg stuff'''), 'stuffstuff')
-        self.assertEqual(mel.eval('''myCls2 -oneKwarg goober'''), None)
+        self.assertMelError('''myCls2 -oneKwarg goober''')
 
     def test_excludeFlagArg(self):
         self.wrapClass(MyClassNoArgs, 'myCls3', excludeFlagArgs={'oneKwarg':['kwarg1']})
         self.assertEqual(mel.eval('''myCls3 -oneKwarg'''), 'defaultdefault')
-        self.assertEqual(mel.eval('''myCls3 -oneKwarg goober'''), None)
+        self.assertMelError('''myCls3 -oneKwarg goober''')
 
     def test_excludeFlagArg_orderChanged(self):
         self.wrapClass(MyClassNoArgs, 'myCls4', excludeFlagArgs={'oneArgTwoKwarg':['kwarg1']})
-        self.assertEqual(mel.eval('''myCls4 -oneArgTwoKwarg foo'''), None)
+        self.assertMelError('''myCls4 -oneArgTwoKwarg foo''')
         self.assertEqual(mel.eval('''myCls4 -oneArgTwoKwarg "Little Bo PeeP" Batman'''), 'Little Bo PeeP ate Batman!')
-        self.assertEqual(mel.eval('''myCls4 -oneArgTwoKwarg defenestrated You Spiderman'''), None)
+        self.assertMelError('''myCls4 -oneArgTwoKwarg defenestrated You Spiderman''')
