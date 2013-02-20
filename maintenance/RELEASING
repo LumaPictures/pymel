@@ -63,6 +63,8 @@ maintenance.stubs.pymelstubs()
      
 python -c "import maintenance.stubs; maintenance.stubs.stubstest('./extras/completion/py')"
 
+    be sure to run the test using the same major version of python as maya (2.6, 2.7, etc), so that any references to
+    functions and classes in the standard library are found.
 
 4) changelog
 ------------

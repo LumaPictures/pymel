@@ -3,6 +3,11 @@
 # For steps required to make a proper release see RELEASING in this directory
 
 fullVer=$1
+if [ -z "$fullVer" ]; then
+	echo "ERROR: you must provide a pymel release version"
+	exit 1
+fi
+
 baseVer=$(python -c "import pymel;import re; print re.split('[a-z]','$1')[0]")
 echo "Release version is $fullVer"
 echo "Release base version is $baseVer"
@@ -17,9 +22,25 @@ else
 	mkdir release
 fi
 
+echo "looking for mayapy..."
+pybin=`which mayapy 2> /dev/null`
+if [ -z "$pybin" ]; then
+	echo "couldn't find mayapy."
+	echo "looking for python..."
+	pybin=`which python 2> /dev/null`
+	if [ -z "$pybin" ]; then
+		echo "ERROR: couldn't find a python executable!"
+		exit 1
+	else
+		echo "found $pybin"
+	fi
+else
+	echo "found $pybin"
+fi
+
 
 # run in root of pymel dev
-cd ../ && mayapy -c 'import pymel
+cd ../ && $pybin -c 'import pymel
 import re
 print "current pymel version is", pymel.__version__
 assert pymel.__version__ == "'"$baseVer"'"'
