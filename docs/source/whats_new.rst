@@ -1,242 +1,515 @@
 .. currentmodule:: pymel
 
-=======================================
-What's New in Version 1.0.0
-=======================================
+**********
+What's New
+**********
 
-----------------------
-New Package Layout
-----------------------
+==================================
+Version 1.0.5
+==================================
 
-PyMEL 1.0 introduces a very big backward incompatibility: importing ``pymel`` no longer imports sub-packages, meaning ``pymel`` is strictly an entry point for its sub-modules.  The user must now explicitly import the sub-modules they wish to use. ``pymel.core`` remains the primary module and importing it in batch mode triggers Maya's full startup sequence, just as importing the top-level ``pymel`` module did in previous versions.
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
 
-Sub-Modules with their own namespace
-====================================
+- DagNode.isVisible:  has a new flag, checkOverride, which is on by default, and considers visibility override settings
+- referenceQuery/FileReference.getReferenceEdits: if only one of successfulEdits/failedEdits is given, and it is false, we now assume that the desire is to return the other type (and set that flag to true); formerly, this would result in NO edits being returned
+- parent no longer raises an error if setting an object's parent to it's current parent; this makes it behave similarly to the mel command, and to DagNode.setParent
+- renameFile now automatically sets the 'type' if none is supplied (helps avoid renaming a file to 'foo.ma', then saving it as 'mayaBinary')
+- general: 1D components have index() method: can no longer use string.index()
+- uitypes: make PyUI.parent return None instead of PyUI('')
 
-    ============================ ======= =============================================================================================================
-    Module                       Alias   Description
-    ============================ ======= =============================================================================================================
-    `pymel.util`                         utilities which are independent of Maya
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.versions`                     functions for comparing versions of maya (does not require initializing maya)
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.mayautils`                    low-level maya utilities (does not require initializing maya)
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.api`                          OpenMaya classes; requires maya, but does not require initialization of ``maya.standalone``
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.internal`                     the machinery required to fuse ``maya.OpenMaya`` and ``maya.cmds`` into `pymel.core` (formally ``mayahook``)
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.core`                         the primary sub-package; importing this module initializes maya.standalone in batch mode
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.core.nodetypes`       ``nt``  contains all node classes, including custom nodes
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.core.uitypes`         ``ui``  contains all UI classes
-    ---------------------------- ------- -------------------------------------------------------------------------------------------------------------
-    `pymel.core.datatypes`       ``dt``  contains all data classes
-    ============================ ======= =============================================================================================================
-                                         
-Modules with an alias can be accessed by this short name once their parent module is imported.
+----------------------------------
+Changes
+----------------------------------
+
+- for maya versions >= 2012, improved reliability with 3rd party plugin nodes
+- general: change to Component to speed up len(PyNode('pCube1Shape').vtx)
+- general: parent and DagNode.setParent now share common codebase
+- general: when unknown component type is found, default to printing a warning and returning generic Component
+- general: added uniqueObjExists function
+- general: speedup for string representation of complete MeshVertexFace
+- general: made listRelatives/listHistory/listConnections have same behavior for None and empty list
+- system: clarified doc not about removeReferenceEdits not erroring
+- system: FileReference.replaceWith - enable kwargs
+- system: renameFile automatically sets type
+- system: changed referenceQuery so when only one of successful/failed passed, other flag is opposite value
+- language: make catch take args/kwargs
+- nodetypes: attrDefaults - use MNodeClass in versions >= 2012, _GhostObjMaker otherwise
+- nodetypes: Transform.setRotation now takes args as EulerRotation, Quaternion, or iterable of 3 or 4 elements
+- nodetypes: isVisible checks overrideVisibility
+- stubs: catch more dict-like-objects
+- stubs: create dummy data objects when safe; better handling of builtins
+- stubs: use static code analysis to decide whether to include a child module in a parent module's namespace
+- stubs: better representations for builtin data types
+- stubs: get all names in module, better 'import *' detection
+- plogging: added raiseLog func/method
+- plogging: small tweaks to way default ERRORLEVEL is set
+- ipymel: make sure stuff imported into global namespace in userSetup.py is available in IPython
+
+----------------------------------
+Additions
+----------------------------------
+
+- general: disconnectAttr - support for disconnecting only certain directions
+- general: MeshFace - added numVertices as alias for polygonVertexCount
+- general: add DiscreteComponent.totalSize method
+- general: added ParticleComponent class
+- other: added DependNodeName.nodeName (for compatibility with DagNodeName)
+- nodetypes: added DagNode.listComp
+- nodetypes: add stripNamespace option to DependNode.name
+- datatypes: add equivalentSpace
+- utilitytypes: proxyClass - added module kwarg to control __module__
+- system: added FileReference.parent()
+- system: listReferences - added loaded/unloaded kwargs
+- system: added UndoChunk context manager
+- system: Namespace.remove/.clean - add reparentOtherChildren kwarg
+- system: added support for regexps to path.listdir/.files/.dirs
+- system: added successful/failedEdits flags to FileReference.removeReferenceEdits
+- windows: confirmBox - add returnButton kwarg to force return of button label
+- plugins: added an example for creating plugin nodes
+- util.enum: added Enum.__eq__/__ne__
+- py2mel: add include/excludeFlagArgs
+- system: added proper hash function for FileReference
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- general: fix for potential crashes due to using cached/invalid MFn
+- general: fix pm.PyNode('pCube1.vtx[*]')[2] to work like like pm.PyNode('pCube1').vtx[2]
+- general: fix for HashableSlice comparison (fixes bug with component indexing)
+- general: Component - fixes for complete-component shortcut don't use with empty meshes don't use for subd components (including SubdUV) use ffd1LatticeShape.pt[*], not .pt[*][*][*]
+- general: SubdEdge - hack to avoid a maya bug which causes crash
+- language: MelGlobal.initVar now initializes in mel
+- language: remove annoying callback error spam; instead make info available in a log from Callback.printRecentError()
+- uitypes: fix for 2012 SP2 issue with objectTypeUI not working for windows with menu bars
+- nodetypes: Transform.setRotation - fix for setting with EulerRotation object and non-standard rotation order or unit
+- nodetypes: fix for ObjectSet.__len__
+- nodetypes: AnimLayer.getAttribute - query dagSetMembers.inputs() to get full/unique path
+- nodetypes: fix typo in name of NurbsCurve/Surface.controlVerts (not conrolVerts)
+- core: _pluginLoaded - add fix for addPluginPyNodes triggered on reference load (fix for 2012+ only)
+- core: fix erroneous 'could not find callback id' warnings
+- utilitytypes: universalmethod now has doc pulled from original func
+- util.conditions: bugfix for __ror__, added __str__
+- allapi: toApiObject - low-level fix for Nucleus attributes
+- startup: don't use fixMayapy2011SegFault in >= 2013, seg fault was addressed by Autodesk
+- stubs: fixes for objects with multiple aliases in a module
+- py2mel: bugfixes, bugfix for excludeFlagArgs
+
+==================================
+Version 1.0.4
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+
+- core.uitypes: improved AETemplates to work when created from within a scripted plugin
+- tools.mel2py: now output exact same filename as input on Windows
+- core.nodetypes: Transform.getRotation  - can get as euler or quaternion
+- extras: improved reliability of stub files (for pydev, wing, etc)
+- core: doing select([], replace=True) should clear selection
+- api.allapi: replace toMObjectName with MObjectName
+- core: namespace - root option is now False (for backward compatibility)
+- core: MeshVertex.setColors - set colors for all verts in MeshVertex
+- core: re-implement noIntermediate flag to listRelatives
+- plogging: PYMEL_LOGLEVEL env var now sets minimum level for all pymel loggers
+- core: use new 2012 pluginInfo flags for getting more command types
+- core.windows: PopupError can now raise another exception type
+- examples: update customClasses.py example
+
+----------------------------------
+Additions
+----------------------------------
+
+- util.path: added boolean normcase keyword arg to path.canonicalpath()
+- api.plugins: added in classes for all MPxNode classes and methods for querying class / MPx to MPx enum mappings
+- api.plugins: added new overridable methods which generate node callbacks:  timeChagned, forcedUpdate, nodeAdded, nodeRemoved, preConnectionMade
+- versions: added maya2012 hotfix 1,2,3,4
+- core: Attribute.setDirty / evaluate
+- core: DependNode.rename() now supports pyMel unique flag preserveNamespace
+- core: added check to ensure name passed to DependNode.rename() is shortname
+- core: implemented DependNode.rename() flags: i.e. ignoreShape can now be used
+- core.uitypes: added Layout.findChild() which takes the shortname of a child as a string and returns the PyUI object
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- mayautils: fix so recurseMayaScriptPath, when given explicit roots, doesn't wipe out old paths
+- core: fixed bug where __pymelUndoNode was created in non root namespace
+- tools.pymelScrollFieldReporter: use mel2py.melparse (issue 247)
+- core: fixed FileReference.importContents(removeNamespace=True)
+- core: _pluginLoaded callback now correctly triggered by importing
+- core:  fix promptForPath doesn't work for mode 1/100 due to testing for the existance of the path.
+- core.nodetypes: fix for DependNode.rename(preserveNamespace=True) when node in root namespace
+- core.nodetypes: fixed bug with RenderLayer.add/removeAdjustments
+- core.nodetypes: fix for DagNode.getAllParents (and test)
+- core.nodetypes: fix for DependNode.hasAttr(checkShape=False)
+- core.nodetypes: fix for AnimCurve.addKeys (issue 234)
+- internal.startup: fix for error message when fail to import maya.cmds.about
+- core: fixed addAttr(q=1, dataType=1) so it does not error if non-dynamic attr
+- core: pythonToMelCmd - fix bug when flagInfo['args'] was not a class
+- core: pythonToMelCmd - fix for flags where numArgs > 1
+- maya.utils: formatGuiException - fix for, ie, IOError / OSError
+- updated 2012 caches to fix issue 243
+
+==================================
+Version 1.0.3
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+
+- UI classes that have 'with' statement support now set parent back to previous
+  'with' object if there are nested with statements; if not in a nested with
+  statement, resets parent back to UI element's parent (or more precisely, the
+  first element that is not a rowGroupLayout element)
+- ``with OptionMenuGrp()`` will set parent menu properly
+- 'Unit' support for Quaternion objects is now removed (as it doesn't make
+  any sense)
+- can now pass in PyNode class objects to functions / methods that expect a
+  mel node class name - ie:
+
+     listRelatives(allDescendents=True, type=nt.Joint)
+
+  is equivalent to:
+
+     listRelatives(allDescendents=True, type='joint')
+- other: NameParser(dagObj) now always gives a DagNodeName even if shortName has no |
 
 
-But Why?!
-=========
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+
+- PyNode('*') - or any other non-unique name - now returns an error
+  use ls('*') if you wish to return a list of possible nodes
+- By default, the root pymel logger outputs to sys.__stdout__ now, instead of
+  sys.stderr; can be overriden to another stream in sys (ie, stdout, stderr,
+  __stderr__, __stdout__) by setting the MAYA_SHELL_LOGGER_STREAM environment
+  variable
+- skinCluster, tangentConstraint, poleVectorConstraint, and
+  pointOnPolyConstraint commands now return a PyNode when creating, instead of a
+  list with one item
+- skinCluster command / node's methods / flags for querying deformerTools,
+  influence, weightedInfluence now return PyNodes, not strings
+- Attribute.elements now returns an empty list instead of None
+- general: Attribute.affects/affected return empty list when affects returns None
+- setParent returns PyUI / None; menu(itemArray) returns [] for None
+- general: make Attribute.elements() return empty list for None
+- shape attribute lookup on all child shapes (like mel does)
+
+----------------------------------
+Additions
+----------------------------------
+
+- Shape.setParent automatically adds --shape flag
+- nodetypes: added isVisible
+- added MGlobal.display* methods to pymel.core.system namespace
+- other: added NameParser.stripGivenNamespace()
+- language: OptionVarList has more helpful error message when __setitem__ attempted
+- nodetypes: getSiblings can now take kwargs
+- Added MainProgressBar context manager
+- Added isUsedAsColor method to Attribute class
+- Added wrapper for listSets function
+- Added method listSets to PyNode class
+- Add a folderButtonGrp
+- core.system: added Namespace.move
+- core.system: added Namespace.listNodes
+- mel2py: python mel command now translated to pymel.python (ie, maya.cmds.python)
+- general: added Attribute.indexMatters
+- language: added animStart/EndTime to Env
+- system: add in a 'breadth'-first recursive search mode to iterReferences
+- general: added ability to set enum Attributes with string values (issue 35)
+- plogging: set logging level with PYMEL_LOGLEVEL env var
+- Added isRenderable() method to object set.
+- deprecate PyNode.__getitem__
+- mayautils: executeDeferred now takes args, like maya.utils.executeDeferred
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- py2mel failing with functions that take \*args/\*\*kwargs
+- eliminated / fixed various 'warning' messages on pymel startup
+- MayaNodeError / MayaAttributeError not being raised when a node / attribute not found
+- some maya cmds were not handling 'stubFunc' correctly
+- renderLayer.listAdjustments() was not functioning
+- MainProgressBar fixed
+- language: OptionVarList __init__ no longer raises deprecation warning
+- listSets() throws away non-existant 'defaultCreaseDataSet' that maya.cmds.listSets() returns
+- fix for dealing with maya bug where constraint angle offsets always returned in radians (but set in degrees)
+- fixes for incorrect formatting of error strings in some cases
+- fixes for unloading of commands/nodetypes when plugins unloaded (and pymel.all was imported first)
+- miscellaneous documentation fixes
+- fix for mayautils.executeDeferred when invoked with args
+- fix for Attribute.getAllParents()
+- fix for aliased multi/compound attributes
+- fix for Attribute.isSettable with multi/compound attributes
+- fix for Attribute.exists with multi/compound attributes
+- fix for Attribute.type with multi/compound attributes dynamic attributes
+- fix for published container node attributes / aliases
+- fixes for plugin callback failing when plugin has uncreate-able nodes
+- fixes for multiple iterators of a mutli-attribute not being independent
+- fix for MeshVertex.setColor
+- fix for MeshVertex.isConnectedTo
+- fix for MeshVertex.getColor
+- fix for MeshEdge.isConnectedTo
+- fix for MeshFace.isConnectedTo
+- fix for plogging handling case where various env. variables exist, but are empty
+- Fix for Layout.children() Layout.children() now returns empty list if layout has no kids intead of raising error.
+- listConnections: fix so rotatePivot always Attribute (not component)
+- uitypes: bugfixes to AETemplates.  corrected UITemplate to represent an existing uiTemplate if instantiated with the name of an existing template
+- nodetypes: fixed a bug where Transform.setScalePivot was internally using MFnTransform.setScalePivotTranslation
+- fixed a bug in pythonToMel where python booleans were not converted to integer. this caused the Mel class to not work properly with booleans.
+- core.general: fix a bug with sets command where noWarnings was interpreted as a set flag, instead of a boolean flag
+- Namespace: fix for getParent()
+- general: various attr name fixes (stripping of [-1] indices, etc)
+- nameparse: enable parsing of [-1] indices (for attributes)
+- nodetypes: enable parsing of [-1] indices (for attributes)
+- nodetypes: setParent to current parent no longer errors
+- util.enum: fix for repr of EnumDict
+- fixes for referenceQuery
+- attr.exists() should return False if the node no longer exists
+- datatypes: fixed bug to allow Point * FloatMatrix
+- general: bugfix for Attribute.attrName
+- utilitytypes: EquivalencePairs.get now correctly retrieves value=>key
+- nodetypes: fixed setParent(world=1) bug
+- uitypes: Fix issues with the popup and with support.
+- pm.mel.command translation would fail with no-arg bool flags (like -q, -e)
+- language: mel command translation makes no assumptions for unknown commands; None is translated to empty string, not 'None'
+- bugfix for uiTemplate(exists=1)
+- general: Attribute.elements() now correctly works with array and element plugs
+- fix get/set rotation by using eulerRotation
+- startup: changes to fix issues with maya -prompt and plugins loading pymel
+- fix for TransformationMatrix.get/setRotation, removed Quaternion units
+- datatypes: fixes for EulerRotation
+- fix for ui heights for pymelControlPanel
+- uitypes: bugfix for with statement parent setting on exit
+- mesh: fixes to allow creating component objects for empty meshes (ie, createNode('mesh').vtx)
+- mesh: made more num* functions work with empty meshes
+- core.general: fix for move with no object
+- datatypes: fix for EulerRotation comparison/len
+- fix for menu('someOptionMenu')
+- FileReference: initialize correctly from a path
+- windows: bugfix - informBox wasn't using 'ok' kwarg
+- plogging: bugfix for 182 - crash due to creating loggers as iterating over dict
+- arrays: fix for dot/outer product error messages (issue 158)
+- fix for 'no useName' and MfknSkinCluster.setBlendWeights warnings on startup
+- Fixed language import in MainProgressBar
+- fix for Issue 216: renderLayer.listAdjustments()
+- docfix for issue 192
+- fix for constraint angle offset query always being in radians
+- nodetypes: fix for multi/compound alias attrs
+- nodetypes: fixes for published container node attributes / aliases
+- general: made attribute iterator independent
+- general: fix for isSettable with multi/compound attributes
+- general: fix so getAllParents doesn't return orig object
+- general: fix for Attribute.exists with multi/compound attrs
+- Attribute.type() now works with multi/compound, dynamic attrs
+- fixes for mesh components
+
+==================================
+Version 1.0.2
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+
+- rolled back ``listConnections()`` change from 1.0.1
+
+commands wrapped to return PyNodes
+----------------------------------
+- ``container()``
+
+----------------------------------
+Additions
+----------------------------------
+
+- added functions for converting strings to PyQt objects: ``toQtObject()``, ``toQtLayout()``, ``toQtControl()``, ``toQtMenuItem()``, ``toQtWindow()``
+- added method for converting PyMEL UI objects to PyQt objects: ``UI.asQtObject()``
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- fixed a bug where ``nt.Conditions()`` created a script condition
 
 
-One of the tenets of PyMEL's design is that it should add object-oriented programming while still being easy for a novice to use.  One way that we tried to accomplish this was by providing access to all of its sub-modules with a single top-level import. However, in the years since this design was first implemented, we've come to realize that this has certain ugly drawbacks.  The new layout has several advantages:
+==================================
+Version 1.0.1
+==================================
 
-1. load time:  our new layout uses lazy loading for `pymel.core.uitypes` and `pymel.core.nodetypes`, which delays the creation of classes and methods until they are accessed.  This lazy loading dramatically speeds up PyMEL's load time, but it only works if the classes that are being lazily loaded stay in their own namespace.  For example, if you do a ``from pymel.core.nodetypes import *``, this forces every class within that module to be loaded.
+----------------------------------
+Changes
+----------------------------------
 
-2. API segregation: `pymel.api` will grow into a robust set of utilities for API development. Under the new design, importing `pymel.api` has very little overhead and will not import any core commands, which could be dangerous to use in the context of a plugin.
+- ``listConnections``: when destination is shape, always returns shape (not transform)
+- ``select([])`` only clears selection if mode is replace
+- deprecated ``Attribute.firstParent()``
 
-3. util accessibility:  `pymel.util` contains functions and classes that are not Maya-dependent or even Maya-related so they are useful in many contexts. However, in the old layout you could not import ``pymel.util`` from a command-line script without initializing all of Maya. Similarly, there are two new modules -- `pymel.versions` and `pymel.mayautils` -- which can be used in batch mode without initializing Maya to do things like find user directories, determine what version of Maya the current mayapy corresponds to, etc, then make some decisions based on this info *before* `pymel.core` is imported and all of Maya is initialized.
+----------------------------------
+Additions
+----------------------------------
 
-4. namespace safety: part of the backward incompatibility introduced in this version is the moving of node classes into their own namespace: ``pymel.core.nodetypes``.  Without a separate namespace for nodes, user created nodes and commands have the potential to clash with each other, preventing one or the other from being accessible (we're not being paranoid here, we've already had a user approach us with this exact problem).
+- ``mel2py``: now does packages/subpackages for recursed mel subdirectories
+- added various dict-like methods to OptionVarDict
+- added new EnumDict support which ``Attribute.getEnum`` returns
+- added support to ``getAttr()`` / ``Attribute.get()`` for getting message attributes, which are returned as DependNodes
+- added ``core.system.saveFile()``
+- added ``pymel.versions.is64bit()``
+- added new directory helpers to mayautils: ``getMayaAppDir()``, ``getUserPrefsDir()``, and ``getUserScriptsDir()``
+- added ``DependNode.longName()``, ``DependNode.shortName()``, and ``DependNode.nodeName()`` for easy looping through mixed lists of DependNodes and DagNodes
+- added ``FileInfo.__delitem__()``
+- added ``DependNode.deleteAttr()``
 
-Upgrading
-=========
+----------------------------------
+Bugfixes
+----------------------------------
 
-To keep things simple and to provide an easy upgrade path, PyMEL 1.0 adds a new module, ``pymel.all``, which imports all sub-modules in exactly the same way that the primary ``pymel`` module does in previous versions.  PyMEL also includes a new tool, `pymel.tools.upgradeScripts`, which will find and upgrade existing PyMEL scripts, converting all imports of ``pymel`` into imports of ``pymel.all``.  Additionally, PyMEL 0.9.3 is forward compatible with 1.0, meaning it will also provide a ``pymel.all`` module so that "upgraded" code is interoperable between versions.
-
-We don't take breaking backward compatibility lightly, but we feel strongly that these changes need to be made to ensure the long-term health of the package, and now is the best time to make them, before PyMEL's rapidly growing user-base gets any larger.
-
-.. note:: importing ``pymel.all`` negates the load time improvements that have been made with 1.0.  Importing ``pymel.core`` is now the preferred method, but requires some manual work to ensure that all node classes are referenced from their new namespace:  ``pymel.core.nodetypes`` or ``pymel.core.nt``.
-
-----------------------
-MEL GUI Creation
-----------------------
-
-
-Streamlined GUI Creation
-========================
-
-Anyone who has coded GUIs in Maya using both MEL and python will tell you that if there is one thing they miss about MEL (and only one thing), it is the use of indentation to organize layout hierarchy. this is not possible in python because tabs are a syntactical element, indicating code blocks. In this release, PyMEL harnesses python's ``with`` statement to use indentation to streamlines the process of GUI creation.
-
-Here is a comparison of the `uiTemplate` example from the Maya docs.
-
-First, using ``maya.cmds``::
-
-    import maya.cmds as cmds
-
-    if cmds.uiTemplate( 'ExampleTemplate', exists=True ):
-        cmds.deleteUI( 'ExampleTemplate', uiTemplate=True )
-    cmds.uiTemplate( 'ExampleTemplate' )
-    cmds.button( defineTemplate='ExampleTemplate', width=100, height=40, align='left' )
-    cmds.frameLayout( defineTemplate='ExampleTemplate', borderVisible=True, labelVisible=False )
-
-    window = cmds.window(menuBar=True,menuBarVisible=True)
-
-    cmds.setUITemplate( 'ExampleTemplate', pushTemplate=True )
-    cmds.columnLayout( rowSpacing=5 )
-
-    cmds.frameLayout()
-    cmds.columnLayout()
-    cmds.button( label='One' )
-    cmds.button( label='Two' )
-    cmds.button( label='Three' )
-    cmds.setParent( '..' )
-    cmds.setParent( '..' )
-
-    cmds.frameLayout()
-    cmds.optionMenu()
-    menuItem( label='Red' )
-    menuItem( label='Green' )
-    menuItem( label='Blue' )
-    cmds.setParent( '..' )
-    cmds.setParent( '..' )
-
-    cmds.setUITemplate( popTemplate=True )
-
-    cmds.showWindow( window )
-
-    menu()
-    menuItem(label='One')
-    menuItem(label='Two')
-    menuItem(label='Sub', subMenu=True)
-    menuItem(label='A')
-    menuItem(label='B')
-    setParent('..', menu=1)
-    menuItem(label='Three')
+- unloading plugins no longer raises an error
+- python AE templates were not being found. fixed.
+- fixed a bug in api wrap, where ``MScriptUtil`` was not allocating space
+- fixed a bug with ``Transform.setMatrix()``
+- ``pymel.versions.installName()`` is more reliable on 64-bit systems, which were sometimes detecting the installName incorrectly
+- ``Attribute('mytransform.scalePivot')`` now returns an the scalePivot attribute
+- ``getAttr()`` / ``Attribute.get()`` bugfix with multi-attr
+- ``nodetypes``: fixed bug 172 where nested selection sets were raising an error when getting members
+- ``getPanel`` now always return panels
+- ``uitypes``: all panel classes now properly inherit from Panel
+- fixed some keywords that had been mistakenly refactored
+- ``core.general``: fixed a bug where dependNodes were not returned when duplicated
 
 
-Now, with PyMEL::
+==================================
+Version 1.0.0
+==================================
 
-    from __future__ import with_statement # this line is only needed for 2008 and 2009
-    from pymel.core import *
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
 
-    template = uiTemplate( 'ExampleTemplate', force=True )
-    template.define( button, width=100, height=40, align='left' )
-    template.define( frameLayout, borderVisible=True, labelVisible=False )
+- pymel no longer has 'everything' in namespace - use ``pymel.all`` for this
+- ``pymel.core.nodetypes`` now moved to it's own namespace
+- ``pymel.mayahook.Version`` functionality moved to ``pymel.versions`` module. to compare versions, instead of Version class, use, for example, ``pymel.versions.current()`` >= ``pymel.versions.v2008``
+- ``pymel.mayahook.mayautils.getMayaVersion()`` / ``getMayaVersion(extension=True)`` replaced with ``pymel.versions.installName()``
+- ``pymel.mayahook.mayautils.getMayaVersion(extension=True)`` replaced with ``pymel.versions.shortName()``
+- removed 0_7_compatibility_mode
 
-    with window(menuBar=True,menuBarVisible=True) as win:
-        # start the template block
-        with template:
-            with columnLayout( rowSpacing=5 ):
-                with frameLayout():
-                    with columnLayout():
-                        button( label='One' )
-                        button( label='Two' )
-                        button( label='Three' )
-                with frameLayout():
-                    with optionMenu():
-                        menuItem( label='Red' )
-                        menuItem( label='Green' )
-                        menuItem( label='Blue' )
-    # add a menu to an existing window
-    with win:
-        with menu():
-            menuItem(label='One')
-            menuItem(label='Two')
-            with subMenuItem(label='Sub'):
-                menuItem(label='A')
-                menuItem(label='B')
-            menuItem(label='Three')
+- removed deprecated and inapplicable string methods from , base of all PyNodes:
 
+- removed Smart Layout Creator in favor of 'with' statement support
+- ``DagNode.getParent()`` no longer accepts keyword arguments
+- Renamed ``UI`` base class to ``PyUI``
+- ``sceneName()`` now returns a Path class for an empty string when the scene is untitled. this makes it conform more to ``cmds.file(q=1, sceneName=1)``
+- replaced listNamespace with listNamespace_new from 0.9 line
 
-Python's ``with`` statement was added in version 2.5 (Maya 2008 and 2009).  It's purpose is to provide automatic "enter" and "exit" functions for class instances that are designed to support it.  This is perfect for MEL GUI creation: for example, when we enter the ``with`` block using a PyMEL `ui.Layout` class or a command that creates one, the layout object sets itself to the active default parent, and when the code block ends, it restores the default parent to it's own parent. There is now little need to ever call `setParent`.  As you can see in the example, the ``with`` statement also works with windows, menus, and templates:  windows call ``setParent`` and ``showWindow``, and templates are automatically "pushed" and "popped".
+removed deprecated methods
+--------------------------
+- ``Attribute``: ``__setattr__``, ``size``
+- ``Camera``: ``getFov``, ``setFov``, ``getFilmAspect``
+- ``Mesh``: ``vertexCount``, ``edgeCount``, ``faceCount``, ``uvcoordCount``, ``triangleCount``
+- ``SelectSet``: ``issubset``, ``issuperset``, ``update``
+- Mesh components: ``toEdges``, ``toFaces``, ``toVertices``
+- ``ProxiUnicode``: ``__contains__,  __len__, __mod__, __rmod__, __mul__, __rmod__, __rmul__, expandtabs, translate, decode, encode, splitlines, capitalize, swapcase, title, isalnum, isalpha, isdigit, isspace, istitle, zfill``
 
-Layout Class
-============
+----------------------------------
+Features
+----------------------------------
 
-Support for python's 'with' statement is made possible by the new `Layout` class. Layouts also provide a number of methods for walking UI hierarchies. Continuing from our previous example::
+- added support for creation of class-based python Attribute Editor templates, using ``ui.AETemplate``
+- added 'with statement' compatibility to UI Layout and Menu classes
+- added the ability to generate completion files for IDEs like Wing, Eclipse, and Komodo
 
-    # hide all children of the window
-    for ctrl in win.walkChildren():
-        print ctrl.setVisible(False)
+----------------------------------
+Tools
+----------------------------------
 
----------------------------
-Components
----------------------------
+- ``ipymel``: added colorization to dag command
+- ``py2mel``: now works with lambdas and methods.  new option to provide a list or dictionary of mel types.
+- re-added missing scriptEditor files
+- added upgradeScripts, a tool for converting 0.9 scripts to be 1.0 compatible
 
-all component types supported
+----------------------------------
+Changes
+----------------------------------
 
----------------------------
-Tighter Maya Integration
----------------------------
+- moved functions for working with the shell into ``util.shell``
+- split out ui classes from ``core.windows`` into ``core.uitypes`` for lazy loading
+- for versions >= 2009, use open/close undo chunks instead of mel hack to ensure that an entire callback can be undone in one go
+- improved ``lsUI()``
+- moved component types out of nodetypes and into general
+- ``__repr__`` for nodetypes, uitypes, and datatypes reflect their location so as not to cause confusion.  using short module names nt, ui, and dt.
+- caches are now compressed for speed
+- allow setting ``pymel.conf`` location via environment variable PYMEL_CONF
+- ``DagNode.getBoundingBox()`` now allows you to specify space
+- ensured that the 'name' flag for surface and curve operates on shape as well
+- changes to allow ``myCube.vtx[1,3,5]``
+- commands wrapped by pmcmds that raise a standard TypeError for a non-existent object will now raise a MayaObjectError
+- simplified getParent code on Attribute and DagNode to improve function signatures.
+- fixed a bug with ``ls(editable=1)``
+- fixed a bug with ObjectSets containing DagNodes
+- callbacks: extra debug information is printed in tracebacks
 
-PyMEL now includes a partial replacement of the ``maya`` package in order to add tight, low-level integration.  This allows us to easily solve several problems that have proven tricky to solve otherwise:
+commands wrapped to return PyNodes
+----------------------------------
+- ``skinCluster(q=1, geometry=1)``
+- ``addAttr(q=1, geometry=1)``
+- ``addDynamic()``
+- ``addPP()``
+- ``constraint()``
+- ``animLayer()``
+- ``annnotate()``
+- ``arclen()``
+- ``art3dPaintCtx()``
+- ``artAttrCtx()``
+- ``modelEditor(q=1,camera=1)``
+- ``dimensionShape()``
 
-    - safe to use PyMEL inside userSetup.py in python standalone
-    - fixes bug where certain commands don't return a result the first time they are called
-    - shared root logger with status-line error and warning colorization
+----------------------------------
+Additions
+----------------------------------
 
----------------------------
-IDE Autocompletion
----------------------------
+- added ``TwoWayDict``/``EquivalencePair`` to ``utilitytypes``
+- added ``preorder()``, ``postorder()``, and``breadth()`` functions in ``util.arguments``, which have more intuitive arguments
+- added new ``Layout`` class that all layouts inherit from
+- added ``UITemplate`` class
+- added usable ``__iter__`` to workspace dict / file dict objects
+- added two tier setup scripts for maya (user/site) just like with python. This new ``siteSetup.py`` is intended for studio setup of maya and reserved ``userSetup.py`` for user level scripts.
+- added a partial replacement maya package with a logger with a shell and gui handler qne changed plogging to use the new default maya logger
+- added ``setAttr``/``getAttr`` support for all numeric datatypes, along with tests
+- added ``Transform.getShapes()`` for returning a list of shapes
+- added ``FileReference`` comparison operators
+- added ``DependNode.longName(stripNamespace=False,level=0)``
+- added ``SkinCluster.setWeights()``
+- added ``AnimCurve.addKeys()``
+- added regex flag to ls command
+- added ``FileInfo.get()``
+- added ``util.common.subpackages()`` function for walking package modules
+- added ``util.conditions.Condition`` class for creating object-oriented condition testing
+- ``pymel.conf``: added a fileLogger
+- added ``Path.canonicalpath()`` and ``Path.samepath()``
+- mel2py: added command-line flags, ability to recurse
 
-PyMEL Auto-completion in your favorite IDE -- such as Eclipse, Wing, and Komodo -- is now fast, reliable, and easy to setup. This is accomplished by providing pre-baked ``maya`` and ``pymel`` "stub" packages, which contain all of the classes and functions of the originals, stripped down to only definitions and documentation strings.  Add the path to these packages to your IDE ``PYTHONPATH`` and you're ready to go. Jump over to :doc:`eclipse` for a tutorial.
+added support for attribute aliases
+-----------------------------------
+- ``DependNode.attr()`` now casts aliases to Attributes properly (PyNode already does)
+- added ``DependNode.listAliases()``
+- added 'alias' keyword to ``DependNode.listAttr()``
+- added ``Attribute.setAlias()``, ``Attribute.getAlias()``
 
-------------------------------------
-Python Attribute Editor Templates
-------------------------------------
+----------------------------------
+Bugfixes
+----------------------------------
 
-This version adds support for the creation of pure-python Attribute Editor templates, using a new class `uitypes.AETemplate`.  Here's a simple example::
-    
-    class AEmib_amb_occlusionTemplate(ui.AETemplate):
-        def __init__(self, nodeName):
-            print "building", nodeName
-            self.beginScrollLayout()
-            self.beginLayout("Parameters",collapse=0)
-            self.addControl("spread", label="Spread", preventOverride=True)
-            self.addControl("max_distance", label="MaxDistance")
-            self.addControl("reflective", label="Reflective")
-            self.addControl("output_mode", label="OutputMode")
-            self.endLayout()
-            self.suppress("id_nonself")
-            self.dimControl(nodeName, "spread", True)
-            self.endScrollLayout()
-            
-For PyMEL to recognize the template, it must be in a module named ``AETemplates``.  There's a new example in the pymel examples directory demonstrating more sophisticated use.
-
-------------------------------------
-Last But Not Least
-------------------------------------
-
-Attribute Aliases
-=================
-
-* ``DependNode.attr()`` now casts aliases to Attributes (PyNode already does)
-* added ``DependNode.listAliases()``
-* added 'alias' keyword to ``DependNode.listAttr()``
-* added ``Attribute.setAlias()``, ``Attribute.getAlias()``
-	
-New 'regex' Flag for ``ls`` Command
-===================================
-
-pass a valid regular expression string, compiled regex pattern, or list thereof. 
-   
-    >>> group('top')
-    nt.Transform(u'group1')
-    >>> duplicate('group1')
-    [nt.Transform(u'group2')]
-    >>> group('group2')
-    nt.Transform(u'group3')
-    >>> ls(regex='group\d+\|top') # don't forget to escape pipes `|` 
-    [nt.Transform(u'group1|top'), nt.Transform(u'group2|top')]
-    >>> ls(regex='group\d+\|top.*')
-    [nt.Transform(u'group1|top'), nt.Camera(u'group1|top|topShape'), nt.Transform(u'group2|top'), nt.Camera(u'group2|top|topShape')]
-    >>> ls(regex='group\d+\|top.*', cameras=1)
-    [nt.Camera(u'group2|top|topShape'), nt.Camera(u'group1|top|topShape')]
-    >>> ls(regex='\|group\d+\|top.*', cameras=1) # add a leading pipe to search for full path
-    [nt.Camera(u'group1|top|topShape')]
-        
+- fixed instantiation of PyNode from MPlug instance
+- fixed a bug where Maya version was incorrectly detected when Maya was installed to a custom location
+- fixed bug where wrap of function which took multiple refs all pointed to same ``MScriptUtil``
+- fixed wrapping of unsigned ptr api types
+- fixed negative comp indices
+- ``mel2py``: bugfix with ``mel2pyStr()``
 

@@ -1,3 +1,5 @@
+"Maya-specific utilities mostly pertaining to file paths. These do not require initialization of maya.standalone"
+
 import os, sys, re, platform
 import versions
 import internal as _internal
@@ -7,8 +9,7 @@ from pymel.util import path as _path
 
 sep = os.path.pathsep
 
-# A source command that will search for the Python script "file" in the specified path
-# (using the system path if none is provided) path and tries to call execfile() on it
+
 def source (file, searchPath=None, recurse=False) :
     """Looks for a python script in the specified path (uses system path if no path is specified)
         and executes it if it's found """
@@ -49,7 +50,17 @@ def source (file, searchPath=None, recurse=False) :
     return execfile(filepath)
 
 def getMayaLocation(version=None):
-    """ Remember to pass the FULL version (with extension if any) to this function! """
+    """
+    Get the location of Maya (defined as the directory above /bin)
+
+    Uses the $MAYA_LOCATION environment variable and sys.executable path.
+
+    If version is passed, will attempt to find a matching Maya location.  If the
+    version found by the methods above does not match the requested version, 
+    this function uses a simple find/replace heuristic to modify the path and test
+    if the desired version exists.  If no matching version is found, returns None
+
+    Remember to pass the FULL version (with extension if any) to this function! """
     try:
         loc = os.path.realpath( os.environ['MAYA_LOCATION'] )
     except:

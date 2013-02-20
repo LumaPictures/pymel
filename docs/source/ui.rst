@@ -252,24 +252,12 @@ The `Callback` class ignores any arguments passed in from the UI element, so you
 Layouts
 ----------------------------------
 
+Automatic Form Layouts
+======================
+
 One major pain in designing GUIs is the placing of controls in layouts. 
 Maya provides the formLayout command which lets controls resize and keep their relationship with other controls, however the use of this command is somewhat cumbersome and unintuitive.
 Pymel provides an extended FormLayout class, which handles the details of attaching controls to one another automatically::
-
-
-    win = window(title="My Window")
-    layout = formLayout()
-    for i in range(5):
-        button(label="button %s" % i)
-    win.show()
-
-
-The 'redistribute' method should now be used to redistributes the children (buttons in this case) evenly in their layout::    
-    
-    layout.redistribute()
-
-
-A formLayout will align its controls vertically by default. By using the 'verticalLayout' or 'horizontalLayout' commands you can explicitly override this (note that both commands still return a FormLayout object)::
 
     win = window(title="My Window")
     layout = horizontalLayout()
@@ -278,6 +266,9 @@ A formLayout will align its controls vertically by default. By using the 'vertic
     layout.redistribute()    # now will redistribute horizontally
     win.show()
 
+
+The 'redistribute' method redistributes the children (buttons in this case) evenly in their layout.
+A formLayout will align its controls vertically by default. By using the 'verticalLayout' or 'horizontalLayout' commands you can explicitly override this (note that both commands still return a FormLayout object)::
 
 By default, the control are redistributed evenly but this can be overridden::
 
@@ -292,8 +283,6 @@ You can also specify the ratios at creation time, as well as the spacing between
         button(label="button %s" % i)
     layout.redistribute()    # now will redistribute horizontally
     win.show()
-    
-
 
 Finally, just for fun, you can also reset, flip and reverse the layout::
 
@@ -301,3 +290,91 @@ Finally, just for fun, you can also reset, flip and reverse the layout::
     layout.reverse()  # reverse the order of the controls
     layout.reset()    # reset the ratios
 
+
+Streamlined GUI Creation with Context Managers
+==============================================
+
+Anyone who has coded GUIs in Maya using both MEL and python will tell you that if there is one thing they miss about MEL (and only one thing), it is the use of indentation to organize layout hierarchy. this is not possible in python because tabs are a syntactical element, indicating code blocks. In this release, PyMEL harnesses python's ``with`` statement to use indentation to streamlines the process of GUI creation.
+
+Here is a comparison of the `uiTemplate` example from the Maya docs.
+
+First, using ``maya.cmds``::
+
+    import maya.cmds as cmds
+
+    if cmds.uiTemplate( 'ExampleTemplate', exists=True ):
+        cmds.deleteUI( 'ExampleTemplate', uiTemplate=True )
+    cmds.uiTemplate( 'ExampleTemplate' )
+    cmds.button( defineTemplate='ExampleTemplate', width=100, height=40, align='left' )
+    cmds.frameLayout( defineTemplate='ExampleTemplate', borderVisible=True, labelVisible=False )
+
+    window = cmds.window(menuBar=True,menuBarVisible=True)
+
+    cmds.setUITemplate( 'ExampleTemplate', pushTemplate=True )
+    cmds.columnLayout( rowSpacing=5 )
+
+    cmds.frameLayout()
+    cmds.columnLayout()
+    cmds.button( label='One' )
+    cmds.button( label='Two' )
+    cmds.button( label='Three' )
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+
+    cmds.frameLayout()
+    cmds.optionMenu()
+    menuItem( label='Red' )
+    menuItem( label='Green' )
+    menuItem( label='Blue' )
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+
+    cmds.setUITemplate( popTemplate=True )
+
+    cmds.showWindow( window )
+
+    menu()
+    menuItem(label='One')
+    menuItem(label='Two')
+    menuItem(label='Sub', subMenu=True)
+    menuItem(label='A')
+    menuItem(label='B')
+    setParent('..', menu=1)
+    menuItem(label='Three')
+
+
+Now, with PyMEL::
+
+    from __future__ import with_statement # this line is only needed for 2008 and 2009
+    from pymel.core import *
+
+    template = uiTemplate( 'ExampleTemplate', force=True )
+    template.define( button, width=100, height=40, align='left' )
+    template.define( frameLayout, borderVisible=True, labelVisible=False )
+
+    with window(menuBar=True,menuBarVisible=True) as win:
+        # start the template block
+        with template:
+            with columnLayout( rowSpacing=5 ):
+                with frameLayout():
+                    with columnLayout():
+                        button( label='One' )
+                        button( label='Two' )
+                        button( label='Three' )
+                with frameLayout():
+                    with optionMenu():
+                        menuItem( label='Red' )
+                        menuItem( label='Green' )
+                        menuItem( label='Blue' )
+    # add a menu to an existing window
+    with win:
+        with menu():
+            menuItem(label='One')
+            menuItem(label='Two')
+            with subMenuItem(label='Sub'):
+                menuItem(label='A')
+                menuItem(label='B')
+            menuItem(label='Three')
+
+
+Python's ``with`` statement was added in version 2.5 (Maya 2008 and 2009).  It's purpose is to provide automatic "enter" and "exit" functions for class instances that are designed to support it.  This is perfect for MEL GUI creation: for example, when we enter the ``with`` block using a PyMEL `ui.Layout` class or a command that creates one, the layout object sets itself to the active default parent, and when the code block ends, it restores the default parent to it's own parent. There is now little need to ever call `setParent`.  As you can see in the example, the ``with`` statement also works with windows, menus, and templates:  windows call ``setParent`` and ``showWindow``, and templates are automatically "pushed" and "popped".
