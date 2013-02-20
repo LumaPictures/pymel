@@ -3201,11 +3201,13 @@ class SkinCluster(GeometryFilter):
 #   - remove 2 checks in allapi.toApiObject for objects which can have an MDagPath
 #     but can't use MFnDagNode
 
-# nucleus has a weird bug where, even though it inherits from transform, and can
-# be parented in the dag, etc, you can't create an MFnTransform or MFnDagNode
-# for it... therefore, hardcode it's PyNode to inherit from DependNode
-class Nucleus(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+if _apicache.NUCLEUS_MFNDAG_BUG:
+    # nucleus has a weird bug where, even though it inherits from transform, and
+    # can be parented in the dag, etc, you can't create an MFnTransform or
+    # MFnDagNode for it... therefore, hardcode it's PyNode to inherit from
+    # DependNode
+    class Nucleus(DependNode):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
 
 # TODO: if hikHandle bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES

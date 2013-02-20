@@ -14,6 +14,11 @@ from pymel.api.plugins import mpxNamesToApiEnumNames
 
 _logger = _plogging.getLogger(__name__)
 
+if versions.current() < versions.v2014:
+    NUCLEUS_MFNDAG_BUG = True
+else:
+    NUCLEUS_MFNDAG_BUG = False
+
 #===============================================================================
 # Utility classes
 #===============================================================================
@@ -602,11 +607,15 @@ class ApiCache(startup.SubItemCache):
     #     MDagPath but can't use MFnDagNode
 
     API_TO_MFN_OVERRIDES = {
-                            'kNucleus':api.MFnDependencyNode, # fun one - even though it can be parented and inherits from transform, it's incompatible with MFnTransform or even MFnDagNode
                             'kHikHandle':api.MFnTransform, # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
                             'kFfdDualBase':api.MFnDependencyNode, # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
                             'kTransferAttributes':api.MFnDependencyNode, # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
                            }
+
+    if NUCLEUS_MFNDAG_BUG:
+        # fun one - even though it can be parented and inherits from transform,
+        # it's incompatible with MFnTransform or even MFnDagNode
+        API_TO_MFN_OVERRIDES['kNucleus'] = api.MFnDependencyNode
 
     DEFAULT_API_TYPE = 'kDependencyNode'
 
