@@ -52,6 +52,18 @@ errorCodes = [
 #   File "<py_dir>/shutil.py", line <lineno>, in copyfile
 #     fsrc = open(src, 'rb')
 # IOError: [Errno 2] No such file or directory: 'this_does_not_exist.txt'"""
+    if sys.version_info[:2] < (2,7) else
+"""[Errno 2] No such file or directory: 'this_does_not_exist.txt'
+# Traceback (most recent call last):
+#   File "<maya console>", line <lineno>, in <module>
+#   File "<string>", line <lineno>, in <module>
+#   File "<py_dir>/shutil.py", line <lineno>, in move
+#     copy2(src, real_dst)
+#   File "<py_dir>/shutil.py", line <lineno>, in copy2
+#     copyfile(src, dst)
+#   File "<py_dir>/shutil.py", line <lineno>, in copyfile
+#     with open(src, 'rb') as fsrc:
+# IOError: [Errno 2] No such file or directory: 'this_does_not_exist.txt'"""
 )),
 
 ('foo : bar',

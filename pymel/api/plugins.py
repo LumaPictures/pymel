@@ -125,8 +125,9 @@ mpxNamesToEnumNames = {
     'MPxCameraSet':'kCameraSetNode',
     'MPxConstraint':'kConstraintNode',
     'MPxManipulatorNode':'kManipulatorNode',
-    'MPxRepMgr':'kRepMgr',
-    'MPxRepresentation':'kRepresentation',
+#    'MPxRepMgr':'kRepMgr',
+#    'MPxRepresentation':'kRepresentation',
+    'MPxAssembly':'kAssembly',
     }
 
 # Gives a map from an MPx class name to it's enum name in MFn.Type
@@ -156,6 +157,7 @@ mpxNamesToApiEnumNames = {
     'MPxManipulatorNode':'kPluginManipulatorNode', # added manually
     'MPxRepMgr':'kPluginRepMgr',  # guessed?
     'MPxRepresentation':'kPluginRepresentation', # guessed?
+    'MPxAssembly':'kAssembly',
     }
 
 # Gives a map from an MPx class name to it's maya node type name
@@ -185,6 +187,7 @@ mpxNamesToMayaNodes = {
     'MPxManipulatorNode':'THmanip', # guessed + confirmed
     'MPxRepMgr':'THdependNode',  # no clue...?
     'MPxRepresentation':'THdependNode', # no clue...?
+    'MPxAssembly':'THassembly',
     }
 
 mpxClassesToMpxEnums = {}
@@ -233,8 +236,8 @@ def allMPx():
     return _allMPx
 
 # We want to make sure we know if maya adds a new MPx class!
-_new = [_mpx.__name__ for _mpx in allMPx() if _mpx not in mpxClassesToMpxEnums]
-if _new: print 'new MPx classes found: %s' % ', '.join(_new)
+for _mpx in allMPx():
+    assert _mpx in mpxClassesToMpxEnums, 'new MPx class found: %s' % _mpx.__name__
 
 #===============================================================================
 # Plugin Registration / loading
@@ -561,7 +564,9 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         # MPxPolyTrg returns True
         return False
 
-class Assembly(DependNode, mpx.MPxAssembly): pass
+# new in 2014
+if hasattr(mpx, 'MPxAssembly'):
+    class Assembly(DependNode, mpx.MPxAssembly): pass
 
 class CameraSet(DependNode, mpx.MPxCameraSet): pass
 
@@ -615,13 +620,14 @@ class Transform(DependNode, mpx.MPxTransform):
             registerArgs.append(cls._classification)
         mplugin.registerTransform( *registerArgs )
 
-# these appear to temporary or debugging types? they existed at some point in
+# these 2 appear to temporary or debugging types? they existed at some point in
 # the beta for 2013, then went away?
-if hasattr(mpx, 'MPxRepMgr'):
-    class RepMgr(DependNode, mpx.MPxRepMgr): pass
+#if hasattr(mpx, 'MPxRepMgr'):
+#    class RepMgr(DependNode, mpx.MPxRepMgr): pass
 
-if hasattr(mpx, 'MPxRepresentation'):
-    class Representation(DependNode, mpx.MPxRepresentation): pass
+#if hasattr(mpx, 'MPxRepresentation'):
+#    class Representation(DependNode, mpx.MPxRepresentation): pass
+
 
 #===============================================================================
 # Plugin Class Helpers

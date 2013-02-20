@@ -12,6 +12,7 @@ import pymel.api as api
 from maintenance.pymelControlPanel import getClassHierarchy
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
+import pymel.util.arrays as arrays
 
 from pymel.util.testing import TestCaseExtended, setCompare
 
@@ -439,8 +440,20 @@ class testCase_invertibles(unittest.TestCase):
                     cmds.undo()
                     if getter:
                         newVal = getter(obj)
-                        if isinstance(newVal, (int, long, float)) and not isinstance(newVal, bool):
+
+                        if isinstance(newVal, float):
                             self.assertAlmostEqual(oldVal, newVal, 12)
+                        elif isinstance(newVal, (tuple, list, arrays.Array)):
+                            if len(newVal) != len(oldVal):
+                                self.fail('oldVal %r != to newVal %r - unequal lengths' % (oldVal, newVal))
+                            for i in xrange(len(newVal)):
+                                msg = 'index %d of oldVal %r not equal to newVal %r' % (i, oldVal, newVal)
+                                if isinstance(newVal[i], float):
+                                    self.assertAlmostEqual(oldVal[i], newVal[i],
+                                                           places=12, msg=msg)
+                                else:
+                                    self.assertEqual(oldVal[i], newVal[i],
+                                                     msg=msg)
                         else:
                             self.assertEqual(oldVal, newVal)
                 except cls.GetTypedArgError:

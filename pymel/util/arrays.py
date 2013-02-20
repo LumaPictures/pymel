@@ -451,10 +451,10 @@ def length(a, axis=None):
         >>> print A.formated()
         [[0.5, 0.5, -0.707],
          [0.707, -0.707, 0.0]]
-        >>> length(A)
-        1.4140533936170869
-        >>> length(A, axis=(0,1))
-        1.4140533936170869
+        >>> round(length(A), 7)
+        1.4140534
+        >>> round(length(A, axis=(0,1)), 7)
+        1.4140534
         >>> length(A, axis=0)
         Array([0.99992449715, 0.999848988598])
         >>> length(A, axis=1)
@@ -4589,10 +4589,10 @@ class Array(object):
             >>> print A.formated()
             [[0.5, 0.5, -0.707],
              [0.707, -0.707, 0.0]]
-            >>> A.length()
-            1.4140533936170869
-            >>> A.length(0,1)
-            1.4140533936170869
+            >>> round(A.length(), 7)
+            1.4140534
+            >>> round(A.length(0,1), 7)
+            1.4140534
             >>> A.length(0)
             Array([0.99992449715, 0.999848988598])
             >>> A.length(1)
@@ -6017,10 +6017,10 @@ def dot(u, v):
 
         >>> u = VectorN(1.0, 0.0, 0.0)
         >>> v = VectorN(0.707, 0.0, -0.707)
-        >>> dot(u, v)
-        0.70699999999999996
-        >>> dot(u, [0.707, 0.0, -0.707])
-        0.70699999999999996
+        >>> round(dot(u, v), 3)
+        0.707
+        >>> round(dot(u, [0.707, 0.0, -0.707]), 3)
+        0.707
 
         Related : see VectorN.dot method.
     """
@@ -6062,10 +6062,10 @@ def angle(a, b, c=None):
 
         >>> u = VectorN(1.0, 0.0, 0.0)
         >>> v = VectorN(0.707, 0.0, -0.707)
-        >>> angle(u, v)
-        0.78539816339744828
-        >>> angle(u, [0.707, 0.0, -0.707])
-        0.78539816339744828
+        >>> round(angle(u, v), 7)
+        0.7853982
+        >>> round(angle(u, [0.707, 0.0, -0.707]), 7)
+        0.7853982
 
         Alternatively can use the form angle(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
         it is then equivalent to angle(b-a, c-a)
@@ -6073,8 +6073,8 @@ def angle(a, b, c=None):
         >>> o = VectorN(0.0, 1.0, 0.0, 1.0)
         >>> p = VectorN(1.0, 1.0, 0.0, 1.0)
         >>> q = VectorN(0.707, 1.0, -0.707, 1.0)
-        >>> angle(o, p, q)
-        0.78539816339744828
+        >>> round(angle(o, p, q), 7)
+        0.7853982
 
         Related : see VectorN.angle method.
     """

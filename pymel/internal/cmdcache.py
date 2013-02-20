@@ -302,8 +302,19 @@ def getCmdInfo( command, version, python=True ):
 
         # start with basic info, gathered using mel help command, then update with info parsed from docs
         # we copy because we need access to the original basic info below
+        basicFlags = basicInfo.get('flags', {})
         flags = basicInfo['flags'].copy()
         flags.update( parser.flags )
+
+        # if we have a "true" mel boolean flag, then getCmdInfoBasic will return
+        # numArgs == 0, but parsing the PYTHON docs will return a numArgs of 1;
+        # keep the numArgs of 0
+        for flag, flagInfo in parser.flags.iteritems():
+            if flagInfo.get('args') == bool and flagInfo.get('numArgs') == 1:
+                basicFlagInfo = basicFlags.get(flag, {})
+                if (basicFlagInfo.get('args') == bool
+                        and basicFlagInfo.get('numArgs') == 0):
+                    flagInfo['numArgs'] = 0
 
         if command in secondaryFlags:
             for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
@@ -329,7 +340,7 @@ def getCmdInfo( command, version, python=True ):
         # also use original 'multiuse' info...
 
         for flag, flagData in flags.items():
-            basicFlagData = basicInfo.get('flags', {}).get(flag)
+            basicFlagData = basicFlags.get(flag)
             if basicFlagData:
                 if 'args' in basicFlagData and 'numargs' in basicFlagData:
                     flagData['args'] = basicFlagData['args']

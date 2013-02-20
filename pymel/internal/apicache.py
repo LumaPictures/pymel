@@ -14,6 +14,14 @@ from pymel.api.plugins import mpxNamesToApiEnumNames
 
 _logger = _plogging.getLogger(__name__)
 
+if versions.current() < versions.v2014:
+    NUCLEUS_MFNDAG_BUG = True
+    SYMMETRY_CONSTRAINT_MFNDAG_BUG = False
+else:
+    NUCLEUS_MFNDAG_BUG = False
+    SYMMETRY_CONSTRAINT_MFNDAG_BUG = True
+
+
 #===============================================================================
 # Utility classes
 #===============================================================================
@@ -595,18 +603,24 @@ class ApiCache(startup.SubItemCache):
                              'smear':'kSmear',          # a strange one - a plugin node that has an apitype... is in studioImport.so... also has a doc entry...
                             }
 
-    # TODO: if nucleus bug ever fixed:
+    # TODO: if nucleus/symmetryConstraint bug ever fixed:
     #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
     #   - remove hard-code setting of Nucleus's parent to DependNode
     #   - remove 2 checks in allapi.toApiObject for objects which can have an
     #     MDagPath but can't use MFnDagNode
 
     API_TO_MFN_OVERRIDES = {
-                            'kNucleus':api.MFnDependencyNode, # fun one - even though it can be parented and inherits from transform, it's incompatible with MFnTransform or even MFnDagNode
                             'kHikHandle':api.MFnTransform, # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
                             'kFfdDualBase':api.MFnDependencyNode, # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
                             'kTransferAttributes':api.MFnDependencyNode, # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
                            }
+
+    if NUCLEUS_MFNDAG_BUG:
+        # fun one - even though it can be parented and inherits from transform,
+        # it's incompatible with MFnTransform or even MFnDagNode
+        API_TO_MFN_OVERRIDES['kNucleus'] = api.MFnDependencyNode
+    if SYMMETRY_CONSTRAINT_MFNDAG_BUG:
+        API_TO_MFN_OVERRIDES['kSymmetryConstraint'] = api.MFnDependencyNode
 
     DEFAULT_API_TYPE = 'kDependencyNode'
 
