@@ -15,6 +15,12 @@ for this.
 1) Build cache(s)
 -----------------
 
+  - build caches from WINDOWS... reason being that we need to gather some
+    information about plugin nodes, and windows has the "most complete" set of
+    plugins (the only plugins that I know of that are in linux/osx but not in
+    windows are IGES and stlImport... both of which are file translators only,
+    with no nodes)
+
   - make sure environment is clean (default user prefs, etc) except
     possibly for adding custom pymel into path...
 
