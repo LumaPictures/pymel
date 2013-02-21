@@ -595,12 +595,26 @@ class ApiCache(startup.SubItemCache):
         'moveVertexManip':'kMoveVertexManip',
     }
 
-    # Not currently used, but hold any overrides for mayaTypesToApiTypes...
-    # ie, for cases where the name guess is wrong, etc
+    # hold any overrides for mayaTypesToApiTypes...
+    # ie, for cases where the name guess is wrong, or for weird plugin types
+    # that don't inherit from an mpx type (ie, vectorRenderGlobals), etc
     MAYA_TO_API_OVERRIDES = {
-                             'node':'kDependencyNode',  # this what is returned by allNodeTypes(includeAbstract=True)
-                             'dependNode':'kDependencyNode',  # this is the name pymel uses
-                             'smear':'kSmear',          # a strange one - a plugin node that has an apitype... is in studioImport.so... also has a doc entry...
+                             # this what is returned by
+                             # allNodeTypes(includeAbstract=True)
+                             'node':'kDependencyNode',
+
+                             # this is the name pymel uses
+                             'dependNode':'kDependencyNode',
+
+                             # a strange one - a plugin node that has an
+                             # apitype... is in studioImport.so... also has a
+                             # doc entry...
+                             'smear':'kSmear',
+
+                             # plugin node that's not in all distributions
+                             # (ie, it's missing in Linux), so just include it
+                             # here
+                             'vectorRenderGlobals':'kDependencyNode',
                             }
 
     # TODO: if nucleus/symmetryConstraint bug ever fixed:

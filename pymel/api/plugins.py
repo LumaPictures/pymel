@@ -236,8 +236,12 @@ def allMPx():
     return _allMPx
 
 # We want to make sure we know if maya adds a new MPx class!
-for _mpx in allMPx():
-    assert _mpx in mpxClassesToMpxEnums, 'new MPx class found: %s' % _mpx.__name__
+_new = [_mpx.__name__ for _mpx in allMPx() if _mpx not in mpxClassesToMpxEnums]
+if _new:
+    import pymel.internal.plogging as plog
+    _logger = plog.getLogger('pymel')
+    _logger.raiseLog(_logger.WARNING, 'found new MPx classes: %s'
+                                       % ', '.join(_new))
 
 #===============================================================================
 # Plugin Registration / loading
