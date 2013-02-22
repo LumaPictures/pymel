@@ -851,24 +851,27 @@ class ApiDocParser(object):
             #print "NUMBER OF TABLES", len(extraInfos)
             if format2012:
                 for extraInfo in extraInfos:
-                    tmpDirs += extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
-                    #tmpNames += [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
-                    for tr in extraInfo.findAll( 'tr'):
+                    for tr in extraInfo.findAll('tr', recursive=False):
                         assert tr, "could not find name tr"
-                        td = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramname') in tag.attrs)
-                        assert td, "could not find name td"
-                        name = td.findAll( text=True, limit=1 )[0]
-                        tmpNames.append(name)
-                    tds = extraInfo.findAll( lambda tag: tag.name == 'td' and not any([item for item in tag.attrs if 'class' in item]) )
-                    for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in tds]:
-                        tmpDocs.append( ''.join(doc) )
-                    if not tmpDocs:
-                        tmpDocs = [''] * len(tmpDirs)
+                        tds = tr.findAll('td', recursive=False)
+                        assert tds, "could not find name td"
+                        assert len(tds) == 3, "td list is unexpected length: %d" % len(tds)
+                        
+                        paramDir = tds[0]
+                        paramName = tds[1]
+
+                        assert dict(paramDir.attrs).get('class') == 'paramdir', "First element in param table row was not a paramdir"
+                        assert dict(paramName.attrs).get('class') == 'paramname', "Second element in param table row was not a paramname"
+
+                        tmpDirs.append(paramDir.findNext(text=True).encode('ascii', 'ignore'))
+                        tmpNames.append(paramName.findNext(text=True).encode('ascii', 'ignore'))
+                        doc = ''.join(tds[2].findAll(text=True))
+                        tmpDocs.append(doc.encode('ascii', 'ignore'))
             else:
                 for extraInfo in extraInfos:
                     for tr in extraInfo.findAll( 'tr'):
                         assert tr, "could not find name tr"
-                        tds = tr.findAll(lambda tag: tag.name == 'td')
+                        tds = tr.findAll('td')
                         assert tds, "could not find name td"
                         assert len(tds) == 3, "td list is unexpected length: %d" % len(tds)
 
@@ -909,6 +912,7 @@ class ApiDocParser(object):
                         dir = 'out'
                 elif dir == '[in,out]':
                     # it makes the most sense to treat these types as inputs
+                    # maybe someday we can deal with dual-direction args...?
                     dir = 'in'
                 else:
                     raise ValueError("direction must be either '[in]', '[out]', or '[in,out]'. got %r" % dir)
