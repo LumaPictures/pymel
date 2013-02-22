@@ -868,11 +868,16 @@ class ApiCache(startup.SubItemCache):
                     self.apiClassInfo[ name ] = info
                 except (IOError, OSError, ValueError,IndexError), e:
                     import errno
-                    _logger.error( "failed to parse docs for %r:" % name)
+                    baseMsg = "failed to parse docs for %r:" % name
                     if isinstance(e, (IOError, OSError)) and e.errno == errno.ENOENT:
-                        _logger.error("%s: %s" % (name, e))
+                        # If we couldn't parse because we couldn't find the
+                        # file, only raise a warning... there are many classes
+                        # (ie, MClothTriangle) that don't have a doc page...
+                        _logger.warning(baseMsg)
+                        _logger.warning("%s: %s" % (name, e))
                     else:
                         import traceback
+                        _logger.error(baseMsg)
                         _logger.error(traceback.format_exc())
 
         _logger.debug("...finished ApiCache._buildApiClassInfo")
