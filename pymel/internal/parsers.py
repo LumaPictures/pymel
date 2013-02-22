@@ -856,7 +856,7 @@ class ApiDocParser(object):
                         tds = tr.findAll('td', recursive=False)
                         assert tds, "could not find name td"
                         assert len(tds) == 3, "td list is unexpected length: %d" % len(tds)
-                        
+
                         paramDir = tds[0]
                         paramName = tds[1]
 
@@ -935,10 +935,20 @@ class ApiDocParser(object):
         #assert len(names) == len(directions), "name lenght mismatch: %s %s" % (sorted(names), sorted(directions.keys()))
         return directions, docs, methodDoc, returnDoc, deprecated
 
+    TYPEDEF_RE = re.compile('^typedef(\s|$)')
+
     def getMethodNameAndOutput(self, proto):
         # NAME AND RETURN TYPE
-        memb = proto.findAll( 'td', **{'class':'memname'} )[0]
+        memb = proto.findNext( 'td', **{'class':'memname'} )
         buf = [ x.strip().encode('ascii', 'ignore') for x in memb.findAll( text=True )]
+
+        assert buf, "could not parse a method name"
+
+        # typedefs aren't anything we care about (ie, may be a typedef of a
+        # method - see MQtUtil.UITypeCreatorFn)
+        if self.TYPEDEF_RE.match(buf[0]):
+            return None, None
+
         if len(buf) ==1:
             buf = [ x for x in buf[0].split() if x not in ['const', 'unsigned'] ]
             if len(buf)==1:
@@ -980,20 +990,6 @@ class ApiDocParser(object):
         verStr = match.group(1)
         return tuple(int(x) for x in verStr.split('.'))
 
-    def iterProto(self, apiClassName):
-        self.apiClassName = apiClassName
-        self.apiClass = getattr(self.apiModule, self.apiClassName)
-        self.docfile = self.getClassPath()
-
-        _logger.info( "parsing file %s" , self.docfile )
-
-        with open( self.docfile ) as f: 
-            self.soup = BeautifulSoup( f.read(), convertEntities='html' )
-        self.doxygenVersion = self.getDoxygenVersion(self.soup)
-
-        for proto in self.soup.body.findAll( 'div', **{'class':'memproto'} ):
-            yield proto
-
     def getClassPath(self):
         filename = self.getClassFilename() + '.html'
         apiBase = os.path.join(self.docloc , 'API')
@@ -1002,22 +998,15 @@ class ApiDocParser(object):
             path = os.path.join(apiBase, 'cpp_ref', filename)
         return path
 
-    def parse(self, apiClassName):
-
-        self.enums = {}
-        self.pymelEnums = {}
-        self.methods=util.defaultdict(list)
-        self.currentMethod=None
-        self.badEnums = []
-
-        for proto in self.iterProto(apiClassName):
-
-            methodName, returnType = self.getMethodNameAndOutput(proto)
-            if methodName is None: continue
-            # convert to unicode
-            self.currentMethod = str(methodName)
+    def parseMethod(self, proto):
+        methodName, returnType = self.getMethodNameAndOutput(proto)
+        if methodName is None:
+            return
+        # convert to unicode
+        self.currentMethod = str(methodName)
+        try:
             if self.currentMethod == 'void(*':
-                continue
+                return
             # ENUMS
             if returnType == 'enum':
                 self.xprint( "ENUM", returnType)
@@ -1048,7 +1037,7 @@ class ApiDocParser(object):
                 except IndexError: pass
 
                 if self.isObsolete(proto):
-                    continue
+                    return
 
                 names, types, typeQualifiers, defaults = self.parseTypes(proto)
 
@@ -1056,18 +1045,12 @@ class ApiDocParser(object):
                     directions, docs, methodDoc, returnDoc, deprecated = self.parseMethodArgs(proto, returnType, names, types, typeQualifiers)
                 except AssertionError, msg:
                     _logger.error(self.formatMsg("FAILED", str(msg)))
-                    continue
+                    return
                 except AttributeError:
                     import traceback
                     _logger.error(self.formatMsg(traceback.format_exc()))
-                    continue
+                    return
                     #pass
-
-#                print "names", names
-#                print "types", types
-#                print "defaults", defaults
-#                print "directions", directions
-#                print docs
 
                 argInfo={}
                 argList=[]
@@ -1132,13 +1115,32 @@ class ApiDocParser(object):
                               'typeQualifiers' : typeQualifiers,
                               'deprecated' : deprecated }
                 self.methods[self.currentMethod].append(methodInfo)
+        finally:
+            # reset
+            self.currentMethod=None
 
-                # reset
-                self.currentMethod=None
+    def setClass(self, apiClassName):
+        self.enums = {}
+        self.pymelEnums = {}
+        self.methods=util.defaultdict(list)
+        self.currentMethod=None
+        self.badEnums = []
 
+        self.apiClassName = apiClassName
+        self.apiClass = getattr(self.apiModule, self.apiClassName)
+        self.docfile = self.getClassPath()
+
+        _logger.info( "parsing file %s" , self.docfile )
+
+        with open( self.docfile ) as f:
+            self.soup = BeautifulSoup( f.read(), convertEntities='html' )
+        self.doxygenVersion = self.getDoxygenVersion(self.soup)
+
+    def parse(self, apiClassName):
+        self.setClass(apiClassName)
+        for proto in self.soup.body.findAll( 'div', **{'class':'memproto'} ):
+            self.parseMethod(proto)
         pymelNames, invertibles = self.getPymelMethodNames()
-
-
         return { 'methods' : dict(self.methods),
                  'enums' : self.enums,
                  'pymelEnums' : self.pymelEnums,
