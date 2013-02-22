@@ -1472,20 +1472,24 @@ class ApiArgUtil(object):
                     assert self.isValidEnum(argtype), '%s.%s(): %s: invalid enum: %s' % (self.apiClassName, self.methodName, argname, argtype)
 
                 # Input
-                elif direction == 'in':
-                    assert  argtype in ApiTypeRegister.inCast or \
-                            defaults.has_key(argname) or \
-                            argtype == self.apiClassName, \
-                    '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                else:
+                    if direction == 'in':
+                        assert  argtype in ApiTypeRegister.inCast or \
+                                defaults.has_key(argname) or \
+                                argtype == self.apiClassName, \
+                        '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
 
-                    #if argname in ['instance', 'instanceNumber']: print '%s.%s(): %s: %r' % (self.apiClassName, self.methodName, argname, argtype)
-                # Output
-                elif direction == 'out':
-                    assert argtype in ApiTypeRegister.refInit and argtype in ApiTypeRegister.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
-                    #try:
-                    #    assert argtype.type() in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
-                    #except AttributeError:
-                    #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+                        #if argname in ['instance', 'instanceNumber']: print '%s.%s(): %s: %r' % (self.apiClassName, self.methodName, argname, argtype)
+                    # Output
+                    elif direction == 'out':
+                        assert argtype in ApiTypeRegister.refInit and argtype in ApiTypeRegister.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                        #try:
+                        #    assert argtype.type() in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+                        #except AttributeError:
+                        #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+                    else:
+                        # in+out, or something else weird...
+                        return False
         except AssertionError, msg:
             #_logger.debug( str(msg) )
             return False
