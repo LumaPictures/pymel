@@ -868,12 +868,12 @@ class ApiCache(startup.SubItemCache):
                     self.apiClassInfo[ name ] = info
                 except (IOError, OSError, ValueError,IndexError), e:
                     import errno
-                    _logger.warn( "failed to parse docs for %r:" % name)
+                    _logger.error( "failed to parse docs for %r:" % name)
                     if isinstance(e, (IOError, OSError)) and e.errno == errno.ENOENT:
-                        _logger.warn("%s: %s" % (name, e))
+                        _logger.error("%s: %s" % (name, e))
                     else:
                         import traceback
-                        _logger.warn(traceback.format_exc())
+                        _logger.error(traceback.format_exc())
 
         _logger.debug("...finished ApiCache._buildApiClassInfo")
 
