@@ -824,8 +824,11 @@ class ApiDocParser(object):
             #print self.apiClassName + '.' + self.currentMethod + ':' + ' DEPRECATED'
             deprecated = True
 
-
-        methodDoc = ' '.join( addendum.p.findAll( text=True ) ).encode('ascii', 'ignore')
+        methodDoc = addendum.p
+        if methodDoc:
+            methodDoc = ' '.join( methodDoc.findAll( text=True ) ).encode('ascii', 'ignore')
+        else:
+            methodDoc = ''
 
         tmpDirs = []
         tmpNames = []
@@ -847,20 +850,20 @@ class ApiDocParser(object):
         if extraInfos:
             #print "NUMBER OF TABLES", len(extraInfos)
             if format2012:
-                extraInfo = extraInfos[0]
-                tmpDirs += extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
-                #tmpNames += [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
-                for tr in extraInfo.findAll( 'tr'):
-                    assert tr, "could not find name tr"
-                    td = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramname') in tag.attrs)
-                    assert td, "could not find name td"
-                    name = td.findAll( text=True, limit=1 )[0]
-                    tmpNames.append(name)
-                tds = extraInfo.findAll( lambda tag: tag.name == 'td' and not any([item for item in tag.attrs if 'class' in item]) )
-                for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in tds]:
-                    tmpDocs.append( ''.join(doc) )
-                if not tmpDocs:
-                    tmpDocs = [''] * len(tmpDirs)
+                for extraInfo in extraInfos:
+                    tmpDirs += extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
+                    #tmpNames += [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
+                    for tr in extraInfo.findAll( 'tr'):
+                        assert tr, "could not find name tr"
+                        td = tr.findNext(lambda tag: tag.name == 'td' and ('class', 'paramname') in tag.attrs)
+                        assert td, "could not find name td"
+                        name = td.findAll( text=True, limit=1 )[0]
+                        tmpNames.append(name)
+                    tds = extraInfo.findAll( lambda tag: tag.name == 'td' and not any([item for item in tag.attrs if 'class' in item]) )
+                    for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in tds]:
+                        tmpDocs.append( ''.join(doc) )
+                    if not tmpDocs:
+                        tmpDocs = [''] * len(tmpDirs)
             else:
                 for extraInfo in extraInfos:
                     for tr in extraInfo.findAll( 'tr'):
