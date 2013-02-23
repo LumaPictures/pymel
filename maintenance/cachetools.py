@@ -3,6 +3,7 @@
 import pprint
 import os.path
 import re
+import copy
 
 import pymel.core as pm
 import pymel.internal.factories as factories
@@ -10,6 +11,7 @@ import pymel.internal.factories as factories
 import pymel.internal.startup as startup
 import pymel.internal.cmdcache as cmdcache
 import pymel.internal.apicache as apicache
+import pymel.util as util
 
 def separateExampleCache():
     examples = {}
@@ -497,7 +499,7 @@ def convertPymelEnums(docLocation=None):
     for cachePath, raw in rawCaches.iteritems():
         pm.util.picklezip.dump(raw, unicode(cachePath))
 
-def apiPymelWrapData():
+def apiPymelWrapData(keepDocs=False):
     '''
     Return a dict with info about which api methods were actually wrapped
 
@@ -524,5 +526,64 @@ def apiPymelWrapData():
                 index = methodWrapInfo['index']
                 usedClassMethods = usedMethods.setdefault(apiClassName, {})
                 methodInfo = apiClassInfo[apiClassName]['methods'][methodName][index]
+
+                # copy the methodInfo, we (might be) modifying it
+                methodInfo = copy.deepcopy(methodInfo)
+                if not keepDocs:
+                    # the docs aren't really necessary for comparing
+                    # compatibility... get rid of them..
+                    methodInfo.pop('doc', None)
+                    for argData in methodInfo.get('argInfo', {}).itervalues():
+                        argData.pop('doc', None)
+                    methodInfo.get('returnInfo', {}).pop('doc', None)
                 usedClassMethods.setdefault(methodName, []).append(methodInfo)
     return usedMethods
+
+def findApiWrapRegressions(oldWraps, newWraps):
+    '''Given api wrap data from apiPymelWrapData for an old and new version,
+    tries to find changes that would cause backwards-compatibility problems /
+    regressions.
+    '''
+    def setClassProblem(className, issue):
+        problems[className] = issue
+
+    def getClassProblems(className):
+        return problems.setdefault(className, {})
+
+    def setMethodProblem(className, methodName, issue):
+        getClassProblems(className)[methodName] = issue
+
+    def getMethodProblems(className, methodName):
+        return getClassProblems(className).setdefault(methodName, {})
+
+    def setIndexProblem(className, methodName, index, issue):
+        getMethodProblems(className, methodName)[index] = issue
+
+    problems = {}
+    for className, oldMethodNames in oldWraps.iteritems():
+        if className not in newWraps:
+            setClassProblem(className, '!!!Class missing!!!')
+            continue
+        newMethodNames = newWraps[className]
+
+        for methodName, oldMethodWraps in oldMethodNames.iteritems():
+            if methodName not in newMethodNames:
+                setMethodProblem(className, methodName, '!!!Method missing!!!')
+                continue
+            newMethodWraps = newMethodNames[methodName]
+
+            for i, oldWrap in enumerate(oldMethodWraps):
+                try:
+                    newWrap = newMethodWraps[i]
+                except IndexError:
+                    setIndexProblem(className, methodName, i, '!!!Overload index missing!!!')
+                    continue
+                if newWrap == oldWrap:
+                    continue
+                else:
+                    diff = util.compareCascadingDicts(oldWrap, newWrap)
+                    setIndexProblem(className, methodName, i, ('Overload differed',
+                                                               diff[1:]))
+    return problems
+
+
