@@ -1965,6 +1965,9 @@ class ApiRedoUndoItem(ApiUndoItem):
     def undoIt(self):
         self._undoer(*self._undo_args, **self._undo_kwargs)
 
+_DEBUG_API_WRAPS = True
+if _DEBUG_API_WRAPS:
+    _apiMethodWraps = {}
 
 def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex=None ):
     """
@@ -2189,13 +2192,22 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         wrappedApiFunc = util.interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults=defaults )
         wrappedApiFunc._argHelper = argHelper
 
+        global _DEBUG_API_WRAPS
+        if _DEBUG_API_WRAPS:
+            import weakref
+            global _apiMethodWraps
+            classWraps = _apiMethodWraps.setdefault(apiClassName, {})
+            methodWraps = classWraps.setdefault(methodName, [])
+            methodWraps.append({'index':argHelper.methodIndex,
+                                'funcRef':weakref.ref(wrappedApiFunc),
+                               })
+
+        # do the debug stuff before turning into a classmethod, because you
+        # can't create weakrefs of classmethods (don't ask me why...)
         if argHelper.isStatic():
             wrappedApiFunc = classmethod(wrappedApiFunc)
 
         return wrappedApiFunc
-
-
-
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
     """decorator for adding API docs"""
@@ -2380,6 +2392,11 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
 
                     assert isinstance( pymelName, str ), "%s.%s: %r is not a valid name" % ( classname, methodName, pymelName)
 
+                    # TODO: some methods are being wrapped for the base class,
+                    # and all their children - ie, MFnTransform.transformation()
+                    # gets wrapped for Transform, Place3dTexture,
+                    # HikGroundPlane, etc...
+                    # Figure out why this happens, and stop it!
                     if pymelName not in herited:
                         if overloadIndex is not None:
                             if data.get('enabled', True):

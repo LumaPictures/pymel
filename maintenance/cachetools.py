@@ -497,3 +497,32 @@ def convertPymelEnums(docLocation=None):
     for cachePath, raw in rawCaches.iteritems():
         pm.util.picklezip.dump(raw, unicode(cachePath))
 
+def apiPymelWrapData():
+    '''
+    Return a dict with info about which api methods were actually wrapped
+
+    Supposed to help detect if changes to the api wraps (or api parsing, etc)
+    have affected something that "matters" - ie, a class which is actually
+    warpped by pymel, and a method overload that is actually used.
+
+    ***WARNING***
+    To work, you will first have to edit factories.py and set _DEBUG_API_WRAPS
+    to True
+    '''
+    # make sure we trigger loading of all dynamic modules, and all their
+    # members...
+    import pymel.all
+
+    apiClassInfo = factories.apiClassInfo
+    usedMethods = {}
+    for apiClassName, classMethods in factories._apiMethodWraps.iteritems():
+        for methodName, methodWraps in classMethods.iteritems():
+            for methodWrapInfo in methodWraps:
+                func = methodWrapInfo['funcRef']
+                if func is None:
+                    continue
+                index = methodWrapInfo['index']
+                usedClassMethods = usedMethods.setdefault(apiClassName, {})
+                methodInfo = apiClassInfo[apiClassName]['methods'][methodName][index]
+                usedClassMethods.setdefault(methodName, []).append(methodInfo)
+    return usedMethods
