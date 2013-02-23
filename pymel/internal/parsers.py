@@ -948,29 +948,29 @@ class ApiDocParser(object):
 
         assert buf, "could not parse a method name"
 
+        methodName = returnType = returnQualifiers = None
+
         # typedefs aren't anything we care about (ie, may be a typedef of a
         # method - see MQtUtil.UITypeCreatorFn)
-        if self.TYPEDEF_RE.match(buf[0]):
-            return None, None
+        if not self.TYPEDEF_RE.match(buf[0]):
+            returnTypeToks = buf[:-1]
+            methodName = buf[-1]
 
-        returnTypeToks = buf[:-1]
-        methodName = buf[-1]
+            methodName = methodName.split('::')[-1]
+            returnType, returnQualifiers = self.parseType(returnTypeToks)
 
-        methodName = methodName.split('::')[-1]
-        returnType, returnQualifiers = self.parseType(returnTypeToks)
-
-        # convert operators to python special methods
-        if methodName.startswith('operator'):
-            methodName = self.getOperatorName(methodName)
-        else:
-            #constructors and destructors
-            if methodName.startswith('~') or methodName == self.apiClassName:
-                methodName = None
-        # no MStatus in python
-        if returnType in ['MStatus', 'void']:
-            returnType = None
-        else:
-            returnType = self.handleEnums(returnType)
+            # convert operators to python special methods
+            if methodName.startswith('operator'):
+                methodName = self.getOperatorName(methodName)
+            else:
+                #constructors and destructors
+                if methodName.startswith('~') or methodName == self.apiClassName:
+                    methodName = None
+            # no MStatus in python
+            if returnType in ['MStatus', 'void']:
+                returnType = None
+            else:
+                returnType = self.handleEnums(returnType)
 
         return methodName, returnType, returnQualifiers
 
