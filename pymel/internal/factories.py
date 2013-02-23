@@ -1965,7 +1965,7 @@ class ApiRedoUndoItem(ApiUndoItem):
     def undoIt(self):
         self._undoer(*self._undo_args, **self._undo_kwargs)
 
-_DEBUG_API_WRAPS = True
+_DEBUG_API_WRAPS = False
 if _DEBUG_API_WRAPS:
     _apiMethodWraps = {}
 
