@@ -969,8 +969,6 @@ class ApiDocParser(object):
             # no MStatus in python
             if returnType in ['MStatus', 'void']:
                 returnType = None
-            else:
-                returnType = self.handleEnums(returnType)
 
         return methodName, returnType, returnQualifiers
 
@@ -1108,6 +1106,7 @@ class ApiDocParser(object):
                               'typeQualifiers' : typeQualifiers,
                               'deprecated' : deprecated }
                 self.methods[self.currentMethod].append(methodInfo)
+                return methodInfo
         finally:
             # reset
             self.currentMethod=None
