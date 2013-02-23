@@ -499,7 +499,7 @@ def convertPymelEnums(docLocation=None):
     for cachePath, raw in rawCaches.iteritems():
         pm.util.picklezip.dump(raw, unicode(cachePath))
 
-def apiPymelWrapData(keepDocs=False):
+def apiPymelWrapData(keepDocs=False, keepReturnQualifiers=True):
     '''
     Return a dict with info about which api methods were actually wrapped
 
@@ -536,6 +536,8 @@ def apiPymelWrapData(keepDocs=False):
                     for argData in methodInfo.get('argInfo', {}).itervalues():
                         argData.pop('doc', None)
                     methodInfo.get('returnInfo', {}).pop('doc', None)
+                if not keepReturnQualifiers:
+                    methodInfo.get('returnInfo', {}).pop('qualifiers', None)
                 usedClassMethods.setdefault(methodName, []).append(methodInfo)
     return usedMethods
 
