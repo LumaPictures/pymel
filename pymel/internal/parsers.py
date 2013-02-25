@@ -863,8 +863,8 @@ class ApiDocParser(object):
                         assert dict(paramDir.attrs).get('class') == 'paramdir', "First element in param table row was not a paramdir"
                         assert dict(paramName.attrs).get('class') == 'paramname', "Second element in param table row was not a paramname"
 
-                        tmpDirs.append(paramDir.findNext(text=True).encode('ascii', 'ignore'))
-                        tmpNames.append(paramName.findNext(text=True).encode('ascii', 'ignore'))
+                        tmpDirs.append(paramDir.find(text=True).encode('ascii', 'ignore'))
+                        tmpNames.append(paramName.find(text=True).encode('ascii', 'ignore'))
                         doc = ''.join(tds[2].findAll(text=True))
                         tmpDocs.append(doc.encode('ascii', 'ignore'))
             else:
@@ -875,7 +875,7 @@ class ApiDocParser(object):
                         assert tds, "could not find name td"
                         assert len(tds) == 3, "td list is unexpected length: %d" % len(tds)
 
-                        tt = tds[0].findNext(lambda tag: tag.name == 'tt')
+                        tt = tds[0].find('tt')
                         dir = tt.findAll( text=True, limit=1 )[0]
                         tmpDirs.append(dir.encode('ascii', 'ignore'))
 
@@ -939,7 +939,7 @@ class ApiDocParser(object):
 
     def getMethodNameAndOutput(self, proto):
         # NAME AND RETURN TYPE
-        memb = proto.findNext( 'td', **{'class':'memname'} )
+        memb = proto.find( 'td', **{'class':'memname'} )
         buf = []
         for text in memb.findAll(text=True):
             text = text.strip().encode('ascii', 'ignore')
