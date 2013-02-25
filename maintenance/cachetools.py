@@ -574,10 +574,10 @@ def findApiWrapRegressions(oldWraps, newWraps):
                 continue
             newMethodWraps = newMethodNames[methodName]
 
-            for i, oldWrap in enumerate(oldMethodWraps):
+            for i, oldWrap in oldMethodWraps.iteritems():
                 try:
                     newWrap = newMethodWraps[i]
-                except IndexError:
+                except KeyError:
                     setIndexProblem(className, methodName, i, '!!!Overload index missing!!!')
                     continue
                 if newWrap == oldWrap:
