@@ -538,7 +538,7 @@ def apiPymelWrapData(keepDocs=False, keepReturnQualifiers=True):
                     methodInfo.get('returnInfo', {}).pop('doc', None)
                 if not keepReturnQualifiers:
                     methodInfo.get('returnInfo', {}).pop('qualifiers', None)
-                usedClassMethods.setdefault(methodName, []).append(methodInfo)
+                usedClassMethods.setdefault(methodName, {})[index] = methodInfo
     return usedMethods
 
 def findApiWrapRegressions(oldWraps, newWraps):
