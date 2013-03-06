@@ -2056,23 +2056,6 @@ class PyNode(_util.ProxyUnicode):
         """
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
-    def namespace(self, root=False):
-        """Returns the namespace of the object with trailing colon included.
-
-        See `DependNode.parentNamespace` for a variant which does not include
-        the trailing colon.
-
-        By default, if the object is in the root namespace, an empty string is
-        returned; if root is True, ':' is returned in this case.
-
-        :rtype: `unicode`
-
-        """
-        ns = self.parentNamespace()
-        if ns or root:
-            ns += ':'
-        return ns
-
     def addPrefix(self, prefix):
         """Returns the object's name with a prefix added to the beginning of the name
 
@@ -2696,6 +2679,9 @@ class Attribute(PyNode):
         if includeNode:
             name = self.nodeName() + '.' + name
         return name
+
+    def namespace(self, *args, **kwargs):
+        return self.node().namespace(*args, **kwargs)
 
     def array(self):
         """
@@ -3799,6 +3785,9 @@ class Component( PyNode ):
 
     def node(self):
         return self._node
+
+    def namespace(self, *args, **kwargs):
+        return self.node().namespace(*args, **kwargs)
 
     # just for backward compatibility with old Component class (though the
     # only place this WAS used was with particles...)

@@ -95,6 +95,23 @@ class DependNode( general.PyNode ):
             name = name.rsplit(':', 1)[-1]
         return name
 
+    def namespace(self, root=False):
+        """Returns the namespace of the object with trailing colon included.
+
+        See `DependNode.parentNamespace` for a variant which does not include
+        the trailing colon.
+
+        By default, if the object is in the root namespace, an empty string is
+        returned; if root is True, ':' is returned in this case.
+
+        :rtype: `unicode`
+
+        """
+        ns = self.parentNamespace()
+        if ns or root:
+            ns += ':'
+        return ns
+
     def shortName(self):
         """
         This produces the same results as `DependNode.name` and is included to simplify looping over lists
