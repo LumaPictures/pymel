@@ -1800,7 +1800,7 @@ class PyNode(_util.ProxyUnicode):
             else:
                 pymelType, obj = _getPymelType( argObj, name )
                 if attrNode is None and issubclass(pymelType, Attribute):
-                    attrNode = PyNode(obj['MPlug'].name().split('.')[0])
+                    attrNode = PyNode(obj['MPlug'].node())
 
             #print pymelType, obj, name, attrNode
 
