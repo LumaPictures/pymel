@@ -614,15 +614,16 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
 def _getTimeRangeFlags(cmdName):
     """used parsed data and naming convention to determine which flags are callbacks"""
 
-    commandFlags = []
+    commandFlags = set()
     try:
         flagDocs = cmdlist[cmdName]['flags']
     except KeyError:
         pass
     else:
         for flag, data in flagDocs.items():
-            if data['args'] == 'timeRange':
-                commandFlags += [flag, data['shortname']]
+            args = data['args']
+            if isinstance(args, basestring) and args.lower() == 'timerange':
+                commandFlags.update([flag, data['shortname']])
     return commandFlags
 
 
@@ -889,32 +890,52 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                     # (1,None), (1,), slice(1,None), "1:"
                     # (None,100), slice(100), ":100"
                     # (None,None), ":"
-                    val = kwargs[flag]
+                    rawVal = kwargs[flag]
                 except KeyError:
-                    pass
+                    continue
                 else:
-                    if isinstance(val, slice):
-                        val = [val.start, val.stop]
-                    elif isinstance(val, basestring) and val.count(':') == 1:
-                        val = val.split(':')
-                        # keep this python 2.4 compatible
+                    # in mel, you would do:
+                    #   keyframe -time "1:10"
+                    # in order to get the same behavior in python, you would
+                    # have to do:
+                    #   cmds.keyframe(time=("1:10",))
+                    # ...which is lame. So, standardize everything by throwing
+                    # it inside of a tuple...
 
-                        for i, v in enumerate(val):
-                            if not v.strip():
-                                val[i] = None
-                    elif isinstance(val, int):
-                        val = (val,val)
+                    # we only DON'T put it in a tuple, if it already IS a tuple/
+                    # list, AND it doesn't look like a simple range - ie,
+                    #   cmds.keyframe(time=(1,10))
+                    # will get converted to
+                    #   cmds.keyframe(time=((1,10),))
+                    # but
+                    #   cmds.keyframe(time=('1:3', [1,5]))
+                    # will be left alone...
+                    if (isinstance(rawVal, (list, tuple))
+                        and 1 <= len(rawVal) <= 2
+                        and all(isinstance(x, (basestring, int, long, float))
+                                for x in rawVal)):
+                        values = list(rawVal)
+                    else:
+                        values = [rawVal]
 
-                    if isinstance(val, (tuple, list) ):
-                        val = list(val)
-                        if len(val)==2 :
-                            if val[0] is None:
-                                val[0] = cmds.findKeyframe(which='first')
-                            if val[1] is None:
-                                val[1] = cmds.findKeyframe(which='last')
-                        elif len(val)==1:
-                            val.append( cmds.findKeyframe(which='last') )
-                        kwargs[flag] = tuple(val)
+                    for i, val in enumerate(values):
+                        if isinstance(val, slice):
+                            val = [val.start, val.stop]
+                        elif isinstance(val, tuple):
+                            val = list(val)
+
+                        if isinstance(val, list):
+                            if len(val) == 1:
+                                val.append(None)
+                            if len(val) == 2 and None in val:
+                                # easiest way to get accurate min/max bounds
+                                # is to convert to the string form...
+                                val = ':'.join('' if x is None else str(x)
+                                               for x in val)
+                            else:
+                                val = tuple(val)
+                        values[i] = val
+                    kwargs[flag] = values
 
             res = beforeReturnFunc(*args, **kwargs)
             if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
