@@ -203,3 +203,99 @@ class TestTimeRange(testing.TestCaseExtended):
 
 TestTimeRange.addKeyframeTimeTests()
 TestTimeRange.addKeyframeIndexTests()
+
+class TestJoint(testing.TestCaseExtended):
+
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def test_angleX(self):
+        joint = pm.joint(angleX=31.5)
+        self.assertEqual(pm.joint(joint, q=1, angleX=1), 31.5)
+        pm.joint(joint, e=1, angleX=20.2)
+        self.assertEqual(pm.joint(joint, q=1, angleX=1), 20.2)
+        pm.delete(joint)
+
+        joint = pm.joint(ax=31.5)
+        self.assertEqual(pm.joint(joint, q=1, ax=1), 31.5)
+        pm.joint(joint, e=1, ax=20.2)
+        self.assertEqual(pm.joint(joint, q=1, ax=1), 20.2)
+        pm.delete(joint)
+
+    def test_angleY(self):
+        joint = pm.joint(angleY=31.5)
+        self.assertEqual(pm.joint(joint, q=1, angleY=1), 31.5)
+        pm.joint(joint, e=1, angleY=20.2)
+        self.assertEqual(pm.joint(joint, q=1, angleY=1), 20.2)
+        pm.delete(joint)
+
+        joint = pm.joint(ay=31.5)
+        self.assertEqual(pm.joint(joint, q=1, ay=1), 31.5)
+        pm.joint(joint, e=1, ay=20.2)
+        self.assertEqual(pm.joint(joint, q=1, ay=1), 20.2)
+        pm.delete(joint)
+
+    def test_angleZ(self):
+        joint = pm.joint(angleZ=31.5)
+        self.assertEqual(pm.joint(joint, q=1, angleZ=1), 31.5)
+        pm.joint(joint, e=1, angleZ=20.2)
+        self.assertEqual(pm.joint(joint, q=1, angleZ=1), 20.2)
+        pm.delete(joint)
+
+        joint = pm.joint(az=31.5)
+        self.assertEqual(pm.joint(joint, q=1, az=1), 31.5)
+        pm.joint(joint, e=1, az=20.2)
+        self.assertEqual(pm.joint(joint, q=1, az=1), 20.2)
+        pm.delete(joint)
+
+    def test_radius(self):
+        joint = pm.joint(radius=31.5)
+        self.assertEqual(pm.joint(joint, q=1, radius=1), 31.5)
+        pm.joint(joint, e=1, radius=20.2)
+        self.assertEqual(pm.joint(joint, q=1, radius=1), 20.2)
+        pm.delete(joint)
+
+        joint = pm.joint(rad=31.5)
+        self.assertEqual(pm.joint(joint, q=1, rad=1), 31.5)
+        pm.joint(joint, e=1, rad=20.2)
+        self.assertEqual(pm.joint(joint, q=1, rad=1), 20.2)
+        pm.delete(joint)
+
+    def test_stiffnessX(self):
+        joint = pm.joint(stiffnessX=31.5)
+        self.assertEqual(pm.joint(joint, q=1, stiffnessX=1), 31.5)
+        pm.joint(joint, e=1, stiffnessX=20.2)
+        self.assertEqual(pm.joint(joint, q=1, stiffnessX=1), 20.2)
+        pm.delete(joint)
+
+        joint = pm.joint(stx=31.5)
+        self.assertEqual(pm.joint(joint, q=1, stx=1), 31.5)
+        pm.joint(joint, e=1, stx=20.2)
+        self.assertEqual(pm.joint(joint, q=1, stx=1), 20.2)
+        pm.delete(joint)
+
+    def test_stiffnessY(self):
+        joint = pm.joint(stiffnessY=31.5)
+        self.assertEqual(pm.joint(joint, q=1, stiffnessY=1), 31.5)
+        pm.joint(joint, e=1, stiffnessY=20.2)
+        self.assertEqual(pm.joint(joint, q=1, stiffnessY=1), 20.2)
+        pm.delete(joint)
+
+        joint = pm.joint(sty=31.5)
+        self.assertEqual(pm.joint(joint, q=1, sty=1), 31.5)
+        pm.joint(joint, e=1, sty=20.2)
+        self.assertEqual(pm.joint(joint, q=1, sty=1), 20.2)
+        pm.delete(joint)
+
+    def test_stiffnessZ(self):
+        joint = pm.joint(stiffnessZ=31.5)
+        self.assertEqual(pm.joint(joint, q=1, stiffnessZ=1), 31.5)
+        pm.joint(joint, e=1, stiffnessZ=20.2)
+        self.assertEqual(pm.joint(joint, q=1, stiffnessZ=1), 20.2)
+        pm.delete(joint)
+
+        joint = pm.joint(stz=31.5)
+        self.assertEqual(pm.joint(joint, q=1, stz=1), 31.5)
+        pm.joint(joint, e=1, stz=20.2)
+        self.assertEqual(pm.joint(joint, q=1, stz=1), 20.2)
+        pm.delete(joint)

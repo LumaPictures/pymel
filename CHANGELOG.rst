@@ -1,4 +1,23 @@
 ==================================
+Version ?.?.?
+==================================
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+
+- joint.limitSwitchX/Y/Z: now return [bool, bool] when queried, just like the mel command, to indicate whether the limit is on for the min/max
+- joint.radius: now returns the float radius, instead of [radius]
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- general: for the keyframe command, the upper / lower limits substituted in for the "index" flag, when no upper/lower limits were given, are now correct; formerly, the behavior of index=":" would vary depending on where (in time) the first and last keyframes were
+- general: timerange flags (ie, keyframe(time=...), findKeyframe(time=...), etc) now provide correct results when no upper/lower limits given; formerly, the time=":" would vary depending on if / which objects were selected
+- animation: Joint.angleX/Y/Z and Joint.stiffnessX/Y/Z now work
+
+==================================
 Version 1.0.5
 ==================================
 

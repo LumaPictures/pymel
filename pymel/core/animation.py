@@ -49,37 +49,6 @@ Modifications:
 def deformer(*args, **kwargs):
     return map( _general.PyNode, cmds.deformer(*args, **kwargs) )
 
-def joint(*args, **kwargs):
-    """
-Maya Bug Fix:
-    - when queried, limitSwitch*, stiffness*, and angle* flags returned lists, each with one value, instead
-        of single values. Values are now properly unpacked
-    """
-    res = cmds.joint(*args, **kwargs)
-
-    #if kwargs.pop('query',False) or kwargs.pop('q',False):
-
-    if kwargs.get('query', kwargs.get( 'q', False)):
-        args = [
-        'limitSwitchX', 'lsx',
-        'limitSwitchY', 'lsy',
-        'limitSwitchZ', 'lsz',
-        'stiffnessX', 'stx',
-        'stiffnessY', 'sty',
-        'stiffnessZ', 'stz',
-        'angleX', 'ax',
-        'angleY', 'ay',
-        'angleZ', 'az'
-        ]
-        if filter( lambda x: x in args, kwargs.keys()):
-            res = res[0]
-    else:
-        try:
-            res = cmds.ls(sl=1)[0]
-        except:
-            pass
-    return res
-
 def _constraint( func ):
     def constraintWithWeightSyntax(*args, **kwargs):
         """

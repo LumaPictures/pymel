@@ -620,7 +620,7 @@ def _getTimeRangeFlags(cmdName):
     except KeyError:
         pass
     else:
-        for flag, data in flagDocs.items():
+        for flag, data in flagDocs.iteritems():
             args = data['args']
             if isinstance(args, basestring) and args.lower() == 'timerange':
                 commandFlags.update([flag, data['shortname']])
@@ -813,9 +813,9 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
 
 def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None, uiWidget=False ):
     """
-    create a new function, apply the given returnFunc to the results (if any),
-    and add to the module given by 'moduleName'.  Use pre-parsed command documentation
-    to add to __doc__ strings for the command.
+    create a new function, apply the given returnFunc to the results (if any)
+    Use pre-parsed command documentation to add to __doc__ strings for the
+    command.
     """
 
     #if module is None:
@@ -867,7 +867,6 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 
     timeRangeFlags = _getTimeRangeFlags(funcName)
 
-
     # some refactoring done here - to avoid code duplication (and make things clearer),
     # we now ALWAYS do things in the following order:
         # 1. Perform operations which modify the execution of the function (ie, adding return funcs)
@@ -878,12 +877,12 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 
     newFunc = inFunc
 
-    if returnFunc or timeRangeFlags:
+    if timeRangeFlags:
         # need to define a seperate var here to hold
         # the old value of newFunc, b/c 'return newFunc'
         # would be recursive
-        beforeReturnFunc = newFunc
-        def newFuncWithReturnFunc( *args, **kwargs):
+        beforeTimeRangeFunc = newFunc
+        def newFuncWithTimeRangeFlags(*args, **kwargs):
             for flag in timeRangeFlags:
                 try:
                     # allow for open-ended time ranges:
@@ -936,7 +935,15 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                                 val = tuple(val)
                         values[i] = val
                     kwargs[flag] = values
+            return beforeTimeRangeFunc(*args, **kwargs)
+        newFunc = newFuncWithTimeRangeFlags
 
+    if returnFunc:
+        # need to define a seperate var here to hold
+        # the old value of newFunc, b/c 'return newFunc'
+        # would be recursive
+        beforeReturnFunc = newFunc
+        def newFuncWithReturnFunc(*args, **kwargs):
             res = beforeReturnFunc(*args, **kwargs)
             if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
                 if isinstance(res, list):
@@ -955,6 +962,28 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                         pass
             return res
         newFunc = newFuncWithReturnFunc
+
+    createUnpack = cmdInfo.get('resultNeedsUnpacking', False)
+    unpackFlags = set()
+    for flag, flagInfo in cmdInfo.get('flags', {}).iteritems():
+        if flagInfo.get('resultNeedsUnpacking', False):
+            unpackFlags.add(flagInfo.get('longname', flag))
+            unpackFlags.add(flagInfo.get('shortname', flag))
+
+    if (createUnpack or unpackFlags):
+        beforeUnpackFunc = newFunc
+        def newFuncWithUnpack(*args, **kwargs):
+            res = beforeUnpackFunc(*args, **kwargs)
+            if isinstance(res, list) and len(res) == 1:
+                if kwargs.get('query', kwargs.get('q',False)):
+                    # query mode...
+                    if not unpackFlags.isdisjoint(kwargs):
+                        res = res[0]
+                else:
+                    if createUnpack:
+                        res = res[0]
+            return res
+        newFunc = newFuncWithUnpack
 
     if funcName in simpleCommandWraps:
         # simple wraps: we only do these for functions which have not been manually customized
@@ -2594,9 +2623,11 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             pass
             #_logger.debug("No MEL command info available for %s" % melCmdName)
         else:
+            pmSourceFunc = False
             try:
                 cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
                 func = getattr(cmdModule, melCmdName)
+                pmSourceFunc = True
             except (AttributeError, TypeError):
                 func = getattr(pmcmds,melCmdName)
 
@@ -2633,15 +2664,17 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here.
-                            if not apiToMelData.has_key((classname,methodName)) \
-                                or apiToMelData[(classname,methodName)].get('melEnabled',False) \
-                                or not apiToMelData[(classname,methodName)].get('enabled',True):
+                            if (not apiToMelData.has_key((classname,methodName))
+                                    or apiToMelData[(classname,methodName)].get('melEnabled',False)
+                                    or not apiToMelData[(classname,methodName)].get('enabled',True)):
                                 returnFunc = None
 
                                 if flagInfo.get( 'resultNeedsCasting', False):
                                     returnFunc = flagInfo['args']
 
-                                if flagInfo.get( 'resultNeedsUnpacking', False):
+                                # don't unpack if the source i
+                                if (flagInfo.get( 'resultNeedsUnpacking', False)
+                                        and not pmSourceFunc):
                                     if returnFunc:
                                         # can't do:
                                         #   returnFunc = lambda x: returnFunc(x[0])

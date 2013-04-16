@@ -758,7 +758,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 try:
                     _logger.debug(cmd)
                     val = func( *flagargs, **kwargs )
-                    #_logger.debug(val)
+                    #_logger.debug('val: %r' % (val,))
                     resultType = _objectToType(val)
 
                     # ensure symmetry between edit and query commands:

@@ -2003,19 +2003,61 @@ class testCase_nurbsSurface(TestCaseExtended):
 
 class testCase_joint(TestCaseExtended):
     def setUp(self):
-        self.j = pm.nt.Joint(radius=3.3, a=1, p=(4,5,6))
-
-    def tearDown(self):
-        pm.delete(self.j)
+        pm.newFile(f=1)
 
 #    def test_getAbsolute(self):
 #        # Was a bug with this, due to handling of methods which needed casting AND unpacking
 #        self.assertEqual(self.j.getAbsolute(), (4,5,6))
 
-    def test_getRadius(self):
-        # Was a bug with this, due to handling of methods which needed unpacking (but not casting)
-        self.assertEqual(self.j.getRadius(), 3.3)
+    def test_angleX(self):
+        joint = pm.nt.Joint(angleX=31.5)
+        self.assertEqual(joint.getAngleX(), 31.5)
+        joint.setAngleX(20.2)
+        self.assertEqual(joint.getAngleX(), 20.2)
+        pm.delete(joint)
 
+    def test_angleY(self):
+        joint = pm.nt.Joint(angleY=31.5)
+        self.assertEqual(joint.getAngleY(), 31.5)
+        joint.setAngleY(20.2)
+        self.assertEqual(joint.getAngleY(), 20.2)
+        pm.delete(joint)
+
+    def test_angleZ(self):
+        joint = pm.nt.Joint(angleZ=31.5)
+        self.assertEqual(joint.getAngleZ(), 31.5)
+        joint.setAngleZ(20.2)
+        self.assertEqual(joint.getAngleZ(), 20.2)
+        pm.delete(joint)
+
+    def test_radius(self):
+        # Was a bug with this, due to handling of methods which needed unpacking (but not casting)
+        joint = pm.nt.Joint(radius=31.5)
+        self.assertEqual(joint.getRadius(), 31.5)
+        joint.setRadius(20.2)
+        self.assertEqual(joint.getRadius(), 20.2)
+        pm.delete(joint)
+
+    def test_stiffnessX(self):
+        joint = pm.nt.Joint(stiffnessX=31.5)
+        self.assertEqual(joint.getStiffnessX(), 31.5)
+        joint.setStiffnessX(20.2)
+        self.assertEqual(joint.getStiffnessX(), 20.2)
+        pm.delete(joint)
+
+    def test_stiffnessY(self):
+        joint = pm.nt.Joint(stiffnessY=31.5)
+        self.assertEqual(joint.getStiffnessY(), 31.5)
+        joint.setStiffnessY(20.2)
+        self.assertEqual(joint.getStiffnessY(), 20.2)
+        pm.delete(joint)
+
+    def test_stiffnessZ(self):
+        joint = pm.nt.Joint(stiffnessZ=31.5)
+        self.assertEqual(joint.getStiffnessZ(), 31.5)
+        joint.setStiffnessZ(20.2)
+        self.assertEqual(joint.getStiffnessZ(), 20.2)
+        pm.delete(joint)
 
 
 class testCase_sets(TestCaseExtended):
