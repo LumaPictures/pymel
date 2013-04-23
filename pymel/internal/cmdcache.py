@@ -950,6 +950,9 @@ def _getNodeHierarchy( version=None ):
                 inheritances[nodeType] = apicache.getInheritance(nodeType)
             except apicache.ManipNodeTypeError:
                 continue
+            except Exception:
+                print "Error getting inheritance: %s" % nodeType
+                raise
 
         parentTree = {}
         # Convert inheritance lists node=>parent dict

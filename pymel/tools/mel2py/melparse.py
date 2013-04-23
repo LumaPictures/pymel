@@ -2622,11 +2622,11 @@ class MelParser(object):
             translatedStr = parser.parse(data, lexer=self.lexer, debug=debug)
             #translatedStr = simpleParser.parse(data, lexer=self.lexer)
 
-        except ValueError, msg:
+        except ValueError:
             if self.lexer.comment_queue:
                 translatedStr = '\n'.join(self.lexer.comment_queue)
             else:
-                raise ValueError, msg
+                raise
 
         if translatedStr is None:
             raise MelParseError(data=data, lexer=self.lexer)

@@ -191,15 +191,24 @@ mpxNamesToMayaNodes = {
     }
 
 mpxClassesToMpxEnums = {}
-
+missingMPx = []
 for _mpxName, _enumName in mpxNamesToEnumNames.iteritems():
     _mpxCls = getattr(mpx, _mpxName, None)
+
     if _mpxCls:
         _enum = getattr(mpx.MPxNode, _enumName, None)
         if _enum is not None:
             mpxClassesToMpxEnums[_mpxCls] = _enum
         else:
             print "warning: could not find enum MPxNode.%s for class %s" % (_enumName, _mpxName)
+    else:
+        missingMPx.append(_mpxName)
+
+for _mpxName in missingMPx:
+    mpxNamesToEnumNames.pop(_mpxName, None)
+    mpxNamesToApiEnumNames.pop(_mpxName, None)
+    mpxNamesToMayaNodes.pop(_mpxName, None)
+
 del _mpxName, _enumName, _enum
 
 pluginMayaTypes = set(mpxNamesToMayaNodes.itervalues())
