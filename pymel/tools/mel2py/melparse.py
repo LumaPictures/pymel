@@ -2628,7 +2628,7 @@ class MelParser(object):
             else:
                 raise
 
-        if translatedStr is None:
+        if translatedStr is None or self.lexer.errors:
             raise MelParseError(data=data, lexer=self.lexer)
         #except IndexError, msg:
         #    raise ValueError, '%s: %s' % (melfile, msg)
