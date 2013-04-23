@@ -168,15 +168,15 @@ def p_group(t):
 #                '''
 #    print "empty"
 #    t[0] = t[1]
-
-def p_element_list(t):
-    '''element_list : element
-                | element_list element
-                '''
-    if len(t) == 2:
-        t[0] = [t[1]]
-    else:
-        t[0] = t[1] + [t[2]]
+#
+#def p_element_list(t):
+#    '''element_list : element
+#                | element_list element
+#                '''
+#    if len(t) == 2:
+#        t[0] = [t[1]]
+#    else:
+#        t[0] = t[1] + [t[2]]
 
 def p_element(t):
     '''element : declaration_specifiers
