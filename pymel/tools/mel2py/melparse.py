@@ -436,6 +436,7 @@ def _melProc_to_pyModule( t, procedure ):
             batchData.proc_to_module[procedure] = (None, None)
         return batchData.proc_to_module[procedure]
 
+FLAG_RE = re.compile("-\s*([A-Za-z][\w_]*)$")
 
 def format_command(command, args, t):
     if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
@@ -465,14 +466,16 @@ def format_command(command, args, t):
         except KeyError:
             # Mel procedures and commands without help documentation
             #if flags is None:
+            args = [repr(x) if isinstance(x, basestring) and FLAG_RE.match(x)
+                    else x for x in args]
             args = ', '.join(args)
 
             # function is being called locally, within same file
             if command in t.lexer.global_procs:
-                returnType = t.lexer.global_procs[command]['returnType']
+                #returnType = t.lexer.global_procs[command]['returnType']
                 return '%s(%s)' % (command, args)
             if command in t.lexer.local_procs:
-                returnType = t.lexer.local_procs[command]['returnType']
+                #returnType = t.lexer.local_procs[command]['returnType']
                 return '_%s(%s)' % (command, args)
             if command in melCmdList:
                 return '%s(%s)' % (command, args)
@@ -500,11 +503,10 @@ def format_command(command, args, t):
         argTally=[]
         numArgs = 0
         commandFlag = False
-        flagReg = re.compile("-\s*([A-Za-z][\w_]*)")
         queryMode = False
         currFlag = None
         for token in args:
-            flagmatch = flagReg.match( token )
+            flagmatch = FLAG_RE.match( token )
 
             #----- Flag -----
             if flagmatch:
