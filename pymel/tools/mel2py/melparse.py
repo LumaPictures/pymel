@@ -33,6 +33,10 @@ except ImportError:
 
 #  Global variables + constants ------------------------------------------------
 
+FLAG_RE = re.compile("-\s*([A-Za-z][\w_]*)$")
+
+NON_COMMENT_LINE_RE = re.compile('^\s*[^\s#]', re.MULTILINE)
+
 # commands which should not be brought into main namespace
 filteredCmds = ['file', 'filter', 'help', 'quit', 'sets', 'move', 'scale', 'rotate']
 builtin_module = __import__('__main__').__builtins__
@@ -43,8 +47,6 @@ pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'glob
 
 reserved= set( dir(builtin_module) )
 reserved.update( pythonReservedWords )
-
-FLAG_RE = re.compile("-\s*([A-Za-z][\w_]*)$")
 
 mel_type_to_python_type = {
     'string'    : 'str',
@@ -729,6 +731,12 @@ def toList(t):
             tokens.append(t[i])
     return tokens
 
+def hasNonCommentPyCode(pyCode):
+    '''Returns True if the given chunk of python code has any lines that contain
+    something other than a comment or whitespace
+    '''
+    return bool(NON_COMMENT_LINE_RE.search(pyCode))
+
 #  Mel lookup data -------------------------------------------------------------
 
 # dictionary of functions used to remap procedures to python commands
@@ -871,6 +879,11 @@ class Token(str):
     def __new__(cls, val, type, lineno=None, **kwargs):
         self=str.__new__(cls,val)
         self.type = type
+        if lineno is None:
+            if hasattr(val, 'lineno') and isinstance(val.lineno, int):
+                lineno = val.lineno
+            elif hasattr(val, 'lexer'):
+                lineno = val.lexer.lineno
         self.lineno = lineno
         self.__dict__.update( kwargs )
         return self
@@ -1252,6 +1265,22 @@ def p_constant_expression_opt_2(t):
     t[0] = assemble(t, 'p_constant_expression_opt_2')
 
 
+# grammar-wise, identical to a statement; we have a different rule, only used as
+# a clue for the python-conversion; anywhere there is a statement_required, if
+# it translates to an "empty" python string, a "pass" statment must be
+# substituted
+
+# statement_required:
+def p_statement_required(t):
+    '''statement_required : statement'''
+    if not hasNonCommentPyCode(t[1]):
+        if t[1].strip():
+            t[1] += '\npass'
+        else:
+            t[1] = Token('pass', 'string', t.lexer.lineno)
+        t[1]
+    t[0] = assemble(t, 'p_statement_required')
+
 # statement:
 def p_statement_simple(t):
     '''statement : expression_statement
@@ -1376,14 +1405,14 @@ def p_statement_list(t):
 
 # selection-statement
 def p_selection_statement_1(t):
-    '''selection_statement : IF LPAREN expression RPAREN statement'''
+    '''selection_statement : IF LPAREN expression RPAREN statement_required'''
     #t[0] = assemble(t, 'p_selection_statement_1')
     t[0] = merge_assignment_spillover( t, t[3].lineno, 'selection_statement_1' )
     t[0] += 'if %s:\n%s' % (t[3],entabLines(t[5]))
 
 
 def p_selection_statement_2(t):
-    '''selection_statement : IF LPAREN expression RPAREN statement ELSE add_comment statement '''
+    '''selection_statement : IF LPAREN expression RPAREN statement_required ELSE add_comment statement_required '''
     #t[0] = assemble(t, 'p_selection_statement_2')
     t[0] = merge_assignment_spillover( t, t[3].lineno, 'selection_statement_2' )
     t[0] += 'if %s:\n%s\n' % (t[3], entabLines(t[5]))
@@ -1529,13 +1558,13 @@ def p_selection_statement_3(t):
 
 # iteration_statement:
 def p_iteration_statement_1(t):
-    '''iteration_statement : WHILE LPAREN expression RPAREN add_comment statement'''
+    '''iteration_statement : WHILE LPAREN expression RPAREN add_comment statement_required'''
     #t[0] = assemble(t, 'p_iteration_statement_1')
     t[0] = addHeldComments(t, 'while') + 'while %s:\n%s\n' % (t[3], entabLines(t[6]) )
 
 
 def p_iteration_statement_2(t):
-    '''iteration_statement : FOR LPAREN expression_list_opt SEMI expression_list_opt SEMI expression_list_opt RPAREN add_comment statement '''
+    '''iteration_statement : FOR LPAREN expression_list_opt SEMI expression_list_opt SEMI expression_list_opt RPAREN add_comment statement_required'''
     #t[0] = assemble(t, 'p_iteration_statement_2')
 
     """
@@ -1746,7 +1775,7 @@ def p_iteration_statement_2(t):
         default_formatting()
 
 def p_iteration_statement_3(t):
-    '''iteration_statement : FOR LPAREN variable IN expression seen_FOR RPAREN add_comment statement '''
+    '''iteration_statement : FOR LPAREN variable IN expression seen_FOR RPAREN add_comment statement_required '''
     #t[0] = assemble(t, 'p_iteration_statement_3')
     t[0] = addHeldComments(t, 'for') + 'for %s in %s:\n%s' % (t[3], t[5], entabLines(t[9]))
 
@@ -1758,7 +1787,7 @@ def p_seen_FOR(t):
 
 
 def p_iteration_statement_4(t):
-    '''iteration_statement : DO statement WHILE LPAREN expression RPAREN SEMI'''
+    '''iteration_statement : DO statement_required WHILE LPAREN expression RPAREN SEMI'''
     t[0] = assemble(t, 'p_iteration_statement_4')
 
     if t.lexer.force_compatibility:
