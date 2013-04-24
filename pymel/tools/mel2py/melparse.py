@@ -681,7 +681,7 @@ def format_command(command, args, t):
 
             # multi-use flag
             #    mel:     ls -type "transform" -type "camera"
-            #    python:    ls( type=["transform","camera"] )
+            #    python:    ls( type=["transform", "camera"] )
             if isinstance( value, list):
                 #sep = ', '
                 #if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
@@ -1103,7 +1103,7 @@ def p_declaration_statement(t):
                     t[0] += "%smelGlobals.initVar(%r, %r)\n" % ( t.lexer.pymel_namespace, iType, var )
 
             else:
-                t[0] += var + '=' + val + '\n'
+                t[0] += var + ' = ' + val + '\n'
 
         # initialize to value
         else:
