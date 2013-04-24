@@ -303,7 +303,7 @@ mel_type_to_python_type = {
     }
 
 default_values = {
-    'string'    : '',
+    'string'    : '""',
     'int'       : '0',
     'float'     : '0.0',
     'vector'    : 'Vector()',
