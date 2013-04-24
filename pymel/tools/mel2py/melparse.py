@@ -1737,9 +1737,20 @@ def p_iteration_statement_4(t):
     '''iteration_statement : DO statement WHILE LPAREN expression RPAREN SEMI'''
     t[0] = assemble(t, 'p_iteration_statement_4')
 
-    t[0] = t[2]    + '\n'
-    t[0] += 'while %s:\n%s\n' % (t[5], entabLines(t[2]) )
-    t[0] = addHeldComments(t, 'do while') + t[0]
+    if t.lexer.force_compatibility:
+        # if we're forcing compatibility, repeat the entire contents of the loop
+        # once, then create a while loop...
+        t[0] = t[2]    + '\n'
+        t[0] += 'while %s:\n%s\n' % (t[5], entabLines(t[2]) )
+        t[0] = addHeldComments(t, 'do while') + t[0]
+    else:
+        # otherwise, create a variable, first_run_of_do_while_loop=True
+        t[0] = 'first_run_of_do_while_loop = True\n'
+        newCondition = 'first_run_of_do_while_loop or (%s)' % t[5]
+        newBody = entabLines('first_run_of_do_while_loop = False\n%s' % t[2])
+        t[0] += 'while %s:\n%s\n' % (newCondition, newBody )
+        t[0] = addHeldComments(t, 'do while') + t[0]
+
 
 # jump_statement:
 def p_jump_statement(t):
