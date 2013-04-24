@@ -558,19 +558,21 @@ def format_command(command, args, t):
                                               verbosity=t.lexer.verbose,
                                               expressionsOnly=True )
 
-                        tmpToken = token
-                        #print tmpToken
                         # pre-parse cleanup
 
-                        #print tmpToken
-
                         # remove enclosing parentheses
-                        tmpToken = tmpToken.strip(' ')
+                        tmpToken = token.strip()
                         while tmpToken.startswith('(') and tmpToken.endswith(')'):
                             tmpToken = tmpToken[1:-1]
-                            tmpToken = tmpToken.strip(' ')
+                            tmpToken = tmpToken.strip()
 
                         tmpToken = unescape(tmpToken)
+                        # before unescaping, we might have:
+                        #   '"cmd; "'
+                        # so, after unescaping, we have:
+                        #   'cmd; '
+                        # ...so we need to do another strip...
+                        tmpToken = tmpToken.strip()
 
                         if not tmpToken.endswith( ';' ):
                             tmpToken += ';'
@@ -593,11 +595,13 @@ def format_command(command, args, t):
                         t.lexer.imported_modules.update( cbParser.lexer.imported_modules )
 
                         # post-parse cleanup
-                        if tmpToken.endswith( '\n' ):
-                            tmpToken = tmpToken[:-1]
-
-                        tmpToken = tmpToken.replace( '\n', ' and ')
-
+                        statements = [x.strip() for x in tmpToken.split('\n') if x.strip()]
+                        if len(statements) == 1:
+                            tmpToken = statements[0]
+                        else:
+                            # turn it into a list, just so we can execute all
+                            # statements in a single lambda 'statement'
+                            tmpToken = '[%s]' % ', '.join(statements)
                         token = 'lambda *args: %s' % (tmpToken)
 
                     #else:
@@ -1745,6 +1749,7 @@ def p_iteration_statement_4(t):
         t[0] = addHeldComments(t, 'do while') + t[0]
     else:
         # otherwise, create a variable, first_run_of_do_while_loop=True
+        # use a variable name unlikely to conflict with one the user is using!
         t[0] = 'first_run_of_do_while_loop = True\n'
         newCondition = 'first_run_of_do_while_loop or (%s)' % t[5]
         newBody = entabLines('first_run_of_do_while_loop = False\n%s' % t[2])
