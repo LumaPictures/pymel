@@ -37,11 +37,17 @@ class Token(str):
         self=str.__new__(cls,val)
         self.type = type
         self.lineno = lineno
-        self.array = False
         self.__dict__.update( kwargs )
         return self
+
+    def _getKwargs(self):
+        kwargs = dict((key, val) for key, val in self.__dict__.iteritems()
+                      if key not in ('val', 'type') and not key.startswith('__'))
+        return kwargs
+
     def __getslice__(self, start, end):
-        return Token( str.__getslice__(self, start, end), self.type, self.__dict__ )
+        return type(self)(str.__getslice__(self, start, end), self.type,
+                          **self._getKwargs())
     def __add__(self, other ):
         newdict = self.__dict__
         try:
