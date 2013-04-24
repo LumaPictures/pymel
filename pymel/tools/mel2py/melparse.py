@@ -7,7 +7,6 @@ Created from the ansi c example included with ply, which is based on the grammar
 """
 
 
-
 import sys, os, re, os.path, tempfile, string
 import mellex
 
@@ -32,34 +31,7 @@ except ImportError:
 
 #mutableStr = proxyClass(str, 'mutableStr', module=__name__)
 
-class Token(str):
-    def __new__(cls, val, type, lineno=None, **kwargs):
-        self=str.__new__(cls,val)
-        self.type = type
-        self.lineno = lineno
-        self.__dict__.update( kwargs )
-        return self
-
-    def _getKwargs(self):
-        kwargs = dict((key, val) for key, val in self.__dict__.iteritems()
-                      if key not in ('val', 'type') and not key.startswith('__'))
-        return kwargs
-
-    def __getslice__(self, start, end):
-        return type(self)(str.__getslice__(self, start, end), self.type,
-                          **self._getKwargs())
-    def __add__(self, other ):
-        newdict = self.__dict__
-        try:
-            newdict.update( other.__dict__ )
-        except: pass
-        return Token( str.__add__( self, other ), **newdict  )
-
-class ArrayToken(Token):
-    def __new__(cls, val, type, size, lineno=None, **kwargs):
-        self = Token.__new__(cls, val, type, lineno=lineno, **kwargs)
-        self.size = size
-        return self
+#  Global variables + constants ------------------------------------------------
 
 # commands which should not be brought into main namespace
 filteredCmds = ['file', 'filter', 'help', 'quit', 'sets', 'move', 'scale', 'rotate']
@@ -71,6 +43,31 @@ pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'glob
 
 reserved= set( dir(builtin_module) )
 reserved.update( pythonReservedWords )
+
+FLAG_RE = re.compile("-\s*([A-Za-z][\w_]*)$")
+
+mel_type_to_python_type = {
+    'string'    : 'str',
+    'int'       : 'int',
+    'float'     : 'float',
+    'vector'    : 'Vector',
+    'matrix'    : 'Matrix',
+    }
+
+default_values = {
+    'string'    : '""',
+    'int'       : '0',
+    'float'     : '0.0',
+    'vector'    : 'Vector()',
+    'matrix'    : 'Matrix()',
+    }
+
+tag = '# script created by pymel.tools.mel2py'
+
+# Get the list of reserved words -- any variables or procedures that conflict with these keywords will be renamed with a trailing underscore
+tokens = mellex.tokens
+
+#  Formating functions----------------------------------------------------------
 
 def format_substring(x, t):
     """convert:
@@ -160,290 +157,6 @@ def format_source(x, t):
     else:
         return '%smel.source(%s)' % (t.lexer.pymel_namespace, x[0] )
 
-# dictionary of functions used to remap procedures to python commands
-proc_remap = {
-
-        # strings
-        #'capitalizeString'         : ('string', lambda x, t: '%s.capitalize()'     % (x[0]) ), # not equiv
-        'capitalizeString'         : ('string', lambda x, t: '%sutil.capitalize(%s)'     % (t.lexer.pymel_namespace,x[0]) ),
-        'strip'                 : ('string', lambda x, t: '%s.strip()'         % (x[0]) ),
-        'appendStringArray'     : ( None ,   lambda x, t: '%s += %s[:%s]'         % (x[0],x[1],x[2]) ),
-        'stringArrayToString'     : ('string', lambda x, t: '%s.join(%s)'         % (x[1],x[0]) ),
-        'stringArrayCatenate'    : ('string', lambda x, t: '%s + %s'             % (x[0],x[1]) ),
-        'stringArrayContains'    : ('int',    lambda x, t: '%s in %s'             % (x[0],x[1]) ),
-        'stringArrayCount'        : ('int',    lambda x, t: '%s.count(%s)'        % (x[1],x[0]) ),
-        'stringArrayInsertAtIndex'    : ( None, lambda x, t: '%s.insert(%s,%s)'        % (x[1],x[0],x[2]) ),
-        'stringArrayRemove'        : ('string[]', lambda x, t: '[x for x in %s if x not in %s]'    % (x[1],x[0]) ),
-        'stringArrayRemoveAtIndex'    : ('string[]', lambda x, t: '%s.pop(%s)'        % (x[1],x[0]) ),
-        #'stringArrayRemove'        : lambda x, t: 'filter( lambda x: x not in %s, %s )' % (x[0],x[1]) ),
-        'stringToStringArray'    : ('string[]', lambda x, t: '%s.split(%s)'         % (x[0],x[1]) ),
-        'startsWith'            : ('int',    lambda x, t: '%s.startswith(%s)'     % (x[0],x[1]) ),
-        'endsWith'                : ('int',    lambda x, t: '%s.endswith(%s)'     % (x[0],x[1]) ),
-        'tolower'                : ('string', lambda x, t: '%s.lower()'         % (x[0]) ),
-        'toupper'                : ('string', lambda x, t: '%s.upper()'         % (x[0]) ),
-        'tokenize'                : ('string[]', format_tokenize ),
-        'substring'                : ('string', format_substring ),
-        'substitute'            : ('string', lambda x, t: '%s.replace(%s,%s)'         % (x[1],x[0],x[2]) ),
-
-        # misc. keywords
-        'size'                     : ('int',    lambda x, t: 'len(%s)'             % (', '.join(x)) ),
-        'print'                    : ( None ,   lambda x, t: 'print %s'             % (x[0]) ),
-        'clear'                    : ( None ,   lambda x, t: '%s = []'                 % (x[0]) ),
-        'eval'                     : ( None ,   lambda x, t: '%smel.eval(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
-        'python'                   : ( None ,   lambda x, t: '%spython(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
-        'sort'                    : ( None ,   lambda x, t: 'sorted(%s)'            % (x[0]) ),
-        'source'                : ( None ,      format_source ),
-        # error handling
-        'catch'                    : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
-        'catchQuiet'            : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
-
-        # system
-
-        # TODO: check that new version of system works...
-        # 'system'                : ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )'     % (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows
-        'system'                : ( 'string' ,   lambda x, t: '%sinternal.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),
-        # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec
-        'exec'                    : ( None ,   lambda x, t: ( 'os.popen2(%s)'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
-        'getenv'                : ( 'string', lambda x, t: ( 'os.environ[%s]'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
-        # TODO : this differs from mel equiv bc it does not return a value
-        'putenv'                : ( None, lambda x, t: ( 'os.environ[%s] = %s'     % (x[0], x[1]), t.lexer.imported_modules.add('os') )[0] ),
-
-        # math
-        'deg_to_rad'            : ( 'float', lambda x, t: 'radians(%s)'     % (x[0]) ),
-        'rad_to_deg'            : ( 'float', lambda x, t: 'degrees(%s)'     % (x[0]) ),
-
-        # file i/o
-        'fopen'                    : ('int',    format_fopen ),
-        'fprint'                : ( None ,   lambda x, t: '%s.write(%s)' % (x[0], x[1]) ),
-        'fclose'                : ( None ,   lambda x, t: '%s.close()' % (x[0]) ),
-        'fflush'                : ( None ,   lambda x, t: '%s.flush()' % (x[0]) ),
-        'fgetline'                : ( 'string' ,   lambda x, t: '%s.readline()' % (x[0]) ),
-        'frewind'                : ( None ,   lambda x, t: '%s.seek(0)' % (x[0]) ),
-        'fgetword'                : ( 'string' ,   lambda x, t: "%sfscanf(%s, '%%s')" % (t.lexer.pymel_namespace,x[0]) ),
-        'feof'                    : ( 'int'    ,   lambda x, t: '%sfeof(%s)' % (t.lexer.pymel_namespace,x[0]) ),
-        'fread'                    : ( 'string' ,   format_fread ),
-
-
-        #'filetest'                : lambda x, t: (  (  t.lexer.imported_modules.add('os'),  # add os module for access()
-        #                                        {     '-r' : "Path(%(path)s).access(os.R_OK)",
-        #                                            '-l' : "Path(%(path)s).islink()",
-        #                                            '-w' : "Path(%(path)s).access(os.W_OK)",
-        #                                            '-x' : "Path(%(path)s).access(os.X_OK)",
-        #                                            '-f' : "Path(%(path)s).isfile()",
-        #                                            '-d' : "Path(%(path)s).isdir()",
-        #                                            '-h' : "Path(%(path)s).islink()",
-        #                                            '-f' : "Path(%(path)s).exists() and Path(%(path)s).getsize()",
-        #                                            '-L' : "Path(%(path)s).islink()",
-        #                                            }[ x[0] ] % { 'path' :x[1] })
-        #                                        )[1],
-
-        'filetest'                : ('int',    lambda x, t: (  (  t.lexer.imported_modules.update( ['os', 'os.path'] ),  # add os module for access()
-                                                {     '-r' : "os.access(%(path)s, os.R_OK)",
-                                                    '-l' : "os.path.islink(%(path)s)",
-                                                    '-w' : "os.access(%(path)s, os.W_OK)",
-                                                    '-x' : "os.access(%(path)s, os.X_OK)",
-                                                    '-f' : "os.path.isfile(%(path)s)",
-                                                    '-d' : "os.path.isdir(%(path)s)",
-                                                    '-h' : "os.path.islink(%(path)s)",
-                                                    '-f' : "os.path.exists(%(path)s) and os.path.getsize(%(path)s)",
-                                                    '-L' : "os.path.islink(%(path)s)",
-                                                    }[ x[0] ] % { 'path' :x[1] } )
-                                                )[1] ),
-
-        #'sysFile'                : lambda x, t: {     '-delete'    : "Path(%(path)s).remove()",
-        #                                            '-del'        : "Path(%(path)s).remove()",
-        #                                            '-rename'    : "Path(%(path)s).move(%(param)s)",
-        #                                            '-ren'        : "Path(%(path)s).move(%(param)s)",
-        #                                            '-move'        : "Path(%(path)s).move(%(param)s)",
-        #                                            '-mov'        : "Path(%(path)s).move(%(param)s)",
-        #                                            '-copy'        : "Path(%(path)s).copy(%(param)s)",
-        #                                            '-cp'        : "Path(%(path)s).copy(%(param)s)",
-        #                                            '-makeDir'    : "Path(%(path)s).mkdir()",
-        #                                            '-md'         : "Path(%(path)s).mkdir()",
-        #                                            '-removeEmptyDir' : "Path(%(path)s).removedirs()",
-        #                                            '-red'         : "Path(%(path)s).removedirs()"
-        #                                            }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] }
-
-
-
-        'sysFile'                : ('int',    lambda x, t: (  ( t.lexer.imported_modules.update( ['os', 'shutil'] ),
-                                                {    '-delete'    : "os.remove(%(path)s)",
-                                                    '-del'        : "os.remove(%(path)s)",
-                                                    '-rename'    : "os.rename(%(path)s, %(param)s)",
-                                                    '-ren'        : "os.rename(%(path)s, %(param)s)",
-                                                    '-move'        : "os.rename(%(path)s, %(param)s)",
-                                                    '-mov'        : "os.rename(%(path)s, %(param)s)",
-                                                    '-copy'        : "shutil.copy(%(path)s, %(param)s)",
-                                                    '-cp'        : "shutil.copy(%(path)s, %(param)s)",
-                                                    '-makeDir'    : "os.mkdir(%(path)s)",
-                                                    '-md'         : "os.mkdir(%(path)s) ",
-                                                    '-removeEmptyDir' : "os.rmdir(%(path)s)",
-                                                    '-red'         : "os.rmdir(%(path)s)",
-                                                    }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] } )
-                                                )[1] )
-}
-
-#: mel commands which were not ported to python, but which have flags that need to be translated
-melCmdFlagList = {
-             'error'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
-             'warning' : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
-             'trace'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } }
-             }
-
-#: mel commands which were not ported to python; if we find one of these in pymel, we'll assume it's a replacement
-melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs'] #
-melCmdList = [ x for x in melCmdList if not proc_remap.has_key(x) and ( hasattr(pymel,x) or hasattr(builtin_module,x) ) ]
-
-mel_type_to_python_type = {
-    'string'    : 'str',
-    'int'       : 'int',
-    'float'     : 'float',
-    'vector'    : 'Vector',
-    'matrix'    : 'Matrix',
-    }
-
-default_values = {
-    'string'    : '""',
-    'int'       : '0',
-    'float'     : '0.0',
-    'vector'    : 'Vector()',
-    'matrix'    : 'Matrix()',
-    }
-
-tag = '# script created by pymel.tools.mel2py'
-
-
-def pythonizeName(name):
-    alphaNumeric = string.ascii_letters + string.digits
-    chars = []
-    for char in name:
-        if char not in alphaNumeric:
-            chars.append('_')
-        else:
-            chars.append(char)
-    if chars[0] in string.digits:
-        # Since python treats names starting with '_' as
-        # somewhat special, use another character...
-        chars.insert(0, 'n')
-    return ''.join(chars)
-
-def getModuleBasename( script ):
-    name = os.path.splitext( os.path.basename(script) )[0]
-    return pythonizeName(name)
-
-def findModule( moduleName ):
-    for f in sys.path:
-        f = os.path.join( f, moduleName  + '.py' )
-        if os.path.isfile(f):
-            # checks for a tag added by mel2py -- this is unreliable, but so is using simple name comparison
-            # TODO : add a keyword for passing directories to look for pre-translated python scripts
-            file = open(f, 'r')
-            firstline = file.readline()
-            file.close()
-            if firstline.startswith(tag):
-                return f
-    return
-
-#def _script_to_module( t, script ):
-#    global batchData.currentFiles
-#    global script_to_module
-#
-#    path, name = os.path.split(script)
-#    if name.endswith('.mel'):
-#        name += '.mel'
-#
-#    try:
-#        return script_to_module[name]
-#
-#    except KeyError:
-#
-#        if not path:
-#            result = mel.whatIs( name )
-#            buf = result.split( ':' )
-#            if buf[0] == 'Script found in':
-#                fullpath = buf[1]
-#            else:
-#                return
-#        else:
-#            fullpath = os.path.join(path, name )
-#
-#
-#        moduleName = getModuleBasename(fullpath)
-#
-#
-#        # the mel file in which this proc is defined is being converted with this batch
-#        if fullpath in batchData.currentFiles:
-#            script_to_module[name] = moduleName
-#            return moduleName
-def fileInlist( file, fileList ):
-    file = util.path(file)
-    for dir in fileList:
-        try:
-            if file.samefile( dir ):
-                return True
-        except OSError: pass
-    return False
-
-def _melObj_to_pyModule( script ):
-    """
-    Return the module name this mel script / procedure will be converted to / found in.
-
-    If the mel script is not being translated, returns None.
-    """
-    result = mel.whatIs( script )
-    buf = result.split( ': ' )
-    if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
-        melfile = util.path( buf[1].lstrip() )
-        melfile = melfile.canonicalpath()
-        if batchData.currentModules.has_value(melfile):
-            return batchData.currentModules.get_key(melfile)
-    return None
-
-def _melProc_to_pyModule( t, procedure ):
-    """
-    determine if this procedure has been or will be converted into python, and if so, what module it belongs to
-    """
-
-    # if root_module is set to None that means we are doing a string conversion, and not a file conversion
-    # we don't need to find out the current or future python module.  just use pymel.mel
-    if t.lexer.root_module in [ None, '__main__']:
-        return None, None
-
-    global batchData
-
-    try:
-        return batchData.proc_to_module[procedure]
-    except KeyError:
-        # if the file currently being parsed is not being translated, then this parsing is just for information gathering.
-        # no need to recursively parse any further
-        if t.lexer.root_module not in batchData.currentModules:
-            #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
-            moduleName = None
-        else:
-            moduleName = _melObj_to_pyModule( procedure )
-
-        if moduleName is not None:
-            #print "%s not seen yet: scanning %s" % ( procedure, melfile )
-            cbParser = MelScanner()
-            cbParser.build()
-            melfile = batchData.currentModules[moduleName]
-            try:
-                proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
-            except lex.LexError:
-                print "Error parsing mel file:", melfile
-                global_procs = {}
-            #print "global procs", global_procs
-            for proc, procInfo in global_procs.items():
-                #print proc, procInfo
-                batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
-
-        if procedure not in batchData.proc_to_module:
-            #print "could not find script for procedure: %s" % procedure
-            batchData.proc_to_module[procedure] = (None, None)
-        return batchData.proc_to_module[procedure]
-
-FLAG_RE = re.compile("-\s*([A-Za-z][\w_]*)$")
-
 def format_command(command, args, t):
     if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
         args[0] = args[0][1:-1]
@@ -514,7 +227,7 @@ def format_command(command, args, t):
         for token in args:
             flagmatch = FLAG_RE.match( token )
 
-            #----- Flag -----
+            #  Flag ------------------------------------------------------------
             if flagmatch:
                 if numArgs > 0:
                     #raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
@@ -715,29 +428,6 @@ def format_command(command, args, t):
             print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
             return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
-
-class BatchData(object):
-    """ """
-    __metaclass__ = util.Singleton
-
-    def __init__(self, **kwargs):
-        self.currentModules = TwoWayDict()
-        self.proc_to_module = {}
-        self.scriptPath_to_parser = {}
-        self.scriptPath_to_moduleText = {}
-        self.basePackage = None
-        self.outputDir = None
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
-
-global batchData
-batchData = BatchData()
-
-# Get the list of reserved words -- any variables or procedures that conflict with these keywords will be renamed with a trailing underscore
-tokens = mellex.tokens
-
-
-
 def store_assignment_spillover( token, t ):
     if hasattr(token, '__dict__'):
         try:
@@ -791,17 +481,6 @@ def format_assignment_value( val, typ ):
             print "NO TYPE", val
 
     return val
-
-def vprint(t, *args):
-    if t.lexer.verbose:
-        print args
-
-def toList(t):
-    tokens = []
-    for i in range(1, len(t)):
-        if i is not None:
-            tokens.append(t[i])
-    return tokens
 
 def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 
@@ -896,7 +575,6 @@ def holdComments():
     t.lexer.comment_queue = []
 
 
-
 def entabLines( line ):
 
     buf = line.split('\n')
@@ -909,6 +587,335 @@ def entabLines( line ):
         res += '\n'
     return res
 
+#  Utility functions -----------------------------------------------------------
+
+def pythonizeName(name):
+    alphaNumeric = string.ascii_letters + string.digits
+    chars = []
+    for char in name:
+        if char not in alphaNumeric:
+            chars.append('_')
+        else:
+            chars.append(char)
+    if chars[0] in string.digits:
+        # Since python treats names starting with '_' as
+        # somewhat special, use another character...
+        chars.insert(0, 'n')
+    return ''.join(chars)
+
+def getModuleBasename( script ):
+    name = os.path.splitext( os.path.basename(script) )[0]
+    return pythonizeName(name)
+
+def findModule( moduleName ):
+    for f in sys.path:
+        f = os.path.join( f, moduleName  + '.py' )
+        if os.path.isfile(f):
+            # checks for a tag added by mel2py -- this is unreliable, but so is using simple name comparison
+            # TODO : add a keyword for passing directories to look for pre-translated python scripts
+            file = open(f, 'r')
+            firstline = file.readline()
+            file.close()
+            if firstline.startswith(tag):
+                return f
+    return
+
+#def _script_to_module( t, script ):
+#    global batchData.currentFiles
+#    global script_to_module
+#
+#    path, name = os.path.split(script)
+#    if name.endswith('.mel'):
+#        name += '.mel'
+#
+#    try:
+#        return script_to_module[name]
+#
+#    except KeyError:
+#
+#        if not path:
+#            result = mel.whatIs( name )
+#            buf = result.split( ':' )
+#            if buf[0] == 'Script found in':
+#                fullpath = buf[1]
+#            else:
+#                return
+#        else:
+#            fullpath = os.path.join(path, name )
+#
+#
+#        moduleName = getModuleBasename(fullpath)
+#
+#
+#        # the mel file in which this proc is defined is being converted with this batch
+#        if fullpath in batchData.currentFiles:
+#            script_to_module[name] = moduleName
+#            return moduleName
+def fileInlist( file, fileList ):
+    file = util.path(file)
+    for dir in fileList:
+        try:
+            if file.samefile( dir ):
+                return True
+        except OSError: pass
+    return False
+
+def _melObj_to_pyModule( script ):
+    """
+    Return the module name this mel script / procedure will be converted to / found in.
+
+    If the mel script is not being translated, returns None.
+    """
+    result = mel.whatIs( script )
+    buf = result.split( ': ' )
+    if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
+        melfile = util.path( buf[1].lstrip() )
+        melfile = melfile.canonicalpath()
+        if batchData.currentModules.has_value(melfile):
+            return batchData.currentModules.get_key(melfile)
+    return None
+
+def _melProc_to_pyModule( t, procedure ):
+    """
+    determine if this procedure has been or will be converted into python, and if so, what module it belongs to
+    """
+
+    # if root_module is set to None that means we are doing a string conversion, and not a file conversion
+    # we don't need to find out the current or future python module.  just use pymel.mel
+    if t.lexer.root_module in [ None, '__main__']:
+        return None, None
+
+    global batchData
+
+    try:
+        return batchData.proc_to_module[procedure]
+    except KeyError:
+        # if the file currently being parsed is not being translated, then this parsing is just for information gathering.
+        # no need to recursively parse any further
+        if t.lexer.root_module not in batchData.currentModules:
+            #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
+            moduleName = None
+        else:
+            moduleName = _melObj_to_pyModule( procedure )
+
+        if moduleName is not None:
+            #print "%s not seen yet: scanning %s" % ( procedure, melfile )
+            cbParser = MelScanner()
+            cbParser.build()
+            melfile = batchData.currentModules[moduleName]
+            try:
+                proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
+            except lex.LexError:
+                print "Error parsing mel file:", melfile
+                global_procs = {}
+            #print "global procs", global_procs
+            for proc, procInfo in global_procs.items():
+                #print proc, procInfo
+                batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
+
+        if procedure not in batchData.proc_to_module:
+            #print "could not find script for procedure: %s" % procedure
+            batchData.proc_to_module[procedure] = (None, None)
+        return batchData.proc_to_module[procedure]
+
+def vprint(t, *args):
+    if t.lexer.verbose:
+        print args
+
+def toList(t):
+    tokens = []
+    for i in range(1, len(t)):
+        if i is not None:
+            tokens.append(t[i])
+    return tokens
+
+#  Mel lookup data -------------------------------------------------------------
+
+# dictionary of functions used to remap procedures to python commands
+proc_remap = {
+
+        # strings
+        #'capitalizeString'         : ('string', lambda x, t: '%s.capitalize()'     % (x[0]) ), # not equiv
+        'capitalizeString'         : ('string', lambda x, t: '%sutil.capitalize(%s)'     % (t.lexer.pymel_namespace,x[0]) ),
+        'strip'                 : ('string', lambda x, t: '%s.strip()'         % (x[0]) ),
+        'appendStringArray'     : ( None ,   lambda x, t: '%s += %s[:%s]'         % (x[0],x[1],x[2]) ),
+        'stringArrayToString'     : ('string', lambda x, t: '%s.join(%s)'         % (x[1],x[0]) ),
+        'stringArrayCatenate'    : ('string', lambda x, t: '%s + %s'             % (x[0],x[1]) ),
+        'stringArrayContains'    : ('int',    lambda x, t: '%s in %s'             % (x[0],x[1]) ),
+        'stringArrayCount'        : ('int',    lambda x, t: '%s.count(%s)'        % (x[1],x[0]) ),
+        'stringArrayInsertAtIndex'    : ( None, lambda x, t: '%s.insert(%s,%s)'        % (x[1],x[0],x[2]) ),
+        'stringArrayRemove'        : ('string[]', lambda x, t: '[x for x in %s if x not in %s]'    % (x[1],x[0]) ),
+        'stringArrayRemoveAtIndex'    : ('string[]', lambda x, t: '%s.pop(%s)'        % (x[1],x[0]) ),
+        #'stringArrayRemove'        : lambda x, t: 'filter( lambda x: x not in %s, %s )' % (x[0],x[1]) ),
+        'stringToStringArray'    : ('string[]', lambda x, t: '%s.split(%s)'         % (x[0],x[1]) ),
+        'startsWith'            : ('int',    lambda x, t: '%s.startswith(%s)'     % (x[0],x[1]) ),
+        'endsWith'                : ('int',    lambda x, t: '%s.endswith(%s)'     % (x[0],x[1]) ),
+        'tolower'                : ('string', lambda x, t: '%s.lower()'         % (x[0]) ),
+        'toupper'                : ('string', lambda x, t: '%s.upper()'         % (x[0]) ),
+        'tokenize'                : ('string[]', format_tokenize ),
+        'substring'                : ('string', format_substring ),
+        'substitute'            : ('string', lambda x, t: '%s.replace(%s,%s)'         % (x[1],x[0],x[2]) ),
+
+        # misc. keywords
+        'size'                     : ('int',    lambda x, t: 'len(%s)'             % (', '.join(x)) ),
+        'print'                    : ( None ,   lambda x, t: 'print %s'             % (x[0]) ),
+        'clear'                    : ( None ,   lambda x, t: '%s = []'                 % (x[0]) ),
+        'eval'                     : ( None ,   lambda x, t: '%smel.eval(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
+        'python'                   : ( None ,   lambda x, t: '%spython(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
+        'sort'                    : ( None ,   lambda x, t: 'sorted(%s)'            % (x[0]) ),
+        'source'                : ( None ,      format_source ),
+        # error handling
+        'catch'                    : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
+        'catchQuiet'            : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
+
+        # system
+
+        # TODO: check that new version of system works...
+        # 'system'                : ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )'     % (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows
+        'system'                : ( 'string' ,   lambda x, t: '%sinternal.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),
+        # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec
+        'exec'                    : ( None ,   lambda x, t: ( 'os.popen2(%s)'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
+        'getenv'                : ( 'string', lambda x, t: ( 'os.environ[%s]'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
+        # TODO : this differs from mel equiv bc it does not return a value
+        'putenv'                : ( None, lambda x, t: ( 'os.environ[%s] = %s'     % (x[0], x[1]), t.lexer.imported_modules.add('os') )[0] ),
+
+        # math
+        'deg_to_rad'            : ( 'float', lambda x, t: 'radians(%s)'     % (x[0]) ),
+        'rad_to_deg'            : ( 'float', lambda x, t: 'degrees(%s)'     % (x[0]) ),
+
+        # file i/o
+        'fopen'                    : ('int',    format_fopen ),
+        'fprint'                : ( None ,   lambda x, t: '%s.write(%s)' % (x[0], x[1]) ),
+        'fclose'                : ( None ,   lambda x, t: '%s.close()' % (x[0]) ),
+        'fflush'                : ( None ,   lambda x, t: '%s.flush()' % (x[0]) ),
+        'fgetline'                : ( 'string' ,   lambda x, t: '%s.readline()' % (x[0]) ),
+        'frewind'                : ( None ,   lambda x, t: '%s.seek(0)' % (x[0]) ),
+        'fgetword'                : ( 'string' ,   lambda x, t: "%sfscanf(%s, '%%s')" % (t.lexer.pymel_namespace,x[0]) ),
+        'feof'                    : ( 'int'    ,   lambda x, t: '%sfeof(%s)' % (t.lexer.pymel_namespace,x[0]) ),
+        'fread'                    : ( 'string' ,   format_fread ),
+
+
+        #'filetest'                : lambda x, t: (  (  t.lexer.imported_modules.add('os'),  # add os module for access()
+        #                                        {     '-r' : "Path(%(path)s).access(os.R_OK)",
+        #                                            '-l' : "Path(%(path)s).islink()",
+        #                                            '-w' : "Path(%(path)s).access(os.W_OK)",
+        #                                            '-x' : "Path(%(path)s).access(os.X_OK)",
+        #                                            '-f' : "Path(%(path)s).isfile()",
+        #                                            '-d' : "Path(%(path)s).isdir()",
+        #                                            '-h' : "Path(%(path)s).islink()",
+        #                                            '-f' : "Path(%(path)s).exists() and Path(%(path)s).getsize()",
+        #                                            '-L' : "Path(%(path)s).islink()",
+        #                                            }[ x[0] ] % { 'path' :x[1] })
+        #                                        )[1],
+
+        'filetest'                : ('int',    lambda x, t: (  (  t.lexer.imported_modules.update( ['os', 'os.path'] ),  # add os module for access()
+                                                {     '-r' : "os.access(%(path)s, os.R_OK)",
+                                                    '-l' : "os.path.islink(%(path)s)",
+                                                    '-w' : "os.access(%(path)s, os.W_OK)",
+                                                    '-x' : "os.access(%(path)s, os.X_OK)",
+                                                    '-f' : "os.path.isfile(%(path)s)",
+                                                    '-d' : "os.path.isdir(%(path)s)",
+                                                    '-h' : "os.path.islink(%(path)s)",
+                                                    '-f' : "os.path.exists(%(path)s) and os.path.getsize(%(path)s)",
+                                                    '-L' : "os.path.islink(%(path)s)",
+                                                    }[ x[0] ] % { 'path' :x[1] } )
+                                                )[1] ),
+
+        #'sysFile'                : lambda x, t: {     '-delete'    : "Path(%(path)s).remove()",
+        #                                            '-del'        : "Path(%(path)s).remove()",
+        #                                            '-rename'    : "Path(%(path)s).move(%(param)s)",
+        #                                            '-ren'        : "Path(%(path)s).move(%(param)s)",
+        #                                            '-move'        : "Path(%(path)s).move(%(param)s)",
+        #                                            '-mov'        : "Path(%(path)s).move(%(param)s)",
+        #                                            '-copy'        : "Path(%(path)s).copy(%(param)s)",
+        #                                            '-cp'        : "Path(%(path)s).copy(%(param)s)",
+        #                                            '-makeDir'    : "Path(%(path)s).mkdir()",
+        #                                            '-md'         : "Path(%(path)s).mkdir()",
+        #                                            '-removeEmptyDir' : "Path(%(path)s).removedirs()",
+        #                                            '-red'         : "Path(%(path)s).removedirs()"
+        #                                            }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] }
+
+
+
+        'sysFile'                : ('int',    lambda x, t: (  ( t.lexer.imported_modules.update( ['os', 'shutil'] ),
+                                                {    '-delete'    : "os.remove(%(path)s)",
+                                                    '-del'        : "os.remove(%(path)s)",
+                                                    '-rename'    : "os.rename(%(path)s, %(param)s)",
+                                                    '-ren'        : "os.rename(%(path)s, %(param)s)",
+                                                    '-move'        : "os.rename(%(path)s, %(param)s)",
+                                                    '-mov'        : "os.rename(%(path)s, %(param)s)",
+                                                    '-copy'        : "shutil.copy(%(path)s, %(param)s)",
+                                                    '-cp'        : "shutil.copy(%(path)s, %(param)s)",
+                                                    '-makeDir'    : "os.mkdir(%(path)s)",
+                                                    '-md'         : "os.mkdir(%(path)s) ",
+                                                    '-removeEmptyDir' : "os.rmdir(%(path)s)",
+                                                    '-red'         : "os.rmdir(%(path)s)",
+                                                    }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] } )
+                                                )[1] )
+}
+
+#: mel commands which were not ported to python, but which have flags that need to be translated
+melCmdFlagList = {
+             'error'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
+             'warning' : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
+             'trace'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } }
+             }
+
+#: mel commands which were not ported to python; if we find one of these in pymel, we'll assume it's a replacement
+melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs'] #
+melCmdList = [ x for x in melCmdList if not proc_remap.has_key(x) and ( hasattr(pymel,x) or hasattr(builtin_module,x) ) ]
+
+#  Token -----------------------------------------------------------------------
+
+class Token(str):
+    def __new__(cls, val, type, lineno=None, **kwargs):
+        self=str.__new__(cls,val)
+        self.type = type
+        self.lineno = lineno
+        self.__dict__.update( kwargs )
+        return self
+
+    def _getKwargs(self):
+        kwargs = dict((key, val) for key, val in self.__dict__.iteritems()
+                      if key not in ('val', 'type') and not key.startswith('__'))
+        return kwargs
+
+    def __getslice__(self, start, end):
+        return type(self)(str.__getslice__(self, start, end), self.type,
+                          **self._getKwargs())
+    def __add__(self, other ):
+        newdict = self.__dict__
+        try:
+            newdict.update( other.__dict__ )
+        except: pass
+        return Token( str.__add__( self, other ), **newdict  )
+
+class ArrayToken(Token):
+    def __new__(cls, val, type, size, lineno=None, **kwargs):
+        self = Token.__new__(cls, val, type, lineno=lineno, **kwargs)
+        self.size = size
+        return self
+
+#  BatchData -------------------------------------------------------------------
+
+class BatchData(object):
+    """ """
+    __metaclass__ = util.Singleton
+
+    def __init__(self, **kwargs):
+        self.currentModules = TwoWayDict()
+        self.proc_to_module = {}
+        self.scriptPath_to_parser = {}
+        self.scriptPath_to_moduleText = {}
+        self.basePackage = None
+        self.outputDir = None
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
+
+global batchData
+batchData = BatchData()
+
+#  Parsing rules ----------------------------------------------------------------
 
 """
 translation_unit
@@ -1246,12 +1253,12 @@ def p_constant_expression_opt_2(t):
 
 
 # statement:
-def p_statement_expr(t):
+def p_statement_simple(t):
     '''statement : expression_statement
               | command_statement
               | compound_statement'''
 
-    t[0] = assemble(t, 'p_statement_expr')
+    t[0] = assemble(t, 'p_statement_simple')
 
 def p_statement_complex(t):
     '''statement : selection_statement
@@ -2621,6 +2628,7 @@ def p_error(t):
         yacc.restart()
 
 
+#  Main Parser / Scanner Classes -----------------------------------------------
 
 #import profile
 # Build the grammar
