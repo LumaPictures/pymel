@@ -62,7 +62,7 @@ class ArrayToken(Token):
         return self
 
 # commands which should not be brought into main namespace
-filteredCmds = ['file','filter','help','quit','sets','move','scale','rotate']
+filteredCmds = ['file', 'filter', 'help', 'quit', 'sets', 'move', 'scale', 'rotate']
 builtin_module = __import__('__main__').__builtins__
 pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
                        'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
@@ -683,7 +683,7 @@ def format_command(command, args, t):
             #    mel:     ls -type "transform" -type "camera"
             #    python:    ls( type=["transform","camera"] )
             if isinstance( value, list):
-                #sep = ','
+                #sep = ', '
                 #if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
                 #    sep = ',\n\t'
                 #pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
@@ -692,11 +692,11 @@ def format_command(command, args, t):
             else:
                 pargs.append( Token( '%s=%s'   % (flag, value), None, flag.lineno ) )
 
-        #sep = ','
+        #sep = ', '
         #if len(pargs) > t.lexer.format_options['args_newline_threshhold']:
         #    sep = ',\n\t'
         #res =  '%s(%s)' % (command, sep.join( pargs ) )
-        res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs, matchFormatting=True ) )
+        res =  '%s(%s)' % (command, assemble( t, 'command_args', ', ', pargs, matchFormatting=True ) )
         res = t.lexer.pymel_namespace + res
         return res
 
@@ -938,12 +938,12 @@ def p_function_definition(t):
     # global proc
     if t[1][0] == 'global':
         t.lexer.global_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
-        t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
+        t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ', '.join(t[6]) , entabLines( t[9]) )
 
     # local proc gets prefixed with underscore
     else:
         t.lexer.local_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
-        t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
+        t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ', '.join(t[6]) , entabLines( t[9]) )
 
 def p_seen_func(t):
     '''seen_func :'''
@@ -1098,9 +1098,9 @@ def p_declaration_statement(t):
                 if False:
                     t[0] += 'global %s\n' % var
                     if includeGlobalVar( var):
-                        t[0] += "%s = %sgetMelGlobal('%s','%s')\n" % (var, t.lexer.pymel_namespace, iType, var)
+                        t[0] += "%s = %sgetMelGlobal(%r, %r)\n" % (var, t.lexer.pymel_namespace, iType, var)
                 else:
-                    t[0] += "%smelGlobals.initVar( '%s', '%s' )\n" % ( t.lexer.pymel_namespace, iType, var )
+                    t[0] += "%smelGlobals.initVar(%r, %r)\n" % ( t.lexer.pymel_namespace, iType, var )
 
             else:
                 t[0] += var + '=' + val + '\n'
@@ -1465,7 +1465,7 @@ def p_selection_statement_3(t):
         conditions = list(conditions)
         block = entabLines( ''.join( lines ) )
         if len(conditions)>1:
-            t[0] += '%s %s in [%s]:\n%s' % ( control, variable, ','.join(conditions), block )
+            t[0] += '%s %s in (%s):\n%s' % ( control, variable, ', '.join(conditions), block )
         else:
             if conditions[0] is None:
                 t[0] +=  'else:\n%s' % ( block )
@@ -1670,7 +1670,7 @@ def p_iteration_statement_2(t):
             else:
                 if len(iterator) > 1:
                     '''raise ValueError, """Python does not support for loops of format '(init_exp; cond_exp; update_exp)'.
-    In order to convert these statements to python, for loop iterator must appear only once in the update expression. I found %d (%s). Please correct this portion of the loop: %s.""" % ( len(iterator), ','.join(iterator), t[7] )
+    In order to convert these statements to python, for loop iterator must appear only once in the update expression. I found %d (%s). Please correct this portion of the loop: %s.""" % ( len(iterator), ', '.join(iterator), t[7] )
                     '''
                     return default_formatting()
                 try:
@@ -1921,7 +1921,7 @@ def p_assignment_expression(t):
                 raise NotImplementedError, "I didn't think we'd make it here. the line below seems very wrong."
                 #t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
 
-            elif t[2] in ['=',' = '] and  t.lexer.expression_only:
+            elif t[2] in ['=', ' = '] and  t.lexer.expression_only:
                 raise TypeError, "This mel code is not capable of being translated as a python expression"
 
             # fill in the append string:
@@ -2198,9 +2198,9 @@ def p_postfix_expression_2(t):
     # array
 
     #t[0] = assemble(t, 'p_postfix_expression')
-    #t[0] = '[%s]' % ','.join(t[2])
+    #t[0] = '[%s]' % ', '.join(t[2])
     t[2] = [ store_assignment_spillover( x, t ) for x in t[2] ]
-    t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ',', t[2], matchFormatting=True)
+    t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ', ', t[2], matchFormatting=True)
 
 def p_postfix_expression_3(t):
     '''postfix_expression : LVEC vector_element_list RVEC'''
@@ -2223,7 +2223,7 @@ def p_postfix_expression_4(t):
 
     #t[0] = assemble(t, 'p_postfix_expression')
     t[2] = [[ store_assignment_spillover( x, t ) for x in row ] for row in t[2]]
-    rows = ['[%s]' % ','.join(row) for row in t[2]]
+    rows = ['[%s]' % ', '.join(row) for row in t[2]]
     t[0] = Token( 'Matrix([%s])' % ', '.join(rows), 'matrix', t.lexer.lineno )
 
 def p_postfix_expression_5(t):
@@ -2727,9 +2727,8 @@ class MelParser(object):
                     header += 'import pymel.all as %s\n' % self.lexer.pymel_namespace[:-1]
                 self.add_pymel_import = False
 
-            if len( new_modules ):
-                header += "import %s" % ','.join(list(new_modules))
-                header += '\n'
+            for new_module in new_modules:
+                header += "import %s\n" % new_module
             translatedStr = header + translatedStr
 
 
