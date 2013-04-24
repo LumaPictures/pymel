@@ -839,7 +839,12 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
     #res = separator.join(p[1:])
     #
 
-    if t.lexer.verbose >= 1:
+    if t.lexer.verbose >= 2:
+        print "--------"
+        print "%s - line %d" % (funcname, t.lexer.lineno)
+        print "original token:\n%s" % list(str(x) for x in t)
+        print "result:\n%s" % res
+    elif t.lexer.verbose == 1:
         print funcname, res, t.lexer.lineno
     #elif t.lexer.verbose >= 1:
     #    print 'assembled', funcname
