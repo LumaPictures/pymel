@@ -188,14 +188,14 @@ proc_remap = {
         # misc. keywords
         'size'                     : ('int',    lambda x, t: 'len(%s)'             % (', '.join(x)) ),
         'print'                    : ( None ,   lambda x, t: 'print %s'             % (x[0]) ),
-        'clear'                    : ( None ,   lambda x, t: '%s=[]'                 % (x[0]) ),
+        'clear'                    : ( None ,   lambda x, t: '%s = []'                 % (x[0]) ),
         'eval'                     : ( None ,   lambda x, t: '%smel.eval(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
         'python'                   : ( None ,   lambda x, t: '%spython(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
         'sort'                    : ( None ,   lambda x, t: 'sorted(%s)'            % (x[0]) ),
         'source'                : ( None ,      format_source ),
         # error handling
-        'catch'                    : ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),
-        'catchQuiet'            : ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),
+        'catch'                    : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
+        'catchQuiet'            : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
 
         # system
 
@@ -203,14 +203,14 @@ proc_remap = {
         # 'system'                : ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )'     % (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows
         'system'                : ( 'string' ,   lambda x, t: '%sinternal.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),
         # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec
-        'exec'                    : ( None ,   lambda x, t: ( 'os.popen2( %s )'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
-        'getenv'                : ( 'string', lambda x, t: ( 'os.environ[ %s ]'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
+        'exec'                    : ( None ,   lambda x, t: ( 'os.popen2(%s)'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
+        'getenv'                : ( 'string', lambda x, t: ( 'os.environ[%s]'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
         # TODO : this differs from mel equiv bc it does not return a value
-        'putenv'                : ( None, lambda x, t: ( 'os.environ[ %s ] = %s'     % (x[0], x[1]), t.lexer.imported_modules.add('os') )[0] ),
+        'putenv'                : ( None, lambda x, t: ( 'os.environ[%s] = %s'     % (x[0], x[1]), t.lexer.imported_modules.add('os') )[0] ),
 
         # math
-        'deg_to_rad'            : ( 'float', lambda x, t: 'radians( %s )'     % (x[0]) ),
-        'rad_to_deg'            : ( 'float', lambda x, t: 'degrees( %s )'     % (x[0]) ),
+        'deg_to_rad'            : ( 'float', lambda x, t: 'radians(%s)'     % (x[0]) ),
+        'rad_to_deg'            : ( 'float', lambda x, t: 'degrees(%s)'     % (x[0]) ),
 
         # file i/o
         'fopen'                    : ('int',    format_fopen ),
@@ -219,7 +219,7 @@ proc_remap = {
         'fflush'                : ( None ,   lambda x, t: '%s.flush()' % (x[0]) ),
         'fgetline'                : ( 'string' ,   lambda x, t: '%s.readline()' % (x[0]) ),
         'frewind'                : ( None ,   lambda x, t: '%s.seek(0)' % (x[0]) ),
-        'fgetword'                : ( 'string' ,   lambda x, t: "%sfscanf(%s,'%%s')" % (t.lexer.pymel_namespace,x[0]) ),
+        'fgetword'                : ( 'string' ,   lambda x, t: "%sfscanf(%s, '%%s')" % (t.lexer.pymel_namespace,x[0]) ),
         'feof'                    : ( 'int'    ,   lambda x, t: '%sfeof(%s)' % (t.lexer.pymel_namespace,x[0]) ),
         'fread'                    : ( 'string' ,   format_fread ),
 
@@ -238,15 +238,15 @@ proc_remap = {
         #                                        )[1],
 
         'filetest'                : ('int',    lambda x, t: (  (  t.lexer.imported_modules.update( ['os', 'os.path'] ),  # add os module for access()
-                                                {     '-r' : "os.access( %(path)s, os.R_OK)",
-                                                    '-l' : "os.path.islink( %(path)s )",
-                                                    '-w' : "os.access( %(path)s, os.W_OK)",
-                                                    '-x' : "os.access( %(path)s, os.X_OK)",
-                                                    '-f' : "os.path.isfile( %(path)s )",
-                                                    '-d' : "os.path.isdir( %(path)s )",
-                                                    '-h' : "os.path.islink( %(path)s )",
-                                                    '-f' : "os.path.exists( %(path)s ) and os.path.getsize( %(path)s )",
-                                                    '-L' : "os.path.islink( %(path)s )",
+                                                {     '-r' : "os.access(%(path)s, os.R_OK)",
+                                                    '-l' : "os.path.islink(%(path)s)",
+                                                    '-w' : "os.access(%(path)s, os.W_OK)",
+                                                    '-x' : "os.access(%(path)s, os.X_OK)",
+                                                    '-f' : "os.path.isfile(%(path)s)",
+                                                    '-d' : "os.path.isdir(%(path)s)",
+                                                    '-h' : "os.path.islink(%(path)s)",
+                                                    '-f' : "os.path.exists(%(path)s) and os.path.getsize(%(path)s)",
+                                                    '-L' : "os.path.islink(%(path)s)",
                                                     }[ x[0] ] % { 'path' :x[1] } )
                                                 )[1] ),
 
@@ -267,18 +267,18 @@ proc_remap = {
 
 
         'sysFile'                : ('int',    lambda x, t: (  ( t.lexer.imported_modules.update( ['os', 'shutil'] ),
-                                                {    '-delete'    : "os.remove( %(path)s )",
-                                                    '-del'        : "os.remove( %(path)s )",
-                                                    '-rename'    : "os.rename( %(path)s, %(param)s )",
-                                                    '-ren'        : "os.rename( %(path)s, %(param)s )",
-                                                    '-move'        : "os.rename( %(path)s, %(param)s )",
-                                                    '-mov'        : "os.rename( %(path)s, %(param)s )",
-                                                    '-copy'        : "shutil.copy( %(path)s, %(param)s )",
-                                                    '-cp'        : "shutil.copy( %(path)s, %(param)s )",
-                                                    '-makeDir'    : "os.mkdir( %(path)s )",
-                                                    '-md'         : "os.mkdir( %(path)s ) ",
-                                                    '-removeEmptyDir' : "os.rmdir( %(path)s )",
-                                                    '-red'         : "os.rmdir( %(path)s )",
+                                                {    '-delete'    : "os.remove(%(path)s)",
+                                                    '-del'        : "os.remove(%(path)s)",
+                                                    '-rename'    : "os.rename(%(path)s, %(param)s)",
+                                                    '-ren'        : "os.rename(%(path)s, %(param)s)",
+                                                    '-move'        : "os.rename(%(path)s, %(param)s)",
+                                                    '-mov'        : "os.rename(%(path)s, %(param)s)",
+                                                    '-copy'        : "shutil.copy(%(path)s, %(param)s)",
+                                                    '-cp'        : "shutil.copy(%(path)s, %(param)s)",
+                                                    '-makeDir'    : "os.mkdir(%(path)s)",
+                                                    '-md'         : "os.mkdir(%(path)s) ",
+                                                    '-removeEmptyDir' : "os.rmdir(%(path)s)",
+                                                    '-red'         : "os.rmdir(%(path)s)",
                                                     }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] } )
                                                 )[1] )
 }
