@@ -230,12 +230,12 @@ def t_COMMENT_BLOCK(t):
     # the second half of this regex is for matching block comments that
     # are terminated by the end of the file instead of by */
 
-    #t.lineno += t.value.count('\n')
+    t.lexer.lineno += t.value.count('\n')
     return t
 
 def t_COMMENT(t):
     r'//.*'
-    #t.lineno += t.value.count('\n')
+    #t.lexer.lineno += t.value.count('\n')
     return t
 
 #def t_INVALID(t):
@@ -253,8 +253,8 @@ def t_COMMENT(t):
 
 #lexer = lex.lex(optimize=1)
 #lexer = lex.lex()
-if __name__ == "__main__":
-    lex.runmain(lexer)
+#if __name__ == "__main__":
+#    lex.runmain(lexer)
 
 
 
