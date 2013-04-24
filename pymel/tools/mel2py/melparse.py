@@ -49,6 +49,11 @@ class Token(str):
         except: pass
         return Token( str.__add__( self, other ), **newdict  )
 
+class ArrayToken(Token):
+    def __new__(cls, val, type, size, lineno=None, **kwargs):
+        self = Token.__new__(cls, val, type, lineno=lineno, **kwargs)
+        self.size = size
+        return self
 
 # commands which should not be brought into main namespace
 filteredCmds = ['file','filter','help','quit','sets','move','scale','rotate']
@@ -284,10 +289,19 @@ melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue
 melCmdList = [ x for x in melCmdList if not proc_remap.has_key(x) and ( hasattr(pymel,x) or hasattr(builtin_module,x) ) ]
 
 mel_type_to_python_type = {
-    'string'     : 'str',
-    'int'         : 'int',
-    'float'        : 'float',
-    'vector'    : 'Vector'
+    'string'    : 'str',
+    'int'       : 'int',
+    'float'     : 'float',
+    'vector'    : 'Vector',
+    'matrix'    : 'Matrix',
+    }
+
+default_values = {
+    'string'    : '',
+    'int'       : '0',
+    'float'     : '0.0',
+    'vector'    : 'Vector()',
+    'matrix'    : 'Matrix()',
     }
 
 tag = '# script created by pymel.tools.mel2py'
@@ -713,15 +727,15 @@ tokens = mellex.tokens
 
 
 def store_assignment_spillover( token, t ):
-
-    try:
-        var = token.__dict__.pop( 'assignment' )
-        t.lexer.spillover_pre.append( token + '\n' )
-        #print "adding to spillover:", token, token.lineno
-        token = var
-
-    except KeyError:
-        pass
+    if hasattr(token, '__dict__'):
+        try:
+            var = token.__dict__.pop( 'assignment' )
+        except KeyError:
+            pass
+        else:
+            t.lexer.spillover_pre.append( token + '\n' )
+            #print "adding to spillover:", token, token.lineno
+            token = var
     return token
 
 def merge_assignment_spillover( t, curr_lineno, title='' ):
@@ -998,8 +1012,6 @@ def p_declaration_statement(t):
     #
     #t[0] = assemble(t, 'p_declaration_statement')
 
-
-
     def includeGlobalVar( var ):
         # handle whether we initialize this variable to the value of the mel global variable.
         # in some cases, the global variable is only for passing within the same script, in which
@@ -1029,7 +1041,7 @@ def p_declaration_statement(t):
     for var, val in t[2]:
 
 
-        if '[]' in var:
+        if '[]' in var or isinstance(var, ArrayToken):
             iType = typ + '[]'
             array = True
         else:
@@ -1042,28 +1054,26 @@ def p_declaration_statement(t):
         except AttributeError: pass
 
         # this must occur after the globalVar attribute check, bc otherwise it will convert the Token into a string
+        origVar = var
         var = var.strip().strip('[]')
 
         # default initialization
         if val is None:
-
-            # non -array intitialization
-            try:
-                val = {
-                    'string': "''",
-                    'int':    '0',
-                    'float': '0.0',
-                    'vector': 'Vector()'
-                }[  iType  ]
-
             # array initialization
-            except KeyError:
-                assert '[]' in iType
+            if '[]' in iType:
                 if t.lexer.force_compatibility:
                     val = '%sutil.defaultlist(%s)' % ( t.lexer.pymel_namespace,
                                                      mel_type_to_python_type[typ] )
+                elif isinstance(origVar, ArrayToken) and origVar.size:
+                    val = '[%s] * (%s)' % (default_values[typ], origVar.size)
                 else:
                     val = '[]'
+
+            # non -array intitialization
+            elif iType in default_values:
+                val = default_values[iType]
+            else:
+                raise TypeError("unrecognized value type: %s" % iType)
 
             t.lexer.type_map[var] = iType
 
@@ -1188,9 +1198,12 @@ def p_init_declarator(t):
 
 
 # declarator:
-def p_declarator(t):
-    '''declarator : variable
-                  | declarator LBRACKET constant_expression_opt RBRACKET'''
+def p_declarator_1(t):
+    '''declarator : variable'''
+    t[0] = assemble(t, 'p_declarator')
+
+def p_declarator_2(t):
+    '''declarator :  declarator LBRACKET constant_expression_opt RBRACKET'''
 #                    | LPAREN declarator RPAREN        removed 11/05 in effort to get cast_expression working
 #                    | declarator LPAREN parameter_type_list RPAREN
 #                    | declarator LPAREN identifier_list RPAREN
@@ -1198,9 +1211,8 @@ def p_declarator(t):
     # var
     # var[]
     # var[1]
-    if len(t) > 2:
-        t[3] = store_assignment_spillover( t[3], t )
-    t[0] = assemble(t, 'p_declarator')
+    t[3] = store_assignment_spillover( t[3], t )
+    t[0] = ArrayToken(t[1], 'string', t[3])
     #if len(t) == 5:
     #    if not t[3]:
     #        t[0] = t[1]
@@ -1802,9 +1814,6 @@ def p_expression_list(t):
     else:
         t[0] = t[1] + [t[3]]
 
-
-
-
 def p_expression(t):
     '''expression : conditional_expression'''
     t[0] = assemble(t, 'p_expression')
@@ -2170,15 +2179,30 @@ def p_postfix_expression_2(t):
     t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ',', t[2], matchFormatting=True)
 
 def p_postfix_expression_3(t):
-    '''postfix_expression : LVEC expression_list RVEC'''
+    '''postfix_expression : LVEC vector_element_list RVEC'''
 
-    # vector
+    # vector or matrix
 
     #t[0] = assemble(t, 'p_postfix_expression')
     t[2] = [ store_assignment_spillover( x, t ) for x in t[2] ]
-    t[0] = Token( 'Vector([%s])' % ','.join(t[2]), 'vector', t.lexer.lineno )
+    # FIXME:
+    # it's possible for a MATRIX to be constructed using this syntax, ie:
+    #   matrix $vectorMat[1][3] = << 1, 2, 3 >>;
+    # ...yet the token we return is always "Vector" - fix any problems that may
+    # result of assigned this into a matrix variable...
+    t[0] = Token( 'Vector([%s])' % ', '.join(t[2]), 'vector', t.lexer.lineno )
 
 def p_postfix_expression_4(t):
+    '''postfix_expression : LVEC matrix_row_list RVEC'''
+
+    # vector or matrix
+
+    #t[0] = assemble(t, 'p_postfix_expression')
+    t[2] = [[ store_assignment_spillover( x, t ) for x in row ] for row in t[2]]
+    rows = ['[%s]' % ','.join(row) for row in t[2]]
+    t[0] = Token( 'Matrix([%s])' % ', '.join(rows), 'matrix', t.lexer.lineno )
+
+def p_postfix_expression_5(t):
     '''postfix_expression : postfix_expression LBRACKET expression RBRACKET'''
 
     # array element index:
@@ -2211,6 +2235,30 @@ def p_postfix_expression_4(t):
     if hasattr( t[1], 'globalVar' ):
         t[0].indexingItem = ( t[1], t[3] )
 
+# matrix_row_list:
+def p_matrix_row_list_1(t):
+    '''matrix_row_list : vector_element_list SEMI vector_element_list'''
+    # new
+    t[0] = [t[1], t[3]]
+
+def p_matrix_row_list_2(t):
+    '''matrix_row_list : matrix_row_list SEMI vector_element_list'''
+
+    # append
+    t[0] = t[1] + [t[3]]
+
+# vector_element_list:
+def p_vector_element_list(t):
+    '''vector_element_list : expression
+                           | vector_element_list COMMA expression'''
+    # new
+    if len(t) == 2:
+        t[0] = [t[1]]
+
+    # append
+    else:
+        t[0] = t[1] + [t[3]]
+
 # primary-expression:
 def p_primary_expression_paren(t):
     '''primary_expression :    LPAREN expression RPAREN'''
@@ -2218,33 +2266,19 @@ def p_primary_expression_paren(t):
     t[0] = Token( t[1] + t[2] + t[3], t[2].type )
 
 def p_primary_expression(t):
-    '''primary_expression :    boolean'''
+    '''primary_expression :    boolean
+                          |    numerical_constant'''
     t[0] = assemble(t, 'p_primary_expression')
-
-
-def p_primary_expression1(t):
-    '''primary_expression :     ICONST'''
-    # not needed, python understands this notation without the conversion below
-    #if t[1].startswith('0x'):
-    #    t[1] = "int( '%s', 16 )" % t[1]
-    t[0] = Token(t[1], 'int', t.lexer.lineno)
     if t.lexer.verbose >= 2:
         print "p_primary_expression", t[0]
 
-def p_primary_expression2(t):
+def p_primary_expression1(t):
     '''primary_expression :     SCONST'''
     t[0] = Token(t[1], 'string', t.lexer.lineno)
     if t.lexer.verbose >= 2:
         print "p_primary_expression", t[0]
 
-
-def p_primary_expression3(t):
-    '''primary_expression :     FCONST'''
-    t[0] = Token(t[1], 'float', t.lexer.lineno)
-    if t.lexer.verbose >= 2:
-        print "p_primary_expression", t[0]
-
-def p_primary_expression4(t):
+def p_primary_expression2(t):
     '''primary_expression :     variable'''
     t[0] = t[1]
     if t.lexer.verbose >= 2:
@@ -2252,6 +2286,23 @@ def p_primary_expression4(t):
 
     #print "mapping", t[1], t.lexer.type_map.get(t[1], None)
     #print "p_primary_expression", t[0]
+
+def p_numerical_constant(t):
+    '''numerical_constant : int_constant
+                          | float_constant'''
+    t[0] = assemble(t, 'p_numerical_constant')
+
+def p_int_constant(t):
+    '''int_constant :     ICONST'''
+    # not needed, python understands this notation without the conversion below
+    #if t[1].startswith('0x'):
+    #    t[1] = "int( '%s', 16 )" % t[1]
+    t[0] = Token(t[1], 'int', t.lexer.lineno)
+
+def p_float_constant(t):
+    '''float_constant :     FCONST'''
+    t[0] = Token(t[1], 'float', t.lexer.lineno)
+
 
 # comment
 #def p_comment(t):
