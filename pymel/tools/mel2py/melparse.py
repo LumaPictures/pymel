@@ -456,7 +456,6 @@ def store_assignment_spillover( token, t ):
     return token
 
 def merge_assignment_spillover( t, curr_lineno, title='' ):
-    """ """
     result = ''
     if t.lexer.spillover_pre:
         #curr_lineno = t[token_index].lineno
@@ -571,23 +570,6 @@ def addHeldComments( t, funcname = '' ):
 
     return ''.join(commentList)
     #t[0] = ''.join(commentList) + t[0]
-
-
-def addHeldComments2( code, t, funcname = '' ):
-
-    commentList = t.lexer.comment_queue_hold.pop()
-
-    commentList = ['# ' + x for x in commentList]
-
-    if t.lexer.verbose:
-        print t.lexer.comment_queue_hold
-        print "adding held comments:", funcname, commentList
-
-    return ''.join(commentList) + code
-
-def holdComments():
-    t.lexer.comment_queue_hold.append( t.lexer.comment_queue )
-    t.lexer.comment_queue = []
 
 
 def entabLines( line ):
@@ -946,7 +928,6 @@ class ArrayToken(Token):
 #  BatchData -------------------------------------------------------------------
 
 class BatchData(object):
-    """ """
     __metaclass__ = util.Singleton
 
     def __init__(self, **kwargs):
@@ -996,13 +977,19 @@ def p_function_definition(t):
 
     # global proc
     if t[1][0] == 'global':
-        t.lexer.global_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
-        t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ', '.join(t[6]) , entabLines( t[9]) )
-
-    # local proc gets prefixed with underscore
+        procDict = t.lexer.global_procs
+        funcName = '%s' % (t[3],)
     else:
-        t.lexer.local_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
-        t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ', '.join(t[6]) , entabLines( t[9]) )
+        procDict = t.lexer.local_procs
+        # local proc gets prefixed with underscore
+        funcName = '_%s' % (t[3],)
+
+    procDict[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
+
+    # add the held comments after the func definition, as a docstring
+    t[0] = "def %s(%s):\n%s\n%s\n" % (funcName, ', '.join(t[6]),
+                                      entabLines(addHeldComments(t, 'func')),
+                                      entabLines(t[9]))
 
 def p_seen_func(t):
     '''seen_func :'''
@@ -1462,8 +1449,6 @@ def p_selection_statement_2(t):
         elseStmnt='else:\n%s' % ( entabLines(t[8]) )
 
     t[0] += addHeldComments( t, 'if/else') + elseStmnt
-    #t[0] += addHeldComments2( t, elseStmnt, 'if/else')
-    #addHeldComments(t, 'if/else')
 
 def p_selection_statement_3(t):
     '''selection_statement : SWITCH LPAREN expression RPAREN add_comment LBRACE labeled_statement_list RBRACE'''
@@ -2681,6 +2666,51 @@ def p_error(t):
         yacc.errok()
     elif t.type == 'COMMENT_BLOCK':
         comment = t.value[2:-2]
+
+        # if the entire comment is indented, like:
+        #   |    /*
+        #   |     * foo
+        #   |     */
+        # (where "|" indicates the start of the line), then unless we strip
+        # leading whitespace, we will end up with:
+        #   |    """
+        #   |         * foo
+        #   |         """
+
+
+        # to see how far the comment start is indented, use raw_parse_data
+        # and t.lexpos...
+        start = end = t.lexpos
+        while start > 0 and t.lexer.raw_parse_data[start - 1] != '\n':
+            start -= 1
+        leadingSpace = t.lexer.raw_parse_data[start:end]
+
+        commentLines = comment.split('\n')
+
+        if leadingSpace:
+            leadingLen = len(leadingSpace)
+            # skip the first line, we've already got the leading whitespace for
+            # it...
+            for i in xrange(1, len(commentLines)):
+                line = commentLines[i]
+                if line.startswith(leadingSpace):
+                    commentLines[i] = line[leadingLen:]
+
+        # ok, even after removing "common" whitespace, if we have a comment
+        # like:
+        #   /*
+        #    * foo
+        #    */
+        # this will get converted to:
+        #   """
+        #    * foo
+        #    """
+        # so, if the final line is nothing but whitespace, clear it...
+
+        # if the final line is only whitespace, we fix indentation...
+        if not commentLines[-1].strip():
+            commentLines[-1] = ''
+        comment = '\n'.join(commentLines)
 
         if '"' in comment:
             comment = "'''" + comment + "'''\n"
