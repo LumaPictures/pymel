@@ -735,7 +735,10 @@ def hasNonCommentPyCode(pyCode):
     '''Returns True if the given chunk of python code has any lines that contain
     something other than a comment or whitespace
     '''
-    return bool(NON_COMMENT_LINE_RE.search(pyCode))
+    if isinstance(pyCode, basestring):
+        return bool(NON_COMMENT_LINE_RE.search(pyCode))
+    else:
+        return any(hasNonCommentPyCode(x) for x in pyCode)
 
 #  Mel lookup data -------------------------------------------------------------
 
@@ -1275,8 +1278,10 @@ def p_statement_required(t):
     '''statement_required : statement'''
     if not hasNonCommentPyCode(t[1]):
         if t[1].strip():
+            # if there was a comment or something, append pass
             t[1] += '\npass'
         else:
+            # otherwise, just set it to pass
             t[1] = Token('pass', 'string', t.lexer.lineno)
         t[1]
     t[0] = assemble(t, 'p_statement_required')
@@ -1482,16 +1487,15 @@ def p_selection_statement_3(t):
 
         # cycle through cases until we stop falling through
         for j, (condition, block, fallthrough) in enumerate(cases[i:]):
-
             if fallthrough:
-                if len(block):
+                if hasNonCommentPyCode(block):
                     lines += block
                 else:
                     conditions.add(condition)
                     i += 1 # on the next while loop, we will skip this case, because it is now subsumed under the current case
 
             else:
-                if len(block):
+                if hasNonCommentPyCode(block) or lines:
                     lines += block
                 else:
                     lines.append( 'pass\n' )
@@ -1509,6 +1513,14 @@ def p_selection_statement_3(t):
             t[0] += '%s %s in (%s):\n%s' % ( control, variable, ', '.join(conditions), block )
         else:
             if conditions[0] is None:
+                if not hasNonCommentPyCode(t[0]):
+                    standIn = 'if False:\n%s\n' % entabLines('pass')
+                    if t[0].strip():
+                        # if there was a comment or something, append
+                        t[0] += standIn
+                    else:
+                        # otherwise, just set it
+                        t[0] = Token(standIn, 'string', t.lexer.lineno)
                 t[0] +=  'else:\n%s' % ( block )
             else:
                 t[0] +=  '%s %s == %s:\n%s' % ( control, variable, conditions[0], block )
