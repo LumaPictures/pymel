@@ -205,11 +205,11 @@ def format_command(command, args, t):
 
             if module:
                 # the procedure is in the currently parsed script, but has not yet been placed in global or local procs.
-                #if module == t.lexer.root_module:
-                #    return '%s(%s)' % (command, args)
-                #else:
-                t.lexer.imported_modules.add( module )
-                res = '%s.%s(%s)' % (module, command, args)
+                if module == t.lexer.root_module:
+                    res = '%s(%s)' % (command, args)
+                else:
+                    t.lexer.imported_modules.add( module )
+                    res = '%s.%s(%s)' % (module, command, args)
             else:
                 res = '%smel.%s(%s)' % (t.lexer.pymel_namespace, command, args)
 
@@ -271,45 +271,62 @@ def format_command(command, args, t):
                 # callbacks
                 if commandFlag:
 
-                    #if False:
-                    #if True :
-                    try:
-                        cbParser = MelParser()
-                        #print "root module for callback parsing", t.lexer.root_module
-                        cbParser.build( rootModule = t.lexer.root_module,
-                                              pymelNamespace=t.lexer.pymel_namespace,
-                                              verbosity=t.lexer.verbose,
-                                              expressionsOnly=True )
+                    cbParser = MelParser()
+                    #print "root module for callback parsing", t.lexer.root_module
+                    cbParser.build(rootModule = t.lexer.root_module,
+                                   pymelNamespace=t.lexer.pymel_namespace,
+                                   verbosity=t.lexer.verbose,
+                                   expressionsOnly=True,
+                                   parentData=t.lexer.raw_parse_data)
 
-                        # pre-parse cleanup
+                    # pre-parse cleanup
 
-                        # remove enclosing parentheses
-                        tmpToken = token.strip()
-                        while tmpToken.startswith('(') and tmpToken.endswith(')'):
-                            tmpToken = tmpToken[1:-1]
-                            tmpToken = tmpToken.strip()
+                    tmpToken = token.strip()
 
-                        tmpToken = unescape(tmpToken)
-                        # before unescaping, we might have:
-                        #   '"cmd; "'
-                        # so, after unescaping, we have:
-                        #   'cmd; '
-                        # ...so we need to do another strip...
+                    # remove enclosing parentheses
+                    # note - this is not totally correct.. if you have:
+                    #   ($stuff) + ($thing)
+                    # if will still strip off the start and end parentheses..
+                    # however, if there are any parse errors, we fall back on
+                    # the "default" mel.eval, which should work...
+                    while tmpToken.startswith('(') and tmpToken.endswith(')'):
+                        tmpToken = tmpToken[1:-1]
                         tmpToken = tmpToken.strip()
 
-                        if not tmpToken.endswith( ';' ):
-                            tmpToken += ';'
-                        cb = re.compile(  '#(\d)' )
-                        parts = cb.split( tmpToken  )
-                        for i in range(1,len(parts),2):
-                            parts[i] = '$args[%d]' % ( int(parts[i] ) -1 )
-                        tmpToken = ''.join( parts )
+                    # again, unescaping might not be correct.. ie, if you have:
+                    #    "my number is: " + $i + "... yay!"
+                    # ...you will end up with garbage...
+                    tmpToken = unescape(tmpToken)
 
-                        #print tmpToken
+                    # before unescaping, we might have:
+                    #   '"cmd; "'
+                    # so, after unescaping, we have:
+                    #   'cmd; '
+                    # ...so we need to do another strip...
+                    tmpToken = tmpToken.strip()
 
-                        # parse
+                    if not tmpToken.endswith( ';' ):
+                        tmpToken += ';'
+                    cb = re.compile(  '#(\d)' )
+                    parts = cb.split( tmpToken  )
+                    for i in range(1,len(parts),2):
+                        parts[i] = '$args[%d]' % ( int(parts[i] ) -1 )
+                    tmpToken = ''.join( parts )
+
+                    #print tmpToken
+
+                    # parse
+                    try:
                         tmpToken = cbParser.parse( tmpToken )
-
+                    except Exception:
+#                        print "error parsing callback:"
+#                        print "-" * 60
+#                        print tmpToken
+#                        print "-" * 60
+#                        traceback.print_exc()
+                        #print "callback translation failed", msg
+                        token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
+                    else:
                         #print tmpToken
 
                         # ensure that the result is not empty
@@ -327,10 +344,6 @@ def format_command(command, args, t):
                             tmpToken = '[%s]' % ', '.join(statements)
                         token = 'lambda *args: %s' % (tmpToken)
 
-                    #else:
-                    except Exception, msg:
-                        #print "callback translation failed", msg
-                        token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
 
                 argTally.append(token)
                 #print 'last flag arg', currFlag, argTally
@@ -677,7 +690,7 @@ def _melObj_to_pyModule( script ):
             return batchData.currentModules.get_key(melfile)
     return None
 
-def _melProc_to_pyModule( t, procedure ):
+def _melProc_to_pyModule(t, procedure):
     """
     determine if this procedure has been or will be converted into python, and if so, what module it belongs to
     """
@@ -694,19 +707,30 @@ def _melProc_to_pyModule( t, procedure ):
     except KeyError:
         # if the file currently being parsed is not being translated, then this parsing is just for information gathering.
         # no need to recursively parse any further
+        moduleDataPairs = []
         if t.lexer.root_module not in batchData.currentModules:
             #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
             moduleName = None
         else:
-            moduleName = _melObj_to_pyModule( procedure )
+            moduleName = _melObj_to_pyModule(procedure)
 
-        if moduleName is not None:
+            if moduleName is not None:
+                melfile = batchData.currentModules[moduleName]
+                moduleDataPairs.append((moduleName, melfile.bytes()))
+            elif t.lexer.root_module:
+                moduleName = t.lexer.root_module
+                moduleDataPairs.append((moduleName, t.lexer.raw_parse_data))
+
+            if t.lexer.root_module and t.lexer.parent_data:
+                moduleDataPairs.append((moduleName, t.lexer.parent_data))
+
+        for moduleName, data in moduleDataPairs:
             #print "%s not seen yet: scanning %s" % ( procedure, melfile )
             cbParser = MelScanner()
             cbParser.build()
-            melfile = batchData.currentModules[moduleName]
+
             try:
-                proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
+                proc_list, global_procs, local_procs = cbParser.parse(data)
             except lex.LexError:
                 print "Error parsing mel file:", melfile
                 global_procs = {}
@@ -715,9 +739,16 @@ def _melProc_to_pyModule( t, procedure ):
                 #print proc, procInfo
                 batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
 
+            if procedure in batchData.proc_to_module:
+                break
+
+#        else:
+#            print "failed to get module"
+
         if procedure not in batchData.proc_to_module:
             #print "could not find script for procedure: %s" % procedure
             batchData.proc_to_module[procedure] = (None, None)
+
         return batchData.proc_to_module[procedure]
 
 def vprint(t, *args):
@@ -1301,7 +1332,7 @@ def p_statement_complex(t):
               | declaration_statement'''
 #              | comment'''
     if t.lexer.expression_only:
-        raise TypeError, "This mel code is not capable of being translated as a python expression"
+        raise ExpressionParseError("This mel code is not capable of being translated as a python expression")
     t[0] = assemble(t, 'p_statement_complex')
 
 # labeled-statement:
@@ -2449,6 +2480,7 @@ def p_command_statement(t):
     '''command_statement : ID SEMI
             | ID command_statement_input_list SEMI'''
 
+    vprint(t, "p_command_statement", t.lexer.lineno)
     if len(t) == 3:
         t[0] = format_command(t[1], [], t) + '\n'
     else:
@@ -2696,10 +2728,16 @@ class MelParseError(Exception):
                 base += "line %d (%s): %s\n" % (errToken.lineno, errToken.type, errToken.value)
         return base
 
+class ExpressionParseError(MelParseError, TypeError):
+    '''Error when mel code cannot be parsed into a python expression
+    '''
+    pass
+
 class MelParser(object):
     """The MelParser class around which all other mel2py functions are based."""
     def build(self, rootModule = None, pymelNamespace='', verbosity=0,
-              addPymelImport=True, expressionsOnly=False, forceCompatibility=True ):
+              addPymelImport=True, expressionsOnly=False,
+              forceCompatibility=True, parentData=None ):
 
         # data storage
         self.lexer = lexer.clone()
@@ -2727,66 +2765,72 @@ class MelParser(object):
         self.lexer.force_compatibility = forceCompatibility
         self.lexer.expression_only = expressionsOnly
         self.lexer.errors = []
+        self.lexer.parent_data = parentData
 
     def parse(self, data):
         data = data.decode( 'utf-8', 'ignore')
         #data = data.encode( 'utf-8', 'ignore')
+        data = data.replace( '\r\n', '\n' )
         data = data.replace( '\r', '\n' )
 
-        if self.lexer.verbose == 2:
-            lex.input(data)
-            while 1:
-                tok = lex.token()
-                if not tok: break      # No more input
-                print tok
-
-        prev_modules = self.lexer.imported_modules.copy()
-
-        self.lexer.comment_queue = []
-        self.lexer.comment_queue_hold = []
-
-        translatedStr = ''
+        self.lexer.raw_parse_data = data
         try:
-            debug = (self.lexer.verbose >= 3)
-            translatedStr = parser.parse(data, lexer=self.lexer, debug=debug)
-            #translatedStr = simpleParser.parse(data, lexer=self.lexer)
+            if self.lexer.verbose == 2:
+                lex.input(data)
+                while 1:
+                    tok = lex.token()
+                    if not tok: break      # No more input
+                    print tok
 
-        except ValueError:
-            if self.lexer.comment_queue:
-                translatedStr = '\n'.join(self.lexer.comment_queue)
-            else:
-                raise
+            prev_modules = self.lexer.imported_modules.copy()
 
-        if translatedStr is None or self.lexer.errors:
-            raise MelParseError(data=data, lexer=self.lexer)
-        #except IndexError, msg:
-        #    raise ValueError, '%s: %s' % (melfile, msg)
-        #except AttributeError:
-        #    raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
+            self.lexer.comment_queue = []
+            self.lexer.comment_queue_hold = []
 
-        if not self.lexer.expression_only:
-            new_modules = self.lexer.imported_modules.difference( prev_modules )
+            translatedStr = ''
+            try:
+                debug = (self.lexer.verbose >= 3)
+                translatedStr = parser.parse(data, lexer=self.lexer, debug=debug)
+                #translatedStr = simpleParser.parse(data, lexer=self.lexer)
 
-            header = ''
-
-            # adding the pymel import statement should occur only on the
-            # first execution of the parser or not at all.
-
-            if self.add_pymel_import:
-                if not self.lexer.pymel_namespace:
-                    header += 'from pymel.all import *\n'
-                elif self.lexer.pymel_namespace == 'pymel.':
-                    header += 'import pymel.all as pymel\n'
+            except ValueError:
+                if self.lexer.comment_queue:
+                    translatedStr = '\n'.join(self.lexer.comment_queue)
                 else:
-                    header += 'import pymel.all as %s\n' % self.lexer.pymel_namespace[:-1]
-                self.add_pymel_import = False
+                    raise
 
-            for new_module in new_modules:
-                header += "import %s\n" % new_module
-            translatedStr = header + translatedStr
+            if translatedStr is None or self.lexer.errors:
+                raise MelParseError(data=data, lexer=self.lexer)
+            #except IndexError, msg:
+            #    raise ValueError, '%s: %s' % (melfile, msg)
+            #except AttributeError:
+            #    raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
+
+            if not self.lexer.expression_only:
+                new_modules = self.lexer.imported_modules.difference( prev_modules )
+
+                header = ''
+
+                # adding the pymel import statement should occur only on the
+                # first execution of the parser or not at all.
+
+                if self.add_pymel_import:
+                    if not self.lexer.pymel_namespace:
+                        header += 'from pymel.all import *\n'
+                    elif self.lexer.pymel_namespace == 'pymel.':
+                        header += 'import pymel.all as pymel\n'
+                    else:
+                        header += 'import pymel.all as %s\n' % self.lexer.pymel_namespace[:-1]
+                    self.add_pymel_import = False
+
+                for new_module in new_modules:
+                    header += "import %s\n" % new_module
+                translatedStr = header + translatedStr
 
 
-        return translatedStr
+            return translatedStr
+        finally:
+            self.lexer.raw_parse_data = None
 
 scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan, outputdir=_outputdir)
 
@@ -2798,7 +2842,7 @@ scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan, outputdir=_outpu
 #parser = simple.parser
 
 class MelScanner(object):
-    """The MelParser class around which all other mel2py functions are based."""
+    """Basic mel parser which only tries to get information about procs"""
     def build(self):
 
         # data storage
@@ -2816,7 +2860,6 @@ class MelScanner(object):
 
         scanner.parse(data, lexer=self.lexer)
             #translatedStr = simpleParser.parse(data, lexer=self.lexer)
-
 
         return self.lexer.proc_list, self.lexer.global_procs, self.lexer.local_procs
 
