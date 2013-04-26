@@ -4,6 +4,7 @@ Functions and classes related to scripting, including `MelGlobals` and `Mel`
 import sys, os, inspect
 from getpass import getuser as _getuser
 import system
+import collections
 
 import maya.mel as _mm
 import maya.cmds as _mc
@@ -450,9 +451,9 @@ class OptionVarList(tuple):
 
     append = appendVar
 
-class OptionVarDict(object):
+class OptionVarDict(collections.MutableMapping):
     """
-    A singleton dictionary-like class for accessing and modifying optionVars.
+    A dictionary-like class for accessing and modifying optionVars.
 
         >>> from pymel.all import *
         >>> optionVar['test'] = 'dooder'
@@ -468,29 +469,25 @@ class OptionVarDict(object):
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
     """
-    #__metaclass__ = util.Singleton
     def __call__(self, *args, **kwargs):
         return cmds.optionVar(*args, **kwargs)
 
+    # use more efficient method provided by cmds.optionVar
+    # (or at least, I hope it's more efficient...)
     def __contains__(self, key):
-        return self.has_key(key)
-
-    def has_key(self, key):
         return bool( cmds.optionVar( exists=key ) )
 
+    # not provided by MutableMapping
+    def has_key(self, key):
+        return self.__contains__(key)
+
     def __getitem__(self,key):
-        if not self.has_key(key):
+        if key not in self:
             raise KeyError, key
         val = cmds.optionVar( q=key )
         if isinstance(val, list):
             val = OptionVarList( val, key )
         return val
-
-    def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
 
     def __setitem__(self,key,val):
         if isinstance( val, basestring):
@@ -522,9 +519,6 @@ class OptionVarDict(object):
     def keys(self):
         return cmds.optionVar( list=True )
 
-    def values(self):
-        return [self[key] for key in self.keys()]
-
     def pop(self, key):
         val = cmds.optionVar( q=key )
         cmds.optionVar( remove=key )
@@ -538,13 +532,8 @@ class OptionVarDict(object):
             yield key
     __iter__ = iterkeys
 
-    def itervalues(self):
-        for key in self.keys():
-            yield self[key]
-
-    def iteritems(self):
-        for key in self.keys():
-            yield key, self[key]
+    def __len__(self):
+        return len(self.keys())
 
 optionVar = OptionVarDict()
 
