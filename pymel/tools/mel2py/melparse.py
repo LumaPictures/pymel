@@ -1075,10 +1075,19 @@ class Comment(object):
         self.data = token.lexer.raw_parse_data
 
     def leadingSpace(self):
-        start = end = self.pos
-        while start > 0 and self.data[start - 1] != '\n':
-            start -= 1
-        return self.data[start:end]
+        chars = []
+        pos = self.pos - 1
+        while pos > 0:
+            nextChar = self.data[pos]
+            if nextChar == '\n':
+                break
+            elif nextChar not in ' \t':
+                chars.append(' ')
+            else:
+                chars.append(nextChar)
+            pos -= 1
+        chars.reverse()
+        return ''.join(chars)
 
     def withLeadingSpace(self):
         return self.leadingSpace() + self.value
@@ -1087,9 +1096,11 @@ class Comment(object):
     def join(cls, comments, stripCommonSpace=False):
         if isinstance(comments, Comment):
             comments = [comments]
-        result = '\n'.join(x.withLeadingSpace() for x in comments)
         if stripCommonSpace:
+            result = '\n'.join(x.withLeadingSpace() for x in comments)
             result = strip_leading_space(result)
+        else:
+            result = '\n'.join(x.value for x in comments)
         return result
 
     def format(self):
