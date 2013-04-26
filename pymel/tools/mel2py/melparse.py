@@ -163,12 +163,8 @@ def format_command(command, args, t):
     if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
         args[0] = args[0][1:-1]
 
-
-
     if t.lexer.verbose:
         print 'p_command: input_list', command, args
-
-
 
     # commands with custom replacements
     try:
@@ -547,17 +543,83 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
     #    print "'%s'" % p[0]
     return res
 
+def find_num_leading_space(text):
+    '''Given a text block consisting of multiple lines, find the number of
+    characters in the longest common whitespace that appears at the start of
+    every non-empty line'''
+    lines = text.split('\n')
+    nonEmptyLines = [l for l in lines if l.strip()]
+    if not nonEmptyLines:
+        return 0
+
+    first = nonEmptyLines[0]
+    rest = nonEmptyLines[1:]
+
+    for i, char in enumerate(first):
+        if char not in ' \t':
+            break
+        for line in rest:
+            if line[i] != char:
+                break
+    return i
+
+def strip_leading_space(text):
+    '''Given a text block consisting of multiple lines, strip out common
+    whitespace that appears at the start of every non-empty line
+    '''
+    leadNum = find_num_leading_space(text)
+    lines = text.split('\n')
+    for i, line in enumerate(lines):
+        # if some lines have only whitespace, it's possible that their leading
+        # whitespace doesn't match, and we'll be stripping out something
+        # different... but who cares?
+        lines[i] = line[leadNum:]
+    return '\n'.join(lines)
+
+def format_singleline_comments(comments):
+    comment = Comment.join(comments)
+    lines = ['#' + line for line in comment.split('\n')]
+    # make sure we have a final newline
+    if lines[-1]:
+        lines.append('')
+    return '\n'.join(lines)
+
+def format_multiline_string_comment(comments):
+    lines = Comment.join(comments, stripCommonSpace=True).split('\n')
+
+    # ok, even after removing "common" whitespace, if we have a comment
+    # like:
+    #   /*
+    #    * foo
+    #    */
+    # this will get converted to:
+    #   """
+    #    * foo
+    #    """
+    # so, if the final line is nothing but whitespace, clear it...
+    if not lines[-1].strip():
+        lines[-1] = ''
+    comment = '\n'.join(lines)
+
+    if '"' in comment:
+        comment = "'''" + comment + "'''\n"
+    else:
+        comment = '"""' + comment + '"""\n'
+    return comment
+
+def format_comments(comments):
+    if isinstance(comments, Comment):
+        comments = [comments]
+    return ''.join(comment.format() for comment in comments)
 
 
-def addComments( t, funcname = '' ):
-
+def append_comments(t, funcname=''):
     if t.lexer.verbose:
-        print "adding comments:", funcname, t.lexer.comment_queue
-    t[0] += ''.join(t.lexer.comment_queue) #+ t[0]
+        print "appending comments:", funcname, t.lexer.comment_queue
+    t[0] += format_comments(t.lexer.comment_queue)
     t.lexer.comment_queue = []
 
-def addHeldComments( t, funcname = '' ):
-
+def format_held_comments(t, funcname=''):
     try:
         commentList = t.lexer.comment_queue_hold.pop()
     except IndexError:
@@ -568,12 +630,67 @@ def addHeldComments( t, funcname = '' ):
         print t.lexer.comment_queue_hold
         print "adding held comments:", funcname, commentList
 
-    return ''.join(commentList)
-    #t[0] = ''.join(commentList) + t[0]
+    return format_comments(commentList)
+
+def format_held_comments_and_docstring(t, funcname=''):
+    '''Splits the held comments into the last comment block and the rest of the
+    comments, formats the rest of the comments normally, and formats the last
+    block as a multiline string.
+
+    A comment block is either a group of mel-single-line-comments, or a single
+    mel-comment-block
+
+    This is useful for grabbing the "last" comment before something, and
+    formatting it for use as a docstrign - for instance, if we have, in mel:
+
+        // Some section
+        // -----------------------
+
+        /*
+         * docProc: does stuff
+         */
+        global proc docProc() {};
+
+    ...then we only want to grab the last comment block, and format it as
+    a docstring... similarly, if the situation is something like this:
+
+        /*
+         * Some long notes here
+         *    batman
+         *    superman
+         *    king kong
+         *    the tick
+         */
+
+        // proctopus
+        // does stuff
+        global proc proctopus() {};
+    '''
+    try:
+        commentList = t.lexer.comment_queue_hold.pop()
+    except IndexError:
+        return '', ''
+
+    if not commentList:
+        return '', ''
+    else:
+        last = [commentList[-1]]
+        rest = commentList[:-1]
+
+    if last[0].type == 'COMMENT' and rest:
+        # we need to find other single-line-comments..
+        for i in xrange(-1, -len(rest) - 1, -1):
+            if rest[i].type != 'COMMENT':
+                i += 1
+                break
+        if i != 0:
+            last = rest[i:] + last
+            rest = rest[:i]
+
+    return format_comments(rest), format_multiline_string_comment(last)
 
 
 def entabLines( line ):
-
     buf = line.split('\n')
     #for x in buf:
     #    if x.startswith(''):
@@ -943,6 +1060,44 @@ class BatchData(object):
 global batchData
 batchData = BatchData()
 
+#  Comment ---------------------------------------------------------------------
+
+class Comment(object):
+    def __init__(self, token):
+        if token.type not in ('COMMENT', 'COMMENT_BLOCK'):
+            raise TypeError("Non-comment token type: %s" % token.type)
+        self.type = token.type
+        if token.type == 'COMMENT':
+            self.value = token.value[2:]
+        else:
+            self.value = token.value[2:-2]
+        self.pos = token.lexpos
+        self.data = token.lexer.raw_parse_data
+
+    def leadingSpace(self):
+        start = end = self.pos
+        while start > 0 and self.data[start - 1] != '\n':
+            start -= 1
+        return self.data[start:end]
+
+    def withLeadingSpace(self):
+        return self.leadingSpace() + self.value
+
+    @classmethod
+    def join(cls, comments, stripCommonSpace=False):
+        if isinstance(comments, Comment):
+            comments = [comments]
+        result = '\n'.join(x.withLeadingSpace() for x in comments)
+        if stripCommonSpace:
+            result = strip_leading_space(result)
+        return result
+
+    def format(self):
+        if self.type == 'COMMENT':
+            return format_singleline_comments(self)
+        elif self.type == 'COMMENT_BLOCK':
+            return format_multiline_string_comment(self)
+
 #  Parsing rules ----------------------------------------------------------------
 
 """
@@ -968,7 +1123,7 @@ def p_external_declaration(t):
 
 # function-definition:
 def p_function_definition(t):
-    '''function_definition :  function_declarator function_specifiers_opt ID seen_func LPAREN function_arg_list_opt RPAREN add_comment compound_statement'''
+    '''function_definition :  function_declarator function_specifiers_opt ID seen_func LPAREN function_arg_list_opt RPAREN hold_comments compound_statement'''
     #t[0] = assemble(t, 'p_function_definition')
 
 
@@ -986,10 +1141,11 @@ def p_function_definition(t):
 
     procDict[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
 
+    comments, docstring = format_held_comments_and_docstring(t, 'func')
     # add the held comments after the func definition, as a docstring
-    t[0] = "def %s(%s):\n%s\n%s\n" % (funcName, ', '.join(t[6]),
-                                      entabLines(addHeldComments(t, 'func')),
-                                      entabLines(t[9]))
+    t[0] = "%s\ndef %s(%s):\n%s\n%s\n" % (comments, funcName, ', '.join(t[6]),
+                                          entabLines(docstring),
+                                          entabLines(t[9]))
 
 def p_seen_func(t):
     '''seen_func :'''
@@ -1009,8 +1165,8 @@ def p_seen_func(t):
     #else:
     #    print "skipping function: (%s) %s.%s, %s" % (  t.lexer.root_module, module, t[-1], t[-2] )
 
-def p_add_comment(t):
-    '''add_comment :'''
+def p_hold_comments(t):
+    '''hold_comments :'''
     if t.lexer.verbose:
         print "holding", t.lexer.comment_queue
     t.lexer.comment_queue_hold.append( t.lexer.comment_queue )
@@ -1192,7 +1348,7 @@ def p_declaration_statement(t):
                     t[0] += var + '=' + val + '\n'
 
 
-    addComments( t, 'declaration_statement' )
+    append_comments( t, 'declaration_statement' )
 
 
 # declaration-specifiers
@@ -1388,7 +1544,7 @@ def p_expression_statement(t):
 
     t[0] = merge_assignment_spillover( t, t[1].lineno, 'expression_statement'  )
     t[0] += t[1] + '\n'
-    addComments(t)
+    append_comments(t)
 
 # compound-statement:
 def p_compound_statement(t):
@@ -1405,7 +1561,7 @@ def p_compound_statement(t):
         t[0] = ''.join(t[2])
     else:
         t[0] = 'pass\n'
-        addComments(t, 'compound_pass')
+        append_comments(t, 'compound_pass')
 
 def p_statement_list_opt(t):
     '''statement_list_opt : statement_list
@@ -1435,7 +1591,7 @@ def p_selection_statement_1(t):
 
 
 def p_selection_statement_2(t):
-    '''selection_statement : IF LPAREN expression RPAREN statement_required ELSE add_comment statement_required '''
+    '''selection_statement : IF LPAREN expression RPAREN statement_required ELSE hold_comments statement_required '''
     #t[0] = assemble(t, 'p_selection_statement_2')
     t[0] = merge_assignment_spillover( t, t[3].lineno, 'selection_statement_2' )
     t[0] += 'if %s:\n%s\n' % (t[3], entabLines(t[5]))
@@ -1448,10 +1604,10 @@ def p_selection_statement_2(t):
     else:
         elseStmnt='else:\n%s' % ( entabLines(t[8]) )
 
-    t[0] += addHeldComments( t, 'if/else') + elseStmnt
+    t[0] += format_held_comments( t, 'if/else') + elseStmnt
 
 def p_selection_statement_3(t):
-    '''selection_statement : SWITCH LPAREN expression RPAREN add_comment LBRACE labeled_statement_list RBRACE'''
+    '''selection_statement : SWITCH LPAREN expression RPAREN hold_comments LBRACE labeled_statement_list RBRACE'''
     #t[0] = assemble(t, 'p_selection_statement_3')
 
     """
@@ -1544,11 +1700,11 @@ def p_selection_statement_3(t):
 
     #print t[0]
 
-    t[0] = addHeldComments(t, 'switch') + t[0]
+    t[0] = format_held_comments(t, 'switch') + t[0]
 
 
 #def REMOVED_selection_statement_3(t):
-#    '''selection_statement : SWITCH LPAREN expression RPAREN add_comment LBRACE labeled_statement_list RBRACE'''
+#    '''selection_statement : SWITCH LPAREN expression RPAREN hold_comments LBRACE labeled_statement_list RBRACE'''
 #    #t[0] = assemble(t, 'p_selection_statement_3')
 #
 #    cases = t[7]  # a 2d list: a list of cases, each with a list of lines
@@ -1581,18 +1737,18 @@ def p_selection_statement_3(t):
 #
 #    print t[0]
 #
-#    addHeldComments(t, 'switch')
+#    format_held_comments(t, 'switch')
 
 
 # iteration_statement:
 def p_iteration_statement_1(t):
-    '''iteration_statement : WHILE LPAREN expression RPAREN add_comment statement_required'''
+    '''iteration_statement : WHILE LPAREN expression RPAREN hold_comments statement_required'''
     #t[0] = assemble(t, 'p_iteration_statement_1')
-    t[0] = addHeldComments(t, 'while') + 'while %s:\n%s\n' % (t[3], entabLines(t[6]) )
+    t[0] = format_held_comments(t, 'while') + 'while %s:\n%s\n' % (t[3], entabLines(t[6]) )
 
 
 def p_iteration_statement_2(t):
-    '''iteration_statement : FOR LPAREN expression_list_opt SEMI expression_list_opt SEMI expression_list_opt RPAREN add_comment statement_required'''
+    '''iteration_statement : FOR LPAREN expression_list_opt SEMI expression_list_opt SEMI expression_list_opt RPAREN hold_comments statement_required'''
     #t[0] = assemble(t, 'p_iteration_statement_2')
 
     """
@@ -1696,7 +1852,7 @@ def p_iteration_statement_2(t):
         if update_exprs:
             t[0] += entabLines('\n'.join( update_exprs ) + '\n')
 
-        t[0] = addHeldComments(t, 'for') + t[0]
+        t[0] = format_held_comments(t, 'for') + t[0]
 
     if len(cond_exprs) == 1 and len(init_exprs) >= 1 and len(update_exprs) >=1:
         #---------------------------------------------
@@ -1798,14 +1954,14 @@ def p_iteration_statement_2(t):
         if len( update_exprs ):
             t[0] += '\n' + entabLines('\n'.join(update_exprs) + '\n')
 
-        t[0] = addHeldComments(t, 'for') + t[0]
+        t[0] = format_held_comments(t, 'for') + t[0]
     else:
         default_formatting()
 
 def p_iteration_statement_3(t):
-    '''iteration_statement : FOR LPAREN variable IN expression seen_FOR RPAREN add_comment statement_required '''
+    '''iteration_statement : FOR LPAREN variable IN expression seen_FOR RPAREN hold_comments statement_required '''
     #t[0] = assemble(t, 'p_iteration_statement_3')
-    t[0] = addHeldComments(t, 'for') + 'for %s in %s:\n%s' % (t[3], t[5], entabLines(t[9]))
+    t[0] = format_held_comments(t, 'for') + 'for %s in %s:\n%s' % (t[3], t[5], entabLines(t[9]))
 
 
 def p_seen_FOR(t):
@@ -1823,7 +1979,7 @@ def p_iteration_statement_4(t):
         # once, then create a while loop...
         t[0] = t[2]    + '\n'
         t[0] += 'while %s:\n%s\n' % (t[5], entabLines(t[2]) )
-        t[0] = addHeldComments(t, 'do while') + t[0]
+        t[0] = format_held_comments(t, 'do while') + t[0]
     else:
         # otherwise, create a variable, first_run_of_do_while_loop=True
         # use a variable name unlikely to conflict with one the user is using!
@@ -1831,7 +1987,7 @@ def p_iteration_statement_4(t):
         newCondition = 'first_run_of_do_while_loop or (%s)' % t[5]
         newBody = entabLines('first_run_of_do_while_loop = False\n%s' % t[2])
         t[0] += 'while %s:\n%s\n' % (newCondition, newBody )
-        t[0] = addHeldComments(t, 'do while') + t[0]
+        t[0] = format_held_comments(t, 'do while') + t[0]
 
 
 # jump_statement:
@@ -1844,7 +2000,7 @@ def p_jump_statement(t):
         t[0] = t[1] + ' ' + t[2] + '\n'
     else:
         t[0] = t[1] + '\n'
-    addComments(t)
+    append_comments(t)
 
 # optional expression
 def p_expression_opt(t):
@@ -2470,7 +2626,7 @@ def p_command_statement(t):
         t[0] = format_command(t[1], [], t) + '\n'
     else:
         t[0] = format_command(t[1], t[2], t) + '\n'
-    addComments(t)
+    append_comments(t)
 
 def p_command_statement_input_list(t):
     '''command_statement_input_list : command_statement_input
@@ -2656,71 +2812,11 @@ def p_error(t):
     if t is None:
         raise ValueError, 'script has no contents'
 
-    if t.type == 'COMMENT':
+    if t.type in ('COMMENT', 'COMMENT_BLOCK'):
         #print "Removing Comment", t.value
         # Just discard the token and tell the parser it's okay.
-        comment = '#' + t.value[2:] + '\n'
-        #if t.lexer.verbose:
-        #print "queueing comment", comment
-        t.lexer.comment_queue.append( comment )
+        t.lexer.comment_queue.append(Comment(t))
         yacc.errok()
-    elif t.type == 'COMMENT_BLOCK':
-        comment = t.value[2:-2]
-
-        # if the entire comment is indented, like:
-        #   |    /*
-        #   |     * foo
-        #   |     */
-        # (where "|" indicates the start of the line), then unless we strip
-        # leading whitespace, we will end up with:
-        #   |    """
-        #   |         * foo
-        #   |         """
-
-
-        # to see how far the comment start is indented, use raw_parse_data
-        # and t.lexpos...
-        start = end = t.lexpos
-        while start > 0 and t.lexer.raw_parse_data[start - 1] != '\n':
-            start -= 1
-        leadingSpace = t.lexer.raw_parse_data[start:end]
-
-        commentLines = comment.split('\n')
-
-        if leadingSpace:
-            leadingLen = len(leadingSpace)
-            # skip the first line, we've already got the leading whitespace for
-            # it...
-            for i in xrange(1, len(commentLines)):
-                line = commentLines[i]
-                if line.startswith(leadingSpace):
-                    commentLines[i] = line[leadingLen:]
-
-        # ok, even after removing "common" whitespace, if we have a comment
-        # like:
-        #   /*
-        #    * foo
-        #    */
-        # this will get converted to:
-        #   """
-        #    * foo
-        #    """
-        # so, if the final line is nothing but whitespace, clear it...
-
-        # if the final line is only whitespace, we fix indentation...
-        if not commentLines[-1].strip():
-            commentLines[-1] = ''
-        comment = '\n'.join(commentLines)
-
-        if '"' in comment:
-            comment = "'''" + comment + "'''\n"
-        else:
-            comment = '"""' + comment + '"""\n'
-        #if t.lexer.verbose:
-        #print "queueing comment", comment
-        t.lexer.comment_queue.append( comment )
-        yacc.errok()
-
     else:
         t.lexer.errors.append(t)
         #if t.lexer.verbose:
@@ -2825,7 +2921,7 @@ class MelParser(object):
 
             except ValueError:
                 if self.lexer.comment_queue:
-                    translatedStr = '\n'.join(self.lexer.comment_queue)
+                    translatedStr = format_comments(self.lexer.comment_queue)
                 else:
                     raise
 
