@@ -213,7 +213,7 @@ def toMObject(nodeName):
         pass
     return result
 
-def toApiObject(nodeName, dagPlugs=True, numMultiple=False):
+def toApiObject(nodeName, dagPlugs=True):
     """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name
     of an existing node, attribute, components selection
 
@@ -221,13 +221,13 @@ def toApiObject(nodeName, dagPlugs=True, numMultiple=False):
     ----------
     dagPlugs : bool
         if True, plug result will be a tuple of type (MDagPath, MPlug)
-    numMultiple : bool
-        if True, and more than one object was found matching the given name,
-        an integer indicating how many were found will be returned, instead of
-        None
 
     If we were unable to retrieve the node/attribute/etc, returns None
     """
+    # special case check for empty string for speed...
+    if not nodeName:
+        return None
+
     sel = MSelectionList()
     try:
         sel.add( nodeName )
@@ -251,25 +251,10 @@ def toApiObject(nodeName, dagPlugs=True, numMultiple=False):
                 return plug
             except (RuntimeError,ValueError):
                 pass
-        # if we errored, and numMultiple is True, check if there are multiple
-        # objects that would match...
-        if numMultiple:
-            # clear probably not necessary, but in case some weird error leaves
-            # items in the sel...
-            sel.clear()
-            try:
-                sel.add('*|' + nodeName)
-            except Exception:
-                pass
-            else:
-                return sel.length()
         return None
     else:
         if sel.length() != 1:
-            if numMultiple:
-                return sel.length()
-            else:
-                return None
+            return None
         if "." in nodeName :
             try:
                 # Plugs

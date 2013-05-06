@@ -1565,19 +1565,11 @@ Maya Bug Fix:
 # PyNode Exceptions
 #--------------------------
 class MayaObjectError(TypeError):
-    SINGLE_MSG_FORMAT = "Maya %s does not exist"
-    MULTI_MSG_FORMAT = "Multiple maya %ss existed"
-
     _objectDescription = 'Object'
-    def __init__(self, node=None, num=0):
+    def __init__(self, node=None):
         self.node = unicode(node)
-        self.num = num
     def __str__(self):
-        if self.num:
-            format = self.MULTI_MSG_FORMAT
-        else:
-            format = self.SINGLE_MSG_FORMAT
-        msg = format % (self._objectDescription,)
+        msg = "Maya %s does not uniquely exist" % (self._objectDescription)
         if self.node:
             msg += ": %r" % (self.node)
         return msg
@@ -1605,11 +1597,11 @@ class MayaComponentError(MayaAttributeError):
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
 
-def _objectError(objectName, num=0):
+def _objectError(objectName):
     # TODO: better name parsing
     if '.' in objectName:
-        return MayaAttributeError(objectName, num=num)
-    return MayaNodeError(objectName, num=num)
+        return MayaAttributeError(objectName)
+    return MayaNodeError(objectName)
 
 #--------------------------
 # Object Wrapper Classes
@@ -1723,8 +1715,7 @@ class PyNode(_util.ProxyUnicode):
                     except Exception:
                         raise MayaNodeError
                     else:
-                        res = _api.toApiObject( name, dagPlugs=True,
-                                                numMultiple=True )
+                        res = _api.toApiObject(name, dagPlugs=True)
                         # DagNode Plug
                         if isinstance(res, tuple):
                             # Plug or Component
@@ -1750,8 +1741,6 @@ class PyNode(_util.ProxyUnicode):
                         elif isinstance(res, _api.MPlug):
                             attrNode = PyNode(res.node())
                             argObj = res
-                        elif isinstance(res, int):
-                            raise _objectError( name, num=res )
                         # Other Object
                         elif res:
                             argObj = res
@@ -1784,7 +1773,21 @@ class PyNode(_util.ProxyUnicode):
 
                             # non-existent objects
                             # the object doesn't exist: raise an error
-                            raise _objectError( name )
+
+                            # note - at one point, I briefly changed things so
+                            # that the code would check to see if the name
+                            # existed, but had multiple matches, or didn't
+                            # exist at all, and made it so MayaObjectError
+                            # would give a more informative error message
+                            # depending...
+
+                            # ...but it had potential performance implications -
+                            # at best, it was doing an extra cmds.objExists...
+                            # ...and objExists wasn't fast enough, considering
+                            # we will easily be trying to create 1000s of
+                            # PyNodes, and the command gets slower as the size
+                            # of the scene increases...
+                            raise _objectError(name)
 
 
             #-- Components
