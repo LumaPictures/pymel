@@ -6017,9 +6017,9 @@ def dot(u, v):
 
         >>> u = VectorN(1.0, 0.0, 0.0)
         >>> v = VectorN(0.707, 0.0, -0.707)
-        >>> round(dot(u, v), 3)
+        >>> print round(dot(u, v), 3)
         0.707
-        >>> round(dot(u, [0.707, 0.0, -0.707]), 3)
+        >>> print round(dot(u, [0.707, 0.0, -0.707]), 3)
         0.707
 
         Related : see VectorN.dot method.
@@ -6062,9 +6062,9 @@ def angle(a, b, c=None):
 
         >>> u = VectorN(1.0, 0.0, 0.0)
         >>> v = VectorN(0.707, 0.0, -0.707)
-        >>> round(angle(u, v), 7)
+        >>> print round(angle(u, v), 7)
         0.7853982
-        >>> round(angle(u, [0.707, 0.0, -0.707]), 7)
+        >>> print round(angle(u, [0.707, 0.0, -0.707]), 7)
         0.7853982
 
         Alternatively can use the form angle(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
@@ -6073,7 +6073,7 @@ def angle(a, b, c=None):
         >>> o = VectorN(0.0, 1.0, 0.0, 1.0)
         >>> p = VectorN(1.0, 1.0, 0.0, 1.0)
         >>> q = VectorN(0.707, 1.0, -0.707, 1.0)
-        >>> round(angle(o, p, q), 7)
+        >>> print round(angle(o, p, q), 7)
         0.7853982
 
         Related : see VectorN.angle method.
