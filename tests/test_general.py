@@ -1178,6 +1178,101 @@ class test_hasAttr(unittest.TestCase):
         self.assertFalse(self.loc.hasAttr('foobar', checkShape=False))
         self.assertFalse(self.loc.hasAttr('foobar', checkShape=True))
 
+class test_setEnums(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.loc = pm.spaceLocator()
+        # if you don't specify enumName when the attribute is created, maya
+        # doesn't think it's an enum when you try to set the enums later...
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName='foo:bar')
+        self.enumAttr = self.loc.attr('testEnumAttr')
+
+    def test_string_noIndices(self):
+        self.enumAttr.setEnums('first:second:third')
+        self.assertEqual(self.enumAttr.getEnums(),
+                         {'first':0, 'second':1, 'third':2})
+
+    def test_string_allIndices(self):
+        self.enumAttr.setEnums('giraffe=1:gazelle=5:lion=3')
+        self.assertEqual(self.enumAttr.getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':3})
+
+    def test_string_partialIndices(self):
+        self.enumAttr.setEnums('giraffe=1:gazelle=5:lion')
+        self.assertEqual(self.enumAttr.getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':6})
+
+    def test_list_noIndices(self):
+        self.enumAttr.setEnums(['giraffe', 'gazelle', 'lion'])
+        self.assertEqual(self.enumAttr.getEnums(),
+                         {'giraffe':0, 'gazelle':1, 'lion':2})
+
+    def test_list_allIndices(self):
+        self.enumAttr.setEnums(['giraffe=1', 'gazelle=5', 'lion=3'])
+        self.assertEqual(self.enumAttr.getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':3})
+
+    def test_list_partialIndices(self):
+        self.enumAttr.setEnums(['giraffe=1', 'gazelle=5', 'lion'])
+        self.assertEqual(self.enumAttr.getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':6})
+
+    def test_dict(self):
+        newEnums = {'giraffe':1, 'gazelle':5, 'lion':3}
+        self.enumAttr.setEnums({'giraffe':1, 'gazelle':5, 'lion':3})
+        self.assertEqual(self.enumAttr.getEnums(), newEnums)
+
+class test_addAttr(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.loc = pm.spaceLocator()
+
+    def test_enumName_string_noIndices(self):
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName='first:second:third')
+        self.assertEqual(self.loc.attr('testEnumAttr').getEnums(),
+                         {'first':0, 'second':1, 'third':2})
+
+    def test_enumName_string_allIndices(self):
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName='giraffe=1:gazelle=5:lion=3')
+        self.assertEqual(self.loc.attr('testEnumAttr').getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':3})
+
+    def test_enumName_string_partialIndices(self):
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName='giraffe=1:gazelle=5:lion')
+        self.assertEqual(self.loc.attr('testEnumAttr').getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':6})
+
+    def test_enumName_list_noIndices(self):
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName=['giraffe', 'gazelle', 'lion'])
+        self.assertEqual(self.loc.attr('testEnumAttr').getEnums(),
+                         {'giraffe':0, 'gazelle':1, 'lion':2})
+
+    def test_enumName_list_allIndices(self):
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName=['giraffe=1', 'gazelle=5', 'lion=3'])
+        self.assertEqual(self.loc.attr('testEnumAttr').getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':3})
+
+    def test_enumName_list_partialIndices(self):
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName=['giraffe=1', 'gazelle=5', 'lion'])
+        self.assertEqual(self.loc.attr('testEnumAttr').getEnums(),
+                         {'giraffe':1, 'gazelle':5, 'lion':6})
+
+    def test_enumName_dict(self):
+        newEnums = {'giraffe':1, 'gazelle':5, 'lion':3}
+        self.loc.addAttr('testEnumAttr', attributeType='enum',
+                         enumName={'giraffe':1, 'gazelle':5, 'lion':3})
+        self.assertEqual(self.loc.attr('testEnumAttr').getEnums(), newEnums)
+
+
+
+
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))

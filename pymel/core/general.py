@@ -610,6 +610,7 @@ Modifications:
   - when querying dataType, the dataType is no longer returned as a list
   - when editing hasMinValue, hasMaxValue, hasSoftMinValue, or hasSoftMaxValue the passed boolean value was ignored
     and the command instead behaved as a toggle.  The behavior is now more intuitive::
+
         >>> addAttr('persp', ln='test', at='double', k=1)
         >>> addAttr('persp.test', query=1, hasMaxValue=True)
         False
@@ -620,6 +621,7 @@ Modifications:
         >>> addAttr('persp.test', query=1, hasMaxValue=True)
         True
 
+  - allow passing a list or dict instead of a string for enumName
     """
     at = kwargs.pop('attributeType', kwargs.pop('at', None ))
     if at is not None:
@@ -646,6 +648,12 @@ Modifications:
                 else:
                     # otherwise, don't do anything, bc the value is already correct
                     return
+
+    # translate dict or list for enumName
+    enums = kwargs.pop('en', kwargs.pop('enumName', None))
+    if enums is not None:
+        kwargs['enumName'] = _toEnumStr(enums)
+
     # MObject stringify Fix
     #args = map(unicode, args)
     res = cmds.addAttr( *args, **kwargs )
@@ -726,9 +734,24 @@ def hasAttr( pyObj, attr, checkShape=True ):
 #  Attr Enums
 #-----------------------
 
-def setEnums(attr, enumList):
-    cmds.addAttr( attr, e=1, en=":".join(enumList) )
+def _toEnumStr(enums):
+    if isinstance(enums, dict):
+        firstKey = enums.iterkeys().next()
+        firstVal = enums.itervalues().next()
+        if isinstance(firstKey, basestring) and isinstance(firstVal, int):
+            enums = ['%s=%s' % (key, val) for key, val in enums.iteritems()]
+        elif isinstance(firstKey, int) and isinstance(firstVal, basestring):
+            enums = ['%s=%s' % (val, key) for key, val in enums.iteritems()]
+        else:
+            raise ValueError('dict must map from strings to ints, or vice-versa')
+    if isinstance(enums, basestring):
+        enumStr = enums
+    else:
+        enumStr = ":".join(enums)
+    return enumStr
 
+def setEnums(attr, enums):
+    cmds.addAttr(attr, e=1, en=_toEnumStr(enums))
 
 def getEnums(attr):
     """
