@@ -1561,6 +1561,15 @@ class ReferenceEdit(str):
         self.successful = successful
         return self
 
+    def _getRawEditData(self):
+        import pymel.tools.mel2py as mel2py
+        pyCmd = "".join(mel2py.mel2pyStr(self + ";").splitlines()[1:])  # chop off the 'import pymel' line
+        args, kwargs = eval("dummy" + "".join(pyCmd.partition("(")[1:]), {}, dict(dummy=lambda *x,**y: (x, y)))
+        editData = {}
+        editData['args'] = args
+        editData['kwargs'] = kwargs
+        return editData
+
     def _getEditData(self):
         """
         Returns a dictionary with the relevant data for this reference edit.
@@ -1569,7 +1578,7 @@ class ReferenceEdit(str):
         if self.fileReference:
             def _safeRefPyNode(n):
                 n = _safePyNode(_safeEval(n))
-                if self.namespace in n:
+                if self.namespace in str(n):
                     ns = self.fileReference.refNode.namespace()
                     if not ns==":":
                         n = n.addPrefix(ns)
@@ -1578,13 +1587,11 @@ class ReferenceEdit(str):
             def _safeRefPyNode(n):
                 return _safePyNode(_safeEval(n))
 
-        import pymel.tools.mel2py as mel2py
-        pyCmd = "".join(mel2py.mel2pyStr(self + ";").splitlines()[1:])  # chop off the 'import pymel' line
-        args, kwargs = eval("dummy" + "".join(pyCmd.partition("(")[1:]), {}, dict(dummy=lambda *x,**y: (x, y)))
+        editData = self.rawEditData()
 
         elements = self.split()
         elements.pop(0)
-        editData = {}
+
         if self.type=="addAttr":
             editData['node'] = _safeRefPyNode(elements.pop(-1))
             editData['attribute'] = elements.pop(1)
@@ -1619,9 +1626,6 @@ class ReferenceEdit(str):
             editData['node'] = _safeRefPyNode(elements.pop(0))
         editData['parameters'] = map(str, elements)
 
-        editData['args'] = args
-        editData['kwargs'] = kwargs
-
         return editData
 
     def remove(self, force=False):
@@ -1633,7 +1637,7 @@ class ReferenceEdit(str):
         cmds.referenceEdit(self.editData['node'], removeEdits=True, successfulEdits=True, failedEdits=True, editCommand=self.type)
 
     editData = _util.cacheProperty(_getEditData,"_editData")
-
+    rawEditData = _util.cacheProperty(_getRawEditData,"_rawEditData")
 
 # TODO: anyModified, modified, errorStatus, executeScriptNodes, lockFile, lastTempFile, renamingPrefixList, renameToSave ( api : mustRenameToSave )
 # From API: isReadingFile, isWritingFile, isOpeningFile, isNewingFile, isImportingFile
