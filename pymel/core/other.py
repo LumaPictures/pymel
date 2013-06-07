@@ -21,7 +21,7 @@ class NameParser(unicode):
     def __new__(cls, strObj):
         """Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
         for your object."""
-
+        strObj = unicode(strObj)
         # the if statement was failing for some types (ex: pymel.node.Vertex),
         # so forcing into unicode string:
         if cls is not NameParser:
@@ -158,6 +158,7 @@ class AttributeName(NameParser):
     #    return "AttributeName('%s')" % self
 
     def __init__(self, attrName):
+        attrName = unicode(attrName)
         if '.' not in attrName:
             raise TypeError, "%s: AttributeNames must include the node and the AttributeName. e.g. 'nodeName.AttributeNameName' " % self
         self.__dict__['_multiattrIndex'] = 0
