@@ -3145,6 +3145,30 @@ class Attribute(PyNode):
         "setAttr -locked 0"
         return self.setLocked(False, checkReference=checkReference)
 
+    def isMuted(self):
+        """
+        mute -q
+
+        :rtype: `bool`
+        """
+        return cmds.mute(self.name(), q=1)
+
+    def mute(self, **kwargs):
+        """
+        mute
+         Mutes the attribute.
+        """
+        cmds.mute(self.name(), **kwargs)
+
+    def unmute(self, **kwargs):
+        """
+        mute -disable -force
+         Unmutes the attribute
+        """
+
+        kwargs.setdefault('disable', True)
+        kwargs.setdefault('force', True)
+        cmds.mute(self.name(), **kwargs)
 
     def isSettable(self):
         """getAttr -settable
