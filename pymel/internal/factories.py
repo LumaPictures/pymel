@@ -1718,6 +1718,13 @@ class ApiArgUtil(object):
     def castResult(self, instance, result ):
         returnType = self.methodInfo['returnType']
         if returnType:
+            # special case check - some functions return an MObject, but return
+            # an empty/null MObject if no node was found - ie, MFnCharacter.getClipScheduler
+            # In these cases, return None...
+            if (returnType == 'MObject' and isinstance(result, api.MObject)
+                    and result.isNull()):
+                return None
+
             # enums
             if isinstance( returnType, tuple ):
                 #raise NotImplementedError
@@ -1751,6 +1758,13 @@ class ApiArgUtil(object):
         return ApiTypeRegister.refInit[argtype]()
 
     def castReferenceResult(self,argtype,outArg):
+        # special case check - some functions return an MObject, but return
+        # an empty/null MObject if no node was found - ie, MFnContainer.getParentContainer
+        # In these cases, return None...
+        if (argtype == 'MObject' and isinstance(outArg, api.MObject)
+                and outArg.isNull()):
+            return None
+
         f = ApiTypeRegister.refCast[ argtype ]
         #_logger.debug("castReferenceResult")
         #_logger.debug( "%s %s %s" % (f, argtype, outArg) )

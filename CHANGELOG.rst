@@ -16,6 +16,7 @@ Bugfixes
 - general: for the keyframe command, the upper / lower limits substituted in for the "index" flag, when no upper/lower limits were given, are now correct; formerly, the behavior of index=":" would vary depending on where (in time) the first and last keyframes were
 - general: timerange flags (ie, keyframe(time=...), findKeyframe(time=...), etc) now provide correct results when no upper/lower limits given; formerly, the time=":" would vary depending on if / which objects were selected
 - animation: Joint.angleX/Y/Z and Joint.stiffnessX/Y/Z now work
+- nodetypes: Container.getParentContainer, Container.getRootTransform, and Character.getClipScheduler now all return None instead of raising a runtime error if no object was found
 
 ==================================
 Version 1.0.5

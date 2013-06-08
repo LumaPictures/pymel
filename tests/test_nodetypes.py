@@ -2305,6 +2305,23 @@ class testCase_Container(TestCaseExtended):
         self.assertEqual( fromAttr.name(), 'container1.canBeParent[0]' )
         self.assertEqual( fromPyNode, fromAttr )
 
+    def testGetParentContainer(self):
+        c1 = pm.container()
+        self.assertEqual(c1.getParentContainer(), None)
+        c2 = pm.container(addNode=c1)
+        self.assertEqual(c2.getParentContainer(), None)
+        self.assertEqual(c1.getParentContainer(), c2)
+
+    def testGetRootTransform(self):
+        t = pm.createNode('transform')
+        c = pm.container(addNode=t)
+        self.assertEqual(c.getRootTransform(), None)
+        self.assertEqual(c.getPublishAsRoot(), None)
+        c.setPublishAsRoot((t, True))
+        self.assertEqual(c.getRootTransform(), t)
+        self.assertEqual(c.getPublishAsRoot(), t)
+
+
 class testCase_AnimCurve(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
@@ -2473,6 +2490,41 @@ class testCase_renderLayers(TestCaseExtended):
         pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
         self.assertEqual(widthAttr.get(), origVal)
 
+class testCase_Character(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        # First, create a character to hold the clips. The character will be
+        # a 3-bone skeleton named "arm".
+        #
+        cmds.select(d=True)
+        cmds.joint(p=(0, 0, 0))
+        cmds.joint(p=(0, 4, 0))
+        cmds.joint('joint1', e=True, zso=True, oj='xyz')
+        cmds.joint(p=(0, 8, -1))
+        cmds.joint('joint2', e=True, zso=True, oj='xyz')
+        cmds.joint(p=(0, 9, -2))
+        cmds.joint('joint3', e=True, zso=True, oj='xyz')
+        cmds.select('joint1', 'joint2', 'joint3', r=True)
+        self.char = pm.character(name='arm')
+
+    def test_getClipScheduler(self):
+        self.assertEqual(self.char.getClipScheduler(), None)
+
+        # Create some animation for the character. For this example the animation will
+        # be quite trivial.
+        #
+        cmds.select('joint3', r=True)
+        cmds.currentTime(0)
+        cmds.setKeyframe('joint3.rx')
+        cmds.currentTime(10)
+        cmds.setKeyframe('joint3.rx', v=90)
+        cmds.currentTime(20)
+        cmds.setKeyframe('joint3.rx', v=0)
+        # Create a clip for the current animation named "handWave"
+        #
+        cmds.clip('arm', startTime=0, endTime=20, name='handWave')
+
+        self.assertEqual(self.char.getClipScheduler(), 'armScheduler1')
 
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
