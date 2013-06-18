@@ -817,13 +817,23 @@ class DagNode(Entity):
         """
         return self.name(long=False)
 
-    def nodeName( self, stripNamespace=False ):
+    def nodeName( self, stripNamespace=False, stripUnderworld=True ):
         """
         Just the name of the node, without any dag path
 
         :rtype: `unicode`
         """
-        name = self.name().rsplit('|', 1)[-1]
+        parts = self.name().rsplit('>', 1)
+        if parts:
+            # underworld nodes use -> as a separator.
+            # e.g. foo|bar|this->|plate|plateShape
+            underworld, name = parts
+            # get shortname of component after the underworld separator (->)
+            name = name.rsplit('|', 1)[-1]
+            if not stripUnderworld:
+                name = underworld + '>' + name
+        name = name.rsplit('|', 1)[-1]
+
         if stripNamespace:
             name = name.rsplit(':', 1)[-1]
         return name
