@@ -830,7 +830,7 @@ class DagNode(Entity):
             underworld, name = parts[-2:]
             # get shortname of component after the underworld separator (->)
             name = name.rsplit('|', 1)[-1]
-            if not stripUnderworld:
+            if not stripUnderWorld:
                 name = underworld + '>' + name
         else:
             name = parts[0]
