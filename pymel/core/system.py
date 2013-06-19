@@ -1551,15 +1551,21 @@ class ReferenceEdit(str):
     """
 
     def __new__(cls, editStr, fileReference=None, successful=None):
-
         self = str.__new__(cls, editStr)
-
         self.type = self.split()[0]
         self.fileReference = fileReference
-        self.namespace = fileReference and self.fileReference.namespace
-        self.fullNamespace = fileReference and self.fileReference.fullNamespace
         self.successful = successful
         return self
+
+    def _getNamespace(self):
+        # Lazy load the namespace as it can be expensive to query
+        return self.fileReference and self.fileReference.namespace
+
+    def _getFullNamespace(self):
+        return self.fileReference and self.fileReference.fullNamespace
+
+    namespace = _util.cacheProperty(_getNamespace, "_namespace")
+    fullNamespace = _util.cacheProperty(_getFullNamespace, "_fullNamespace")
 
     def _getRawEditData(self):
         import pymel.tools.mel2py as mel2py
