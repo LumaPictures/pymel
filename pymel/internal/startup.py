@@ -162,7 +162,7 @@ def mayaInit(forversion=None) :
                 refreshEnviron()
 
         except ImportError, e:
-            raise e, str(e) + ": pymel was unable to intialize maya.standalone"
+            raise ImportError(str(e) + ": pymel was unable to intialize maya.standalone")
 
     try:
         from maya.cmds import about
