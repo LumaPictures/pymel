@@ -465,9 +465,9 @@ if objs is not None:                    # returns None when it finds no matches
 #        Default Python
 #---------------------------------------------------------------------
 
-from pymel.all import *
-newFile( force=1 )
-for x in ls( type='transform'):
+import pymel.core as pm
+pm.newFile( force=1 )
+for x in pm.ls( type='transform'):
     print x.longName()                # object oriented design
 
     # make and break some connections
@@ -486,4 +486,4 @@ for x in ls( type='transform'):
     trans = x.translate.get()
     trans *= x.scale.get()           # vector math
     x.translate.set( trans )         # ability to pass list/vector args
-    mel.myMelScript(x.type(), trans) # automatic handling of mel procedures
+    pm.mel.myMelScript(x.type(), trans) # automatic handling of mel procedures

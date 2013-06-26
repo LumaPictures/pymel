@@ -83,14 +83,14 @@ decorators you should read up on them before using this feature.
 # VirtualClassManger.register - keep it in sync!
 
 
-from pymel.all import *
+import pymel.core as pm
 from pymel.internal.factories import virtualClasses
 
 #-------------------------------------------------------------------------------
 
 
 
-class CustomJointBase(Joint):
+class CustomJointBase(pm.nt.Joint):
     """ this is an example of how to create your own subdivisions of existing nodes. """
 
     @classmethod
@@ -102,7 +102,7 @@ class CustomJointBase(Joint):
         """
         # obj is either an MObject or an MDagPath, depending on whether this class is a subclass of DependNode or DagNode, respectively.
         # we use MFnDependencyNode below because it works with either and we only need to test attribute existence.
-        fn = api.MFnDependencyNode(obj)
+        fn = pm.api.MFnDependencyNode(obj)
         try:
             # NOTE: MFnDependencyNode.hasAttribute fails if the attribute does not exist, so we have to try/except it.
             # the _jointClassID is stored on subclass of CustomJointBase
@@ -165,14 +165,14 @@ virtualClasses.register( JawJoint, nameRequired=False )
 
 def testJoint():
     # make some regular joints
-    Joint()
-    Joint()
+    pm.nt.Joint()
+    pm.nt.Joint()
     # now make some of our custom joints
     LegJoint(name='leftLeg')
     JawJoint(rotate=(90,45,0))
 
     # now list the joints and see which ones are our special joints
-    res = ls(type='joint')
+    res = pm.ls(type='joint')
     for x in res:
         if isinstance(x, LegJoint ):
             x.kick()
@@ -183,7 +183,7 @@ def testJoint():
 #-------------------------------------------------------------------------------
 
 # make sure Mayatomr plugin is loaded or the Mib_amb_occlusion node type might not exist
-loadPlugin('Mayatomr')
+pm.loadPlugin('Mayatomr')
 class Mib_amb_occlusion(Mib_amb_occlusion):
     """This is an example of how to replace a node.  Use this technique with care"""
     def occlude(self):
@@ -200,6 +200,5 @@ virtualClasses.register( Mib_amb_occlusion, nameRequired=False )
 
 
 def testMib():
-    n = createNode('mib_amb_occlusion')
+    n = pm.createNode('mib_amb_occlusion')
     n.occlude()
-

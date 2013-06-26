@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from pymel.all import *
+import pymel.core as pm
 
 """
 work in progress:
@@ -41,24 +41,24 @@ def startPipe( basename='pipe',
 	print basename
 	i=1
 	name = basename + str(i)
-	while ls( name + '_Jnt0'):
+	while pm.ls( name + '_Jnt0'):
 		i += 1
 		name = basename + str(i)
 
 	try:
-		startPos = selected()[0].getTranslation(ws=1)
+		startPos = pm.selected()[0].getTranslation(ws=1)
 	except:
 		startPos = [0,0,0]
 
-	select(cl=1)
+	pm.select(cl=1)
 
-	rigGrp = group(empty=True, n='%s_RigGrp' % name)
-	geoGrp = group(empty=True, n='%s_GeoGrp' % name)
+	rigGrp = pm.group(empty=True, n='%s_RigGrp' % name)
+	geoGrp = pm.group(empty=True, n='%s_GeoGrp' % name)
 
-	root = joint( name=name+'_Jnt0')
+	root = pm.joint( name=name+'_Jnt0')
 
-	trans = group(empty=True, n='%s_Elbow0' % name)
-	pointConstraint( root, trans )
+	trans = pm.group(empty=True, n='%s_Elbow0' % name)
+	pm.pointConstraint( root, trans )
 
 	root.scale.lock()
 
@@ -121,13 +121,13 @@ def extendPipe( jointLength=1 ):
 
 	newJnts = []
 
-	for sel in selected():
+	for sel in pm.selected():
 		sel.select()
 		# for now, there's no branching, so we find the deepest joint
 		try:
 			currJnt = sel
 			name = currJnt.split('_')[0]
-			root = Joint( '%s_Jnt0' % name )
+			root = pm.nt.Joint( '%s_Jnt0' % name )
 
 		except:
 			raise "select an object on the pipe that you want to extend"
@@ -168,15 +168,15 @@ def extendPipe( jointLength=1 ):
 		#---------------------
 
 		if new>1:
-			prevJnt = Joint( '%s_Jnt%s' % (name, prev) )
+			prevJnt = pm.nt.Joint( '%s_Jnt%s' % (name, prev) )
 			pos = 2*currJnt.getTranslation(ws=1) - prevJnt.getTranslation(ws=1)
 		else:
 			prevJnt = None
 			pos = currJnt.getTranslation(ws=1) + [0,defaultLength,0]
 
-		newJnt = joint( p=pos, n= '%s_Jnt%s' % (name, new) )
+		newJnt = pm.joint( p=pos, n= '%s_Jnt%s' % (name, new) )
 		# re-orient the last created joint, which is considered our current joint
-		joint( currJnt, e=1, zeroScaleOrient=1, secondaryAxisOrient='yup', orientJoint='xyz')
+		pm.joint( currJnt, e=1, zeroScaleOrient=1, secondaryAxisOrient='yup', orientJoint='xyz')
 
 
 
@@ -205,24 +205,24 @@ def extendPipe( jointLength=1 ):
 		# bend hierarchy
 		#-----------------
 
-		trans = group( empty=1, n='%s_Elbow%s' % (name, new))
+		trans = pm.group( empty=1, n='%s_Elbow%s' % (name, new))
 		trans.rotateOrder = 1
 
-		aimConstraint( 	currJnt, trans,
+		pm.aimConstraint( 	currJnt, trans,
 							aimVector = [0, -1, 0],
 			 				upVector = [-1, 0, 0]
 							)
-		pointConstraint( newJnt, trans )
+		pm.pointConstraint( newJnt, trans )
 
 		trans.setParent( rigGrp )
 
 		# keep the end joint oriented along the joint chain so that it can be slid back
 		# and forth to change the length of the current pipe segment
-		delete( orientConstraint( trans, newJnt ) )
+		pm.delete( pm.orientConstraint( trans, newJnt ) )
 
 		# Main Pipe
 		#------------
-		pipe, pipeHist = polyCylinder( height = 1, radius=1,
+		pipe, pipeHist = pm.polyCylinder( height = 1, radius=1,
 							name = '%s_Geo%s' % (name, new) )
 		pipeHist = pipeHist.rename( '%s_GeoHist%s' % (name, new)  )
 
@@ -238,7 +238,7 @@ def extendPipe( jointLength=1 ):
 
 		# Pipe Connectors
 		#-------------
-		pipeConn1, pipeConnHist1 = polyCylinder( height = .1, radius=1,
+		pipeConn1, pipeConnHist1 = pm.polyCylinder( height = .1, radius=1,
 							name = '%s_Connector1AGeo%s' % (name, new) )
 		pipeConnHist1 = pipeConnHist1.rename( '%s_Connector1AHist%s' % (name, new)  )
 		pipeConn1.setPivots( [0, -.05, 0], r=1 )
@@ -247,7 +247,7 @@ def extendPipe( jointLength=1 ):
 		root.subdivisionsAxis >> pipeConnHist1.subdivisionsAxis
 
 
-		pipeConn2, pipeConnHist2 = polyCylinder( height = .1, radius=1,
+		pipeConn2, pipeConnHist2 = pm.polyCylinder( height = .1, radius=1,
 							name = '%s_Connector2AGeo%s' % (name, new) )
 		pipeConnHist2 = pipeConnHist2.rename( '%s_Connector2AHist%s' % (name, new)  )
 		pipeConn2.setPivots( [0, .05, 0], r=1 )
@@ -255,7 +255,7 @@ def extendPipe( jointLength=1 ):
 		pipeConn2.rotate.lock()
 		root.subdivisionsAxis >> pipeConnHist2.subdivisionsAxis
 
-		pipeConn1, pipeConnHist1 = polyCylinder( height = .1, radius=1,
+		pipeConn1, pipeConnHist1 = pm.polyCylinder( height = .1, radius=1,
 							name = '%s_Connector1BGeo%s' % (name, new) )
 		pipeConnHist1 = pipeConnHist1.rename( '%s_Connector1BHist%s' % (name, new)  )
 		pipeConn1.setPivots( [0, -.05, 0], r=1 )
@@ -265,7 +265,7 @@ def extendPipe( jointLength=1 ):
 		root.subdivisionsAxis >> pipeConnHist1.subdivisionsAxis
 
 
-		pipeConn2, pipeConnHist2 = polyCylinder( height = .1, radius=1,
+		pipeConn2, pipeConnHist2 = pm.polyCylinder( height = .1, radius=1,
 							name = '%s_Connector2BGeo%s' % (name, new) )
 		pipeConnHist2 = pipeConnHist2.rename( '%s_Connector2BHist%s' % (name, new)  )
 		pipeConn2.setPivots( [0, .05, 0], r=1 )
@@ -279,23 +279,23 @@ def extendPipe( jointLength=1 ):
 
 
 		#constraints
-		pointConstraint( currJnt, pipe )
-		aim = aimConstraint( newJnt, pipe )
+		pm.pointConstraint( currJnt, pipe )
+		aim = pm.aimConstraint( newJnt, pipe )
 		aim.offsetZ = -90
 
 
 
 		# convert the previous pipe joint into a bendy joint
 		if new > 1:
-			currElbow = PyNode('%s_Elbow%s' % (name, curr) )
-			pipeLoc = spaceLocator( n= '%s_PipeDummy%s' % (name, new) )
+			currElbow = pm.PyNode('%s_Elbow%s' % (name, curr) )
+			pipeLoc = pm.spaceLocator( n= '%s_PipeDummy%s' % (name, new) )
 			pipeLoc.hide()
 
-			tweak = group(n='%s_ElbowTweak%s' % (name, new))
+			tweak = pm.group(n='%s_ElbowTweak%s' % (name, new))
 			tweak.rotateOrder = 2
 			#tweak.translate = currElbow.translate.get()
 			tweak.setParent( currElbow, r=1 )
-			aimConstraint( 	prevJnt, tweak,
+			pm.aimConstraint( 	prevJnt, tweak,
 							aimVector = [1, 0, 0],
 			 				upVector = [0, -1, 0],
 							skip=['z', 'x'] )
@@ -303,7 +303,7 @@ def extendPipe( jointLength=1 ):
 
 			# Pipe Joint
 			#------------
-			pipeJnt, pipeJntHist = polyCylinder( height = 1, radius=1,
+			pipeJnt, pipeJntHist = pm.polyCylinder( height = 1, radius=1,
 								name = '%s_JntGeo%s' % (name, new),
 								subdivisionsAxis = 20,
 								subdivisionsHeight = 30 )
@@ -317,29 +317,29 @@ def extendPipe( jointLength=1 ):
 			root.subdivisionsJoint >> pipeJntHist.subdivisionsHeight
 
 			# constraints
-			parentConstraint( pipeLoc, pipeJnt )
+			pm.parentConstraint( pipeLoc, pipeJnt )
 			pipeJnt.translate.lock()
 			pipeJnt.rotate.lock()
 			#pipeJnt.scale.lock()
 
 
-			aim = PyNode('%s_Elbow%s_aimConstraint1' % (name, curr))
+			aim = pm.PyNode('%s_Elbow%s_aimConstraint1' % (name, curr))
 			aim.setWorldUpType( 2 )
 			aim.setWorldUpObject( newJnt )
 
-			bend, bendHandle = nonLinear( '%s_JntGeo%s' % (name, new),
+			bend, bendHandle = pm.nonLinear( '%s_JntGeo%s' % (name, new),
 				type='bend' )
-			bendHandle = Transform(bendHandle).rename( '%s_BendHandle%s' % (name, new) )
+			bendHandle = pm.nt.Transform(bendHandle).rename( '%s_BendHandle%s' % (name, new) )
 			bendHandle.sx =.5
 			bendHandle.hide()
 
 			bend.rename( '%s_Bend%s' % (name, new) )
 
-			parentConstraint( '%s_ElbowTweak%s' % (name, new), bendHandle )
+			pm.parentConstraint( '%s_ElbowTweak%s' % (name, new), bendHandle )
 
 			aim = '%s_ElbowTweak%s_aimConstraint1' % (name, new)
 			#aim.worldUpType.set( 1 )
-			aimConstraint( aim, e=1, worldUpType='object', worldUpObject=newJnt )
+			pm.aimConstraint( aim, e=1, worldUpType='object', worldUpObject=newJnt )
 
 			bendHandle.setParent(rigGrp)
 
@@ -432,7 +432,7 @@ def extendPipe( jointLength=1 ):
 			#print expr
 			print 'editing %s_PipeExpr%s' % (name, new)
 			#expression( '%s_PipeExpr%s' % (name, curr), e=1, s=expr, ae=1  )
-			expression( s=expr, ae=1, n = '%s_PipeExpr%s' % (name, new)  )
+			pm.expression( s=expr, ae=1, n = '%s_PipeExpr%s' % (name, new)  )
 
 
 		# special case for first joint
@@ -457,7 +457,7 @@ def extendPipe( jointLength=1 ):
 				'name': 	name
 			}
 			print 'creating %s_PipeExpr1' % (name)
-			expression( s=expr, ae=1, n = '%s_PipeExpr1' % (name))
+			pm.expression( s=expr, ae=1, n = '%s_PipeExpr1' % (name))
 
 		'''
 		expr = """
@@ -474,78 +474,78 @@ def extendPipe( jointLength=1 ):
 		pipe.rotate.lock()
 		#pipe.scale.lock()
 		newJnts.append( newJnt )
-	select(newJnts)
+	pm.select(newJnts)
 
 class pipeGenWin(object):
 
 	def __init__(self):
 		try:
-			deleteUI( 'PipeGenWin' )
+			pm.deleteUI( 'PipeGenWin' )
 		except: pass
 
-		win = window('PipeGenWin')
+		win = pm.window('PipeGenWin')
 		with win:
-			with columnLayout():
-				with frameLayout( l='Creation', labelVisible=False):
-					with columnLayout():
-						with rowLayout( nc=3, cw3=[80, 80, 240], cal=([1,'center'], [2,'right'])):
-							button( l='Create', w=80, c= lambda *args: self.newPipeCB())
-							text( l='Name' )
-							self.createGrp = textField( text='pipe', w=90)
-						separator(w=400)
+			with pm.columnLayout():
+				with pm.frameLayout( l='Creation', labelVisible=False):
+					with pm.columnLayout():
+						with pm.rowLayout( nc=3, cw3=[80, 80, 240], cal=([1,'center'], [2,'right'])):
+							pm.button( l='Create', w=80, c= lambda *args: self.newPipeCB())
+							pm.text( l='Name' )
+							self.createGrp = pm.textField( text='pipe', w=90)
+						pm.separator(w=400)
 
-						with rowLayout( nc=2, cw2=[80, 320], cal=[1,'center']):
+						with pm.rowLayout( nc=2, cw2=[80, 320], cal=[1,'center']):
 							#text( l='Segments' )
-							button( l='Extend', w=80, c = lambda *args: self.extendPipeCB() )
-							self.numSegments = intSliderGrp(
+							pm.button( l='Extend', w=80, c = lambda *args: self.extendPipeCB() )
+							self.numSegments = pm.intSliderGrp(
 								cw3=[80,40,50],
 								l='Segments',
 								value=1,
 								field=1,
 								min=1, max=20 )
 
-				with frameLayout( l='Pipe Properties', labelVisible=True):
-					with columnLayout():
-						self.pipeRadius = floatSliderGrp( l='Radius',
+				with pm.frameLayout( l='Pipe Properties', labelVisible=True):
+					with pm.columnLayout():
+						self.pipeRadius = pm.floatSliderGrp( l='Radius',
 							value=.22,
 							field=True,
 							precision = 3,
 							min=.0001, max=10 )
-						self.subdivAxis = intSliderGrp( l='Axis Segments',
+						self.subdivAxis = pm.intSliderGrp( l='Axis Segments',
 							value=16,
 							field=True,
 							min=3, max=80 )
 
-				with frameLayout( l='Connector Properties', labelVisible=True):
-					with columnLayout():
-						self.connectorRadius = floatSliderGrp( l='Connector Radius',
+				with pm.frameLayout( l='Connector Properties', labelVisible=True):
+					with pm.columnLayout():
+						self.connectorRadius = pm.floatSliderGrp( l='Connector Radius',
 							value=.1,
 							field=True,
 							precision = 3,
 							min=0, max=10 )
-						self.connectorThickness = floatSliderGrp( l='Connector Height',
+						self.connectorThickness = pm.floatSliderGrp( l='Connector Height',
 							value=.2,
 							field=True,
 							precision = 3,
 							min=.001, max=10 )
-						self.connectorOffset = floatSliderGrp( l='Connector Offset',
+						self.connectorOffset = pm.floatSliderGrp( l='Connector Offset',
 							value=.001,
 							field=True,
 							precision = 3,
 							min=0, max=4 )
 
-				with frameLayout( l='Joint Properties', labelVisible=True):
-					with columnLayout():
-						self.jointRadius = floatSliderGrp( l='Radius',
+				with pm.frameLayout( l='Joint Properties', labelVisible=True):
+					with pm.columnLayout():
+						self.jointRadius = pm.floatSliderGrp( l='Radius',
 							value=0,
 							field=True,
 							precision = 3,
 							min=0, max=10 )
-						self.subdivJoint = intSliderGrp( l='Joint Segments',
+						self.subdivJoint = pm.intSliderGrp( l='Joint Segments',
 							value=8,
 							field=True,
 							min=1, max=80 )
-						self.jointLength = floatSliderGrp( l='Joint Length',
+						self.jointLength = pm.floatSliderGrp( l='Joint Length',
 							value=1.2,
 							field=True,
 							precision = 3,
@@ -583,7 +583,6 @@ Straight joint
 Size change Adapter
 
 """
-
 
 
 

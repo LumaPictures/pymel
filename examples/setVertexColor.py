@@ -1,6 +1,6 @@
 
 import pymel.all as pymel
-from pymel.all import *
+import pymel.core as pm
 from pymel.core.datatypes import *
 from time import time
 import unittest
@@ -25,7 +25,7 @@ def doIt(obj):
         avgLen=totalLen / edgCnt
 
         currColor = vtx.getColor()
-        color = Color.black
+        color = pm.dt.Color.black
         # only set blue if it has not been set before
         if currColor.b<=0.0:
             color.b = avgLen
@@ -37,4 +37,4 @@ def doIt(obj):
     obj.setColors( colors )
     obj.updateSurface()
 
-    polyColorPerVertex( obj, e=1, colorDisplayOption=1 )
+    pm.polyColorPerVertex( obj, e=1, colorDisplayOption=1 )

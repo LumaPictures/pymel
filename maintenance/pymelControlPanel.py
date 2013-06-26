@@ -13,7 +13,7 @@ It controls:
 """
 from __future__ import with_statement
 import inspect, re, os
-from pymel.all import *
+import pymel.core as pm
 import pymel.internal.factories as factories
 import logging
 logger = logging.getLogger(__name__)
@@ -33,12 +33,12 @@ class PymelControlPanel(object):
 
 
     def buildUI(self):
-        self.win = window(title='Pymel Control Panel')
+        self.win = pm.window(title='Pymel Control Panel')
         self.win.show()
 
-        with paneLayout(configuration='vertical3', paneSize=([1,20,100], [3,20,100]) ) as self.pane:
+        with pm.paneLayout(configuration='vertical3', paneSize=([1,20,100], [3,20,100]) ) as self.pane:
             # Lef Column: Api Classes
-            self.classScrollList = textScrollList('apiClassList')
+            self.classScrollList = pm.textScrollList('apiClassList')
 
         # Center Column: Api Methods
 
@@ -57,11 +57,11 @@ class PymelControlPanel(object):
 #            status = helpLine(h=60)
 
         # So, instead, we do it old-school...
-        apiForm = formLayout()
-        self.apiMethodCol = tabLayout('apiMethodCol')
-        setParent(apiForm)
-        status = cmds.helpLine(h=60)
-        setParent(self.pane)
+        apiForm = pm.formLayout()
+        self.apiMethodCol = pm.tabLayout('apiMethodCol')
+        pm.setParent(apiForm)
+        status = pm.cmds.helpLine(h=60)
+        pm.setParent(self.pane)
 
         apiForm.attachForm( self.apiMethodCol, 'top', 5 )
         apiForm.attachForm( self.apiMethodCol, 'left', 5 )
@@ -73,16 +73,16 @@ class PymelControlPanel(object):
         apiForm.attachForm( status, 'right', 5 )
 
         # Right Column: Mel Methods
-        melForm = formLayout()
-        label1 = text( label='Unassigned Mel Methods' )
-        self.unassignedMelMethodLister = textScrollList()
+        melForm = pm.formLayout()
+        label1 = pm.text( label='Unassigned Mel Methods' )
+        self.unassignedMelMethodLister = pm.textScrollList()
 
-        label2 = text( label='Assigned Mel Methods' )
-        self.assignedMelMethodLister = textScrollList()
+        label2 = pm.text( label='Assigned Mel Methods' )
+        self.assignedMelMethodLister = pm.textScrollList()
 
-        label3 = text( label='Disabled Mel Methods' )
-        self.disabledMelMethodLister = textScrollList()
-        setParent(self.pane)
+        label3 = pm.text( label='Disabled Mel Methods' )
+        self.disabledMelMethodLister = pm.textScrollList()
+        pm.setParent(self.pane)
 
         melForm.attachForm( label1, 'top', 5 )
         melForm.attachForm( label1, 'left', 5 )
@@ -112,21 +112,21 @@ class PymelControlPanel(object):
         melForm.attachForm( self.disabledMelMethodLister, 'right', 5 )
         melForm.attachForm( self.disabledMelMethodLister, 'bottom', 5 )
 
-        setParent('..')
+        pm.setParent('..')
 
-        popupMenu(parent=self.unassignedMelMethodLister, button=3  )
-        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
+        pm.popupMenu(parent=self.unassignedMelMethodLister, button=3  )
+        pm.menuItem(l='disable', c=pm.Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
 
-        popupMenu(parent=self.assignedMelMethodLister, button=3  )
-        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.assignedMelMethodLister ) )
+        pm.popupMenu(parent=self.assignedMelMethodLister, button=3  )
+        pm.menuItem(l='disable', c=pm.Callback( PymelControlPanel.disableMelMethod, self, self.assignedMelMethodLister ) )
 
-        popupMenu(parent=self.disabledMelMethodLister, button=3  )
-        menuItem(l='enable', c=Callback( PymelControlPanel.enableMelMethod))
+        pm.popupMenu(parent=self.disabledMelMethodLister, button=3  )
+        pm.menuItem(l='enable', c=pm.Callback( PymelControlPanel.enableMelMethod))
 
         self.classScrollList.extend( self.classList )
         self.classScrollList.selectCommand( lambda: self.apiClassList_selectCB() )
 
-        scriptJob(uiDeleted=[str(self.win),cacheResults])
+        pm.scriptJob(uiDeleted=[str(self.win),cacheResults])
 
         self.win.show()
 
@@ -180,13 +180,13 @@ class PymelControlPanel(object):
 
     def assignMelMethod(self, method):
         #print "method %s is now assigned" % method
-        if method in util.listForNone( self.unassignedMelMethodLister.getAllItems() ):
+        if method in pm.util.listForNone( self.unassignedMelMethodLister.getAllItems() ):
             self.unassignedMelMethodLister.removeItem(method)
             self.assignedMelMethodLister.append( method )
 
     def unassignMelMethod(self, method):
         #print "method %s is now unassigned" % method
-        if method in util.listForNone( self.assignedMelMethodLister.getAllItems() ):
+        if method in pm.util.listForNone( self.assignedMelMethodLister.getAllItems() ):
             self.assignedMelMethodLister.removeItem(method)
             self.unassignedMelMethodLister.append( method )
 
@@ -219,7 +219,7 @@ class PymelControlPanel(object):
         """
         Build an info column for a class.  This column will include processed `ClassFrame`s for it and its parent classes
         """
-        setParent(self.apiMethodCol)
+        pm.setParent(self.apiMethodCol)
         self.apiMethodCol.clear()
 
         self.unassignedMelMethodLister.removeAll()
@@ -287,25 +287,25 @@ class ClassFrame(object):
 
         count = 0
         #self.form = formLayout()
-        with frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
+        with pm.frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
                             width = FRAME_WIDTH) as self.frame:
                             #labelAlign='top')
 
-            with tabLayout() as tab:
+            with pm.tabLayout() as tab:
 
                 invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
                 usedMethods = []
-                with formLayout() as pairdForm:
+                with pm.formLayout() as pairdForm:
                     tab.setTabLabel( [pairdForm, 'Paired'] )
-                    with scrollLayout() as pairedScroll:
-                        with columnLayout(visible=False, adjustableColumn=True) as pairedCol:
+                    with pm.scrollLayout() as pairedScroll:
+                        with pm.columnLayout(visible=False, adjustableColumn=True) as pairedCol:
 
                             for setMethod, getMethod in invertibles:
-                                setParent(pairedCol) # column
-                                frame = frameLayout(label = '%s / %s' % (setMethod, getMethod),
+                                pm.setParent(pairedCol) # column
+                                frame = pm.frameLayout(label = '%s / %s' % (setMethod, getMethod),
                                                     labelVisible=True, collapsable=True,
                                                     collapse=True, width = FRAME_WIDTH)
-                                col2 = columnLayout()
+                                col2 = pm.columnLayout()
                                 pairCount = 0
                                 pairCount += self.rows[setMethod].buildUI(filter)
                                 pairCount += self.rows[getMethod].buildUI(filter)
@@ -321,21 +321,21 @@ class ClassFrame(object):
                 pairdForm.attachForm( pairedScroll, 'right', 5 )
                 pairdForm.attachForm( pairedScroll, 'bottom', 5 )
 
-                with formLayout() as unpairedForm:
+                with pm.formLayout() as unpairedForm:
                     tab.setTabLabel( [unpairedForm, 'Unpaired'] )
-                    with scrollLayout() as unpairedScroll:
-                        with columnLayout(visible=False ) as unpairedCol:
+                    with pm.scrollLayout() as unpairedScroll:
+                        with pm.columnLayout(visible=False ) as unpairedCol:
                             # For some reason, on linux, the unpairedCol height is wrong...
                             # track + set it ourselves
                             unpairedHeight = 10 # a little extra buffer...
                             #rowSpace = unpairedCol.getRowSpacing()
                             for methodName in sorted( self.classInfo.keys() ):
-                                setParent(unpairedCol)
+                                pm.setParent(unpairedCol)
                                 if methodName not in usedMethods:
-                                    frame = frameLayout(label = methodName,
+                                    frame = pm.frameLayout(label = methodName,
                                                         labelVisible=True, collapsable=True,
                                                         collapse=True, width = FRAME_WIDTH)
-                                    col2 = columnLayout()
+                                    col2 = pm.columnLayout()
                                     count += self.rows[methodName].buildUI(filter)
                                     unpairedHeight += self.rows[methodName].frame.getHeight()# + rowSpace
                             unpairedCol.setHeight(unpairedHeight)
@@ -470,19 +470,19 @@ class MethodRow(object):
 
         #print className, self.methodName, melMethods
         isOverloaded = len(self.methodInfoList)>1
-        self.frame = frameLayout( w=FRAME_WIDTH, labelVisible=False, collapsable=False)
+        self.frame = pm.frameLayout( w=FRAME_WIDTH, labelVisible=False, collapsable=False)
         logger.debug("building row for %s - %s" % (self.methodName, self.frame))
-        col = columnLayout()
+        col = pm.columnLayout()
 
         enabledArray = []
         self.rows = []
         self.overloadPrecedenceColl = None
-        self.enabledChBx = checkBox(label=self.methodName,
-                    changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
+        self.enabledChBx = pm.checkBox(label=self.methodName,
+                    changeCommand=pm.CallbackWithArgs( MethodRow.enableCB, self ) )
 
         if isOverloaded:
 
-            self.overloadPrecedenceColl = radioCollection()
+            self.overloadPrecedenceColl = pm.radioCollection()
             for i in range( len(self.methodInfoList) ) :
 
                 self.createMethodInstance(i)
@@ -494,34 +494,34 @@ class MethodRow(object):
             self.createMethodInstance(0)
             #setParent('..')
 
-        setParent(col)
-        separator(w=800, h=6)
+        pm.setParent(col)
+        pm.separator(w=800, h=6)
 
 
         #self.row = rowLayout( self.methodName + '_rowSettings', nc=4, cw4=[200, 160, 180, 160] )
         #self.rows.append(row)
 
 
-        self.row = rowLayout( self.methodName + '_rowSettings', nc=2, cw2=[200, 220], **self.layout )
+        self.row = pm.rowLayout( self.methodName + '_rowSettings', nc=2, cw2=[200, 220], **self.layout )
         self.rows.append(self.row)
 
         # create ui elements
-        text(label='Mel Equivalent')
+        pm.text(label='Mel Equivalent')
 
-        self.melNameTextField = textField(w=170, editable=False)
-        self.melNameOptMenu = popupMenu(parent=self.melNameTextField,
+        self.melNameTextField = pm.textField(w=170, editable=False)
+        self.melNameOptMenu = pm.popupMenu(parent=self.melNameTextField,
                                         button=1,
-                                        postMenuCommand=Callback( MethodRow.populateMelNameMenu, self ) )
-        setParent('..')
+                                        postMenuCommand=pm.Callback( MethodRow.populateMelNameMenu, self ) )
+        pm.setParent('..')
 
-        self.row2 = rowLayout( self.methodName + '_rowSettings2', nc=3, cw3=[200, 180, 240], **self.layout )
+        self.row2 = pm.rowLayout( self.methodName + '_rowSettings2', nc=3, cw3=[200, 180, 240], **self.layout )
         self.rows.append(self.row2)
 
-        text(label='Use Name')
-        self.nameMode = radioButtonGrp(label='', nrb=3, cw4=[1,50,50,50], labelArray3=['api', 'mel', 'other'] )
-        self.altNameText = textField(w=170, enable=False)
-        self.altNameText.changeCommand( CallbackWithArgs( MethodRow.alternateNameCB, self ) )
-        self.nameMode.onCommand( Callback( MethodRow.nameTypeCB, self ) )
+        pm.text(label='Use Name')
+        self.nameMode = pm.radioButtonGrp(label='', nrb=3, cw4=[1,50,50,50], labelArray3=['api', 'mel', 'other'] )
+        self.altNameText = pm.textField(w=170, enable=False)
+        self.altNameText.changeCommand( pm.CallbackWithArgs( MethodRow.alternateNameCB, self ) )
+        self.nameMode.onCommand( pm.Callback( MethodRow.nameTypeCB, self ) )
 
         isEnabled = self.data.get('enabled', True)
 
@@ -539,7 +539,7 @@ class MethodRow(object):
             # it is possible for a method name to be listed here that was set from a different view,
             # where this class was a super class and more mel commands were available.  expand the option list,
             # and make this frame read-only
-            menuItem( label=melName, parent=self.melNameOptMenu )
+            pm.menuItem( label=melName, parent=self.melNameOptMenu )
             self.melNameOptMenu.setValue( melName )
             logger.debug( "making %s frame read-only" % self.methodName )
             self.frame.setEnable(False)
@@ -585,10 +585,10 @@ class MethodRow(object):
 #            if val is not None:
 #                self.overloadPrecedenceColl.setSelect( items[ val ] )
 
-        setParent('..')
+        pm.setParent('..')
 
-        setParent('..') # frame
-        setParent('..') # column
+        pm.setParent('..') # frame
+        pm.setParent('..') # column
 
         return True
 
@@ -653,12 +653,12 @@ class MethodRow(object):
         """called to populate the popup menu for choosing the mel equivalent to an api method"""
         self.melNameOptMenu.deleteAllItems()
 
-        menuItem(parent=self.melNameOptMenu, label='[None]', command=Callback( MethodRow.melNameChangedCB, self, '[None]' ))
+        pm.menuItem(parent=self.melNameOptMenu, label='[None]', command=pm.Callback( MethodRow.melNameChangedCB, self, '[None]' ))
         # need to add a listForNone to this in windows
         items = self.parent.parent.unassignedMelMethodLister.getAllItems()
         if items:
             for method in items:
-                menuItem(parent=self.melNameOptMenu, label=method, command=Callback( MethodRow.melNameChangedCB, self, str(method) ))
+                pm.menuItem(parent=self.melNameOptMenu, label=method, command=pm.Callback( MethodRow.melNameChangedCB, self, str(method) ))
 
     def getEnabledArray(self):
         """returns an array of booleans that correspond to each override method and whether they can be wrapped"""
@@ -683,22 +683,22 @@ class MethodRow(object):
         enable = argUtil.canBeWrapped()
 
         if argUtil.isDeprecated():
-            text(l='DEPRECATED')
+            pm.text(l='DEPRECATED')
         # main info row
-        row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing, enable=enable )
+        row = pm.rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing, enable=enable )
         self.rows.append(row)
-        text(label='')
+        pm.text(label='')
 
         if self.overloadPrecedenceColl is not None:
             # toggle for overloaded methods
-            radioButton(label='', collection=self.overloadPrecedenceColl,
+            pm.radioButton(label='', collection=self.overloadPrecedenceColl,
                                 enable = enable,
-                                onCommand=Callback( MethodRow.overloadPrecedenceCB, self, i ))
-        text(   l='', #l=proto,
+                                onCommand=pm.Callback( MethodRow.overloadPrecedenceCB, self, i ))
+        pm.text(   l='', #l=proto,
                 annotation = self.methodInfoList[i]['doc'],
                 enable = enable)
 
-        setParent('..')
+        pm.setParent('..')
 
         try:
             argList = factories.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][i]['args']
@@ -717,7 +717,7 @@ class MethodRow(object):
         if returnType:
             self._makeArgRow( i, returnType, 'return', 'return', self.methodInfoList[i]['returnInfo']['doc'] )
 
-        separator(w=800, h=14)
+        pm.separator(w=800, h=14)
 
         return enable
 #            methodInfo = factories.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName][overloadNum]
@@ -795,25 +795,25 @@ class MethodRow(object):
     def _makeArgRow(self, methodIndex, type, argName, direction, annotation=''):
         COL1_WIDTH = 260
         COL2_WIDTH = 120
-        rowLayout( nc=4, cw4=[COL1_WIDTH,COL2_WIDTH, 70, 150], **self.layout )
+        pm.rowLayout( nc=4, cw4=[COL1_WIDTH,COL2_WIDTH, 70, 150], **self.layout )
 
         label = str(type)
 
-        text( l=label, ann=annotation )
-        text( l=argName, ann=annotation )
+        pm.text( l=label, ann=annotation )
+        pm.text( l=argName, ann=annotation )
 
         if direction == 'return':
-            text( l='(result)' )
+            pm.text( l='(result)' )
         else:
-            direction_om = optionMenu(l='', w=60, ann=annotation, cc=CallbackWithArgs( MethodRow.setDirection, self, methodIndex, argName ) )
+            direction_om = pm.optionMenu(l='', w=60, ann=annotation, cc=pm.CallbackWithArgs( MethodRow.setDirection, self, methodIndex, argName ) )
             for unit in ['in', 'out']:
-                menuItem(l=unit)
+                pm.menuItem(l=unit)
             direction_om.setValue(direction)
 
         if self._isPotentialUnitType(type) :
-            om = optionMenu(l='', ann=annotation, cc=CallbackWithArgs( MethodRow.setUnitType, self, methodIndex, argName ) )
+            om = pm.optionMenu(l='', ann=annotation, cc=pm.CallbackWithArgs( MethodRow.setUnitType, self, methodIndex, argName ) )
             for unit in ['unitless', 'linear', 'angular', 'time']:
-                menuItem(l=unit)
+                pm.menuItem(l=unit)
             if argName == 'return':
                 try:
                     value = factories.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][methodIndex]['returnInfo']['unitType']
@@ -829,8 +829,8 @@ class MethodRow(object):
             except: pass
 
         else:
-            text( l='', ann=annotation )
-        setParent('..')
+            pm.text( l='', ann=annotation )
+        pm.setParent('..')
 
     def _isPotentialUnitType(self, type):
         type = str(type)
@@ -894,12 +894,12 @@ def getClassHierarchy( className ):
 def setManualDefaults():
     # set some defaults
     # TODO : allow these defaults to be controlled via the UI
-    util.setCascadingDictItem( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
-    util.setCascadingDictItem( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
-    util.setCascadingDictItem( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
-    util.setCascadingDictItem( factories.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
-    util.setCascadingDictItem( factories.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
-    util.setCascadingDictItem( factories.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
+    pm.util.setCascadingDictItem( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
+    pm.util.setCascadingDictItem( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
+    pm.util.setCascadingDictItem( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
+    pm.util.setCascadingDictItem( factories.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
+    pm.util.setCascadingDictItem( factories.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
+    pm.util.setCascadingDictItem( factories.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
 
     # add some manual invertibles: THESE MUST BE THE API NAMES
     invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
@@ -911,43 +911,43 @@ def setManualDefaults():
                      ]
     for className, methodIndex, setter, getter in invertibles:
         # append to the class-level invertibles list
-        curr = util.getCascadingDictItem( factories.apiClassInfo, (className, 'invertibles' ), [] )
+        curr = pm.util.getCascadingDictItem( factories.apiClassInfo, (className, 'invertibles' ), [] )
         pair = (setter, getter)
         if pair not in curr:
             curr.append( pair )
 
-        util.setCascadingDictItem( factories.apiClassOverrides, (className, 'invertibles'), curr )
+        pm.util.setCascadingDictItem( factories.apiClassOverrides, (className, 'invertibles'), curr )
 
         # add the individual method entries
-        util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
-        util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
+        pm.util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
+        pm.util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
 
     nonInvertibles = [ ( 'MFnMesh', 0, 'setFaceVertexNormals', 'getFaceVertexNormals' ),
                         ( 'MFnMesh', 0, 'setFaceVertexNormal', 'getFaceVertexNormal' ) ]
     for className, methodIndex, setter, getter in nonInvertibles:
-        util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), None )
-        util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), None )
+        pm.util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), None )
+        pm.util.setCascadingDictItem( factories.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), None )
     fixSpace()
 
 def fixSpace():
     "fix the Space enumerator"
 
-    enum = util.getCascadingDictItem( factories.apiClassInfo, ('MSpace', 'pymelEnums', 'Space') )
+    enum = pm.util.getCascadingDictItem( factories.apiClassInfo, ('MSpace', 'pymelEnums', 'Space') )
     keys = enum._keys.copy()
     #print keys
     val = keys.pop('postTransform', None)
     if val is not None:
         keys['object'] = val
-        newEnum = util.Enum( 'Space', keys )
+        newEnum = pm.util.Enum( 'Space', keys )
 
-        util.setCascadingDictItem( factories.apiClassOverrides, ('MSpace', 'pymelEnums', 'Space'), newEnum )
+        pm.util.setCascadingDictItem( factories.apiClassOverrides, ('MSpace', 'pymelEnums', 'Space'), newEnum )
     else:
         logger.warning( "could not fix Space")
 
 def cacheResults():
     #return
 
-    res = confirmDialog( title='Cache Results?',
+    res = pm.confirmDialog( title='Cache Results?',
                          message="Would you like to write your changes to disk? If you choose 'No' your changes will be lost when you restart Maya.",
                         button=['Yes','No'],
                         cancelButton='No',
@@ -968,4 +968,3 @@ def doCacheResults():
     print "saving bridge"
     factories.saveApiMelBridgeCache()
     print "---"
-
