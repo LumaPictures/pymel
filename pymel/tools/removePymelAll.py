@@ -4,6 +4,12 @@
 
 Can be called on a single file, or on a directory to recurse through, looking
 for .py files.
+
+While I've tried to be careful with this (ie, it actually parses the code using
+python's ast syntax parser, etc), there are undoubtedly some edge cases I've
+missed. In other words...
+
+USE AT YOUR OWN RISK!
 '''
 
 
@@ -337,7 +343,8 @@ def removePymelAll(filepath, p4merge=True, replace='ask', text=None):
                 shutil.move(newPath, filepath)
 
 def get_parser():
-    parser = argparse.ArgumentParser(description='Convert scripts that use "from pymel.all import *" to use "import pymel.core as pm"')
+    parser = argparse.ArgumentParser(description='Convert scripts with "from pymel.all import *" to "import pymel.core as pm"',
+                                     epilog='USE AT YOUR OWN RISK!')
     parser.add_argument('file', help='the .py script file to convert, or '
                         'directory to recurse for python files')
     parser.add_argument('--no-p4merge', dest='p4merge', action='store_false',
