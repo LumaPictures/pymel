@@ -19,15 +19,23 @@ import itertools
 import ast
 import __builtin__
 
+THIS_FILE = os.path.abspath(inspect.getsourcefile(lambda:None))
+THIS_DIR = os.path.dirname(THIS_FILE)
+
 _READMODE = 'r'
 if hasattr(file, 'newlines'):
     _READMODE = 'U'
 
 def getStubPymelCore():
-    stubSubdir = 'python/pymel/extras/completion/py'
-    stubPath = os.path.join(os.environ['REPO_PATH'], *('python/pymel/extras/completion/py'.split('/')))
-    if not os.path.isdir(stubPath):
-        stubPath = os.path.join(os.environ['LUMA_SOFT'], *('python/completion/pymel/completion/py'.split('/')))
+    if 'PYMEL_STUBS' in os.environ:
+        stubPath = os.environ['PYMEL_STUBS']
+    else:
+        # this file should be in:
+        #       pymel/tools/removePymelAll.py
+        # while stubs usually at:
+        #       extras/completion/py
+        stubPath = os.path.join(os.dirname(os.dirname(THIS_DIR)), 'extras',
+                                'completion', 'py')
     # make sure you've got the stubs loaded!
     #print stubPath
     sys.path.insert(0, stubPath)
