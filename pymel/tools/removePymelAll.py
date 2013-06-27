@@ -23,6 +23,7 @@ import subprocess
 import types
 import itertools
 import ast
+import traceback
 import __builtin__
 
 THIS_FILE = os.path.abspath(inspect.getsourcefile(lambda:None))
@@ -305,10 +306,20 @@ def removePymelAll(filepath, p4merge=True, replace='ask', text=None):
                 if not PYTHON_FILE_RE.match(f):
                     continue
                 path = os.path.join(root, f)
-                with open(path, _READMODE) as filehandle:
-                    text = filehandle.read()
+                try:
+                    with open(path, _READMODE) as filehandle:
+                        text = filehandle.read()
+                except (IOError, OSError), e:
+                    print '!!!!!!!!!!!!!!!!'
+                    print "Error reading %s:" % path
+                    print '\n'.join(traceback.format_exception_only(type(e), e))
                 if FROM_PYMEL_ALL_RE.search(text):
-                    removePymelAll(os.path.join(root, f), p4merge=p4merge, replace=replace, text=text)
+                    try:
+                        removePymelAll(os.path.join(root, f), p4merge=p4merge, replace=replace, text=text)
+                    except SyntaxError, e:
+                        print '!!!!!!!!!!!!!!!!'
+                        print "Error parsing %s:" % path
+                        print '\n'.join(traceback.format_exception_only(type(e), e))
         return
 
     # otherwise, act on the single file
