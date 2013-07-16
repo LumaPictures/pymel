@@ -837,7 +837,7 @@ class MethodRow(object):
         return type == 'MVector' or type.startswith('double')
 
 def _getClass(className):
-    for module in [core.nodetypes, core.datatypes, core.general]:
+    for module in [pm.nodetypes, pm.datatypes, pm.general]:
         try:
             pymelClass = getattr(module, className)
             return pymelClass
