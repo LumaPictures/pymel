@@ -483,6 +483,80 @@ class testCase_references(unittest.TestCase):
         for loadedByNS in allPerms:
             doTestForRefPermuation(loadedByNS)
 
+    def test_fullNamespace(self):
+        # first, test that the namespaces are as expected, when all the ref
+        # nodes are "normal" / unaltered
+
+        expected = [
+            (u'sphere1',
+             pm.FileReference(u'/usr/tmp/referencesTest/sphere.ma',
+                               refnode=u'sphere1RN')),
+            (u'sphere2',
+             pm.FileReference(u'/usr/tmp/referencesTest/sphere.ma{1}',
+                              refnode=u'sphere2RN')),
+            (u'cube1',
+             pm.FileReference(u'/usr/tmp/referencesTest/cube.ma',
+                              refnode=u'cube1RN')),
+            (u'cube1:sphere',
+             pm.FileReference(u'/usr/tmp/referencesTest/sphere.ma{2}',
+                              refnode=u'cube1:sphereRN')),
+            (u'cone1',
+             pm.FileReference(u'/usr/tmp/referencesTest/cone.ma',
+                              refnode=u'cone1RN')),
+            (u'cone1:cubeInCone',
+             pm.FileReference(u'/usr/tmp/referencesTest/cube.ma{1}',
+                              refnode=u'cone1:cubeInConeRN')),
+            (u'cone1:cubeInCone:sphere',
+             pm.FileReference(u'/usr/tmp/referencesTest/sphere.ma{3}',
+                              refnode=u'cone1:cubeInCone:sphereRN'))
+        ]
+
+        self.assertEqual(pm.listReferences(namespaces=1, recursive=1),
+                         expected)
+
+        self.assertEqual(self.coneRef1.namespace, 'cone1')
+        self.assertEqual(self.coneRef1.fullNamespace, 'cone1')
+        self.assertEqual(self.coneRef1.refNode.namespace(), '')
+
+        cubeInConeRef = pm.FileReference(refnode='cone1:cubeInConeRN')
+        self.assertEqual(cubeInConeRef.namespace, 'cubeInCone')
+        self.assertEqual(cubeInConeRef.fullNamespace, 'cone1:cubeInCone')
+        self.assertEqual(cubeInConeRef.refNode.namespace(), 'cone1:')
+
+        sphereInCubeInConeRef = pm.FileReference(refnode='cone1:cubeInCone:sphereRN')
+        self.assertEqual(sphereInCubeInConeRef.namespace, 'sphere')
+        self.assertEqual(sphereInCubeInConeRef.fullNamespace,
+                         'cone1:cubeInCone:sphere')
+        self.assertEqual(sphereInCubeInConeRef.refNode.namespace(),
+                         'cone1:cubeInCone:')
+
+        # now, try changing the namespace of one of the refnodes...
+        pm.Namespace.create('foobar')
+        coneRefNode = self.coneRef1.refNode
+        coneRefNode.unlock()
+        coneRefNode.rename('foobar:%s' % coneRefNode)
+        coneRefNode.lock()
+
+        # now, make sure that results are as expected (ie, the namespace of the
+        # reference itself should be UNCHANGED, even though the namespace of the
+        # reference node has changed...
+        self.assertEqual(pm.listReferences(namespaces=1, recursive=1),
+                         expected)
+
+        self.assertEqual(self.coneRef1.namespace, 'cone1')
+        self.assertEqual(self.coneRef1.fullNamespace, 'cone1')
+        self.assertEqual(self.coneRef1.refNode.namespace(), 'foobar:')
+
+        self.assertEqual(cubeInConeRef.namespace, 'cubeInCone')
+        self.assertEqual(cubeInConeRef.fullNamespace, 'cone1:cubeInCone')
+        self.assertEqual(cubeInConeRef.refNode.namespace(), 'cone1:')
+
+        self.assertEqual(sphereInCubeInConeRef.namespace, 'sphere')
+        self.assertEqual(sphereInCubeInConeRef.fullNamespace,
+                         'cone1:cubeInCone:sphere')
+        self.assertEqual(sphereInCubeInConeRef.refNode.namespace(),
+                         'cone1:cubeInCone:')
+
 class testCase_fileInfo(unittest.TestCase):
     def setUp(self):
         pm.newFile(f=1)

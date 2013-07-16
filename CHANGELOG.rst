@@ -17,6 +17,7 @@ Bugfixes
 - general: timerange flags (ie, keyframe(time=...), findKeyframe(time=...), etc) now provide correct results when no upper/lower limits given; formerly, the time=":" would vary depending on if / which objects were selected
 - animation: Joint.angleX/Y/Z and Joint.stiffnessX/Y/Z now work
 - nodetypes: Container.getParentContainer, Container.getRootTransform, and Character.getClipScheduler now all return None instead of raising a runtime error if no object was found
+- system: FileReference.fullNamespace and iterReferences/listReferences with namespaces=1 now handle situations where reference node itself is in a non-root namespace correctly
 
 ==================================
 Version 1.0.5

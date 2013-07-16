@@ -866,12 +866,16 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False,
         if not unloaded and not wasLoaded:
             continue
 
+        refObj = None
         if namespaces:
-            row.append(refNode.namespace() + cmds.file(ref, q=1, namespace=1))
+            refObj = FileReference(refNode)
+            row.append(refObj.fullNamespace)
         if refNodes:
             row.append(refNode)
         if references:
-            row.append(FileReference(refNode))
+            if refObj is None:
+                refObj = FileReference(refNode)
+            row.append(refObj)
         if len(row) == 1:
             row = row[0]
         else:
@@ -1252,7 +1256,43 @@ class FileReference(object):
 
     @property
     def fullNamespace(self):
-        return "%s%s" % (self.refNode.namespace(), self.namespace)
+        if self.refNode.isReferenced():
+            # getting the fullnamespace for a referenced node is actually a
+            # little tricky... initially, we just used the namespace of the
+            # reference node itself, and tacked on the namespace associated with
+            # this reference
+
+            # Unfortunately, this doesn't work, because it's possible for the
+            # reference node itself to be placed in a namespace other than
+            # the root.
+
+            # As an example, say we have a "cube.ma", which contains a node,
+            # "cubeShape", and we reference that into another scene, creating a
+            # reference node called "cubeRN", and associating a namespace
+            # "cubeNS".
+
+            # So, the cube node would be ":cubeNS:cubeShape", and the reference
+            # node would be ":cubeRN"
+
+            # However, it is actually possible for the reference node itself to
+            # be in some other, totally non-related namespace - say,
+            # "dead_parrot_NS". In this situation, we would have:
+            #    :dead_parrot_NS:cubeRN
+            #    :cubeNS:cubeShape
+            # Note that cubeShape did NOT inherit the dead_parrot_NS of the
+            # reference node which created it!
+
+            # also, we can't use cmds.referenceQuery(parentNamespace=1), as this
+            # also does the "wrong" thing, and returns the namespace of the
+            # reference node - ie, it would return "dead_parrot_NS"...
+            parentFile = cmds.referenceQuery(str(self.refNode), parent=1,
+                                             filename=1)
+            parentNamespace = FileReference(parentFile).fullNamespace
+            if not parentNamespace.endswith(':'):
+                parentNamespace += ':'
+        else:
+            parentNamespace = ''
+        return "%s%s" % (parentNamespace, self.namespace)
 
     @property
     def refNode(self):
