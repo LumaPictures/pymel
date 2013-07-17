@@ -30,11 +30,41 @@ except ImportError, e:
     print( "ipymel can only be setup if the maya package can be imported" )
     raise e
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
 
-from IPython.ColorANSI import TermColors, ColorScheme, ColorSchemeTable
-from IPython.genutils import page
+import IPython
+
+ipy_ver = IPython.__version__.split('.')
+ipy_ver = [int(x) if x.isdigit() else x for x in ipy_ver]
+
+ver11 = ipy_ver >= [0,11]
+
+if not ver11:
+    def get_ipython():
+        import IPython.ipapi
+        return IPython.ipapi.get()
+
+    IPython.ipapi.IPApi.define_magic = IPython.ipapi.IPApi.expose_magic
+    import IPython.ColorANSI as coloransi
+    from IPython.genutils import page
+    from IPython.ipapi import UsageError
+    import IPython.Extensions.ipy_completers
+
+    def get_colors(obj):
+        return color_table[obj.rc.colors].colors
+else:
+    import IPython.utils.coloransi as coloransi
+    from IPython.core.page import page
+    from IPython.core.error import UsageError
+
+    def get_colors(obj):
+        return color_table[ip.colors].colors
+
+
+Colors = coloransi.TermColors
+ColorScheme = coloransi.ColorScheme
+ColorSchemeTable = coloransi.ColorSchemeTable
+
+ip = None
 
 try:
     import readline
@@ -48,14 +78,19 @@ delim = delim.replace(':', '') # remove colon
 readline.set_completer_delims(delim)
 
 import inspect, re, glob,os,shlex,sys
-from pymel import core
+
+# don't import pymel here, as this will trigger loading of maya/pymel
+# immediately, and things in the userSetup.py won't get properly entered into
+# the ipython shell's namespace... we need the startup of maya to happen
+# from "within" ipython, ie, when we do:
+#   ip.ex("from pymel.core import *")
+# from pymel import core
+
+# ...maya.cmds is ok to import before maya is started up, though - it just
+# won't be populated yet...
 import maya.cmds as cmds
 
-import IPython.Extensions.ipy_completers
-
 _scheme_default = 'Linux'
-
-Colors = TermColors  # just a shorthand
 
 # Build a few color schemes
 NoColor = ColorScheme(
@@ -226,6 +261,8 @@ def pymel_name_completer(self, event):
 
 def pymel_python_completer(self,event):
     """Match attributes or global python names"""
+    import pymel.core as pm
+
     #print "python_matches"
     text = event.symbol
     #print repr(text)
@@ -249,7 +286,7 @@ def pymel_python_completer(self,event):
         except:
             raise IPython.ipapi.TryNext
     #print "complete"
-    if isinstance(obj, (core.nt.DependNode, core.Attribute) ):
+    if isinstance(obj, (pm.nt.DependNode, pm.Attribute) ):
         #print "isinstance"
         node = unicode(obj)
         long_attrs = cmds.listAttr( node )
@@ -272,14 +309,15 @@ def pymel_python_completer(self,event):
     raise IPython.ipapi.TryNext
 
 def buildRecentFileMenu():
+    import pymel.core as pm
 
-    if "RecentFilesList" not in core.optionVar:
+    if "RecentFilesList" not in pm.optionVar:
         return
 
     # get the list
-    RecentFilesList = core.optionVar["RecentFilesList"]
+    RecentFilesList = pm.optionVar["RecentFilesList"]
     nNumItems = len(RecentFilesList)
-    RecentFilesMaxSize = core.optionVar["RecentFilesMaxSize"]
+    RecentFilesMaxSize = pm.optionVar["RecentFilesMaxSize"]
 
 #        # check if there are too many items in the list
 #        if (RecentFilesMaxSize < nNumItems):
@@ -300,10 +338,10 @@ def buildRecentFileMenu():
     # added after the RecentFilesList optionVar. If it doesn't exist,
     # we create it and initialize it with a guess at the file type
     if nNumItems > 0 :
-        if "RecentFilesTypeList" not in core.optionVar:
-            core.mel.initRecentFilesTypeList( RecentFilesList )
+        if "RecentFilesTypeList" not in pm.optionVar:
+            pm.mel.initRecentFilesTypeList( RecentFilesList )
 
-        RecentFilesTypeList = core.optionVar["RecentFilesTypeList"]
+        RecentFilesTypeList = pm.optionVar["RecentFilesTypeList"]
 
 
     #toNativePath
@@ -390,10 +428,11 @@ class DagTree(TreePager):
             return obj.getChildren(type='transform')
 
     def getName(self, obj):
+        import pymel.core as pm
         name = obj.nodeName()
 
         if obj.isInstanced():
-            if isinstance(obj, core.nt.Transform):
+            if isinstance(obj, pm.nt.Transform):
                 # keep transforms bolded
                 color = self.colors['nonunique_transform']
             else:
@@ -405,13 +444,13 @@ class DagTree(TreePager):
                 source = ''
             name = color + name + self.colors['instance'] + ' [' + str(id) + ']' + source
         elif not obj.isUniquelyNamed():
-            if isinstance(obj, core.nt.Transform):
+            if isinstance(obj, pm.nt.Transform):
                 # keep transforms bolded
                 color = self.colors['nonunique_transform']
             else:
                 color = self.colors['nonunique']
             name = color + name
-        elif isinstance(obj, core.nt.Transform):
+        elif isinstance(obj, pm.nt.Transform):
             # bold
             name = self.colors['transform'] + name
         else:
@@ -427,13 +466,15 @@ def magic_dag(self, parameter_s=''):
     """
 
     """
+    import pymel.core as pm
+
     options, args = dag_parser.parse_args(parameter_s.split())
-    colors = color_table[self.rc.colors].colors
+    colors = get_colors(self)
     dagtree = DagTree(colors, options)
     if args:
-        roots = [core.PyNode(args[0])]
+        roots = [pm.PyNode(args[0])]
     else:
-        roots = core.ls(assemblies=1)
+        roots = pm.ls(assemblies=1)
     page(dagtree.make_tree(roots))
 
 class DGHistoryTree(TreePager):
@@ -447,7 +488,8 @@ class DGHistoryTree(TreePager):
         return name
 
     def make_tree(self, root):
-        roots = core.listConnections(root, plugs=True, connections=True, source=True, destination=False, sourceFirst=True)
+        import pymel.core as pm
+        roots = pm.listConnections(root, plugs=True, connections=True, source=True, destination=False, sourceFirst=True)
         return TreePager.make_tree(self,roots)
 
 dg_parser = OptionParser()
@@ -458,11 +500,17 @@ def magic_dghist(self, parameter_s=''):
     """
 
     """
+    import pymel.core as pm
+
     options, args = dg_parser.parse_args(parameter_s.split())
-    colors = color_table[self.rc.colors].colors
+    if not args:
+        print "must pass in nodes to display the history of"
+        return
+
+    colors = get_colors(self)
     dgtree = DGHistoryTree(colors, options)
 
-    roots = [core.PyNode(args[0])]
+    roots = [pm.PyNode(args[0])]
 
     page(dgtree.make_tree(roots))
 
@@ -594,8 +642,12 @@ def magic_open(self, parameter_s=''):
 #        if not 'q' in opts and self.shell.user_ns['_sh']:
 #            print self.shell.user_ns['_sh'][-1]
 
-def setup():
-    ip = IPython.ipapi.get()
+def setup(shell):
+    global ip
+    if hasattr(shell, 'get_ipython'):
+        ip = shell.get_ipython()
+    else:
+        ip = get_ipython()
 
     ip.set_hook('complete_command', pymel_python_completer , re_key = ".*" )
     ip.set_hook('complete_command', pymel_name_completer , re_key = "(.+(\s+|\())|(SCENE\.)" )
@@ -609,9 +661,9 @@ def setup():
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
 
-    ip.expose_magic('openf', magic_open)
-    ip.expose_magic('dag', magic_dag)
-    ip.expose_magic('dghist', magic_dghist)
+    ip.define_magic('openf', magic_open)
+    ip.define_magic('dag', magic_dag)
+    ip.define_magic('dghist', magic_dghist)
 
     # add projects
     ip.ex("""
@@ -630,11 +682,23 @@ for _mayaproj in optionVar.get('RecentFilesList', []):
         _sh.append(_mayaproj)""")
 
 def main():
-    import IPython.Shell
+    import IPython
 
-    s = IPython.Shell.start()
-    setup()
-    s.mainloop()
+    ipy_ver = IPython.__version__.split('.')
+    ipy_ver = [int(x) if x.isdigit() else x for x in ipy_ver]
+
+    if ipy_ver < [0,11]:
+        import IPython.Shell
+
+        shell = IPython.Shell.start()
+        setup(shell)
+        shell.mainloop()
+    else:
+        import IPython.frontend.terminal.ipapp
+        app = IPython.frontend.terminal.ipapp.TerminalIPythonApp.instance()
+        app.initialize()
+        setup(app.shell)
+        app.start()
 
 if __name__ == '__main__':
     main()

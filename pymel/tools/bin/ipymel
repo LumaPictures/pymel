@@ -28,9 +28,5 @@ this mode, there is no way to pass IPython any command-line options, as those
 are trapped first by Python itself.
 """
 
-import IPython.Shell
-
-s = IPython.Shell.start()
 import pymel.tools.ipymel
-pymel.tools.ipymel.setup()
-s.mainloop()
+pymel.tools.ipymel.main()
