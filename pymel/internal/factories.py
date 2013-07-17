@@ -2103,7 +2103,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
     if argHelper.canBeWrapped() :
 
         if argHelper.isDeprecated():
-            _logger.info(  "%s.%s is deprecated" % (apiClassName, methodName) )
+            _logger.debug("%s.%s is deprecated" % (apiClassName, methodName))
         inArgs = argHelper.inArgs()
         outArgs = argHelper.outArgs()
         argList = argHelper.argList()
@@ -2271,6 +2271,14 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         if argHelper.isStatic():
             wrappedApiFunc = classmethod(wrappedApiFunc)
 
+        if argHelper.isDeprecated():
+            beforeDeprecationWrapper = wrappedApiFunc
+            def wrappedApiFunc(*args, **kwargs):
+                import warnings
+                warnings.warn("%s.%s is deprecated" % (apiClassName,
+                                                       methodName),
+                              DeprecationWarning, stacklevel=2)
+                beforeDeprecationWrapper(*args, **kwargs)
         return wrappedApiFunc
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
