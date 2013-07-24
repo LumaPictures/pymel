@@ -292,7 +292,10 @@ def finalize():
 # Have all the checks inside here, in case people want to insert this in their
 # userSetup... it's currently not always on
 def fixMayapy2011SegFault():
-    if versions.v2011 <= versions.current() < versions.v2013 :
+    currentVer = versions.current()
+    # this was fixed in 2014, but in 2014, it will crash consistently if you use
+    # the sceneAseembly plugin, and inconsistently even if you don't...
+    if versions.v2011 <= currentVer < versions.v2013 or currentVer >= versions.v2014:
         import platform
         if platform.system() == 'Linux':
             if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
