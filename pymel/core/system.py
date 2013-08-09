@@ -1404,7 +1404,10 @@ class FileReference(object):
     @_factories.addMelDocs('referenceQuery', 'nodes')
     def nodes(self):
         import general
-        return map( general.PyNode, cmds.referenceQuery( self.refNode, nodes=1, dagPath=1 ) )
+        nodes = cmds.referenceQuery(str(self.refNode), nodes=1, dagPath=1)
+        if not nodes:
+            nodes = []
+        return [general.PyNode(x) for x in nodes]
 
     @_factories.addMelDocs('file', 'copyNumberList')
     def copyNumberList(self):
