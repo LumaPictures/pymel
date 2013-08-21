@@ -86,6 +86,7 @@ v2012_SAP1SP1 = v2012_SP2
 v2013         = 201300
 v2014         = 201400
 v2014_SP1     = 201402
+v2014_SP2     = 201404
 
 def current():
     return _current
