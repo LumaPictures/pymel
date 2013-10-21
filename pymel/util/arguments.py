@@ -407,7 +407,7 @@ class RemovedKey(object):
     def __ne__(self, other):
         return self.oldVal != other.oldVal
 
-def compareCascadingDicts(dict1, dict2):
+def compareCascadingDicts(dict1, dict2, encoding=None):
     '''compares two cascading dicts
 
     :rtype: `tuple` of (both, only1, only2, differences)
@@ -428,6 +428,13 @@ def compareCascadingDicts(dict1, dict2):
         sparse entries, showing only what is different
         The return value should be such that if you do if you merge the
         differences with d1, you will get d2.
+    encoding : `str` or None or False
+        controls how comparisons are made when one value is a str, and one is a
+        unicode; if None, then comparisons are simply made with == (so ascii
+        characters will compare equally); if the value False, then unicode and
+        str are ALWAYS considered different - ie, u'foo' and 'foo' would not be
+        considered equal; otherwise, it should be the name of a unicode
+        encoding, which will be applied to the unicode string before comparing
     '''
     if isinstance(dict1, (list, tuple)):
         dict1 = dict(enumerate(dict1))
@@ -440,16 +447,52 @@ def compareCascadingDicts(dict1, dict2):
     only2 = v2 - both
 
     recurseTypes = (dict, list, tuple)
+    strUnicode = set([str, unicode])
     differences = dict( (key, dict2[key]) for key in only2)
     differences.update( (key, RemovedKey(dict1[key])) for key in only1 )
+
     for key in both:
         val1 = dict1[key]
         val2 = dict2[key]
-        if val1 != val2:
-            if isinstance(val1, recurseTypes) and isinstance(val2, recurseTypes):
-                subDiffs = compareCascadingDicts(val1, val2)[-1]
-                differences[key] = subDiffs
+
+        areRecurseTypes = isinstance(val1, recurseTypes) and isinstance(val2, recurseTypes)
+        if areRecurseTypes:
+            # we have a type that we need to recurse into, and either they
+            # compare not equal, or encoding is False (in which case they
+            # may compare python-equal, but could have some str-unicode
+            # equalities, so we need to verify for ourselves):
+            if encoding is False or val1 != val2:
+                subDiffs = compareCascadingDicts(val1, val2, encoding=encoding)[-1]
+                if subDiffs:
+                    differences[key] = subDiffs
+        else:
+            # ok, we're not doing a recursive comparison...
+            isStrUnicode = (set([type(val1), type(val2)]) == strUnicode)
+            if isStrUnicode:
+                # we have a string and a unicode - decide what to do based on
+                # encoding setting
+                if encoding is False:
+                    equal = False
+                elif encoding is None:
+                    equal = (val1 == val2)
+                else:
+                    if type(val1) == unicode:
+                        strVal = val2
+                        unicodeVal = val1
+                    else:
+                        strVal = val1
+                        unicodeVal = val2
+                    try:
+                        encoded = unicodeVal.encode(encoding)
+                    except UnicodeEncodeError:
+                        # if there's an encoding error, consider them different
+                        equal = False
+                    else:
+                        equal = (encoded == strVal)
             else:
+                equal = (val1 == val2)
+
+            if not equal:
                 differences[key] = val2
 
     return both, only1, only2, differences
