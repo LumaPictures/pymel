@@ -369,13 +369,13 @@ class Enum(object):
             if key in self._values:
                 return key
             else:
-                raise ValueError, "invalid enumerator index: %r" % key
+                raise ValueError, "invalid enumerator index: %r" % (key,)
         else:
             # got a key: retrieving index
             try:
                 return self._keys[str(key)]
             except:
-                raise ValueError, "invalid enumerator key: %r" % key
+                raise ValueError, "invalid enumerator key: %r" % (key,)
 
     def getKey(self, index):
         """
