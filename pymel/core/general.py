@@ -1273,10 +1273,31 @@ Modifications:
     """
     addShape = kwargs.pop('addShape', False)
     kwargs.pop('rr', None)
-    kwargs['returnRootsOnly'] = bool(cmds.ls(dag=1,*args))
+
+    fakeReturnRoots = False
+    if cmds.ls(dag=1,*args):
+        # TODO: provide a real fix?
+        # in general, we want to turn on 'returnRootsOnly' with dag nodes -
+        # however, there is a bug with returnRootsOnly and underworld nodes...
+        # not sure what to do about this in general, but for now, adding a
+        # special case check to see if there's only one arg, and it's an
+        # underworld node, in which case we don't need returnRoots...
+
+        def inUnderWorld(arg):
+            if isinstance(arg, PyNode):
+                return arg.inUnderWorld()
+            else:
+                return '->' in arg
+        if len(args) == 1 and inUnderWorld(args[0]):
+            fakeReturnRoots = True
+        else:
+            kwargs['returnRootsOnly'] = True
 
     if not addShape:
-        return map(PyNode, cmds.duplicate( *args, **kwargs ) )
+        results = cmds.duplicate(*args, **kwargs)
+        if fakeReturnRoots:
+            del results[1:]
+        return map(PyNode, results)
     else:
         for invalidArg in ('renameChildren', 'rc', 'instanceLeaf', 'ilf',
                            'parentOnly', 'po', 'smartTransform', 'st'):
