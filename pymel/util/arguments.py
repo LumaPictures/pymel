@@ -407,10 +407,50 @@ class RemovedKey(object):
     def __ne__(self, other):
         return self.oldVal != other.oldVal
 
-def compareCascadingDicts(dict1, dict2, encoding=None):
+    def __repr__(self):
+        return '%s(%r)' % (type(self).__name__, self.oldVal)
+
+class AddedKey(object):
+    def __init__(self, newVal):
+        self.newVal = newVal
+
+    def __eq__(self, other):
+        return self.newVal == other.newVal
+
+    def __ne__(self, other):
+        return self.newVal != other.newVal
+
+    def __repr__(self):
+        return '%s(%r)' % (type(self).__name__, self.newVal)
+
+def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False):
     '''compares two cascading dicts
 
-    :rtype: `tuple` of (both, only1, only2, differences)
+    Parameters
+    ----------
+    dict1 : dict, list, or tuple
+        the first object to compare
+    dict2 : dict, list, or tuple
+        the second object to compare
+    encoding : `str` or None or False
+        controls how comparisons are made when one value is a str, and one is a
+        unicode; if None, then comparisons are simply made with == (so ascii
+        characters will compare equally); if the value False, then unicode and
+        str are ALWAYS considered different - ie, u'foo' and 'foo' would not be
+        considered equal; otherwise, it should be the name of a unicode
+        encoding, which will be applied to the unicode string before comparing
+    useAddedKeys : bool
+        if True, then similarly to how 'RemovedKey' objects are used in the
+        returned diferences object (see the Returns section), 'AddedKey' objects
+        are used for keys which exist in dict2 but not in dict1; this allows
+        a user to distinguish, purely by inspecting the differences dict, which
+        keys are brand new, versus merely changed; mergeCascadingDicts will
+        treat AddedKey objects exactly the same as though they were their
+        contents - ie, useAddedKeys should make no difference to the behavior
+        of mergeCascadingDicts
+
+    Returns
+    -------
     both : `set`
         keys that were present in both (non-recursively)
         (both, only1, and only2 should be discrete partitions of all the keys
@@ -428,13 +468,6 @@ def compareCascadingDicts(dict1, dict2, encoding=None):
         sparse entries, showing only what is different
         The return value should be such that if you do if you merge the
         differences with d1, you will get d2.
-    encoding : `str` or None or False
-        controls how comparisons are made when one value is a str, and one is a
-        unicode; if None, then comparisons are simply made with == (so ascii
-        characters will compare equally); if the value False, then unicode and
-        str are ALWAYS considered different - ie, u'foo' and 'foo' would not be
-        considered equal; otherwise, it should be the name of a unicode
-        encoding, which will be applied to the unicode string before comparing
     '''
     if isinstance(dict1, (list, tuple)):
         dict1 = dict(enumerate(dict1))
@@ -448,7 +481,10 @@ def compareCascadingDicts(dict1, dict2, encoding=None):
 
     recurseTypes = (dict, list, tuple)
     strUnicode = set([str, unicode])
-    differences = dict( (key, dict2[key]) for key in only2)
+    if useAddedKeys:
+        differences = dict( (key, AddedKey(dict2[key])) for key in only2)
+    else:
+        differences = dict( (key, dict2[key]) for key in only2)
     differences.update( (key, RemovedKey(dict1[key])) for key in only1 )
 
     for key in both:
@@ -462,7 +498,8 @@ def compareCascadingDicts(dict1, dict2, encoding=None):
             # may compare python-equal, but could have some str-unicode
             # equalities, so we need to verify for ourselves):
             if encoding is False or val1 != val2:
-                subDiffs = compareCascadingDicts(val1, val2, encoding=encoding)[-1]
+                subDiffs = compareCascadingDicts(val1, val2, encoding=encoding,
+                                                 useAddedKeys=useAddedKeys)[-1]
                 if subDiffs:
                     differences[key] = subDiffs
         else:
