@@ -1096,9 +1096,27 @@ class DagNode(Entity):
         if dag.length() <= 1:
             return None
         # Need a copy as we'll be modifying it...
-        dag = _api.MDagPath(dag)
-        dag.pop()
-        return dag
+        parentDag = _api.MDagPath(dag)
+        parentDag.pop()
+
+        # do a check for underworld paths - if we have a path:
+        # |rootTrans|rootShape -> |underwoldTrans|underworldShape
+        # then two parents up, we will get:
+        # |rootTrans|rootShape ->
+        # ...whose .node() will be unusable. check for this scenario, and if
+        # we get it, skip this dag path, so we go straight to:
+        # |rootTrans|rootShape
+
+        pathCount = parentDag.pathCount()
+        if pathCount > 1:
+            # get just the last "path piece" - if it is "empty", do an extra
+            # pop, to get out of the underworld
+            underworldPath = _api.MDagPath()
+            parentDag.getPath(underworldPath, pathCount - 1)
+            if underworldPath.length() == 0:
+                parentDag.pop()
+
+        return parentDag
 
     def getParent(self, generations=1):
         """
