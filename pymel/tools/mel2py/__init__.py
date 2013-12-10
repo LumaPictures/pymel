@@ -385,7 +385,7 @@ def melInfo( input ):
     res = resolvePath(input)
     if len(res) != 1:
         raise ValueError, "input must be a mel script or a known procedure from a sourced mel script."
-    f = res[0]
+    f = res[0][1]
 
     cbParser = melparse.MelScanner()
     cbParser.build()
