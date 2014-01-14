@@ -639,6 +639,9 @@ class Workspace(object):
         of this class to be called as if it were a function"""
         return cmds.workspace( *args, **kwargs )
 
+    def expandName(self, path):
+        return cmds.workspace(expandName=path)
+
 workspace = Workspace()
 
 #-----------------------------------------------
