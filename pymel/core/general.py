@@ -1259,6 +1259,130 @@ Modifications:
     result = cmds.parent(*args, **kwargs)
     return [PyNode(x) for x in result]
 
+# Because cmds.duplicate only ever returns node names (ie, NON-UNIQUE, and
+# therefore, nearly useless names - yes, the function that is MOST LIKELY to
+# create non-unique node names only ever returns node names - we need to use
+# a node-tracking approach to duplicate, so that we can propery cast to
+# PyNodes after... need to get autodesk to add a flag to duplicate, to return
+# shortest-unqiue names, or full path names!
+
+# Utility
+
+def _pathFromMObj(mObj, fullPath=False):
+    """
+    Return a unique path to an mObject
+    """
+    if mObj.hasFn(_api.MFn.kDagNode):
+        if fullPath:
+            result = _api.MFnDagNode(mObj).fullPathName()
+        else:
+            result = _api.MFnDagNode(mObj).partialPathName()
+    elif mObj.hasFn(_api.MFn.kDependencyNode):
+        result = _api.MFnDependencyNode(mObj).name()
+    else:
+        raise TypeError("mObj must be either DagNode or DependencyNode - got a %s" % mObj.apiTypeStr())
+    return result
+
+# Node Callbacks --
+
+def _nodeAddedCallback(list_):
+    def callback(mObj, clientData):
+#         luma.logger.debug("Checking node of type %s" % mObj.apiTypeStr())
+#         luma.logger.debug("seeing whether %s should be added" %
+#                           _pathFromMObj(mObj, fullPath=True))
+        handle = _api.MObjectHandle(mObj)
+        list_.append(handle)
+    return callback
+
+# from http://github.com/jspatrick/RigIt/blob/master/lib/NodeTracking.py
+
+
+class NodeTracker(object):
+    '''
+    A class for tracking Maya Objects as they are created and deleted.
+    Can (and probably should) be used as a context manager
+    '''
+    def __init__(self):
+        self._addedCallbackID = None
+        self._objects = []
+
+    def startTrack(self):
+        if not self._addedCallbackID:
+            # luma.logger.debug("%s: Beginning object tracking" % str(self))
+            self._addedCallbackID = _api.MDGMessage.addNodeAddedCallback(
+                _nodeAddedCallback(self._objects))
+#             luma.logger.debug("registered node added callback")
+
+    def endTrack(self):
+        """
+        Stop tracking and remove the callback
+        """
+        if self._addedCallbackID:
+#             luma.logger.debug("%s: Ending object tracking" % str(self))
+            _api.MMessage.removeCallback(self._addedCallbackID)
+            self._addedCallbackID = None
+#             luma.logger.debug("deregistered node added callback")
+
+    def getNodes(self, returnType='PyNode'):
+        """
+        Return a list of maya objects as strings.
+
+        Parameters
+        ----------
+        returnType : {'PyNode', 'str', 'MObject'}
+        """
+        returnTypes = ('PyNode', 'str', 'MObject')
+        if returnType not in returnTypes:
+            raise ValueError('returnType must be one of: %s'
+                             % ', '.join(repr(x) for x in returnTypes))
+
+        result = []
+
+        toRemove = []
+        for objHandle in self._objects:
+            # luma.logger.debug("Object valid status: %s" % str(objHandle.isValid()))
+            # luma.logger.debug("Object alive status: %s" %
+            # str(objHandle.isAlive()))
+            if not objHandle.isValid():
+                toRemove.append(objHandle)
+            else:
+                mobj = objHandle.object()
+                nodeName = _pathFromMObj(mobj)
+                # pymel's undo node should be ignored
+                if nodeName != '__pymelUndoNode':
+                    if returnType == 'MObject':
+                        result.append(mobj)
+                    else:
+                        result.append(nodeName)
+
+        for objHandle in toRemove:
+            self._objects.remove(objHandle)
+
+        if returnType == 'PyNode':
+            result = [PyNode(n) for n in result]
+
+        return result
+
+    def isTracking(self):
+        """
+        Return True/False
+        """
+        if self._addedCallbackID:
+            return True
+        return False
+
+    def reset(self):
+        self.endTrack()
+        self._objects = []
+
+    def __enter__(self):
+        self.startTrack()
+        return self
+
+    def __exit__(self, exctype, excval, exctb):
+        self.endTrack()
+
+
 def duplicate( *args, **kwargs ):
     """
 Modifications:
@@ -1294,10 +1418,69 @@ Modifications:
             kwargs['returnRootsOnly'] = True
 
     if not addShape:
-        results = cmds.duplicate(*args, **kwargs)
+        if args:
+            origArgs = args
+        else:
+            origArgs = ls(sl=1)
+        with NodeTracker() as tracker:
+            nodeNames = cmds.duplicate(*args, **kwargs)
+            newNodes = tracker.getNodes(returnType='MObject')
         if fakeReturnRoots:
-            del results[1:]
-        return map(PyNode, results)
+            del nodeNames[len(origArgs):]
+
+        # Ok, now we have a list of the string names, and a list of
+        # newly-created MObjects... we need to try to correlate them, since the
+        # nodeNames may not be unique
+        pyNodes = []
+        nameToNewNodes = None
+        for i, name in enumerate(nodeNames):
+            try:
+                node = PyNode(name)
+            except MayaObjectError:
+                # damn, it wasn't globally unique...
+
+                # first, see if it's name is unique, in the set of newNodes..
+
+                # ... to do this, we make a dict from node-name to PyNode...
+                if nameToNewNodes is None:
+                    mfnDep = _api.MFnDependencyNode()
+                    nameToNewNodes = {}
+                    for mobj in newNodes:
+                        mfnDep.setObject(mobj)
+                        mobjNodeName = mfnDep.name()
+                        newPyNode = PyNode(mobj)
+                        nameToNewNodes.setdefault(mobjNodeName, []).append(newPyNode)
+
+                sameNames = nameToNewNodes[name]
+                if len(sameNames) == 1:
+                    # yay, there was only one created node with this name!
+                    node = sameNames[0]
+                else:
+                    # darn, we have multiple options to choose from... find the
+                    # first one with the same parent as the corresponding
+                    # original node with the same index...
+                    if i >= len(origArgs):
+                        # uh oh, we have more results returned than we fed in..
+                        # panic, and just take the first one with same name...
+                        node = sameNames[0]
+                    else:
+                        origArg = origArgs[i]
+                        if isinstance(origArg, PyNode):
+                            origNode = origArg
+                        else:
+                            origNode = PyNode(origArg)
+                        origParent = origNode.getParent()
+                        for newNode in sameNames:
+                            if newNode.getParent() == origParent:
+                                node = newNode
+                                break
+                        else:
+                            # uh oh, we couldn't find a new node with the same
+                            # name and matching parent... panic, and just take
+                            # the first one with same name...
+                            node = sameNames[0]
+            pyNodes.append(node)
+        return pyNodes
     else:
         for invalidArg in ('renameChildren', 'rc', 'instanceLeaf', 'ilf',
                            'parentOnly', 'po', 'smartTransform', 'st'):

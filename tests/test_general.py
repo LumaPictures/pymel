@@ -804,6 +804,72 @@ class testCase_listHistory(unittest.TestCase):
 #        s.getTranslation('world')
 #        # Result: [10.0, 10.0, 20.0] #
 
+class testCase_duplicate(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def test_duplicate(self):
+        # make sure that we get proper dag nodes, even when the result will contain non-unique names
+        group = cmds.group('persp')
+        self.assert_( duplicate(group) )
+
+        # ensure it works with depend nodes too
+        dependNode = cmds.createNode('displayLayer')
+        self.assert_( duplicate(dependNode) )
+
+    def test_sameOrder(self):
+        # Test when we have two nodes with similar names under the same parent,
+        # that they're returned in the right order...
+
+        # we create children under the nodes we will duplicate, just so that
+        # we can identify which top-level-node is which...
+        catParent = pm.createNode('transform', name='parent1')
+        pm.createNode('transform', name='cat', parent=catParent)
+        dogParent = pm.createNode('transform', name='parent2')
+        pm.createNode('transform', name='dog', parent=dogParent)
+
+        dupes = pm.duplicate(dogParent, catParent)
+
+        parentRe = re.compile(r'^\|parent[0-9]$')
+        self.assertTrue(parentRe.match(dupes[0].longName()))
+        self.assertTrue(parentRe.match(dupes[1].longName()))
+        self.assertEqual(dupes[0].getChildren()[0].nodeName(), 'dog')
+        self.assertEqual(dupes[1].getChildren()[0].nodeName(), 'cat')
+
+    def test_dupeParentAndChild(self):
+        # Test that if one of the args to duplicate is a child of another arg,
+        # that pymel can deal
+        t1 = pm.nt.Transform(name='foobar')
+        t2 = pm.nt.Transform(name='stuff', parent='foobar')
+        dupes = pm.duplicate(t1, t2)
+        self.assertEqual(dupes[0].longName(), '|foobar1')
+        self.assertEqual(dupes[1].longName(), '|foobar1|stuff')
+        self.assertEqual(dupes[0], dupes[1].getParent())
+
+    def test_shapeSameName(self):
+        # Test that if we dupe a transform that has a shape with an identical
+        # name, that pymel can deal
+        trans = pm.polySphere(name='Alfred')[0]
+        shape = trans.getShape()
+        shape.rename(trans.nodeName())
+        dupes = pm.duplicate(trans)
+        self.assertEqual(dupes[0].longName(), '|Alfred1')
+        self.assertEqual(dupes[0].getShape().longName(), '|Alfred1|Alfred1')
+
+    def test_underworld(self):
+        camTrans, camShape = pm.camera()
+        camTrans.rename('CamNewton')
+        imageTrans, imageShape = pm.imagePlane(camera=camShape)
+        imageTrans.rename('zeImage')
+
+        self.assertEqual(imageShape.longName(),
+                         '|CamNewton|CamNewtonShape->|zeImage|zeImageShape')
+
+        dupes = pm.duplicate(imageTrans)
+        self.assertEqual(dupes[0].longName(),
+                         '|CamNewton|CamNewtonShape->|zeImage1')
+
+
 class testCase_duplicateShape(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -1023,18 +1089,6 @@ for cmdName in ('''aimConstraint geometryConstraint normalConstraint
     # try to run it as a test!
     del globals()['constraintTest']
 
-class test_commands(unittest.TestCase):
-    def setUp(self):
-        cmds.file(new=1, f=1)
-        self.dependNode = cmds.createNode('displayLayer')
-        self.group = cmds.group('persp')
-
-    def test_duplicate(self):
-        # make sure that we get proper dag nodes, even when the result will contain non-unique names
-        self.assert_( duplicate(self.group) )
-
-        # ensure it works with depend nodes too
-        self.assert_( duplicate(self.dependNode) )
 
 class test_plugins(unittest.TestCase):
     def setUp(self):
