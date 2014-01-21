@@ -184,25 +184,6 @@ class TestMMatrixSetAttr(unittest.TestCase):
         if self.origSetAttr:
             om.MMatrix.__setattr__ = self.fixedSetAttr
 
-class TestGroupUniqueness(unittest.TestCase):
-    '''Test to check whether cmds.group returns a unique name
-    '''
-    def setUp(self):
-        cmds.file(new=1, f=1)
-
-    def runTest(self):
-        cmds.select(cl=1)
-        cmds.group(n='foo', empty=1)
-        cmds.group(n='bar')
-        cmds.select(cl=1)
-        res = cmds.group(n='foo', empty=1)
-        sameNames = cmds.ls(res)
-        if len(sameNames) < 1:
-            self.fail('cmds.group did not return a valid name')
-        elif len(sameNames) > 1:
-            self.fail('cmds.group did not return a unique name')
-
-
 # Introduced in maya 2014
 class TestShapeParentInstance(unittest.TestCase):
     def setUp(self):
@@ -369,3 +350,25 @@ class TestMFnCompatibility(unittest.TestCase):
 #
 #    def test_transferAttributes_MFnGeometryFilter(self):
 #        self._assertInheritMFnConistency('transferAttributes', 'geometryFilter', oma.MFnGeometryFilter)
+
+
+# Fixed in 2014! yay!
+class TestGroupUniqueness(unittest.TestCase):
+    '''Test to check whether cmds.group returns a unique name
+    '''
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def runTest(self):
+        cmds.select(cl=1)
+        cmds.group(n='foo', empty=1)
+        cmds.group(n='bar')
+        cmds.select(cl=1)
+        res = cmds.group(n='foo', empty=1)
+        sameNames = cmds.ls(res)
+        if len(sameNames) < 1:
+            self.fail('cmds.group did not return a valid name')
+        elif len(sameNames) > 1:
+            self.fail('cmds.group did not return a unique name')
+
+
