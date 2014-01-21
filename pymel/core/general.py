@@ -1531,10 +1531,49 @@ Modifications:
 
             # 5) place an instance of the duplicated shape under the original
             #    transform (result: originalTransform|duplicatedShape)
-            newShape = PyNode(cmds.parent(dupeTransform2.getShape(),
-                                     origShape.getParent(),
-                                     shape=True, addObject=True,
-                                     relative=True)[0])
+            origParent = origShape.getParent()
+            dupeShape = dupeTransform2.getShape()
+            try:
+                newShape = PyNode(cmds.parent(dupeShape, origParent, shape=True,
+                                              addObject=True, relative=True)[0])
+            except RuntimeError, e:
+                # Maya 2014 introduced a bug with using parent to instance a
+                # shape, where it will error when trying to make some material
+                # connections...
+
+                # Ie, try to run this:
+
+                    # cmds.file(new=1, f=1)
+                    # shapeTransform = cmds.polyCube(name='singleShapePoly')[0]
+                    # origShape = getShape(shapeTransform)
+                    # dupeTransform1 = cmds.duplicate(origShape, parentOnly=1)[0]
+                    # cmds.parent(origShape, dupeTransform1, shape=True, addObject=True, relative=True)
+                    # dupeTransform2 = cmds.duplicate(dupeTransform1)[0]
+                    # cmds.delete(dupeTransform1)
+                    # dupeShape = getShape(dupeTransform2)
+                    # cmds.parent(dupeShape, shapeTransform, shape=True, addObject=True, relative=True)
+                # then maya gives this:
+                    # Error: Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Source is not connected.
+                    # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
+                    # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
+
+                if _versions.current() >= _versions.v2014:
+                    # this obviously isn't going to work internationally, but
+                    # I can't find a way to look up the correct locale-specfic
+                    # string, and it's better than nothing...
+                    if 'Connection not made' not in str(e):
+                        raise
+
+                    # we should still be able to figure out which the newShape
+                    # is, since there should only be two instances of it, and it
+                    # should be the one under the old parent...
+                    shapes = origParent.getShapes()
+                    for shape in shapes:
+                        if shape.isInstanceOf(dupeShape):
+                            newShape = shape
+                            break
+                    else:
+                        raise
 
             # 6) delete the extra transform (delete dupeTransform2)
             delete(dupeTransform2)

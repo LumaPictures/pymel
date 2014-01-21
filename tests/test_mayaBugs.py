@@ -202,6 +202,41 @@ class TestGroupUniqueness(unittest.TestCase):
         elif len(sameNames) > 1:
             self.fail('cmds.group did not return a unique name')
 
+
+# Introduced in maya 2014
+class TestShapeParentInstance(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def runTest(self):
+        import maya.cmds as cmds
+
+        def getShape(trans):
+            return cmds.listRelatives(trans, children=True, shapes=True)[0]
+
+        cmds.file(new=1, f=1)
+        shapeTransform = cmds.polyCube(name='singleShapePoly')[0]
+        origShape = getShape(shapeTransform)
+        dupeTransform1 = cmds.duplicate(origShape, parentOnly=1)[0]
+        cmds.parent(origShape, dupeTransform1, shape=True, addObject=True, relative=True)
+        dupeTransform2 = cmds.duplicate(dupeTransform1)[0]
+        cmds.delete(dupeTransform1)
+        dupeShape = getShape(dupeTransform2)
+
+        # In maya 2014, this raises:
+        # Error: Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Source is not connected.
+        # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
+        # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
+        # Traceback (most recent call last):
+        # File "<maya console>", line 13, in <module>
+        # RuntimeError: Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Source is not connected.
+        # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
+        # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable. #
+
+        cmds.parent(dupeShape, shapeTransform, shape=True, addObject=True, relative=True)
+
+
+
 #===============================================================================
 # Current bugs that will cause Maya to CRASH (and so are commented out!)
 #===============================================================================
