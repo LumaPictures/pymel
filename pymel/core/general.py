@@ -1202,12 +1202,17 @@ Maya Bug Fix:
     if not args and not cmds.ls(sl=1):
         kwargs['empty'] = True
 
-    # found an interesting bug. group does not return a unique path, so the following line
-    # will error if the passed name is in another group somewhere:
-    # Transform( cmds.group( name='foo') )
-    # luckily the group command always selects the last created node, so we can just use selected()[0]
-    cmds.group( *args, **kwargs)
-    return selected()[0]
+    newGroup = cmds.group(*args, **kwargs)
+
+    if cmds.versions.current() >= cmds.versions.v2014:
+        # bug was fixed in 2014, so we can just cast to a PyNode and return...
+        return PyNode(newGroup)
+    else:
+        # found an interesting bug. group does not return a unique path, so the following line
+        # will error if the passed name is in another group somewhere:
+        # Transform( cmds.group( name='foo') )
+        # luckily the group command always selects the last created node, so we can just use selected()[0]
+        return selected()[0]
 
     #except RuntimeError, msg:
     #    print msg
