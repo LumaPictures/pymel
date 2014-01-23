@@ -694,8 +694,8 @@ class path(unicode):
 
            :example:
 
-               >>> for chunk in path("file.txt").chunk(8192):
-               ...    print(chunk)
+               >> for chunk in path("file.txt").chunks(8192):
+               ..    print(chunk)
 
             This will read the file by chunks of 8192 bytes.
         """
@@ -1391,11 +1391,11 @@ def _permission_mask(mode):
     suitable for applying to a mask to affect that change.
 
     >>> mask = _permission_mask('ugo+rwx')
-    >>> oct(mask(o554))
-    'o777'
+    >>> oct(mask(0554))
+    '0777'
 
-    >>> oct(_permission_mask('gw-x')(o777))
-    'o766'
+    >>> oct(_permission_mask('go-x')(0777))
+    '0766'
     """
     parsed = re.match('(?P<who>[ugo]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
     if not parsed:

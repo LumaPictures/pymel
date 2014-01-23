@@ -31,6 +31,7 @@ the results::
     >>> expFile.exists()
     True
     >>> expFile.remove()  # cleanup
+    Path('/Volumes/newhome/paulm/maya_pymel_test/projects/default/test.ma')
 
 """
 
