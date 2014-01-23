@@ -226,6 +226,7 @@ class TestMMatrixSetAttr(unittest.TestCase):
             om.MMatrix.__setattr__ = self.fixedSetAttr
 
 # Introduced in maya 2014
+# Change request #: BSPR-12597
 if pymel.versions.current() >= pymel.versions.v2014:
     class TestShapeParentInstance(unittest.TestCase):
         def setUp(self):

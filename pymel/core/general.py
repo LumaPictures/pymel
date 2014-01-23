@@ -1542,12 +1542,16 @@ Modifications:
                 newShape = PyNode(cmds.parent(dupeShape, origParent, shape=True,
                                               addObject=True, relative=True)[0])
             except RuntimeError, e:
-                # Maya 2014 introduced a bug with using parent to instance a
-                # shape, where it will error when trying to make some material
-                # connections...
+                # Maya 2014 introduced a bug (Change request #: BSPR-12597) with
+                # using parent to instance a shape, where it will error when
+                # trying to make some material connections...
 
                 # Ie, try to run this:
 
+                    # import maya.cmds as cmds
+                    # def getShape(trans):
+                    #     return cmds.listRelatives(trans, children=True, shapes=True)[0]
+                    #
                     # cmds.file(new=1, f=1)
                     # shapeTransform = cmds.polyCube(name='singleShapePoly')[0]
                     # origShape = getShape(shapeTransform)
@@ -1563,11 +1567,15 @@ Modifications:
                     # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
 
                 if _versions.current() >= _versions.v2014:
-                    # this obviously isn't going to work internationally, but
-                    # I can't find a way to look up the correct locale-specfic
-                    # string, and it's better than nothing...
-                    if 'Connection not made' not in str(e):
-                        raise
+                    # Would like to check that the dupe is due to the above bug,
+                    # but sometimes the error string is the one above, about
+                    # connections, and sometimes it's the more generic "Maya
+                    # command error"... and this isn't very safe for
+                    # international translations anyway...
+                    # ...so, we just ASSUME that the runtime error was due to
+                    # the above bug... if there was an error that caused it to
+                    # not duplicate, we will fail to find the new shape, and
+                    # we will re-raise the error...
 
                     # we should still be able to figure out which the newShape
                     # is, since there should only be two instances of it, and it
