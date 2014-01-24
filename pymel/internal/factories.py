@@ -2783,7 +2783,22 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
-        nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
+        nodeType = classdict.get('__melnode__')
+
+        if nodeType is None:
+            # check for a virtual class...
+            if '_isVirtual' in classdict or any(hasattr(b, '_isVirtual')
+                                                for b in bases):
+                for b in bases:
+                    if hasattr(b, '__melnode__'):
+                        nodeType = b.__melnode__
+                        break
+                else:
+                    raise RuntimeError("Could not determine mel node type for virtual class %r" % classname)
+            else:
+                # not a virtual class, just use the classname
+                nodeType = util.uncapitalize(classname)
+            classdict['__melnode__'] = nodeType
 
         addMayaType( nodeType )
         apicls = toApiFunctionSet( nodeType )
@@ -3099,6 +3114,12 @@ class VirtualClassManager(object):
         registered callbacks from piling up if, for instance, a module is
         reloaded.)
 
+        Overriding methods of PyMEL base classes should be performed with care,
+        because certain methods are used internally and altering their results
+        may cause PyMEL to error or behave unpredictably.  This is particularly
+        true for special methods like __str__, __setattr__, __getattr__,
+        __setstate__, __getstate__, etc.
+
         For a usage example, see examples/customClasses.py
 
         :parameters:
@@ -3118,7 +3139,10 @@ class VirtualClassManager(object):
         postCreate: `str` or callable
             the function used to modify the PyNode after it is created.
         """
-        validSpecialAttrs = set(['__module__','__readonly__','__slots__','__melnode__','__doc__'])
+
+        # these methods are particularly dangerous to override, so we prohibit
+        # it...
+        invalidAttrs = set(['__init__', '__new__'])
 
         if isinstance(isVirtual, basestring):
             isVirtual = getattr(vclass, isVirtual, None)
@@ -3138,10 +3162,9 @@ class VirtualClassManager(object):
                 break
             else:
                 # it's a custom class: test for disallowed attributes
-                specialAttrs = [ x for x in each_cls.__dict__.keys() if x.startswith('__') and x.endswith('__') ]
-                badAttrs = set(specialAttrs).difference(validSpecialAttrs)
+                badAttrs = invalidAttrs.intersection(each_cls.__dict__)
                 if badAttrs:
-                    raise ValueError, 'invalid attribute name(s) %s: special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
+                    raise ValueError, 'invalid attribute name(s) %s: these special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
 
         assert parentCls, "passed class must be a subclass of a PyNode type"
         #assert issubclass( vclass, parentCls ), "%s must be a subclass of %s" % ( vclass, parentCls )

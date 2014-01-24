@@ -78,6 +78,12 @@ decorators you should read up on them before using this feature.
         registered callbacks from piling up if, for instance, a module is
         reloaded.)
 
+        Overriding methods of PyMEL base classes should be performed with care,
+        because certain methods are used internally and altering their results
+        may cause PyMEL to error or behave unpredictably.  This is particularly
+        true for special methods like __str__, __setattr__, __getattr__,
+        __setstate__, __getstate__, etc.
+
 """
 # Note - all of this, below the 'warning', is copied from the docstring for
 # VirtualClassManger.register - keep it in sync!
