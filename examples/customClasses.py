@@ -81,9 +81,10 @@ decorators you should read up on them before using this feature.
         Overriding methods of PyMEL base classes should be performed with care,
         because certain methods are used internally and altering their results
         may cause PyMEL to error or behave unpredictably.  This is particularly
-        true for special methods like __str__, __setattr__, __getattr__,
-        __setstate__, __getstate__, etc.
-
+        true for special methods like __setattr__, __getattr__, __setstate__,
+        __getstate__, etc.  Some methods are considered too dangerous to modify,
+        and registration will fail if the user defines an override for them;
+        this set includes __init__, __new__, and __str__.
 """
 # Note - all of this, below the 'warning', is copied from the docstring for
 # VirtualClassManger.register - keep it in sync!
@@ -158,12 +159,14 @@ class LegJoint(CustomJointBase):
     _jointClassID = 'joint_leg'
     def kick(self):
         print "%s is kicking" % self.name()
+        return "kiyaah!"
 
 
 class JawJoint(CustomJointBase):
     _jointClassID = 'joint_jaw'
     def munch(self):
         print "%s is munching" % self.name()
+        return "nom nom nom..."
 
 # we don't need to register CustomJointBase because it's just an abstract class to help us easily make our other virtual nodes
 virtualClasses.register( LegJoint, nameRequired=False )
@@ -190,7 +193,7 @@ def testJoint():
 
 # make sure Mayatomr plugin is loaded or the Mib_amb_occlusion node type might not exist
 pm.loadPlugin('Mayatomr')
-class Mib_amb_occlusion(Mib_amb_occlusion):
+class Mib_amb_occlusion(pm.nt.Mib_amb_occlusion):
     """This is an example of how to replace a node.  Use this technique with care"""
     def occlude(self):
         print "occluding!"

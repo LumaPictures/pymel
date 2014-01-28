@@ -3030,6 +3030,20 @@ VirtualClassInfo = util.namedtuple('VirtualClassInfo',
 class VirtualClassError(Exception): pass
 
 class VirtualClassManager(object):
+    # these methods are particularly dangerous to override, so we prohibit it...
+
+    # ...note that I don't know of any SPECIFIC problems with __init__ and
+    # __new__... but we formerly disabled (nearly) all double-underscore
+    # methods, and I THINK one of the main culprits was __init__ and __new__.
+    # (At the very least, if they wanted to allow new args, the user would have
+    # to modify both, because of the limitation in python that __new__ cannot
+    # modify the args passed to __init__.)  If there is a great demand for
+    # allowing __init__/__new__, we may remove these from the list...
+
+    # __str__ is obviously dangerous, since in places the assumption is
+    # essentially made that str(node) == node.name()...
+    INVALID_ATTRS = set(['__init__', '__new__', '__str__'])
+
     def __init__(self):
         self._byVirtualClass = {}
         self._byParentClass = util.defaultdict(list)
@@ -3117,8 +3131,10 @@ class VirtualClassManager(object):
         Overriding methods of PyMEL base classes should be performed with care,
         because certain methods are used internally and altering their results
         may cause PyMEL to error or behave unpredictably.  This is particularly
-        true for special methods like __str__, __setattr__, __getattr__,
-        __setstate__, __getstate__, etc.
+        true for special methods like __setattr__, __getattr__, __setstate__,
+        __getstate__, etc.  Some methods are considered too dangerous to modify,
+        and registration will fail if the user defines an override for them;
+        this set includes __init__, __new__, and __str__.
 
         For a usage example, see examples/customClasses.py
 
@@ -3139,11 +3155,6 @@ class VirtualClassManager(object):
         postCreate: `str` or callable
             the function used to modify the PyNode after it is created.
         """
-
-        # these methods are particularly dangerous to override, so we prohibit
-        # it...
-        invalidAttrs = set(['__init__', '__new__'])
-
         if isinstance(isVirtual, basestring):
             isVirtual = getattr(vclass, isVirtual, None)
         if isinstance(preCreate, basestring):
@@ -3162,7 +3173,7 @@ class VirtualClassManager(object):
                 break
             else:
                 # it's a custom class: test for disallowed attributes
-                badAttrs = invalidAttrs.intersection(each_cls.__dict__)
+                badAttrs = self.INVALID_ATTRS.intersection(each_cls.__dict__)
                 if badAttrs:
                     raise ValueError, 'invalid attribute name(s) %s: these special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
 
