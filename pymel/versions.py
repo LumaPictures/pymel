@@ -30,7 +30,7 @@ def parseVersionStr(versionStr, extension=False):
     '2008'
 
     """
-    if versionStr.find('Preview') != -1:
+    if 'Preview' in versionStr:
         # Beta versions of Maya may use the format 'Preview Release nn x64', which
         # doesn't contain the actual Maya version. If we have one of those, we'll
         # make up the version from the API version. Not foolproof, but should work
