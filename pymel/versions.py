@@ -30,18 +30,27 @@ def parseVersionStr(versionStr, extension=False):
     '2008'
 
     """
-    # problem with service packs addition, must be able to match things such as :
-    # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
+    if versionStr.find('Preview') != -1:
+        # Beta versions of Maya may use the format 'Preview Release nn x64', which
+        # doesn't contain the actual Maya version. If we have one of those, we'll
+        # make up the version from the API version. Not foolproof, but should work
+        # in most cases.
+        version = str(_MGlobal.apiVersion())[0:4]
+        if extension and bitness() == 64:
+            version += '-x64'
+    else:
+        # problem with service packs addition, must be able to match things such as :
+        # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
 
-    # NOTE: we're using the same regular expression (parseVersionStr) to parse both the crazy human readable
-    # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid
-    # the regular expression might be getting unwieldy
+        # NOTE: we're using the same regular expression (parseVersionStr) to parse both the crazy human readable
+        # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid
+        # the regular expression might be getting unwieldy
 
-    ma = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
-    version = ma.group('base')
+        ma = re.search("((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
+        version = ma.group('base')
 
-    if extension and (ma.group('ext') is not None) :
-        version += "-"+ma.group('ext')
+        if extension and (ma.group('ext') is not None) :
+            version += "-" + ma.group('ext')
     return version
 
 def bitness():
