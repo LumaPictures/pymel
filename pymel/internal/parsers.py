@@ -762,7 +762,19 @@ class ApiDocParser(object):
     def parseEnums(self, proto):
         enumValues={}
         enumDocs={}
-        for em in proto.findNextSiblings( 'div', limit=1)[0].findAll( 'em'):
+
+        # get the doc portion...
+        memdoc = proto.findNextSibling('div', 'memdoc')
+        # ...then search through it's dl items, looking for one with text that
+        # says "Enumerator"...
+        enumRe = re.compile('Enumerator')
+        for dl in memdoc.findAll('dl'):
+            if dl.find(text=enumRe):
+                break
+        else:
+            raise RuntimeError("couldn't find list of Enumerator items in enum %s" % self.currentMethod)
+        # ...and each "em" in that should be the enumerator values...
+        for em in dl.findAll('em'):
             enumKey = str(em.contents[-1])
             try:
                 enumVal = getattr(self.apiClass, enumKey)
