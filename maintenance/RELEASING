@@ -5,12 +5,13 @@ Building an Official PyMEL Release
 Before proceeding, install the necessary third party dependencies.  You will need access to the internets
 for this.
 
-  - nose (for tests) and sphinx (for docs) via distribute (aka setuptools).
+  - nose (for tests) and sphinx+numpydoc (for docs) via distribute (aka setuptools).
     from the base pymel directory:
 
 ./maintenance/install_dependencies.sh $MAYA_LOCATION
 
   - graphviz, for building the docs: http://www.graphviz.org/Download..php
+    (and make sure it's bin dir is on the PATH)
 
 1) Build cache(s)
 -----------------
@@ -83,7 +84,7 @@ python -c "import maintenance.stubs; maintenance.stubs.stubstest('./extras/compl
 
         ./maintenance/changelog 1.0.4 HEAD
 
-  - copy results from resulting maintenance/CHANGELOG file to CHANGELOG.rst
+  - copy results from resulting maintenance/CHANGELOG.temp file to CHANGELOG.rst
     edit as necessary
 
 

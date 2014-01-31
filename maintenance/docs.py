@@ -60,13 +60,15 @@ def clean_generated():
 
 def find_dot():
     if os.name == 'posix':
-        dots = ['/usr/local/bin/dot', '/usr/bin/dot']
+        dot_bin = 'dot'
     else:
-        dots = ['C:\\graphviz\\bin\\dot.exe']
-    for d in dots:
+        dot_bin = 'dot.exe'
+
+    for p in os.environ['PATH'].split(os.pathsep):
+        d = os.path.join(p, dot_bin)
         if os.path.exists(d):
             return d
-    raise TypeError( 'cannot find graphiz dot executable in the following locations: %s' % ', '.join(dots) )
+    raise TypeError('cannot find graphiz dot executable in the path')
 
 def build(clean=True, **kwargs):
     os.chdir( docsdir )

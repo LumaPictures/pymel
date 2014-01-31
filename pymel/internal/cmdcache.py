@@ -375,7 +375,8 @@ def fixCodeExamples(style='maya', force=False):
     TODO: auto backup and restore of maya prefs
     """
 
-    manipOptions = cmds.manipOptions( q=1, handleSize=1, scale=1 )
+    manipSize = cmds.manipOptions( q=1, handleSize=1 )[0]
+    manipScale = cmds.manipOptions( q=1, scale=1 )[0]
     animOptions = []
     animOptions.append( cmds.animDisplay( q=1, timeCode=True ) )
     animOptions.append( cmds.animDisplay( q=1, timeCodeOffset=True )  )
@@ -514,8 +515,8 @@ def fixCodeExamples(style='maya', force=False):
     _logger.info("Done Fixing Examples")
 
     # restore manipulators and anim options
-    print manipOptions
-    cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
+    print [manipSize, manipScale]
+    cmds.manipOptions( handleSize=manipSize, scale=manipScale )
     print animOptions
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
 
