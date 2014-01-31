@@ -165,6 +165,19 @@ class NoUnicodeTextRepr(TextRepr):
     '''PyDev barfs when a unicode literal (ie, u'something') is in a pypredef
     file; use this repr to make sure they don't show up.
     '''
+    def __init__(self):
+        self.maxlevel = 6
+        self.maxtuple = 100000
+        self.maxlist = 100000
+        self.maxarray = 100000
+        self.maxdict = 100000
+        self.maxset = 100000
+        self.maxfrozenset = 100000
+        self.maxdeque = 100000
+        self.maxstring = 100000
+        self.maxlong = 100000
+        self.maxother = 100000
+
     def repr_unicode(self, uStr, level):
         return self.repr_string(str(uStr), level)
 
@@ -174,8 +187,6 @@ class StubDoc(Doc):
     # ------------------------------------------- text formatting utilities
     _repr_instance = NoUnicodeTextRepr()
     # We don't care if it's compact, we just want it to parse right...
-    _repr_instance.maxlist = _repr_instance.maxtuple = _repr_instance.maxdict\
-        = _repr_instance.maxstring = _repr_instance.maxother = 100000
     repr = _repr_instance.repr
 
 
@@ -1127,7 +1138,10 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
 
     for modname, mod, ispkg in util.subpackages(packagemod):
         print modname, ":"
-        contents = stubs.docmodule(mod)
+        if not exclude or not re.match( exclude, modname ):
+            contents = stubs.docmodule(mod)
+        else:
+            contents = ''
         for extension in extensions:
             basedir = os.path.join(outputdir, extension)
             if extension == 'pypredef':
@@ -1143,10 +1157,8 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             if not os.path.isdir(curdir):
                 os.makedirs(curdir)
             print "\t ...writing %s" % curfile
-            f = open( curfile, 'w' )
-            if not exclude or not re.match( exclude, modname ):
+            with open( curfile, 'w' ) as f:
                 f.write( contents )
-            f.close()
 
 
 def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
@@ -1163,7 +1175,11 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
 
     for modulename in modules:
         print "making stubs for: %s" % modulename
-        packagestubs(modulename, outputdir=outputdir, extensions=extensions)
+        packagestubs(modulename, outputdir=outputdir, extensions=extensions,
+                     # these two modules import PySide, and I don't want to
+                     # bother with dealing with PySide + stubs right now...
+                     # so we're just ignoring them...
+                     exclude=re.compile(r'maya.app.general.(creaseSetEditor|mayaMixin)'))
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
         # useful to put on the path of non-maya python interpreters, in
