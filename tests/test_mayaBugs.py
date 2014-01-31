@@ -360,6 +360,8 @@ class TestFluidMFnCreation(unittest.TestCase):
         selList.getDagPath(0, dag)
         omfx.MFnFluid(dag)
 
+# nucleus node fixed in 2014
+# symmetryConstraint fixed in 2015
 class TestMFnCompatibility(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -383,6 +385,13 @@ class TestMFnCompatibility(unittest.TestCase):
 
     def test_nucleus_MFnTransform(self):
         self._assertInheritMFnConistency('nucleus', 'transform', om.MFnTransform)
+
+    def test_symmetryConstraint_test_nucleus_MFnDagNode(self):
+        self._assertInheritMFnConistency('symmetryConstraint', 'dagNode', om.MFnDagNode)
+
+    def test_symmetryConstraint_MFnTransform(self):
+        self._assertInheritMFnConistency('symmetryConstraint', 'transform',
+                                         om.MFnTransform)
 
     # These probably aren't strictly considered "bugs" by autodesk, though I
     # think they should be...

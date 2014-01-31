@@ -17,10 +17,12 @@ _logger = _plogging.getLogger(__name__)
 if versions.current() < versions.v2014:
     NUCLEUS_MFNDAG_BUG = True
     SYMMETRY_CONSTRAINT_MFNDAG_BUG = False
-else:
+elif versions.current() == versions.v2014:
     NUCLEUS_MFNDAG_BUG = False
     SYMMETRY_CONSTRAINT_MFNDAG_BUG = True
-
+else:
+    NUCLEUS_MFNDAG_BUG = False
+    SYMMETRY_CONSTRAINT_MFNDAG_BUG = False
 
 #===============================================================================
 # Utility classes
