@@ -4,63 +4,70 @@
 
 fullVer=$1
 if [ -z "$fullVer" ]; then
-	echo "ERROR: you must provide a pymel release version"
-	exit 1
+    echo "ERROR: you must provide a pymel release version"
+    exit 1
 fi
 
-baseVer=$(python -c "import pymel;import re; print re.split('[a-z]','$1')[0]")
-echo "Release version is $fullVer"
-echo "Release base version is $baseVer"
+# use sys.stdout.write, instead of print, to avoid any trailing newline
+# (or newline-carriage return, which causes issues in cygwin/windows)
+baseVer=$(python -c "import pymel;import re; import sys; sys.stdout.write(re.split('[a-z]','$1')[0])")
+echo "Release version is --$fullVer--"
+echo "Release base version is --$baseVer--"
 
-cd `dirname $0` 
-mtnc=`pwd` 
+cd `dirname $0`
+mtnc=`pwd`
 # pwd is now maintenance
 if [ -d release ];
 then
-	echo ""
+    echo ""
 else
-	mkdir release
+    mkdir release
 fi
 
 echo "looking for mayapy..."
 pybin=`which mayapy 2> /dev/null`
 if [ -z "$pybin" ]; then
-	echo "couldn't find mayapy."
-	echo "looking for python..."
-	pybin=`which python 2> /dev/null`
-	if [ -z "$pybin" ]; then
-		echo "ERROR: couldn't find a python executable!"
-		exit 1
-	else
-		echo "found $pybin"
-	fi
+    echo "couldn't find mayapy."
+    echo "looking for python..."
+    pybin="$(which python 2> /dev/null)"
+    if [ -z "$pybin" ]; then
+        echo "ERROR: couldn't find a python executable!"
+        exit 1
+    else
+        echo "found $pybin"
+    fi
 else
-	echo "found $pybin"
+    echo "found $pybin"
 fi
 
 
 # run in root of pymel dev
-cd ../ && $pybin -c 'import pymel
+cd ../ && "$pybin" -c 'import pymel
 import re
-print "current pymel version is", pymel.__version__
-assert pymel.__version__ == "'"$baseVer"'"'
+import sys
+baseVer = sys.argv[1]
+print "baseVer is: %r" % baseVer
+print "current pymel version is: %r" % pymel.__version__
+assert pymel.__version__ == baseVer' "$baseVer"
 
 if [ $? -gt 0 ]; then
-	echo "ERROR: current pymel version is not $baseVer"
-	exit 1
+    echo "ERROR: current pymel version is not $baseVer"
+    exit 1
 fi
 
-cd $mtnc
+cd "$mtnc"
 
 echo "checking completion stubs"
-cd $mtnc/../extras/completion/py && python -c 'import re
+cd "$mtnc/../extras/completion/py" && python -c 'import re
 import pymel
-print "current stub version is", pymel.__version__
-assert pymel.__version__ == "'"$baseVer"'"'
+import sys
+baseVer = sys.argv[1]
+print "current stub version is: %r" % pymel.__version__
+assert pymel.__version__ == baseVer' "$baseVer"
 
 if [ $? -gt 0 ]; then
-	echo "ERROR: python completion stubs are not working"
-	exit 1
+    echo "ERROR: python completion stubs are not working"
+    exit 1
 fi
 
 # clean out git stuff
@@ -80,31 +87,31 @@ else
     echo "using Linux rm"
 fi
 
-find $mtnc/../extras/ -type f -name '*.pyc' -exec rm {} \;
+find "$mtnc/../extras/" -type f -name '*.pyc' -exec rm {} \;
 
 #if [ ! -d ../extras/completion/pi ]; then
 #	echo "ERROR: wing completion stubs do not exist"
 #fi
 
-cd $mtnc/release
+cd "$mtnc/release"
 
 RELEASE=pymel-$1
 echo $RELEASE
 SOURCE=../..
 
-if [ -d $RELEASE ];
+if [ -d "$RELEASE" ];
 then
 echo "removing existing folder"
-myrm $RELEASE
+myrm "$RELEASE"
 fi
 
-if [ -f $RELEASE.zip ];
+if [ -f "$RELEASE.zip" ];
 then
 echo "removing existing zip"
-rm -f $RELEASE.zip
+rm -f "$RELEASE.zip"
 fi
 
-git clone --shared $SOURCE $RELEASE
+git clone --shared "$SOURCE" "$RELEASE"
 
 #svn export https://pymel.googlecode.com/svn/trunk pymel
 #svn export https://pymel.googlecode.com/svn/docs pymel/docs
@@ -112,24 +119,24 @@ git clone --shared $SOURCE $RELEASE
 # clean out 2011 stuff til it's released
 #rm $RELEASE/pymel/cache/*2011.*
 
-myrm $RELEASE/.git*
-myrm $RELEASE/.hg*
-myrm $RELEASE/maintenance
+myrm "$RELEASE/.git*"
+myrm "$RELEASE/.hg*"
+myrm "$RELEASE/maintenance"
 
 echo "copying docs"
-myrm $RELEASE/docs
-cp -r $SOURCE/docs/build/1.0 $RELEASE/docs
+myrm "$RELEASE/docs"
+cp -r "$SOURCE/docs/build/1.0" "$RELEASE/docs"
 
 echo "copying stubs"
-cp -r $SOURCE/extras/completion $RELEASE/extras/completion
+cp -r "$SOURCE/extras/completion" "$RELEASE/extras/completion"
 
 echo "adding version info"
-echo "" >> $RELEASE/README
-echo "Release ver: $fullVer" >> $RELEASE/README
-echo "Pymel ver: $baseVer" >> $RELEASE/README
-echo "Git commit: $(git rev-parse HEAD)" >> $RELEASE/README
+echo "" >> "$RELEASE/README"
+echo "Release ver: $fullVer" >> "$RELEASE/README"
+echo "Pymel ver: $baseVer" >> "$RELEASE/README"
+echo "Git commit: $(git rev-parse HEAD)" >> "$RELEASE/README"
 
 echo "zipping"
-zip -rq $RELEASE.zip $RELEASE
+zip -rq "$RELEASE.zip" "$RELEASE"
 #rm -rfd pymel
 
