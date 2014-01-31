@@ -189,6 +189,8 @@ class StubDoc(Doc):
     # We don't care if it's compact, we just want it to parse right...
     repr = _repr_instance.repr
 
+    ALLOWABLE_DOUBLE_UNDER_ATTRS = ('__version__', '__author__', '__date__',
+                                    '__credits__')
 
     # Mapping of (module, dontImportThese)
     MODULE_EXCLUDES = {
@@ -379,7 +381,8 @@ class StubDoc(Doc):
         # add all the objects that we have names for / should be in this
         # module
         for name, obj in inspect.getmembers(this_module):
-            if name.startswith('__') and name.endswith('__'):
+            if (name.startswith('__') and name.endswith('__')
+                    and name not in self.ALLOWABLE_DOUBLE_UNDER_ATTRS):
                 continue
             add_obj(obj, name)
 
