@@ -1,5 +1,5 @@
 ==================================
-Version ?.?.?
+Version 1.0.6
 ==================================
 
 ----------------------------------
@@ -10,6 +10,26 @@ Non-Backward Compatible Changes
 - joint.radius: now returns the float radius, instead of [radius]
 
 ----------------------------------
+Changes
+----------------------------------
+
+- general: addAttr/setEnums now accept strings, lists, or dicts for setting enums
+- other: cast NameParser arguments to unicode
+- factories: issue deprecation warning for deprecated functions only when they're actually used
+
+----------------------------------
+Additions
+----------------------------------
+
+- add (functional) namespace method to Attribute, Component
+- general: add mute accessors to Attributes
+- system: provide ReferenceEdit.rawEditData property for getting faster unparsed access to reference edits
+- nodetypes: add stripUnderworld flag to DependNode.nodeName(), and default it to true.  This removes the underworld prefix (the node prior to ->) from nodeName().
+- ipymel: update for ipython 0.11
+- util.arguments: compareCascadingDicts can show which keys have been added (as opposed to just changed)
+- system: add workspace.expandName
+
+----------------------------------
 Bugfixes
 ----------------------------------
 
@@ -18,6 +38,19 @@ Bugfixes
 - animation: Joint.angleX/Y/Z and Joint.stiffnessX/Y/Z now work
 - nodetypes: Container.getParentContainer, Container.getRootTransform, and Character.getClipScheduler now all return None instead of raising a runtime error if no object was found
 - system: FileReference.fullNamespace and iterReferences/listReferences with namespaces=1 now handle situations where reference node itself is in a non-root namespace correctly
+- general: when instantiating PyNode from an MPlug, to get the PyNode for the node, create from the underlying mobject, not the name (which may not be unique)
+- animation: fix for Joint.getAngleX/Y/Z, .getStiffnessX/Y/Z; joint.radius no longer returns list
+- mel2py: numerous fixes / tweaks
+- system: handle situations where reference node itself is in a non-root namespace
+- system: FileReference.nodes fix when reference contains no nodes
+- general: duplicate - special-case workaround for duplicating a single underworld node with no children
+- general: fix for duplicate + non-unique names
+- general: duplicate - workaround for bug introduced in 2014
+- nodetypes: fix for getAllParents with underworld nodes
+- Upgrade path.py to version 5.0 from github (https://github.com/jaraco/path.py).  This fixes an issue with Maya2014, python 2.7.3, and Windows where path().isdir() raised an error.
+- general: cmds.group returns unique name in maya > 2014
+- fix for virtual classes
+- versions: parsing for 'Preview Release' format - from Dean Edmonds
 
 ==================================
 Version 1.0.5
