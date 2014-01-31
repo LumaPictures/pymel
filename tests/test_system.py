@@ -72,6 +72,10 @@ class testCase_references(unittest.TestCase):
         self.coneRef1 = pm.createReference( self.coneFile, namespace='cone1' )
         self.masterFile = pm.saveAs(os.path.join(self.temp, 'master.ma'), f=1)
 
+    def tearDown(self):
+        pm.newFile(f=1)
+        shutil.rmtree(self.temp, ignore_errors=True)
+
     def createFailedEdits(self):
         # Animate the zombieAttrs
         for transform in [x.getParent() for x in pm.ls(type='mesh')]:
@@ -294,11 +298,6 @@ class testCase_references(unittest.TestCase):
                          pm.FileReference(namespace='cone1'))
         self.assertEqual(pm.FileReference(namespace='cone1:cubeInCone:sphere').parent(),
                          pm.FileReference(namespace='cone1:cubeInCone'))
-
-    def tearDown(self):
-        pm.newFile(f=1)
-        shutil.rmtree(self.temp, ignore_errors=True)
-
 
     def test_listReferences(self):
         self.assertEqual(set(pm.listReferences()),
