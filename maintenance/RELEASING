@@ -25,18 +25,20 @@ for this.
   - make sure environment is clean (default user prefs, etc) except
     possibly for adding custom pymel into path...
 
+import sys
+pymelPath = r'C:\Dev\Projects\eclipse\workspace\pymelProject\pymel'   # ...or wherever YOUR pymel version is installed
+if not os.path.isfile(os.path.join(pymelPath, 'pymel', '__init__.py')):
+    raise RuntimeError('invalid pymel path: %s' % pymelPath)
+if sys.path[0] != pymelPath:
+    sys.path.insert(0, pymelPath)
+import pymel.core as pm
+
   - delete existing cache for version you wish to rebuild
     start GUI version of maya you wish to rebuild
     in script editor, run following, substituting location of your dev
     version of pymel::
 
   - ensure that the CommandsPython, API, and Nodes doc subdirectories are installed.
-
-import sys
-pymelPath = r'C:\Dev\Projects\eclipse\workspace\pymelProject\pymel'   # ...or wherever YOUR pymel version is installed
-if sys.path[0] != pymelPath:
-    sys.path.insert(0, pymelPath)
-import pymel.core as pm
 
   - building of api cache loads plugins, then building of cmd cache
     unloads them... unfortunately, some of the built in plugins may not
@@ -62,6 +64,12 @@ import pymel.core as pm
 
   - from a clean/default environment maya gui, run:
 
+import sys, os
+pymelPath = r'/Volumes/sv-dev01/devRepo/chad/pymel'   # ...or wherever YOUR pymel version is installed
+if not os.path.isfile(os.path.join(pymelPath, 'pymel', '__init__.py')):
+    raise RuntimeError('invalid pymel path: %s' % pymelPath)
+if sys.path[0] != pymelPath:
+    sys.path.insert(0, pymelPath)
 import maintenance.stubs
 reload(maintenance.stubs)
 maintenance.stubs.pymelstubs()
@@ -96,6 +104,8 @@ python -c "import maintenance.stubs; maintenance.stubs.stubstest('./extras/compl
 
 import sys, os
 pymelPath = r'/Volumes/sv-dev01/devRepo/chad/pymel'   # ...or wherever YOUR pymel version is installed
+if not os.path.isfile(os.path.join(pymelPath, 'pymel', '__init__.py')):
+    raise RuntimeError('invalid pymel path: %s' % pymelPath)
 if sys.path[0] != pymelPath:
     sys.path.insert(0, pymelPath)
 os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
@@ -107,6 +117,12 @@ cmdcache.fixCodeExamples()
 
   - from a clean/default environment maya gui *without pymel imported*, run:
 
+import sys, os
+pymelPath = r'/Volumes/sv-dev01/devRepo/chad/pymel'   # ...or wherever YOUR pymel version is installed
+if not os.path.isfile(os.path.join(pymelPath, 'pymel', '__init__.py')):
+    raise RuntimeError('invalid pymel path: %s' % pymelPath)
+if sys.path[0] != pymelPath:
+    sys.path.insert(0, pymelPath)
 import maintenance.docs as docs
 docs.generate()
 docs.build()

@@ -1,5 +1,9 @@
 import sys
-import os, glob, shutil
+import os
+import glob
+import shutil
+import datetime
+
 from sphinx import main as sphinx_build
 from sphinx.ext.autosummary.generate import main as sphinx_autogen
 
@@ -26,36 +30,40 @@ else:
     from pymel.core.uitypes import *
     from pymel.core.nodetypes import *
 
-
-
 version = pymel.__version__.rsplit('.',1)[0]
 SOURCE = 'source'
-BUILD = os.path.join('build', version)
+BUILD_ROOT = 'build'
+BUILD = os.path.join(BUILD_ROOT, version)
+sourcedir = os.path.join(docsdir, SOURCE)
+gendir = os.path.join(sourcedir, 'generated')
+buildrootdir = os.path.join(docsdir, BUILD_ROOT)
+builddir = os.path.join(docsdir, BUILD)
 
 from pymel.internal.cmdcache import fixCodeExamples
 
-def generate():
+def generate(clean=True):
     "delete build and generated directories and generate a top-level documentation source file for each module."
+    print "generating %s - %s" % (docsdir, datetime.datetime.now())
 
-    clean_build()
-    clean_generated()
-    os.chdir( os.path.join(docsdir,SOURCE) )
+    if clean:
+        clean_build()
+        clean_generated()
+    os.chdir(sourcedir)
 
     sphinx_autogen( [''] + '--templates ../templates index.rst'.split() )
     sphinx_autogen( [''] + '--templates ../templates'.split() + glob.glob('generated/pymel.*.rst') )
+    print "...done generating %s - %s" % (docsdir, datetime.datetime.now())
 
 def clean_build():
     "delete existing build directory"
-    builddir = os.path.join(docsdir, BUILD)
-    if os.path.exists(builddir):
-        print "removing", builddir
-        shutil.rmtree(builddir)
+    if os.path.exists(buildrootdir):
+        print "removing %s - %s" % (buildrootdir, datetime.datetime.now())
+        shutil.rmtree(buildrootdir)
 
 def clean_generated():
     "delete existing generated directory"
-    gendir = os.path.join(docsdir,SOURCE, 'generated')
     if os.path.exists(gendir):
-        print "removing", gendir
+        print "removing %s - %s" % (gendir, datetime.datetime.now())
         shutil.rmtree(gendir)
 
 def find_dot():
@@ -71,6 +79,11 @@ def find_dot():
     raise TypeError('cannot find graphiz dot executable in the path')
 
 def build(clean=True, **kwargs):
+    print "building %s - %s" % (docsdir, datetime.datetime.now())
+
+    if not os.path.isdir(gendir):
+        generate()
+
     os.chdir( docsdir )
     if clean:
         clean_generated()
@@ -94,3 +107,5 @@ def build(clean=True, **kwargs):
     opts.append(SOURCE)
     opts.append(BUILD)
     sphinx_build(opts)
+    print "...done building %s - %s" % (docsdir, datetime.datetime.now())
+
