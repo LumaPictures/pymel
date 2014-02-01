@@ -86,7 +86,6 @@ def build(clean=True, **kwargs):
 
     os.chdir( docsdir )
     if clean:
-        clean_generated()
         clean_build()
 
     #mkdir -p build/html build/doctrees
