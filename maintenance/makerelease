@@ -96,7 +96,7 @@ find "$mtnc/../extras/" -type f -name '*.pyc' -exec rm {} \;
 cd "$mtnc/release"
 
 RELEASE=pymel-$1
-echo $RELEASE
+echo "release directory: $RELEASE"
 SOURCE=../..
 
 if [ -d "$RELEASE" ];
@@ -117,10 +117,10 @@ git clone --shared "$SOURCE" "$RELEASE"
 #svn export https://pymel.googlecode.com/svn/docs pymel/docs
 
 # clean out 2011 stuff til it's released
-#rm $RELEASE/pymel/cache/*2011.*
+#rm "$RELEASE"/pymel/cache/*2011.*
 
-myrm "$RELEASE/.git*"
-myrm "$RELEASE/.hg*"
+myrm "$RELEASE"/.git*
+myrm "$RELEASE"/.hg*
 myrm "$RELEASE/maintenance"
 
 echo "copying docs"

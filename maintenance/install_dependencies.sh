@@ -12,6 +12,11 @@ else
     # ensures that other eggs are not found
     export PYTHONPATH=''
 
+    # TODO:
+    # update this to use pip, instead of easy_install... especially now that
+    # distribute has been merged back into setuptools 0.7+...
+    # curl -O http://raw.github.com/pypa/pip/master/contrib/get-pip.py
+
     # downloads distribute (setuptools)
     curl -O http://python-distribute.org/distribute_setup.py
     mayapy ./distribute_setup.py
