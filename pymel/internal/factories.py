@@ -1934,22 +1934,24 @@ class ApiUndo:
             pass
         self.cbid = api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
 
-
-    def append(self, cmdObj ):
+    def append(self, cmdObj):
+        if not cmds.undoInfo(q=1, state=1):
+            # if undo is off, don't add to the undo queue
+            return
 
         self.cb_enabled = False
-
-#        if not cmds.objExists( self.node_name ):
-#            self._createNode()
 
         # Increment the undo node's command count. We want this to go into
         # Maya's undo queue because changes to this attr will trigger our own
         # undo/redo code.
         try:
             count = cmds.getAttr(self.node_name + '.cmdCount')
-        except:
-            self._createNode()
-            count = cmds.getAttr(self.node_name + '.cmdCount')
+        except Exception:
+            if not cmds.objExists(self.node_name):
+                self._createNode()
+                count = cmds.getAttr(self.node_name + '.cmdCount')
+            else:
+                raise
 
         cmds.setAttr(self.node_name + '.cmdCount', count + 1)
 
@@ -1962,34 +1964,17 @@ class ApiUndo:
         # Re-enable the callback.
         self.cb_enabled = True
 
-    def execute( self, cmdObj, args ):
-        self.cb_enabled = False
-
-        if not cmds.objExists( self.node_name ):
-            self._createNode()
-
-        # Increment the undo node's command count. We want this to go into
-        # Maya's undo queue because changes to this attr will trigger our own
-        # undo/redo code.
-        count = cmds.getAttr(self.node_name + '.cmdCount')
-        cmds.setAttr(self.node_name + '.cmdCount', count + 1)
-
+    def execute(self, cmdObj, *args):
         # Execute the command object's 'doIt' method.
-        res = cmdObj.doIt(args)
-
-        # Append the command to the end of the undo queue.
-        self.undo_queue.append(cmdObj)
-
-        # Clear the redo queue.
-        self.redo_queue = []
-
-        # Re-enable the callback.
-        self.cb_enabled = True
+        res = cmdObj.doIt(*args)
+        self.append(cmdObj)
         return res
 
     def flushUndo( self, *args ):
         self.undo_queue = []
         self.redo_queue = []
+        self.cb_enabled = False
+
 
 apiUndo = ApiUndo()
 
@@ -2011,9 +1996,11 @@ class ApiUndoItem(object):
 
     def redoIt(self):
         self._setter(*self._redo_args, **self._redo_kwargs)
+    doIt = redoIt
 
     def undoIt(self):
         self._setter(*self._undo_args, **self._undo_kwargs)
+
 
 class ApiRedoUndoItem(ApiUndoItem):
     """Similar to the base ApiUndoItem, but allows specifying a separate
