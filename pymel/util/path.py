@@ -460,7 +460,7 @@ class path(unicode):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, pattern=None):
+    def listdir(self, pattern=None, realpath=False):
         """ D.listdir() -> List of items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
@@ -476,13 +476,16 @@ class path(unicode):
         """
         if pattern is None:
             pattern = '*'
-        return [
+        result = [
             self / child
             for child in os.listdir(self)
             if self._next_class(child).match(pattern)
         ]
+        if realpath:
+            result = [p.realpath() for p in result]
+        return result
 
-    def dirs(self, pattern=None):
+    def dirs(self, pattern=None, realpath=False):
         """ D.dirs() -> List of this directory's subdirectories.
 
         The elements of the list are path objects.
@@ -493,9 +496,14 @@ class path(unicode):
         directories whose names match the given pattern.  For
         example, ``d.dirs('build-*')``.
         """
-        return [p for p in self.listdir(pattern) if p.isdir()]
+        result = [p for p in self.listdir(pattern) if p.isdir()]
+        if realpath:
+            # don't pass realpath to listdir to avoid wasting time resolving
+            # filtered paths
+            result = [p.realpath() for p in result]
+        return result
 
-    def files(self, pattern=None):
+    def files(self, pattern=None, realpath=False):
         """ D.files() -> List of the files in this directory.
 
         The elements of the list are path objects.
@@ -505,10 +513,14 @@ class path(unicode):
         whose names match the given pattern.  For example,
         ``d.files('*.pyc')``.
         """
+        result = [p for p in self.listdir(pattern) if p.isfile()]
+        if realpath:
+            # don't pass realpath to listdir to avoid wasting time resolving
+            # filtered paths
+            result = [p.realpath() for p in result]
+        return result
 
-        return [p for p in self.listdir(pattern) if p.isfile()]
-
-    def walk(self, pattern=None, errors='strict'):
+    def walk(self, pattern=None, errors='strict', realpath=False):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields path objects naming each child item of
@@ -542,7 +554,10 @@ class path(unicode):
 
         for child in childList:
             if pattern is None or child.match(pattern):
-                yield child
+                if realpath:
+                    yield child.realpath()
+                else:
+                    yield child
                 try:
                     isdir = child.isdir()
                 except Exception:
@@ -558,10 +573,10 @@ class path(unicode):
                         raise
 
                 if isdir:
-                    for item in child.walk(pattern, errors):
+                    for item in child.walk(pattern, errors, realpath):
                         yield item
 
-    def walkdirs(self, pattern=None, errors='strict'):
+    def walkdirs(self, pattern=None, errors='strict', realpath=False):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional `pattern` argument, this yields only
@@ -593,11 +608,14 @@ class path(unicode):
 
         for child in dirs:
             if pattern is None or child.match(pattern):
-                yield child
-                for subsubdir in child.walkdirs(pattern, errors):
+                if realpath:
+                    yield child.realpath()
+                else:
+                    yield child
+                for subsubdir in child.walkdirs(pattern, errors, realpath):
                     yield subsubdir
 
-    def walkfiles(self, pattern=None, errors='strict'):
+    def walkfiles(self, pattern=None, errors='strict', realpath=False):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
         The optional argument, `pattern`, limits the results to files
@@ -640,9 +658,12 @@ class path(unicode):
 
             if isfile:
                 if pattern is None or child.match(pattern):
-                    yield child
+                    if realpath:
+                        yield child.realpath()
+                    else:
+                        yield child
             elif isdir:
-                for f in child.walkfiles(pattern, errors):
+                for f in child.walkfiles(pattern, errors, realpath):
                     yield f
 
     def fnmatch(self, pattern, normcase=None):
