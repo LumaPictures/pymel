@@ -1231,52 +1231,6 @@ class path(unicode):
 
         .. seealso:: :meth:`get_owner`""")
 
-    def __get_groupname_unix(self):
-        """
-        Return the group name for this file or directory.
-        """
-        return grp.getgrgid(self.stat().st_gid).gr_name
-
-    def __get_groupname_not_implemented(self):
-        raise NotImplementedError("Group names not available on this platform.")
-
-    if "grp" in globals():
-        get_groupname = __get_groupname_unix
-    else:
-        get_groupname = __get_groupname_not_implemented
-
-    groupname = property(
-        get_groupname, None, None,
-        """ The group name for this file or directory.
-
-        .. seealso:: :methd:`get_groupname`""")
-
-    def __chgrp_unix(self, group):
-        if isinstance(group, basestring):
-            group = grp.getgrnam(group).gr_gid
-        os.chown(self, -1, group)
-
-    def __chgrp_not_implemented(self):
-        raise NotImplementedError("Changing groups not available on this platform.")
-
-    if "grp" in globals():
-        chgrp = __chgrp_unix
-    else:
-        chgrp = __chgrp_not_implemented
-
-    if hasattr(os, 'statvfs'):
-        def statvfs(self):
-            """ Perform a ``statvfs()`` system call on this path.
-
-            .. seealso:: :func:`os.statvfs`
-            """
-            return os.statvfs(self)
-
-    if hasattr(os, 'pathconf'):
-        def pathconf(self, name):
-            """ .. seealso:: :func:`os.pathconf` """
-            return os.pathconf(self, name)
-
     #
     # --- Modifying operations on files and directories
 
@@ -1298,6 +1252,45 @@ class path(unicode):
             """ .. seealso:: :func:`os.chown` """
             os.chown(self, uid, gid)
             return self
+
+    if "grp" in globals():
+        def get_groupname(self):
+            """
+            Return the group name for this file or directory.
+
+            .. seealso:: :meth:`chgrp`
+            """
+            return grp.getgrgid(self.stat().st_gid).gr_name
+
+        groupname = property(
+            get_groupname, None, None,
+            """ The group name for this file or directory.
+
+            .. seealso:: :meth:`get_groupname`""")
+
+        def chgrp(self, group):
+            """
+            Utility for setting the group permissions of a file or folder.
+            `group` can be the name as a string or an integer id.
+
+            .. seealso:: :func:`os.chown`
+            """
+            if isinstance(group, basestring):
+                group = grp.getgrnam(group).gr_gid
+            os.chown(self, -1, group)
+
+    if hasattr(os, 'statvfs'):
+        def statvfs(self):
+            """ Perform a ``statvfs()`` system call on this path.
+
+            .. seealso:: :func:`os.statvfs`
+            """
+            return os.statvfs(self)
+
+    if hasattr(os, 'pathconf'):
+        def pathconf(self, name):
+            """ .. seealso:: :func:`os.pathconf` """
+            return os.pathconf(self, name)
 
     def rename(self, new):
         """ .. seealso:: :func:`os.rename` """
@@ -1585,3 +1578,6 @@ class CaseInsensitivePattern(unicode):
     @property
     def normcase(self):
         return __import__('ntpath').normcase
+
+# migrating to PEP8 compliance
+Path = path
