@@ -469,16 +469,17 @@ class path(unicode):
         The elements of the list are path objects.
 
         With the optional `pattern` argument, this only lists
-        items whose names match the given pattern.
+        items whose names match the given pattern. Pattern may be a glob-style
+        string or a compiled regular expression pattern.
 
-        .. seealso:: :meth:`files`, :meth:`dirs`
+        .. seealso:: :meth:`files`, :meth:`dirs`, :meth:`match`
         """
         if pattern is None:
             pattern = '*'
         return [
             self / child
             for child in os.listdir(self)
-            if self._next_class(child).fnmatch(pattern)
+            if self._next_class(child).match(pattern)
         ]
 
     def dirs(self, pattern=None):
@@ -540,7 +541,7 @@ class path(unicode):
                 raise
 
         for child in childList:
-            if pattern is None or child.fnmatch(pattern):
+            if pattern is None or child.match(pattern):
                 yield child
             try:
                 isdir = child.isdir()
@@ -591,7 +592,7 @@ class path(unicode):
                 raise
 
         for child in dirs:
-            if pattern is None or child.fnmatch(pattern):
+            if pattern is None or child.match(pattern):
                 yield child
             for subsubdir in child.walkdirs(pattern, errors):
                 yield subsubdir
@@ -638,7 +639,7 @@ class path(unicode):
                     raise
 
             if isfile:
-                if pattern is None or child.fnmatch(pattern):
+                if pattern is None or child.match(pattern):
                     yield child
             elif isdir:
                 for f in child.walkfiles(pattern, errors):
@@ -662,6 +663,44 @@ class path(unicode):
         name = normcase(self.name)
         pattern = normcase(pattern)
         return fnmatch.fnmatchcase(name, pattern)
+
+    def regmatch(self, pattern, normcase=None):
+        """ Return ``True`` if `self.name` matches the given pattern.
+
+        pattern - A regex pattern compiled with :func:`re.compile`.
+            If the pattern contains a `normcase`  attribute, it is applied to
+            the name and path prior to comparison.
+
+        normcase - (optional) A function used to normalize the
+            filename before matching. Defaults to self.module which defaults
+            to os.path.normcase.
+
+        .. seealso:: :module:`re`
+        """
+        default_normcase = getattr(pattern, 'normcase', self.module.normcase)
+        normcase = normcase or default_normcase
+        name = normcase(self.name)
+        return bool(pattern.match(name))
+
+    def match(self, pattern, normcase=None):
+        """ Return ``True`` if `self.name` matches the given pattern. Supports
+        both glob strings and compiled regular expressions.
+
+        pattern - A glob-style filename pattern with wildcards, or regex pattern
+            compiled with :func:`re.compile`.
+            If the pattern contains a `normcase`  attribute, it is applied to
+            the name and path prior to comparison.
+
+        normcase - (optional) A function used to normalize the pattern and
+            filename before matching. Defaults to self.module which defaults
+            to os.path.normcase.
+
+        .. seealso:: :meth:`fnmatch` and :meth:`regmatch`
+        """
+        if isinstance(pattern, re._pattern_type):
+            return self.regmatch(pattern, normcase)
+        else:
+            return self.fnmatch(pattern, normcase)
 
     def glob(self, pattern):
         """ Return a list of path objects that match the pattern.
