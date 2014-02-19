@@ -543,23 +543,23 @@ class path(unicode):
         for child in childList:
             if pattern is None or child.match(pattern):
                 yield child
-            try:
-                isdir = child.isdir()
-            except Exception:
-                if errors == 'ignore':
-                    isdir = False
-                elif errors == 'warn':
-                    warnings.warn(
-                        "Unable to access '%s': %s"
-                        % (child, sys.exc_info()[1]),
-                        TreeWalkWarning)
-                    isdir = False
-                else:
-                    raise
+                try:
+                    isdir = child.isdir()
+                except Exception:
+                    if errors == 'ignore':
+                        isdir = False
+                    elif errors == 'warn':
+                        warnings.warn(
+                            "Unable to access '%s': %s"
+                            % (child, sys.exc_info()[1]),
+                            TreeWalkWarning)
+                        isdir = False
+                    else:
+                        raise
 
-            if isdir:
-                for item in child.walk(pattern, errors):
-                    yield item
+                if isdir:
+                    for item in child.walk(pattern, errors):
+                        yield item
 
     def walkdirs(self, pattern=None, errors='strict'):
         """ D.walkdirs() -> iterator over subdirs, recursively.
@@ -594,8 +594,8 @@ class path(unicode):
         for child in dirs:
             if pattern is None or child.match(pattern):
                 yield child
-            for subsubdir in child.walkdirs(pattern, errors):
-                yield subsubdir
+                for subsubdir in child.walkdirs(pattern, errors):
+                    yield subsubdir
 
     def walkfiles(self, pattern=None, errors='strict'):
         """ D.walkfiles() -> iterator over files in D, recursively.
