@@ -606,12 +606,27 @@ class path(unicode):
             else:
                 raise
 
+        parent_realpath = None
         for child in dirs:
             if pattern is None or child.match(pattern):
-                if realpath:
-                    yield child.realpath()
+                if child.islink():
+                    if parent_realpath is None:
+                        parent_realpath = self.realpath()
+                    child_realpath = child.realpath()
+                    # check for infinite recursion
+                    if child_realpath == parent_realpath or parent_realpath.startswith(child_realpath + os.path.sep):
+                        # print "skipping %s to prevent infinite recursion" % child
+                        continue
+                    else:
+                        if realpath:
+                            yield child_realpath
+                        else:
+                            yield child
                 else:
-                    yield child
+                    if realpath:
+                        yield child.realpath()
+                    else:
+                        yield child
                 for subsubdir in child.walkdirs(pattern, errors, realpath):
                     yield subsubdir
 
