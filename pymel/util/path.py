@@ -520,7 +520,7 @@ class path(unicode):
             result = [p.realpath() for p in result]
         return result
 
-    def walk(self, pattern=None, errors='strict', realpath=False):
+    def walk(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields path objects naming each child item of
@@ -552,6 +552,10 @@ class path(unicode):
             else:
                 raise
 
+        if regex is not None:
+            assert pattern is None, "Cannot provide both pattern and regex arguments"
+            pattern = re.compile(regex)
+
         for child in childList:
             if pattern is None or child.match(pattern):
                 if realpath:
@@ -576,7 +580,7 @@ class path(unicode):
                     for item in child.walk(pattern, errors, realpath):
                         yield item
 
-    def walkdirs(self, pattern=None, errors='strict', realpath=False):
+    def walkdirs(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional `pattern` argument, this yields only
@@ -606,6 +610,10 @@ class path(unicode):
             else:
                 raise
 
+        if regex is not None:
+            assert pattern is None, "Cannot provide both pattern and regex arguments"
+            pattern = re.compile(regex)
+
         parent_realpath = None
         for child in dirs:
             if pattern is None or child.match(pattern):
@@ -630,7 +638,7 @@ class path(unicode):
                 for subsubdir in child.walkdirs(pattern, errors, realpath):
                     yield subsubdir
 
-    def walkfiles(self, pattern=None, errors='strict', realpath=False):
+    def walkfiles(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
         The optional argument, `pattern`, limits the results to files
@@ -654,6 +662,10 @@ class path(unicode):
                 return
             else:
                 raise
+
+        if regex is not None:
+            assert pattern is None, "Cannot provide both pattern and regex arguments"
+            pattern = re.compile(regex)
 
         for child in childList:
             try:
