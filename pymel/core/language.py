@@ -75,10 +75,23 @@ def pythonToMel(arg):
     # we cannot simply test if arg is an instance of basestring because PyNodes are not
     return '"%s"' % cmds.encodeString(str(arg))
 
-def pythonToMelCmd(command, *args, **kwargs):
+def pythonToMelCmd(*commandAndArgs, **kwargs):
     '''Given a mel command name, and a set of python args / kwargs, return
     a mel string used to call the given command.
+
+    Note that the first member of commandAndArgs is the command name, and is
+    required; the remainder are the args to it.  We use this odd signature to
+    avoid any name conflicts with mel flag names - ie, the signature used to be:
+        pythonToMelCmd(command, *args, **kwargs)
+    but this caused problems with the mel "button" function, which has a
+    "command" flag.
     '''
+    if not commandAndArgs:
+        raise TypeError("pythonToMelCmd needs at least one arg, the"
+                        " mel command name")
+    command = commandAndArgs[0]
+    args = commandAndArgs[1:]
+
     strArgs = [pythonToMel(arg) for arg in args]
 
     if kwargs:
