@@ -1046,6 +1046,45 @@ class path(unicode):
         """ .. seealso:: :func:`os.path.samefile` """
         return self.module.samefile(self, other)
 
+    def samepath(self, other):
+        """Whether the other path represents the same path as this one.
+
+        This will account for symbolic links, absolute/relative paths,
+        case differences (if on a case-insensitive file system), and '..'
+        usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
+
+        This will NOT account for hard links - use :meth:`samefile` for this, if
+        available on your os.
+
+        Essentially just compares the `self.canonicalpath()` to `other.canonicalpath()`
+        """
+        return self.canonicalpath() == self._next_class(other).canonicalpath()
+
+    def canonicalpath(self):
+        """Attempt to return a 'canonical' version of the path
+
+        This will standardize for symbolic links, absolute/relative paths,
+        case differences (if on a case-insensitive file system), and '..'
+        usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
+
+        The intention is that string comparison of canonical paths will yield
+        a reasonable guess as to whether two paths represent the same file.
+        """
+        return self.abspath().realpath().normpath().normcase()
+
+    def truepath(self):
+        """The absolute, real, normalized path.
+
+        Shortcut for `.abspath().realpath().normpath()`
+
+        Unlike canonicalpath, on case-sensitive filesystems, two different paths
+        may refer the same file, and so should only be used in cases where a
+        "normal" path from root is desired, but we wish to preserve case; in
+        situations where comparison is desired, :meth:`canonicalpath` (or
+        :meth:`samepath`) should be used.
+        """
+        return self.abspath().realpath().normpath()
+
     def getatime(self):
         """ .. seealso:: :attr:`atime`, :func:`os.path.getatime` """
         return self.module.getatime(self)
