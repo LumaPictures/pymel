@@ -71,6 +71,11 @@ try:
 except ImportError:
     pass
 
+try:
+    import grp
+except ImportError:
+    pass
+
 ################################
 # Monkey patchy python 3 support
 try:
@@ -1111,6 +1116,39 @@ class path(unicode):
         """ Name of the owner of this file or directory.
 
         .. seealso:: :meth:`get_owner`""")
+
+    def __get_groupname_unix(self):
+        """
+        Return the group name for this file or directory.
+        """
+        return grp.getgrgid(self.stat().st_gid).gr_name
+
+    def __get_groupname_not_implemented(self):
+        raise NotImplementedError("Group names not available on this platform.")
+
+    if "grp" in globals():
+        get_groupname = __get_groupname_unix
+    else:
+        get_groupname = __get_groupname_not_implemented
+
+    groupname = property(
+        get_groupname, None, None,
+        """ The group name for this file or directory.
+
+        .. seealso:: :methd:`get_groupname`""")
+
+    def __chgrp_unix(self, group):
+        if isinstance(group, basestring):
+            group = grp.getgrnam(group).gr_gid
+        os.chown(self, -1, group)
+
+    def __chgrp_not_implemented(self):
+        raise NotImplementedError("Changing groups not available on this platform.")
+
+    if "grp" in globals():
+        chgrp = __chgrp_unix
+    else:
+        chgrp = __chgrp_not_implemented
 
     if hasattr(os, 'statvfs'):
         def statvfs(self):
