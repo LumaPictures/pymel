@@ -71,6 +71,11 @@ try:
 except ImportError:
     pass
 
+try:
+    import grp
+except ImportError:
+    pass
+
 ################################
 # Monkey patchy python 3 support
 try:
@@ -455,7 +460,7 @@ class path(unicode):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, pattern=None):
+    def listdir(self, pattern=None, realpath=False):
         """ D.listdir() -> List of items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
@@ -464,19 +469,23 @@ class path(unicode):
         The elements of the list are path objects.
 
         With the optional `pattern` argument, this only lists
-        items whose names match the given pattern.
+        items whose names match the given pattern. Pattern may be a glob-style
+        string or a compiled regular expression pattern.
 
-        .. seealso:: :meth:`files`, :meth:`dirs`
+        .. seealso:: :meth:`files`, :meth:`dirs`, :meth:`match`
         """
         if pattern is None:
             pattern = '*'
-        return [
+        result = [
             self / child
             for child in os.listdir(self)
-            if self._next_class(child).fnmatch(pattern)
+            if self._next_class(child).match(pattern)
         ]
+        if realpath:
+            result = [p.realpath() for p in result]
+        return result
 
-    def dirs(self, pattern=None):
+    def dirs(self, pattern=None, realpath=False):
         """ D.dirs() -> List of this directory's subdirectories.
 
         The elements of the list are path objects.
@@ -487,9 +496,14 @@ class path(unicode):
         directories whose names match the given pattern.  For
         example, ``d.dirs('build-*')``.
         """
-        return [p for p in self.listdir(pattern) if p.isdir()]
+        result = [p for p in self.listdir(pattern) if p.isdir()]
+        if realpath:
+            # don't pass realpath to listdir to avoid wasting time resolving
+            # filtered paths
+            result = [p.realpath() for p in result]
+        return result
 
-    def files(self, pattern=None):
+    def files(self, pattern=None, realpath=False):
         """ D.files() -> List of the files in this directory.
 
         The elements of the list are path objects.
@@ -499,10 +513,14 @@ class path(unicode):
         whose names match the given pattern.  For example,
         ``d.files('*.pyc')``.
         """
+        result = [p for p in self.listdir(pattern) if p.isfile()]
+        if realpath:
+            # don't pass realpath to listdir to avoid wasting time resolving
+            # filtered paths
+            result = [p.realpath() for p in result]
+        return result
 
-        return [p for p in self.listdir(pattern) if p.isfile()]
-
-    def walk(self, pattern=None, errors='strict'):
+    def walk(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields path objects naming each child item of
@@ -534,28 +552,35 @@ class path(unicode):
             else:
                 raise
 
+        if regex is not None:
+            assert pattern is None, "Cannot provide both pattern and regex arguments"
+            pattern = re.compile(regex)
+
         for child in childList:
-            if pattern is None or child.fnmatch(pattern):
-                yield child
-            try:
-                isdir = child.isdir()
-            except Exception:
-                if errors == 'ignore':
-                    isdir = False
-                elif errors == 'warn':
-                    warnings.warn(
-                        "Unable to access '%s': %s"
-                        % (child, sys.exc_info()[1]),
-                        TreeWalkWarning)
-                    isdir = False
+            if pattern is None or child.match(pattern):
+                if realpath:
+                    yield child.realpath()
                 else:
-                    raise
+                    yield child
+                try:
+                    isdir = child.isdir()
+                except Exception:
+                    if errors == 'ignore':
+                        isdir = False
+                    elif errors == 'warn':
+                        warnings.warn(
+                            "Unable to access '%s': %s"
+                            % (child, sys.exc_info()[1]),
+                            TreeWalkWarning)
+                        isdir = False
+                    else:
+                        raise
 
-            if isdir:
-                for item in child.walk(pattern, errors):
-                    yield item
+                if isdir:
+                    for item in child.walk(pattern, errors, realpath):
+                        yield item
 
-    def walkdirs(self, pattern=None, errors='strict'):
+    def walkdirs(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional `pattern` argument, this yields only
@@ -585,13 +610,35 @@ class path(unicode):
             else:
                 raise
 
-        for child in dirs:
-            if pattern is None or child.fnmatch(pattern):
-                yield child
-            for subsubdir in child.walkdirs(pattern, errors):
-                yield subsubdir
+        if regex is not None:
+            assert pattern is None, "Cannot provide both pattern and regex arguments"
+            pattern = re.compile(regex)
 
-    def walkfiles(self, pattern=None, errors='strict'):
+        parent_realpath = None
+        for child in dirs:
+            if pattern is None or child.match(pattern):
+                if child.islink():
+                    if parent_realpath is None:
+                        parent_realpath = self.realpath()
+                    child_realpath = child.realpath()
+                    # check for infinite recursion
+                    if child_realpath == parent_realpath or parent_realpath.startswith(child_realpath + os.path.sep):
+                        # print "skipping %s to prevent infinite recursion" % child
+                        continue
+                    else:
+                        if realpath:
+                            yield child_realpath
+                        else:
+                            yield child
+                else:
+                    if realpath:
+                        yield child.realpath()
+                    else:
+                        yield child
+                for subsubdir in child.walkdirs(pattern, errors, realpath):
+                    yield subsubdir
+
+    def walkfiles(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
         The optional argument, `pattern`, limits the results to files
@@ -616,6 +663,10 @@ class path(unicode):
             else:
                 raise
 
+        if regex is not None:
+            assert pattern is None, "Cannot provide both pattern and regex arguments"
+            pattern = re.compile(regex)
+
         for child in childList:
             try:
                 isfile = child.isfile()
@@ -633,10 +684,13 @@ class path(unicode):
                     raise
 
             if isfile:
-                if pattern is None or child.fnmatch(pattern):
-                    yield child
+                if pattern is None or child.match(pattern):
+                    if realpath:
+                        yield child.realpath()
+                    else:
+                        yield child
             elif isdir:
-                for f in child.walkfiles(pattern, errors):
+                for f in child.walkfiles(pattern, errors, realpath):
                     yield f
 
     def fnmatch(self, pattern, normcase=None):
@@ -657,6 +711,44 @@ class path(unicode):
         name = normcase(self.name)
         pattern = normcase(pattern)
         return fnmatch.fnmatchcase(name, pattern)
+
+    def regmatch(self, pattern, normcase=None):
+        """ Return ``True`` if `self.name` matches the given pattern.
+
+        pattern - A regex pattern compiled with :func:`re.compile`.
+            If the pattern contains a `normcase`  attribute, it is applied to
+            the name and path prior to comparison.
+
+        normcase - (optional) A function used to normalize the
+            filename before matching. Defaults to self.module which defaults
+            to os.path.normcase.
+
+        .. seealso:: :module:`re`
+        """
+        default_normcase = getattr(pattern, 'normcase', self.module.normcase)
+        normcase = normcase or default_normcase
+        name = normcase(self.name)
+        return bool(pattern.match(name))
+
+    def match(self, pattern, normcase=None):
+        """ Return ``True`` if `self.name` matches the given pattern. Supports
+        both glob strings and compiled regular expressions.
+
+        pattern - A glob-style filename pattern with wildcards, or regex pattern
+            compiled with :func:`re.compile`.
+            If the pattern contains a `normcase`  attribute, it is applied to
+            the name and path prior to comparison.
+
+        normcase - (optional) A function used to normalize the pattern and
+            filename before matching. Defaults to self.module which defaults
+            to os.path.normcase.
+
+        .. seealso:: :meth:`fnmatch` and :meth:`regmatch`
+        """
+        if isinstance(pattern, re._pattern_type):
+            return self.regmatch(pattern, normcase)
+        else:
+            return self.fnmatch(pattern, normcase)
 
     def glob(self, pattern):
         """ Return a list of path objects that match the pattern.
@@ -1002,6 +1094,45 @@ class path(unicode):
         """ .. seealso:: :func:`os.path.samefile` """
         return self.module.samefile(self, other)
 
+    def samepath(self, other):
+        """Whether the other path represents the same path as this one.
+
+        This will account for symbolic links, absolute/relative paths,
+        case differences (if on a case-insensitive file system), and '..'
+        usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
+
+        This will NOT account for hard links - use :meth:`samefile` for this, if
+        available on your os.
+
+        Essentially just compares the `self.canonicalpath()` to `other.canonicalpath()`
+        """
+        return self.canonicalpath() == self._next_class(other).canonicalpath()
+
+    def canonicalpath(self):
+        """Attempt to return a 'canonical' version of the path
+
+        This will standardize for symbolic links, absolute/relative paths,
+        case differences (if on a case-insensitive file system), and '..'
+        usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
+
+        The intention is that string comparison of canonical paths will yield
+        a reasonable guess as to whether two paths represent the same file.
+        """
+        return self.abspath().realpath().normpath().normcase()
+
+    def truepath(self):
+        """The absolute, real, normalized path.
+
+        Shortcut for `.abspath().realpath().normpath()`
+
+        Unlike canonicalpath, on case-sensitive filesystems, two different paths
+        may refer the same file, and so should only be used in cases where a
+        "normal" path from root is desired, but we wish to preserve case; in
+        situations where comparison is desired, :meth:`canonicalpath` (or
+        :meth:`samepath`) should be used.
+        """
+        return self.abspath().realpath().normpath()
+
     def getatime(self):
         """ .. seealso:: :attr:`atime`, :func:`os.path.getatime` """
         return self.module.getatime(self)
@@ -1112,19 +1243,6 @@ class path(unicode):
 
         .. seealso:: :meth:`get_owner`""")
 
-    if hasattr(os, 'statvfs'):
-        def statvfs(self):
-            """ Perform a ``statvfs()`` system call on this path.
-
-            .. seealso:: :func:`os.statvfs`
-            """
-            return os.statvfs(self)
-
-    if hasattr(os, 'pathconf'):
-        def pathconf(self, name):
-            """ .. seealso:: :func:`os.pathconf` """
-            return os.pathconf(self, name)
-
     #
     # --- Modifying operations on files and directories
 
@@ -1146,6 +1264,45 @@ class path(unicode):
             """ .. seealso:: :func:`os.chown` """
             os.chown(self, uid, gid)
             return self
+
+    if "grp" in globals():
+        def get_groupname(self):
+            """
+            Return the group name for this file or directory.
+
+            .. seealso:: :meth:`chgrp`
+            """
+            return grp.getgrgid(self.stat().st_gid).gr_name
+
+        groupname = property(
+            get_groupname, None, None,
+            """ The group name for this file or directory.
+
+            .. seealso:: :meth:`get_groupname`""")
+
+        def chgrp(self, group):
+            """
+            Utility for setting the group permissions of a file or folder.
+            `group` can be the name as a string or an integer id.
+
+            .. seealso:: :func:`os.chown`
+            """
+            if isinstance(group, basestring):
+                group = grp.getgrnam(group).gr_gid
+            os.chown(self, -1, group)
+
+    if hasattr(os, 'statvfs'):
+        def statvfs(self):
+            """ Perform a ``statvfs()`` system call on this path.
+
+            .. seealso:: :func:`os.statvfs`
+            """
+            return os.statvfs(self)
+
+    if hasattr(os, 'pathconf'):
+        def pathconf(self, name):
+            """ .. seealso:: :func:`os.pathconf` """
+            return os.pathconf(self, name)
 
     def rename(self, new):
         """ .. seealso:: :func:`os.rename` """
@@ -1433,3 +1590,6 @@ class CaseInsensitivePattern(unicode):
     @property
     def normcase(self):
         return __import__('ntpath').normcase
+
+# migrating to PEP8 compliance
+Path = path
