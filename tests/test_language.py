@@ -4,6 +4,7 @@ import pymel.core.language as lang
 
 # do this after pymel.core, so maya has initialized
 from maya.mel import eval as meval
+import maya.cmds as cmds
 
 
 class testCase_pythonToMelCmd(unittest.TestCase):
@@ -320,3 +321,60 @@ class testCase_MelGlobals(unittest.TestCase):
     def test_noInit_getType(self):
         self.assertRaises(TypeError, lang.melGlobals.getType, 'melGlobals_test_nonexistant7')
 
+
+class testCase_env(unittest.TestCase):
+    def setUp(self):
+        cmds.playbackOptions(animationStartTime=1)
+        cmds.playbackOptions(minTime=4)
+        cmds.playbackOptions(maxTime=10)
+        cmds.playbackOptions(animationEndTime=24)
+
+    def test_animStartTime_property(self):
+        self.assertEqual(1, lang.env.animStartTime)
+        lang.env.animStartTime = 2
+        self.assertEqual(2, lang.env.animStartTime)
+
+    def test_animStartTime_methods(self):
+        self.assertEqual(1, lang.env.getAnimStartTime())
+        lang.env.setAnimStartTime(3)
+        self.assertEqual(3, lang.env.getAnimStartTime())
+
+    def test_minTime_property(self):
+        self.assertEqual(4, lang.env.minTime)
+        lang.env.minTime = 5
+        self.assertEqual(5, lang.env.minTime)
+
+    def test_minTime_methods(self):
+        self.assertEqual(4, lang.env.getMinTime())
+        lang.env.setMinTime(6)
+        self.assertEqual(6, lang.env.getMinTime())
+
+    def test_maxTime_property(self):
+        self.assertEqual(10, lang.env.maxTime)
+        lang.env.maxTime = 11
+        self.assertEqual(11, lang.env.maxTime)
+
+    def test_maxTime_methods(self):
+        self.assertEqual(10, lang.env.getMaxTime())
+        lang.env.setMaxTime(12)
+        self.assertEqual(12, lang.env.getMaxTime())
+
+    def test_animEndTime_property(self):
+        self.assertEqual(24, lang.env.animEndTime)
+        lang.env.animEndTime = 22
+        self.assertEqual(22, lang.env.animEndTime)
+
+    def test_animEndTime_methods(self):
+        self.assertEqual(24, lang.env.getAnimEndTime())
+        lang.env.setAnimEndTime(23)
+        self.assertEqual(23, lang.env.getAnimEndTime())
+
+    def test_playbackTimes_property(self):
+        self.assertEqual((1, 4, 10, 24), lang.env.playbackTimes)
+        lang.env.playbackTimes = (2, 5, 11, 22)
+        self.assertEqual((2, 5, 11, 22), lang.env.playbackTimes)
+
+    def test_playbackTimes_methods(self):
+        self.assertEqual((1, 4, 10, 24), lang.env.getPlaybackTimes())
+        lang.env.setPlaybackTimes((3, 6, 12, 23))
+        self.assertEqual((3, 6, 12, 23), lang.env.getPlaybackTimes())

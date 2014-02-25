@@ -611,6 +611,17 @@ class Env(object):
         cmds.playbackOptions( animationEndTime=val )
     animEndTime = property(getAnimEndTime, setAnimEndTime)
 
+    def getPlaybackTimes(self):
+        return (self.animStartTime, self.minTime, self.maxTime,
+                self.animEndTime)
+    def setPlaybackTimes(self, playbackTimes):
+        if len(playbackTimes) != 4:
+            raise ValueError("must have 4 playback times")
+        self.animStartTime = playbackTimes[0]
+        self.minTime = playbackTimes[1]
+        self.maxTime = playbackTimes[2]
+        self.animEndTime = playbackTimes[3]
+    playbackTimes = property(getPlaybackTimes, setPlaybackTimes)
 
 env = Env()
 
