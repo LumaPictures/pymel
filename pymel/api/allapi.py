@@ -63,6 +63,21 @@ class SafeApiPtr(object):
     before feeding it into an api function), 'call'
     the SafeApiPtr object to return the 'true'
     pointer.
+
+    Examples
+    --------
+    >>> from pymel.api.allapi import *
+    >>> sel = MSelectionList()
+    >>> sel.add('perspShape')
+    >>> dag = MDagPath()
+    >>> sel.getDagPath(0, dag)
+    >>> cam = MFnCamera(dag)
+
+    >>> aperMin = SafeApiPtr('double')
+    >>> aperMax = SafeApiPtr('double')
+    >>> cam.getFilmApertureLimits(aperMin(), aperMax())
+    >>> print '%.5f, %.5f' % (aperMin.get(), aperMax.get())
+    0.01378, 20.28991
     """
 
     def __init__(self, valueType, scriptUtil=None, size=1, asTypeNPtr=False):
