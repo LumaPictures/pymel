@@ -2677,8 +2677,21 @@ class Attribute(PyNode):
 #        self.__dict__['_multiattrIndex'] = 0
 #
 
-    __getitem__ = _factories.wrapApiMethod( _api.MPlug, 'elementByLogicalIndex', '__getitem__' )
+    __getitem__ = _factories.wrapApiMethod(_api.MPlug, 'elementByLogicalIndex', '__getitem__')
     #elementByPhysicalIndex = _factories.wrapApiMethod( _api.MPlug, 'elementByPhysicalIndex' )
+
+    def removeMultiInstance(self, index, break_=False):
+        if isinstance(index, slice):
+            # plug indices are sparse, so we don't bother using
+            # slice.indices(len), since all that does is potentially truncate
+            # the indices we get back
+            indices = xrange(index.start, index.stop, index.step)
+        else:
+            indices = [index]
+        for i in indices:
+            cmds.removeMultiInstance(self[i], b=break_)
+    __delitem__ = removeMultiInstance
+
 
     def attr(self, attr):
         """
