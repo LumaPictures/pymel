@@ -1566,6 +1566,8 @@ def referenceQuery(*args, **kwargs):
                                         failedEdits = not mode,
                                         successfulEdits = mode,
                                         **kwargs)
+            if edits is None:
+                edits = []
             allEdits.extend(ReferenceEdit(edit, fr, mode) for edit in edits)
         return allEdits
     else:
