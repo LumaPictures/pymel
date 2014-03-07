@@ -556,6 +556,15 @@ class testCase_references(unittest.TestCase):
         self.assertEqual(sphereInCubeInConeRef.refNode.namespace(),
                          'cone1:cubeInCone:')
 
+    def test_live_edits_returning_an_empty_list(self):
+        """testing if the le=True or liveEdits=True with no reference edit will
+        return an empty list
+        """
+        # create a new reference with no edits
+        ref = pm.createReference(self.sphereFile, namespace='sphere')
+        edits = pm.referenceQuery(ref, es=1, le=1)
+        self.assertEqual(edits, [])
+
 class testCase_fileInfo(unittest.TestCase):
     def setUp(self):
         pm.newFile(f=1)
