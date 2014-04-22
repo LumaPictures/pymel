@@ -3600,6 +3600,10 @@ class Array(object):
         """
         return self.subiter(0)
 
+    def _iterable_convert(self, itertype):
+        return itertype(x._iterable_convert(itertype) if isinstance(x, Array)
+                        else x for x in self)
+
     def tolist(self):
         """ a.tolist() --> list
 
@@ -3613,13 +3617,26 @@ class Array(object):
             >>> print repr(A.tolist())
             [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         """
-        l = []
-        for sub in self :
-            if isinstance(sub, Array) :
-                l.append(sub.tolist())
-            else :
-                l.append(sub)
-        return l
+        return self._iterable_convert(list)
+
+    def totuple(self):
+        """ a.totuple() --> tuple
+
+            Returns that Array converted to a nested tuple
+
+            >>> A = Array(range(1, 10), shape=(3, 3))
+            >>> print repr(A)
+            Array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+            >>> print repr(tuple(A))
+            (Array([1, 2, 3]), Array([4, 5, 6]), Array([7, 8, 9]))
+            >>> print repr(A.totuple())
+            ((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        """
+        return self._iterable_convert(tuple)
+
+    # mark this as unhashable, since it's mutable - if you need a hashable
+    # representation, use totuple
+    __hash__ = None
 
     def ravel(self):
         """ a.ravel() <==> Array(a.flat)
