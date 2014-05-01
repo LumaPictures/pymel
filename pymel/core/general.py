@@ -3204,7 +3204,7 @@ class Attribute(PyNode):
 
         running this command::
 
-            b.insertInput( 'c', 'out', 'in' )
+            b.in.insertInput( 'c', 'out', 'in' )
 
         causes the new connection order (assuming 'c' is a node with 'in' and 'out' attributes)::
 
@@ -3213,8 +3213,8 @@ class Attribute(PyNode):
         """
         inputs = self.inputs(plugs=1)
         if inputs:
-            inputs[0].connect(node + '.' + nodeInAttr)
-        cmds.connectAttr(node + '.' + nodeOutAttr, self.name(), force=1)
+            inputs[0].connect( node + '.' + nodeInAttr )
+        cmds.connectAttr( node + '.' + nodeOutAttr, self.name(), force=1 )
 
     @_factories.addMelDocs( 'setKeyframe' )
     def setKey(self, **kwargs):
