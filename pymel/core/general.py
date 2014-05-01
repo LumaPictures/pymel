@@ -3212,9 +3212,9 @@ class Attribute(PyNode):
             c.out-->b.in
         """
         inputs = self.inputs(plugs=1)
-        self.connect( node + '.' + nodeOutAttr, force=1 )
         if inputs:
-            inputs[0].connect( node + '.' + nodeInAttr )
+            inputs[0].connect(node + '.' + nodeInAttr)
+        cmds.connectAttr(node + '.' + nodeOutAttr, self.name(), force=1)
 
     @_factories.addMelDocs( 'setKeyframe' )
     def setKey(self, **kwargs):
