@@ -549,14 +549,37 @@ class DependNode( general.PyNode ):
         Modifications:
           - returns an empty list when the result is None
           - added 'alias' keyword to list attributes that have aliases
+          - added 'topLevel' keyword to only return attributes that are not
+            compound children; may not be used in combination with
+            'descendants'
+          - added 'descendants' keyword to return all top-level attributes
+            and all their descendants; note that the standard call may return
+            some attributes that 'descendants' will not, if there are compound
+            multi attributes with no existing indices; ie, the standard call
+            might return "node.parentAttr[-1].childAttr", but the 'descendants'
+            version would only return childAttr if an index exists for
+            parentAttr, ie "node.parentAttr[0].childAttr"; may not be used in
+            combination with 'topLevel'
         :rtype: `Attribute` list
 
         """
+        topLevel = kwargs.pop('topLevel', False)
+        descendants = kwargs.pop('descendants', False)
+        if descendants:
+            if topLevel:
+                raise ValueError("may not specify both topLevel and descendants")
+            # get the topLevel ones, then aggregate all the descendants...
+            topChildren = self.listAttr(topLevel=True, **kwargs)
+            res = list(topChildren)
+            for child in topChildren:
+                res.extend(child.iterDescendants())
+            return res
+
         alias = kwargs.pop('alias', False)
         # stringify fix
         res = map( lambda x: self.attr(x), _util.listForNone(cmds.listAttr(self.name(), **kwargs)))
         if alias:
-            res = [ x[1] for x in self.listAliases() if x[1] in res]
+            res = [x[1] for x in self.listAliases() if x[1] in res]
 
 #            aliases = dict( (x[1], x[0]) for x in general.aliasAttr(self.name()) )
 #            tmp = res
@@ -566,6 +589,8 @@ class DependNode( general.PyNode ):
 #                    res.append( aliases[at], at )
 #                except KeyError:
 #                    pass
+        if topLevel:
+            res = [x for x in res if x.getParent() is None]
         return res
 
     def listAliases( self ):
