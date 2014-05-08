@@ -1354,48 +1354,48 @@ class test_Attribute_iterDescendants(unittest.TestCase):
         self.blend = pm.blendShape(self.cube2, self.cube3, self.cube1)[0]
 
     def test_multi(self):
-        results = set(x.name() for x in
-                      self.blend.attr('weight').iterDescendants())
-        expected = set([u'blendShape1.weight[0]', u'blendShape1.weight[1]'])
+        results = sorted(x.name() for x in
+                         self.blend.attr('weight').iterDescendants())
+        expected = [u'blendShape1.weight[0]', u'blendShape1.weight[1]']
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('weight').iterDescendants(levels=1))
+        results = sorted(x.name() for x in
+                         self.blend.attr('weight').iterDescendants(levels=1))
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('weight').iterDescendants(levels=2))
+        results = sorted(x.name() for x in
+                         self.blend.attr('weight').iterDescendants(levels=2))
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('weight').iterDescendants(levels=0))
-        self.assertEqual(results, set())
+        results = sorted(x.name() for x in
+                         self.blend.attr('weight').iterDescendants(levels=0))
+        self.assertEqual(results, [])
 
     def test_compound(self):
-        results = set(x.name() for x in
-                      self.blend.attr('baseOrigin').iterDescendants())
-        expected = set([u'blendShape1.baseOriginX',
-                        u'blendShape1.baseOriginY',
-                        u'blendShape1.baseOriginZ'])
+        results = sorted(x.name() for x in
+                         self.blend.attr('baseOrigin').iterDescendants())
+        expected = [u'blendShape1.baseOriginX',
+                    u'blendShape1.baseOriginY',
+                    u'blendShape1.baseOriginZ']
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('baseOrigin').iterDescendants(levels=1))
+        results = sorted(x.name() for x in
+                         self.blend.attr('baseOrigin').iterDescendants(levels=1))
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('baseOrigin').iterDescendants(levels=2))
+        results = sorted(x.name() for x in
+                         self.blend.attr('baseOrigin').iterDescendants(levels=2))
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('baseOrigin').iterDescendants(levels=0))
-        self.assertEqual(results, set())
+        results = sorted(x.name() for x in
+                         self.blend.attr('baseOrigin').iterDescendants(levels=0))
+        self.assertEqual(results, [])
 
 
     def test_multiCompound(self):
-        results = set(x.name() for x in
-                      self.blend.attr('inputTarget').iterDescendants())
-        expected = set([u'blendShape1.inputTarget[0]',
+        results = sorted(x.name() for x in
+                         self.blend.attr('inputTarget').iterDescendants())
+        expected = [u'blendShape1.inputTarget[0]',
             u'blendShape1.inputTarget[0].baseWeights',
             u'blendShape1.inputTarget[0].inputTargetGroup',
             u'blendShape1.inputTarget[0].inputTargetGroup[0]',
@@ -1417,28 +1417,28 @@ class test_Attribute_iterDescendants(unittest.TestCase):
             u'blendShape1.inputTarget[0].normalizationGroup',
             u'blendShape1.inputTarget[0].paintTargetIndex',
             u'blendShape1.inputTarget[0].paintTargetWeights',
-        ])
+        ]
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('inputTarget').iterDescendants(levels=1))
-        expected = set([u'blendShape1.inputTarget[0]'])
+        results = sorted(x.name() for x in
+                         self.blend.attr('inputTarget').iterDescendants(levels=1))
+        expected = [u'blendShape1.inputTarget[0]']
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('inputTarget').iterDescendants(levels=2))
-        expected = set([u'blendShape1.inputTarget[0]',
+        results = sorted(x.name() for x in
+                         self.blend.attr('inputTarget').iterDescendants(levels=2))
+        expected = [u'blendShape1.inputTarget[0]',
             u'blendShape1.inputTarget[0].baseWeights',
             u'blendShape1.inputTarget[0].inputTargetGroup',
             u'blendShape1.inputTarget[0].normalizationGroup',
             u'blendShape1.inputTarget[0].paintTargetIndex',
             u'blendShape1.inputTarget[0].paintTargetWeights',
-        ])
+        ]
         self.assertEqual(results, expected)
 
-        results = set(x.name() for x in
-                      self.blend.attr('inputTarget').iterDescendants(levels=0))
-        self.assertEqual(results, set())
+        results = sorted(x.name() for x in
+                         self.blend.attr('inputTarget').iterDescendants(levels=0))
+        self.assertEqual(results, [])
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
