@@ -1345,8 +1345,100 @@ class test_addAttr(unittest.TestCase):
         self.assertEqual(self.loc.attr('testEnumAttr').getEnums(), newEnums)
 
 
+class test_Attribute_iterDescendants(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.cube1 = pm.polyCube(ch=0)[0]
+        self.cube2 = pm.polyCube(ch=0)[0]
+        self.cube3 = pm.polyCube(ch=0)[0]
+        self.blend = pm.blendShape(self.cube2, self.cube3, self.cube1)[0]
+
+    def test_multi(self):
+        results = set(x.name() for x in
+                      self.blend.attr('weight').iterDescendants())
+        expected = set([u'blendShape1.weight[0]', u'blendShape1.weight[1]'])
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('weight').iterDescendants(levels=1))
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('weight').iterDescendants(levels=2))
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('weight').iterDescendants(levels=0))
+        self.assertEqual(results, set())
+
+    def test_compound(self):
+        results = set(x.name() for x in
+                      self.blend.attr('baseOrigin').iterDescendants())
+        expected = set([u'blendShape1.baseOriginX',
+                        u'blendShape1.baseOriginY',
+                        u'blendShape1.baseOriginZ'])
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('baseOrigin').iterDescendants(levels=1))
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('baseOrigin').iterDescendants(levels=2))
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('baseOrigin').iterDescendants(levels=0))
+        self.assertEqual(results, set())
 
 
+    def test_multiCompound(self):
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants())
+        expected = set([u'blendShape1.inputTarget[0]',
+            u'blendShape1.inputTarget[0].baseWeights',
+            u'blendShape1.inputTarget[0].inputTargetGroup',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0]',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000]',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputGeomTarget',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputPointsTarget',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0].normalizationId',
+            u'blendShape1.inputTarget[0].inputTargetGroup[0].targetWeights',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1]',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1].inputTargetItem',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1].inputTargetItem[6000]',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1].inputTargetItem[6000].inputComponentsTarget',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1].inputTargetItem[6000].inputGeomTarget',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1].inputTargetItem[6000].inputPointsTarget',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1].normalizationId',
+            u'blendShape1.inputTarget[0].inputTargetGroup[1].targetWeights',
+            u'blendShape1.inputTarget[0].normalizationGroup',
+            u'blendShape1.inputTarget[0].paintTargetIndex',
+            u'blendShape1.inputTarget[0].paintTargetWeights',
+        ])
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants(levels=1))
+        expected = set([u'blendShape1.inputTarget[0]'])
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants(levels=2))
+        expected = set([u'blendShape1.inputTarget[0]',
+            u'blendShape1.inputTarget[0].baseWeights',
+            u'blendShape1.inputTarget[0].inputTargetGroup',
+            u'blendShape1.inputTarget[0].normalizationGroup',
+            u'blendShape1.inputTarget[0].paintTargetIndex',
+            u'blendShape1.inputTarget[0].paintTargetWeights',
+        ])
+        self.assertEqual(results, expected)
+
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants(levels=0))
+        self.assertEqual(results, set())
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))

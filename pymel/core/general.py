@@ -3694,6 +3694,55 @@ class Attribute(PyNode):
         return res
     children = getChildren
 
+    def iterDescendants(self, levels=None, leavesOnly=False):
+        '''Yields all attributes "below" this attribute, recursively,
+        traversing down both through multi/array elements, and through
+        compound attribute children.
+
+        Parameters
+        ----------
+        levels : int or None
+            the number of levels deep to descend; each descent from an array
+            to an array element, and from a compound to it's child, counts as
+            one level (so, if you have a compound-multi attr parentAttr, to get
+            to parentAttr[0].child would require levels to be at least 2); None
+            means no limit
+        leavesOnly : bool
+            if True, then results will only be returned if they do not have any
+            children to recurse into (either because it's not an arry or
+            compound, or because we've hit the levels limit)
+        '''
+        if levels is None:
+            nextLevels = None
+        elif levels <= 0:
+            return
+        else:
+            nextLevels = levels - 1
+
+        def hasArrayChildren(attr):
+            return attr.isArray() and attr.evaluateNumElements()
+
+        def isLeaf(attr):
+            return ((nextLevels is not None and nextLevels <= 0) or
+                    (not attr.isCompound() and not hasArrayChildren(attr)))
+
+        if self.isArray():
+            children = iter(self)
+        elif self.isCompound():
+            children = self.getChildren()
+        else:
+            children = []
+
+        for child in children:
+            leaf = isLeaf(child)
+            if not leavesOnly or leaf:
+                yield child
+            if not leaf:
+                for grandChild in child.iterDescendants(levels=nextLevels,
+                                                        leavesOnly=leavesOnly):
+                    yield grandChild
+
+
     def getSiblings(self):
         """
         attributeQuery -listSiblings
