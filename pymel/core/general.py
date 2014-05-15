@@ -2822,7 +2822,7 @@ class Attribute(PyNode):
             >>> vis.name()
             u'perspShape.visibility'
             >>> vis.name(fullDagPath=True)
-            u'perspShape.visibility'
+            u'|persp|perspShape.visibility'
 
             >>> og = SCENE.persp.instObjGroups.objectGroups
             >>> og.name()
@@ -2840,7 +2840,7 @@ class Attribute(PyNode):
             if includeNode:
                 import nodetypes
                 if isinstance(node, nodetypes.DagNode):
-                    name = node.name(fullDagPath)
+                    name = node.name(long=fullDagPath)
                 else:
                     name = node.name()
                 name += '.'
