@@ -935,6 +935,9 @@ class Mel(object):
     def tokenize( *args ):
         raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
 
+    # just a convenient alias
+    globals = melGlobals
+
 mel = Mel()
 
 
