@@ -76,14 +76,26 @@ except (KeyError, AssertionError):
     pathClass = _util.path
 
 
-def _getTypeFromExtension(path):
+def _getTypeFromExtension(path, mode='write'):
+    '''
+    Parameters
+    ----------
+    path : str
+        path from with to pull the extension from - note that it may NOT be
+        ONLY the extension - ie, "obj" and ".obj", will not work, but
+        "foo.obj" will
+    mode : {'write', 'read'}
+        the type is basically a string name of a file translator, which can
+        have different ones registered for reading or writing; this specifies
+        whether you're looking for the read or write translator
+    '''
     ext = Path(path).ext
-    return str(Translator.fromExtension(ext))
+    return str(Translator.fromExtension(ext, mode=mode))
 
-def _setTypeKwargFromExtension(path, kwargs):
+def _setTypeKwargFromExtension(path, kwargs, mode='write'):
     if 'type' not in kwargs and 'typ' not in kwargs:
         try:
-            fileType = _getTypeFromExtension(path)
+            fileType = _getTypeFromExtension(path, mode=mode)
         except Exception:
             pass
         else:
@@ -461,13 +473,33 @@ class Translator(object):
         return cmds.translator(q=1,list=1)
 
     @staticmethod
-    def fromExtension( ext ):
+    def fromExtension(ext, mode=None, caseSensitive=False):
+        if mode is not None and mode not in ('read', 'write'):
+            raise ValueError('mode must be either "read" or "write"')
+
         if ext.startswith('.'):
             ext = ext[1:]
+
+        caseInsensitiveMatch = None
         for k in Translator.listRegistered():
             t = Translator(k)
-            if ext == t.ext:
+            if mode == 'read':
+                if not t.hasReadSupport():
+                    continue
+            elif mode == 'write':
+                if not t.hasWriteSupport():
+                    continue
+            tExt = t.ext
+            if ext == tExt:
                 return t
+            elif (not caseSensitive and caseInsensitiveMatch is None and
+                    tExt.lower() == ext.lower()):
+                # we always PREFER a match that is case-exact, even if
+                # caseSensitive is False, so try all translators before
+                # returning the caseInsensitiveMatch
+                caseInsensitiveMatch = t
+        if caseInsensitiveMatch is not None:
+            return caseInsensitiveMatch
 
     def __init__(self, name):
         assert name in cmds.translator(q=1,list=1), "%s is not the name of a registered translator" % name
