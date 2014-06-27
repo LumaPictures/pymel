@@ -218,6 +218,10 @@ def initMEL():
         #'initAfter.mel', #GUI
         os.path.join( prefsDir, 'pluginPrefs.mel' )  if prefsDir else None
     ]
+    if pymel_options.get( 'skip_initial_plugins', False ):
+        _logger.info( "Skipping loading Initial Plugins" )
+        startup.remove('initialPlugins.mel')
+
     try:
         for f in startup:
             _logger.debug("running: %s" % f)
@@ -232,6 +236,7 @@ def initMEL():
                         encoding = 'string_escape'
                     #import pymel.core.language as lang
                     #lang.mel.source( f.encode(encoding)  )
+
                     import maya.mel
                     maya.mel.eval( 'source "%s"' % f.encode(encoding) )
 
