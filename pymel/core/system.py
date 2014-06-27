@@ -1876,6 +1876,16 @@ def renameFile(newname, *args, **kwargs):
 def saveFile(**kwargs):
     kwargs.pop('s', None)
     kwargs['save'] = True
+
+    # maya sometimes gets in a messed up state, where some methods don't think
+    # the scene has a name, and others do - ie, doing
+    #     cmds.file(q=1, sceneName=1)
+    # will return an empty string, but the titlebar at the top shows a scene
+    # name, and OpenMaya.MFileIO.currentFile() returns a valid filname
+    # so, putting in a check here for that situation, and just doing a rename
+    # if this is the case
+    if sceneName() and not cmds.file(q=1, sceneName=1):
+        cmds.file(rename=sceneName())
     return Path(cmds.file(**kwargs))
 
 
