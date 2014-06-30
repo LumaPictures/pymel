@@ -524,7 +524,9 @@ class StubDoc(Doc):
             # module, we assume an import all was done... note that we're not
             # even checking if they're present in this module with the same
             # name... it's a rough heuristic anyway...
-            if float(len(in_this)) / visible_other > .9:
+
+            # chose .85 just because core.language gets .87 in pymel.core
+            if float(len(in_this)) / visible_other > .85:
                 importall_modules.append(other_mod)
                 # go through and REMOVE all the in_this entries from
                 # id_to_data...
@@ -919,7 +921,9 @@ class StubDoc(Doc):
         realname = object.__name__
         name = name or realname
         skipdocs = 0
+        method = None
         if inspect.ismethod(object):
+            method = object
             object = object.im_func
 
         title = name
@@ -936,7 +940,11 @@ class StubDoc(Doc):
         elif isinstance(object, classmethod):
             decl = '@classmethod\n' + decl
 
-        if skipdocs:
+        if realname == '__getattr__' and method and method.im_class.__name__ == 'Mel':
+            # special case handling for pymel.core.language.Mel.__getattr__,
+            # so that if you do pm.mel.someMelFunction, it thinks it's valid
+            return decl + '\n' + self.indent('return lambda *args: None') + '\n\n'
+        elif skipdocs:
             return decl + 'pass\n'
         else:
             doc = getdoc(object) or ''
