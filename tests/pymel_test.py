@@ -79,7 +79,7 @@ def moduleObjNameSplit(moduleName):
     moduleParts = []
     for name in split:
         try:
-            currentPath = imp.find_module(name, currentPath)[1]
+            currentPath = [imp.find_module(name, currentPath)[1]]
         except ImportError:
             break
         moduleParts.append(name)

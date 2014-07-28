@@ -80,19 +80,77 @@ class DependNode( general.PyNode ):
         self._name = self.__apimfn__().name()
         return self._name
 
-    def name(self, update=True, stripNamespace=False) :
-        """
-        :rtype: `unicode`
-        """
+    # TODO: unify handling of name parsing (perhaps around the name parser
+    # classes?
+    def name(self, update=True, stripNamespace=False, levels=0, long=False,
+             stripUnderWorld=False):
+        '''The name of the node
 
+        Returns
+        -------
+        unicode
+
+        Parameters
+        ----------
+        update : bool
+            if True, will always query to underlying maya object to get it's
+            current name (and will therefore detect renames, re-parenting, etc);
+            if False, it will use a cached value if available (which is slightly
+            faster, but may be out of date)
+        stripNamespace : bool
+            if True, all nodes will have their namespaces stipped off of them
+            (or a certain number of them, if levels is also used)
+        levels : int
+            if stripNamespace is True, then this number will determine the how
+            many namespaces will be removed; if 0 (the default), then all
+            leading namespaces will be removed; otherwise, this value gives the
+            number of left-most levels to strip
+        long : bool
+            ignored; included simply to unify the interface between DependNode
+            and DagNode, to make it easier to loop over lists of them
+        stripUnderWorld : bool
+            ignored; included simply to unify the interface between DependNode
+            and DagNode, to make it easier to loop over lists of them
+
+
+        Examples
+        --------
+        >>> import pymel.core as pm
+        >>> pm.newFile(f=1)
+        ''
+        >>> node = pm.createNode('blinn')
+
+        >>> pm.namespace(add='foo')
+        u'foo'
+        >>> pm.namespace(add='bar', parent='foo')
+        u'foo:bar'
+        >>> pm.namespace(add='stuff', parent='foo:bar')
+        u'foo:bar:stuff'
+
+        >>> node.rename(':foo:bar:stuff:blinn1')
+        nt.Blinn(u'foo:bar:stuff:blinn1')
+
+        >>> node.name()
+        u'foo:bar:stuff:blinn1'
+        >>> node.name(stripNamespace=True)
+        u'blinn1'
+        >>> node.name(stripNamespace=True, levels=1)
+        u'bar:stuff:blinn1'
+        >>> node.name(stripNamespace=True, levels=2)
+        u'stuff:blinn1'
+        '''
         if update or self._name is None:
             try:
                 self._updateName()
             except general.MayaObjectError:
-                _logger.warn( "object %s no longer exists" % self._name )
+                _logger.warn("object %s no longer exists" % self._name)
         name = self._name
         if stripNamespace:
-            name = name.rsplit(':', 1)[-1]
+            if levels:
+                spaceSplit = name.split(':')
+                name = ':'.join(spaceSplit[min(len(spaceSplit) - 1, levels):])
+            else:
+                name = name.rsplit(':', 1)[-1]
         return name
 
     def namespace(self, root=False):
@@ -104,31 +162,34 @@ class DependNode( general.PyNode ):
         By default, if the object is in the root namespace, an empty string is
         returned; if root is True, ':' is returned in this case.
 
-        :rtype: `unicode`
-
+        Returns
+        -------
+        unicode
         """
         ns = self.parentNamespace()
         if ns or root:
             ns += ':'
         return ns
 
-    def shortName(self):
+    def shortName(self, **kwargs):
+        """
+        This produces the same results as `DependNode.name` and is included to simplify looping over lists
+        of nodes that include both Dag and Depend nodes.
+
+        Returns
+        -------
+        unicode
+        """
+        return self.name(**kwargs)
+
+    def longName(self, **kwargs):
         """
         This produces the same results as `DependNode.name` and is included to simplify looping over lists
         of nodes that include both Dag and Depend nodes.
 
         :rtype: `unicode`
         """
-        return self.name()
-
-    def longName(self):
-        """
-        This produces the same results as `DependNode.name` and is included to simplify looping over lists
-        of nodes that include both Dag and Depend nodes.
-
-        :rtype: `unicode`
-        """
-        return self.name()
+        return self.name(**kwargs)
 
     def nodeName(self, **kwargs):
         """
@@ -782,8 +843,7 @@ class DagNode(Entity):
                 comps.append(self.comp(name))
         return comps
 
-
-    def _updateName(self, long=False) :
+    def _updateName(self, long=False):
         #if _api.isValidMObjectHandle(self._apiobject) :
             #obj = self._apiobject.object()
             #dagFn = _api.MFnDagNode(obj)
@@ -796,75 +856,373 @@ class DagNode(Entity):
                 raise general.MayaNodeError
 
             self._name = name
-            if long :
+            if long:
                 return dag.fullPathName()
 
         return self._name
 
-    def name(self, update=True, long=False) :
+    # TODO: unify handling of name parsing (perhaps around the name parser
+    # classes?
+    # TODO: support for underworld nodes
+    def name(self, update=True, long=False, stripNamespace=False, levels=0,
+             stripUnderWorld=False):
+        '''The name of the node
+
+        Parameters
+        ----------
+        update : bool
+            if True, will always query to underlying maya object to get it's
+            current name (and will therefore detect renames, re-parenting, etc);
+            if False, it will use a cached value if available (which is slightly
+            faster, but may be out of date)
+        long : {True, False, None}
+            if True, will include always include the full dag path, starting
+            from the world root, including leading pipe ( | ); if False, will
+            return the shortest-unique path; if None, node names will always be
+            returned without any parents, if if they are not unique
+        stripNamespace : bool
+            if True, all nodes will have their namespaces stipped off of them
+            (or a certain number of them, if levels is also used)
+        levels : int
+            if stripNamespace is True, then this number will determine the how
+            many namespaces will be removed; if 0 (the default), then all
+            leading namespaces will be removed; otherwise, this value gives the
+            number of left-most levels to strip
+        stripUnderWorld : bool
+            if stripUnderWorld is True, and the name has underworld components
+            (ie, topNode|topNodeShape->underWorld|underWorldShape), then only
+            the portion in the "deepest underworld" is returned (ie,
+            underWorld|underWorldShape)
+
+
+        Returns
+        -------
+        unicode
+
+
+        Examples
+        --------
+        >>> import pymel.core as pm
+        >>> pm.newFile(f=1)
+        ''
+        >>> cube1 = pm.polyCube()[0]
+        >>> cube2 = pm.polyCube()[0]
+        >>> cube3 = pm.polyCube()[0]
+        >>> cube3Shape = cube3.getShape()
+
+        >>> cube2.setParent(cube1)
+        nt.Transform(u'pCube2')
+        >>> cube3.setParent(cube2)
+        nt.Transform(u'pCube3')
+
+        >>> pm.namespace(add='foo')
+        u'foo'
+        >>> pm.namespace(add='bar', parent='foo')
+        u'foo:bar'
+        >>> pm.namespace(add='stuff', parent='foo:bar')
+        u'foo:bar:stuff'
+
+        >>> cube2.rename(':foo:pCube2')
+        nt.Transform(u'foo:pCube2')
+        >>> cube3.rename(':foo:bar:pCube3')
+        nt.Transform(u'foo:bar:pCube3')
+        >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
+        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+
+        >>> cube3Shape.name()
+        u'foo:bar:stuff:pCubeShape3'
+        >>> cube3Shape.name(stripNamespace=True)
+        u'pCubeShape3'
+        >>> cube3Shape.name(long=True)
+        u'|pCube1|foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
+        >>> cube3Shape.name(long=True, stripNamespace=True)
+        u'|pCube1|pCube2|pCube3|pCubeShape3'
+        >>> cube3Shape.name(long=True, stripNamespace=True, levels=1)
+        u'|pCube1|pCube2|bar:pCube3|bar:stuff:pCubeShape3'
+        >>> cube3Shape.name(long=True, stripNamespace=True, levels=2)
+        u'|pCube1|pCube2|pCube3|stuff:pCubeShape3'
+
+        >>> cam = pm.camera()[0]
+        >>> cam.setParent(cube2)
+        nt.Transform(u'camera1')
+        >>> imagePlane = pm.imagePlane(camera=cam.getShape())[1]
+        >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+
+        >>> imagePlane.name()
+        u'cameraShape1->foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.name(stripUnderWorld=True)
+        u'foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.name(stripNamespace=True, levels=1)
+        u'cameraShape1->bar:stuff:imagePlaneShape1'
+        >>> imagePlane.name(stripUnderWorld=True, long=True)
+        u'|imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.name(stripUnderWorld=True, stripNamespace=True, long=True)
+        u'|imagePlane1|imagePlaneShape1'
+        '''
+#         if long is None:
+#             pysrc = '/Volumes/luma/_globalSoft/python/thirdParty/source/pydevd/pysrc'
+#             if pysrc not in sys.path:
+#                 sys.path.append('/Volumes/luma/_globalSoft/python/thirdParty/source/pydevd/pysrc')
+#             import pydevd
+#             pydevd.settrace()
 
         if update or long or self._name is None:
             try:
-                return self._updateName(long)
+                name = self._updateName(long)
             except general.MayaObjectError:
-                _logger.warn( "object %s no longer exists" % self._name )
-        return self._name
+                _logger.warn("object %s no longer exists" % self._name)
+        else:
+            name = self._name
 
-    def longName(self,stripNamespace=False,levels=0):
+        if stripNamespace or stripUnderWorld or long is None:
+            worlds = []
+            underworldSplit = name.split('->')
+            if stripUnderWorld:
+                underworldSplit = [underworldSplit[-1]]
+
+            for worldName in underworldSplit:
+                if stripNamespace or long is None:
+                    parentSplit = worldName.split('|')
+                    if long is None:
+                        parentSplit = [parentSplit[-1]]
+                    if stripNamespace:
+                        nodes = []
+                        for node in parentSplit:
+                            # not sure what dag node has a "." in it's name, but keeping
+                            # this code here just in case...
+                            dotSplit = node.split('.')
+                            spaceSplit = dotSplit[0].split(':')
+                            if levels:
+                                dotSplit[0] = ':'.join(spaceSplit[min(len(spaceSplit) - 1,
+                                                                      levels):])
+                            else:
+                                dotSplit[0] = spaceSplit[-1]
+                            nodes.append('.'.join(dotSplit))
+                    else:
+                        nodes = parentSplit
+                    worldName = '|'.join(nodes)
+                worlds.append(worldName)
+            name = '->'.join(worlds)
+        return name
+
+    def longName(self, **kwargs):
         """
         The full dag path to the object, including leading pipe ( | )
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
+
+        Examples
+        --------
+        >>> import pymel.core as pm
+        >>> pm.newFile(f=1)
+        ''
+        >>> cube1 = pm.polyCube()[0]
+        >>> cube2 = pm.polyCube()[0]
+        >>> cube3 = pm.polyCube()[0]
+        >>> cube3Shape = cube3.getShape()
+
+        >>> cube2.setParent(cube1)
+        nt.Transform(u'pCube2')
+        >>> cube3.setParent(cube2)
+        nt.Transform(u'pCube3')
+
+        >>> pm.namespace(add='foo')
+        u'foo'
+        >>> pm.namespace(add='bar', parent='foo')
+        u'foo:bar'
+        >>> pm.namespace(add='stuff', parent='foo:bar')
+        u'foo:bar:stuff'
+
+        >>> cube2.rename(':foo:pCube2')
+        nt.Transform(u'foo:pCube2')
+        >>> cube3.rename(':foo:bar:pCube3')
+        nt.Transform(u'foo:bar:pCube3')
+        >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
+        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+
+        >>> cube3Shape.longName()
+        u'|pCube1|foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
+        >>> cube3Shape.longName(stripNamespace=True)
+        u'|pCube1|pCube2|pCube3|pCubeShape3'
+        >>> cube3Shape.longName(stripNamespace=True, levels=1)
+        u'|pCube1|pCube2|bar:pCube3|bar:stuff:pCubeShape3'
+        >>> cube3Shape.longName(stripNamespace=True, levels=2)
+        u'|pCube1|pCube2|pCube3|stuff:pCubeShape3'
+
+        >>> cam = pm.camera()[0]
+        >>> cam.setParent(cube2)
+        nt.Transform(u'camera1')
+        >>> imagePlane = pm.imagePlane(camera=cam.getShape())[1]
+        >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+
+        >>> imagePlane.longName()
+        u'|pCube1|foo:pCube2|camera1|cameraShape1->|imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.longName(stripUnderWorld=True)
+        u'|imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.longName(stripNamespace=True, levels=1)
+        u'|pCube1|pCube2|camera1|cameraShape1->|imagePlane1|bar:stuff:imagePlaneShape1'
+        >>> imagePlane.longName(stripUnderWorld=True, stripNamespace=True)
+        u'|imagePlane1|imagePlaneShape1'
         """
-        if stripNamespace:
-            name = self.name(long=True)
-            nodes = []
-            for x in name.split('|'):
-                y = x.split('.')
-                z = y[0].split(':')
-                if levels:
-                    y[0] = ':'.join( z[min(len(z)-1,levels):] )
-
-                else:
-                    y[0] = z[-1]
-                nodes.append( '.'.join( y ) )
-            stripped_name = '|'.join( nodes)
-            return stripped_name
-
-        return self.name(long=True)
+        return self.name(long=True, **kwargs)
     fullPath = longName
 
-    def shortName( self ):
+    def shortName(self, **kwargs):
         """
         The shortest unique name.
 
-        :rtype: `unicode`
-        """
-        return self.name(long=False)
+        Returns
+        -------
+        unicode
 
-    def nodeName( self, stripNamespace=False, stripUnderWorld=True ):
+        Examples
+        --------
+        >>> import pymel.core as pm
+        >>> pm.newFile(f=1)
+        ''
+        >>> cube1 = pm.polyCube()[0]
+        >>> cube2 = pm.polyCube()[0]
+        >>> cube3 = pm.polyCube()[0]
+        >>> cube3Shape = cube3.getShape()
+
+        >>> cube2.setParent(cube1)
+        nt.Transform(u'pCube2')
+        >>> cube3.setParent(cube2)
+        nt.Transform(u'pCube3')
+
+        >>> pm.namespace(add='foo')
+        u'foo'
+        >>> pm.namespace(add='bar', parent='foo')
+        u'foo:bar'
+        >>> pm.namespace(add='stuff', parent='foo:bar')
+        u'foo:bar:stuff'
+
+        >>> cube2.rename(':foo:pCube2')
+        nt.Transform(u'foo:pCube2')
+        >>> cube3.rename(':foo:bar:pCube3')
+        nt.Transform(u'foo:bar:pCube3')
+        >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
+        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+
+        >>> cube3Shape.shortName()
+        u'foo:bar:stuff:pCubeShape3'
+        >>> cube3Shape.shortName(stripNamespace=True)
+        u'pCubeShape3'
+        >>> cube3Shape.shortName(stripNamespace=True, levels=1)
+        u'bar:stuff:pCubeShape3'
+        >>> cube3Shape.shortName(stripNamespace=True, levels=2)
+        u'stuff:pCubeShape3'
+
+        >>> cam = pm.camera()[0]
+        >>> cam.setParent(cube2)
+        nt.Transform(u'camera1')
+        >>> imagePlane = pm.imagePlane(camera=cam.getShape())[1]
+        >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+
+        >>> imagePlane.shortName()
+        u'cameraShape1->foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.shortName(stripUnderWorld=True)
+        u'foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.shortName(stripNamespace=True, levels=1)
+        u'cameraShape1->bar:stuff:imagePlaneShape1'
+        >>> imagePlane.shortName(stripUnderWorld=True)
+        u'foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.shortName(stripUnderWorld=True, stripNamespace=True)
+        u'imagePlaneShape1'
+        """
+        return self.name(long=False, **kwargs)
+
+    # TODO: better support for underworld nodes (ie, in conjunction with
+    # stripNamespace)
+    def nodeName(self, stripUnderWorld=True, **kwargs):
         """
         Just the name of the node, without any dag path
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
+
+        Examples
+        --------
+        >>> import pymel.core as pm
+        >>> pm.newFile(f=1)
+        ''
+        >>> cube1 = pm.polyCube()[0]
+        >>> cube2 = pm.polyCube()[0]
+        >>> cube3 = pm.polyCube()[0]
+        >>> cube3Shape = cube3.getShape()
+
+        >>> cube2.setParent(cube1)
+        nt.Transform(u'pCube2')
+        >>> cube3.setParent(cube2)
+        nt.Transform(u'pCube3')
+
+        >>> pm.namespace(add='foo')
+        u'foo'
+        >>> pm.namespace(add='bar', parent='foo')
+        u'foo:bar'
+        >>> pm.namespace(add='stuff', parent='foo:bar')
+        u'foo:bar:stuff'
+
+        >>> cube2.rename(':foo:pCube2')
+        nt.Transform(u'foo:pCube2')
+        >>> cube3.rename(':foo:bar:pCube3')
+        nt.Transform(u'foo:bar:pCube3')
+        >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
+        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+
+        >>> # create an object with the same name as pCube3 / pCube4
+        >>> cube3Twin = pm.polyCube()[0]
+        >>> cube3Twin.rename('foo:bar:pCube3')
+        nt.Transform(u'|foo:bar:pCube3')
+        >>> cube3ShapeTwin = cube3Twin.getShape()
+        >>> cube3ShapeTwin.rename('foo:bar:stuff:pCubeShape3')
+        nt.Mesh(u'|foo:bar:pCube3|foo:bar:stuff:pCubeShape3')
+
+        >>> cube3Shape.shortName()
+        u'foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
+        >>> cube3Shape.nodeName()
+        u'foo:bar:stuff:pCubeShape3'
+        >>> cube3Shape.nodeName(stripNamespace=True)
+        u'pCubeShape3'
+        >>> cube3Shape.nodeName(stripNamespace=True, levels=1)
+        u'bar:stuff:pCubeShape3'
+        >>> cube3Shape.nodeName(stripNamespace=True, levels=2)
+        u'stuff:pCubeShape3'
+
+        >>> cam = pm.camera()[0]
+        >>> cam.setParent(cube2)
+        nt.Transform(u'camera1')
+        >>> imagePlaneTrans, imagePlane = pm.imagePlane(camera=cam.getShape())
+        >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+
+        >>> # create an object with the same name as cam
+        >>> pm.camera()[0].setParent(cube3Twin).rename('camera1')
+        nt.Transform(u'|foo:bar:pCube3|camera1')
+
+        >>> # create an object with the same name as imagePlane
+        >>> imagePlaneTwinTrans, imagePlaneTwin = pm.imagePlane(camera=cam.getShape())
+        >>> imagePlaneTwin.rename('foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane(u'foo:pCube2|camera1|cameraShape1->imagePlane2|foo:bar:stuff:imagePlaneShape1')
+
+        >>> imagePlane.shortName()
+        u'foo:pCube2|camera1|cameraShape1->imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.nodeName()
+        u'foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.nodeName(stripUnderWorld=False)
+        u'cameraShape1->foo:bar:stuff:imagePlaneShape1'
+        >>> imagePlane.nodeName(stripNamespace=True)
+        u'imagePlaneShape1'
+        >>> imagePlane.nodeName(stripNamespace=True, levels=1)
+        u'bar:stuff:imagePlaneShape1'
         """
-        parts = self.name().rsplit('>', 1)
-        if len(parts) > 1:
-            # underworld nodes use -> as a separator.
-            # e.g. foo|bar|this->|plate|plateShape
-            underworld, name = parts[-2:]
-            # get shortname of component after the underworld separator (->)
-            name = name.rsplit('|', 1)[-1]
-            if not stripUnderWorld:
-                name = underworld + '>' + name
-        else:
-            name = parts[0]
-        name = name.rsplit('|', 1)[-1]
-
-        if stripNamespace:
-            name = name.rsplit(':', 1)[-1]
-        return name
-
+        return self.name(long=None, stripUnderWorld=stripUnderWorld, **kwargs)
 
     def __apiobject__(self) :
         "get the MDagPath for this object if it is valid"
