@@ -2676,6 +2676,22 @@ class testCase_listAttr(unittest.TestCase):
         ]
         self.assertEqual(results, expected)
 
+
+# current behavior is that using invalid nodes only raises a warning - may want
+# to make this an error at some point, but for now, need to preserve this
+# behavior
+
+class testCase_invalidNode(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+
+    def test_invalidNodeName(self):
+        oldNode = pm.group(name='foo')
+        self.assertEqual(oldNode.name(), 'foo')
+        pm.delete(oldNode)
+        self.assertEqual(oldNode.name(), 'foo')
+
+
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #
