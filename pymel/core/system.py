@@ -141,23 +141,6 @@ def untitledFileName():
     """
     return _mel.eval('untitledFileName()')
 
-def undoInfo(*args, **kwargs):
-    """
-Modifications:
-    - when state is turned off, also clears pymel's api undo queue
-    """
-    if kwargs.get('state', kwargs.get('st', None )) in [False, 0]:
-        _factories.apiUndo.flushUndo()
-    return cmds.undoInfo(*args, **kwargs)
-
-def flushUndo():
-    """
-Modifications:
-    - also clears pymel's api undo queue
-    """
-    _factories.apiUndo.flushUndo()
-    return cmds.flushUndo()
-
 class UndoChunk(object):
     '''Context manager for encapsulating code in a single undo.
 

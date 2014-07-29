@@ -646,7 +646,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 class testCase_apiUndo(unittest.TestCase):
 
     def setUp(self):
-
+        self.origUndoState = cmds.undoInfo(q=1, state=1)
         # reset all undo queues
         cmds.undoInfo(state=0)
         setAttr( 'persp.focalLength', 35 )
@@ -654,45 +654,87 @@ class testCase_apiUndo(unittest.TestCase):
         factories.apiUndo.flushUndo()
         cmds.undoInfo(state=1)
 
-    def test_undo(self):
-        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
+    def test_undo_cmds(self):
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
+        self.assertEqual(SCENE.top.getFocalLength(), 35)
         SCENE.top.setFocalLength(20)
-        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-
-        undoInfo(stateWithoutFlush=0)#--------------------------------
+        cmds.undoInfo(stateWithoutFlush=0)  #--------------------------------
 
         SCENE.persp.setFocalLength(20)
-        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-        undoInfo(stateWithoutFlush=1)#--------------------------------
+        cmds.undoInfo(stateWithoutFlush=1)  #--------------------------------
 
-        undo() # undo top focal length back to 35
+        cmds.undo()  # undo top focal length back to 35
 
-        self.assert_( SCENE.top.getFocalLength() == 35.0 )
-        self.assert_( SCENE.persp.getFocalLength() == 20.0 )
+        self.assertEqual(SCENE.top.getFocalLength(), 35.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
 
-        redo()
+        cmds.redo()
 
-        self.assert_( SCENE.top.getFocalLength() == 20.0 )
-        self.assert_( SCENE.persp.getFocalLength() == 20.0 )
-        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
         # clear maya's undo queue
         # we override undoInfo in system to flush the cache
-        undoInfo( state=0)
-        undoInfo( state=1)
+        cmds.undoInfo(state=0)
+        cmds.undoInfo(state=1)
 
-        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
         SCENE.top.setFocalLength(200)
-        undo()
+        cmds.undo()
 
-        self.assert_( SCENE.persp.getFocalLength() == 20.0 )
-        self.assert_( SCENE.top.getFocalLength() == 20.0 )
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
 
-        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
+
+    def test_undo_pm(self):
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
+
+        self.assertEqual(SCENE.top.getFocalLength(), 35)
+        SCENE.top.setFocalLength(20)
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
+
+        pm.undoInfo(stateWithoutFlush=0)  #--------------------------------
+
+        SCENE.persp.setFocalLength(20)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
+
+        pm.undoInfo(stateWithoutFlush=1)  #--------------------------------
+
+        pm.undo()  # undo top focal length back to 35
+
+        self.assertEqual(SCENE.top.getFocalLength(), 35.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
+
+        pm.redo()
+
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
+
+        # clear maya's undo queue
+        # we override undoInfo in system to flush the cache
+        pm.undoInfo(state=0)
+        pm.undoInfo(state=1)
+
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
+
+        SCENE.top.setFocalLength(200)
+        pm.undo()
+
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
 #    def tearDown(self):
 #
@@ -705,6 +747,8 @@ class testCase_apiUndo(unittest.TestCase):
 
     def tearDown(self):
         # cleaning
+        if self.origUndoState != cmds.undoInfo(q=1, state=1):
+            cmds.undoInfo(state=self.origUndoState)
         newFile(f=1)
 
 class testCase_listHistory(unittest.TestCase):

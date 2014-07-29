@@ -1820,7 +1820,7 @@ class ApiArgUtil(object):
         return self.methodInfo.get('deprecated', False)
 
 
-class ApiUndo:
+class ApiUndo(object):
     """
     this is based on a clever prototype that Dean Edmonds posted on python_inside_maya
     awhile back.  it works like this:
@@ -1847,6 +1847,49 @@ class ApiUndo:
         self.undo_queue = []
         self.redo_queue = []
 
+        self.installUndoStateCallbacks()
+
+    def installUndoStateCallbacks(self):
+        # Unfortunately, I couldn't find any callback that is triggered directly
+        # when the undo state is changed or flushed; however, we can get a
+        # callback to trigger whenever there is nothing to do or undo, which
+        # is nearly as good...
+
+        # First we set up a condition that should trip whenever there are no
+        # undos or redos available...
+
+        # alas, the condition command doesn't seem to work with python...
+        # ...and it seems that in 2014, cmds.eval doesn't always work (??)...
+        # so use api.MGlobal.executeCommand instead...
+        api.MGlobal.executeCommand('''
+        global proc int _pymel_undoOrRedoAvailable()
+        {
+            return (isTrue("UndoAvailable") || isTrue("RedoAvailable"));
+        }
+        ''', False, False)
+        cmds.condition('UndoOrRedoAvailable', initialize=True,
+                       d=['UndoAvailable', 'RedoAvailable'],
+                       s='_pymel_undoOrRedoAvailable')
+
+        # Now, we install our callback...
+        id = api.MConditionMessage.addConditionCallback('UndoOrRedoAvailable',
+                                                        self.flushCallback)
+        self.undoStateCallbackId = id
+
+    def flushCallback(self, undoOrRedoAvailable, *args):
+        if undoOrRedoAvailable:
+            return
+
+        # we're trying to detect flush events, either from calling flush, or
+        # from disabling undos... so, basically, we just check to see if there
+        # is nothing in the undo / redo queue, and if so, we assume there was
+        # a flush!
+        if not (cmds.undoInfo(q=1, undoQueueEmpty=1)
+                and cmds.undoInfo(q=1, redoQueueEmpty=1)):
+            return
+
+        # ok, looks like there was a flush...
+        self.flushUndo()
 
     def _attrChanged(self, msg, plug, otherPlug, data):
         if self.cb_enabled\
@@ -1859,20 +1902,24 @@ class ApiUndo:
             if api.MGlobal.isUndoing():
                 #cmds.undoInfo(state=0)
                 self.cb_enabled = False
-                cmdObj = self.undo_queue.pop()
-                cmdObj.undoIt()
-                self.redo_queue.append(cmdObj)
-                #cmds.undoInfo(state=1)
-                self.cb_enabled = True
+                try:
+                    cmdObj = self.undo_queue.pop()
+                    cmdObj.undoIt()
+                    self.redo_queue.append(cmdObj)
+                finally:
+                    # cmds.undoInfo(state=1)
+                    self.cb_enabled = True
 
             elif api.MGlobal.isRedoing():
                 #cmds.undoInfo(state=0)
                 self.cb_enabled = False
-                cmdObj = self.redo_queue.pop()
-                cmdObj.redoIt()
-                self.undo_queue.append(cmdObj)
-                #cmds.undoInfo(state=1)
-                self.cb_enabled = True
+                try:
+                    cmdObj = self.redo_queue.pop()
+                    cmdObj.redoIt()
+                    self.undo_queue.append(cmdObj)
+                finally:
+                    # cmds.undoInfo(state=1)
+                    self.cb_enabled = True
 
     def _attrChanged_85(self):
         print "attr changed", self.cb_enabled, api.MGlobal.isUndoing()
@@ -1940,29 +1987,29 @@ class ApiUndo:
             return
 
         self.cb_enabled = False
-
-        # Increment the undo node's command count. We want this to go into
-        # Maya's undo queue because changes to this attr will trigger our own
-        # undo/redo code.
         try:
-            count = cmds.getAttr(self.node_name + '.cmdCount')
-        except Exception:
-            if not cmds.objExists(self.node_name):
-                self._createNode()
+            # Increment the undo node's command count. We want this to go into
+            # Maya's undo queue because changes to this attr will trigger our own
+            # undo/redo code.
+            try:
                 count = cmds.getAttr(self.node_name + '.cmdCount')
-            else:
-                raise
+            except Exception:
+                if not cmds.objExists(self.node_name):
+                    self._createNode()
+                    count = cmds.getAttr(self.node_name + '.cmdCount')
+                else:
+                    raise
 
-        cmds.setAttr(self.node_name + '.cmdCount', count + 1)
+            cmds.setAttr(self.node_name + '.cmdCount', count + 1)
 
-        # Append the command to the end of the undo queue.
-        self.undo_queue.append(cmdObj)
+            # Append the command to the end of the undo queue.
+            self.undo_queue.append(cmdObj)
 
-        # Clear the redo queue.
-        self.redo_queue = []
-
-        # Re-enable the callback.
-        self.cb_enabled = True
+            # Clear the redo queue.
+            self.redo_queue = []
+        finally:
+            # Re-enable the callback.
+            self.cb_enabled = True
 
     def execute(self, cmdObj, *args):
         # Execute the command object's 'doIt' method.
@@ -1973,7 +2020,6 @@ class ApiUndo:
     def flushUndo( self, *args ):
         self.undo_queue = []
         self.redo_queue = []
-        self.cb_enabled = False
 
 
 apiUndo = ApiUndo()
