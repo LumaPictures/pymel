@@ -960,13 +960,6 @@ class DagNode(Entity):
         >>> imagePlane.name(stripUnderWorld=True, stripNamespace=True, long=True)
         u'|imagePlane1|imagePlaneShape1'
         '''
-#         if long is None:
-#             pysrc = '/Volumes/luma/_globalSoft/python/thirdParty/source/pydevd/pysrc'
-#             if pysrc not in sys.path:
-#                 sys.path.append('/Volumes/luma/_globalSoft/python/thirdParty/source/pydevd/pysrc')
-#             import pydevd
-#             pydevd.settrace()
-
         if update or long or self._name is None:
             try:
                 name = self._updateName(long)
