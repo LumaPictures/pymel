@@ -972,6 +972,7 @@ class DagNode(Entity):
                 name = self._updateName(long)
             except general.MayaObjectError:
                 _logger.warn("object %s no longer exists" % self._name)
+                name = self._name
         else:
             name = self._name
 
