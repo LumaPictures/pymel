@@ -405,7 +405,7 @@ class RemovedKey(object):
         return self.oldVal == other.oldVal
 
     def __ne__(self, other):
-        return self.oldVal != other.oldVal
+        return not self.oldVal == other.oldVal
 
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self.oldVal)
@@ -418,12 +418,27 @@ class AddedKey(object):
         return self.newVal == other.newVal
 
     def __ne__(self, other):
-        return self.newVal != other.newVal
+        return not self.newVal == other.newVal
 
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self.newVal)
 
-def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False):
+class ChangedKey(object):
+    def __init__(self, oldVal, newVal):
+        self.oldVal = oldVal
+        self.newVal = newVal
+
+    def __eq__(self, other):
+        return self.newVal == other.newVal and self.oldVal == other.oldVal
+
+    def __ne__(self, other):
+        return not self.newVal == other.newVal
+
+    def __repr__(self):
+        return '%s(%r, %r)' % (type(self).__name__, self.oldVal, self.newVal)
+
+def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
+                          useChangedKeys=False):
     '''compares two cascading dicts
 
     Parameters
@@ -448,6 +463,11 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False):
         treat AddedKey objects exactly the same as though they were their
         contents - ie, useAddedKeys should make no difference to the behavior
         of mergeCascadingDicts
+    useChangedKeys : bool
+        if True, then similarly to how 'RemovedKey' objects are used in the
+        returned diferences object (see the Returns section), 'ChangedKey'
+        objects are used for keys which exist in both dict1 and dict2, but with
+        different values
 
     Returns
     -------
@@ -469,73 +489,93 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False):
         The return value should be such that if you do if you merge the
         differences with d1, you will get d2.
     '''
-    if isinstance(dict1, (list, tuple)):
-        dict1 = dict(enumerate(dict1))
-    if isinstance(dict2, (list, tuple)):
-        dict2 = dict(enumerate(dict2))
-    v1 = set(dict1)
-    v2 = set(dict2)
+    areSets = False
+    if isinstance(dict1, set) and isinstance(dict2, set):
+        areSets = True
+        v1 = dict1
+        v2 = dict2
+    else:
+        if isinstance(dict1, (list, tuple)):
+            dict1 = dict(enumerate(dict1))
+        if isinstance(dict2, (list, tuple)):
+            dict2 = dict(enumerate(dict2))
+        v1 = set(dict1)
+        v2 = set(dict2)
     both = v1 & v2
     only1 = v1 - both
     only2 = v2 - both
 
-    recurseTypes = (dict, list, tuple)
-    strUnicode = set([str, unicode])
-    if useAddedKeys:
-        differences = dict( (key, AddedKey(dict2[key])) for key in only2)
-    else:
-        differences = dict( (key, dict2[key]) for key in only2)
-    differences.update( (key, RemovedKey(dict1[key])) for key in only1 )
-
-    for key in both:
-        val1 = dict1[key]
-        val2 = dict2[key]
-
-        areRecurseTypes = isinstance(val1, recurseTypes) and isinstance(val2, recurseTypes)
-        if areRecurseTypes:
-            # we have a type that we need to recurse into, and either they
-            # compare not equal, or encoding is False (in which case they
-            # may compare python-equal, but could have some str-unicode
-            # equalities, so we need to verify for ourselves):
-            if encoding is False or val1 != val2:
-                subDiffs = compareCascadingDicts(val1, val2, encoding=encoding,
-                                                 useAddedKeys=useAddedKeys)[-1]
-                if subDiffs:
-                    differences[key] = subDiffs
+    if areSets:
+        if useAddedKeys:
+            differences = set(AddedKey(key) for key in only2)
         else:
-            # ok, we're not doing a recursive comparison...
-            isStrUnicode = (set([type(val1), type(val2)]) == strUnicode)
-            if isStrUnicode:
-                # we have a string and a unicode - decide what to do based on
-                # encoding setting
-                if encoding is False:
-                    equal = False
-                elif encoding is None:
-                    equal = (val1 == val2)
-                else:
-                    if type(val1) == unicode:
-                        strVal = val2
-                        unicodeVal = val1
-                    else:
-                        strVal = val1
-                        unicodeVal = val2
-                    try:
-                        encoded = unicodeVal.encode(encoding)
-                    except UnicodeEncodeError:
-                        # if there's an encoding error, consider them different
-                        equal = False
-                    else:
-                        equal = (encoded == strVal)
-            else:
-                equal = (val1 == val2)
+            differences = set(only2)
+        differences.update(RemovedKey(key) for key in only1)
+    else:
+        recurseTypes = (dict, list, tuple, set)
+        strUnicode = set([str, unicode])
+        if useAddedKeys:
+            differences = dict((key, AddedKey(dict2[key])) for key in only2)
+        else:
+            differences = dict((key, dict2[key]) for key in only2)
+        differences.update((key, RemovedKey(dict1[key])) for key in only1)
 
-            if not equal:
-                differences[key] = val2
+        for key in both:
+            val1 = dict1[key]
+            val2 = dict2[key]
+
+            areRecurseTypes = (isinstance(val1, recurseTypes)
+                               and isinstance(val2, recurseTypes))
+            if areRecurseTypes:
+                # we have a type that we need to recurse into, and either they
+                # compare not equal, or encoding is False (in which case they
+                # may compare python-equal, but could have some str-unicode
+                # equalities, so we need to verify for ourselves):
+                if encoding is False or val1 != val2:
+                    subDiffs = compareCascadingDicts(val1, val2,
+                                                     encoding=encoding,
+                                                     useAddedKeys=useAddedKeys,
+                                                     useChangedKeys=useChangedKeys)[-1]
+                    if subDiffs:
+                        differences[key] = subDiffs
+            else:
+                # ok, we're not doing a recursive comparison...
+                isStrUnicode = (set([type(val1), type(val2)]) == strUnicode)
+                if isStrUnicode:
+                    # we have a string and a unicode - decide what to do based on
+                    # encoding setting
+                    if encoding is False:
+                        equal = False
+                    elif encoding is None:
+                        equal = (val1 == val2)
+                    else:
+                        if type(val1) == unicode:
+                            strVal = val2
+                            unicodeVal = val1
+                        else:
+                            strVal = val1
+                            unicodeVal = val2
+                        try:
+                            encoded = unicodeVal.encode(encoding)
+                        except UnicodeEncodeError:
+                            # if there's an encoding error, consider them
+                            # different
+                            equal = False
+                        else:
+                            equal = (encoded == strVal)
+                else:
+                    equal = (val1 == val2)
+
+                if not equal:
+                    if useChangedKeys:
+                        differences[key] = ChangedKey(val1, val2)
+                    else:
+                        differences[key] = val2
 
     return both, only1, only2, differences
 
-def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False,
-                         allowNewListMembers=False ):
+def mergeCascadingDicts(from_dict, to_dict, allowDictToListMerging=False,
+                        allowNewListMembers=False):
     """
     recursively update to_dict with values from from_dict.
 
@@ -567,6 +607,8 @@ def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False,
             if isinstance(from_val, RemovedKey):
                 del to_dict[key]
                 continue
+            elif isinstance(from_val, (AddedKey, ChangedKey)):
+                from_val = from_val.newVal
             to_val = to_dict[key]
             #if isMapping(from_val) and ( isMapping(to_val) or (allowDictToListMerging and isinstance(to_val, list )) ):
             if hasattr(from_val, 'iteritems') and ( hasattr(to_val, 'iteritems')
