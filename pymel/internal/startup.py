@@ -643,6 +643,7 @@ def parsePymelConfig():
             }
     defaults = {'skip_mel_init' : 'off',
                 'check_attr_before_lock' : 'off',
+                'preferred_python_qt_binding': 'pyqt',
                }
 
     config = ConfigParser.ConfigParser(defaults)
@@ -652,6 +653,9 @@ def parsePymelConfig():
     for option in config.options('pymel'):
         getter = getattr( config, 'get' + types.get(option, '') )
         d[option] = getter( 'pymel', option )
+
+    # just to standardize this setting to be lowercase
+    d['preferred_python_qt_binding'] = d['preferred_python_qt_binding'].lower()
     return d
 
 pymel_options = parsePymelConfig()

@@ -2,6 +2,7 @@ import sys, re
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
+import pymel.internal.startup as _startup
 import pymel.internal as _internal
 import pymel.versions as _versions
 import maya.mel as _mm
@@ -232,18 +233,39 @@ if _versions.current() >= _versions.v2011:
 
     # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
     try:
-        import sip
+        import sip, PyQt4
+        pyQtAvailable = True
+    except ImportError:
+        pyQtAvailable = False
+
+    try:
+        import shiboken, PySide
+        pySideAvailable = True
+    except ImportError:
+        pySideAvailable = False
+
+    if pyQtAvailable and not pySideAvailable:
+        qtBinding = 'pyqt'
+    elif pySideAvailable and not pyQtAvailable:
+        qtBinding = 'pyside'
+    else:
+        qtBinding = _startup.pymel_options['preferred_python_qt_binding']
+
+    if qtBinding == 'pyqt':
         toQtObject = toPyQtObject
         toQtControl = toPyQtControl
         toQtLayout = toPyQtLayout
         toQtWindow = toPyQtWindow
         toQtMenuItem = toPyQtMenuItem
-    except ImportError:
+    elif qtBinding == 'pyside':
         toQtObject = toPySideObject
         toQtControl = toPySideControl
         toQtLayout = toPySideLayout
         toQtWindow = toPySideWindow
         toQtMenuItem = toPySideMenuItem
+    else:
+        raise ValueError('preferred_python_qt_binding must be set to either'
+                         ' pyside or pyqt')
 
 # really, this should be in core.windows; but, due to that fact that this module
 # is "higher" in the import hierarchy than core.windows, and we need this function
@@ -929,10 +951,10 @@ class AELoader(type):
 class AETemplate(object):
     """
     To create an Attribute Editor template using python, do the following:
-     	1. create a subclass of `uitypes.AETemplate`
-    	2. set its ``_nodeType`` class attribute to the name of the desired node type, or name the class using the
+         1. create a subclass of `uitypes.AETemplate`
+        2. set its ``_nodeType`` class attribute to the name of the desired node type, or name the class using the
     convention ``AE<nodeType>Template``
-    	3. import the module
+        3. import the module
 
     AETemplates which do not meet one of the two requirements listed in step 2 will be ignored.  To ensure that your
     Template's node type is being detected correctly, use the ``AETemplate.nodeType()`` class method::
@@ -946,8 +968,8 @@ class AETemplate(object):
 
     To check which python templates are loaded::
 
-    	from pymel.core.uitypes import AELoader
-    	print AELoader.loadedTemplates()
+        from pymel.core.uitypes import AELoader
+        print AELoader.loadedTemplates()
     """
 
     __metaclass__ = AELoader
