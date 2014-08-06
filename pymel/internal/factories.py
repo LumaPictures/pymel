@@ -1846,8 +1846,7 @@ class ApiUndo(object):
         self.cb_enabled = True
         self.undo_queue = []
         self.redo_queue = []
-
-        self.installUndoStateCallbacks()
+        self.undoStateCallbackId = None
 
     def installUndoStateCallbacks(self):
         # Unfortunately, I couldn't find any callback that is triggered directly
@@ -1982,6 +1981,9 @@ class ApiUndo(object):
         self.cbid = api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
 
     def append(self, cmdObj):
+        if not self.undoStateCallbackId:
+            self.installUndoStateCallbacks()
+
         if not cmds.undoInfo(q=1, state=1):
             # if undo is off, don't add to the undo queue
             return
