@@ -101,6 +101,8 @@ v2014_EXT1    = 201450
 v2014_EXT1SP1 = 201451
 v2014_EXT1SP2 = 201459
 v2015         = 201500
+v2015_SP1     = 201501
+v2015_SP2     = 201502
 
 def current():
     return _current
