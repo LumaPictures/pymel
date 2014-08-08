@@ -1,19 +1,19 @@
 """
-General utility functions that are not specific to Maya Commands or the
+General utility functions that are not specific to Maya Commands or the 
 OpenMaya API.
 
 Note:
 By default, handlers are installed for the root logger.  This can be overriden
 with env var MAYA_DEFAULT_LOGGER_NAME.
-Env vars MAYA_GUI_LOGGER_FORMAT and MAYA_SHELL_LOGGER_FORMAT can be used to
-override the default formatting of logging messages sent to the GUI and
+Env vars MAYA_GUI_LOGGER_FORMAT and MAYA_SHELL_LOGGER_FORMAT can be used to 
+override the default formatting of logging messages sent to the GUI and 
 shell respectively.
 
 """
 
 # Note that several of the functions in this module are implemented in C++
 # code, such as executeDeferred and executeInMainThreadWithResult
-
+ 
 import logging
 import os
 import re
@@ -28,64 +28,100 @@ _guiLogHandler = None
 
 appLoggerName = os.environ.get('MAYA_DEFAULT_LOGGER_NAME', '')
 
+def loadStringResourcesForFile( scriptPath, resourceFileName ):
+    """
+    Load a string resource.
+    
+    The 'scriptPath' argument must be a string containing the full path of to 
+    a language resource file. The 'resourceFileName' is the _res.py that must be loaded.
+    
+    If the _res.py fails to be found or executed successfully, the method returns False.
+    Otherwise it returns True.
+    """
+    if scriptPath != '':
+        localizedPath = os.path.join( scriptPath, 'scripts', resourceFileName )
+        try:
+            execfile( localizedPath, {} )
+        
+        # We don't generate any warnings or errors if localized
+        # file is not there
+        # TODO: we could consider issuing a warning in debug mode
+        except IOError:
+            pass
+            return False
+        except Exception, err:
+            raise RuntimeError( 'Unexpected error encountered when attempting to load localized string resources for module %s:\n%s' % (moduleName,err))
+            return False
+
+        return True
+
+    else:
+        return False
+			
 def loadStringResourcesForModule( moduleName ):
     """
     Load the string resources associated with the given module
-
-    Note that the argument must be a string containing the full name of the
-    module (eg "maya.app.utils").  The module of that name must have been
+    
+    Note that the argument must be a string containing the full name of the 
+    module (eg "maya.app.utils").  The module of that name must have been 
     previously imported.
-
+    
     The base resource file is assumed to be in the same location as the file
     defining the module and will have the same name as the module except with
     _res.py appended to it.  So, for the module foo, the resource file should
-    be foo_res.py.
-
-    If Maya is running in localized mode, then the standard location for
-    localized scripts will also be searched (the location given by the
+    be foo_res.py.  
+    
+    If Maya is running in localized mode, then the standard location for 
+    localized scripts will also be searched (the location given by the 
     command cmds.about( localizedResourceLocation=True ))
-
-    Failure to find the base resources for the given module will trigger an
+    
+    Failure to find the base resources for the given module will trigger an 
     exception. Failure to find localized resources is not an error.
     """
     try:
         module = sys.modules[moduleName]
     except:
         raise RuntimeError( 'Failed to load base string resources for module %s because it has not been imported' % moduleName )
-
+        
     modulePath, moduleFileName = os.path.split( module.__file__ )
     moduleName, extension = os.path.splitext( moduleFileName )
-
+    
     resourceFileName = moduleName + '_res.py'
-
+    
     # Try to find the base version of the file next to the module
     try:
         baseVersionPath = os.path.join( modulePath, resourceFileName )
         execfile( baseVersionPath, {} )
     except:
         raise RuntimeError( 'Failed to load base string resources for module %s' % moduleName )
-
+    
     if cmds.about( uiLanguageIsLocalized=True ):
         scriptPath = cmds.about( localizedResourceLocation=True )
-        if scriptPath != '':
-            localizedPath = os.path.join( scriptPath, 'scripts', resourceFileName )
-            try:
-                execfile( localizedPath, {} )
-            # We don't generate any warnings or errors if localized
-            # file is not there
-            # TODO: we could consider issuing a warning in debug mode
-            except IOError:
-                pass
-            except Exception, err:
-                raise RuntimeError( 'Unexpected error encountered when attempting to load localized string resources for module %s: %s' % (moduleName,err) )
-
+        if loadStringResourcesForFile(scriptPath, resourceFileName):
+            return
+		
+        separator = ':'
+        if cmds.about(win=True):
+            separator = ';'
+			
+        pluginResourcePathEnvironmentVariable = os.environ.get('MAYA_PLUG_IN_RESOURCE_PATH')
+        pluginResourcePaths = pluginResourcePathEnvironmentVariable.split(separator)
+        for pluginResourcePath in pluginResourcePaths :
+            if loadStringResourcesForFile(pluginResourcePath, resourceFileName):
+                return
+            # On a mac, we need to also look in the .lproj equivalent folder
+            if cmds.about(mac=True):
+                if loadStringResourcesForFile(pluginResourcePath + ".lproj", resourceFileName):
+                    return
+				
+				
 def getPossibleCompletions(input):
     """
     Utility method to handle command completion
     Returns in a list all of the possible completions that apply
     to the input string
     """
-
+    
     import sys
     import rlcompleter
     completer = rlcompleter.Completer()
@@ -102,18 +138,18 @@ def getPossibleCompletions(input):
             listOfMatches.append(term)
     except:
         pass
-
+    
     return listOfMatches
 
 def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0):
     """
     Utility method to return python help in the form of a string
-
+    
     thing - str or unicode name to get help on
     title - format string for help result
     forceload - argument to pydoc.resolve, force object's module to be reloaded from file
-
-    returns formated help string
+    
+    returns formated help string 
     """
     result = ""
     try:
@@ -138,7 +174,7 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
         elif module and module is not object:
             desc += ' in module ' + module.__name__
         doc = None
-        text = pydoc.TextDoc()
+        text = pydoc.TextDoc()        
         if not (inspect.ismodule(object) or
                 inspect.isclass(object) or
                 inspect.isroutine(object) or
@@ -151,7 +187,7 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
             desc += ' object'
         # if the object is a maya command without a proper docstring,
         # then tack on the help for it
-        elif module is cmds and inspect.isroutine(object):
+        elif module is cmds and inspect.isroutine(object): 
             try:
                 if len(object.__doc__) == 0:
                     doc = cmds.help(object.__name__)
@@ -160,7 +196,7 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
         if not doc:
             doc = text.document(object, name)
         result = pydoc.plain(title % desc + '\n\n' + doc)
-
+        
         # Remove multiple empty lines
         result = "\n".join([ line for line in result.splitlines() if line.strip()])
     except:
@@ -168,7 +204,7 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
     return result
 
 # ##############################################################################
-# Logging
+# Logging 
 #
 
 class MayaGuiLogHandler(logging.Handler):
@@ -186,7 +222,7 @@ class MayaGuiLogHandler(logging.Handler):
             # Warning (30)
             OpenMaya.MGlobal.displayWarning(msg)
         else:
-            # Debug (10) and Info (20)
+            # Debug (10) and Info (20) 
             OpenMaya.MGlobal.displayInfo(msg)
 
 def guiLogHandler():
@@ -229,13 +265,13 @@ def shellLogHandler():
     return _shellLogHandler
 
 # ##############################################################################
-# Gui Exception Handling
+# Gui Exception Handling 
 #
 
 def _guiExceptHook( exceptionType, exceptionObject, traceBack, detail=2 ):
     """
     Whenever Maya receives an error from the command engine it comes into here
-    to format the message for display.
+    to format the message for display. 
     Formatting is performed by formatGuiException.
         exceptionType   : Type of exception
         exceptionObject : Detailed exception information
@@ -253,7 +289,7 @@ def _guiExceptHook( exceptionType, exceptionObject, traceBack, detail=2 ):
         tbLines = []
         tbLines.append("Error in  maya.utils._guiExceptHook:\n")
         tbLines += traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
-
+        
         tbLines.append("\nOriginal exception was:\n")
         tbLines += traceback.format_exception(exceptionType, exceptionObject, traceBack)
         tbLines = _prefixTraceStack(tbLines)
@@ -267,16 +303,16 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
         exceptionObject : Detailed exception information
         traceBack       : Exception traceback stack information
         detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
-
-    To perform an action when an exception occurs without modifying Maya's
+                          
+    To perform an action when an exception occurs without modifying Maya's 
     default printing of exceptions, do the following::
-
+    
         import maya.utils
         def myExceptCB(etype, value, tb):
             # do something here...
             return maya.utils._formatGuiException(etype, value, tb, detail)
         maya.utils.formatGuiException = myExceptCB
-
+        
     """
     # originally, this code used
     #    exceptionMsg = unicode(exceptionObject.args[0])
@@ -302,7 +338,7 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     # if so, we will swap the unicode back in
     if len(excLines) > 0:
         excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
-
+    
     # use index of -1 because message may not have a ':'
     exceptionMsg = excLines[-1].split(':',1)[-1].strip()
     if detail == 0:
@@ -323,7 +359,7 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
             tbLines = _decodeStack( traceback.format_list(tbStack) )
             if len(tbStack) > 0:
                 tbLines.insert(0, u'Traceback (most recent call last):\n')
-
+            
             # prefix the message to the stack trace so that it will be visible in
             # the command line
             result = ''.join( _prefixTraceStack([exceptionMsg+'\n'] + tbLines + excLines) )
@@ -378,7 +414,7 @@ def formatGuiResult(obj):
 
     To perform an action when a result is about to returned to the script editor
     without modifying Maya's default printing of results, do the following:
-
+    
         import maya.utils
         def myResultCallback(obj):
             # do something here...
@@ -393,7 +429,24 @@ def formatGuiResult(obj):
 # store a local unmodified copy
 _formatGuiResult = formatGuiResult
 
-# Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
+# crash handling
+def _dumpCurrentFrames():
+	result = ''
+	stack = inspect.stack( 1 )
+	for s in reversed( stack[1:] ):
+		frame = s[0]
+		filename = s[1]
+		line = s[2]
+		function = s[3]
+		context = s[4]
+		vals = inspect.getargvalues( frame )
+		args = inspect.formatargvalues( vals.args, vals.varargs, vals.keywords, vals.locals )
+		result += '  File: "' + filename + '", line ' + str(line) + ', in ' + function + args + '\n'
+		if not context == None:
+			result += context[0]
+
+	return result
+# Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related
@@ -403,12 +456,12 @@ _formatGuiResult = formatGuiResult
 # international treaties.
 #
 # The Data is provided for use exclusively by You. You have the right to use,
-# modify, and incorporate this Data into other products for purposes authorized
+# modify, and incorporate this Data into other products for purposes authorized 
 # by the Autodesk software license agreement, without fee.
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
 # DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
 # INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
-# MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE
+# MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
 # OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
 # LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
 # DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
