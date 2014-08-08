@@ -92,8 +92,8 @@ def loadStringResourcesForModule( moduleName ):
     try:
         baseVersionPath = os.path.join( modulePath, resourceFileName )
         execfile( baseVersionPath, {} )
-    except:
-        raise RuntimeError( 'Failed to load base string resources for module %s' % moduleName )
+    except Exception, err:
+        raise RuntimeError( 'Failed to load base string resources for module %s:\n%s' % (moduleName,err))
     
     if cmds.about( uiLanguageIsLocalized=True ):
         scriptPath = cmds.about( localizedResourceLocation=True )
@@ -308,7 +308,7 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     default printing of exceptions, do the following::
     
         import maya.utils
-        def myExceptCB(etype, value, tb):
+        def myExceptCB(etype, value, tb, detail=2):
             # do something here...
             return maya.utils._formatGuiException(etype, value, tb, detail)
         maya.utils.formatGuiException = myExceptCB
