@@ -7,38 +7,20 @@ both the maya.app.startup.batch and maya.app.startup.gui scripts
 # autodesk to eventually incorporate our "siteSetup.py" change, or just
 # drop support for it from pymel... but for now we have backwards compatibility
 # to worry about, so... we first branch based on whether maya version is
-# <= 2014.59, when they changed where executeUserSetup() was run...
+# < 2014.59, when they changed where executeUserSetup() was run...
 
 import maya.OpenMaya
 
 if maya.OpenMaya.MGlobal.apiVersion() >= 201459:
-    # of, on newer versions of maya, executeUserSetup() isn't run inside of
+    import types
+
+    # On newer versions of maya, executeUserSetup() isn't run inside of
     # maya.app.startup.basic... and since that's the only part we really wish
     # to change, we can monkey-patch it...
 
     # FIRST, try to run the "real" maya.app.startup.basic...
-
-    import imp
-    import inspect
-    import types
-    import os.path
-
-    THIS_FILE = inspect.getsourcefile(lambda: None)
-    THIS_DIR = os.path.dirname(THIS_FILE)
-
-    import maya.app.startup
-
-    mod_name = __name__.rsplit('.', 1)[-1]
-    path = list(maya.app.startup.__path__)
-    # remove this file's dir from the path
-    path.remove(THIS_DIR)
-
-    # find the location of the next maya.app.startup.basic on the path...
-    find_results = imp.find_module(mod_name, path)
-    if isinstance(find_results[0], file):
-        find_results[0].close()
-
-    execfile(find_results[1])
+    import maya.utils
+    maya.utils.runOverriddenModule(__name__, lambda: None, globals())
 
     # ok, we've excuted the real module... now modify it!
 

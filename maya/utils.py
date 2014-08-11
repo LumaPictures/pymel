@@ -14,6 +14,103 @@ shell respectively.
 # Note that several of the functions in this module are implemented in C++
 # code, such as executeDeferred and executeInMainThreadWithResult
  
+def runOverriddenModule(modName, callingFileFunc, globals):
+    '''Run a module that has been 'overriden' on the python path by another module.
+
+    Ie, if you have two modules in your python path named 'myModule', this can
+    be used to execute the code in the myModule that is LOWER in priority on the
+    sys.path (the one that would normally not be found).
+
+    Intended to be used like:
+
+    >> import maya.utils
+    >> maya.utils.runOverriddenModule(__name__, lambda: None, globals())
+
+    Note that if modName is a sub-module, ie "myPackage.myModule", then calling
+    this function will cause "myPackage" to be imported, in order to determine
+    myPackage.__path__ (though in most circumstances, it will already have
+    been).
+
+    Parameters
+    ----------
+    modName : str
+        The name of the overriden module that you wish to execute
+    callingFileFunc : function
+        A function that is defined in the file that calls this function; this is
+        provided solely as a means to identify the FILE that calls this
+        function, through the use of inspect.getsourcefile(callingFileFunc).
+        This is necessary because it is possible for this call to get "chained";
+        ie, if you have path1/myMod.py, path2/myMod.py, and path3/myMod.py,
+        which will be found on the sys.path in that order when you import myMod,
+        and BOTH path1/myMod.py AND path2/myMod.py use runOverriddenModule, then
+        the desired functionality would be: path1/myMod.py causes
+        path2/myMod.py, which causes path3/myMod.py to run.  However, if
+        runOverriddenModule only had __name__ (or __file__) to work off of,
+        path2/myMod.py would still "think" it was executing in the context of
+        path1/myMod.py... resulting in an infinite loop when path2/myMod.py
+        calls runOverriddenModule. This parameter allows runOverriddenModule to
+        find the "next module down" on the system path. If the file that
+        originated this function is NOT found on the system path, an ImportError
+        is raised.
+    globals : dict
+        the globals that the overridden module should be executed with
+
+    Returns
+    -------
+    str
+        The filepath that was executed
+    '''
+    import inspect
+    import os.path
+    import sys
+    import imp
+
+    callingFile = inspect.getsourcefile(callingFileFunc)
+
+    # first, determine the path to search for the module...
+    packageSplit = modName.rsplit('.', 1)
+    if len(packageSplit) == 1:
+        # no parent package: use sys.path
+        path = sys.path
+        baseModName = modName
+    else:
+        # import the parent package (if any), in order to find it's __path__
+        packageName, baseModName = packageSplit
+        packageMod = __import__(packageName, fromlist=[''], level=0)
+        path = packageMod.__path__
+
+    # now, find which path would result in the callingFile... safest way to do
+    # this is with imp.find_module... but we need to know WHICH path caused
+    # the module to be found, so we go one-at-a-time...
+
+    for i, dir in enumerate(path):
+        try:
+            findResults = imp.find_module(baseModName, [dir])
+        except ImportError:
+            continue
+        # close the open file handle..
+        if isinstance(findResults[0], file):
+            findResults[0].close()
+        # ...then check if the found file matched the callingFile
+        if os.path.samefile(findResults[1], callingFile):
+            break
+    else:
+        # we couldn't find the file - raise an ImportError
+        raise ImportError("Couldn't find the file %r when using path %r"
+                          % (callingFile, path))
+
+    # ok, we found the previous file on the path, now strip out everything from
+    # that path and before...
+    newPath = path[i + 1:]
+
+    # find the new location of the module, using our shortened path...
+    findResults = imp.find_module(baseModName, newPath)
+    if isinstance(findResults[0], file):
+        findResults[0].close()
+
+    execfile(findResults[1], globals)
+    return findResults[1]
+
 import logging
 import os
 import re
