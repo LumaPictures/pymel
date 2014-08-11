@@ -319,28 +319,16 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     # Unfortunately, the problem with this is that the first arg is NOT always
     # the string message - ie, witness
     #    IOError(2, 'No such file or directory', 'non_existant.file')
-    # The next guess would be to simply use
+    # So, instead, we always just use:
     #    exceptionMsg = unicode(exceptionObject).strip()
-    # However, there are unfortunately unicode problems with exceptions:
+    # Unfortunately, for python 2.6 and before, this has some issues:
     #    >>> str(IOError(2, 'foo', 'bar'))
     #    "[Errno 2] foo: 'bar'"
     #    >>> unicode(IOError(2, 'foo', 'bar'))
     #    u"(2, 'foo')"
-    # Note that the unicode version gives the 'wrong' result; unfortunately, we
-    # can't simply rely on str, as maya is a multilingual product that may have
-    # unicode error strings.
-    # The method below seems the most reliable way of getting the 'best' result
-
+    # However, 2014+ uses 2.7, and even for 2013, "(2, 'foo')" is still better
+    # than just "2"...
     exceptionMsg = unicode(exceptionObject).strip()
-    # format the exception
-    excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
-    # traceback may have failed to decode a unicode exception value
-    # if so, we will swap the unicode back in
-    if len(excLines) > 0:
-        excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
-    
-    # use index of -1 because message may not have a ':'
-    exceptionMsg = excLines[-1].split(':',1)[-1].strip()
     if detail == 0:
         result = exceptionType.__name__ + ': ' + exceptionMsg
     else:
@@ -355,11 +343,17 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
             else:
                 result = exceptionMsg
         else: # detail == 2
+            # format the exception
+            excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
+            # traceback may have failed to decode a unicode exception value
+            # if so, we will swap the unicode back in
+            if len(excLines) > 0:
+                excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
             # format the traceback stack
             tbLines = _decodeStack( traceback.format_list(tbStack) )
             if len(tbStack) > 0:
                 tbLines.insert(0, u'Traceback (most recent call last):\n')
-            
+
             # prefix the message to the stack trace so that it will be visible in
             # the command line
             result = ''.join( _prefixTraceStack([exceptionMsg+'\n'] + tbLines + excLines) )
