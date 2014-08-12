@@ -149,26 +149,33 @@ def mayaInit(forversion=None) :
         return False
 
     _logger.debug( "startup.mayaInit: running" )
+
     # for use with pymel compatible maya package
+    oldSkipSetup = os.environ.get('MAYA_SKIP_USERSETUP_PY')
     os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
-
-    if not aboutExists and not sys.modules.has_key('maya.standalone'):
-        try :
-            _logger.debug( "startup.mayaInit: running standalone.initialize" )
-            import maya.standalone #@UnresolvedImport
-            maya.standalone.initialize(name="python")
-
-            if versions.current() < versions.v2009:
-                refreshEnviron()
-
-        except ImportError, e:
-            raise ImportError(str(e) + ": pymel was unable to intialize maya.standalone")
-
     try:
-        from maya.cmds import about
-    except Exception:
-        _logger.error("maya.standalone was successfully initialized, but pymel failed to import maya.cmds (or it was not populated)")
-        raise
+        if not aboutExists and not sys.modules.has_key('maya.standalone'):
+            try :
+                _logger.debug( "startup.mayaInit: running standalone.initialize" )
+                import maya.standalone #@UnresolvedImport
+                maya.standalone.initialize(name="python")
+
+                if versions.current() < versions.v2009:
+                    refreshEnviron()
+
+            except ImportError, e:
+                raise ImportError(str(e) + ": pymel was unable to intialize maya.standalone")
+
+        try:
+            from maya.cmds import about
+        except Exception:
+            _logger.error("maya.standalone was successfully initialized, but pymel failed to import maya.cmds (or it was not populated)")
+            raise
+    finally:
+        if oldSkipSetup is None:
+            del os.environ['MAYA_SKIP_USERSETUP_PY']
+        else:
+            os.environ['MAYA_SKIP_USERSETUP_PY'] = oldSkipSetup
 
     if not mayaStartupHasRun():
         _logger.debug( "running maya.app.startup" )
