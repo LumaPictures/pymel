@@ -25,12 +25,9 @@ def _deleteOldBatchGuiPyc():
         folder = os.path.dirname(__file__)
         for f in ('batch.pyc', 'gui.pyc'):
             path = os.path.join(folder, f)
-            print "trying to delete: %s" % path
             if os.path.isfile(path):
-                print "was a file..."
                 try:
                     os.remove(path)
-                    print "deleted!"
                 except Exception:
                     pass
 _deleteOldBatchGuiPyc()
