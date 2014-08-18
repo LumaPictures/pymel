@@ -14,6 +14,24 @@ from path import path
 #  Pymel Internals
 #-----------------------------------------------
 
+def inMaya():
+    """
+    Returns True if called from a fully initialized Maya session.
+    """
+    try:
+        # can't do:
+        #   import maya.cmds
+        #   maya.cmds.about
+        # ... unless we also check for AttributeError, as a non-initialized maya
+        # will import maya.cmds, but won't find maya.cmds.about
+        from maya.cmds import about
+        if about(api=True) is None:
+            return False
+    except ImportError:
+        return False
+    return True
+
+
 #===============================================================================
 # Strings
 #===============================================================================
