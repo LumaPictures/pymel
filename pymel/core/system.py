@@ -1730,6 +1730,22 @@ def createReference( filepath, **kwargs ):
 def loadReference( filepath, **kwargs ):
     kwargs['loadReference'] = True
     res = cmds.file(filepath, **kwargs)
+    if res is None:
+        # TODO:
+        # in some situations, a reference may fail to load, but not raise an
+        # error - ie, if a kBeforeLoadReferenceCheck callback rejects the load.
+        # In these situations, cmds.file will return None. pymel would
+        # previously error (with an AttributeError) when it tried to convert the
+        # None to a FileReference (or a TypeError if returnNewNodes was True).
+
+        # For backwards compatibility, this still raises an error, but it's
+        # been changed to a slightly more informative error... would be nice to
+        # unify behavior between this and FileReference.load (which currently
+        # returns the results of cmds.file() unaltered) - maybe with a kwarg
+        # to control what to do here? - but this would mean a
+        # backwards-incompatible change for either this or FileReference.load...
+        raise RuntimeError("Unable to load reference for %r" % filepath)
+
     if kwargs.get('returnNewNodes', kwargs.get('rnn', False) ):
         return [ general.PyNode(x) for x in res ]
     return FileReference(res)
