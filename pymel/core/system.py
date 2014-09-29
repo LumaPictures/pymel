@@ -1173,11 +1173,14 @@ class FileReference(object):
                     except general.MayaObjectError:
                         self._refNode = general.PyNode( cmds.file( pathOrRefNode, q=1, referenceNode=True) )
         elif namespace:
-            namespace = namespace.rstrip(':')
-            for iNamespace, iRefNode in iterReferences(namespaces=True, recursive=True, refNodes=True, references=False):
-                if namespace == iNamespace:
-                    self._refNode = iRefNode
-                    break
+            namespace = ':' + namespace.strip(':')
+            for iRefNode in cmds.ls(references=True):
+                try:
+                    if namespace == cmds.referenceQuery(str(iRefNode), namespace=True):
+                        self._refNode = iRefNode
+                        break
+                except RuntimeError:
+                    pass
             if self._refNode is None:
                 raise RuntimeError,"Could not find a reference with the namespace %r" % namespace
 
