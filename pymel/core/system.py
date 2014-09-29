@@ -1174,13 +1174,16 @@ class FileReference(object):
                         self._refNode = general.PyNode( cmds.file( pathOrRefNode, q=1, referenceNode=True) )
         elif namespace:
             namespace = ':' + namespace.strip(':')
-            for iRefNode in cmds.ls(references=True):
-                try:
-                    if namespace == cmds.referenceQuery(str(iRefNode), namespace=True):
-                        self._refNode = iRefNode
-                        break
-                except RuntimeError:
-                    pass
+            # purposefully not using iterReferences to avoid recursion for speed
+            references = cmds.ls(references=True)
+            if references is not None:
+                for iRefNode in references:
+                    try:
+                        if namespace == cmds.referenceQuery(str(iRefNode), namespace=True):
+                            self._refNode = general.PyNode( cmds.referenceQuery( str(iRefNode), referenceNode=1 ) )
+                            break
+                    except RuntimeError:
+                        pass
             if self._refNode is None:
                 raise RuntimeError,"Could not find a reference with the namespace %r" % namespace
 
