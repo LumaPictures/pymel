@@ -1157,32 +1157,40 @@ class FileReference(object):
 
     def __init__(self, pathOrRefNode=None, namespace=None, refnode=None):
         import general, nodetypes
+        # for speed reasons, we use raw maya.cmds, instead of pmcmds, for some
+        # calls here...
+        import maya.cmds as mcmds
         self._refNode = None
         if pathOrRefNode:
-            if isinstance(pathOrRefNode, (basestring,Path)):
+            if isinstance(pathOrRefNode, (basestring, Path)):
                 try:
-                    self._refNode = general.PyNode( cmds.referenceQuery( str(pathOrRefNode), referenceNode=1 ) )
+                    self._refNode = general.PyNode(mcmds.referenceQuery(unicode(pathOrRefNode), referenceNode=1))
                 except RuntimeError:
                     pass
             if not self._refNode:
-                if isinstance( pathOrRefNode, nodetypes.Reference ):
+                if isinstance(pathOrRefNode, nodetypes.Reference):
                     self._refNode = pathOrRefNode
                 else:
                     try:
-                        self._refNode = general.PyNode( pathOrRefNode )
+                        self._refNode = general.PyNode(pathOrRefNode)
                     except general.MayaObjectError:
-                        self._refNode = general.PyNode( cmds.file( pathOrRefNode, q=1, referenceNode=True) )
+                        self._refNode = general.PyNode(mcmds.file(unicode(pathOrRefNode), q=1, referenceNode=True))
         elif namespace:
             namespace = ':' + namespace.strip(':')
             # purposefully not using iterReferences to avoid recursion for speed
-            references = cmds.ls(references=True)
+            references = mcmds.ls(references=True)
             if references is not None:
                 for iRefNode in references:
                     try:
-                        if namespace == cmds.referenceQuery(str(iRefNode), namespace=True):
-                            self._refNode = general.PyNode( cmds.referenceQuery( str(iRefNode), referenceNode=1 ) )
+                        if namespace == mcmds.referenceQuery(iRefNode, namespace=True):
+                            self._refNode = general.PyNode(iRefNode)
                             break
                     except RuntimeError:
+                        # Despite what the docs say, cmds.ls(references=True)
+                        # WILL return shared references for refs that have
+                        # subrefs; however, these shared sub-reference nodes
+                        # won't be queryable... so skip error (don't know of
+                        # way to test / filter out shared nodes...)
                         pass
             if self._refNode is None:
                 raise RuntimeError,"Could not find a reference with the namespace %r" % namespace
