@@ -1550,7 +1550,7 @@ def referenceQuery(*args, **kwargs):
     """
     Modifications:
     - When queried for 'es/editStrings', returned a list of ReferenceEdit objects
-    - By default, removes all edits. If neither of successfulEdits or
+    - By default, returns all edits. If neither of successfulEdits or
       failedEdits is given, they both default to True. If only one is given,
       the other defaults to the opposite value.
     """
