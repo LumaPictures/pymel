@@ -875,7 +875,7 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False,
         ref = refs.pop(0)
         row = []
 
-        refNode = cmds.file(ref, q=1, referenceNode=1)
+        refNode = cmds.referenceQuery(ref, referenceNode=1)
         refNode = general.PyNode( refNode )
 
         wasLoaded = cmds.referenceQuery(refNode, isLoaded=1)
@@ -902,7 +902,7 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False,
 
         if ((loaded and wasLoaded) or (unloaded and not wasLoaded)):
             yield row
-        if recursive:
+        if recursive and wasLoaded:
             if recurseType == 'depth':
                 for x in iterReferences(parentReference=ref,
                                         recursive=True,
@@ -1174,7 +1174,7 @@ class FileReference(object):
                     try:
                         self._refNode = general.PyNode(pathOrRefNode)
                     except general.MayaObjectError:
-                        self._refNode = general.PyNode(mcmds.file(unicode(pathOrRefNode), q=1, referenceNode=True))
+                        self._refNode = general.PyNode(mcmds.referenceQuery(unicode(pathOrRefNode), referenceNode=1))
         elif namespace:
             namespace = ':' + namespace.strip(':')
             # purposefully not using iterReferences to avoid recursion for speed
