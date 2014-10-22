@@ -648,19 +648,17 @@ def magic_open(self, parameter_s=''):
 def ipymel_sigint_handler(signal, frame):
     raise KeyboardInterrupt
 
-# unfortunately, it seems maya overrides the SIGINT hook somehow (not sure where
-# exactly), so in order to use ours, we need to keep re-installing it. We do
-# this through register_post_execute...
 def install_sigint_handler(force=False):
     import signal
     if force or signal.getsignal(signal.SIGINT) == ipymel_sigint_handler:
         signal.signal(signal.SIGINT, ipymel_sigint_handler)
 
+# unfortunately, it seems maya overrides the SIGINT hook whenever a plugin is
+# loaded...
 def sigint_plugin_loaded_callback(*args):
     # from the docs, as of 2015 the args are:
     #   ( [ pathToPlugin, pluginName ], clientData )
-    if args[0][1] == 'Mayatomr':
-        install_sigint_handler()
+    install_sigint_handler()
 
 sigint_plugin_loaded_callback_id = None
 
