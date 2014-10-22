@@ -681,6 +681,17 @@ for _mayaproj in optionVar.get('RecentFilesList', []):
     if _mayaproj not in _sh:
         _sh.append(_mayaproj)""")
 
+    # setup a handler for ctrl-c / SIGINT / KeyboardInterrupt, so maya / ipymel
+    # doesn't quit
+    ip.ex("""
+def sigint_handler(signal, frame):
+    raise KeyboardInterrupt
+
+import signal
+signal.signal(signal.SIGINT, sigint_handler)
+    """)
+
+
 def main():
     import IPython
 
