@@ -642,6 +642,28 @@ def magic_open(self, parameter_s=''):
 #        if not 'q' in opts and self.shell.user_ns['_sh']:
 #            print self.shell.user_ns['_sh'][-1]
 
+# maya sets a sigint / ctrl-c / KeyboardInterrupt handler that quits maya -
+# want to override this to get "normal" python interpreter behavior, where it
+# interrupts the current python command, but doesn't exit the interpreter
+def ipymel_sigint_handler(signal, frame):
+    raise KeyboardInterrupt
+
+# unfortunately, it seems maya overrides the SIGINT hook somehow (not sure where
+# exactly), so in order to use ours, we need to keep re-installing it. We do
+# this through register_post_execute...
+def install_sigint_handler(force=False):
+    import signal
+    if force or signal.getsignal(signal.SIGINT) == ipymel_sigint_handler:
+        signal.signal(signal.SIGINT, ipymel_sigint_handler)
+
+def sigint_plugin_loaded_callback(*args):
+    # from the docs, as of 2015 the args are:
+    #   ( [ pathToPlugin, pluginName ], clientData )
+    if args[0][1] == 'Mayatomr':
+        install_sigint_handler()
+
+sigint_plugin_loaded_callback_id = None
+
 def setup(shell):
     global ip
     if hasattr(shell, 'get_ipython'):
@@ -683,13 +705,16 @@ for _mayaproj in optionVar.get('RecentFilesList', []):
 
     # setup a handler for ctrl-c / SIGINT / KeyboardInterrupt, so maya / ipymel
     # doesn't quit
-    ip.ex("""
-def sigint_handler(signal, frame):
-    raise KeyboardInterrupt
-
-import signal
-signal.signal(signal.SIGINT, sigint_handler)
-    """)
+    install_sigint_handler(force=True)
+    # unfortunately, when Mental Ray loads, it installs a new SIGINT handler
+    # which restores the old "bad" behavior... need to install a plugin callback
+    # to restore ours...
+    global sigint_plugin_loaded_callback_id
+    import pymel.core as pm
+    if sigint_plugin_loaded_callback_id is None:
+        sigint_plugin_loaded_callback_id = pm.api.MSceneMessage.addStringArrayCallback(
+            pm.api.MSceneMessage.kAfterPluginLoad,
+            sigint_plugin_loaded_callback)
 
 
 def main():
