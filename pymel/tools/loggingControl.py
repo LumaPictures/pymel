@@ -51,9 +51,9 @@ class LoggingMenu(pymel.Menu):
                 pymel.menuItem(l="Child Loggers:",p=parent,en=0)
                 for item in logger.children:
                     subMenu = pymel.menuItem(l=item.name, sm=True, p=parent, tearOff=True, aob=True, pmo=True)
-                    subMenu.postMenuCommand(pymel.Callback(self.buildSubMenu, parent=subMenu, logger=item))
+                    subMenu.setPostMenuCommand(pymel.Callback(self.buildSubMenu, parent=subMenu, logger=item))
                     subMenu.setPostMenuCommandOnce(True)
-        except: pass
+        except: pass # this logger has no children
         pymel.menuItem(d=1,p=parent)
         if logger.handlers:
             pymel.menuItem(l="Streams:",p=parent,en=0)
@@ -62,7 +62,7 @@ class LoggingMenu(pymel.Menu):
                 self.buildLevelMenu(levelsMenu, item)
                 pymel.menuItem(d=1,p=levelsMenu)
                 pymel.menuItem(l="Set Formatter", p=levelsMenu, c=pymel.Callback(self.setFormatter, item))
-                pymel.menuItem(l="Remove", p=parent, ob=True, c=pymel.Callback(logger.removeHandler, item))
+                pymel.menuItem(l="Remove", p=levelsMenu, ob=True, c=pymel.Callback(logger.removeHandler, item))
         pymel.menuItem(l="<New Stream...>", p=parent, c=lambda *x: self.addHandler(logger))
 
     def setFormatter(self, handler):
