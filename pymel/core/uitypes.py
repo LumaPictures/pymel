@@ -380,7 +380,7 @@ class PyUI(unicode):
 
     def __repr__(self):
         return u"ui.%s('%s')" % (self.__class__.__name__, self)
-    def parent(self):
+    def getParent(self):
         buf = unicode(self).split('|')[:-1]
         if len(buf)==2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
             # pre-2011, windows with menus can have a strange name:
@@ -389,7 +389,17 @@ class PyUI(unicode):
         if not buf:
             return None
         return PyUI( '|'.join(buf) )
-    getParent = parent
+    
+    def setParent(self,newParent):
+        # cmds.control has a quirk that allows re-parenting of 
+        # both controls and layouts, crashes Maya reparenting of windows
+        
+        cmds.control(self, edit=True, parent=newParent)
+        
+        #-------------------------------------- To do -----------------------------------------------------------
+        # I got no idea how to update pymel UI's full path ( the unicode(self) part, haven't read into it yet)
+        #---------------------------------------------------------------------------------------------------------
+        
 
     def shortName(self):
         return unicode(self).split('|')[-1]
@@ -495,7 +505,7 @@ class Layout(PyUI):
         """
         set the default parent to the parent of this layout
         """
-        p = self.parent()
+        p = self.getParent()
         cmds.setParent(p)
         return p
 
@@ -552,7 +562,9 @@ class Window(Layout):
 
     def parent(self):
         return None
+        
     getParent = parent
+    setParent = parent # avoid crashing Maya
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtWindow
@@ -722,7 +734,7 @@ class Menu(PyUI):
         else:
             parent = self
             while True:
-                parent = parent.parent()
+                parent = parent.getParent()
                 # Maya 2012 Service Pack 2 (or SAP1, SP1) introduces a bug where
                 # '' is returned, instead of None; problem being that doing
                 # cmds.setParent(None, menu=True) is valid, but
