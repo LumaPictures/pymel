@@ -1671,7 +1671,7 @@ class ReferenceEdit(str):
             def _safeRefPyNode(n):
                 return _safePyNode(_safeEval(n))
 
-        editData = self.rawEditData()
+        editData = self.rawEditData
 
         elements = self.split()
         elements.pop(0)
