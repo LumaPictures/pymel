@@ -2680,16 +2680,27 @@ class Attribute(PyNode):
     __getitem__ = _factories.wrapApiMethod(_api.MPlug, 'elementByLogicalIndex', '__getitem__')
     #elementByPhysicalIndex = _factories.wrapApiMethod( _api.MPlug, 'elementByPhysicalIndex' )
 
-    def removeMultiInstance(self, index, break_=False):
-        if isinstance(index, slice):
-            # plug indices are sparse, so we don't bother using
-            # slice.indices(len), since all that does is potentially truncate
-            # the indices we get back
-            indices = xrange(index.start, index.stop, index.step)
+    def removeMultiInstance(self, index=None, break_=False):
+        if index is None:
+            if not self.isElement():
+                raise ValueError("if calling removeMultiInstance without an"
+                                 " index, attribute must be an array element")
+            cmds.removeMultiInstance(self, b=break_)
         else:
-            indices = [index]
-        for i in indices:
-            cmds.removeMultiInstance(self[i], b=break_)
+            if not self.isArray():
+                raise ValueError("if calling removeMultiInstance with an"
+                                 " index, attribute must be an array")
+            if isinstance(index, slice):
+                # plug indices are sparse, so we don't bother using
+                # slice.indices(len), since all that does is potentially truncate
+                # the indices we get back
+                indices = xrange(index.start, index.stop, index.step)
+            elif isinstance(index, int):
+                indices = [index]
+            else:
+                indices = index
+            for i in indices:
+                cmds.removeMultiInstance(self[i], b=break_)
     __delitem__ = removeMultiInstance
 
 
