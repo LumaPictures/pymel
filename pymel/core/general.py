@@ -998,7 +998,11 @@ Modifications:
 
     :rtype: `PyNode` list
     """
-    kwargs['long'] = True
+
+    # should be more efficient to use short names... and there was a maya bug
+    # that would sometimes make nodes have no long name:
+    #     BSPR-18158 Referencing creates extra nodes with no fullpath
+    kwargs['long'] = False
     kwargs.pop('l', None)
 
 #    # TODO: make this safe for international unicode characters
