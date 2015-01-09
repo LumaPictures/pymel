@@ -999,10 +999,19 @@ Modifications:
     :rtype: `PyNode` list
     """
 
-    # should be more efficient to use short names... and there was a maya bug
-    # that would sometimes make nodes have no long name:
-    #     BSPR-18158 Referencing creates extra nodes with no fullpath
-    kwargs['long'] = False
+    regexArgs = kwargs.pop('regex', [])
+    if not isinstance(regexArgs, (tuple,list)):
+        regexArgs = [regexArgs]
+
+    if regexArgs:
+        # if we're searching for a regex, we may be trying to match against full
+        # path name, so use long names...
+        kwargs['long'] = True
+    else:
+        # otherwise, should be more efficient to use short names... and there
+        # was a maya bug that would sometimes make nodes have no long name:
+        #     BSPR-18158 Referencing creates extra nodes with no fullpath
+        kwargs['long'] = False
     kwargs.pop('l', None)
 
 #    # TODO: make this safe for international unicode characters
@@ -1021,10 +1030,6 @@ Modifications:
 #            regexArgs.append(arg)
 #        else:
 #            newArgs.append(arg)
-
-    regexArgs = kwargs.pop('regex', [])
-    if not isinstance(regexArgs, (tuple,list)):
-        regexArgs = [regexArgs]
 
     for i,val in enumerate(regexArgs):
         # add a prefix which allows the regex to match against a dag path, mounted at the right
