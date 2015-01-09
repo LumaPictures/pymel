@@ -134,6 +134,9 @@ class testCase_references(unittest.TestCase):
         print "Exporting all", os.path.join( self.temp, 'all.ma' )
         expFile = pm.exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
         print "Importing"
+        # if we don't do this newFile first, maya crashes...
+        #   BSPR-18231 Maya crashes on import after exporting with references
+        pm.newFile(f=1)
         pm.importFile( expFile )
         print "Exporting all"
         pm.exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
