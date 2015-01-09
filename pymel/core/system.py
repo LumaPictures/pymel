@@ -19,6 +19,8 @@ you can do this:
 some of the new commands were changed slightly from their flag name to avoid name clashes and to add to readability:
 
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
+    >>> newFile(f=1)
+    ''
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
     FileReference(u'.../test.ma', refnode=u'testRN')
