@@ -227,7 +227,9 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
 
 # TODO : convert array variables to a semi-read-only list ( no append or extend, += is ok ):
 # using append or extend will not update the mel variable
-class MelGlobals( dict ):
+
+# we only inherit from dict for backward-compatability...
+class MelGlobals(collections.MutableMapping, dict):
     """ A dictionary-like class for getting and setting global variables between mel and python.
     an instance of the class is created by default in the pymel namespace as melGlobals.
 
@@ -296,11 +298,15 @@ class MelGlobals( dict ):
         def append(self, val): raise AttributeError
         def extend(self, val): raise AttributeError
 
-
-
     typeMap = {}
     VALID_TYPES = MELTYPES
 
+    def __iter__(self):
+        for varName in mel.env():
+            yield varName
+
+    def __len__(self):
+        return len(mel.env())
 
     def __getitem__(self, variable ):
         return self.__class__.get( variable )
@@ -343,6 +349,14 @@ class MelGlobals( dict ):
         MelGlobals.typeMap[variable] = type
         return variable
 
+    def get_dict(self, variable, default=None):
+        return super(MelGlobals, self).get(variable, default)
+
+    # this clashes with a standard dict's "get", which will not error if a dict
+    # does not contain a key...
+    # ...but because of backwards compatibility, not sure what to do...?
+    # for now, making a separate "get_default" method that acts like dict.get...
+    # ...but may want to switch this in the future...
     @classmethod
     def get( cls, variable, type=None  ):
         """get a MEL global variable.  If the type is not specified, the mel ``whatIs`` command will be used

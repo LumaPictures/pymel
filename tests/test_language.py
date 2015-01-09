@@ -304,6 +304,44 @@ class testCase_MelGlobals(unittest.TestCase):
         self.assertTrue('$melGlobals_test_keys_str2' in lang.MelGlobals.keys())
         self.assertFalse('melGlobals_test_keys_str2' in lang.MelGlobals.keys())
 
+    def test_contains(self):
+        self.assertFalse('$melGlobals_test_keys_int1' in lang.melGlobals)
+        self.assertFalse('melGlobals_test_keys_int1' in lang.melGlobals)
+        meval('global int $melGlobals_test_keys_int1')
+        self.assertTrue('$melGlobals_test_keys_int1' in lang.melGlobals)
+        self.assertTrue('melGlobals_test_keys_int1' in lang.melGlobals)
+
+        self.assertFalse('$melGlobals_test_keys_int2' in lang.melGlobals)
+        self.assertFalse('melGlobals_test_keys_int2' in lang.melGlobals)
+        meval('global int $melGlobals_test_keys_int2')
+        self.assertTrue('$melGlobals_test_keys_int2' in lang.melGlobals)
+        self.assertTrue('melGlobals_test_keys_int2' in lang.melGlobals)
+
+        self.assertFalse('$melGlobals_test_keys_str1' in lang.melGlobals)
+        self.assertFalse('melGlobals_test_keys_str1' in lang.melGlobals)
+        meval('global string $melGlobals_test_keys_str1')
+        self.assertTrue('$melGlobals_test_keys_str1' in lang.melGlobals)
+        self.assertTrue('melGlobals_test_keys_str1' in lang.melGlobals)
+
+        self.assertFalse('$melGlobals_test_keys_str2' in lang.melGlobals)
+        self.assertFalse('melGlobals_test_keys_str2' in lang.melGlobals)
+        meval('global string $melGlobals_test_keys_str2')
+        self.assertTrue('$melGlobals_test_keys_str2' in lang.melGlobals)
+        self.assertTrue('melGlobals_test_keys_str2' in lang.melGlobals)
+
+    def test_get_dict(self):
+        self.assertEqual(lang.melGlobals.get_dict('melGlobals_test_get_dict'),
+                         None)
+        self.assertEqual(lang.melGlobals.get_dict('melGlobals_test_get_dict',
+                                                  'foo'),
+                         'foo')
+        meval('global int $melGlobals_test_get_dict = 3')
+        self.assertEqual(lang.melGlobals.get_dict('melGlobals_test_get_dict'),
+                         3)
+        self.assertEqual(lang.melGlobals.get_dict('melGlobals_test_get_dict',
+                                                  'foo'),
+                         3)
+
     def test_noInit_set(self):
         self.assertRaises(TypeError, lang.melGlobals.set, 'melGlobals_test_nonexistant1', 37)
         self.assertRaises(TypeError, lang.melGlobals.set, 'melGlobals_test_nonexistant2', 'foo')
