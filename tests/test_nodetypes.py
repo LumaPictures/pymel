@@ -1181,11 +1181,14 @@ class testCase_components(unittest.TestCase):
 
     def test_objectComponentsClassEqual(self):
         successfulComps = []
+        crashAvoidComps = []
         failedComps = []
         for componentData in self.compData.itervalues():
             for compString in self.object_evalStrings(componentData):
                 try:
                     pymelObj = self._pyCompFromString(compString)
+                except (CrashError, unittest.case._ExpectedFailure):
+                    crashAvoidComps.append(compString)
                 except Exception:
                     failedComps.append(compString)
                 else:
@@ -1197,6 +1200,13 @@ class testCase_components(unittest.TestCase):
                         failedComps.append(compString)
         if failedComps:
             self.fail('Following components wrong class (or not created):\n   ' + '\n   '.join(failedComps))
+        if crashAvoidComps:
+            msg = 'Following components not created to avoid crash:\n   ' + '\n   '.join(failedComps)
+            try:
+                raise CrashError(msg)
+            except:
+                raise unittest.case._ExpectedFailure(sys.exc_info())
+
 
     def getComponentStrings(self, returnCompData=False, evalStringFuncs=None):
         """
@@ -1432,7 +1442,7 @@ class testCase_components(unittest.TestCase):
                         raise CrashError
         except CrashError, e:
             print "Auto-failing %r to avoid crash..." % comp
-            raise
+            raise unittest.case._ExpectedFailure(sys.exc_info())
 
     def test_multiComponentName(self):
         compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
