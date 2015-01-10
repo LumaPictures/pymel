@@ -167,7 +167,13 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     #    u"(2, 'foo')"
     # However, 2014+ uses 2.7, and even for 2013, "(2, 'foo')" is still better
     # than just "2"...
-    exceptionMsg = unicode(exceptionObject).strip()
+
+    if issubclass(exceptionType, SyntaxError):
+        # syntax errors are unique, in that str(syntaxError) will include line
+        # number info, which is what detail == 0 is trying to avoid...
+        exceptionMsg = unicode(exceptionObject.args[0])
+    else:
+        exceptionMsg = unicode(exceptionObject).strip()
     if detail == 0:
         result = exceptionType.__name__ + ': ' + exceptionMsg
     else:
