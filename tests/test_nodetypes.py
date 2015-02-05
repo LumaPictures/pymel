@@ -2527,6 +2527,8 @@ class testCase_Character(unittest.TestCase):
         self.assertEqual(self.char.getClipScheduler(), 'armScheduler1')
 
 class testCase_listAttr(unittest.TestCase):
+    # FIXME: to prevent this test from changing over time it might be a good idea to create
+    # custom MPxNode type with known attributes
     def setUp(self):
         pm.newFile(f=1)
         self.cube1 = pm.polyCube(ch=0)[0]
@@ -2536,7 +2538,8 @@ class testCase_listAttr(unittest.TestCase):
 
     def test_standard(self):
         results = sorted(x.name() for x in self.blend.listAttr())
-        expected = [u'blendShape1.attributeAliasList',
+        expected = [
+            u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.baseOriginX',
             u'blendShape1.baseOriginY',
@@ -2547,11 +2550,16 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.fchild1',
             u'blendShape1.fchild2',
             u'blendShape1.fchild3',
+            u'blendShape1.frozen',
             u'blendShape1.function',
             u'blendShape1.icon',
             u'blendShape1.input',
             u'blendShape1.inputTarget',
             u'blendShape1.inputTarget[-1].baseWeights',
+            u'blendShape1.inputTarget[-1].controlPoints',
+            u'blendShape1.inputTarget[-1].controlPoints[-1].xValue',
+            u'blendShape1.inputTarget[-1].controlPoints[-1].yValue',
+            u'blendShape1.inputTarget[-1].controlPoints[-1].zValue',
             u'blendShape1.inputTarget[-1].inputTargetGroup',
             u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem',
             u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget',
@@ -2563,6 +2571,12 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.inputTarget[-1].normalizationGroup[-1].normalizationWeights',
             u'blendShape1.inputTarget[-1].paintTargetIndex',
             u'blendShape1.inputTarget[-1].paintTargetWeights',
+            u'blendShape1.inputTarget[-1].sculptTargetIndex',
+            u'blendShape1.inputTarget[-1].sculptTargetTweaks',
+            u'blendShape1.inputTarget[-1].vertex',
+            u'blendShape1.inputTarget[-1].vertex[-1].xVertex',
+            u'blendShape1.inputTarget[-1].vertex[-1].yVertex',
+            u'blendShape1.inputTarget[-1].vertex[-1].zVertex',
             u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[0].inputGeomTarget',
             u'blendShape1.input[0].groupId',
             u'blendShape1.input[0].inputGeometry',
@@ -2581,17 +2595,18 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.targetOriginZ',
             u'blendShape1.topologyCheck',
             u'blendShape1.useTargetCompWeights',
-            u'blendShape1.weight',
-        ]
+            u'blendShape1.weight']
         self.assertEqual(results, expected)
 
     def test_topLevel(self):
         results = sorted(x.name() for x in self.blend.listAttr(topLevel=True))
-        expected = [u'blendShape1.attributeAliasList',
+        expected = [
+            u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.binMembership',
             u'blendShape1.caching',
             u'blendShape1.envelope',
+            u'blendShape1.frozen',
             u'blendShape1.function',
             u'blendShape1.icon',
             u'blendShape1.input',
@@ -2608,13 +2623,13 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.targetOrigin',
             u'blendShape1.topologyCheck',
             u'blendShape1.useTargetCompWeights',
-            u'blendShape1.weight',
-        ]
+            u'blendShape1.weight']
         self.assertEqual(results, expected)
 
     def test_descendants(self):
         results = sorted(x.name() for x in self.blend.listAttr(descendants=True))
-        expected = [u'blendShape1.attributeAliasList',
+        expected = [
+            u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.baseOriginX',
             u'blendShape1.baseOriginY',
@@ -2625,12 +2640,14 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.fchild1',
             u'blendShape1.fchild2',
             u'blendShape1.fchild3',
+            u'blendShape1.frozen',
             u'blendShape1.function',
             u'blendShape1.icon',
             u'blendShape1.input',
             u'blendShape1.inputTarget',
             u'blendShape1.inputTarget[0]',
             u'blendShape1.inputTarget[0].baseWeights',
+            u'blendShape1.inputTarget[0].controlPoints',
             u'blendShape1.inputTarget[0].inputTargetGroup',
             u'blendShape1.inputTarget[0].inputTargetGroup[0]',
             u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem',
@@ -2651,6 +2668,9 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.inputTarget[0].normalizationGroup',
             u'blendShape1.inputTarget[0].paintTargetIndex',
             u'blendShape1.inputTarget[0].paintTargetWeights',
+            u'blendShape1.inputTarget[0].sculptTargetIndex',
+            u'blendShape1.inputTarget[0].sculptTargetTweaks',
+            u'blendShape1.inputTarget[0].vertex',
             u'blendShape1.input[0]',
             u'blendShape1.input[0].groupId',
             u'blendShape1.input[0].inputGeometry',
@@ -2672,8 +2692,7 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.useTargetCompWeights',
             u'blendShape1.weight',
             u'blendShape1.weight[0]',
-            u'blendShape1.weight[1]',
-        ]
+            u'blendShape1.weight[1]']
         self.assertEqual(results, expected)
 
 
