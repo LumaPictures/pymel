@@ -1,6 +1,8 @@
 #import testingutils
 import unittest
-import pymel.internal.startup
+import pymel.versions
+import inspect
+import maya.cmds as cmds
 
 class TestGetMayaVersion(unittest.TestCase):
 
@@ -14,5 +16,9 @@ class TestGetMayaVersion(unittest.TestCase):
         #testingutils.permutations([versions, extensions, servicePacks, bits, cuts])
         pass
 
-
+    def test_hasVersionConstant(self):
+        versions = set([x[1] for x in inspect.getmembers(pymel.versions)
+                        if x[0][0] == 'v' and x[0][1].isdigit()])
+        currentVersion = cmds.about(api=True)
+        self.assertIn(currentVersion, versions)
 
