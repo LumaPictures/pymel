@@ -74,7 +74,6 @@ def mayaDocsLocation(version=None):
 #        Doc Parser
 #---------------------------------------------------------------
 class CommandDocParser(HTMLParser):
-
     def __init__(self, command):
         self.command = command
         self.flags = {}  # shortname, args, docstring, and a list of modes (i.e. edit, create, query)
@@ -406,6 +405,18 @@ class ApiDocParser(object):
     # since 'object' is in PYMEL_ENUM_DEFAULTS['Space'], that is preferred
     PYMEL_ENUM_DEFAULTS = {'Space':('object',)}
 
+    MISSING_TYPES = ['MUint64', 'MInt64']
+    OTHER_TYPES = ['void', 'char', 'uchar',
+                'double', 'double2', 'double3', 'double4',
+                'float', 'float2', 'float3', 'float4',
+                'bool',
+                'int', 'int2', 'int3', 'int4',
+                'uint', 'uint2', 'uint3', 'uint4',
+                'short', 'short2', 'short3', 'short4',
+                'long', 'long2', 'long3',
+                'MString', 'MStringArray', 'MStatus']
+    NOT_TYPES = ['MCallbackId']
+
     def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple,
                  docLocation=None):
         self.version = versions.installName() if version is None else version
@@ -424,6 +435,15 @@ class ApiDocParser(object):
         self.currentMethod=None
         self.badEnums = []
 
+    def __repr__(self):
+        return '%s.%s(%s, %r, %r, %s.%s, %r)' % (__name__,
+                                                 self.__class__.__name__,
+                                                 self.apiModule.__name__,
+                                                 self.version,
+                                                 self.verbose,
+                                                 self.enumClass.__module__,
+                                                 self.enumClass.__name__,
+                                                 self.docloc)
     def formatMsg(self, *args):
         return self.apiClassName + '.' + self.currentMethod + ': ' + ' '.join( [ str(x) for x in args ] )
 
@@ -580,30 +600,25 @@ class ApiDocParser(object):
         return util.Enum(apiEnum.name, pymelKeyDict, multiKeys=True,
                          defaultKeys=defaults)
 
-    def handleEnums( self, type ):
-        missingTypes = ['MUint64']
-        otherTypes = ['void', 'char', 'uchar',
-                    'double', 'double2', 'double3', 'double4',
-                    'float', 'float2', 'float3', 'float4',
-                    'bool',
-                    'int', 'int2', 'int3', 'int4',
-                    'uint', 'uint2', 'uint3', 'uint4',
-                    'short', 'short2', 'short3', 'short4',
-                    'long', 'long2', 'long3',
-                    'MString', 'MStringArray', 'MStatus']
-        notTypes = ['MCallbackId']
+    def isBadEnum(self, type):
+        return (type[0].isupper() and 'Ptr' not in type
+                and not hasattr( self.apiModule, type )
+                and type not in self.OTHER_TYPES + self.MISSING_TYPES + self.NOT_TYPES)
 
+    def handleEnums( self, type ):
         if type is None: return type
 
         # the enum is on another class
         if '::' in type:
+            self.xprint('type is an enum on another class', type)
             type = self.enumClass( type.split( '::') )
 
         # the enum is on this class
         elif type in self.enums:
+            self.xprint('type is in self.enums', type)
             type = self.enumClass( [self.apiClassName, type] )
 
-        elif type[0].isupper() and 'Ptr' not in type and not hasattr( self.apiModule, type ) and type not in otherTypes+missingTypes+notTypes:
+        elif self.isBadEnum(type):
             type = self.enumClass( [self.apiClassName, type] )
             if type not in self.badEnums:
                 self.badEnums.append(type)
@@ -663,10 +678,10 @@ class ApiDocParser(object):
             return False
 
     def parseType(self, tokens):
-        i=0
         for i, each in enumerate(tokens):
             if each not in [ '*', '&', 'const', 'unsigned']:
                 argtype = tokens.pop(i)
+                assert isinstance(argtype, str), "%r is not a string" % (argtype,)
                 break
         else:
             # We didn't find any arg type - therefore everything
@@ -675,7 +690,7 @@ class ApiDocParser(object):
             argtype = 'int'
 
         if 'unsigned' in tokens and argtype in ('char','int', 'int2',
-                                             'int3', 'int4'):
+                                                'int3', 'int4'):
             argtype = 'u' + argtype
 
         argtype = self.handleEnums(argtype)
@@ -690,7 +705,9 @@ class ApiDocParser(object):
         # TYPES
         for paramtype in proto.findAll( 'td', **{'class':'paramtype'} ) :
             buf = []
-            [ buf.extend(x.split()) for x in paramtype.findAll( text=True ) ] #if x.strip() not in ['', '*', '&', 'const', 'unsigned'] ]
+            for x in paramtype.findAll( text=True ):
+                buf.extend(x.split())
+                #if x.strip() not in ['', '*', '&', 'const', 'unsigned'] ]
             buf = [ x.strip().encode('ascii', 'ignore') for x in buf if x.strip() ]
             tmpTypes.append( self.parseType(buf) )
 
@@ -714,6 +731,13 @@ class ApiDocParser(object):
                 if brackets:
                     numbuf = re.split( r'\[|\]', brackets)
                     if len(numbuf) > 1:
+                        if not isinstance(type, str):
+                            if isinstance(type, self.enumClass):
+                                raise TypeError("%s should be a string, but it has been marked as an enum. "
+                                                "Check if it is a new type which should be added to "
+                                                "OTHER_TYPES or MISSING_TYPES on this class." % (type,))
+                            else:
+                                raise TypeError("%r should be a string" % (type,))
                         # Note that these two args need to be cast differently:
                         #   int2 foo;
                         #   int bar[2];
@@ -1142,8 +1166,12 @@ class ApiDocParser(object):
 
     def parse(self, apiClassName):
         self.setClass(apiClassName)
-        for proto in self.soup.body.findAll( 'div', **{'class':'memproto'} ):
-            self.parseMethod(proto)
+        try:
+            for proto in self.soup.body.findAll( 'div', **{'class':'memproto'} ):
+                self.parseMethod(proto)
+        except:
+            print "To reproduce run:\n%r.parse(%r)" % (self, apiClassName)
+            raise
         pymelNames, invertibles = self.getPymelMethodNames()
         return { 'methods' : dict(self.methods),
                  'enums' : self.enums,
