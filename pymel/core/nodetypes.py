@@ -2794,6 +2794,14 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
 
+    if versions.current() >= versions.v2016:
+        @_factories.addApiDocs( _api.MFnMesh, 'getUVAtPoint' )
+        def getUVAtPoint(self, uvPoint, space=_api.MSpace.kObject, uvSet=None, returnClosestPolygon=False):
+            result = self._getUVAtPoint(uvPoint, space, uvSet)
+            if returnClosestPolygon:
+                return result
+            return result[0]
+
     if versions.current() >= versions.v2009:
         @_factories.addApiDocs( _api.MFnMesh, 'currentUVSetName' )
         def getCurrentUVSetName(self):
