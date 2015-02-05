@@ -38,7 +38,7 @@ class Tee(object):
 try:
     import nose
 except ImportError, e:
-    print "To run pymel's tests you must have nose installed: http://code.google.com/p/python-nose"
+    print "To run pymel's tests you must have nose installed"
     raise e
 
 # Get the 'new' version of unittest

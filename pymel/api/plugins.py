@@ -872,6 +872,7 @@ def unloadAllPlugins(skipErrors=False, exclude=('DirectConnect',)):
                     logger.warning("Error unloading plugin %s:" % plug)
                     logger.warning(traceback.format_exc())
                 else:
+                    logger.error("Error unloading plugin %s:" % plug)
                     raise
     logger.debug("...done unloading all plugins")
 

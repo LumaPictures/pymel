@@ -226,6 +226,8 @@ def initMEL():
         os.path.join( prefsDir, 'pluginPrefs.mel' )  if prefsDir else None
     ]
     if pymel_options.get( 'skip_initial_plugins', False ):
+        # initialPlugins.mel is not sourced when running maya -batch, but has been included
+        # in the pymel startup sequence since time immemorial. see pymel.conf for more info
         _logger.info( "Skipping loading Initial Plugins" )
         startup.remove('initialPlugins.mel')
 
