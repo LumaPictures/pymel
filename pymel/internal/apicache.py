@@ -358,7 +358,7 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
         # take advantage of inheritance caching - especially pre-2012, where
         # inheritance chain of abstract nodes is not directly queryable -
         # since getInheritance will cache the inheritance chain of the given
-        # node, AND all it's parents
+        # node, AND all its parents
 
         # make a copy of what we iterate over, as we will be modifying
         # realNodes and abstractNodes as we go...
@@ -484,6 +484,7 @@ def getInheritance( mayaType, checkManip3D=True, checkCache=True,
             raise RuntimeError("Could not query the inheritance of node type %s" % mayaType)
     elif checkManip3D and 'manip3D' in lineage:
         raise ManipNodeTypeError
+
     try:
         assert (mayaType == 'node' and lineage == []) or lineage[-1] == mayaType
     except Exception:
@@ -491,14 +492,24 @@ def getInheritance( mayaType, checkManip3D=True, checkCache=True,
         raise
 
     if updateCache and lineage:
+        if len(set(lineage)) != len(lineage):
+            # cyclical lineage:  first discovered with xgen nodes.
+            # might be a result of multiple inheritance being returned strangely by nodeType.
+            print mayaType, lineage
+            _logger.raiseLog(_logger.WARNING, "lineage for node %s is cyclical: %s" % (mayaType, lineage))
+            _cachedInheritances[mayaType] = lineage
+            # don't cache any of the parents
+            return lineage
         # add not just this lineage, but all parent's lineages as well...
         for i in xrange(len(lineage), 0, -1):
             thisLineage = lineage[:i]
             thisNode = thisLineage[-1]
             oldVal = _cachedInheritances.get(thisNode)
-            if oldVal and oldVal != thisLineage:
-                _logger.raiseLog(_logger.WARNING, "lineage for node %s changed (from %s to %s)" % (thisNode, oldVal, thisLineage))
-            _cachedInheritances[thisNode] = thisLineage
+            if oldVal is None:
+                _cachedInheritances[thisNode] = thisLineage
+            elif oldVal != thisLineage:
+                _logger.raiseLog(_logger.WARNING, "lineage for node %s changed:\n  from %s\n  to   %s)" % (thisNode, oldVal, thisLineage))
+                _cachedInheritances[thisNode] = thisLineage
     return lineage
 
 #===============================================================================
