@@ -23,7 +23,7 @@ Attitude Studio, and ImageMovers Digital.
 """
 
 
-__versiontuple__ = (1,0,6)
+__versiontuple__ = (1,0,7)
 __version__ = '.'.join(str(x) for x in __versiontuple__)
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 
