@@ -209,9 +209,9 @@ class StubDoc(Doc):
         if hasattr(Doc, '__init__'):
             Doc.__init__(self, *args, **kwargs)
 
-    def bold(self, text):
-        """Format a string in bold by overstriking."""
-        return join(map(lambda ch: ch + '\b' + ch, text), '')
+    # def bold(self, text):
+    #     """Format a string in bold by overstriking."""
+    #     return join(map(lambda ch: ch + '\b' + ch, text), '')
 
     def indent(self, text, prefix='    '):
         """Indent text by prepending a given prefix to each line."""
@@ -221,10 +221,10 @@ class StubDoc(Doc):
         if lines: lines[-1] = rstrip(lines[-1])
         return join(lines, '\n')
 
-    def section(self, title, contents):
-        """Format a section with a given heading."""
-        quotes = "'''" if '"""' in contents else '"""'
-        return rstrip(self.indent( quotes +'\n' + contents + '\n' + quotes)) + '\n\n'
+    # def section(self, title, contents):
+    #     """Format a section with a given heading."""
+    #     quotes = "'''" if '"""' in contents else '"""'
+    #     return rstrip(self.indent( quotes +'\n' + contents + '\n' + quotes)) + '\n\n'
 
     def docstring(self, contents):
         """Format a section with a given heading."""
@@ -387,6 +387,7 @@ class StubDoc(Doc):
             add_obj(obj, name)
 
         def have_id_name(id_obj, name):
+            "return if the id_object has the passed name"
             data = id_to_data.get(id_obj, None)
             if data is None:
                 return False
@@ -412,6 +413,23 @@ class StubDoc(Doc):
         # which we will define in this module...
         class_parents = {}
         def add_parent_classes():
+            def is_class_module_added(parent_class):
+                found_parent_mod = False
+                parent_mod = inspect.getmodule(parent_class)
+                if parent_mod:
+                    if id(parent_mod) in id_to_data:
+                        return True
+                    else:
+                        mod_name = parent_mod.__name__
+                        mod_name_split =  mod_name.split('.')
+                        while mod_name_split:
+                            mod_name_split.pop()
+                            mod_name = '.'.join(mod_name_split)
+                            parent_mod = sys.modules.get(mod_name, None)
+                            if parent_mod is not None and id(parent_mod) in id_to_data:
+                                return True
+                return False
+
             # deal with the classes - for classes in this module, we need to find
             # their base classes, and make sure they are also defined, or imported
             untraversed_classes = list(obj for (obj, objtype, source_module, names)
@@ -437,24 +455,9 @@ class StubDoc(Doc):
 
                         # We've found a class that's not in this namespace...
                         # ...but perhaps it's parent module is?
-                        found_parent_mod = False
-                        parent_mod = inspect.getmodule(parent_class)
-                        if parent_mod:
-                            if id(parent_mod) in id_to_data:
-                                found_parent_mod = True
-                            else:
-                                mod_name = parent_mod.__name__
-                                mod_name_split =  mod_name.split('.')
-                                while mod_name_split:
-                                    mod_name_split.pop()
-                                    mod_name = '.'.join(mod_name_split)
-                                    parent_mod = sys.modules.get(mod_name, None)
-                                    if parent_mod is not None and id(parent_mod) in id_to_data:
-                                        found_parent_mod = True
-                                        break
-                            if found_parent_mod:
-                                # the parent module was there... skip this parent class..
-                                continue
+                        if is_class_module_added(parent_class):
+                            # the parent module was there... skip this parent class..
+                            continue
 
                         # we've found a new class... add it...
                         new_to_this_module += 1
@@ -462,9 +465,20 @@ class StubDoc(Doc):
                         source_module = id_to_data[id_parent][SOURCEMOD]
                         if source_module == this_module:
                             untraversed_classes.append(parent_class)
+                    else:
+                        # make sure that the class's module exists in the current namespace
+                        if not is_class_module_added(parent_class):
+                            mod = inspect.getmodule(parent_class)
+                            if mod is not None:
+                                # perhaps this logic should be handled in add_obj.
+                                # we privatize this because we're adding an object which
+                                # did not exist in the original namespace (not in id_to_data)
+                                # so we don't want to cause any conflicts
+                                add_obj(mod, name='_' + mod.__name__.split('.')[-1])
+
             return new_to_this_module
 
-        # maps from an id_obj to it's ('default') name in the source module
+        # maps from an id_obj to its ('default') name in the source module
         import_other_name = {}
         # maps from module to a dict, mapping from id to names within that module
         other_module_names = {}
@@ -867,9 +881,7 @@ class StubDoc(Doc):
         thisclass = object
         attrs, inherited = pydoc._split_list(attrs, lambda t: t[2] is thisclass)
 
-        if thisclass is __builtin__.object:
-            attrs = inherited
-        else:
+        if thisclass is not __builtin__.object:
             if attrs:
                 tag = None
 
@@ -990,8 +1002,6 @@ class StubDoc(Doc):
                     if not name:
                         return False
 
-
-
                 result = _is_safe_cls(cls)
                 safe_constructors[id_cls] = result
                 return result
@@ -1027,6 +1037,11 @@ class StubDoc(Doc):
                 # in some situations... ie, maya.OpenMaya.cvar...
                 # ...some sort of swig error?
                 value = 'None'
+        assert name is not None, "Name of object %r is None" % object
+        if name == 'None':
+            # special case exception for None, which is syntactically invalid to assign to
+            # but can still be used as an attribute
+            name = "locals()['None']"
         line = (name and name + ' = ' or '') + value + '\n'
         return line
 
@@ -1172,7 +1187,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                 f.write( contents )
 
 
-def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
+def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya', 'PySide', 'shiboken'),
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
 
@@ -1186,11 +1201,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya'),
 
     for modulename in modules:
         print "making stubs for: %s" % modulename
-        packagestubs(modulename, outputdir=outputdir, extensions=extensions,
-                     # these two modules import PySide, and I don't want to
-                     # bother with dealing with PySide + stubs right now...
-                     # so we're just ignoring them...
-                     exclude=re.compile(r'maya.app.general.(creaseSetEditor|mayaMixin)'))
+        packagestubs(modulename, outputdir=outputdir, extensions=extensions)
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
         # useful to put on the path of non-maya python interpreters, in
