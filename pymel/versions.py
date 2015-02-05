@@ -66,7 +66,7 @@ _is64 = bitness() == 64
 _current = _MGlobal.apiVersion()
 _fullName = _MGlobal.mayaVersion()
 _shortName = parseVersionStr(_fullName, extension=False)
-_installName = _shortName + ('-x64' if _is64 else '')
+_installName = _shortName + ('-x64' if (_is64 and _current < 201600) else '')
 
 
 v85           = 200700
@@ -106,6 +106,7 @@ v2015_SP2     = 201502
 v2015_SP3     = 201505
 v2015_SP4     = 201506
 v2015_EXT1    = 201506
+v2016         = 201600
 
 def current():
     return _current
@@ -132,14 +133,11 @@ def flavor():
 def isUnlimited():
     return flavor() == 'Unlimited'
 
-
 def isComplete():
     return flavor() == 'Complete'
 
-
 def isRenderNode():
     return flavor() == 'Render'
-
 
 def isEval():
     import maya.cmds
