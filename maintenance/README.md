@@ -9,13 +9,15 @@ Building an Official PyMEL Release
   - graphviz: using an OS package manager like `yum`, `apt-get`, or `brew`, or on windows, from an [installer](http://www.graphviz.org/Download_windows.php)
   - python dependencies:
     ```
+    curl -O https://bootstrap.pypa.io/get-pip.py
     sudo $MAYA_LOCATION/bin/mayapy get-pip.py
     sudo $MAYA_LOCATION/bin/mayapy -m pip install -r requirements.txt
     ```
 
 2) Build caches
 ---------------
-Before building the caches:
+
+### Before building the caches
 
   - build caches from WINDOWS... reason being that we need to gather some
     information about plugin nodes, and windows has the "most complete" set of
@@ -29,9 +31,9 @@ Before building the caches:
 
   - ensure that the CommandsPython, API, and Nodes doc subdirectories are installed.
 
-To build the caches:
+### To build the caches
 
-  - open a shell and set the environment variable `MAYA_NO_INITIAL_AUTOLOAD_MT=true`
+  - open a shell and set the environment variable `MAYA_NO_INITIAL_AUTOLOAD_MT=true` to prevent the modeling toolkit from being force loaded
 
   - in the script editor, run the following, substituting location of your dev
     version of pymel:
@@ -67,11 +69,28 @@ To build the caches:
 4) Resolve Issues
 -----------------
 
-Common issues:
+### Version Constants
 
-  - forgot to add `pymel.versions.v20XX`
+Should be indicated by an error in the tests.
 
+run `cmds.about(api=True)` and assign the value to to `pymel.versions.v20XX`
 
+### New MPx Classes
+
+Indicated by this error:
+
+    pymel : WARNING : found new MPx classes: MPxBlendShape. Run pymel.api.plugins._suggestNewMPxValues()
+
+  - In `pymel.api.plugins` add a new `DependNode` sublcass for each missing type:
+
+  ```python
+  # new in 2016
+  if hasattr(mpx, 'MPxBlendShape'):
+      class BlendShape(DependNode, mpx.MPxBlendShape): pass
+  ```
+
+  The `DependNode` classes are required for the next step to work (which I would like to fix this eventually.)  
+  - Run `_suggestNewMPxValues()` which will print out dictionary names and new values to add to them.  You should verify these (Need input from Paul on how this should be done)
 
 5) Build Stubs
 --------------
@@ -101,6 +120,8 @@ Common issues:
 6) Update the Changelog
 -----------------------
 
+TODO: convert changelog script to python and add more pre-processing, such as grouping messages by module prefix (e.g. "system: fixed blah"), grouping by known keywords (e.g. "add(ed)", "fix(ed)"), and standardizing capitalization.
+
   - run changelog script:
 
         ./maintenance/changelog $PREVIOUS_PYMEL_VERSION $CURRENT_REVISION
@@ -115,17 +136,6 @@ Common issues:
 
 7) Build Docs
 -------------
-
-    **A NOTE ABOUT SPHINX:**
-    Note that sphinx-1.1.3, 1.2.1, and the latest source stable commit in the
-    repo, as of 2014-01-31, all seem to have problems.  1.1.3 seemed to have
-    some sort of error when interfacing with graphviz (to generate the class
-    graphs), and the later versions seem to currently have a bug that causes
-    it to generate way-too-verbose summaries - for instance, the entry for
-    animCurveEditor in docs\build\1.0\generated\pymel.core.windows.html had
-    garbage from it's flag's in it's one-line summary.
-    I found the problem, and will submit a bug fix, so hopefully future
-    versions will be ok...
 
   - if you need to rebuild all the examples, delete `pymel/cache/mayaCmdsExamples.zip`. Be warned that the next step will cause your computer to freak out and possibly crash as it runs all of the examples from the Autodesk docs. Simply restart Maya and repeat until you get all the way through.
 
@@ -155,6 +165,25 @@ Common issues:
     docs.generate()
     docs.build(graphviz_dot=None)  #specify the location of dot executable if not on the PATH
     ```
+
+    The `generate()` function uses the sphinx autosummary extension to generate stub `.rst` source files for each module listed in `index.rst`. The stub files contain `autosummary`, `autofunction`, and `autoclass` directives that tell sphinx to inspect the specified objects.  These stub files are then read by sphinx when it is invoked the second time, by `build()`, at which point the `auto*` directives cause it to flesh out the documentation by inspecting live python objects, which it then writes out as html pages, one per `.rst`.
+
+### Checking for Errors
+
+While building the docs sphinx will spit out a wall of errors between reading sources and writing html.
+
+TODO: write something to capture sphinx errors and filter known acceptable errors.
+
+Known Acceptable errors:
+
+  - "ERROR: Unexpected indentation." : this is due to the trailing `..` used to create visual whitespace in the mel command tables.  This might be better done using css...
+
+### Rebuilding the Docs
+
+A few notes on rebuilding:
+
+  - You only need to run `generate` a second time if the pymel source changes.
+  - If you edit static docstrings you need to restart Maya (or reload the module)
 
 8) Make Release
 ---------------
