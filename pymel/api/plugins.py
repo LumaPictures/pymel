@@ -128,6 +128,10 @@ mpxNamesToEnumNames = {
 #    'MPxRepMgr':'kRepMgr',
 #    'MPxRepresentation':'kRepresentation',
     'MPxAssembly':'kAssembly',
+    'MPxBlendShape' : 'kBlendShape',  # auto
+    'MPxGeometryFilter' : 'kGeometryFilter',  # auto
+    'MPxMotionPathNode' : 'kMotionPathNode',  # auto
+    'MPxSkinCluster' : 'kSkinCluster',  # auto
     }
 
 # Gives a map from an MPx class name to it's enum name in MFn.Type
@@ -158,6 +162,10 @@ mpxNamesToApiEnumNames = {
     'MPxRepMgr':'kPluginRepMgr',  # guessed?
     'MPxRepresentation':'kPluginRepresentation', # guessed?
     'MPxAssembly':'kAssembly',
+    'MPxBlendShape': 'kPluginSkinCluster',  # auto
+    'MPxGeometryFilter': 'kPluginGeometryFilter',  # auto
+    'MPxMotionPathNode': 'kPluginMotionPathNode',  # auto
+    'MPxSkinCluster': 'kPluginSkinCluster',  # auto
     }
 
 # Gives a map from an MPx class name to it's maya node type name
@@ -188,8 +196,14 @@ mpxNamesToMayaNodes = {
     'MPxRepMgr':'THdependNode',  # no clue...?
     'MPxRepresentation':'THdependNode', # no clue...?
     'MPxAssembly':'THassembly',
+    'MPxBlendShape': u'THblendShape',  # auto
+    'MPxGeometryFilter': u'THgeometryFilter',  # auto
+    'MPxMotionPathNode': u'THmotionPath',  # auto
+    'MPxSkinCluster': u'THskinCluster',  # auto
     }
 
+# remove entries from mpxNamesToEnumNames which are not in OpenMayaMPx, and add
+# those that are to mpxClassesToMpxEnums
 mpxClassesToMpxEnums = {}
 missingMPx = []
 for _mpxName, _enumName in mpxNamesToEnumNames.iteritems():
@@ -232,6 +246,56 @@ def enumToStr():
                 _enumToStr[val] = name
     return _enumToStr
 
+def _guessEnumStrFromMpxClass(className):
+    assert className.startswith('MPx')
+    name = className[3:]
+    enums = enumToStr().values()
+    enumStr = 'k' + name
+    if enumStr in enums:
+        return enumStr
+
+def _suggestNewMPxValues(classes=None):
+    if classes is None:
+        classes = [x for x in allMPx() if x not in mpxClassesToMpxEnums]
+
+    if not classes:
+        print "All classes exist in mpxClassesToMpxEnums"
+        return
+
+    import pymel.core  # need maya.cmds
+    import pprint
+
+    mpxToEnum = {}
+    for cls in classes:
+        className = cls.__name__
+        enumStr = _guessEnumStrFromMpxClass(className)        
+        if enumStr:
+            # add it to the master dictionary, because it is used by _buildAll.
+            # this is not a complete fix, as mpxNamesToApiEnumNames, and mpxNamesToMayaNodes
+            # also need to be filled out
+            enumValue = getattr(mpx.MPxNode, enumStr)
+            mpxClassesToMpxEnums[cls] = enumValue
+            mpxNamesToEnumNames[className] = enumStr
+            mpxToEnum[className] = enumStr
+        else:
+            print "could not find enum for %s" % className
+
+    if mpxToEnum:
+        _, mpxToMaya, mpxToApiEnums = _buildAll()
+        def prints(d):
+            for key in sorted(d.keys()):
+                print "    %r: %r,  # auto" % (key, d[key])
+
+        print 'Verify and add these entries to the following dictionaries in pymel.api.plugins'
+        print 'mpxNamesToEnumNames'
+        prints(mpxToEnum)
+        print 'mpxNamesToApiEnumNames'
+        prints(dict((k, v) for k, v in mpxToApiEnums.items() if k in mpxToEnum))
+        # pprint.pprint(mpxToApiEnums)
+        print 'mpxNamesToMayaNodes'
+        prints(dict((k, v) for k, v in mpxToMaya.items() if k in mpxToEnum))           
+        # pprint.pprint(mpxToMaya)
+
 _allMPx = None
 def allMPx():
     '''
@@ -249,7 +313,7 @@ _new = [_mpx.__name__ for _mpx in allMPx() if _mpx not in mpxClassesToMpxEnums]
 if _new:
     import pymel.internal.plogging as plog
     _logger = plog.getLogger('pymel')
-    _logger.raiseLog(_logger.WARNING, 'found new MPx classes: %s'
+    _logger.raiseLog(_logger.WARNING, 'found new MPx classes: %s. Run pymel.api.plugins._suggestNewMPxValues()'
                                        % ', '.join(_new))
 
 #===============================================================================
@@ -581,6 +645,10 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
 if hasattr(mpx, 'MPxAssembly'):
     class Assembly(DependNode, mpx.MPxAssembly): pass
 
+# new in 2016
+if hasattr(mpx, 'MPxBlendShape'):
+    class BlendShape(DependNode, mpx.MPxBlendShape): pass
+
 class CameraSet(DependNode, mpx.MPxCameraSet): pass
 
 class Constraint(DependNode, mpx.MPxConstraint): pass
@@ -592,6 +660,10 @@ class EmitterNode(DependNode, mpx.MPxEmitterNode): pass
 class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode): pass
 
 class FieldNode(DependNode, mpx.MPxFieldNode): pass
+
+# new in 2016
+if hasattr(mpx, 'MPxGeometryFilter'):
+    class GeometryFilter(DependNode, mpx.MPxGeometryFilter): pass
 
 class HardwareShader(DependNode, mpx.MPxHardwareShader): pass
 
@@ -607,6 +679,10 @@ class ManipContainer(DependNode, mpx.MPxManipContainer): pass
 
 class ManipulatorNode(DependNode, mpx.MPxManipulatorNode): pass
 
+# new in 2016
+if hasattr(mpx, 'MPxMotionPathNode'):
+    class MotionPathNode(DependNode, mpx.MPxMotionPathNode): pass
+
 class ObjectSet(DependNode, mpx.MPxObjectSet): pass
 
 class ParticleAttributeMapperNode(DependNode, mpx.MPxParticleAttributeMapperNode): pass
@@ -614,6 +690,10 @@ class ParticleAttributeMapperNode(DependNode, mpx.MPxParticleAttributeMapperNode
 class PolyTrg(DependNode, mpx.MPxPolyTrg): pass
 
 class SpringNode(DependNode, mpx.MPxSpringNode): pass
+
+# new in 2016
+if hasattr(mpx, 'MPxSkinCluster'):
+    class SkinCluster(DependNode, mpx.MPxSkinCluster): pass
 
 class SurfaceShape(DependNode, mpx.MPxSurfaceShape): pass
 
@@ -712,21 +792,21 @@ def _buildPluginHierarchy(dummyClasses=None):
 
 def _buildMpxNamesToApiEnumNames(dummyClasses=None, dummyNodes=None):
     import pymel.api as api
-    mpxNamesToEnumNames = {}
+    mpxToEnumNames = {}
     with _DummyPluginNodesMaker(dummyClasses=dummyClasses,
                                 alreadyCreated=dummyNodes) as nodeMaker:
         for mpxCls, mayaNode in nodeMaker.nodes.iteritems():
             mobj = api.toMObject(mayaNode)
-            mpxNamesToEnumNames[mpxCls.__name__] = mobj.apiTypeStr()
-    return mpxNamesToEnumNames
+            mpxToEnumNames[mpxCls.__name__] = mobj.apiTypeStr()
+    return mpxToEnumNames
 
 def _buildAll():
     with _DummyPluginNodesMaker() as nodeMaker:
         hierarchy = _buildPluginHierarchy(dummyClasses=nodeMaker.dummyClasses)
-        mpxClassesToMpxEnums = _buildMpxNamesToApiEnumNames(dummyClasses=nodeMaker.dummyClasses,
-                                                 dummyNodes=nodeMaker.nodes)
+        mpxToMpxEnums = _buildMpxNamesToApiEnumNames(dummyClasses=nodeMaker.dummyClasses,
+                                                     dummyNodes=nodeMaker.nodes)
         mpxToMaya = _buildMpxNamesToMayaNodes(hierarchy=hierarchy)
-    return hierarchy, mpxToMaya, mpxClassesToMpxEnums
+    return hierarchy, mpxToMaya, mpxToMpxEnums
 
 def _buildMpxNamesToMayaNodes(hierarchy=None):
     if hierarchy is None:
@@ -747,6 +827,7 @@ def _createDummyPluginNodeClasses():
     returns a dictionary mapping from MPx class to a pymel dummy class of that
     type
     '''
+    import logging
     pymelPlugClasses = []
 
     for obj in globals().itervalues():
@@ -758,7 +839,13 @@ def _createDummyPluginNodeClasses():
         class DummyClass(cls):
             _name = 'dummy' + cls.__name__
         DummyClass.__name__ = 'Dummy' + cls.__name__
-        dummyClasses[DummyClass.getMpxType()] = DummyClass
+        mpxType = DummyClass.getMpxType()
+        if mpxType in dummyClasses:
+            logger = logging.getLogger('pymel')
+            logger.warning("Skipping %s: MPx type %s is already associated with %s" %
+                           (DummyClass, mpxType, dummyClasses[mpxType]))
+        else:
+            dummyClasses[mpxType] = DummyClass
 
     return dummyClasses
 
