@@ -106,9 +106,7 @@ Tighter MEL Integration
 --------------------------------
 
 Calling MEL from python is still an unfortunate necessity, so PyMEL makes it as easy as possible.  This release builds on PyMEL's already
-vastly improved method, which allows you to call a mel procedure as if it was a python function:
-
-.. python::
+vastly improved method, which allows you to call a mel procedure as if it was a python function::
 
     values = ['one', 'two', 'three', 'four']
 
@@ -165,16 +163,12 @@ When we say PyMEL is concise and easy to read, we mean it.
 
 MEL:
 
-.. python::
-
     string $sel[] = `ls -sl`;
     string $shapes[] = `listRelatives -s $sel[0]`;
     string $conn[] = `listConnections -s 1 -d 0 $shapes[0]`;
     setAttr ( $conn[0] + ".radius") 3;
 
-PyMEL
-
-.. python::
+PyMEL::
 
     selected()[0].getShape().inputs()[0].radius.set(3)
 
@@ -196,9 +190,7 @@ in for use in production by experiened programmers with a vision for how to add 
 Powerful Classes
 ==========================
 
-**Node classes** for every node type
-
-.. python::
+**Node classes** for every node type::
 
     camTrans, cam = camera()  # create a new camera
     cam.setFocalLength(100)
@@ -209,9 +201,7 @@ Powerful Classes
 
 
 
-An **Attribute class** organizes all the attribute commands in one place
-
-.. python::
+An **Attribute class** organizes all the attribute commands in one place::
 
     s = polySphere()[0]
     if s.visibility.isKeyable() and not s.visibility.isLocked():
@@ -220,9 +210,7 @@ An **Attribute class** organizes all the attribute commands in one place
         print s.visibility.type()
 
 
-Manipulate **file paths** with ease
-
-.. python::
+Manipulate **file paths** with ease::
 
     #backup all mb files in the current scene's directory
     basedir = sceneName().parent
@@ -233,9 +221,7 @@ Manipulate **file paths** with ease
         print "backing up: ", file.name
         file.copy( backupDir / (file.namebase + ".old") )
 
-Work with shape **components**, perform **vector math**, and easily set object attributes with the results
-
-.. python::
+Work with shape **components**, perform **vector math**, and easily set object attributes with the results::
 
     #select all faces that point up in world space
     s = polySphere()[0]
@@ -243,9 +229,7 @@ Work with shape **components**, perform **vector math**, and easily set object a
         if face.getNormal('world').y > 0.0:
            select( face, add=1)
 
-Manage optionVars as a python dictionary
-
-.. python::
+Manage optionVars as a python dictionary::
 
     if 'numbers' not in optionVar:
         optionVar['numbers'] = [1,24,47]
@@ -259,9 +243,7 @@ Do More with Less Code
 If you've tried working with the default maya.cmds and maya.mel modules, you know that they add a lot of awkward syntax that can slow you down. PyMEL streamlines
 this syntax in many ways.
 
-Unlike maya.cmds, PyMEL is safe to import into the main namespace, so you don't have to prefix all your commands:
-
-.. python::
+Unlike maya.cmds, PyMEL is safe to import into the main namespace, so you don't have to prefix all your commands::
 
     # default
     cmds.select( cmds.ls() )
@@ -269,9 +251,7 @@ Unlike maya.cmds, PyMEL is safe to import into the main namespace, so you don't 
     # PyMEL
     select( ls() )
 
-PyMEL provides customized **operators** for succinct scripting:
-
-.. python::
+PyMEL provides customized **operators** for succinct scripting::
 
     cam = camera()[0]
     sphere = polySphere()[0]
@@ -291,7 +271,7 @@ Code Comparison
 maya.cmds
 --------------------------
 
-.. python::
+::
 
     objs = cmds.ls( type= 'transform')
     if objs is not None:                    # returns None when it finds no matches
@@ -335,8 +315,6 @@ maya.cmds
 MEL
 --------------------------
 
-.. python::
-
     string $objs[] = `ls -type transform`;
     for ($x in $objs) {
         print (longNameOf($x)); print "\\n";
@@ -378,7 +356,7 @@ MEL
 PyMEL
 --------------------------
 
-.. python::
+::
 
     from pymel.all import *
     for x in ls( type='transform'):

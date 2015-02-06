@@ -1122,9 +1122,8 @@ class MainProgressBar(dynModule.ProgressBar):
             line display message to the user indicating that they can cancel
             the operation.
 
-    Here's an example:
+    Here's an example::
 
-    .. python::
         with MainProgressBar(0,20,True) as bar:
             bar.setStatus('Calculating...')
             for i in range(0,20):

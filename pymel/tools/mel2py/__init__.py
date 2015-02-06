@@ -22,8 +22,6 @@ append new element
 
 **MEL**
 
-.. python::
-
     string $strArray[];
     $strArray[`size $strArray`] = "foo";
 
@@ -37,8 +35,6 @@ assignment relative to end of array
 
 **MEL**
 
-.. python::
-
     strArray[`size $strArray`-3] = "foo";
 
 Python
@@ -48,8 +44,6 @@ Python
 However, since the translator does not track values of variables, it does not know if any given index is out of
 range or not. so, the following would raise a 'list assignment index out of range' error when converted to
 python and would need to be manually fixed:
-
-.. python::
 
     string $strArray[];
     for ($i=0; $i<5; $i++)
@@ -69,15 +63,11 @@ for(init; condition; update)
 
             not translatable:
 
-            .. python::
-
                   for(; ; $i++) print $i;
 
         2. there can be only one conditional expression.
 
             not translatable:
-
-            .. python::
 
                   for($i=0; $i<10, $j<20; $i++) print $i;
 
@@ -86,21 +76,15 @@ for(init; condition; update)
 
             not translatable:
 
-            .. python::
-
                   for($i=0; ($i-2)<10, $i++) print $i;
 
             translatable:
-
-            .. python::
 
                   for($i=0; $i<(10+2), $i++) print $i;
 
         4. the iterator can appear only once in the update expression:
 
             not translatable:
-
-            .. python::
 
                   for($i=0; $i<10; $i++, $i+=2) print $i;
 

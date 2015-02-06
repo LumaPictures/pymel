@@ -603,9 +603,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate
             number of elements.
 
-    A straightforward example:
-
-    .. python::
+    A straightforward example::
 
         settings = {}
         settings['step'] = 1
@@ -625,9 +623,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         win.show()
 
 
-    Here's an example of how this is meant to be used in practice:
-
-    .. python::
+    Here's an example of how this is meant to be used in practice::
 
         settings = {}
         settings['step'] = 1

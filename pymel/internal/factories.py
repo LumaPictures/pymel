@@ -452,6 +452,12 @@ def _addCmdDocs(func, cmdName):
     return func
 
 def addCmdDocsCallback(cmdName, docstring=''):
+    def section(title):
+        if includeDocExamples:
+            return '.. rubric:: %s' % title
+        else:
+            return title
+
     loadCmdDocCache()
 
     cmdInfo = cmdlist[cmdName]
@@ -467,22 +473,23 @@ def addCmdDocsCallback(cmdName, docstring=''):
 
     flagDocs = cmdInfo['flags']
 
-    if flagDocs and sorted(flagDocs.keys()) != ['edit', 'query']:
+    if flagDocs and not set(flagDocs.keys()).issubset(['edit', 'query']):
 
         widths = [3, 100, 32, 32]
         altwidths = [ widths[0] + widths[1] ] + widths[2:]
-        rowsep = '    +' + '+'.join( [ '-'*(w-1) for w in widths ] ) + '+\n'
-        headersep = '    +' + '+'.join( [ '='*(w-1) for w in widths ] ) + '+\n'
+        rowsep = '+' + '+'.join( [ '-'*(w-1) for w in widths ] ) + '+\n'
+        headersep = '+' + '+'.join( [ '='*(w-1) for w in widths ] ) + '+\n'
 
         def makerow( items, widths ):
-            return '    |' + '|'.join( ' ' + i.ljust(w-2) for i, w in zip( items, widths ) ) + '|\n'
+            return '|' + '|'.join( ' ' + i.ljust(w-2) for i, w in zip( items, widths ) ) + '|\n'
 
 
-        docstring += 'Flags:\n'
+        docstring += section('Flags:') + '\n'
+
 
         if includeDocExamples:
-            docstring += rowsep
-            docstring += makerow( ['Long name (short name)', 'Argument Types', 'Properties'], altwidths )
+            docstring += '\n' + rowsep
+            docstring += makerow( ['Long Name / Short Name', 'Argument Types', 'Properties'], altwidths )
             docstring += headersep
 
         for flag in sorted(flagDocs.keys()):
@@ -516,7 +523,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
             if 'edit' in tmpmodes: modes.append('edit')
 
             if includeDocExamples:
-                for data in util.izip_longest( ['**%s (%s)**' % (flag, docs['shortname'])],
+                for data in util.izip_longest( ['``%s`` / ``%s``' % (flag, docs['shortname'])],
                                             textwrap.wrap( '*%s*' % typ, widths[2]-2 ),
                                             [ '.. image:: /images/%s.gif' % m for m in modes],
                                             fillvalue='' ):
@@ -571,7 +578,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
 
     if includeDocExamples and cmdInfo.get('example',None):
         #docstring = ".. |create| image:: /images/create.gif\n.. |edit| image:: /images/edit.gif\n.. |query| image:: /images/query.gif\n\n" + docstring
-        docstring += '\n\nExample::\n\n' + cmdInfo['example']
+        docstring += '\n\n' + section('Example:') + '\n\n::\n' + cmdInfo['example']
 
     return docstring
 
@@ -635,9 +642,7 @@ class Callback(object):
     It also ensures that the entire callback will be be represented by one
     undo entry.
 
-    Example:
-
-    .. python::
+    Example::
 
         import pymel as pm
         def addRigger(rigger, **kwargs):
