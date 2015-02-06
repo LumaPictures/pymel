@@ -1,3 +1,5 @@
+"""Imports all of pymel into one namespace, for use during interactive scripting"""
+
 import sys
 import pymel as _pymel
 _pymel.all = sys.modules[__name__]

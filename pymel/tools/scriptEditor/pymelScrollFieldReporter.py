@@ -7,7 +7,10 @@
 # install a this file as a plugin anywhere...
 
 
-"""
+"""Experimental attempt at wiring mel2py into the script editor.
+
+This is certainly broken, but I'm leaving it in case someone finds it interesting.
+
 to create a window:
 
 window;

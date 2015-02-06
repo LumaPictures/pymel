@@ -1,6 +1,6 @@
 
 """
-General utilities which are pymel-independent."
+General utilities which are pymel-independent.
 """
 import sys, codecs, os, os.path, re, platform
 

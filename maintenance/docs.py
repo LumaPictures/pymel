@@ -76,6 +76,11 @@ def find_dot():
             return d
     raise TypeError('cannot find graphiz dot executable in the path (%s)' % os.environ['PATH'])
 
+def copy_changelog():
+    changelog = os.path.join(pymel_root, 'CHANGELOG.rst')
+    whatsnew = os.path.join(pymel_root, 'docs', 'source', 'whats_new.rst')
+    shutil.copy2(changelog, whatsnew)
+
 def build(clean=True, **kwargs):
     from sphinx import main as sphinx_build
     print "building %s - %s" % (docsdir, datetime.datetime.now())
@@ -86,6 +91,8 @@ def build(clean=True, **kwargs):
     os.chdir( docsdir )
     if clean:
         clean_build()
+
+    copy_changelog()
 
     #mkdir -p build/html build/doctrees
 

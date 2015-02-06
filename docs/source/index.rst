@@ -69,6 +69,8 @@ Appendices:
 	pymel.util.namedtuple
 	pymel.util.path
 	pymel.util.utilitytypes
+	pymel.tools
+	pymel.tools.envparse
 	pymel.tools.mel2py
 	pymel.tools.py2mel
 	pymel.tools.loggingControl

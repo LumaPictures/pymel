@@ -1,3 +1,5 @@
+"""UI Menu for managing logger levels"""
+
 import pymel.all as pymel
 import logging, logging.handlers
 import sys

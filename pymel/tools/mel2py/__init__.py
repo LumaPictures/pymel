@@ -1,6 +1,6 @@
 
 """
-Convert mel scripts into python scripts.
+Convert mel code into python code.
 
 ==========================
 Mel To Python Translator
@@ -20,30 +20,30 @@ raised. I've added fixes for several common array assignment conventions:
 append new element
 ~~~~~~~~~~~~~~~~~~
 
-**MEL**
+MEL::
 
     string $strArray[];
     $strArray[`size $strArray`] = "foo";
 
-Python
+Python::
 
->>> strArray = []                #doctest: +SKIP
->>> strArray.append("foo")       #doctest: +SKIP
+    strArray = []
+    strArray.append("foo")
 
 assignment relative to end of array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**MEL**
+MEL::
 
     strArray[`size $strArray`-3] = "foo";
 
-Python
+Python::
 
->>> strArray[-3] = "foo"        #doctest: +SKIP
+    strArray[-3] = "foo"
 
 However, since the translator does not track values of variables, it does not know if any given index is out of
 range or not. so, the following would raise a 'list assignment index out of range' error when converted to
-python and would need to be manually fixed:
+python and would need to be manually fixed::
 
     string $strArray[];
     for ($i=0; $i<5; $i++)
@@ -53,49 +53,50 @@ python and would need to be manually fixed:
 for(init; condition; update)
 ----------------------------
 
-    the closest equivalent to this in python is something akin to:
+    the closest equivalent to this in python is something akin to::
 
-        >>> for i in range(start, end):    #doctest: +SKIP
+        for i in range(start, end):
+            ...
 
     in order for this type of for loop to be translated into a python for loop it must meet several requirements:
 
-        1. the initialization, condition, and update expressions must not be empty.
+    1. the initialization, condition, and update expressions must not be empty.
 
-            not translatable:
+        not translatable::
 
-                  for(; ; $i++) print $i;
+              for(; ; $i++) print $i;
 
-        2. there can be only one conditional expression.
+    2. there can be only one conditional expression.
 
-            not translatable:
+        not translatable::
 
-                  for($i=0; $i<10, $j<20; $i++) print $i;
+              for($i=0; $i<10, $j<20; $i++) print $i;
 
-        3. the variable which is being updated and tested in the condition (aka, the iterator) must exist alone on one
-            side of the    conditional expression. this one is easy enough to fix, just do some algebra:
+    3. the variable which is being updated and tested in the condition (aka, the iterator) must exist alone on one
+        side of the    conditional expression. this one is easy enough to fix, just do some algebra:
 
-            not translatable:
+        not translatable::
 
-                  for($i=0; ($i-2)<10, $i++) print $i;
+              for($i=0; ($i-2)<10, $i++) print $i;
 
-            translatable:
+        translatable::
 
-                  for($i=0; $i<(10+2), $i++) print $i;
+              for($i=0; $i<(10+2), $i++) print $i;
 
-        4. the iterator can appear only once in the update expression:
+    4. the iterator can appear only once in the update expression:
 
-            not translatable:
+        not translatable::
 
-                  for($i=0; $i<10; $i++, $i+=2) print $i;
+              for($i=0; $i<10; $i++, $i+=2) print $i;
 
-    if these conditions are not met, the for loop will be converted into a while loop:
+    if these conditions are not met, the for loop will be converted into a while loop::
 
-        >>> i=0
-        >>> while 1:                        #doctest: +SKIP
-        ...     if not ( (i - 2)<10 ):
-        ...         break
-        ...     print i
-        ...     i+=1
+        i=0
+        while 1:
+            if not ( (i - 2)<10 ):
+                break
+            print i
+            i+=1
 
 
 Inconveniences
@@ -110,11 +111,11 @@ Global Variables
 ----------------
 
 Global variables are not shared between mel and python.  two functions have been added to pymel for this purpose:
-`getMelGlobal` and `setMelGlobal`. by default, the translator will convert mel global variables into python global
-variables AND intialize them to the value of their corresponding mel global variable using getMelGlobal(). if your
+`pymel.core.langauage.getMelGlobal` and `pymel.core.langauage.setMelGlobal`. by default, the translator will convert mel global variables into python global
+variables AND intialize them to the value of their corresponding mel global variable using `getMelGlobal()`. if your
 python global variable does not need to be shared with other mel scripts, you can remove the get- and
 setMelGlobals lines (for how to filter global variables, see below). however, if it does need to be shared, it is very
-important that you manually add setMelGlobal() to update the variable in the mel environment before calling any mel
+important that you manually add `setMelGlobal()` to update the variable in the mel environment before calling any mel
 procedures that will use the global variable.
 
 In order to hone the accuracy of the translation of global variables, you will find two dictionary parameters below --
@@ -123,8 +124,6 @@ to tell the translator which global variables to share with the mel environment 
 methods described above) and which to not.  for instance, in my case, it is desirable for all of maya's global
 variables to be initialized from their mel value but for our in-house variables not to be, since the latter are often
 used to pass values within a single script. see below for the actual regular expressions used to accomplish this.
-
-
 
 
 Comments
@@ -578,7 +577,3 @@ def findMelOnlyCommands():
                 info = melparse.proc_remap.has_key( cmd )
         result.append( (cmd, typ, info ) )
     return result
-
-if __name__ == '__main__':
-    import pymel.tools.mel2pyCommand
-    pymel.tools.mel2pyCommand.main()

@@ -1,3 +1,58 @@
+.. currentmodule:: pymel
+
+**********
+What's New
+**********
+
+==================================
+Version 1.0.7
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+
+- general: MultiAttrs now support __delitem__
+- uitype: use PySide in toQtObject methods if no PyQt
+- language: added mel.globals alias for melGlobals
+- core: improve API undo callbacks
+- system: saveFile resets name if filename is messed up
+- system: make loadReference give more informative error if ref not loaded
+- system: optimized FileReference.__init__
+- system: switched file cmd used by iterReferences for more stable referenceQuery
+- docs: improved the look of the docs
+- util.arrays: Array objects now explicitly unhashable, added totuple
+- utils.path: allow the pattern argument for various methods to take a compiled regular expression pattern.
+
+----------------------------------
+Additions
+----------------------------------
+
+- language: added Env.playbackTimes convenience property for getting/setting all timeline values at once
+- allapi: added example usage to SafeApiPtr
+- general: added Attribute.iterDescendants
+- system: added mode and caseSensitive args to Translator.fromExtension
+- nodetypes: added topLevel and descendants kwargs to DependNode.listAttr
+- nodetypes: added Camera.isDisplayGateMask method
+- nodetypes: added closestPolygon keyword arg to getUVAtPoint
+- uitypes: added toPySide* functions for casting maya UI strings to PySide objects
+- pymel.conf: added option to source initialPlugins.mel
+- pymel.conf: added option to prefer PyQt4 or PySide
+- util.arguments: added support for sets, useChangedKeys to compareCascadingDicts
+- util.common: added inMaya() func
+- stubs: make stub Mel.__getattr__ accept anything
+- stubs: added PySide stubs
+
+----------------------------------
+Bugfixes
+----------------------------------
+
+- system: fixed bug with referenceQuery which occured when editStrings and liveEdits flags are True
+- system: fixed bug with ReferenceEdit.remove() where self.rawEditData was referred to as a method instead of a property.
+- ipymel: pressing ctrl-c no longer quits maya
+- logging: fixed bug preventing logging menus from displaying
+
+
 ==================================
 Version 1.0.6
 ==================================
@@ -21,13 +76,13 @@ Changes
 Additions
 ----------------------------------
 
-- add (functional) namespace method to Attribute, Component
-- general: add mute accessors to Attributes
+- added (functional) namespace method to Attribute, Component
+- general: added mute accessors to Attributes
 - system: provide ReferenceEdit.rawEditData property for getting faster unparsed access to reference edits
-- nodetypes: add stripUnderworld flag to DependNode.nodeName(), and default it to true.  This removes the underworld prefix (the node prior to ->) from nodeName().
+- nodetypes: added stripUnderworld flag to DependNode.nodeName(), and default it to true.  This removes the underworld prefix (the node prior to ->) from nodeName().
 - ipymel: update for ipython 0.11
 - util.arguments: compareCascadingDicts can show which keys have been added (as opposed to just changed)
-- system: add workspace.expandName
+- system: added workspace.expandName
 
 ----------------------------------
 Bugfixes
@@ -100,25 +155,25 @@ Changes
 Additions
 ----------------------------------
 
-- nodetypes: add stripNamespace option to DependNode.name
+- nodetypes: added stripNamespace option to DependNode.name
 - general: disconnectAttr - support for disconnecting only certain directions
 - general: MeshFace - added numVertices as alias for polygonVertexCount
-- general: add DiscreteComponent.totalSize method
+- general: added DiscreteComponent.totalSize method
 - general: added ParticleComponent class
 - other: added DependNodeName.nodeName (for compatibility with DagNodeName)
 - nodetypes: added DagNode.listComp
-- datatypes: add equivalentSpace
+- datatypes: added equivalentSpace
 - utilitytypes: proxyClass - added module kwarg to control __module__
 - system: added FileReference.parent()
 - system: listReferences - added loaded/unloaded kwargs
 - system: added UndoChunk context manager
-- system: Namespace.remove/.clean - add reparentOtherChildren kwarg
+- system: Namespace.remove/.clean - added reparentOtherChildren kwarg
 - system: added support for regexps to path.listdir/.files/.dirs
 - system: added successful/failedEdits flags to FileReference.removeReferenceEdits
-- windows: confirmBox - add returnButton kwarg to force return of button label
+- windows: confirmBox - added returnButton kwarg to force return of button label
 - plugins: added an example for creating plugin nodes
 - util.enum: added Enum.__eq__/__ne__
-- py2mel: add include/excludeFlagArgs
+- py2mel: added include/excludeFlagArgs
 - system: added proper hash function for FileReference
 
 ----------------------------------
@@ -137,7 +192,7 @@ Bugfixes
 - nodetypes: fix for ObjectSet.__len__
 - nodetypes: AnimLayer.getAttribute - query dagSetMembers.inputs() to get full/unique path
 - nodetypes: fix typo in name of NurbsCurve/Surface.controlVerts (not conrolVerts)
-- core: _pluginLoaded - add fix for addPluginPyNodes triggered on reference load (fix for 2012+ only)
+- core: _pluginLoaded - added fix for addPluginPyNodes triggered on reference load (fix for 2012+ only)
 - core: fix erroneous 'could not find callback id' warnings
 - utilitytypes: universalmethod now has doc pulled from original func
 - util.conditions: bugfix for __ror__, added __str__
@@ -193,13 +248,13 @@ Bugfixes
 - core: _pluginLoaded callback now correctly triggered by importing
 - core:  fix promptForPath doesn't work for mode 1/100 due to testing for the existance of the path.
 - core.nodetypes: fix for DependNode.rename(preserveNamespace=True) when node in root namespace
-- core.nodetypes: fixed bug with RenderLayer.add/removeAdjustments
+- core.nodetypes: fixed bug with RenderLayer.added/removeAdjustments
 - core.nodetypes: fix for DagNode.getAllParents (and test)
 - core.nodetypes: fix for DependNode.hasAttr(checkShape=False)
 - core.nodetypes: fix for AnimCurve.addKeys (issue 234)
 - internal.startup: fix for error message when fail to import maya.cmds.about
 - core: fixed addAttr(q=1, dataType=1) so it does not error if non-dynamic attr
-- core: pythonToMelCmd - fix bug when flagInfo['args'] was not a class
+- core: pythonToMelCmd - fixed bug when flagInfo['args'] was not a class
 - core: pythonToMelCmd - fix for flags where numArgs > 1
 - maya.utils: formatGuiException - fix for, ie, IOError / OSError
 - updated 2012 caches to fix issue 243
@@ -265,13 +320,13 @@ Additions
 - Added isUsedAsColor method to Attribute class
 - Added wrapper for listSets function
 - Added method listSets to PyNode class
-- Add a folderButtonGrp
-- core.system: added Namespace.move
-- core.system: added Namespace.listNodes
+- Added a folderButtonGrp
+- system: added Namespace.move
+- system: added Namespace.listNodes
 - mel2py: python mel command now translated to pymel.python (ie, maya.cmds.python)
 - general: added Attribute.indexMatters
 - language: added animStart/EndTime to Env
-- system: add in a 'breadth'-first recursive search mode to iterReferences
+- system: added in a 'breadth'-first recursive search mode to iterReferences
 - general: added ability to set enum Attributes with string values (issue 35)
 - plogging: set logging level with PYMEL_LOGLEVEL env var
 - Added isRenderable() method to object set.

@@ -1,27 +1,32 @@
 """
-prototype for a pymel ipython configuration
+pymel ipython configuration
 
-Current Features:
-    tab completion of depend nodes, dag nodes, and attributes
-    automatic import of pymel
+Current Features
+----------------
 
-Future Features:
-    tab completion of PyNode attributes
-    color coding of tab complete options:
-        - to differentiate between methods and attributes
-        - dag nodes vs depend nodes
-        - shortNames vs longNames
-    magic commands
-    bookmarking of maya's recent project and files
+tab completion of depend nodes, dag nodes, and attributes
+automatic import of pymel
 
-To Use:
-    place in your PYTHONPATH
-    add the following line to the 'main' function of $HOME/.ipython/ipy_user_conf.py::
+Future Features
+---------------
 
-        import ipymel
+- tab completion of PyNode attributes
+- color coding of tab complete options
+    - to differentiate between methods and attributes
+    - dag nodes vs depend nodes
+    - shortNames vs longNames
+- magic commands
+- bookmarking of maya's recent project and files
+
+To Use
+------
+
+place in your PYTHONPATH
+add the following line to the 'main' function of $HOME/.ipython/ipy_user_conf.py::
+
+    import ipymel
 
 Author: Chad Dombrova
-Version: 0.1
 """
 from optparse import OptionParser
 try:
