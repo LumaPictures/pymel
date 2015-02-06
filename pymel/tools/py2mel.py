@@ -25,7 +25,7 @@ def _getFunction(function):
         module = __import__(moduleName, globals(), locals(), [''])
         func = getattr(module, funcName)
     # function is a python object
-    elif callable(function) :
+    elif callable(function):
         func = function
     else:
         raise TypeError, "argument must be a callable python object or the full, dotted path to the callable object as a string."
@@ -90,13 +90,12 @@ def getMelArgs(function, exactMelType=True):
 #                        #print arg, argtype, parsedTypes.get(arg)
 #                    except KeyError: pass
 
-
     try:
         ndefaults = len(defaults)
     except:
         ndefaults = 0
 
-    #print args, varargs, kwargs, defaults
+    # print args, varargs, kwargs, defaults
 
     nargs = len(args)
     offset = nargs - ndefaults
@@ -227,13 +226,13 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
 
     procDef = """global proc %s %s( %s ){ %s
     python("import %s; %s._functionStore[%r](%s)");}""" % (returnType if returnType else '',
-                                                            procName,
-                                                            ', '.join(melArgs),
-                                                            ''.join(melArrayToStrDecls),
-                                                            __name__,
-                                                            __name__,
-                                                            repr(function),
-                                                            ','.join(melCompile))
+                                                           procName,
+                                                           ', '.join(melArgs),
+                                                           ''.join(melArrayToStrDecls),
+                                                           __name__,
+                                                           __name__,
+                                                           repr(function),
+                                                           ','.join(melCompile))
     _functionStore[repr(function)] = function
 
     _mm.eval(procDef)
@@ -363,7 +362,7 @@ def _getShortNames(objects, nonUniqueName):
                         shortname = baseshort + str(count)
                         if shortname not in shortNames:
                             break
-                    #print 'could not find a unique shortname for %s: using %s'% ( methodName, shortname )
+                    # print 'could not find a unique shortname for %s: using %s'% ( methodName, shortname )
         shortNames.append((longname, shortname))
     return tuple(shortNames)
 
@@ -401,7 +400,7 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
         if extraKwargs and not allowExtraKwargs:
             raise ValueError('arguments of the format **kwargs are not supported')
 
-        #turn defaults into a dict
+        # turn defaults into a dict
         defaults = dict(zip(argNames[-len(defaults):], defaults))
 
         if filter:
@@ -420,8 +419,8 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
         else:
             maxArgs = len(argNames)
 
-    return {'maxArgs':maxArgs, 'canQuery':canQuery, 'canEdit':canEdit,
-            'argNames':argNames, 'defaults':defaults}
+    return {'maxArgs': maxArgs, 'canQuery': canQuery, 'canEdit': canEdit,
+            'argNames': argNames, 'defaults': defaults}
 
 
 class WrapperCommand(plugins.Command):
@@ -446,18 +445,18 @@ class WrapperCommand(plugins.Command):
 #        const MDoubleArray
 #        const MStringArray
 
-
-        if result is None: return
+        if result is None:
+            return
 
         if isinstance(result, dict):
-            #convert a dictionary into a 2d list
+            # convert a dictionary into a 2d list
             newResult = []
             for key, value in result.items():
                 newResult.append(key)
                 newResult.append(value)
             mpx.MPxCommand.setResult(newResult)
         else:
-            #try:
+            # try:
             mpx.MPxCommand.setResult(result)
 
     def parseCommandArgs(self, argData):
@@ -618,7 +617,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
         for flag in flags:
             # currently keyword args only support one item per flag. eventually we may
             # detect when a keyword expects a list as an argument
-            flagInfo[flag] = {'maxArgs':1}
+            flagInfo[flag] = {'maxArgs': 1}
 
     elif inspect.isclass(pyObj):
         # init/new args--> command args
@@ -654,7 +653,6 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
             argInfo['methodName'] = longname
             argInfo['type'] = type(method)
             flagInfo[longname] = argInfo
-
 
     # command args
     for _ in range(mainArgInfo['maxArgs']):
@@ -694,6 +692,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
         _syntax = syntax
         _flagInfo = flagInfo
         _mainArgInfo = mainArgInfo
+
         def doIt(self, argList):
 
             argData = om.MArgParser(self.syntax(), argList)
@@ -720,7 +719,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
                 attrType = flagInfo['type']
                 methodName = flagInfo['methodName']
 
-                if issubclass(attrType, types.MethodType): # method
+                if issubclass(attrType, types.MethodType):  # method
                     # build out the args and kwargs...
                     # ...can't just pass flagArgs straight into our method using
                     #   myMethod(*flagArgs)
@@ -734,7 +733,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
                     kwargs = dict(zip(defaultNames, defaultVals))
 
                     res = getattr(inst, methodName)(*args, **kwargs)
-                else: # property
+                else:  # property
                     if argData.isQuery():
                         res = getattr(inst, methodName)
                     elif argData.isEdit():
@@ -750,4 +749,3 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
     if register:
         dummyCommand.register()
     return dummyCommand
-

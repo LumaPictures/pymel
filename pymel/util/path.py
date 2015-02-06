@@ -130,15 +130,18 @@ def simple_cache(func):
 
 
 class ClassProperty(property):
+
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
 
 
 class multimethod(object):
+
     """
     Acts like a classmethod when invoked from the class and like an
     instancemethod when invoked from the instance.
     """
+
     def __init__(self, func):
         self.func = func
 
@@ -150,6 +153,7 @@ class multimethod(object):
 
 
 class path(unicode):
+
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -1508,6 +1512,7 @@ class path(unicode):
 
 
 class tempdir(path):
+
     """
     A temporary directory via tempfile.mkdtemp, and constructed with the
     same parameters that you can use as a context manager.
@@ -1559,11 +1564,11 @@ def _permission_mask(mode):
         raise ValueError("Unrecognized symbolic mode", mode)
     spec_map = dict(r=4, w=2, x=1)
     spec = reduce(operator.or_, [spec_map[perm]
-                  for perm in parsed.group('what')])
+                                 for perm in parsed.group('what')])
     # now apply spec to each in who
     shift_map = dict(u=6, g=3, o=0)
     mask = reduce(operator.or_, [spec << shift_map[subj]
-                  for subj in parsed.group('who')])
+                                 for subj in parsed.group('who')])
 
     op = parsed.group('op')
     # if op is -, invert the mask
@@ -1575,6 +1580,7 @@ def _permission_mask(mode):
 
 
 class CaseInsensitivePattern(unicode):
+
     """
     A string with a 'normcase' property, suitable for passing to
     :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,

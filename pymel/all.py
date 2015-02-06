@@ -13,13 +13,13 @@ import internal.factories as factories
 import mayautils
 
 #logger = plogging.getplogging.pymelLogger(__name__)
-plogging.pymelLogger.debug( 'imported internal' )
+plogging.pymelLogger.debug('imported internal')
 
 import api
-plogging.pymelLogger.debug( 'imported api' )
+plogging.pymelLogger.debug('imported api')
 
 from core import *
-plogging.pymelLogger.debug( 'imported core' )
+plogging.pymelLogger.debug('imported core')
 
 # for wrapped math functions
 from util.arrays import *
@@ -37,9 +37,9 @@ from core.uitypes import *
 import core
 import tools
 
-## some submodules do 'import pymel.core.pmcmds as cmds' -
-## this ensures that when the user does 'from pymel import *',
-## cmds is always maya.cmds
+# some submodules do 'import pymel.core.pmcmds as cmds' -
+# this ensures that when the user does 'from pymel import *',
+# cmds is always maya.cmds
 import maya.cmds as cmds
 
 # Run delayed finalize now, so that if userSetup imports all,

@@ -21,7 +21,7 @@ def doctestFriendly(func):
     def prepForDoctest(*args, **kwargs):
         result = None
         if (sys.displayhook != sys.__displayhook__
-            or sys.stdout != sys.__stdout__):
+                or sys.stdout != sys.__stdout__):
             save_displayhook = sys.displayhook
             # reset doctest.master, so we don't get spammed with
             # *** DocTestRunner.merge: '...' in both testers; summing outcomes.
@@ -62,11 +62,12 @@ def doctestmod(*args, **kwargs):
     """
     return doctest.testmod(*args, **kwargs)
 
-#def isDocTestable(path):
+# def isDocTestable(path):
 #    finder = moduleFinder.ModuleFinder()
 #    finder.find_all_submodules(path)
 
 class MayaTestRunner(TextTestRunner):
+
     def __init__(self, stream=sys.stdout, descriptions=True, verbosity=2):
         super(MayaTestRunner, self).__init__(stream=stream,
                                              descriptions=descriptions,
@@ -83,7 +84,7 @@ def addFuncToModule(func, module):
 def startsWithDoubleUnderscore(testcase):
     return testcase.__name__.startswith("__")
 
-def setupUnittestModule(moduleName, suiteFuncName = SUITE_FUNC_NAME, testMainName=TEST_MAIN_FUNC_NAME,
+def setupUnittestModule(moduleName, suiteFuncName=SUITE_FUNC_NAME, testMainName=TEST_MAIN_FUNC_NAME,
                         filterTestCases=startsWithDoubleUnderscore):
     """
     Add basic unittest functions to the given module.
@@ -101,6 +102,7 @@ def setupUnittestModule(moduleName, suiteFuncName = SUITE_FUNC_NAME, testMainNam
     Will then call 'test_main' if moduleName == '__main__'
     """
     module = sys.modules[moduleName]
+
     def theSuite():
         return findTestCases(module)
     theSuite.__name__ = suiteFuncName
@@ -115,16 +117,16 @@ def setupUnittestModule(moduleName, suiteFuncName = SUITE_FUNC_NAME, testMainNam
     for name in dir(module):
         obj = getattr(module, name)
         if (isinstance(obj, (type, types.ClassType)) and
-            issubclass(obj, TestCase) and
-            filterTestCases and
-            filterTestCases(obj)):
+                issubclass(obj, TestCase) and
+                filterTestCases and
+                filterTestCases(obj)):
             delattr(module, name)
 
     if moduleName == '__main__':
         test_main()
 
 # Make this import / initialize pymel!
-#class MayaTestRunner(TextTestRunner):
+# class MayaTestRunner(TextTestRunner):
 #    '''
 #    Test runner for unittests that require maya.
 #    '''
@@ -137,7 +139,7 @@ class TestCaseExtended(TestCase):
     # want run (ie, an abstract class you wish to derive from, etc)
     DO_NOT_LOAD = False
 
-    #def addTestFunc(self, function):
+    # def addTestFunc(self, function):
     def assertNoError(self, function, *args, **kwargs):
         try:
             function(*args, **kwargs)
@@ -284,11 +286,12 @@ def permutations(sequence, length=None):
     elif length < 0 or length > len(sequence):
         raise ValueError("Permutation length '%i' invalid for %s" % (length, sequence))
 
-    if length==0: yield []
+    if length == 0:
+        yield []
 
     else:
         for i in xrange(len(sequence)):
-            for subpermutation in permutations(sequence[:i] + sequence[i+1:], length - 1):
+            for subpermutation in permutations(sequence[:i] + sequence[i + 1:], length - 1):
                 yield [sequence[i]] + subpermutation
 
 
@@ -308,14 +311,15 @@ def isEquivalenceRelation(inputs, outputs, dict):
     inputs = set(inputs)
     output = set(outputs)
     if len(inputs) == len(outputs) and \
-        set(dict.iterkeys()) == inputs and \
-        set(dict.itervalues()) == outputs:
+            set(dict.iterkeys()) == inputs and \
+            set(dict.itervalues()) == outputs:
 
         return True
     else:
         return False
 
 class SuiteFromModule(TestSuite):
+
     def __init__(self, module, testImport=True):
         """
         Set testImport to True to have the suite automatically contain a test case that
@@ -364,6 +368,7 @@ class SuiteFromModule(TestSuite):
 
     def _makeImportTestCase(suite_self):
         class TestSuiteImport(TestCaseExtended):
+
             def runTest(testCase_self):
                 testCase_self.assertTrue(suite_self._importError is None, "Failed to create a test suite from module '%s':\n%s" % (suite_self.moduleName, suite_self._importError))
             runTest.__doc__ = """Try to create a %s from module '%s'""" % (suite_self.__class__.__name__, suite_self.moduleName)
@@ -371,6 +376,7 @@ class SuiteFromModule(TestSuite):
 
 
 class UnittestSuiteFromModule(SuiteFromModule):
+
     def __init__(self, moduleName, suiteFuncName=SUITE_FUNC_NAME, **kwargs):
         self.suiteFuncName = suiteFuncName
         super(UnittestSuiteFromModule, self).__init__(moduleName, **kwargs)
@@ -390,9 +396,9 @@ class UnittestSuiteFromModule(SuiteFromModule):
         return theSuite
 
 
-
 class DoctestSuiteFromModule(SuiteFromModule):
-    def __init__(self, moduleName, packageRecurse=False, alreadyRecursed = None, **kwargs):
+
+    def __init__(self, moduleName, packageRecurse=False, alreadyRecursed=None, **kwargs):
         if alreadyRecursed is None:
             alreadyRecursed = []
         self.alreadyRecursed = alreadyRecursed
@@ -418,8 +424,8 @@ class DoctestSuiteFromModule(SuiteFromModule):
                     for name in os.listdir(path):
                         newPath = os.path.join(path, name)
                         basename, ext = os.path.splitext(name)
-                        if ( (os.path.isfile(newPath) and ext in ('.py', '.pyo', '.pyc') and basename != '__init__')
-                             or (os.path.isdir(newPath) and os.path.isfile(os.path.join(newPath, '__init__.py'))) ):
+                        if ((os.path.isfile(newPath) and ext in ('.py', '.pyo', '.pyc') and basename != '__init__')
+                                or (os.path.isdir(newPath) and os.path.isfile(os.path.join(newPath, '__init__.py')))):
                             newModuleName = self.moduleName + "." + basename
 
                             newSuite = DoctestSuiteFromModule(newModuleName, testImport=False, packageRecurse=True, alreadyRecursed=self.alreadyRecursed)

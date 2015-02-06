@@ -8,8 +8,9 @@ Class for storing apiVersions, which are the best method for comparing versions.
     The current version is later than Maya 2008
 """
 
-import re, struct
-from maya.OpenMaya import MGlobal  as _MGlobal
+import re
+import struct
+from maya.OpenMaya import MGlobal as _MGlobal
 
 def parseVersionStr(versionStr, extension=False):
     """
@@ -49,7 +50,7 @@ def parseVersionStr(versionStr, extension=False):
         ma = re.search("((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
         version = ma.group('base')
 
-        if extension and (ma.group('ext') is not None) :
+        if extension and (ma.group('ext') is not None):
             version += "-" + ma.group('ext')
     return version
 
@@ -69,46 +70,46 @@ _shortName = parseVersionStr(_fullName, extension=False)
 _installName = _shortName + ('-x64' if (_is64 and _current < 201600) else '')
 
 
-v85           = 200700
-v85_SP1       = 200701
-v2008         = 200800
-v2008_SP1     = 200806
-v2008_EXT2    = 200806
-v2009         = 200900
-v2009_EXT1    = 200904
-v2009_SP1A    = 200906
-v2010         = 201000
-v2011         = 201100
+v85 = 200700
+v85_SP1 = 200701
+v2008 = 200800
+v2008_SP1 = 200806
+v2008_EXT2 = 200806
+v2009 = 200900
+v2009_EXT1 = 200904
+v2009_SP1A = 200906
+v2010 = 201000
+v2011 = 201100
 v2011_HOTFIX1 = 201101
 v2011_HOTFIX2 = 201102
 v2011_HOTFIX3 = 201103
-v2011_SP1     = 201104
-v2012         = 201200
+v2011_SP1 = 201104
+v2012 = 201200
 v2012_HOTFIX1 = 201201
 v2012_HOTFIX2 = 201202
 v2012_HOTFIX3 = 201203
 v2012_HOTFIX4 = 201204
-v2012_SP1     = 201209
-v2012_SAP1    = v2012_SP1
-v2012_SP2     = 201217
+v2012_SP1 = 201209
+v2012_SAP1 = v2012_SP1
+v2012_SP2 = 201217
 v2012_SAP1SP1 = v2012_SP2
-v2013         = 201300
-v2014         = 201400
-v2014_SP1     = 201402
-v2014_SP2     = 201404
-v2014_SP3     = 201406
-v2014_EXT1    = 201450
+v2013 = 201300
+v2014 = 201400
+v2014_SP1 = 201402
+v2014_SP2 = 201404
+v2014_SP3 = 201406
+v2014_EXT1 = 201450
 v2014_EXT1SP1 = 201451
 v2014_EXT1SP2 = 201459
-v2015         = 201500
-v2015_SP1     = 201501
-v2015_SP2     = 201502
-v2015_SP3     = 201505
-v2015_SP4     = 201506
-v2015_EXT1    = 201506
-v2015_SP5     = 201507
+v2015 = 201500
+v2015_SP1 = 201501
+v2015_SP2 = 201502
+v2015_SP3 = 201505
+v2015_SP4 = 201506
+v2015_EXT1 = 201506
+v2015_SP5 = 201507
 v2015_EXT1SP5 = 201507
-v2016         = 201600
+v2016 = 201600
 
 def current():
     return _current
@@ -147,4 +148,3 @@ def isEval():
         return maya.cmds.about(evalVersion=1)
     except AttributeError:
         raise RuntimeError, "This method cannot be used until maya is fully initialized"
-

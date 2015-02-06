@@ -1,45 +1,46 @@
-import os, subprocess
+import os
+import subprocess
 from arguments import isIterable as _isIterable
 
-__all__ = [ 'appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv', 'refreshEnviron', 'executableOutput', 'shellOutput' ]
+__all__ = ['appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv', 'refreshEnviron', 'executableOutput', 'shellOutput']
 
 # TODO : expand environment variables when testing if it already exists in the list
-def appendEnv( env, value ):
+def appendEnv(env, value):
     """append the value to the environment variable list ( separated by ':' on osx and linux and ';' on windows).
     skips if it already exists in the list"""
     sep = os.path.pathsep
     if env not in os.environ:
-        #print "adding", env, value
+        # print "adding", env, value
         os.environ[env] = value
     else:
         splitEnv = os.environ[env].split(sep)
         if value not in splitEnv:
             splitEnv.append(value)
-            #print "adding", env, value
-            os.environ[env] = sep.join( splitEnv )
+            # print "adding", env, value
+            os.environ[env] = sep.join(splitEnv)
     # i believe os.putenv is triggered by modifying os.environ, so this should not be necessary ?
-    #if put :
+    # if put :
     #    os.putenv(env, os.environ[env])
 
-def prependEnv( env, value ):
+def prependEnv(env, value):
     """prepend the value to the environment variable list (separated by ':' on osx and linux and ';' on windows).
     skips if it already exists in the list"""
     sep = os.path.pathsep
     if env not in os.environ:
-        #print "adding", env, value
+        # print "adding", env, value
         os.environ[env] = value
     else:
         splitEnv = os.environ[env].split(sep)
         if value not in splitEnv:
-            splitEnv.insert(0,value)
-            #print "adding", env, value
-            os.environ[env] = sep.join( splitEnv )
+            splitEnv.insert(0, value)
+            # print "adding", env, value
+            os.environ[env] = sep.join(splitEnv)
 
-def getEnv( env, default=None ):
+def getEnv(env, default=None):
     "get the value of an environment variable.  returns default (None) if the variable has not been previously set."
     return os.environ.get(env, default)
 
-def getEnvs( env, default = None ):
+def getEnvs(env, default=None):
     """
     get the value of an environment variable split into a list.  returns default ([]) if the variable has not been previously set.
 
@@ -54,7 +55,7 @@ def getEnvs( env, default = None ):
             return default
 
 
-def putEnv( env, value ):
+def putEnv(env, value):
     """set the value of an environment variable.  overwrites any pre-existing value for this variable. If value is a non-string
     iterable (aka a list or tuple), it will be joined into a string with the separator appropriate for the current system."""
     if _isIterable(value):
@@ -73,7 +74,7 @@ def refreshEnviron():
         cmd = 'set'
 
     cmdOutput = shellOutput(cmd)
-    #print "ENV", cmdOutput
+    # print "ENV", cmdOutput
     # use splitlines rather than split('\n') for better handling of different
     # newline characters on various os's
     for line in cmdOutput.splitlines():
@@ -81,7 +82,7 @@ def refreshEnviron():
         if '=' in line:
             var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
             if not var.startswith('_') and var not in exclude:
-                    os.environ[var] = val
+                os.environ[var] = val
 
 def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
                      returnCode=False, input=None, **kwargs):

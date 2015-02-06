@@ -1,4 +1,5 @@
-import sys, re
+import sys
+import re
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
@@ -12,10 +13,10 @@ def _resolveUIFunc(name):
     if isinstance(name, basestring):
         import windows
         try:
-            return getattr(windows,name)
+            return getattr(windows, name)
         except AttributeError:
             try:
-                cls = getattr(dynModule,name)
+                cls = getattr(dynModule, name)
                 return cls.__melcmd__()
             except (KeyError, AttributeError):
                 pass
@@ -116,7 +117,7 @@ if _versions.current() >= _versions.v2011:
         if ptr is not None:
             return sip.wrapinstance(long(ptr), qtgui.QAction)
 
-    #PYSIDE VERSIONS
+    # PYSIDE VERSIONS
     def pysideWrapInstance(ptr, base=None):
         '''Utility to convert a point to a Qt Class and produce the same result
         as sip.wrapinstance using shiboken.wrapInstance.
@@ -233,13 +234,15 @@ if _versions.current() >= _versions.v2011:
 
     # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
     try:
-        import sip, PyQt4
+        import sip
+        import PyQt4
         pyQtAvailable = True
     except ImportError:
         pyQtAvailable = False
 
     try:
-        import shiboken, PySide
+        import shiboken
+        import PySide
         pySideAvailable = True
     except ImportError:
         pySideAvailable = False
@@ -270,7 +273,7 @@ if _versions.current() >= _versions.v2011:
 # really, this should be in core.windows; but, due to that fact that this module
 # is "higher" in the import hierarchy than core.windows, and we need this function
 # here, we're just defining it here
-@_factories.addMelDocs( 'objectTypeUI' )
+@_factories.addMelDocs('objectTypeUI')
 def objectTypeUI(name, **kwargs):
     try:
         return cmds.objectTypeUI(name, **kwargs)
@@ -282,7 +285,7 @@ def objectTypeUI(name, **kwargs):
             # we cannot query the type of rowGroupLayout children: check common types for these
             uiType = None
             typesToCheck = 'checkBox floatField button floatSlider intSlider ' \
-                    'floatField textField intField optionMenu radioButton'.split()
+                'floatField textField intField optionMenu radioButton'.split()
             if _versions.current() >= _versions.v2012_SP2:
                 # 2012 SP2 introducted a bug where doing:
                 # win = cmds.window(menuBar=True)
@@ -290,7 +293,7 @@ def objectTypeUI(name, **kwargs):
                 # would error...
                 typesToCheck.append('window')
             for cmdName in typesToCheck:
-                if getattr(cmds, cmdName)( name, ex=1, q=1):
+                if getattr(cmds, cmdName)(name, ex=1, q=1):
                     uiType = cmdName
                     break
             if uiType:
@@ -298,6 +301,7 @@ def objectTypeUI(name, **kwargs):
             raise topError
 
 class PyUI(unicode):
+
     def __new__(cls, name=None, create=False, **kwargs):
         """
         Provides the ability to create the PyUI Element when creating a class::
@@ -313,10 +317,10 @@ class PyUI(unicode):
                 uiType = objectTypeUI(name)
             except RuntimeError:
                 uiType = 'PyUI'
-            uiType =  _uiTypesToCommands.get(uiType, uiType)
+            uiType = _uiTypesToCommands.get(uiType, uiType)
 
             try:
-                newcls = getattr(dynModule, _util.capitalize(uiType) )
+                newcls = getattr(dynModule, _util.capitalize(uiType))
             except AttributeError:
                 newcls = PyUI
                 # objectTypeUI for panels seems to return weird results -
@@ -324,9 +328,9 @@ class PyUI(unicode):
                 # Other types should be detected correctly by objectTypeUI,
                 # but this just provides a failsafe...
                 for testType in 'panel scriptedPanel window control layout menu'.split():
-                    if getattr(cmds, testType)( name, ex=1, q=1):
+                    if getattr(cmds, testType)(name, ex=1, q=1):
                         newcls = getattr(dynModule, _util.capitalize(testType),
-                                         PyUI )
+                                         PyUI)
                         if newcls != PyUI:
                             break
         else:
@@ -339,18 +343,18 @@ class PyUI(unicode):
             else:
                 # find the long name
                 if '|' not in name and not issubclass(newcls,
-                                                (Window,
-                                                 Panel,
-                                                 dynModule.ScriptedPanel,
-                                                 dynModule.RadioCollection,
-                                                 dynModule.ToolCollection)):
+                                                      (Window,
+                                                       Panel,
+                                                       dynModule.ScriptedPanel,
+                                                       dynModule.RadioCollection,
+                                                       dynModule.ToolCollection)):
                     import windows
                     try:
-                        if issubclass(newcls,Layout):
+                        if issubclass(newcls, Layout):
                             parent = windows.layout(name, q=1, p=1)
-                        elif issubclass(newcls,OptionMenu):
+                        elif issubclass(newcls, OptionMenu):
                             parent = windows.optionMenu(name, q=1, p=1)
-                        elif issubclass(newcls,Menu):
+                        elif issubclass(newcls, Menu):
                             parent = windows.menu(name, q=1, p=1)
                         else:
                             parent = windows.control(name, q=1, p=1)
@@ -359,57 +363,60 @@ class PyUI(unicode):
 
                     except RuntimeError:
                         # editors don't have a long name, so we keep the short name
-                        if name not in cmds.lsUI( long=True,editors=True):
+                        if name not in cmds.lsUI(long=True, editors=True):
                             raise
 
-
         # correct for optionMenu
-        if newcls == PopupMenu and cmds.optionMenu( name, ex=1 ):
+        if newcls == PopupMenu and cmds.optionMenu(name, ex=1):
             newcls = OptionMenu
-        return unicode.__new__(newcls,name)
+        return unicode.__new__(newcls, name)
 
     @staticmethod
-    def _isBeingCreated( name, create, kwargs):
+    def _isBeingCreated(name, create, kwargs):
         """
         create a new node when any of these conditions occur:
            name is None
            create is True
            parent flag is set
         """
-        return not name or create or ( 'q' not in kwargs and kwargs.get('parent', kwargs.get('p', None)) )
+        return not name or create or ('q' not in kwargs and kwargs.get('parent', kwargs.get('p', None)))
 
     def __repr__(self):
         return u"ui.%s('%s')" % (self.__class__.__name__, self)
+
     def parent(self):
         buf = unicode(self).split('|')[:-1]
-        if len(buf)==2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
+        if len(buf) == 2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
             # pre-2011, windows with menus can have a strange name:
             # ex.  window1|window1|menu1
             buf = buf[:1]
         if not buf:
             return None
-        return PyUI( '|'.join(buf) )
+        return PyUI('|'.join(buf))
     getParent = parent
 
     def shortName(self):
         return unicode(self).split('|')[-1]
+
     def name(self):
         return unicode(self)
-    def window(self):
-        return Window( self.name().split('|')[0] )
 
-    delete = _factories.functionFactory( 'deleteUI', rename='delete' )
-    rename = _factories.functionFactory( 'renameUI', rename='rename' )
+    def window(self):
+        return Window(self.name().split('|')[0])
+
+    delete = _factories.functionFactory('deleteUI', rename='delete')
+    rename = _factories.functionFactory('renameUI', rename='rename')
     type = objectTypeUI
 
     @classmethod
     def exists(cls, name):
-        return cls.__melcmd__( name, exists=True )
+        return cls.__melcmd__(name, exists=True)
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtControl
 
 class Panel(PyUI):
+
     """pymel panel class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
     # note that we're not actually customizing anything, but
@@ -420,6 +427,7 @@ _withParentStack = []
 _withParentMenuStack = []
 
 class Layout(PyUI):
+
     def __enter__(self):
         global _withParentStack
         _withParentStack.append(self)
@@ -438,10 +446,10 @@ class Layout(PyUI):
         cmds.setParent(parent)
 
     def children(self):
-        #return [ PyUI( self.name() + '|' + x) for x in self.__melcmd__(self, q=1, childArray=1) ]
+        # return [ PyUI( self.name() + '|' + x) for x in self.__melcmd__(self, q=1, childArray=1) ]
         kids = cmds.layout(self, q=1, childArray=1)
         if kids:
-            return [ PyUI( self.name() + '|' + x) for x in kids ]
+            return [PyUI(self.name() + '|' + x) for x in kids]
         return []
 
     getChildren = children
@@ -476,7 +484,7 @@ class Layout(PyUI):
             args.append(name)
         if kwargs:
             if 'parent' in kwargs or 'p' in kwargs:
-                _logger.warn('parent flag is set by addChild automatically. passed value will be ignored' )
+                _logger.warn('parent flag is set by addChild automatically. passed value will be ignored')
                 kwargs.pop('parent', None)
                 kwargs.pop('p', None)
         kwargs['parent'] = self
@@ -510,6 +518,7 @@ class Layout(PyUI):
 
 # customized ui classes
 class Window(Layout):
+
     """pymel window class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
 
@@ -567,7 +576,6 @@ class FormLayout(Layout):
         self = Layout.__new__(cls, name, **kwargs)
         return self
 
-
     def __init__(self, name=None, orientation='vertical', spacing=2, reversed=False, ratios=None, **kwargs):
         """
         spacing - absolute space between controls
@@ -580,32 +588,32 @@ class FormLayout(Layout):
         self._ratios = ratios and list(ratios) or []
 
     def attachForm(self, *args):
-        kwargs = {'edit':True}
+        kwargs = {'edit': True}
         kwargs['attachForm'] = [args]
-        cmds.formLayout(self,**kwargs)
+        cmds.formLayout(self, **kwargs)
 
     def attachControl(self, *args):
-        kwargs = {'edit':True}
+        kwargs = {'edit': True}
         kwargs['attachControl'] = [args]
-        cmds.formLayout(self,**kwargs)
+        cmds.formLayout(self, **kwargs)
 
     def attachNone(self, *args):
-        kwargs = {'edit':True}
+        kwargs = {'edit': True}
         kwargs['attachNone'] = [args]
-        cmds.formLayout(self,**kwargs)
+        cmds.formLayout(self, **kwargs)
 
     def attachPosition(self, *args):
-        kwargs = {'edit':True}
+        kwargs = {'edit': True}
         kwargs['attachPosition'] = [args]
-        cmds.formLayout(self,**kwargs)
+        cmds.formLayout(self, **kwargs)
 
     HORIZONTAL = 0
     VERTICAL = 1
-    Orientation = _util.enum.Enum( 'Orientation', ['horizontal', 'vertical'] )
+    Orientation = _util.enum.Enum('Orientation', ['horizontal', 'vertical'])
 
     def flip(self):
         """Flip the orientation of the layout """
-        self._orientation = 1-self._orientation
+        self._orientation = 1 - self._orientation
         self.redistribute(*self._ratios)
 
     def reverse(self):
@@ -619,14 +627,13 @@ class FormLayout(Layout):
         self._reversed = False
         self.redistribute()
 
-
-    def redistribute(self,*ratios):
+    def redistribute(self, *ratios):
         """
         Redistribute the child controls based on the ratios.
         If not ratios are given (or not enough), 1 will be used
         """
 
-        sides = [["top","bottom"],["left","right"]]
+        sides = [["top", "bottom"], ["left", "right"]]
 
         children = self.getChildArray()
         if not children:
@@ -635,46 +642,48 @@ class FormLayout(Layout):
             children.reverse()
 
         ratios = list(ratios) or self._ratios or []
-        ratios += [1]*(len(children)-len(ratios))
+        ratios += [1] * (len(children) - len(ratios))
         self._ratios = ratios
         total = sum(ratios)
 
         for i, child in enumerate(children):
             for side in sides[self._orientation]:
-                self.attachForm(child,side,self._spacing)
+                self.attachForm(child, side, self._spacing)
 
-            if i==0:
+            if i == 0:
                 self.attachForm(child,
-                    sides[1-self._orientation][0],
-                    self._spacing)
+                                sides[1 - self._orientation][0],
+                                self._spacing)
             else:
                 self.attachControl(child,
-                    sides[1-self._orientation][0],
-                    self._spacing,
-                    children[i-1])
+                                   sides[1 - self._orientation][0],
+                                   self._spacing,
+                                   children[i - 1])
 
             if ratios[i]:
                 self.attachPosition(children[i],
-                    sides[1-self._orientation][1],
-                    self._spacing,
-                    float(sum(ratios[:i+1]))/float(total)*100)
+                                    sides[1 - self._orientation][1],
+                                    self._spacing,
+                                    float(sum(ratios[:i + 1])) / float(total) * 100)
             else:
                 self.attachNone(children[i],
-                    sides[1-self._orientation][1])
+                                sides[1 - self._orientation][1])
 
-    def vDistribute(self,*ratios):
+    def vDistribute(self, *ratios):
         self._orientation = int(self.Orientation.vertical)
         self.redistribute(*ratios)
 
-    def hDistribute(self,*ratios):
+    def hDistribute(self, *ratios):
         self._orientation = int(self.Orientation.horizontal)
         self.redistribute(*ratios)
 
 class AutoLayout(FormLayout):
+
     """
     AutoLayout behaves exactly like `FormLayout`, but will call redistribute automatically
     at the end of a 'with' statement block
     """
+
     def __exit__(self, type, value, traceback):
         self.redistribute()
         super(AutoLayout, self).__exit__(type, value, traceback)
@@ -684,18 +693,19 @@ class RowLayout(Layout):
 
 class TextScrollList(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    def extend( self, appendList ):
+
+    def extend(self, appendList):
         """ append a list of strings"""
 
         for x in appendList:
             self.append(x)
 
-    def selectIndexedItems( self, selectList ):
+    def selectIndexedItems(self, selectList):
         """select a list of indices"""
         for x in selectList:
             self.selectIndexedItem(x)
 
-    def removeIndexedItems( self, removeList ):
+    def removeIndexedItems(self, removeList):
         """remove a list of indices"""
         for x in removeList:
             self.removeIndexedItem(x)
@@ -703,7 +713,7 @@ class TextScrollList(PyUI):
     def selectAll(self):
         """select all items"""
         numberOfItems = self.getNumberOfItems()
-        self.selectIndexedItems(range(1,numberOfItems+1))
+        self.selectIndexedItems(range(1, numberOfItems + 1))
 
 class Menu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -737,9 +747,9 @@ class Menu(PyUI):
 
     def getItemArray(self):
         """ Modified to return pymel instances """
-        children = cmds.menu(self,query=True,itemArray=True)
+        children = cmds.menu(self, query=True, itemArray=True)
         if children:
-            return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
+            return [MenuItem(item) for item in cmds.menu(self, query=True, itemArray=True)]
         else:
             return []
 
@@ -755,7 +765,7 @@ class PopupMenu(Menu):
 class OptionMenu(PopupMenu):
     __metaclass__ = _factories.MetaMayaUIWrapper
 
-    def addMenuItems( self, items, title=None):
+    def addMenuItems(self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """
         if title:
             cmds.menuItem(l=title, en=0, parent=self)
@@ -787,11 +797,12 @@ class OptionMenuGrp(RowLayout):
         return super(OptionMenuGrp, self).__exit__(type, value, traceback)
 
 class SubMenuItem(Menu):
+
     def getBoldFont(self):
-        return cmds.menuItem(self,query=True,boldFont=True)
+        return cmds.menuItem(self, query=True, boldFont=True)
 
     def getItalicized(self):
-        return cmds.menuItem(self,query=True,italicized=True)
+        return cmds.menuItem(self, query=True, italicized=True)
 
     if _versions.current() >= _versions.v2011:
         asQtObject = toQtMenuItem
@@ -799,6 +810,7 @@ class SubMenuItem(Menu):
 class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = 'menuItem'
+
     def __enter__(self):
         SubMenuItem(self).__enter__()
         return self
@@ -822,6 +834,7 @@ def MenuItem(name=None, create=False, **kwargs):
     return cls(name, create, **kwargs)
 
 class UITemplate(object):
+
     """
     from pymel.core import *
 
@@ -848,18 +861,19 @@ class UITemplate(object):
                         button( label='Green' )
                         button( label='Blue' )
     """
+
     def __init__(self, name=None, force=False):
-        if name and cmds.uiTemplate( name, exists=True ):
+        if name and cmds.uiTemplate(name, exists=True):
             if force:
-                cmds.deleteUI( name, uiTemplate=True )
+                cmds.deleteUI(name, uiTemplate=True)
             else:
                 self._name = name
                 return
         args = [name] if name else []
-        self._name = cmds.uiTemplate( *args )
+        self._name = cmds.uiTemplate(*args)
 
     def __repr__(self):
-        return '%s(%r)' % ( self.__class__.__name__, self._name)
+        return '%s(%r)' % (self.__class__.__name__, self._name)
 
     def __enter__(self):
         self.push()
@@ -875,7 +889,7 @@ class UITemplate(object):
         cmds.setUITemplate(self._name, pushTemplate=True)
 
     def pop(self):
-        cmds.setUITemplate( popTemplate=True)
+        cmds.setUITemplate(popTemplate=True)
 
     def define(self, uiType, **kwargs):
         """
@@ -884,8 +898,8 @@ class UITemplate(object):
             - the name of a ui function or class
             - a list or tuple of the above
         """
-        if isinstance(uiType, (list,tuple)):
-            funcs = [ _resolveUIFunc(x) for x in uiType ]
+        if isinstance(uiType, (list, tuple)):
+            funcs = [_resolveUIFunc(x) for x in uiType]
         else:
             funcs = [_resolveUIFunc(uiType)]
         kwargs['defineTemplate'] = self._name
@@ -894,13 +908,15 @@ class UITemplate(object):
 
     @staticmethod
     def exists(name):
-        return cmds.uiTemplate( name, exists=True )
+        return cmds.uiTemplate(name, exists=True)
 
 class AELoader(type):
+
     """
     Metaclass used by `AETemplate` class to create wrapping and loading mechanisms when an AETemplate instance is created
     """
     _loaded = []
+
     def __new__(cls, classname, bases, classdict):
         newcls = super(AELoader, cls).__new__(cls, classname, bases, classdict)
         try:
@@ -914,9 +930,9 @@ class AELoader(type):
                 # plugin, which is called by maya in a strange way ( execfile? ).
                 # give it a real home so we can load it later.
                 mod = sys.modules['__builtin__']
-                setattr( mod, classname, newcls )
+                setattr(mod, classname, newcls)
 
-            template = 'AE'+nodeType+'Template'
+            template = 'AE' + nodeType + 'Template'
             cls.makeAEProc(modname, classname, template)
             if template not in cls._loaded:
                 cls._loaded.append(template)
@@ -930,13 +946,13 @@ class AELoader(type):
         d = locals().copy()
         d['__name__'] = __name__
         import maya.mel as mm
-        mm.eval( contents % d )
+        mm.eval(contents % d)
 
     @staticmethod
     def load(modname, classname, nodename):
         mod = __import__(modname, globals(), locals(), [classname], -1)
         try:
-            cls = getattr(mod,classname)
+            cls = getattr(mod, classname)
             cls(nodename)
         except Exception:
             print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
@@ -949,6 +965,7 @@ class AELoader(type):
         return cls._loaded
 
 class AETemplate(object):
+
     """
     To create an Attribute Editor template using python, do the following:
          1. create a subclass of `uitypes.AETemplate`
@@ -975,6 +992,7 @@ class AETemplate(object):
     __metaclass__ = AELoader
 
     _nodeType = None
+
     def __init__(self, nodeName):
         self._nodeName = nodeName
 
@@ -992,12 +1010,15 @@ class AETemplate(object):
                 return m.groups()[0]
             else:
                 raise ValueError("You must either name your AETemplate subclass of the form 'AE<nodeType>Template' or set the '_nodeType' class attribute")
+
     @classmethod
     def controlValue(cls, nodeName, control):
-        return cmds.editorTemplate(queryControl=(nodeName,control))
+        return cmds.editorTemplate(queryControl=(nodeName, control))
+
     @classmethod
     def controlLabel(cls, nodeName, control):
-        return cmds.editorTemplate(queryLabel=(nodeName,control))
+        return cmds.editorTemplate(queryLabel=(nodeName, control))
+
     @classmethod
     def reload(cls):
         "Reload the template. Beware, this reloads the module in which the template exists!"
@@ -1015,7 +1036,7 @@ class AETemplate(object):
 
     def addControl(self, control, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
         args = [control]
-        kwargs = {'preventOverride':preventOverride}
+        kwargs = {'preventOverride': preventOverride}
         if dynamic:
             kwargs['addDynamicControl'] = True
         else:
@@ -1031,53 +1052,61 @@ class AETemplate(object):
         if annotation:
             kwargs['annotation'] = annotation
         cmds.editorTemplate(*args, **kwargs)
+
     def callCustom(self, newFunc, replaceFunc, *attrs):
         #cmds.editorTemplate(callCustom=( (newFunc, replaceFunc) + attrs))
         import pymel.tools.py2mel
         if hasattr(newFunc, '__call__'):
             name = self.__class__.__name__ + '_callCustom_newFunc_' + '_'.join(attrs)
-            newFunc = pymel.tools.py2mel.py2melProc(newFunc, procName=name, argTypes=['string']*len(attrs))
+            newFunc = pymel.tools.py2mel.py2melProc(newFunc, procName=name, argTypes=['string'] * len(attrs))
         if hasattr(replaceFunc, '__call__'):
             name = self.__class__.__name__ + '_callCustom_replaceFunc_' + '_'.join(attrs)
-            replaceFunc = pymel.tools.py2mel.py2melProc(replaceFunc, procName=name, argTypes=['string']*len(attrs))
+            replaceFunc = pymel.tools.py2mel.py2melProc(replaceFunc, procName=name, argTypes=['string'] * len(attrs))
         args = (newFunc, replaceFunc) + attrs
         cmds.editorTemplate(callCustom=1, *args)
 
     def suppress(self, control):
         cmds.editorTemplate(suppress=control)
+
     def dimControl(self, nodeName, control, state):
         #nodeName = nodeName if nodeName else self.nodeName
-        #print "dim", nodeName
+        # print "dim", nodeName
         cmds.editorTemplate(dimControl=(nodeName, control, state))
 
     def beginLayout(self, name, collapse=True):
         cmds.editorTemplate(beginLayout=name, collapse=collapse)
+
     def endLayout(self):
         cmds.editorTemplate(endLayout=True)
 
     def beginScrollLayout(self):
         cmds.editorTemplate(beginScrollLayout=True)
+
     def endScrollLayout(self):
         cmds.editorTemplate(endScrollLayout=True)
 
     def beginNoOptimize(self):
         cmds.editorTemplate(beginNoOptimize=True)
+
     def endNoOptimize(self):
         cmds.editorTemplate(endNoOptimize=True)
 
     def interruptOptimize(self):
         cmds.editorTemplate(interruptOptimize=True)
+
     def addSeparator(self):
         cmds.editorTemplate(addSeparator=True)
+
     def addComponents(self):
         cmds.editorTemplate(addComponents=True)
+
     def addExtraControls(self, label=None):
         kwargs = {}
         if label:
             kwargs['extraControlsLabel'] = label
         cmds.editorTemplate(addExtraControls=True, **kwargs)
 
-    #TODO: listExtraAttributes
+    # TODO: listExtraAttributes
 
 
 dynModule = _util.LazyLoadModule(__name__, globals())
@@ -1089,17 +1118,18 @@ def _createUIClasses():
         try:
             cls = dynModule[classname]
         except KeyError:
-            if classname.endswith( ('Layout', 'Grp') ):
+            if classname.endswith(('Layout', 'Grp')):
                 bases = (Layout,)
             elif classname.endswith('Panel'):
                 bases = (Panel,)
             else:
                 bases = (PyUI,)
-            dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}) )
+            dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}))
 
 _createUIClasses()
 
 class MainProgressBar(dynModule.ProgressBar):
+
     '''Context manager for main progress bar
 
     If an exception occur after beginProgress() but before endProgress() maya
@@ -1147,26 +1177,27 @@ class MainProgressBar(dynModule.ProgressBar):
     def __exit__(self, *args):
         self.endProgress()
 
-class VectorFieldGrp( dynModule.FloatFieldGrp ):
+class VectorFieldGrp(dynModule.FloatFieldGrp):
+
     def __new__(cls, name=None, create=False, *args, **kwargs):
         if create:
             kwargs.pop('nf', None)
             kwargs['numberOfFields'] = 3
-            name = cmds.floatFieldGrp( name, *args, **kwargs)
+            name = cmds.floatFieldGrp(name, *args, **kwargs)
 
-        return dynModule.FloatFieldGrp.__new__( cls, name, create=False, *args, **kwargs )
+        return dynModule.FloatFieldGrp.__new__(cls, name, create=False, *args, **kwargs)
 
     def getVector(self):
         import datatypes
-        x = cmds.floatFieldGrp( self, q=1, v1=True )
-        y = cmds.floatFieldGrp( self, q=1, v2=True )
-        z = cmds.floatFieldGrp( self, q=1, v3=True )
-        return datatypes.Vector( [x,y,z] )
+        x = cmds.floatFieldGrp(self, q=1, v1=True)
+        y = cmds.floatFieldGrp(self, q=1, v2=True)
+        z = cmds.floatFieldGrp(self, q=1, v3=True)
+        return datatypes.Vector([x, y, z])
 
     def setVector(self, vec):
-        cmds.floatFieldGrp( self, e=1, v1=vec[0], v2=vec[1], v3=vec[2] )
+        cmds.floatFieldGrp(self, e=1, v1=vec[0], v2=vec[1], v3=vec[2])
 
-class PathButtonGrp( dynModule.TextFieldButtonGrp ):
+class PathButtonGrp(dynModule.TextFieldButtonGrp):
     PROMPT_FUNCTION = 'promptForPath'
 
     def __new__(cls, name=None, create=False, *args, **kwargs):
@@ -1179,39 +1210,39 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
             kwargs.pop('bc', None)
             kwargs.pop('buttonCommand', None)
 
-            name = cmds.textFieldButtonGrp( name, *args, **kwargs)
+            name = cmds.textFieldButtonGrp(name, *args, **kwargs)
 
             promptFunction = getattr(windows, cls.PROMPT_FUNCTION)
+
             def setPathCB(name):
                 f = promptFunction()
                 if f:
-                    cmds.textFieldButtonGrp( name, e=1, text=f, forceChangeCommand=True)
+                    cmds.textFieldButtonGrp(name, e=1, text=f, forceChangeCommand=True)
 
             import windows
-            cb = windows.Callback( setPathCB, name )
-            cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
+            cb = windows.Callback(setPathCB, name)
+            cmds.textFieldButtonGrp(name, e=1, buttonCommand=cb)
 
-        return super(PathButtonGrp, cls).__new__( cls, name, create=False, *args, **kwargs )
+        return super(PathButtonGrp, cls).__new__(cls, name, create=False, *args, **kwargs)
 
     def setPath(self, path, **kwargs):
-        kwargs['forceChangeCommand'] = kwargs.pop('fcc',kwargs.pop('forceChangeCommand',True))
-        self.setText( path , **kwargs )
+        kwargs['forceChangeCommand'] = kwargs.pop('fcc', kwargs.pop('forceChangeCommand', True))
+        self.setText(path, **kwargs)
 
     def getPath(self):
         import system
-        return system.Path( self.getText() )
+        return system.Path(self.getText())
 
-class FolderButtonGrp( PathButtonGrp ):
+class FolderButtonGrp(PathButtonGrp):
     PROMPT_FUNCTION = 'promptForFolder'
 
 # most of the keys here are names that are only used in certain circumstances
 _uiTypesToCommands = {
-    'radioCluster':'radioCollection',
-    'rowGroupLayout' : 'rowLayout',
-    'TcolorIndexSlider' : 'rowLayout',
-    'TcolorSlider' : 'rowLayout',
-    'floatingWindow' : 'window'
-    }
+    'radioCluster': 'radioCollection',
+    'rowGroupLayout': 'rowLayout',
+    'TcolorIndexSlider': 'rowLayout',
+    'TcolorSlider': 'rowLayout',
+    'floatingWindow': 'window'
+}
 
 dynModule._lazyModule_update()
-

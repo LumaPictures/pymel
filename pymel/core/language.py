@@ -1,7 +1,9 @@
 """
 Functions and classes related to scripting, including `MelGlobals` and `Mel`
 """
-import sys, os, inspect
+import sys
+import os
+import inspect
 from getpass import getuser as _getuser
 import system
 import collections
@@ -23,7 +25,7 @@ import datatypes
 
 MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector', 'vector[]']
 
-def isValidMelType( typStr ):
+def isValidMelType(typStr):
     """:rtype: bool"""
     return typStr in MELTYPES
 
@@ -52,7 +54,7 @@ def pythonToMel(arg):
     if util.isNumeric(arg):
         return str(arg)
     if isinstance(arg, datatypes.Vector):
-        return '<<%f,%f,%f>>' % ( arg[0], arg[1], arg[2] )
+        return '<<%f,%f,%f>>' % (arg[0], arg[1], arg[2])
     if util.isIterable(arg):
         if util.isMapping(arg):
             arg = list(_flatten(arg.iteritems()))
@@ -65,11 +67,11 @@ def pythonToMel(arg):
                 break
 
         if forceString:
-            newargs = [ '"%s"' % x for x in arg ]
+            newargs = ['"%s"' % x for x in arg]
         else:
-            newargs = [ str(x) for x in arg ]
+            newargs = [str(x) for x in arg]
 
-        return '{%s}' % ','.join( newargs )
+        return '{%s}' % ','.join(newargs)
 
     # in order for PyNodes to get wrapped in quotes we have to treat special cases first,
     # we cannot simply test if arg is an instance of basestring because PyNodes are not
@@ -101,17 +103,17 @@ def pythonToMelCmd(*commandAndArgs, **kwargs):
             flags = _factories.cmdlist[command]['flags']
             shortFlags = _factories.cmdlist[command]['shortFlags']
         else:
-#            # Make a dummy flags dict - basically, just assume that q / e
-#            # are bool flags with no args...
-#            flags = {'query':{'args': bool,
-#                              'longname': 'query',
-#                              'numArgs': 0,
-#                              'shortname': 'q'},
-#                     'edit': {'args': bool,
-#                              'longname': 'edit',
-#                              'numArgs': 0,
-#                              'shortname': 'e'}}
-#            shortFlags = {'q':'query', 'e':'edit'}
+            #            # Make a dummy flags dict - basically, just assume that q / e
+            #            # are bool flags with no args...
+            #            flags = {'query':{'args': bool,
+            #                              'longname': 'query',
+            #                              'numArgs': 0,
+            #                              'shortname': 'q'},
+            #                     'edit': {'args': bool,
+            #                              'longname': 'edit',
+            #                              'numArgs': 0,
+            #                              'shortname': 'e'}}
+            #            shortFlags = {'q':'query', 'e':'edit'}
             # Changed my mind - decided it's safest for unknown commands to
             # make no assumptions.  If they want a flag that takes no args,
             # they can use arg=None...
@@ -124,23 +126,23 @@ def pythonToMelCmd(*commandAndArgs, **kwargs):
             elif key in shortFlags:
                 flagInfo = flags[shortFlags[key]]
             if (flagInfo and flagInfo.get('args') == bool
-                         and flagInfo.get('numArgs') == 0):
+                    and flagInfo.get('numArgs') == 0):
                 # we have a boolean argument that takes no args!
                 # doing something like '-q 1' will raise an error, just
                 # do '-q'
                 strFlags.append('-%s' % key)
             elif (isinstance(val, (tuple, list))
                     and len(val) == flagInfo.get('numArgs')):
-                strFlags.append('-%s %s' % ( key, ' '.join(pythonToMel(x) for x in val )))
+                strFlags.append('-%s %s' % (key, ' '.join(pythonToMel(x) for x in val)))
             else:
-                strFlags.append('-%s %s' % ( key, pythonToMel(val) ))
-        cmdStr = '%s %s %s' % ( command, ' '.join( strFlags ), ' '.join( strArgs ) )
+                strFlags.append('-%s %s' % (key, pythonToMel(val)))
+        cmdStr = '%s %s %s' % (command, ' '.join(strFlags), ' '.join(strArgs))
     else:
         # procedure
-        cmdStr = '%s(%s)' % ( command, ','.join( strArgs ) )
+        cmdStr = '%s(%s)' % (command, ','.join(strArgs))
     return cmdStr
 
-def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
+def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
     """
     return the name of the closest MEL type equivalent for the given python object.
     MEL has no true boolean or matrix types, but it often reserves special treatment for them in other ways.
@@ -186,12 +188,17 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
 
     if inspect.isclass(pyObj):
 
-        if issubclass( pyObj, basestring ) : return 'string'
-        elif allowBool and issubclass( pyObj, bool ) : return 'bool'
-        elif issubclass( pyObj, int ) : return 'int'
-        elif issubclass( pyObj, float ) : return 'float'
-        elif issubclass( pyObj, datatypes.VectorN ) : return 'vector'
-        elif issubclass( pyObj, datatypes.MatrixN ) :
+        if issubclass(pyObj, basestring):
+            return 'string'
+        elif allowBool and issubclass(pyObj, bool):
+            return 'bool'
+        elif issubclass(pyObj, int):
+            return 'int'
+        elif issubclass(pyObj, float):
+            return 'float'
+        elif issubclass(pyObj, datatypes.VectorN):
+            return 'vector'
+        elif issubclass(pyObj, datatypes.MatrixN):
             if allowMatrix:
                 return 'matrix'
             else:
@@ -201,25 +208,29 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
             return pyObj.__name__
 
     else:
-        if isinstance( pyObj, datatypes.VectorN ) : return 'vector'
-        elif isinstance( pyObj, datatypes.MatrixN ) :
+        if isinstance(pyObj, datatypes.VectorN):
+            return 'vector'
+        elif isinstance(pyObj, datatypes.MatrixN):
             if allowMatrix:
                 return 'matrix'
             else:
                 return 'int[]'
-        elif util.isIterable( pyObj ):
+        elif util.isIterable(pyObj):
             try:
-                return getMelType( pyObj[0], exactOnly=True ) + '[]'
+                return getMelType(pyObj[0], exactOnly=True) + '[]'
             except IndexError:
                 # TODO : raise warning
                 return 'string[]'
             except:
                 return
-        if isinstance( pyObj, basestring ) : return 'string'
-        elif allowBool and isinstance( pyObj, bool ) : return 'bool'
-        elif isinstance( pyObj, int ) : return 'int'
-        elif isinstance( pyObj, float ) : return 'float'
-
+        if isinstance(pyObj, basestring):
+            return 'string'
+        elif allowBool and isinstance(pyObj, bool):
+            return 'bool'
+        elif isinstance(pyObj, int):
+            return 'int'
+        elif isinstance(pyObj, float):
+            return 'float'
 
         elif not exactOnly:
             return type(pyObj).__name__
@@ -230,6 +241,7 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
 
 # we only inherit from dict for backward-compatability...
 class MelGlobals(collections.MutableMapping, dict):
+
     """ A dictionary-like class for getting and setting global variables between mel and python.
     an instance of the class is created by default in the pymel namespace as melGlobals.
 
@@ -251,11 +263,11 @@ class MelGlobals(collections.MutableMapping, dict):
     """
     #__metaclass__ = util.Singleton
     melTypeToPythonType = {
-        'string'    : str,
-        'int'       : int,
-        'float'     : float,
-        'vector'    : datatypes.Vector
-        }
+        'string': str,
+        'int': int,
+        'float': float,
+        'vector': datatypes.Vector
+    }
 
 #    class MelGlobalArray1( tuple ):
 #        def __new__(cls, type, variable, *args, **kwargs ):
@@ -274,29 +286,32 @@ class MelGlobals(collections.MutableMapping, dict):
 #        def setItem(self, index, value ):
 #            _mm.eval(self._setItemCmd % (index, value) )
 
-    class MelGlobalArray( util.defaultlist ):
+    class MelGlobalArray(util.defaultlist):
         #__metaclass__ = util.metaStatic
-        def __init__(self, type, variable, *args, **kwargs ):
+
+        def __init__(self, type, variable, *args, **kwargs):
 
             if type.endswith('[]'):
                 type = type[:-2]
 
-            pyType = MelGlobals.melTypeToPythonType[ type ]
-            util.defaultlist.__init__( self, pyType, *args, **kwargs )
+            pyType = MelGlobals.melTypeToPythonType[type]
+            util.defaultlist.__init__(self, pyType, *args, **kwargs)
 
             declaration = MelGlobals._get_decl_statement(type, variable)
-            self._setItemCmd = "%s; %s" % ( declaration, variable )
+            self._setItemCmd = "%s; %s" % (declaration, variable)
             self._setItemCmd += '[%s]=%s;'
 
-
-        def __setitem__(self, index, value ):
-            _mm.eval(self._setItemCmd % (index, pythonToMel(value) ))
+        def __setitem__(self, index, value):
+            _mm.eval(self._setItemCmd % (index, pythonToMel(value)))
             super(MelGlobalArray, self).__setitem__(index, value)
         setItem = __setitem__
 
         # prevent these from
-        def append(self, val): raise AttributeError
-        def extend(self, val): raise AttributeError
+        def append(self, val):
+            raise AttributeError
+
+        def extend(self, val):
+            raise AttributeError
 
     typeMap = {}
     VALID_TYPES = MELTYPES
@@ -308,16 +323,16 @@ class MelGlobals(collections.MutableMapping, dict):
     def __len__(self):
         return len(mel.env())
 
-    def __getitem__(self, variable ):
-        return self.__class__.get( variable )
+    def __getitem__(self, variable):
+        return self.__class__.get(variable)
 
     def __setitem__(self, variable, value):
-        return self.__class__.set( variable, value )
+        return self.__class__.set(variable, value)
 
     @classmethod
     def _formatVariable(cls, variable):
         # TODO : add validity check
-        if not variable.startswith( '$'):
+        if not variable.startswith('$'):
             variable = '$' + variable
         if variable.endswith('[]'):
             variable = variable[:-2]
@@ -326,8 +341,8 @@ class MelGlobals(collections.MutableMapping, dict):
     @classmethod
     def getType(cls, variable):
         variable = cls._formatVariable(variable)
-        info = mel.whatIs( variable ).split()
-        if len(info)==2 and info[1] == 'variable':
+        info = mel.whatIs(variable).split()
+        if len(info) == 2 and info[1] == 'variable':
             MelGlobals.typeMap[variable] = info[0]
             return info[0]
         raise TypeError, "Cannot determine type for this variable. Use melGlobals.initVar first."
@@ -341,11 +356,11 @@ class MelGlobals(collections.MutableMapping, dict):
         return "global %s %s" % (type, decl_name)
 
     @classmethod
-    def initVar( cls, type, variable ):
+    def initVar(cls, type, variable):
         if type not in MELTYPES:
-            raise TypeError, "type must be a valid mel type: %s" % ', '.join( [ "'%s'" % x for x in MELTYPES ] )
+            raise TypeError, "type must be a valid mel type: %s" % ', '.join(["'%s'" % x for x in MELTYPES])
         variable = cls._formatVariable(variable)
-        _mm.eval( cls._get_decl_statement(type, variable)  )
+        _mm.eval(cls._get_decl_statement(type, variable))
         MelGlobals.typeMap[variable] = type
         return variable
 
@@ -358,7 +373,7 @@ class MelGlobals(collections.MutableMapping, dict):
     # for now, making a separate "get_default" method that acts like dict.get...
     # ...but may want to switch this in the future...
     @classmethod
-    def get( cls, variable, type=None  ):
+    def get(cls, variable, type=None):
         """get a MEL global variable.  If the type is not specified, the mel ``whatIs`` command will be used
         to determine it."""
 
@@ -375,22 +390,22 @@ class MelGlobals(collections.MutableMapping, dict):
         variable = cls.initVar(type, variable)
 
         if type.endswith('[]'):
-            array=True
+            array = True
             proc_name = 'pymel_get_global_' + type.replace('[]', 'Array')
         else:
-            array=False
+            array = False
             proc_name = 'pymel_get_global_' + type
         declaration = cls._get_decl_statement(type, variable)
-        cmd = "global proc %s %s() { %s; return %s; } %s();" % (type, proc_name, declaration, variable, proc_name )
-        #print cmd
-        res = _mm.eval( cmd  )
+        cmd = "global proc %s %s() { %s; return %s; } %s();" % (type, proc_name, declaration, variable, proc_name)
+        # print cmd
+        res = _mm.eval(cmd)
         if array:
             return MelGlobals.MelGlobalArray(type, variable, res)
         else:
             return MelGlobals.melTypeToPythonType[type](res)
 
     @classmethod
-    def set( cls, variable, value, type=None ):
+    def set(cls, variable, value, type=None):
         """set a mel global variable"""
         variable = cls._formatVariable(variable)
         if type is None:
@@ -401,10 +416,10 @@ class MelGlobals(collections.MutableMapping, dict):
 
         variable = cls.initVar(type, variable)
         declaration = cls._get_decl_statement(type, variable)
-        cmd = "%s; %s=%s;" % ( declaration, variable, pythonToMel(value) )
+        cmd = "%s; %s=%s;" % (declaration, variable, pythonToMel(value))
 
-        #print cmd
-        _mm.eval( cmd  )
+        # print cmd
+        _mm.eval(cmd)
 
     @classmethod
     def keys(cls):
@@ -414,13 +429,14 @@ class MelGlobals(collections.MutableMapping, dict):
 melGlobals = MelGlobals()
 
 # for backward compatibility
-def getMelGlobal(type, variable) :
+def getMelGlobal(type, variable):
     return melGlobals.get(variable, type)
-def setMelGlobal(type, variable, value) :
+def setMelGlobal(type, variable, value):
     return melGlobals.set(variable, value, type)
 
 
 class Catch(object):
+
     """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch, you should
         use the try/except structure. This command is provided for python scripts generated by py2mel.  stores the
         result of the function in catch.result.
@@ -433,7 +449,8 @@ class Catch(object):
     #__metaclass__ = util.Singleton
     result = None
     success = None
-    def __call__(self, func, *args, **kwargs ):
+
+    def __call__(self, func, *args, **kwargs):
         try:
             Catch.result = func(*args, **kwargs)
             Catch.success = True
@@ -463,22 +480,22 @@ class OptionVarList(tuple):
     def __setitem__(self, key, val):
         raise TypeError, '%s object does not support item assignment - try casting to a list, and assigning the whole list to the optionVar' % self.__class__.__name__
 
-
-    def appendVar( self, val ):
+    def appendVar(self, val):
         """values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
         """
 
-        if isinstance( val, basestring):
-            return cmds.optionVar( stringValueAppend=[self.key,val] )
-        if isinstance( val, int):
-            return cmds.optionVar( intValueAppend=[self.key,val] )
-        if isinstance( val, float):
-            return cmds.optionVar( floatValueAppend=[self.key,val] )
+        if isinstance(val, basestring):
+            return cmds.optionVar(stringValueAppend=[self.key, val])
+        if isinstance(val, int):
+            return cmds.optionVar(intValueAppend=[self.key, val])
+        if isinstance(val, float):
+            return cmds.optionVar(floatValueAppend=[self.key, val])
         raise TypeError, 'unsupported datatype: strings, ints, floats and their subclasses are supported'
 
     append = appendVar
 
 class OptionVarDict(collections.MutableMapping):
+
     """
     A dictionary-like class for accessing and modifying optionVars.
 
@@ -496,62 +513,63 @@ class OptionVarDict(collections.MutableMapping):
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
     """
+
     def __call__(self, *args, **kwargs):
         return cmds.optionVar(*args, **kwargs)
 
     # use more efficient method provided by cmds.optionVar
     # (or at least, I hope it's more efficient...)
     def __contains__(self, key):
-        return bool( cmds.optionVar( exists=key ) )
+        return bool(cmds.optionVar(exists=key))
 
     # not provided by MutableMapping
     def has_key(self, key):
         return self.__contains__(key)
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         if key not in self:
             raise KeyError, key
-        val = cmds.optionVar( q=key )
+        val = cmds.optionVar(q=key)
         if isinstance(val, list):
-            val = OptionVarList( val, key )
+            val = OptionVarList(val, key)
         return val
 
-    def __setitem__(self,key,val):
-        if isinstance( val, basestring):
-            return cmds.optionVar( stringValue=[key,val] )
-        if isinstance( val, (int, bool)):
-            return cmds.optionVar( intValue=[key,int(val)] )
-        if isinstance( val, float):
-            return cmds.optionVar( floatValue=[key,val] )
-        if isinstance( val, (list,tuple) ):
+    def __setitem__(self, key, val):
+        if isinstance(val, basestring):
+            return cmds.optionVar(stringValue=[key, val])
+        if isinstance(val, (int, bool)):
+            return cmds.optionVar(intValue=[key, int(val)])
+        if isinstance(val, float):
+            return cmds.optionVar(floatValue=[key, val])
+        if isinstance(val, (list, tuple)):
             if len(val) == 0:
-                return cmds.optionVar( clearArray=key )
+                return cmds.optionVar(clearArray=key)
             listType = type(val[0])
-            if issubclass( listType , basestring):
+            if issubclass(listType, basestring):
                 flag = 'stringValue'
-            elif issubclass( listType , int):
+            elif issubclass(listType, int):
                 flag = 'intValue'
-            elif issubclass( listType , float):
-                flag  = 'floatValue'
+            elif issubclass(listType, float):
+                flag = 'floatValue'
             else:
                 raise TypeError, ('%r is unsupported; Only strings, ints, float, lists, and their subclasses are supported' % listType)
 
-            cmds.optionVar(**{flag:[key,val[0]]}) # force to this datatype
+            cmds.optionVar(**{flag: [key, val[0]]})  # force to this datatype
             flag += "Append"
             for elem in val[1:]:
-                if not isinstance( elem, listType):
+                if not isinstance(elem, listType):
                     raise TypeError, 'all elements in list must be of the same datatype'
-                cmds.optionVar( **{flag:[key,elem]} )
+                cmds.optionVar(**{flag: [key, elem]})
 
     def keys(self):
-        return cmds.optionVar( list=True )
+        return cmds.optionVar(list=True)
 
     def pop(self, key):
-        val = cmds.optionVar( q=key )
-        cmds.optionVar( remove=key )
+        val = cmds.optionVar(q=key)
+        cmds.optionVar(remove=key)
         return val
 
-    def __delitem__(self,key):
+    def __delitem__(self, key):
         self.pop(key)
 
     def iterkeys(self):
@@ -565,6 +583,7 @@ class OptionVarDict(collections.MutableMapping):
 optionVar = OptionVarDict()
 
 class Env(object):
+
     """ A Singleton class to represent Maya current optionVars and settings """
     #__metaclass__ = util.Singleton
 
@@ -575,59 +594,68 @@ class Env(object):
     # TODO : create a wrapper for os.environ which allows direct appending and popping of individual env entries (i.e. make ':' transparent)
     envVars = os.environ
 
-    def setConstructionHistory( self, state ):
-        cmds.constructionHistory( tgl=state )
-    def getConstructionHistory(self):
-        return cmds.constructionHistory( q=True, tgl=True )
-    def sceneName(self):
-        return system.Path(cmds.file( q=1, sn=1))
+    def setConstructionHistory(self, state):
+        cmds.constructionHistory(tgl=state)
 
-    def setUpAxis( self, axis, rotateView=False ):
+    def getConstructionHistory(self):
+        return cmds.constructionHistory(q=True, tgl=True)
+
+    def sceneName(self):
+        return system.Path(cmds.file(q=1, sn=1))
+
+    def setUpAxis(self, axis, rotateView=False):
         """This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
-        cmds.upAxis( axis=axis, rotateView=rotateView )
+        cmds.upAxis(axis=axis, rotateView=rotateView)
 
     def getUpAxis(self):
         """This flag gets the axis set as the world up direction. The valid axis are either 'y' or 'z'."""
-        return cmds.upAxis( q=True, axis=True )
+        return cmds.upAxis(q=True, axis=True)
 
     def user(self):
         return _getuser()
+
     def host(self):
         return _gethostname()
 
-    def getTime( self ):
-        return cmds.currentTime( q=1 )
-    def setTime( self, val ):
-        cmds.currentTime( val )
-    time = property( getTime, setTime )
+    def getTime(self):
+        return cmds.currentTime(q=1)
 
-    def getMinTime( self ):
-        return cmds.playbackOptions( q=1, minTime=1 )
-    def setMinTime( self, val ):
-        cmds.playbackOptions( minTime=val )
-    minTime = property( getMinTime, setMinTime )
+    def setTime(self, val):
+        cmds.currentTime(val)
+    time = property(getTime, setTime)
 
-    def getMaxTime( self ):
-        return cmds.playbackOptions( q=1, maxTime=1 )
-    def setMaxTime( self, val ):
-        cmds.playbackOptions( maxTime=val )
-    maxTime = property( getMaxTime, setMaxTime )
+    def getMinTime(self):
+        return cmds.playbackOptions(q=1, minTime=1)
 
-    def getAnimStartTime( self ):
-        return cmds.playbackOptions( q=1, animationStartTime=1 )
-    def setAnimStartTime( self, val ):
-        cmds.playbackOptions( animationStartTime=val )
+    def setMinTime(self, val):
+        cmds.playbackOptions(minTime=val)
+    minTime = property(getMinTime, setMinTime)
+
+    def getMaxTime(self):
+        return cmds.playbackOptions(q=1, maxTime=1)
+
+    def setMaxTime(self, val):
+        cmds.playbackOptions(maxTime=val)
+    maxTime = property(getMaxTime, setMaxTime)
+
+    def getAnimStartTime(self):
+        return cmds.playbackOptions(q=1, animationStartTime=1)
+
+    def setAnimStartTime(self, val):
+        cmds.playbackOptions(animationStartTime=val)
     animStartTime = property(getAnimStartTime, setAnimStartTime)
 
-    def getAnimEndTime( self ):
-        return cmds.playbackOptions( q=1, animationEndTime=1 )
-    def setAnimEndTime( self, val ):
-        cmds.playbackOptions( animationEndTime=val )
+    def getAnimEndTime(self):
+        return cmds.playbackOptions(q=1, animationEndTime=1)
+
+    def setAnimEndTime(self, val):
+        cmds.playbackOptions(animationEndTime=val)
     animEndTime = property(getAnimEndTime, setAnimEndTime)
 
     def getPlaybackTimes(self):
         return (self.animStartTime, self.minTime, self.maxTime,
                 self.animEndTime)
+
     def setPlaybackTimes(self, playbackTimes):
         if len(playbackTimes) != 4:
             raise ValueError("must have 4 playback times")
@@ -644,26 +672,32 @@ env = Env()
 #--------------------------
 
 class MelError(RuntimeError):
+
     """Generic MEL error"""
     pass
 
-class MelConversionError(MelError,TypeError):
+class MelConversionError(MelError, TypeError):
+
     """MEL cannot process a conversion or cast between data types"""
     pass
 
-class MelUnknownProcedureError(MelError,NameError):
+class MelUnknownProcedureError(MelError, NameError):
+
     """The called MEL procedure does not exist or has not been sourced"""
     pass
 
-class MelArgumentError(MelError,TypeError):
+class MelArgumentError(MelError, TypeError):
+
     """The arguments passed to the MEL script are incorrect"""
     pass
 
-class MelSyntaxError(MelError,SyntaxError):
+class MelSyntaxError(MelError, SyntaxError):
+
     """The MEL script has a syntactical error"""
     pass
 
 class Mel(object):
+
     """This class is a convenience for calling mel scripts from python, but if you are like me, you'll quickly find that it
     is a necessity. It allows mel scripts to be called as if they were python functions: it automatically formats python
     arguments into a command string which is executed via maya.mel.eval.  An instance of this class is already created for you
@@ -745,6 +779,7 @@ class Mel(object):
     """
     # proc is not an allowed name for a global procedure, so it's safe to use as an attribute
     proc = None
+
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
             try:
@@ -762,16 +797,15 @@ class Mel(object):
                 self.__class__.proc = None
         return _call
 
-
     @classmethod
-    def mprint( cls, *args):
+    def mprint(cls, *args):
         """mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
         in certain output, such as the rush render-queue manager."""
-        #print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args)))
+        # print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args)))
         _mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
 
     @classmethod
-    def source( cls, script, language='mel' ):
+    def source(cls, script, language='mel'):
         """use this to source mel or python scripts.
         language : 'mel', 'python'
             When set to 'python', the source command will look for the python equivalent of this mel file, if
@@ -784,7 +818,7 @@ class Mel(object):
             cls.eval( """source "%s";""" % script )
 
         elif language == 'python':
-            script = util.path( script )
+            script = util.path(script)
             modulePath = script.namebase
             folder = script.parent
             print modulePath
@@ -797,7 +831,7 @@ class Mel(object):
             raise TypeError, "language keyword expects 'mel' or 'python'. got '%s'" % language
 
     @classmethod
-    def eval( cls, cmd ):
+    def eval(cls, cmd):
         """
         evaluate a string as a mel command and return the result.
 
@@ -812,37 +846,37 @@ class Mel(object):
 
         """
         # should return a value, like _mm.eval
-        #return _mm.eval( cmd )
+        # return _mm.eval( cmd )
         # get this before installing the callback
         undoState = _mc.undoInfo(q=1, state=1)
-        lineNumbers = _mc.commandEcho(q=1,lineNumbers=1)
+        lineNumbers = _mc.commandEcho(q=1, lineNumbers=1)
         _mc.commandEcho(lineNumbers=1)
         global errors
-        errors = [] # a list to store each error line
-        def errorCallback( nativeMsg, messageType, data ):
+        errors = []  # a list to store each error line
+
+        def errorCallback(nativeMsg, messageType, data):
             global errors
             if messageType == _api.MCommandMessage.kError:
                 if nativeMsg:
-                    errors +=  [ nativeMsg ]
+                    errors += [nativeMsg]
 
         # setup the callback:
         # assigning ids to a list avoids the swig memory leak warning, which would scare a lot of people even though
         # it is harmless.  hoping we get a real solution to this so that we don't have to needlessly accumulate this data
-        id = _api.MCommandMessage.addCommandOutputCallback( errorCallback, None )
-
+        id = _api.MCommandMessage.addCommandOutputCallback(errorCallback, None)
 
         try:
             res = _api.MCommandResult()
-            _api.MGlobal.executeCommand( cmd, res, False, undoState )
+            _api.MGlobal.executeCommand(cmd, res, False, undoState)
         except Exception:
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            _api.MMessage.removeCallback( id )
+            _api.MMessage.removeCallback(id)
             _mc.commandEcho(lineNumbers=lineNumbers)
             # 8.5 fix
             if hasattr(id, 'disown'):
                 id.disown()
 
-            msg = '\n'.join( errors )
+            msg = '\n'.join(errors)
 
             if 'Cannot find procedure' in msg:
                 e = MelUnknownProcedureError
@@ -857,23 +891,22 @@ class Mel(object):
                 e = MelSyntaxError
             else:
                 e = MelError
-            message = "Error during execution of MEL script: %s" % ( msg )
-            fmtCmd = '\n'.join( [ '  ' + x for x in cmd.split('\n') ] )
-
+            message = "Error during execution of MEL script: %s" % (msg)
+            fmtCmd = '\n'.join(['  ' + x for x in cmd.split('\n')])
 
             if cls.proc:
                 if e is not MelUnknownProcedureError:
                     file = _mm.eval('whatIs "%s"' % cls.proc)
-                    if file.startswith( 'Mel procedure found in: '):
+                    if file.startswith('Mel procedure found in: '):
                         file = 'file "%s"' % os.path.realpath(file.split(':')[1].lstrip())
-                    message += '\nCalling Procedure: %s, in %s' % (cls.proc, file )
+                    message += '\nCalling Procedure: %s, in %s' % (cls.proc, file)
                     message += '\n' + fmtCmd
             else:
                 message += '\nScript:\n%s' % fmtCmd
             raise e, message
         else:
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            _api.MMessage.removeCallback( id )
+            _api.MMessage.removeCallback(id)
             _mc.commandEcho(lineNumbers=lineNumbers)
             # 8.5 fix
             if hasattr(id, 'disown'):
@@ -889,7 +922,7 @@ class Mel(object):
             elif resType == _api.MCommandResult.kIntArray:
                 result = _api.MIntArray()
                 res.getResult(result)
-                return [ result[i] for i in range( result.length() ) ]
+                return [result[i] for i in range(result.length())]
             elif resType == _api.MCommandResult.kDouble:
                 result = _api.SafeApiPtr('double')
                 res.getResult(result())
@@ -897,7 +930,7 @@ class Mel(object):
             elif resType == _api.MCommandResult.kDoubleArray:
                 result = _api.MDoubleArray()
                 res.getResult(result)
-                return [ result[i] for i in range( result.length() ) ]
+                return [result[i] for i in range(result.length())]
             elif resType == _api.MCommandResult.kString:
                 return res.stringResult()
             elif resType == _api.MCommandResult.kStringArray:
@@ -911,7 +944,7 @@ class Mel(object):
             elif resType == _api.MCommandResult.kVectorArray:
                 result = _api.MVectorArray()
                 res.getResult(result)
-                return [ datatypes.Vector(result[i]) for i in range( result.length() ) ]
+                return [datatypes.Vector(result[i]) for i in range(result.length())]
             elif resType == _api.MCommandResult.kMatrix:
                 result = _api.MMatrix()
                 res.getResult(result)
@@ -919,10 +952,10 @@ class Mel(object):
             elif resType == _api.MCommandResult.kMatrixArray:
                 result = _api.MMatrixArray()
                 res.getResult(result)
-                return [ datatypes.Matrix(result[i]) for i in range( result.length() ) ]
+                return [datatypes.Matrix(result[i]) for i in range(result.length())]
 
     @staticmethod
-    def error( msg, showLineNumber=False ):
+    def error(msg, showLineNumber=False):
         if showLineNumber:
             flags = ' -showLineNumber true '
         else:
@@ -930,7 +963,7 @@ class Mel(object):
         _mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
 
     @staticmethod
-    def warning( msg, showLineNumber=False ):
+    def warning(msg, showLineNumber=False):
         if showLineNumber:
             flags = ' -showLineNumber true '
         else:
@@ -938,7 +971,7 @@ class Mel(object):
         _mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
 
     @staticmethod
-    def trace( msg, showLineNumber=False ):
+    def trace(msg, showLineNumber=False):
         if showLineNumber:
             flags = ' -showLineNumber true '
         else:
@@ -946,7 +979,7 @@ class Mel(object):
         _mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
 
     @staticmethod
-    def tokenize( *args ):
+    def tokenize(*args):
         raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
 
     # just a convenient alias
@@ -964,7 +997,7 @@ def conditionExists(conditionName):
     return conditionName in cmds.scriptJob(listConditions=True)
 
 
-#class MayaGlobals(object):
+# class MayaGlobals(object):
 #    """
 #    A Singleton class to represent Maya current optionVars and settings which are global
 #    to all of maya and are not saved with the scene.
@@ -1003,7 +1036,7 @@ def conditionExists(conditionName):
 #        return gethostname()
 #
 
-#class SceneGlobals(object):
+# class SceneGlobals(object):
 #    """
 #    A Static Singleton class to represent scene-dependent settings.
 #    """
@@ -1041,4 +1074,4 @@ def conditionExists(conditionName):
 
 #env = Env()
 
-_factories.createFunctions( __name__ )
+_factories.createFunctions(__name__)

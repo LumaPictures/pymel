@@ -29,16 +29,20 @@ else:
 #===============================================================================
 
 class ApiEnum(tuple):
-    def __str__(self): return '.'.join( [str(x) for x in self] )
+
+    def __str__(self):
+        return '.'.join([str(x) for x in self])
+
     def __repr__(self):
         return '%s( %s )' % (self.__class__.__name__, super(ApiEnum, self).__repr__())
+
     def pymelName(self):
         import pymel.internal.factories as factories
         parts = list(self)
         pymelName = factories.apiClassNameToPymelClassName(self[0])
         if pymelName is not None:
             parts[0] = pymelName
-        return '.'.join( [str(x) for x in parts] )
+        return '.'.join([str(x) for x in parts])
 
 if versions.current() < versions.v2012:
     # Before 2012, api had Enum, and when we unpickle the caches, it will
@@ -89,34 +93,37 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # somehow created, despite never explicitly calling doIt()...
     # ... however, this seems to no longer be the case, and the deleteNode calls are apparently
     # harmful
-    if type(dagMod) is not api.MDagModifier or type(dgMod) is not api.MDGModifier :
+    if type(dagMod) is not api.MDagModifier or type(dgMod) is not api.MDGModifier:
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
 
     # Regardless of whether we're making a DG or DAG node, make a parent first -
     # for some reason, this ensures good cleanup (don't ask me why...??)
-    parent = dagMod.createNode ( 'transform', api.MObject())
+    parent = dagMod.createNode('transform', api.MObject())
 
-    try :
+    try:
         # DependNode
-        obj = dgMod.createNode ( mayaType )
+        obj = dgMod.createNode(mayaType)
     except RuntimeError:
         # DagNode
         try:
-            obj = dagMod.createNode ( mayaType, parent )
+            obj = dagMod.createNode(mayaType, parent)
         except Exception, err:
-            _logger.debug("Error trying to create ghost node for '%s': %s" %  (mayaType, err))
+            _logger.debug("Error trying to create ghost node for '%s': %s" % (mayaType, err))
             return None
 
-    if api.isValidMObject(obj) :
+    if api.isValidMObject(obj):
         return obj
-    else :
-        _logger.debug("Error trying to create ghost node for '%s'" %  mayaType)
+    else:
+        _logger.debug("Error trying to create ghost node for '%s'" % mayaType)
         return None
 
-class InvalidNodeTypeError(Exception): pass
-class ManipNodeTypeError(InvalidNodeTypeError): pass
+class InvalidNodeTypeError(Exception):
+    pass
+class ManipNodeTypeError(InvalidNodeTypeError):
+    pass
 
 class _GhostObjMaker(object):
+
     '''Context used to get an mobject which we can query within this context.
 
     Automatically does any steps need to create and destroy the mobj within
@@ -124,6 +131,7 @@ class _GhostObjMaker(object):
 
     (Note - None may be returned in the place of any mobj)
     '''
+
     def __init__(self, mayaTypes, dagMod=None, dgMod=None, manipError=True,
                  multi=False):
         self.multi = multi
@@ -170,19 +178,19 @@ class _GhostObjMaker(object):
 
             if obj is not None:
                 if (self.manipError
-                    and (obj.hasFn( api.MFn.kManipulator )
-                         or obj.hasFn( api.MFn.kManipContainer )
-                         or obj.hasFn( api.MFn.kPluginManipContainer )
-                         or obj.hasFn( api.MFn.kPluginManipulatorNode )
-                         or obj.hasFn( api.MFn.kManipulator2D )
-                         or obj.hasFn( api.MFn.kManipulator3D )
-                         or obj.hasFn( api.MFn.kManip2DContainer)
-                        )
-                   ):
+                    and (obj.hasFn(api.MFn.kManipulator)
+                                 or obj.hasFn(api.MFn.kManipContainer)
+                                 or obj.hasFn(api.MFn.kPluginManipContainer)
+                                 or obj.hasFn(api.MFn.kPluginManipulatorNode)
+                                 or obj.hasFn(api.MFn.kManipulator2D)
+                                 or obj.hasFn(api.MFn.kManipulator3D)
+                                 or obj.hasFn(api.MFn.kManip2DContainer)
+                                 )
+                    ):
                     raise ManipNodeTypeError
 
                 if madeGhost and not (self.dagGhosts and self.dgGhosts):
-                    if obj.hasFn( api.MFn.kDagNode ):
+                    if obj.hasFn(api.MFn.kDagNode):
                         self.dagGhosts = True
                     else:
                         self.dgGhosts = True
@@ -221,7 +229,7 @@ class _GhostObjMaker(object):
                 mfnDep = api.MFnDependencyNode()
                 names = []
                 for obj in stillExist:
-                    if obj.hasFn( api.MFn.kDagNode ):
+                    if obj.hasFn(api.MFn.kDagNode):
                         # we need to delete the parent, since it will have
                         # created a parent transform too
                         mfnDag.setObject(obj)
@@ -232,7 +240,7 @@ class _GhostObjMaker(object):
                         names.append(mfnDep.name())
                 print names
                 #import maya.cmds as cmds
-                #cmds.delete(names)
+                # cmds.delete(names)
 
                 mfnDag = api.MFnDagNode()
                 dagMod = api.MDagModifier()
@@ -242,7 +250,7 @@ class _GhostObjMaker(object):
                 delDg = False
 
                 for obj in stillExist:
-                    if obj.hasFn( api.MFn.kDagNode ):
+                    if obj.hasFn(api.MFn.kDagNode):
                         # we need to delete the parent, since it will have
                         # created a parent transform too
                         mfnDag.setObject(obj)
@@ -414,8 +422,8 @@ def _getAllMayaTypes(**kwargs):
 _fixedLineages = {}
 _cachedInheritances = {}
 
-def getInheritance( mayaType, checkManip3D=True, checkCache=True,
-                    updateCache=True ):
+def getInheritance(mayaType, checkManip3D=True, checkCache=True,
+                   updateCache=True):
     """Get parents as a list, starting from the node after dependNode, and
     ending with the mayaType itself.
 
@@ -442,12 +450,12 @@ def getInheritance( mayaType, checkManip3D=True, checkCache=True,
     else:
         with _GhostObjMaker(mayaType) as obj:
             if obj is not None:
-                if obj.hasFn( api.MFn.kDagNode ):
+                if obj.hasFn(api.MFn.kDagNode):
                     name = api.MFnDagNode(obj).partialPathName()
                 else:
                     name = api.MFnDependencyNode(obj).name()
-                if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
-                    lineage = cmds.nodeType( name, inherited=1)
+                if not obj.isNull() and not obj.hasFn(api.MFn.kManipulator3D) and not obj.hasFn(api.MFn.kManipulator2D):
+                    lineage = cmds.nodeType(name, inherited=1)
     if lineage is None:
         global _fixedLineages
         if not _fixedLineages:
@@ -456,12 +464,12 @@ def getInheritance( mayaType, checkManip3D=True, checkCache=True,
                                              inherited=True)
             else:
                 controlPoint = [u'containerBase',
-                    u'entity',
-                    u'dagNode',
-                    u'shape',
-                    u'geometryShape',
-                    u'deformableShape',
-                    u'controlPoint']
+                                u'entity',
+                                u'dagNode',
+                                u'shape',
+                                u'geometryShape',
+                                u'deformableShape',
+                                u'controlPoint']
             # maya2013 introduced shadingDependNode...
             if versions.current() >= versions.v2013:
                 texture2d = ['shadingDependNode', 'texture2d']
@@ -470,13 +478,13 @@ def getInheritance( mayaType, checkManip3D=True, checkCache=True,
             # For whatever reason, nodeType(isTypeName) returns
             # None for the following mayaTypes:
             _fixedLineages = {
-                'node':[],
-                'file':texture2d + [u'file'],
-                'lattice':controlPoint + [u'lattice'],
-                'mesh':controlPoint + [u'surfaceShape', u'mesh'],
-                'nurbsCurve':controlPoint + [u'curveShape', u'nurbsCurve'],
-                'nurbsSurface':controlPoint + [u'surfaceShape', u'nurbsSurface'],
-                'time':[u'time']
+                'node': [],
+                'file': texture2d + [u'file'],
+                'lattice': controlPoint + [u'lattice'],
+                'mesh': controlPoint + [u'surfaceShape', u'mesh'],
+                'nurbsCurve': controlPoint + [u'curveShape', u'nurbsCurve'],
+                'nurbsSurface': controlPoint + [u'surfaceShape', u'nurbsSurface'],
+                'time': [u'time']
             }
         if mayaType in _fixedLineages:
             lineage = _fixedLineages[mayaType]
@@ -533,28 +541,28 @@ def getLowerCaseMapping(names):
     return uniqueLowerNames, multiLowerNames
 
 API_NAME_MODIFIERS = {
-    'base':'',
-    'abstract':'',
-    'node':'',
-    'shape':'',
-    'mod(?!(ify|ifier))':'modify',
-    'mod(?!(ify|ifier))':'modifier',
-    'modifier':'mod',
-    'modify':'mod',
-    'poly(?!gon)':'polygon',
-    'polygon':'poly',
-    'vert(?!(ex|ice))':'vertex',
-    'vert(?!(ex|ice))':'vertice',
-    'vertice':'vert',
-    'vertex':'vert',
-    'subd(?!iv)':'subdiv',
-    'subd(?!iv)':'subdivision',
-    'subdiv(?!ision)':'subd',
-    'subdiv(?!ision)':'subdivision',
-    'subdivision':'subd',
-    'subdivision':'subdiv',
-    '^th(custom)?':'plugin',
-    }
+    'base': '',
+    'abstract': '',
+    'node': '',
+    'shape': '',
+    'mod(?!(ify|ifier))': 'modify',
+    'mod(?!(ify|ifier))': 'modifier',
+    'modifier': 'mod',
+    'modify': 'mod',
+    'poly(?!gon)': 'polygon',
+    'polygon': 'poly',
+    'vert(?!(ex|ice))': 'vertex',
+    'vert(?!(ex|ice))': 'vertice',
+    'vertice': 'vert',
+    'vertex': 'vert',
+    'subd(?!iv)': 'subdiv',
+    'subd(?!iv)': 'subdivision',
+    'subdiv(?!ision)': 'subd',
+    'subdiv(?!ision)': 'subdivision',
+    'subdivision': 'subd',
+    'subdivision': 'subdiv',
+    '^th(custom)?': 'plugin',
+}
 API_NAME_MODIFIERS = [(re.compile(find), replace)
                       for find, replace in API_NAME_MODIFIERS.iteritems()]
 
@@ -571,8 +579,8 @@ class ApiMelBridgeCache(startup.SubItemCache):
     USE_VERSION = False
     _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
 
-    CACHE_TYPES = {'apiToMelData':_defaultdictdict}
-    STORAGE_TYPES = {'apiToMelData':dict}
+    CACHE_TYPES = {'apiToMelData': _defaultdictdict}
+    STORAGE_TYPES = {'apiToMelData': dict}
 
 
 class ApiCache(startup.SubItemCache):
@@ -582,7 +590,6 @@ class ApiCache(startup.SubItemCache):
     USE_VERSION = True
     _CACHE_NAMES = '''apiTypesToApiEnums apiEnumsToApiTypes mayaTypesToApiTypes
                    apiTypesToApiClasses apiClassInfo'''.split()
-
 
     EXTRA_GLOBAL_NAMES = tuple(['mayaTypesToApiEnums'])
 
@@ -604,31 +611,31 @@ class ApiCache(startup.SubItemCache):
 
     # creating these will crash Maya!
     CRASH_TYPES = {
-        'xformManip':'kXformManip',
-        'moveVertexManip':'kMoveVertexManip',
+        'xformManip': 'kXformManip',
+        'moveVertexManip': 'kMoveVertexManip',
     }
 
     # hold any overrides for mayaTypesToApiTypes...
     # ie, for cases where the name guess is wrong, or for weird plugin types
     # that don't inherit from an mpx type (ie, vectorRenderGlobals), etc
     MAYA_TO_API_OVERRIDES = {
-                             # this what is returned by
-                             # allNodeTypes(includeAbstract=True)
-                             'node':'kDependencyNode',
+        # this what is returned by
+        # allNodeTypes(includeAbstract=True)
+        'node': 'kDependencyNode',
 
-                             # this is the name pymel uses
-                             'dependNode':'kDependencyNode',
+        # this is the name pymel uses
+        'dependNode': 'kDependencyNode',
 
-                             # a strange one - a plugin node that has an
-                             # apitype... is in studioImport.so... also has a
-                             # doc entry...
-                             'smear':'kSmear',
+        # a strange one - a plugin node that has an
+        # apitype... is in studioImport.so... also has a
+        # doc entry...
+        'smear': 'kSmear',
 
-                             # plugin node that's not in all distributions
-                             # (ie, it's missing in Linux), so just include it
-                             # here
-                             'vectorRenderGlobals':'kDependencyNode',
-                            }
+        # plugin node that's not in all distributions
+        # (ie, it's missing in Linux), so just include it
+        # here
+        'vectorRenderGlobals': 'kDependencyNode',
+    }
 
     # TODO: if nucleus/symmetryConstraint bug ever fixed:
     #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
@@ -637,10 +644,10 @@ class ApiCache(startup.SubItemCache):
     #     MDagPath but can't use MFnDagNode
 
     API_TO_MFN_OVERRIDES = {
-                            'kHikHandle':api.MFnTransform, # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
-                            'kFfdDualBase':api.MFnDependencyNode, # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
-                            'kTransferAttributes':api.MFnDependencyNode, # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
-                           }
+        'kHikHandle': api.MFnTransform,  # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
+        'kFfdDualBase': api.MFnDependencyNode,  # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
+        'kTransferAttributes': api.MFnDependencyNode,  # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
+    }
 
     if NUCLEUS_MFNDAG_BUG:
         # fun one - even though it can be parented and inherits from transform,
@@ -683,7 +690,7 @@ class ApiCache(startup.SubItemCache):
                 with _GhostObjMaker(toCreate, manipError=False, multi=True) as typeToObj:
                     for mayaType in toCreate:
                         obj = typeToObj[mayaType]
-                        if obj :
+                        if obj:
                             apiType = obj.apiTypeStr()
                             self.mayaTypesToApiTypes[mayaType] = apiType
                         else:
@@ -722,16 +729,15 @@ class ApiCache(startup.SubItemCache):
                 for node in toSet:
                     self.mayaTypesToApiTypes[node] = apiType
 
-        for mayaType, apiType in self.mayaTypesToApiTypes.iteritems() :
-            self.addMayaType( mayaType, apiType )
+        for mayaType, apiType in self.mayaTypesToApiTypes.iteritems():
+            self.addMayaType(mayaType, apiType)
 
     def _buildApiTypesList(self):
         """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with
         an existing api type"""
 
-        self.apiTypesToApiEnums = dict( inspect.getmembers(api.MFn, lambda x:type(x) is int))
-        self.apiEnumsToApiTypes = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
-
+        self.apiTypesToApiEnums = dict(inspect.getmembers(api.MFn, lambda x: type(x) is int))
+        self.apiEnumsToApiTypes = dict((self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
 
     def _buildMayaReservedTypes(self, force=False):
         """
@@ -757,8 +763,8 @@ class ApiCache(startup.SubItemCache):
         reservedMayaTypes.update(self.MAYA_TO_API_OVERRIDES)
         # filter to make sure all these types exist in current version (some are Maya2008 only)
         reservedMayaTypes = dict((item[0], item[1])
-                                      for item in reservedMayaTypes.iteritems()
-                                      if item[1] in self.apiTypesToApiEnums)
+                                 for item in reservedMayaTypes.iteritems()
+                                 if item[1] in self.apiTypesToApiEnums)
 
         return reservedMayaTypes
 
@@ -874,12 +880,12 @@ class ApiCache(startup.SubItemCache):
         self.apiClassInfo = {}
         parser = ApiDocParser(api, enumClass=ApiEnum, docLocation=self.docLocation)
 
-        for name, obj in inspect.getmembers( api, lambda x: type(x) == type and x.__name__.startswith('M') ):
-            if not name.startswith( 'MPx' ):
+        for name, obj in inspect.getmembers(api, lambda x: type(x) == type and x.__name__.startswith('M')):
+            if not name.startswith('MPx'):
                 try:
                     info = parser.parse(name)
-                    self.apiClassInfo[ name ] = info
-                except (IOError, OSError, ValueError,IndexError), e:
+                    self.apiClassInfo[name] = info
+                except (IOError, OSError, ValueError, IndexError), e:
                     import errno
                     baseMsg = "failed to parse docs for %r:" % name
                     if isinstance(e, (IOError, OSError)) and e.errno == errno.ENOENT:
@@ -897,14 +903,15 @@ class ApiCache(startup.SubItemCache):
 
     def _buildApiTypeToApiClasses(self):
         self.apiTypesToApiClasses = {}
-        def _MFnType(x) :
-            if x == api.MFnBase :
-                return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
-            else :
-                try :
-                    return self.apiEnumsToApiTypes[ x().type() ]
-                except :
-                    return self.apiEnumsToApiTypes[ 0 ] # 'kInvalid'
+
+        def _MFnType(x):
+            if x == api.MFnBase:
+                return self.apiEnumsToApiTypes[1]  # 'kBase'
+            else:
+                try:
+                    return self.apiEnumsToApiTypes[x().type()]
+                except:
+                    return self.apiEnumsToApiTypes[0]  # 'kInvalid'
 
         # all of maya OpenMaya api is now imported in module api's namespace
         mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
@@ -915,7 +922,7 @@ class ApiCache(startup.SubItemCache):
             elif current == 'kInvalid':
                 _logger.warning("MFnClass gave MFnType %s" % current)
             else:
-                self.apiTypesToApiClasses[ current ] = mfnClass
+                self.apiTypesToApiClasses[current] = mfnClass
         # we got our map by going from Mfn to enum; however, multiple enums can
         # map to the same MFn, so need to fill in the gaps of missing enums for
         # enums to MFn...
@@ -954,7 +961,7 @@ class ApiCache(startup.SubItemCache):
             mfnClass = api.MFnDependencyNode
         return mfnClass
 
-    def _buildApiRelationships(self) :
+    def _buildApiRelationships(self):
         """
         Used to rebuild api info from scratch.
 
@@ -965,7 +972,6 @@ class ApiCache(startup.SubItemCache):
         """
         # Put in a debug, because this can be crashy
         _logger.debug("Starting ApiCache._buildApiTypeHierarchy...")
-
 
         if not startup.mayaStartupHasRun():
             startup.mayaInit()
@@ -1022,8 +1028,8 @@ class ApiCache(startup.SubItemCache):
         before the mayaType is added.
         """
 
-        if apiType is not 'kInvalid' :
-            apiEnum = getattr( api.MFn, apiType )
+        if apiType is not 'kInvalid':
+            apiEnum = getattr(api.MFn, apiType)
             self.mayaTypesToApiTypes[mayaType] = apiType
             self.mayaTypesToApiEnums[mayaType] = apiEnum
 
@@ -1036,8 +1042,8 @@ class ApiCache(startup.SubItemCache):
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
         """
-        self.mayaTypesToApiEnums.pop( mayaType, None )
-        self.mayaTypesToApiTypes.pop( mayaType, None )
+        self.mayaTypesToApiEnums.pop(mayaType, None)
+        self.mayaTypesToApiTypes.pop(mayaType, None)
 
     def read(self, raw=False):
         data = super(ApiCache, self).read()
@@ -1058,7 +1064,7 @@ class ApiCache(startup.SubItemCache):
         Unlike 'build', this does not attempt to load a cache file, but always
         rebuilds it by parsing the docs, etc.
         """
-        _logger.info( "Rebuilding the API Caches..." )
+        _logger.info("Rebuilding the API Caches...")
 
         # fill out the data structures
         self._buildApiTypesList()
@@ -1067,17 +1073,17 @@ class ApiCache(startup.SubItemCache):
         self._buildApiRelationships()
 
         # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
-        _logger.info( 'merging in dictionary of manual api overrides')
+        _logger.info('merging in dictionary of manual api overrides')
         self._mergeClassOverrides()
 
     def _mergeClassOverrides(self, bridgeCache=None):
         if bridgeCache is None:
             bridgeCache = ApiMelBridgeCache()
             bridgeCache.build()
-        _util.mergeCascadingDicts( bridgeCache.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
+        _util.mergeCascadingDicts(bridgeCache.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True)
 
     def melBridgeContents(self):
         return self._mayaApiMelBridge.contents()
 
     def extraDicts(self):
-        return tuple( getattr(self, x) for x in self.EXTRA_GLOBAL_NAMES )
+        return tuple(getattr(self, x) for x in self.EXTRA_GLOBAL_NAMES)

@@ -43,8 +43,8 @@ def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
         return function(*args, **kwargs)
-    newFunc.__name__ =  function.__name__
-    newFunc.__doc__ =  function.__doc__
+    newFunc.__name__ = function.__name__
+    newFunc.__doc__ = function.__doc__
     return newFunc
 
 
@@ -57,7 +57,7 @@ def getCmdName(inFunc):
     if cmdName == 'stubFunc':
         sourceFile = inspect.getsourcefile(inFunc)
         if (isinstance(sourceFile, basestring) and
-                os.path.join('maya','app','commands') in sourceFile):
+                os.path.join('maya', 'app', 'commands') in sourceFile):
             # Here's where it gets tricky... this is a fairly big hack, highly
             # dependent on the exact implementation of maya.app.commands.stubFunc...
             freevars = inFunc.func_code.co_freevars
@@ -70,7 +70,7 @@ def getCmdName(inFunc):
             cmdName = inFunc.func_closure[freeVarIndex].cell_contents
     return cmdName
 
-def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
+def getMelRepresentation(args, recursionLimit=None, maintainDicts=True):
     """Will return a list which contains each element of the iterable 'args' converted to a mel-friendly representation.
 
     :Parameters:
@@ -88,7 +88,6 @@ def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
     if recursionLimit:
         recursionLimit -= 1
 
-
     if maintainDicts and util.isMapping(args):
         newargs = dict(args)
         argIterable = args.iteritems()
@@ -102,7 +101,7 @@ def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
         try:
             newargs[index] = value.__melobject__()
         except AttributeError:
-            if ( (not recursionLimit) or recursionLimit >= 0) and util.isIterable(value):
+            if ((not recursionLimit) or recursionLimit >= 0) and util.isIterable(value):
                 # ...otherwise, recurse if not at recursion limit and  it's iterable
                 newargs[index] = getMelRepresentation(value, recursionLimit, maintainDicts)
     if isList:
@@ -114,22 +113,22 @@ def addWrappedCmd(cmdname, cmd=None):
     if cmd is None:
         cmd = getattr(maya.cmds, cmdname)
 
-    #if cmd.__name__ == 'dummyFunc': print cmdname
+    # if cmd.__name__ == 'dummyFunc': print cmdname
 
     def wrappedCmd(*args, **kwargs):
         # we must get the cmd each time, because maya delays loading of functions until they are needed.
         # if we don't reload we'll keep the dummyFunc around
         new_cmd = getattr(maya.cmds, cmdname)
-        #print args, kwargs
+        # print args, kwargs
         # convert args to mel-friendly representation
         new_args = getMelRepresentation(args)
 
         # flatten list. this is necessary for list of components.  see Issue 71.  however, be sure that it's not an empty list/tuple
-        if len(new_args) == 1 and util.isIterable(new_args[0]) and len(new_args[0]): #isinstance( new_args[0], (tuple, list) ):
+        if len(new_args) == 1 and util.isIterable(new_args[0]) and len(new_args[0]):  # isinstance( new_args[0], (tuple, list) ):
             new_args = new_args[0]
 
         new_kwargs = getMelRepresentation(kwargs)
-        #print new_args, new_kwargs
+        # print new_args, new_kwargs
         try:
             res = new_cmd(*new_args, **new_kwargs)
         except objectErrorType, e:
@@ -147,7 +146,7 @@ def addWrappedCmd(cmdname, cmd=None):
         # however, for UI's in particular, people use the edit command to get a pymel class for existing objects.
         # return None when we get an empty string
         try:
-            if res=='' and kwargs.get('edit', kwargs.get('e', False) ):
+            if res == '' and kwargs.get('edit', kwargs.get('e', False)):
                 return None
         except AttributeError:
             pass
@@ -166,7 +165,7 @@ def addWrappedCmd(cmdname, cmd=None):
     #wrappedCmd = _testDecorator(wrappedCmd)
 
     # so that we can identify that this is a wrapped maya command
-    setattr( _thisModule, cmdname, wrappedCmd )
+    setattr(_thisModule, cmdname, wrappedCmd)
     #globals()[cmdname] = wrappedCmd
 
 def removeWrappedCmd(cmdname):
@@ -178,6 +177,3 @@ def removeWrappedCmd(cmdname):
 def addAllWrappedCmds():
     for cmdname, cmd in inspect.getmembers(maya.cmds, callable):
         addWrappedCmd(cmdname, cmd)
-
-
-

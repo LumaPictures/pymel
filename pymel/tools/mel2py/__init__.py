@@ -198,23 +198,22 @@ equivalents. in the case of 'firstElem', it will perform conversions like the fo
 """
 
 
-
 custom_proc_remap = {
-        'firstElem'             : ( 'string', lambda args, t: '%s[0]'                 % (args[0]) ),
-        'firstFloatElem'         : ( 'float', lambda args, t: '%s[0]'                 % (args[0]) ),
-        'stringArrayAppend'        : ( 'string[]', lambda args, t: '%s + %s'             % (args[0], args[1]) ),
-        'stringInArray'            : ( 'int', lambda args, t: '%s in %s'             % (args[0], args[1]) ),
-        'stringInStringArray'    : ( 'int', lambda args, t: '%s in %s'             % (args[0], args[1]) ),
-        'stringArrayPrefix'        : ( 'string[]', lambda args, t: '[ %s + x for x in %s ]'     % (args[0], args[1]) ),
-        'stringArraySuffix'        : ( 'string[]', lambda args, t: '[ x + %s for x in %s ]'     % (args[0], args[1]) ),
-        'addPad'                 : ( 'string', lambda args, t: "'%0" +  args[1] + "d' % " + args[0] ),
-        'getRefFileFromObject'    : ( 'string', lambda args, t: '%s.referenceFile()'    % (args[0]) )
-        }
+    'firstElem': ('string', lambda args, t: '%s[0]' % (args[0])),
+    'firstFloatElem': ('float', lambda args, t: '%s[0]' % (args[0])),
+    'stringArrayAppend': ('string[]', lambda args, t: '%s + %s' % (args[0], args[1])),
+    'stringInArray': ('int', lambda args, t: '%s in %s' % (args[0], args[1])),
+    'stringInStringArray': ('int', lambda args, t: '%s in %s' % (args[0], args[1])),
+    'stringArrayPrefix': ('string[]', lambda args, t: '[ %s + x for x in %s ]' % (args[0], args[1])),
+    'stringArraySuffix': ('string[]', lambda args, t: '[ x + %s for x in %s ]' % (args[0], args[1])),
+    'addPad': ('string', lambda args, t: "'%0" + args[1] + "d' % " + args[0]),
+    'getRefFileFromObject': ('string', lambda args, t: '%s.referenceFile()' % (args[0]))
+}
 
 # do not change the following line !!!
 melparse.proc_remap.update(custom_proc_remap)
 
-def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False, basePackage='' ):
+def resolvePath(melobj, recurse=False, exclude=(), melPathOnly=False, basePackage=''):
     """
     if passed a directory, get all mel files in the directory
     if passed a file, ensure it is a mel file
@@ -226,30 +225,30 @@ def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False, basePacka
         basePackage = ''
     files = []
     recursedResults = []
-    filepath = util.path( melobj )
+    filepath = util.path(melobj)
     if filepath.isfile():
         if filepath.ext == '.mel':
-            files = [ filepath.truepath() ]
+            files = [filepath.truepath()]
         else:
-            log.warning( "File is not a mel script: %s" % (filepath) )
+            log.warning("File is not a mel script: %s" % (filepath))
             files = []
     elif filepath.isdir():
-        files = [ f.truepath() for f in filepath.files( '[a-zA-Z]*.mel') ]
+        files = [f.truepath() for f in filepath.files('[a-zA-Z]*.mel')]
         if recurse:
             for dir in filepath.dirs():
                 recursedResults.extend(resolvePath(dir, recurse=recurse,
-                                         exclude=exclude, melPathOnly=melPathOnly,
-                                         basePackage = basePackage + '.' + melparse.pythonizeName(dir.basename())))
-    #elif not filepath.exists():
+                                                   exclude=exclude, melPathOnly=melPathOnly,
+                                                   basePackage=basePackage + '.' + melparse.pythonizeName(dir.basename())))
+    # elif not filepath.exists():
     else:
         # see if it's a procedure that we can derive a path from
         try:
-            info = pm.mel.whatIs( melobj ).split(': ')[-1]
+            info = pm.mel.whatIs(melobj).split(': ')[-1]
             assert info != 'Unknown', "If providing a procedure or a short file name, ensure the appropriate script is sourced"
-            melfile = util.path( info )
-            files = [ melfile.truepath() ]
+            melfile = util.path(info)
+            files = [melfile.truepath()]
         except Exception, msg:
-            log.warning( "Could not determine mel script from input '%s': %s." % (filepath, msg) )
+            log.warning("Could not determine mel script from input '%s': %s." % (filepath, msg))
     if exclude:
         for i, badFile in enumerate(exclude):
             badFile = util.path(badFile).canonicalpath()
@@ -271,14 +270,14 @@ def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False, basePacka
         files = [x for x in files if fileOnMelPath(x)]
     if basePackage and basePackage[-1] != '.':
         basePackage = basePackage + '.'
-    return [ (basePackage + melparse.getModuleBasename(x), x) for x in files] + recursedResults
+    return [(basePackage + melparse.getModuleBasename(x), x) for x in files] + recursedResults
 
-def fileOnMelPath( file ):
+def fileOnMelPath(file):
     """
     Return True if this file is on the mel path.
     """
     file = util.path(file)
-    info = pm.mel.whatIs( file.basename() ).split(': ', 1)
+    info = pm.mel.whatIs(file.basename()).split(': ', 1)
     if len(info) < 2:
         # If there wasn't a ':' character, the result was probably 'Unknown, or something similar -
         # anyway, not what we're looking for
@@ -288,7 +287,7 @@ def fileOnMelPath( file ):
     path = util.path(info[1])
     return path.samepath(file)
 
-def _updateCurrentModules( newResults ):
+def _updateCurrentModules(newResults):
     currentModules = melparse.batchData.currentModules
     for moduleName, melfile in newResults:
         if not isinstance(melfile, pm.Path):
@@ -314,9 +313,9 @@ def _makePackages():
         if melparse.batchData.outputDir:
             packages[package] = melparse.batchData.outputDir
         else:
-            assert package == tuple(melfile.splitall()[-(len(package)+1):-1]), \
+            assert package == tuple(melfile.splitall()[-(len(package) + 1):-1]), \
                 "package %s did not match melfile %s directory structure" % ('.'.join(package), melfile)
-            packages[package] = util.path.joinpath( *(melfile.splitall()[:-(len(package)+1)]) )
+            packages[package] = util.path.joinpath(*(melfile.splitall()[:-(len(package) + 1)]))
 
     for packageTuple, baseDir in packages.iteritems():
         if not baseDir.isdir():
@@ -330,18 +329,18 @@ def _makePackages():
             if not initFile.isfile():
                 initFile.touch()
 
-def _getInputFiles( input, recurse=False, exclude=(), melPathOnly=False, basePackage='' ):
+def _getInputFiles(input, recurse=False, exclude=(), melPathOnly=False, basePackage=''):
     """
     Returns tuples of the form (packageName, melfile)
     """
     results = []
-    if not util.isIterable( input ):
+    if not util.isIterable(input):
         input = [input]
     for f in input:
         results.extend(resolvePath(f, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage))
     return results
 
-def melInfo( input ):
+def melInfo(input):
     """
     Get information about procedures in a mel file.
 
@@ -372,9 +371,9 @@ def melInfo( input ):
 
     cbParser = melparse.MelScanner()
     cbParser.build()
-    return cbParser.parse( f.bytes() )
+    return cbParser.parse(f.bytes())
 
-def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=False, verbosity=0, basePackage=None ):
+def mel2pyStr(data, currentModule=None, pymelNamespace='', forceCompatibility=False, verbosity=0, basePackage=None):
     """
     convert a string representing mel code into a string representing python code
 
@@ -411,17 +410,16 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
     mparser = melparse.MelParser()
     mparser.build(currentModule, pymelNamespace=pymelNamespace, forceCompatibility=forceCompatibility, verbosity=verbosity)
 
-    results = mparser.parse( data )
-    #print mparser.lexer.global_procs
+    results = mparser.parse(data)
+    # print mparser.lexer.global_procs
     return results
 
 
-
-def mel2py( input, outputDir=None,
-            pymelNamespace='', forceCompatibility=False,
-            verbosity=0 , test=False,
-            recurse=False, exclude=(), melPathOnly=False,
-            basePackage=None):
+def mel2py(input, outputDir=None,
+           pymelNamespace='', forceCompatibility=False,
+           verbosity=0, test=False,
+           recurse=False, exclude=(), melPathOnly=False,
+           basePackage=None):
     """
     Batch convert an entire directory
 
@@ -476,7 +474,7 @@ def mel2py( input, outputDir=None,
     if outputDir and not os.path.exists(outputDir):
         os.makedirs(outputDir)
 
-    currentFiles = _getInputFiles( input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage )
+    currentFiles = _getInputFiles(input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage)
     if not currentFiles:
         raise ValueError, "Could not find any scripts to operate on. Please pass a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure"
     _updateCurrentModules(currentFiles)
@@ -496,7 +494,7 @@ def mel2py( input, outputDir=None,
             data = melfile.bytes()
             print "Converting mel script", melfile
             try:
-                converted = mel2pyStr( data, moduleName, pymelNamespace=pymelNamespace, verbosity=verbosity )
+                converted = mel2pyStr(data, moduleName, pymelNamespace=pymelNamespace, verbosity=verbosity)
             except melparse.MelParseError, e:
                 if e.file is None:
                     e.file = melfile
@@ -520,9 +518,9 @@ def mel2py( input, outputDir=None,
         pyfile = currOutDir.joinpath(splitModule[-1] + '.py')
         print "Writing converted python script: %s" % pyfile
         pyfile.write_bytes(converted)
-        succeeded.append( pyfile )
+        succeeded.append(pyfile)
 
-        #except (ValueError, IndexError, TypeError, LexError), msg:
+        # except (ValueError, IndexError, TypeError, LexError), msg:
         #    if ignoreErrors:
         #        print 'failed:', msg
         #    else:
@@ -532,7 +530,7 @@ def mel2py( input, outputDir=None,
         for pyfile in succeeded:
             print "Testing", pyfile
             try:
-                __import__( pyfile.namebase )
+                __import__(pyfile.namebase)
             except (SyntaxError, IndentationError), msg:
                 print 'A syntax error exists in this file that will need to be manually fixed: %s' % msg
             except RuntimeError, msg:
@@ -547,7 +545,7 @@ def mel2py( input, outputDir=None,
     succCnt = len(succeeded)
     print "%d total processed for conversion" % len(batchData.currentModules)
     print "%d files succeeded" % succCnt
-    print "%d files failed" % (len(batchData.currentModules)-succCnt)
+    print "%d files failed" % (len(batchData.currentModules) - succCnt)
     if test:
         print "%d files imported without error" % (importCnt)
 
@@ -559,21 +557,21 @@ def findMelOnlyCommands():
     Using maya's documentation, find commands which were not ported to python.
     """
 
-    docs = util.path( _factories.mayaDocsLocation() )
-    melCmds = set([ x.namebase for x in ( docs / 'Commands').files('*.html') ])
-    pyCmds = set([ x.namebase for x in ( docs / 'CommandsPython').files('*.html') ])
+    docs = util.path(_factories.mayaDocsLocation())
+    melCmds = set([x.namebase for x in (docs / 'Commands').files('*.html')])
+    pyCmds = set([x.namebase for x in (docs / 'CommandsPython').files('*.html')])
     result = []
     for cmd in sorted(melCmds.difference(pyCmds)):
         typ = pymel.mel.whatIs(cmd)
-        if typ.startswith( 'Script') or typ.startswith( 'Mel' ):
+        if typ.startswith('Script') or typ.startswith('Mel'):
             typ = 'Mel'
         try:
-            func = getattr( pymel, cmd)
+            func = getattr(pymel, cmd)
             info = func.__module__
         except AttributeError:
-            if hasattr( melparse.builtin_module, cmd):
+            if hasattr(melparse.builtin_module, cmd):
                 info = 'builtin'
             else:
-                info = melparse.proc_remap.has_key( cmd )
-        result.append( (cmd, typ, info ) )
+                info = melparse.proc_remap.has_key(cmd)
+        result.append((cmd, typ, info))
     return result

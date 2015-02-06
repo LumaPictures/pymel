@@ -2,7 +2,12 @@
 """
 General utilities which are pymel-independent.
 """
-import sys, codecs, os, os.path, re, platform
+import sys
+import codecs
+import os
+import os.path
+import re
+import platform
 
 from collections import *
 
@@ -19,7 +24,3 @@ from path import *
 from decoration import *
 from shell import *
 #import nameparse
-
-
-
-

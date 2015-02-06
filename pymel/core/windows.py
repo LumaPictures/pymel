@@ -2,7 +2,10 @@
 Functions for creating UI elements, as well as their class counterparts.
 """
 
-import re, sys, functools, traceback
+import re
+import sys
+import functools
+import traceback
 
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds
@@ -35,50 +38,52 @@ thisModuleCmd = "import %s; import sys; sys.modules[%r]" % (__name__, __name__)
 #  Enhanced UI Commands
 #-----------------------------------------------
 
-def _lsUI( **kwargs ):
-    long = kwargs.pop( 'long', kwargs.pop( 'l', True ) )
-    head = kwargs.pop( 'head', kwargs.pop( 'hd', None ) )
-    tail = kwargs.pop( 'tail', kwargs.pop( 'tl', None) )
+def _lsUI(**kwargs):
+    long = kwargs.pop('long', kwargs.pop('l', True))
+    head = kwargs.pop('head', kwargs.pop('hd', None))
+    tail = kwargs.pop('tail', kwargs.pop('tl', None))
 
     if not kwargs:
         kwargs = {
-            'windows': 1, 'panels' : 1, 'editors' : 1, 'controls' : 1, 'controlLayouts' : 1,
-            'collection' : 1, 'radioMenuItemCollections' : 1, 'menus' : 1, 'menuItems' : 1,
-            'contexts' : 0, 'cmdTemplates' : 1
-            }
+            'windows': 1, 'panels': 1, 'editors': 1, 'controls': 1, 'controlLayouts': 1,
+            'collection': 1, 'radioMenuItemCollections': 1, 'menus': 1, 'menuItems': 1,
+            'contexts': 0, 'cmdTemplates': 1
+        }
     kwargs['long'] = long
-    if head is not None: kwargs['head'] = head
-    if tail is not None: kwargs['tail'] = tail
+    if head is not None:
+        kwargs['head'] = head
+    if tail is not None:
+        kwargs['tail'] = tail
     return _util.listForNone(cmds.lsUI(**kwargs))
 
 # all optionMenus are popupMenus, but not all popupMenus are optionMenus
 _commandsToUITypes = {
-    'optionMenu':'popupMenu',
-    }
+    'optionMenu': 'popupMenu',
+}
 
 def _findLongName(name, type=None):
     # this remap is currently for OptionMenu, but the fix only works in 2011
     # lsUI won't list popupMenus or optionMenus
-    kwargs = { 'long' : True}
+    kwargs = {'long': True}
     if type:
         kwargs['type'] = _commandsToUITypes.get(type, type)
 
-    uiObjs = _util.listForNone(_lsUI( **kwargs ))
-    res = [ x for x in uiObjs if x.endswith( '|' + name) ]
+    uiObjs = _util.listForNone(_lsUI(**kwargs))
+    res = [x for x in uiObjs if x.endswith('|' + name)]
     if len(res) > 1:
         raise ValueError, "found more than one UI element matching the name %s" % name
     elif len(res) == 0:
         raise ValueError, "could not find a UI element matching the name %s" % name
     return res[0]
 
-def lsUI( **kwargs ):
+def lsUI(**kwargs):
     """
 Modified:
   - long defaults to True
   - if no type is passed, defaults to all known types
     """
     import uitypes
-    return [ uitypes.PyUI(x) for x in _lsUI( **kwargs ) ]
+    return [uitypes.PyUI(x) for x in _lsUI(**kwargs)]
 
 scriptTableCmds = {}
 
@@ -89,10 +94,10 @@ Maya Bug Fix:
         IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
     """
     import uitypes
-    cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',None) )
-    cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
+    cb = kwargs.pop('getCellCmd', kwargs.pop('gcc', None))
+    cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc', None))
 
-    uiName = cmds.scriptTable( *args, **kwargs )
+    uiName = cmds.scriptTable(*args, **kwargs)
     if "q" in kwargs or "query" in kwargs:
         return uiName
 
@@ -100,22 +105,22 @@ Maya Bug Fix:
     if cb:
         if hasattr(cb, '__call__'):
             procName = 'getCellMel%d' % len(scriptTableCmds.keys())
-            key = '%s_%s' % (uiName,procName)
+            key = '%s_%s' % (uiName, procName)
 
             procCmd = """global proc string %s( int $row, int $column ) {
                             return python(%s.scriptTableCmds['%s'](" + $row + "," + $column + ")");}
                       """ %  (procName, thisModuleCmd, key)
-            mel.eval( procCmd )
+            mel.eval(procCmd)
             scriptTableCmds[key] = cb
 
             # create a scriptJob to clean up the dictionary of functions
-            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key,None)))
+            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key, None)))
             cb = procName
         kwargs['getCellCmd'] = cb
     if cc:
         if hasattr(cc, '__call__'):
             procName = 'cellChangedCmd%d' % len(scriptTableCmds.keys())
-            key = '%s_%s' % (uiName,procName)
+            key = '%s_%s' % (uiName, procName)
             # Note - don't do
             #     __import__('pymel.core.windows').XXX
             # ...as this will get the 'original' module, not the dynamic one!
@@ -125,53 +130,53 @@ Maya Bug Fix:
             procCmd = """global proc int %s( int $row, int $column, string $val) {
                             return python("%s.scriptTableCmds['%s'](" + $row + "," + $column + ",'" + $val + "')");}
                       """ %  (procName, thisModuleCmd, key)
-            mel.eval( procCmd )
+            mel.eval(procCmd)
             scriptTableCmds[key] = cc
 
             # create a scriptJob to clean up the dictionary of functions
-            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key,None)))
+            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key, None)))
             cc = procName
         kwargs['cellChangedCmd'] = cc
 
     if kwargs:
-        cmds.scriptTable( uiName, e=1, **kwargs)
+        cmds.scriptTable(uiName, e=1, **kwargs)
     return uitypes.ScriptTable(uiName)
 
 def getPanel(*args, **kwargs):
-    typeOf = kwargs.pop('typeOf', kwargs.pop('to', None) )
+    typeOf = kwargs.pop('typeOf', kwargs.pop('to', None))
     if typeOf:
         # typeOf flag only allows short names
-        kwargs['typeOf'] = typeOf.rsplit('|',1)[-1]
-    return cmds.getPanel(*args, **kwargs )
+        kwargs['typeOf'] = typeOf.rsplit('|', 1)[-1]
+    return cmds.getPanel(*args, **kwargs)
 #
 #
-#def textScrollList( *args, **kwargs ):
+# def textScrollList( *args, **kwargs ):
 #    """
-#Modifications:
+# Modifications:
 #  - returns an empty list when the result is None for queries: selectIndexedItem, allItems, selectItem queries
 #    """
 #    res = cmds.textScrollList(*args, **kwargs)
 #    return _factories.listForNoneQuery( res, kwargs, [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)] )
 #
-#def optionMenu( *args, **kwargs ):
+# def optionMenu( *args, **kwargs ):
 #    """
-#Modifications:
+# Modifications:
 #  - returns an empty list when the result is None for queries: itemListLong, itemListShort queries
 #    """
 #    res = cmds.optionMenu(*args, **kwargs)
 #    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
 #
-#def optionMenuGrp( *args, **kwargs ):
+# def optionMenuGrp( *args, **kwargs ):
 #    """
-#Modifications:
+# Modifications:
 #  - returns an empty list when the result is None for queries: itemlistLong, itemListShort queries
 #    """
 #    res = cmds.optionMenuGrp(*args, **kwargs)
 #    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
 #
-#def modelEditor( *args, **kwargs ):
+# def modelEditor( *args, **kwargs ):
 #    """
-#Modifications:
+# Modifications:
 #  - casts to PyNode for queries: camera
 #    """
 #    res = cmds.modelEditor(*args, **kwargs)
@@ -194,15 +199,16 @@ def horizontalLayout(*args, **kwargs):
 
 def promptBox(title, message, okText, cancelText, **kwargs):
     """ Prompt for a value. Returns the string value or None if cancelled """
-    ret = promptDialog(t=title, m=message, b=[okText,cancelText], db=okText, cb=cancelText,**kwargs)
-    if ret==okText:
-        return promptDialog(q=1,tx=1)
+    ret = promptDialog(t=title, m=message, b=[okText, cancelText], db=okText, cb=cancelText, **kwargs)
+    if ret == okText:
+        return promptDialog(q=1, tx=1)
 
 def promptBoxGenerator(*args, **kwargs):
     """ Keep prompting for values until cancelled """
     while 1:
         ret = promptBox(*args, **kwargs)
-        if not ret: return
+        if not ret:
+            return
         yield ret
 
 def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
@@ -240,20 +246,21 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     returnButton = kwargs.pop('returnButton', False)
     default = kwargs.get("db", kwargs.get("defaultButton")) or yes
 
-    ret = confirmDialog(t=title,    m=message,     b=[yes,no] + list(moreButtons),
-                           db=default,
-                           ma="center", cb=no, ds=no)
+    ret = confirmDialog(t=title, m=message, b=[yes, no] + list(moreButtons),
+                        db=default,
+                        ma="center", cb=no, ds=no)
     if moreButtons or returnButton:
         return ret
     else:
-        return (ret==yes)
+        return (ret == yes)
 
 def informBox(title, message, ok="Ok"):
     """ Information box """
     confirmDialog(t=title, m=message, b=[ok], db=ok)
 
 
-class PopupError( Exception ):
+class PopupError(Exception):
+
     """Raise this exception in your scripts to cause a confirmDialog to be opened displaying the error message.
     After the user presses 'OK', the exception will be raised as normal. In batch mode the promptDialog is not opened.
 
@@ -307,6 +314,7 @@ def promptForFolder():
     # a little trick that allows us to change the top-level 'folder' variable from
     # the nested function ('getfolder') - use a single-element list, and change its content
     folder = [None]
+
     def getfolder(*args):
         folder[0] = args[0]
     ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
@@ -326,10 +334,11 @@ def promptForPath(**kwargs):
         # the nested function ('getfolder') - use a single-element list, and change its content
 
         folder = [None]
+
         def getfolder(*args):
             folder[0] = args[0]
 
-        kwargs.pop('fileCommand',None)
+        kwargs.pop('fileCommand', None)
         kwargs['fc'] = getfolder
 
         if 'mode' not in kwargs:
@@ -339,15 +348,15 @@ def promptForPath(**kwargs):
         ret = cmds.fileBrowserDialog(**kwargs)
         folder = _Path(folder[0])
         if folder:
-            #Ensure something was entered/selected. But don't test if it exists
+            # Ensure something was entered/selected. But don't test if it exists
             # as this would break mode 1/100+ causing them to return None
             return folder
 
 
 def fileDialog(*args, **kwargs):
-    ret = cmds.fileDialog(*args, **kwargs )
+    ret = cmds.fileDialog(*args, **kwargs)
     if ret:
-        return _Path( ret )
+        return _Path(ret)
 
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
@@ -363,28 +372,27 @@ def showsHourglass(func):
     return decoratedFunc
 
 
-
-def pathButtonGrp( name=None, *args, **kwargs ):
+def pathButtonGrp(name=None, *args, **kwargs):
     import uitypes
-    if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
+    if name is None or not cmds.textFieldButtonGrp(name, ex=1):
         create = True
     else:
         create = False
 
-    return uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs )
+    return uitypes.PathButtonGrp(name=name, create=create, *args, **kwargs)
 
-def folderButtonGrp( name=None, *args, **kwargs ):
+def folderButtonGrp(name=None, *args, **kwargs):
     import uitypes
-    if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
+    if name is None or not cmds.textFieldButtonGrp(name, ex=1):
         create = True
     else:
         create = False
 
-    return uitypes.FolderButtonGrp( name=name, create=create, *args, **kwargs )
+    return uitypes.FolderButtonGrp(name=name, create=create, *args, **kwargs)
 
-def vectorFieldGrp( *args, **kwargs ):
+def vectorFieldGrp(*args, **kwargs):
     import uitypes
-    return uitypes.VectorFieldGrp( *args, **kwargs )
+    return uitypes.VectorFieldGrp(*args, **kwargs)
 
 
 def uiTemplate(name=None, force=False, exists=None):
@@ -426,19 +434,19 @@ Modifications
     if _versions.current() < _versions.v2011:
         # on create only
         if not ( kwargs.get('query', False) or kwargs.get('q', False) ) \
-            and not ( kwargs.get('edit', False) or kwargs.get('e', False) ) \
-            and not ( kwargs.get('parent', False) or kwargs.get('p', False) ):
+                and not ( kwargs.get('edit', False) or kwargs.get('e', False) ) \
+                and not (kwargs.get('parent', False) or kwargs.get('p', False)):
             kwargs['parent'] = cmds.setParent(q=1)
 
     if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
-            and ( kwargs.get('parent', False) or kwargs.get('p', False) ):
+            and (kwargs.get('parent', False) or kwargs.get('p', False)):
         name = unicode(args[0])
         if '|' not in name:
             try:
                 name = _findLongName(name, 'menu')
             except ValueError:
                 name = _findLongName(name, 'popupMenu')
-        return name.rsplit('|',1)[0]
+        return name.rsplit('|', 1)[0]
 
     result = cmds.menu(*args, **kwargs)
 
@@ -449,7 +457,7 @@ Modifications
     return result
 
 def _createClassCommands():
-    def createCallback( classname ):
+    def createCallback(classname):
         """
         create a callback that will trigger lazyLoading
         """
@@ -465,7 +473,7 @@ def _createClassCommands():
         #cls = _uitypes[classname]
 
         # Create Function
-        func = _factories.functionFactory( funcName, createCallback(classname), _thisModule, uiWidget=True )
+        func = _factories.functionFactory(funcName, createCallback(classname), _thisModule, uiWidget=True)
         if func:
             func.__module__ = __name__
             setattr(_thisModule, funcName, func)
@@ -475,13 +483,13 @@ def _createOtherCommands():
     moduleShortName = __name__.split('.')[-1]
     nonClassFuncs = set(_factories.moduleCmds[moduleShortName]).difference(_factories.uiClassList)
     for funcName in nonClassFuncs:
-        func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
+        func = _factories.functionFactory(funcName, returnFunc=None, module=_thisModule)
         if func:
             func.__module__ = __name__
             setattr(_thisModule, funcName, func)
             # want this call to work regardless of order we call _createClassCommandParis / _createCommands
             if sys.modules[__name__] != _thisModule:
-                setattr( sys.modules[__name__], funcName, func )
+                setattr(sys.modules[__name__], funcName, func)
 
 _createClassCommands()
 _createOtherCommands()
@@ -500,7 +508,7 @@ def subMenuItem(*args, **kwargs):
     return menuItem(*args, **kwargs)
 
 
-#class ValueControlGrp( UI ):
+# class ValueControlGrp( UI ):
 #    def __new__(cls, name=None, create=False, dataType=None, numberOfControls=1, **kwargs):
 #
 #        if cls._isBeingCreated(name, create, kwargs):
@@ -563,11 +571,11 @@ def subMenuItem(*args, **kwargs):
 #            #if hasDefault: ctrl.setText( str(default) )
 #        else:
 #             raise TypeError
-##        else:
+# else:
 ##            ctrl = _uitypes.TextFieldGrp( l=labelStr )
 ##            getter = makeEvalGetter( ctrl.getText )
-##            #setter = ctrl.setValue1
-##            #if hasDefault: ctrl.setText( default.__repr__() )
+# setter = ctrl.setValue1
+# if hasDefault: ctrl.setText( default.__repr__() )
 #        cls.__melcmd__ = staticmethod( ctrl.__melcmd__ )
 #        self = ctrl.__new__( cls, name, create, **kwargs )
 #        self.getter = getter
@@ -651,18 +659,18 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     """
     import uitypes
 
-    def makeGetter( ctrl, methodName, num ):
-        def getter( ):
+    def makeGetter(ctrl, methodName, num):
+        def getter():
             res = []
-            for i in range( num ):
-                res.append( getattr(ctrl, methodName + str(i+1) )() )
+            for i in range(num):
+                res.append(getattr(ctrl, methodName + str(i + 1))())
             return res
         return getter
 
-    def makeSetter( ctrl, methodName, num ):
-        def setter( args ):
-            for i in range( num ):
-                getattr(ctrl, methodName + str(i+1) )(args[i])
+    def makeSetter(ctrl, methodName, num):
+        def setter(args):
+            for i in range(num):
+                getattr(ctrl, methodName + str(i + 1))(args[i])
         return setter
 
     # the options below are only valid for certain control types.  they can always be passed to valueControlGrp, but
@@ -670,11 +678,11 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     # preset configuration and pass it to the valueControlGrp for every dataType -- no need for creating switches, afterall
     # that's the point of this function
 
-    sliderArgs = [ 'sliderSteps', 'ss', 'dragCommand', 'dc' ]
-    fieldArgs = [ 'field', 'f', 'fieldStep', 'fs', 'fieldMinValue', 'fmn', 'fieldMaxValue', 'fmx' ]
+    sliderArgs = ['sliderSteps', 'ss', 'dragCommand', 'dc']
+    fieldArgs = ['field', 'f', 'fieldStep', 'fs', 'fieldMinValue', 'fmn', 'fieldMaxValue', 'fmx']
     fieldSliderArgs = ['step', 's', 'minValue', 'min', 'maxValue', 'max', 'extraLabel', 'el'] + sliderArgs + fieldArgs
     floatFieldArgs = ['precision', 'pre']
-    verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
+    verticalArgs = ['vertical', 'vr']  # checkBoxGrp and radioButtonGrp only
 
     if uitypes.PyUI._isBeingCreated(name, create, kwargs):
         assert dataType, "You must pass a dataType when creating a new control"
@@ -686,14 +694,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
         # if a dataType such as float3 or int2 was passed, get the number of ctrls
         try:
-            buf = re.split( '(\d+)', dataType )
+            buf = re.split('(\d+)', dataType)
             dataType = buf[0]
             numberOfControls = int(buf[1])
         except:
             pass
     else:
         # control command lets us get basic info even when we don't know the ui type
-        dataType = control( name, q=1, docTag=1)
+        dataType = control(name, q=1, docTag=1)
         assert dataType
 
     numberOfControls = int(numberOfControls)
@@ -703,7 +711,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         numberOfControls = 4
 
     #dataType = dataType.lower()
-    kwargs.pop('dt',None)
+    kwargs.pop('dt', None)
     kwargs['docTag'] = dataType
 
     if dataType in ["bool"]:
@@ -716,17 +724,17 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             kwargs.pop(arg, None)
 
         # special label handling
-        label = kwargs.get('label', kwargs.get('l',None) )
+        label = kwargs.get('label', kwargs.get('l', None))
         if label is not None:
             # allow label passing with additional sub-labels:
             #    ['mainLabel', ['subLabel1', 'subLabel2', 'subLabel3']]
             if _util.isIterable(label):
                 label, labelArray = label
-                kwargs.pop('l',None)
+                kwargs.pop('l', None)
                 kwargs['label'] = label
-                kwargs['labelArray' + str(numberOfControls) ] = labelArray
+                kwargs['labelArray' + str(numberOfControls)] = labelArray
 
-        ctrl = uitypes.CheckBoxGrp( name, create, **kwargs )
+        ctrl = uitypes.CheckBoxGrp(name, create, **kwargs)
 
         if numberOfControls > 1:
             getter = makeGetter(ctrl, 'getValue', numberOfControls)
@@ -750,14 +758,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
 
-            ctrl = uitypes.IntSliderGrp( name, create, **kwargs )
+            ctrl = uitypes.IntSliderGrp(name, create, **kwargs)
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider and float kwargs
             for arg in fieldSliderArgs + floatFieldArgs + verticalArgs:
                 kwargs.pop(arg, None)
-            ctrl = uitypes.IntFieldGrp( name, create, **kwargs )
+            ctrl = uitypes.IntFieldGrp(name, create, **kwargs)
 
             getter = ctrl.getValue1
             setter = ctrl.setValue1
@@ -776,14 +784,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             # turn the field on by default
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
-            ctrl = uitypes.FloatSliderGrp( name, create, **kwargs )
+            ctrl = uitypes.FloatSliderGrp(name, create, **kwargs)
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider kwargs
             for arg in fieldSliderArgs + verticalArgs:
                 kwargs.pop(arg, None)
-            ctrl = uitypes.FloatFieldGrp( name, create, **kwargs )
+            ctrl = uitypes.FloatFieldGrp(name, create, **kwargs)
             getter = ctrl.getValue1
             setter = ctrl.setValue1
         #if hasDefault: ctrl.setValue1( float(default) )
@@ -792,16 +800,16 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         # remove field/slider kwargs
         for arg in fieldSliderArgs + floatFieldArgs + verticalArgs:
             kwargs.pop(arg, None)
-        ctrl = VectorFieldGrp( name, create, **kwargs )
+        ctrl = VectorFieldGrp(name, create, **kwargs)
         getter = ctrl.getVector
         setter = ctrl.setValue1
         #if hasDefault: ctrl.setVector( default )
 
-    elif dataType in ["path", "Path", "FileReference"]:# or pathreg.search( argName.lower() ):
+    elif dataType in ["path", "Path", "FileReference"]:  # or pathreg.search( argName.lower() ):
         # remove field/slider kwargs
         for arg in fieldSliderArgs + floatFieldArgs + verticalArgs:
             kwargs.pop(arg, None)
-        ctrl = PathButtonGrp( name, create, **kwargs )
+        ctrl = PathButtonGrp(name, create, **kwargs)
         getter = ctrl.getPath
         setter = ctrl.setPath
         #if hasDefault: ctrl.setText( default.__repr__() )
@@ -810,7 +818,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         # remove field/slider kwargs
         for arg in fieldSliderArgs + floatFieldArgs + verticalArgs:
             kwargs.pop(arg, None)
-        ctrl = uitypes.TextFieldGrp( name, create, **kwargs )
+        ctrl = uitypes.TextFieldGrp(name, create, **kwargs)
         getter = ctrl.getText
         setter = ctrl.setText
         #if hasDefault: ctrl.setText( str(default) )

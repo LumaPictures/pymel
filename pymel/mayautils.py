@@ -1,6 +1,9 @@
 "Maya-specific utilities mostly pertaining to file paths. These do not require initialization of maya.standalone"
 
-import os, sys, re, platform
+import os
+import sys
+import re
+import platform
 import versions
 import internal as _internal
 _logger = _internal.getLogger(__name__)
@@ -10,40 +13,40 @@ from pymel.util import path as _path
 sep = os.path.pathsep
 
 
-def source (file, searchPath=None, recurse=False) :
+def source(file, searchPath=None, recurse=False):
     """Looks for a python script in the specified path (uses system path if no path is specified)
         and executes it if it's found """
     filepath = unicode(file)
     filename = os.path.basename(filepath)
     dirname = os.path.dirname(filepath)
 
-    if searchPath is None :
-        searchPath=sys.path
-    if isinstance(searchPath, basestring ):
+    if searchPath is None:
+        searchPath = sys.path
+    if isinstance(searchPath, basestring):
         searchPath = [searchPath]
     itpath = iter(searchPath)
-    _logger.debug("looking for file as: "+filepath)
-    while not os.path.exists(filepath) :
-        try :
+    _logger.debug("looking for file as: " + filepath)
+    while not os.path.exists(filepath):
+        try:
             p = os.path.abspath(os.path.realpath(itpath.next()))
             filepath = os.path.join(p, filename)
-            _logger.debug('looking for file as: '+filepath)
-            if recurse and not filepath.exists() :
+            _logger.debug('looking for file as: ' + filepath)
+            if recurse and not filepath.exists():
                 itsub = os.walk(p)
-                while not os.path.exists(filepath) :
-                    try :
+                while not os.path.exists(filepath):
+                    try:
                         root, dirs, files = itsub.next()
                         itdirs = iter(dirs)
-                        while not os.path.exists(filepath) :
-                            try :
+                        while not os.path.exists(filepath):
+                            try:
                                 filepath = os.path.join(root, itdirs.next(), filename)
-                                _logger.debug('looking for file as: '+filepath)
-                            except :
+                                _logger.debug('looking for file as: ' + filepath)
+                            except:
                                 pass
-                    except :
+                    except:
                         pass
-        except :
-            raise ValueError, "File '"+filename+"' not found in path"
+        except:
+            raise ValueError, "File '" + filename + "' not found in path"
             # In case the raise exception is replaced by a warning don't forget to return here
             return
     # _logger.debug("Executing: "+filepath)
@@ -62,9 +65,9 @@ def getMayaLocation(version=None):
 
     Remember to pass the FULL version (with extension if any) to this function! """
     try:
-        loc = os.path.realpath( os.environ['MAYA_LOCATION'] )
+        loc = os.path.realpath(os.environ['MAYA_LOCATION'])
     except:
-        loc = os.path.dirname( os.path.dirname( sys.executable ) )
+        loc = os.path.dirname(os.path.dirname(sys.executable))
     # get the path of a different maya version than current
     if version:
         # note that a recursive loop between getMayaLocation / getMayaVersion
@@ -74,15 +77,15 @@ def getMayaLocation(version=None):
         actual_short_version = versions.shortName()
         if version != actual_long_version:
             short_version = versions.parseVersionStr(version, extension=False)
-            if version == short_version :
+            if version == short_version:
                 try_version = actual_long_version.replace(actual_short_version, short_version)
-            else :
+            else:
                 try_version = version
-            try_loc = loc.replace( actual_long_version, try_version )
-            if os.path.exists(try_loc) :
+            try_loc = loc.replace(actual_long_version, try_version)
+            if os.path.exists(try_loc):
                 loc = try_loc
-            else :
-                _logger.warn("No Maya found for version %s" % version )
+            else:
+                _logger.warn("No Maya found for version %s" % version)
                 loc = None
 
     return loc
@@ -94,27 +97,27 @@ def getMayaAppDir(versioned=False):
 
     if versioned is True, the current Maya version including '-x64' suffix, if applicable, will be appended.
     """
-    appDir = os.environ.get('MAYA_APP_DIR',None)
-    if appDir is None :
+    appDir = os.environ.get('MAYA_APP_DIR', None)
+    if appDir is None:
         if os.name == 'nt':
-            appDir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
+            appDir = os.environ.get('USERPROFILE', os.environ.get('HOME', None))
             if appDir is None:
                 return
 
             # Vista or newer... version() returns "6.x.x"
             if int(platform.version().split('.')[0]) > 5:
-                appDir = os.path.join( appDir, 'Documents')
+                appDir = os.path.join(appDir, 'Documents')
             else:
-                appDir = os.path.join( appDir, 'My Documents')
+                appDir = os.path.join(appDir, 'My Documents')
         else:
-            appDir = os.environ.get('HOME',None)
+            appDir = os.environ.get('HOME', None)
             if appDir is None:
                 return
 
         if platform.system() == 'Darwin':
-            appDir = os.path.join( appDir, 'Library/Preferences/Autodesk/maya' )
+            appDir = os.path.join(appDir, 'Library/Preferences/Autodesk/maya')
         else:
-            appDir = os.path.join( appDir, 'maya' )
+            appDir = os.path.join(appDir, 'maya')
 
     if versioned and appDir:
         appDir = os.path.join(appDir, versions.installName())
@@ -194,10 +197,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
         assert isinstance(excludeRegex, basestring), "please pass a regular expression as a string"
         regex = regex + '|' + excludeRegex
 
-    includeRegex =  "(?!(" + regex + "))" # add a negative lookahead assertion
-
-
-
+    includeRegex = "(?!(" + regex + "))"  # add a negative lookahead assertion
 
     scriptPath = os.environ["MAYA_SCRIPT_PATH"]
     varList = scriptPath.split(os.path.pathsep)
@@ -213,7 +213,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
                 varList.append(toAdd)
 
     if roots:
-        if isinstance( roots, list) or isinstance( roots, tuple):
+        if isinstance(roots, list) or isinstance(roots, tuple):
             rootVars = list(roots)
         else:
             rootVars = [roots]
@@ -221,27 +221,25 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
         # .mel files
         for d in rootVars:
             addDir(d)
-    ##  else expand the whole  environment  currently set
+    # else expand the whole  environment  currently set
     else:
         rootVars = varList[:]
 
-
-
     _logger.debug("Recursing Maya script path")
-    _logger.debug( "Only directories which match %s will be traversed" % includeRegex )
+    _logger.debug("Only directories which match %s will be traversed" % includeRegex)
     for rootVar in rootVars:
-        root = _path( rootVar )
-        if re.match( includeRegex, root.name ) and root.exists():
-            _logger.debug( "Searching for all valid script directories below %s" % rootVar )
-            for f in root.walkdirs( errors=errors, regex=includeRegex ):
+        root = _path(rootVar)
+        if re.match(includeRegex, root.name) and root.exists():
+            _logger.debug("Searching for all valid script directories below %s" % rootVar)
+            for f in root.walkdirs(errors=errors, regex=includeRegex):
                 try:
                     if len(f.files("*.mel")):
                         addDir(str(f))
-                except OSError: pass
+                except OSError:
+                    pass
 
     if len(varList) > initalLen:
-        os.environ["MAYA_SCRIPT_PATH"] = os.path.pathsep.join( varList )
-        _logger.info("Added %d directories to Maya script path" % (len(varList) - initalLen) )
+        os.environ["MAYA_SCRIPT_PATH"] = os.path.pathsep.join(varList)
+        _logger.info("Added %d directories to Maya script path" % (len(varList) - initalLen))
     else:
         _logger.info("Maya script path recursion did not find any paths to add")
-

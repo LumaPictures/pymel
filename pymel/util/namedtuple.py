@@ -35,10 +35,10 @@ def namedtuple(typename, field_names, docAppend="", verbose=False):
     # Parse and validate the field names.  Validation serves two purposes,
     # generating informative error messages and preventing template injection attacks.
     if isinstance(field_names, basestring):
-        field_names = field_names.replace(',', ' ').split() # names separated by whitespace and/or commas
+        field_names = field_names.replace(',', ' ').split()  # names separated by whitespace and/or commas
     field_names = tuple(field_names)
     for name in (typename,) + field_names:
-        if not min(c.isalnum() or c=='_' for c in name):
+        if not min(c.isalnum() or c == '_' for c in name):
             raise ValueError('Type names and field names can only contain alphanumeric characters and underscores: %r' % name)
         if _iskeyword(name):
             raise ValueError('Type names and field names cannot be a keyword: %r' % name)
@@ -110,10 +110,6 @@ def namedtuple(typename, field_names, docAppend="", verbose=False):
     return result
 
 
-
-
-
-
 if __name__ == '__main__':
     # verify that instances can be pickled
     from cPickle import loads, dumps
@@ -123,18 +119,22 @@ if __name__ == '__main__':
 
     # test and demonstrate ability to override methods
     class Point(namedtuple('Point', 'x y')):
+
         @property
         def hypot(self):
             return (self.x ** 2 + self.y ** 2) ** 0.5
+
         def __str__(self):
             return 'Point: x=%6.3f y=%6.3f hypot=%6.3f' % (self.x, self.y, self.hypot)
 
-    for p in Point(3,4), Point(14,5), Point(9./7,6):
+    for p in Point(3, 4), Point(14, 5), Point(9. / 7, 6):
         print p
 
     class Point(namedtuple('Point', 'x y')):
+
         'Point class with optimized _make() and _replace() without error-checking'
         _make = classmethod(tuple.__new__)
+
         def _replace(self, _map=map, **kwds):
             return self._make(_map(kwds.get, ('x', 'y'), self))
 

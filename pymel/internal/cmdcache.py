@@ -1,5 +1,8 @@
 # Built-in imports
-import os, re, inspect, keyword
+import os
+import re
+import inspect
+import keyword
 
 # Maya imports
 import maya.cmds as cmds
@@ -16,74 +19,73 @@ from . import startup
 _logger = plogging.getLogger(__name__)
 
 moduleNameShortToLong = {
-    'modeling'   : 'Modeling',
-    'rendering'  : 'Rendering',
-    'effects'    : 'Effects',
-    'animation'  : 'Animation',
-    'windows'    : 'Windows',
-    'system'     : 'System',
-    'general'    : 'General',
-    'language'   : 'Language'
+    'modeling': 'Modeling',
+    'rendering': 'Rendering',
+    'effects': 'Effects',
+    'animation': 'Animation',
+    'windows': 'Windows',
+    'system': 'System',
+    'general': 'General',
+    'language': 'Language'
 }
 
 #: these are commands which need to be manually added to the list parsed from the docs
 moduleCommandAdditions = {
-    'windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
-    'general' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr',
-                 'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
+    'windows': ['connectControl', 'deleteUI', 'uiTemplate', 'setUITemplate', 'renameUI', 'setParent', 'objectTypeUI', 'lsUI', 'disable', 'dimWhen'],
+    'general': ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr',
+                'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
 }
 
 #: secondary flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
 #: because the maya docs do not specify in any parsable way which flags are secondary modifiers, we must maintain this dictionary.
 #: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
 secondaryFlags = {
-    'xform' : ( ( 'absolute',         None,[] ),
-                ( 'relative',         None,[] ),
-                ( 'euler',            None,['relative'] ),
-                ( 'objectSpace',      True, ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
-                ( 'worldSpace',       False, ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
-                ( 'preserve',         None,['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots'] ),
-                ( 'worldSpaceDistance', None,['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
-            ),
-    'file' : ( ( 'loadAllDeferred', False, ['open'] ),
-               ( 'loadNoReferences', False, ['open', 'i', 'reference', 'loadReference'] ),
-               ( 'loadReferenceDepth', None, ['open', 'i', 'reference', 'loadReference'] ),
-               ( 'force',           False, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim',
-                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),
-               ( 'constructionHistory', True, ['exportSelected'] ),
-               ( 'channels',         True, ['exportSelected'] ),
-               ( 'constraints',      True, ['exportSelected'] ),
-               ( 'expressions',      True, ['exportSelected'] ),
-               ( 'shader',           True, ['exportSelected'] ),
-               ( 'defaultNamespace', False, ['reference', 'i'] ),
-               ( 'deferReference',   False, ['reference', 'i'] ),
-               ( 'editCommand',      None, ['cleanReference'] ),
-               ( 'groupReference',   False, ['reference', 'i'] ),
-               ( 'groupLocator',  None,['reference'] ),
-               ( 'groupName',  None,['reference', 'i'] ),
-               ( 'namespace',  None,['reference', 'exportAsReference', 'namespace'] ),
-               ( 'referenceNode',  None,['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference'] ),
-               ( 'renameAll', None,['i'] ),
-               ( 'renamingPrefix',  None,['reference', 'i','exportAsReference'] ),
-               #( 'saveTextures', "unlessRef", ['saveAs']),
-               ( 'swapNamespace',  None, ['reference', 'i'] ),
-               ( 'sharedReferenceFile',  None, ['reference'] ),
-               ( 'sharedNodes',  None, ['reference'] ),
-               ( 'returnNewNodes',  False, ['open', 'reference', 'i', 'loadReference' ] ),
-               #( 'loadSettings', ),
-               ( 'preserveReferences',  False, ['i', 'exportAll', 'exportSelected'] ),
-               ( 'preSaveScript', None, ['save'] ),
-               ( 'postSaveScript', None, ['save'] ),
-               ( 'type', None, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim',
-                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),
+    'xform': (('absolute', None, []),
+              ('relative', None, []),
+              ('euler', None, ['relative']),
+              ('objectSpace', True, ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots']),
+              ('worldSpace', False, ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots']),
+              ('preserve', None, ['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots']),
+              ('worldSpaceDistance', None, ['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'])
+              ),
+    'file': (('loadAllDeferred', False, ['open']),
+             ('loadNoReferences', False, ['open', 'i', 'reference', 'loadReference']),
+             ('loadReferenceDepth', None, ['open', 'i', 'reference', 'loadReference']),
+             ('force', False, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim',
+                               'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference']),
+             ('constructionHistory', True, ['exportSelected']),
+             ('channels', True, ['exportSelected']),
+             ('constraints', True, ['exportSelected']),
+             ('expressions', True, ['exportSelected']),
+             ('shader', True, ['exportSelected']),
+             ('defaultNamespace', False, ['reference', 'i']),
+             ('deferReference', False, ['reference', 'i']),
+             ('editCommand', None, ['cleanReference']),
+             ('groupReference', False, ['reference', 'i']),
+             ('groupLocator', None, ['reference']),
+             ('groupName', None, ['reference', 'i']),
+             ('namespace', None, ['reference', 'exportAsReference', 'namespace']),
+             ('referenceNode', None, ['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference']),
+             ('renameAll', None, ['i']),
+             ('renamingPrefix', None, ['reference', 'i', 'exportAsReference']),
+             #( 'saveTextures', "unlessRef", ['saveAs']),
+             ('swapNamespace', None, ['reference', 'i']),
+             ('sharedReferenceFile', None, ['reference']),
+             ('sharedNodes', None, ['reference']),
+             ('returnNewNodes', False, ['open', 'reference', 'i', 'loadReference']),
+             #( 'loadSettings', ),
+             ('preserveReferences', False, ['i', 'exportAll', 'exportSelected']),
+             ('preSaveScript', None, ['save']),
+             ('postSaveScript', None, ['save']),
+             ('type', None, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim',
+                             'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference']),
              ),
-    'joint' : ( ( 'absolute',     True, ['position'] ),
-                ( 'relative',     True, ['position'] ) )
+    'joint': (('absolute', True, ['position']),
+              ('relative', True, ['position']))
 }
 
 
-
-UI_COMMANDS ="""attrColorSliderGrp        attrControlGrp
+UI_COMMANDS = """attrColorSliderGrp        attrControlGrp
                 attrEnumOptionMenu        attrEnumOptionMenuGrp
                 attrFieldGrp              attrFieldSliderGrp
                 attrNavigationControlGrp  attributeMenu
@@ -151,65 +153,65 @@ UI_COMMANDS ="""attrColorSliderGrp        attrControlGrp
 nodeTypeToNodeCommand = {
     #'failed'            : 'clip',
     #'failed'            : 'clipSchedule',
-    'airField'          : 'air',
-    'dragField'         : 'drag',
-    'emitter'           : 'emitter',
-    'turbulenceField'   : 'turbulence',
+    'airField': 'air',
+    'dragField': 'drag',
+    'emitter': 'emitter',
+    'turbulenceField': 'turbulence',
     #'failed' : 'effector',
-    'volumeAxisField'   : 'volumeAxis',
-    'uniformField'      : 'uniform',
-    'gravityField'      : 'gravity',
+    'volumeAxisField': 'volumeAxis',
+    'uniformField': 'uniform',
+    'gravityField': 'gravity',
     #'failed'            : 'event',
     #'failed'            : 'pointCurveConstraint',
     #'failed'            : 'deformer',
     #'failed'            : 'constrain',
-    'locator'           : 'spaceLocator',
-    'vortexField'       : 'vortex',
-    'makeNurbTorus'     : 'torus',
-    'makeNurbCone'      : 'cone',
-    'makeNurbCylinder'  : 'cylinder',
-    'nurbsCurve'        : 'curve', # returns a single transform, but creates a nurbsCurve
-    'makeNurbSphere'    : 'sphere',
-    'makeNurbCircle'    : 'circle',
-    'makeNurbPlane'     : 'nurbsPlane',
-    'makeNurbsSquare'   : 'nurbsSquare',
-    'makeNurbCube'      : 'nurbsCube',
-    'skinPercent'       : 'skinCluster',
-    'file'              : None, # prevent File node from using cmds.file
-    'nurbsSurface'      : 'surface',
-    'annotationShape'   : 'annotate',
-    'condition'         : None, # prevent Condition node from using cmds.condition (which is for script conditions)
+    'locator': 'spaceLocator',
+    'vortexField': 'vortex',
+    'makeNurbTorus': 'torus',
+    'makeNurbCone': 'cone',
+    'makeNurbCylinder': 'cylinder',
+    'nurbsCurve': 'curve',  # returns a single transform, but creates a nurbsCurve
+    'makeNurbSphere': 'sphere',
+    'makeNurbCircle': 'circle',
+    'makeNurbPlane': 'nurbsPlane',
+    'makeNurbsSquare': 'nurbsSquare',
+    'makeNurbCube': 'nurbsCube',
+    'skinPercent': 'skinCluster',
+    'file': None,  # prevent File node from using cmds.file
+    'nurbsSurface': 'surface',
+    'annotationShape': 'annotate',
+    'condition': None,  # prevent Condition node from using cmds.condition (which is for script conditions)
 }
 
 
 cmdlistOverrides = {}
 #util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'shortFlags', 'sl', 'modes' ), ['create', 'query', 'edit'] )
-util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'flags', 'select', 'modes' ),  ['create', 'query', 'edit'] )
-util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'flags', 'jointList', 'modes' ), ['query'] )
+util.setCascadingDictItem(cmdlistOverrides, ('optionMenu', 'flags', 'select', 'modes'), ['create', 'query', 'edit'])
+util.setCascadingDictItem(cmdlistOverrides, ('ikHandle', 'flags', 'jointList', 'modes'), ['query'])
 #util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', 'modes' ),   ['query'] )
-util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'args' ), 'timeRange' ) # make sure this is a time range so it gets proper slice syntax
+util.setCascadingDictItem(cmdlistOverrides, ('keyframe', 'flags', 'index', 'args'), 'timeRange')  # make sure this is a time range so it gets proper slice syntax
 
 # Need to override this, rather than having it deteced from testNodeCmd, because
 # it crashes testNodeCmd
-util.setCascadingDictItem( cmdlistOverrides, ( 'pointOnPolyConstraint', 'resultNeedsUnpacking', ), True )
+util.setCascadingDictItem(cmdlistOverrides, ('pointOnPolyConstraint', 'resultNeedsUnpacking', ), True)
 
-def getCmdInfoBasic( command ):
+def getCmdInfoBasic(command):
     typemap = {
-             'string'  : unicode,
-             'length'  : float,
-             'float'   : float,
-             'angle'   : float,
-             'int'     : int,
-             'unsignedint' : int,
-             'on|off'  : bool,
-             'script'  : callable,
-             'name'    : 'PyNode'
+        'string': unicode,
+        'length': float,
+        'float': float,
+        'angle': float,
+        'int': int,
+        'unsignedint': int,
+        'on|off': bool,
+        'script': callable,
+        'name': 'PyNode'
     }
     flags = {}
     shortFlags = {}
     removedFlags = {}
     try:
-        lines = cmds.help( command ).split('\n')
+        lines = cmds.help(command).split('\n')
     except RuntimeError:
         pass
     else:
@@ -219,12 +221,12 @@ def getCmdInfoBasic( command ):
             synopsis = lines.pop(0)
         #_logger.debug(synopsis)
         if lines:
-            lines.pop(0) # 'Flags'
+            lines.pop(0)  # 'Flags'
             #_logger.debug(lines)
 
             for line in lines:
-                line = line.replace( '(Query Arg Mandatory)', '' )
-                line = line.replace( '(Query Arg Optional)', '' )
+                line = line.replace('(Query Arg Mandatory)', '')
+                line = line.replace('(Query Arg Optional)', '')
                 tokens = line.split()
 
                 try:
@@ -235,8 +237,7 @@ def getCmdInfoBasic( command ):
                 #_logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
 
-
-                    args = [ typemap.get(x.lower(), util.uncapitalize(x) ) for x in tokens[2:] ]
+                    args = [typemap.get(x.lower(), util.uncapitalize(x)) for x in tokens[2:]]
                     numArgs = len(args)
 
                     # lags with no args in mel require a boolean val in python
@@ -251,31 +252,30 @@ def getCmdInfoBasic( command ):
                     longname = str(tokens[1][1:])
                     shortname = str(tokens[0][1:])
 
-
                     if longname in keyword.kwlist:
-                        removedFlags[ longname ] = shortname
+                        removedFlags[longname] = shortname
                         longname = shortname
                     elif shortname in keyword.kwlist:
-                        removedFlags[ shortname ] = longname
+                        removedFlags[shortname] = longname
                         shortname = longname
-                    #sometimes the longname is empty, so we'll use the shortname for both
+                    # sometimes the longname is empty, so we'll use the shortname for both
                     elif longname == '':
                         longname = shortname
 
-                    flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, 'docstring' : '' }
+                    flags[longname] = {'longname': longname, 'shortname': shortname, 'args': args, 'numArgs': numArgs, 'docstring': ''}
                     if multiuse:
                         flags[longname].setdefault('modes', []).append('multiuse')
                     shortFlags[shortname] = longname
 
-    #except:
+    # except:
     #    pass
         #_logger.debug("could not retrieve command info for", command)
-    res = { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
+    res = {'flags': flags, 'shortFlags': shortFlags, 'description': '', 'example': '', 'type': 'other'}
     if removedFlags:
         res['removedFlags'] = removedFlags
     return res
 
-def getCmdInfo( command, version, python=True ):
+def getCmdInfo(command, version, python=True):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
@@ -286,13 +286,13 @@ def getCmdInfo( command, version, python=True ):
     try:
         docloc = mayaDocsLocation(version)
         if python:
-            docloc = os.path.join( docloc , 'CommandsPython/%s.html' % (command) )
+            docloc = os.path.join(docloc, 'CommandsPython/%s.html' % (command))
         else:
-            docloc = os.path.join( docloc , 'Commands/%s.html' % (command) )
+            docloc = os.path.join(docloc, 'Commands/%s.html' % (command))
 
-        f = open( docloc )
+        f = open(docloc)
         parser = CommandDocParser(command)
-        parser.feed( f.read() )
+        parser.feed(f.read())
         f.close()
 
         example = parser.example
@@ -304,7 +304,7 @@ def getCmdInfo( command, version, python=True ):
         # we copy because we need access to the original basic info below
         basicFlags = basicInfo.get('flags', {})
         flags = basicInfo['flags'].copy()
-        flags.update( parser.flags )
+        flags.update(parser.flags)
 
         # if we have a "true" mel boolean flag, then getCmdInfoBasic will return
         # numArgs == 0, but parsing the PYTHON docs will return a numArgs of 1;
@@ -329,7 +329,6 @@ def getCmdInfo( command, version, python=True ):
                     else:
                         flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
 
-
         # add shortname lookup
         #_logger.debug((command, sorted( basicInfo['flags'].keys() )))
         #_logger.debug((command, sorted( flags.keys() )))
@@ -345,20 +344,20 @@ def getCmdInfo( command, version, python=True ):
                 if 'args' in basicFlagData and 'numargs' in basicFlagData:
                     flagData['args'] = basicFlagData['args']
                     flagData['numArgs'] = basicFlagData['numArgs']
-                    if (        'multiuse' in basicFlagData.get('modes', [])
-                            and 'multiuse' not in  flagData.get('modes', [])):
+                    if ('multiuse' in basicFlagData.get('modes', [])
+                            and 'multiuse' not in flagData.get('modes', [])):
                         flagData.setdefault('modes', []).append('multiuse')
 
         shortFlags = basicInfo['shortFlags']
-        res = { 'flags': flags,
-                'shortFlags': shortFlags,
-                'description' : parser.description,
-                'example': example }
+        res = {'flags': flags,
+               'shortFlags': shortFlags,
+               'description': parser.description,
+               'example': example}
         try:
             res['removedFlags'] = basicInfo['removedFlags']
-        except KeyError: pass
+        except KeyError:
+            pass
         return res
-
 
     except IOError:
         _logger.debug("could not find docs for %s" % command)
@@ -375,12 +374,12 @@ def fixCodeExamples(style='maya', force=False):
     TODO: auto backup and restore of maya prefs
     """
 
-    manipSize = cmds.manipOptions( q=1, handleSize=1 )[0]
-    manipScale = cmds.manipOptions( q=1, scale=1 )[0]
+    manipSize = cmds.manipOptions(q=1, handleSize=1)[0]
+    manipScale = cmds.manipOptions(q=1, scale=1)[0]
     animOptions = []
-    animOptions.append( cmds.animDisplay( q=1, timeCode=True ) )
-    animOptions.append( cmds.animDisplay( q=1, timeCodeOffset=True )  )
-    animOptions.append( cmds.animDisplay( q=1, modelUpdate=True ) )
+    animOptions.append(cmds.animDisplay(q=1, timeCode=True))
+    animOptions.append(cmds.animDisplay(q=1, timeCodeOffset=True))
+    animOptions.append(cmds.animDisplay(q=1, modelUpdate=True))
 
     openWindows = cmds.lsUI(windows=True)
     examples = CmdExamplesCache().read()
@@ -402,7 +401,7 @@ def fixCodeExamples(style='maya', force=False):
 
         _logger.info("Starting command %s", command)
 
-        if style == 'doctest' :
+        if style == 'doctest':
             DOC_TEST_SKIP = ' #doctest: +SKIP'
         else:
             DOC_TEST_SKIP = ''
@@ -410,12 +409,12 @@ def fixCodeExamples(style='maya', force=False):
         # change from cmds to pymel
         reg = re.compile(r'\bcmds\.')
         example = example.replace('import maya.cmds as cmds', 'import pymel.core as pm' + DOC_TEST_SKIP, 1)
-        example = reg.sub( 'pm.', example )
+        example = reg.sub('pm.', example)
 
-        #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
+        # example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
 
         lines = example.split('\n')
-        if len(lines)==1:
+        if len(lines) == 1:
             _logger.info("removing empty example for command %s", command)
             examples.pop(command)
             processedExamples[command] = ''
@@ -424,20 +423,20 @@ def fixCodeExamples(style='maya', force=False):
             continue
 
         if command in skipCmds:
-            example = '\n'.join( lines )
+            example = '\n'.join(lines)
             processedExamples[command] = example
             # write out after each success so that if we crash we don't have to start from scratch
             CmdProcessedExamplesCache().write(processedExamples)
 
-        #lines.insert(1, 'pm.newFile(f=1) #fresh scene')
+        # lines.insert(1, 'pm.newFile(f=1) #fresh scene')
         # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
-        cmds.file(new=1,f=1)
+        cmds.file(new=1, f=1)
 
         newlines = []
         statement = []
 
         # narrowed down the commands that cause maya to crash to these prefixes
-        if re.match( '(dis)|(dyn)|(poly)', command) :
+        if re.match('(dis)|(dyn)|(poly)', command):
             evaluate = False
         elif command in skipCmds:
             evaluate = False
@@ -446,7 +445,7 @@ def fixCodeExamples(style='maya', force=False):
 
         # gives a little leniency for where spaces are placed in the result line
         resultReg = re.compile('# Result:\s*(.*) #$')
-        try: # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
+        try:  # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
             for i, line in enumerate(lines):
                 res = None
                 # replace with pymel results  '# Result: 1 #'
@@ -464,41 +463,41 @@ def fixCodeExamples(style='maya', force=False):
                             if statement:
                                 try:
                                     #_logger.debug("executing %s", statement)
-                                    exec( '\n'.join(statement) )
+                                    exec('\n'.join(statement))
                                     # reset statement
                                     statement = []
                                 except Exception, e:
-                                    _logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
+                                    _logger.info("stopping evaluation %s", str(e))  # of %s on line %r" % (command, line)
                                     evaluate = False
                             try:
                                 _logger.debug("evaluating: %r" % line)
-                                res = eval( line )
+                                res = eval(line)
                                 #if res is not None: _logger.info("result", repr(repr(res)))
-                                #else: _logger.info("no result")
+                                # else: _logger.info("no result")
                             except:
                                 #_logger.debug("failed evaluating:", str(e))
                                 try:
-                                    exec( line )
+                                    exec(line)
                                 except (Exception, TypeError), e:
-                                    _logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
+                                    _logger.info("stopping evaluation %s", str(e))  # of %s on line %r" % (command, line)
                                     evaluate = False
                     if style == 'doctest':
                         if line.startswith(' ') or line.startswith('\t'):
-                            newlines.append('    ... ' + line  )
+                            newlines.append('    ... ' + line)
                         else:
-                            newlines.append('    >>> ' + line + DOC_TEST_SKIP )
+                            newlines.append('    >>> ' + line + DOC_TEST_SKIP)
 
                         if res is not None:
-                            newlines.append( '    ' + repr(res) )
+                            newlines.append('    ' + repr(res))
                     else:
-                        newlines.append('    ' + line )
+                        newlines.append('    ' + line)
                         if res is not None:
-                            newlines.append( '    # Result: %r #' % (res,) )
+                            newlines.append('    # Result: %r #' % (res,))
 
             if evaluate:
                 _logger.info("successful evaluation! %s", command)
 
-            example = '\n'.join( newlines )
+            example = '\n'.join(newlines)
             processedExamples[command] = example
         except Exception, e:
             raise
@@ -509,21 +508,23 @@ def fixCodeExamples(style='maya', force=False):
 
         # cleanup opened windows
         for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
-            try: cmds.deleteUI(ui, window=True)
-            except:pass
+            try:
+                cmds.deleteUI(ui, window=True)
+            except:
+                pass
 
     _logger.info("Done Fixing Examples")
 
     # restore manipulators and anim options
     print [manipSize, manipScale]
-    cmds.manipOptions( handleSize=manipSize, scale=manipScale )
+    cmds.manipOptions(handleSize=manipSize, scale=manipScale)
     print animOptions
-    cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
+    cmds.animDisplay(e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
 
-    #CmdExamplesCache(examples)
+    # CmdExamplesCache(examples)
 
 
-def getModuleCommandList( category, version=None ):
+def getModuleCommandList(category, version=None):
     from parsers import CommandModuleDocParser
     parser = CommandModuleDocParser(category, version)
     return parser.parse()
@@ -548,9 +549,9 @@ def getModule(funcName, knownModuleCmds):
         module = None
     elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
         module = 'context'
-    #elif funcName in self.uiClassList:
+    # elif funcName in self.uiClassList:
     #    module = 'uiClass'
-    #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+    # elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
     #    module = 'node'
     else:
         for moduleName, commands in knownModuleCmds.iteritems():
@@ -558,7 +559,7 @@ def getModule(funcName, knownModuleCmds):
                 module = moduleName
                 break
         if module is None:
-            if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
+            if mm.eval('whatIs "%s"' % funcName) == 'Run Time Command':
                 module = 'runtime'
             else:
                 module = 'other'
@@ -576,18 +577,24 @@ def cmdArgMakers(force=False):
 
     def makeCircle():
         return cmds.circle()[0]
+
     def makeEp():
         return makeCircle() + '.ep[1]'
+
     def makeSphere():
         return cmds.polySphere()[0]
+
     def makeCube():
         return cmds.polyCube()[0]
+
     def makeIk():
         j1 = cmds.joint()
         j2 = cmds.joint()
         return cmds.ikHandle(j1, j2, solver='ikRPsolver')[0]
+
     def makeJoint():
         return cmds.joint()
+
     def makeSkin():
         j1 = cmds.joint()
         j2 = cmds.joint()
@@ -595,20 +602,20 @@ def cmdArgMakers(force=False):
         return cmds.skinCluster(j1, j2, sphere)[0]
 
     _cmdArgMakers = \
-        { 'tangentConstraint'   : ( makeCircle, makeCube ),
-          'poleVectorConstraint': ( makeSphere, makeIk ),
-          'pointCurveConstraint': ( makeEp, ),
-          'skinCluster'         : ( makeJoint, makeJoint, makeSphere ),
-        }
+        {'tangentConstraint': (makeCircle, makeCube),
+         'poleVectorConstraint': (makeSphere, makeIk),
+         'pointCurveConstraint': (makeEp, ),
+         'skinCluster': (makeJoint, makeJoint, makeSphere),
+         }
 
     constraintCmds = [x for x in dir(cmds)
                       if x.endswith('onstraint')
-                         and not cmds.runTimeCommand(x, q=1, exists=1)
-                         and x != 'polySelectConstraint']
+                      and not cmds.runTimeCommand(x, q=1, exists=1)
+                      and x != 'polySelectConstraint']
 
     for constrCmd in constraintCmds:
         if constrCmd not in _cmdArgMakers:
-            _cmdArgMakers[constrCmd] = ( makeSphere, makeCube )
+            _cmdArgMakers[constrCmd] = (makeSphere, makeCube)
 
     return _cmdArgMakers
 
@@ -623,11 +630,11 @@ def nodeCreationCmd(func, nodeType):
     # run the function
     return func(*createArgs)
 
-def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
+def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
-    _logger.info(funcName.center( 50, '='))
+    _logger.info(funcName.center(50, '='))
 
-    if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
+    if funcName in ['character', 'lattice', 'boneLattice', 'sculpt', 'wire']:
         _logger.debug("skipping")
         return cmdInfo
 
@@ -638,15 +645,15 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         _logger.debug("skipping 'dangerous command'")
         return cmdInfo
 
-    def _formatCmd( cmd, args, kwargs ):
-        args = [ x.__repr__() for x in args ]
-        kwargs = [ '%s=%s' % (key, val.__repr__()) for key, val in kwargs.items() ]
-        return '%s( %s )' % ( cmd, ', '.join( args+kwargs ) )
+    def _formatCmd(cmd, args, kwargs):
+        args = [x.__repr__() for x in args]
+        kwargs = ['%s=%s' % (key, val.__repr__()) for key, val in kwargs.items()]
+        return '%s( %s )' % (cmd, ', '.join(args + kwargs))
 
-    def _objectToType( result ):
+    def _objectToType(result):
         "convert a an instance or list of instances to a python type or list of types"
         if isinstance(result, list):
-            return [ type(x) for x in result ]
+            return [type(x) for x in result]
         else:
             return type(result)
 
@@ -669,7 +676,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         return cmdInfo
 
     # get the current list of objects in the scene so we can cleanup later, after we make nodes
-    allObjsBegin = set( cmds.ls(l=1) )
+    allObjsBegin = set(cmds.ls(l=1))
     try:
 
         # Attempt to create the node
@@ -699,12 +706,12 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 #emptyFunctions.append( funcName )
                 raise ValueError, "Returned object is None"
 
-            elif not cmds.objExists( obj ):
+            elif not cmds.objExists(obj):
                 raise ValueError, "Returned object %s is Invalid" % obj
 
             args = [obj]
 
-    except (TypeError,RuntimeError, ValueError), msg:
+    except (TypeError, RuntimeError, ValueError), msg:
         _logger.debug("failed creation: %s", msg)
 
     else:
@@ -717,8 +724,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         #(usePyNode, baseClsName, nodeName)
         flags = cmdInfo['flags']
 
-        hasQueryFlag = flags.has_key( 'query' )
-        hasEditFlag = flags.has_key( 'edit' )
+        hasQueryFlag = flags.has_key('query')
+        hasEditFlag = flags.has_key('edit')
 
         anyNumRe = re.compile('\d+')
 
@@ -751,14 +758,14 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
             if 'query' in modes or testModes == True:
                 if hasQueryFlag:
-                    kwargs = {'query':True, flag:True}
+                    kwargs = {'query': True, flag: True}
                 else:
-                    kwargs = { flag:True }
+                    kwargs = {flag: True}
 
                 cmd = _formatCmd(funcName, flagargs, kwargs)
                 try:
                     _logger.debug(cmd)
-                    val = func( *flagargs, **kwargs )
+                    val = func(*flagargs, **kwargs)
                     #_logger.debug('val: %r' % (val,))
                     resultType = _objectToType(val)
 
@@ -766,8 +773,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
                         # there are certain patterns of asymmetry which we can safely correct:
-                        singleItemList = (isinstance( resultType, list)
-                                          and len(resultType) ==1
+                        singleItemList = (isinstance(resultType, list)
+                                          and len(resultType) == 1
                                           and 'multiuse' not in flagInfo.get('modes', []))
 
                         # [bool] --> bool
@@ -805,13 +812,13 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
                 except TypeError, msg:
                     # flag is no longer supported
-                    if str(msg).startswith( 'Invalid flag' ):
-                        #if verbose:
+                    if str(msg).startswith('Invalid flag'):
+                        # if verbose:
                         _logger.info("removing flag %s %s %s", funcName, flag, msg)
                         shortname = flagInfo['shortname']
-                        flagInfo.pop(flag,None)
-                        flagInfo.pop(shortname,None)
-                        modes = [] # stop edit from running
+                        flagInfo.pop(flag, None)
+                        flagInfo.pop(shortname, None)
+                        modes = []  # stop edit from running
                     else:
                         _logger.info(cmd)
                         _logger.info("\t" + str(msg).rstrip('\n'))
@@ -819,11 +826,11 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
                 except RuntimeError, msg:
                     _logger.info(cmd)
-                    _logger.info("\tRuntimeError: " + str(msg).rstrip('\n') )
+                    _logger.info("\tRuntimeError: " + str(msg).rstrip('\n'))
                     val = None
                 except ValueError, msg:
                     _logger.info(cmd)
-                    _logger.info("\tValueError: " + str(msg).rstrip('\n') )
+                    _logger.info("\tValueError: " + str(msg).rstrip('\n'))
                     val = None
                 else:
                     # some flags are only in mel help and not in maya docs, so we don't know their
@@ -843,16 +850,16 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         if isinstance(argtype, list):
                             val = []
                             for typ in argtype:
-                                if type == unicode or isinstance(type,basestring):
+                                if type == unicode or isinstance(type, basestring):
                                     val.append('persp')
                                 else:
                                     if 'query' in modes:
-                                        val.append( typ(0) )
+                                        val.append(typ(0))
                                     # edit only, ensure that bool args are True
                                     else:
-                                        val.append( typ(1) )
+                                        val.append(typ(1))
                         else:
-                            if argtype == unicode or isinstance(argtype,basestring):
+                            if argtype == unicode or isinstance(argtype, basestring):
                                 val = 'persp'
                             elif 'query' in modes:
                                 val = argtype(0)
@@ -860,7 +867,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                                 # edit only, ensure that bool args are True
                                 val = argtype(1)
 
-                    kwargs = {'edit':True, flag:val}
+                    kwargs = {'edit': True, flag: val}
                     cmd = _formatCmd(funcName, args, kwargs)
                     _logger.debug(cmd)
 
@@ -871,7 +878,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     # To get around this, we need to undo the cmd.
                     try:
                         cmds.undoInfo(openChunk=True)
-                        editResult = func( *args, **kwargs )
+                        editResult = func(*args, **kwargs)
                     finally:
                         cmds.undoInfo(closeChunk=True)
 
@@ -901,13 +908,13 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     #_logger.debug('\t%s %s', argtype, type(editResult))
                     #_logger.debug("SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype']))
                 except TypeError, msg:
-                    if str(msg).startswith( 'Invalid flag' ):
-                        #if verbose:
+                    if str(msg).startswith('Invalid flag'):
+                        # if verbose:
                         # flag is no longer supported
                         _logger.info("removing flag %s %s %s", funcName, flag, msg)
                         shortname = flagInfo['shortname']
-                        flagInfo.pop(flag,None)
-                        flagInfo.pop(shortname,None)
+                        flagInfo.pop(flag, None)
+                        flagInfo.pop(shortname, None)
                     else:
                         _logger.info(funcName)
                         _logger.info("\t" + str(msg).rstrip('\n'))
@@ -922,20 +929,20 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         _logger.info("\tedit only")
                 except ValueError, msg:
                     _logger.info(cmd)
-                    _logger.info("\tValueError: " + str(msg).rstrip('\n') )
+                    _logger.info("\tValueError: " + str(msg).rstrip('\n'))
                     val = None
                 else:
                     if 'edit' not in flagInfo['modes']:
                         flagInfo['modes'].append('edit')
 
     # cleanup
-    allObjsEnd = set( cmds.ls(l=1) )
-    newObjs = list(allObjsEnd.difference(  allObjsBegin ) )
+    allObjsEnd = set(cmds.ls(l=1))
+    newObjs = list(allObjsEnd.difference(allObjsBegin))
     if newObjs:
-        cmds.delete( newObjs )
+        cmds.delete(newObjs)
     return cmdInfo
 
-def _getNodeHierarchy( version=None ):
+def _getNodeHierarchy(version=None):
     """
     get node hierarchy as a list of 3-value tuples:
         ( nodeType, parents, children )
@@ -977,8 +984,8 @@ def _getNodeHierarchy( version=None ):
         from .parsers import NodeHierarchyDocParser
         parser = NodeHierarchyDocParser(version)
         nodeHierarchyTree = trees.IndexedTree(parser.parse())
-    return [ (x.value, tuple(y.value for y in x.parents()), tuple(y.value for y in x.childs()) ) \
-             for x in nodeHierarchyTree.preorder() ]
+    return [(x.value, tuple(y.value for y in x.parents()), tuple(y.value for y in x.childs()))
+            for x in nodeHierarchyTree.preorder()]
 
 
 class CmdExamplesCache(startup.PymelCache):
@@ -998,12 +1005,12 @@ class CmdCache(startup.SubItemCache):
     DESC = 'the list of Maya commands'
     _CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList
                         nodeCommandList moduleCmds'''.split()
-    CACHE_TYPES = {'nodeHierarchy':list,
-                   'uiClassList':list,
-                   'nodeCommandList':list,
+    CACHE_TYPES = {'nodeHierarchy': list,
+                   'uiClassList': list,
+                   'nodeCommandList': list,
                    }
 
-    def rebuild(self) :
+    def rebuild(self):
         """Build and save to disk the list of Maya Python commands and their arguments
 
         WARNING: will unload existing plugins, then (re)load all maya-installed
@@ -1050,9 +1057,8 @@ class CmdCache(startup.SubItemCache):
         plugins.unloadAllPlugins()
 
         self.nodeHierarchy = _getNodeHierarchy(long_version)
-        nodeFunctions = [ x[0] for x in self.nodeHierarchy ]
+        nodeFunctions = [x[0] for x in self.nodeHierarchy]
         nodeFunctions += nodeTypeToNodeCommand.values()
-
 
         _logger.info("Rebuilding the list of Maya commands...")
 
@@ -1061,13 +1067,13 @@ class CmdCache(startup.SubItemCache):
         self.nodeCommandList = []
         tmpModuleCmds = {}
         for moduleName, longname in moduleNameShortToLong.items():
-            tmpModuleCmds[moduleName] = getModuleCommandList( longname, long_version )
+            tmpModuleCmds[moduleName] = getModuleCommandList(longname, long_version)
 
         tmpCmdlist = inspect.getmembers(cmds, callable)
 
         #self.moduleCmds = defaultdict(list)
-        self.moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
-        self.moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
+        self.moduleCmds = dict((k, []) for k in moduleNameShortToLong.keys())
+        self.moduleCmds.update({'other': [], 'runtime': [], 'context': [], 'uiClass': []})
 
         def addCommand(funcName):
             _logger.debug('adding command: %s' % funcName)
@@ -1084,8 +1090,8 @@ class CmdCache(startup.SubItemCache):
                 if module != 'windows':
                     if funcName in nodeFunctions:
                         self.nodeCommandList.append(funcName)
-                        cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=True, verbose=True  )
-                    #elif module != 'context':
+                        cmdInfo = testNodeCmd(funcName, cmdInfo, nodeCmd=True, verbose=True)
+                    # elif module != 'context':
                     #    cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=True  )
 
             cmdInfo['type'] = module
@@ -1109,7 +1115,7 @@ class CmdCache(startup.SubItemCache):
 #                else:
 #                    self.cmdlist[funcName] = (funcName, args, () )
 
-        for funcName, _ in tmpCmdlist :
+        for funcName, _ in tmpCmdlist:
             if funcName in pluginCommands:
                 _logger.debug("command %s was a plugin command that should have been unloaded - skipping" % funcName)
                 continue
@@ -1130,7 +1136,7 @@ class CmdCache(startup.SubItemCache):
             newFlagInfo = {}
             if 'flags' in cmdInfo:
                 for flag, flagInfo in cmdInfo['flags'].iteritems():
-                    newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
+                    newFlagInfo[flag] = {'docstring': flagInfo.pop('docstring')}
                 newCmdInfo['flags'] = newFlagInfo
 
             if newCmdInfo:
@@ -1143,11 +1149,10 @@ class CmdCache(startup.SubItemCache):
         super(CmdCache, self).build()
 
         # corrections that are always made, to both loaded and freshly built caches
-        util.mergeCascadingDicts( cmdlistOverrides, self.cmdlist )
+        util.mergeCascadingDicts(cmdlistOverrides, self.cmdlist)
         # add in any nodeCommands added after cache rebuild
         self.nodeCommandList = set(self.nodeCommandList).union(nodeTypeToNodeCommand.values())
-        self.nodeCommandList = sorted( self.nodeCommandList )
-
+        self.nodeCommandList = sorted(self.nodeCommandList)
 
         for module, funcNames in moduleCommandAdditions.iteritems():
             for funcName in funcNames:
@@ -1157,4 +1162,4 @@ class CmdCache(startup.SubItemCache):
                     id = self.moduleCmds[currModule].index(funcName)
                     self.moduleCmds[currModule].pop(id)
                     self.moduleCmds[module].append(funcName)
-        return (self.cmdlist,self.nodeHierarchy,self.uiClassList,self.nodeCommandList,self.moduleCmds)
+        return (self.cmdlist, self.nodeHierarchy, self.uiClassList, self.nodeCommandList, self.moduleCmds)

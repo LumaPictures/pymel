@@ -7,7 +7,12 @@ Created from the ansi c example included with ply, which is based on the grammar
 """
 
 
-import sys, os, re, os.path, tempfile, string
+import sys
+import os
+import re
+import os.path
+import tempfile
+import string
 import mellex
 
 try:
@@ -45,24 +50,24 @@ pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'glob
                        'import', 'print', 'class', 'exec', 'in', 'raise', 'continue',
                        'finally', 'is', 'return', 'def', 'for', 'lambda', 'try']
 
-reserved= set( dir(builtin_module) )
-reserved.update( pythonReservedWords )
+reserved = set(dir(builtin_module))
+reserved.update(pythonReservedWords)
 
 mel_type_to_python_type = {
-    'string'    : 'str',
-    'int'       : 'int',
-    'float'     : 'float',
-    'vector'    : 'Vector',
-    'matrix'    : 'Matrix',
-    }
+    'string': 'str',
+    'int': 'int',
+    'float': 'float',
+    'vector': 'Vector',
+    'matrix': 'Matrix',
+}
 
 default_values = {
-    'string'    : '""',
-    'int'       : '0',
-    'float'     : '0.0',
-    'vector'    : 'Vector()',
-    'matrix'    : 'Matrix()',
-    }
+    'string': '""',
+    'int': '0',
+    'float': '0.0',
+    'vector': 'Vector()',
+    'matrix': 'Matrix()',
+}
 
 tag = '# script created by pymel.tools.mel2py'
 
@@ -87,16 +92,16 @@ def format_substring(x, t):
         to:
             var[1:var2]
             """
-    def makeSlice( var, arg, offset=0):
+    def makeSlice(var, arg, offset=0):
         if arg.startswith('(') and arg.endswith(')'):
             arg = arg[1:-1]
         try:
-            return str( int(arg)+offset )
+            return str(int(arg) + offset)
         except ValueError:
-            m = re.match( '\(*\s*len\s*\(\s*' + var + '\s*\)\s*\)*(.*)', arg )
+            m = re.match('\(*\s*len\s*\(\s*' + var + '\s*\)\s*\)*(.*)', arg)
             if m:
                 return m.group(1).replace(' ', '')
-                #return m.group(1)
+                # return m.group(1)
 
             else:
                 res = str(arg)
@@ -107,15 +112,15 @@ def format_substring(x, t):
     start = makeSlice(x[0], x[1], -1)
     end = makeSlice(x[0], x[2])
 
-    return '%s[%s:%s]' % (x[0], start, end )
+    return '%s[%s:%s]' % (x[0], start, end)
 
-def format_tokenize(x,t):
+def format_tokenize(x, t):
     if len(x) > 2:
-        return Token( '%s=%s.split(%s)' % (x[2],x[0],x[1]), 'string', tokenize=x[2] )
+        return Token('%s=%s.split(%s)' % (x[2], x[0], x[1]), 'string', tokenize=x[2])
     else:
-        return Token( '%s=%s.split()' % (x[1],x[0]), 'string', tokenize=x[1] )
+        return Token('%s=%s.split()' % (x[1], x[0]), 'string', tokenize=x[1])
 
-def format_tokenize_size( tokenized, sizeVar ):
+def format_tokenize_size(tokenized, sizeVar):
     """tokenize fix:
     tokenize passes a buffer by reference, and returns a size.
     we must return a list, and compute the size as a second operation::
@@ -126,14 +131,14 @@ def format_tokenize_size( tokenized, sizeVar ):
         size = len(buffer)
 
     """
-    buf = tokenized.__dict__.pop( 'tokenize' )
+    buf = tokenized.__dict__.pop('tokenize')
     return tokenized + '\n' + sizeVar + " = len(%s)\n" % buf
 
 def format_fread(x, t):
     formatStr = {
-         'string': "%s",
-        'float'    : "%f",
-        'int'    : "%d",
+        'string': "%s",
+        'float': "%f",
+        'int': "%d",
         'vector': "%f %f %f"
     }[x[1].type]
     return "fscanf(%s,'%s')" % (x[0], formatStr)
@@ -146,18 +151,17 @@ def format_fopen(x, t):
     return 'open(%s,%s)' % (x[0], mode)
 
 
-
 def format_source(x, t):
     script = eval(x[0])
-    name = os.path.splitext( os.path.basename(script) )[0]
-    #print "formatting source", name
-    moduleName = _melObj_to_pyModule( name )
+    name = os.path.splitext(os.path.basename(script))[0]
+    # print "formatting source", name
+    moduleName = _melObj_to_pyModule(name)
     if moduleName:
         if moduleName not in t.lexer.imported_modules:
             t.lexer.imported_modules.add(moduleName)
         return ''
     else:
-        return '%smel.source(%s)' % (t.lexer.pymel_namespace, x[0] )
+        return '%smel.source(%s)' % (t.lexer.pymel_namespace, x[0])
 
 def format_command(command, args, t):
     if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
@@ -169,8 +173,9 @@ def format_command(command, args, t):
     # commands with custom replacements
     try:
         typ, remap_func = proc_remap[command]
-        return Token( remap_func(args, t), typ )
-    except KeyError: pass
+        return Token(remap_func(args, t), typ)
+    except KeyError:
+        pass
 
     #flags = getCommandFlags(command)
 
@@ -182,7 +187,7 @@ def format_command(command, args, t):
             cmdInfo = melCmdFlagList[command]
         except KeyError:
             # Mel procedures and commands without help documentation
-            #if flags is None:
+            # if flags is None:
             args = [repr(x) if isinstance(x, basestring) and FLAG_RE.match(x)
                     else x for x in args]
             args = ', '.join(args)
@@ -197,14 +202,14 @@ def format_command(command, args, t):
             if command in melCmdList:
                 return '%s(%s)' % (command, args)
 
-            module, returnType = _melProc_to_pyModule( t, command )
+            module, returnType = _melProc_to_pyModule(t, command)
 
             if module:
                 # the procedure is in the currently parsed script, but has not yet been placed in global or local procs.
                 if module == t.lexer.root_module:
                     res = '%s(%s)' % (command, args)
                 else:
-                    t.lexer.imported_modules.add( module )
+                    t.lexer.imported_modules.add(module)
                     res = '%s.%s(%s)' % (module, command, args)
             else:
                 res = '%smel.%s(%s)' % (t.lexer.pymel_namespace, command, args)
@@ -213,25 +218,26 @@ def format_command(command, args, t):
 
     # commands with help documentation
     try:
-        #print 'FLAGS', t[1], flags
-        #print 'ARGS', args
+        # print 'FLAGS', t[1], flags
+        # print 'ARGS', args
         kwargs = {}
         pargs = []
-        argTally=[]
+        argTally = []
         numArgs = 0
         commandFlag = False
         queryMode = False
         currFlag = None
         for token in args:
-            flagmatch = FLAG_RE.match( token )
+            flagmatch = FLAG_RE.match(token)
 
             #  Flag ------------------------------------------------------------
             if flagmatch:
                 if numArgs > 0:
                     #raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
-                    if t.lexer.verbose >= 1: print 'reached a new flag before receiving all necessary args for last flag'
-                    kwargs[currFlag]='1'
-                    numArgs=0
+                    if t.lexer.verbose >= 1:
+                        print 'reached a new flag before receiving all necessary args for last flag'
+                    kwargs[currFlag] = '1'
+                    numArgs = 0
 
                 #(numArgs, commandFlag) = flags[ token ]
 
@@ -240,8 +246,9 @@ def format_command(command, args, t):
 
                 # a special dict has been creatd to return the new name of flags removed due to name conflicts
                 try:
-                    token = Token( cmdInfo['removedFlags'][token], token.type, token.lineno )
-                except KeyError: pass
+                    token = Token(cmdInfo['removedFlags'][token], token.type, token.lineno)
+                except KeyError:
+                    pass
 
                 try:
                     flagInfo = cmdInfo['flags'][token]
@@ -251,11 +258,11 @@ def format_command(command, args, t):
                 numArgs = flagInfo['numArgs']
                 commandFlag = 'command' in flagInfo['longname'].lower()
 
-                #print 'new flag', token, numArgs
+                # print 'new flag', token, numArgs
 
                 if numArgs == 0 or queryMode:
-                    kwargs[token]='1'
-                    numArgs=0
+                    kwargs[token] = '1'
+                    numArgs = 0
                 else:
                     currFlag = token
 
@@ -268,8 +275,8 @@ def format_command(command, args, t):
                 if commandFlag:
 
                     cbParser = MelParser()
-                    #print "root module for callback parsing", t.lexer.root_module
-                    cbParser.build(rootModule = t.lexer.root_module,
+                    # print "root module for callback parsing", t.lexer.root_module
+                    cbParser.build(rootModule=t.lexer.root_module,
                                    pymelNamespace=t.lexer.pymel_namespace,
                                    verbosity=t.lexer.verbose,
                                    expressionsOnly=True,
@@ -301,34 +308,34 @@ def format_command(command, args, t):
                     # ...so we need to do another strip...
                     tmpToken = tmpToken.strip()
 
-                    if not tmpToken.endswith( ';' ):
+                    if not tmpToken.endswith(';'):
                         tmpToken += ';'
-                    cb = re.compile(  '#(\d)' )
-                    parts = cb.split( tmpToken  )
-                    for i in range(1,len(parts),2):
-                        parts[i] = '$args[%d]' % ( int(parts[i] ) -1 )
-                    tmpToken = ''.join( parts )
+                    cb = re.compile('#(\d)')
+                    parts = cb.split(tmpToken)
+                    for i in range(1, len(parts), 2):
+                        parts[i] = '$args[%d]' % (int(parts[i]) - 1)
+                    tmpToken = ''.join(parts)
 
-                    #print tmpToken
+                    # print tmpToken
 
                     # parse
                     try:
-                        tmpToken = cbParser.parse( tmpToken )
+                        tmpToken = cbParser.parse(tmpToken)
                     except Exception:
-#                        print "error parsing callback:"
-#                        print "-" * 60
-#                        print tmpToken
-#                        print "-" * 60
-#                        traceback.print_exc()
-                        #print "callback translation failed", msg
+                        #                        print "error parsing callback:"
+                        #                        print "-" * 60
+                        #                        print tmpToken
+                        #                        print "-" * 60
+                        #                        traceback.print_exc()
+                        # print "callback translation failed", msg
                         token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
                     else:
-                        #print tmpToken
+                        # print tmpToken
 
                         # ensure that the result is not empty
                         assert tmpToken.strip()
 
-                        t.lexer.imported_modules.update( cbParser.lexer.imported_modules )
+                        t.lexer.imported_modules.update(cbParser.lexer.imported_modules)
 
                         # post-parse cleanup
                         statements = [x.strip() for x in tmpToken.split('\n') if x.strip()]
@@ -340,10 +347,9 @@ def format_command(command, args, t):
                             tmpToken = '[%s]' % ', '.join(statements)
                         token = 'lambda *args: %s' % (tmpToken)
 
-
                 argTally.append(token)
-                #print 'last flag arg', currFlag, argTally
-                if len(argTally)==1:
+                # print 'last flag arg', currFlag, argTally
+                if len(argTally) == 1:
                     argTally = argTally[0]
                 else:
                     argTally = '(%s)' % ', '.join(argTally)
@@ -351,23 +357,23 @@ def format_command(command, args, t):
                 # mutliuse flag, ex.  ls -type 'mesh' -type 'camera'
                 if currFlag in kwargs:
                     if isinstance(kwargs[currFlag], list):
-                        kwargs[currFlag].append( argTally )
-                        #print "appending kwarg", currFlag, kwargs
+                        kwargs[currFlag].append(argTally)
+                        # print "appending kwarg", currFlag, kwargs
                     else:
-                        kwargs[currFlag] = [ kwargs[currFlag], argTally ]
-                        #print "adding kwarg", currFlag, kwargs
+                        kwargs[currFlag] = [kwargs[currFlag], argTally]
+                        # print "adding kwarg", currFlag, kwargs
                 else:
-                    #print "new kwarg", currFlag, kwargs
+                    # print "new kwarg", currFlag, kwargs
                     kwargs[currFlag] = argTally
 
-                numArgs=0
-                argTally=[]
+                numArgs = 0
+                argTally = []
                 currFlag = None
 
             elif numArgs > 0:
                 argTally.append(token)
-                #print 'adding arg', currFlag, argTally
-                numArgs-=1
+                # print 'adding arg', currFlag, argTally
+                numArgs -= 1
             else:
                 pargs.append(token)
         """
@@ -378,10 +384,10 @@ def format_command(command, args, t):
             pass
         """
 
-        #print 'final kw list', kwargs
+        # print 'final kw list', kwargs
 
         # functions that clash with python keywords and ui functions must use the cmds namespace
-        if command in filteredCmds: # + uiCommands:
+        if command in filteredCmds:  # + uiCommands:
             command = '%scmds.%s' % (t.lexer.pymel_namespace, command)
 
         # eval command is the same as using maya.mel.eval.  special commands: error, warning, and trace
@@ -406,21 +412,21 @@ def format_command(command, args, t):
             # multi-use flag
             #    mel:     ls -type "transform" -type "camera"
             #    python:    ls( type=["transform", "camera"] )
-            if isinstance( value, list):
+            if isinstance(value, list):
                 #sep = ', '
-                #if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
+                # if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
                 #    sep = ',\n\t'
                 #pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
-                value = assemble(t,'multiuse_flag', ', ', value, matchFormatting=True)
-                pargs.append( Token( '%s=[%s]' % (flag, value), None, flag.lineno  ) )
+                value = assemble(t, 'multiuse_flag', ', ', value, matchFormatting=True)
+                pargs.append(Token('%s=[%s]' % (flag, value), None, flag.lineno))
             else:
-                pargs.append( Token( '%s=%s'   % (flag, value), None, flag.lineno ) )
+                pargs.append(Token('%s=%s' % (flag, value), None, flag.lineno))
 
         #sep = ', '
-        #if len(pargs) > t.lexer.format_options['args_newline_threshhold']:
+        # if len(pargs) > t.lexer.format_options['args_newline_threshhold']:
         #    sep = ',\n\t'
         #res =  '%s(%s)' % (command, sep.join( pargs ) )
-        res =  '%s(%s)' % (command, assemble( t, 'command_args', ', ', pargs, matchFormatting=True ) )
+        res = '%s(%s)' % (command, assemble(t, 'command_args', ', ', pargs, matchFormatting=True))
         res = t.lexer.pymel_namespace + res
         return res
 
@@ -431,46 +437,46 @@ def format_command(command, args, t):
             # remove string encapsulation
             subCmd = eval(args.pop(0))
             # in rare cases this might end up bing -e or -pi, which evaluate to numbers
-            assert isinstance( subCmd, basestring )
+            assert isinstance(subCmd, basestring)
 
-            formattedSubCmd = format_command( subCmd, args, t )
+            formattedSubCmd = format_command(subCmd, args, t)
             return '%s(%s)' % (command, formattedSubCmd)
         except (NameError, AssertionError):
             print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
             return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
-def store_assignment_spillover( token, t ):
+def store_assignment_spillover(token, t):
     if hasattr(token, '__dict__'):
         try:
-            var = token.__dict__.pop( 'assignment' )
+            var = token.__dict__.pop('assignment')
         except KeyError:
             pass
         else:
-            t.lexer.spillover_pre.append( token + '\n' )
-            #print "adding to spillover:", token, token.lineno
+            t.lexer.spillover_pre.append(token + '\n')
+            # print "adding to spillover:", token, token.lineno
             token = var
     return token
 
-def merge_assignment_spillover( t, curr_lineno, title='' ):
+def merge_assignment_spillover(t, curr_lineno, title=''):
     result = ''
     if t.lexer.spillover_pre:
         #curr_lineno = t[token_index].lineno
-        i=-1
+        i = -1
         tokens = t.lexer.spillover_pre[:]
         t.lexer.spillover_pre = []
         for token in tokens:
 
             if token.lineno == curr_lineno:
                 result += token
-                #print "adding", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
-                #t.lexer.spillover_pre.pop(0)
+                # print "adding", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
+                # t.lexer.spillover_pre.pop(0)
             else:
-                #print "skipping", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
+                # print "skipping", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
                 t.lexer.spillover_pre.append(token)
 
     return result
 
-def format_assignment_value( val, typ ):
+def format_assignment_value(val, typ):
     """
     when assigning a value in mel, values will be auto-cast to the type of the variable, but in python, the variable
     will simply become the new type.  to ensure that the python operates as in mel, we need to cast when assigning
@@ -479,8 +485,8 @@ def format_assignment_value( val, typ ):
     try:
 
         if typ != val.type:
-            #print "assignment not same type", t[1].type, t[3].type
-            val = Token(  '%s(%s)' % ( mel_type_to_python_type[typ], val ), **val.__dict__ )
+            # print "assignment not same type", t[1].type, t[3].type
+            val = Token('%s(%s)' % (mel_type_to_python_type[typ], val), **val.__dict__)
             val.type = typ
             return val
     except:
@@ -494,7 +500,7 @@ def format_assignment_value( val, typ ):
 
 def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 
-    #print "STARTING", lineno
+    # print "STARTING", lineno
     res = ''
 
     if len(t) > 1:
@@ -503,25 +509,26 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
             tokens = toList(t)
 
         tokType = None
-        res = Token( '', None )
-        for i, tok in enumerate( tokens ) :
+        res = Token('', None)
+        for i, tok in enumerate(tokens):
             if i == 0:
                 res += tok
             else:
 
                 try:
-                    if not t.lexer.expression_only and matchFormatting and tokens[i-1].lineno != tok.lineno:
-                        res +=  separator + '\n' + entabLines( tok )
+                    if not t.lexer.expression_only and matchFormatting and tokens[i - 1].lineno != tok.lineno:
+                        res += separator + '\n' + entabLines(tok)
                     else:
                         res += separator + tok
                 except AttributeError:
-                    #print tokens[i-1], type(tokens[i-1]), tok, type(tok)
+                    # print tokens[i-1], type(tokens[i-1]), tok, type(tok)
                     res += separator + tok
             try:
                 if tok.type:
                     tokType = tok.type
-                    #print 'assembled', funcname, p[i], type
-            except: pass
+                    # print 'assembled', funcname, p[i], type
+            except:
+                pass
 
         #res = Token( separator.join(tokens), type, t.lexer.lineno )
         #res = Token( res, tokType, lineno=t.lexer.lineno )
@@ -535,10 +542,10 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
         print "result:\n%s" % res
     elif t.lexer.verbose == 1:
         print funcname, res, t.lexer.lineno
-    #elif t.lexer.verbose >= 1:
+    # elif t.lexer.verbose >= 1:
     #    print 'assembled', funcname
 
-    #if p[0].find('def') >= 0:
+    # if p[0].find('def') >= 0:
     #    print funcname
     #    print "'%s'" % p[0]
     return res
@@ -624,7 +631,7 @@ def format_held_comments(t, funcname=''):
         commentList = t.lexer.comment_queue_hold.pop()
     except IndexError:
         return ''
-    #commentList = ['# ' + x for x in commentList]
+    # commentList = ['# ' + x for x in commentList]
 
     if t.lexer.verbose:
         print t.lexer.comment_queue_hold
@@ -690,13 +697,13 @@ def format_held_comments_and_docstring(t, funcname=''):
     return format_comments(rest), format_multiline_string_comment(last)
 
 
-def entabLines( line ):
+def entabLines(line):
     buf = line.split('\n')
-    #for x in buf:
+    # for x in buf:
     #    if x.startswith(''):
     #        print 'startswith space!', x
 
-    res = '\n'.join( map( lambda x: '\t'+x, buf) )
+    res = '\n'.join(map(lambda x: '\t' + x, buf))
     if line.endswith('\n'):
         res += '\n'
     return res
@@ -717,13 +724,13 @@ def pythonizeName(name):
         chars.insert(0, 'n')
     return ''.join(chars)
 
-def getModuleBasename( script ):
-    name = os.path.splitext( os.path.basename(script) )[0]
+def getModuleBasename(script):
+    name = os.path.splitext(os.path.basename(script))[0]
     return pythonizeName(name)
 
-def findModule( moduleName ):
+def findModule(moduleName):
     for f in sys.path:
-        f = os.path.join( f, moduleName  + '.py' )
+        f = os.path.join(f, moduleName + '.py')
         if os.path.isfile(f):
             # checks for a tag added by mel2py -- this is unreliable, but so is using simple name comparison
             # TODO : add a keyword for passing directories to look for pre-translated python scripts
@@ -734,7 +741,7 @@ def findModule( moduleName ):
                 return f
     return
 
-#def _script_to_module( t, script ):
+# def _script_to_module( t, script ):
 #    global batchData.currentFiles
 #    global script_to_module
 #
@@ -765,25 +772,26 @@ def findModule( moduleName ):
 #        if fullpath in batchData.currentFiles:
 #            script_to_module[name] = moduleName
 #            return moduleName
-def fileInlist( file, fileList ):
+def fileInlist(file, fileList):
     file = util.path(file)
     for dir in fileList:
         try:
-            if file.samefile( dir ):
+            if file.samefile(dir):
                 return True
-        except OSError: pass
+        except OSError:
+            pass
     return False
 
-def _melObj_to_pyModule( script ):
+def _melObj_to_pyModule(script):
     """
     Return the module name this mel script / procedure will be converted to / found in.
 
     If the mel script is not being translated, returns None.
     """
-    result = mel.whatIs( script )
-    buf = result.split( ': ' )
-    if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
-        melfile = util.path( buf[1].lstrip() )
+    result = mel.whatIs(script)
+    buf = result.split(': ')
+    if buf[0] in ['Mel procedure found in', 'Script found in']:
+        melfile = util.path(buf[1].lstrip())
         melfile = melfile.canonicalpath()
         if batchData.currentModules.has_value(melfile):
             return batchData.currentModules.get_key(melfile)
@@ -796,7 +804,7 @@ def _melProc_to_pyModule(t, procedure):
 
     # if root_module is set to None that means we are doing a string conversion, and not a file conversion
     # we don't need to find out the current or future python module.  just use pymel.mel
-    if t.lexer.root_module in [ None, '__main__']:
+    if t.lexer.root_module in [None, '__main__']:
         return None, None
 
     global batchData
@@ -808,7 +816,7 @@ def _melProc_to_pyModule(t, procedure):
         # no need to recursively parse any further
         moduleDataPairs = []
         if t.lexer.root_module not in batchData.currentModules:
-            #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
+            # print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
             moduleName = None
         else:
             moduleName = _melObj_to_pyModule(procedure)
@@ -824,7 +832,7 @@ def _melProc_to_pyModule(t, procedure):
                 moduleDataPairs.append((moduleName, t.lexer.parent_data))
 
         for moduleName, data in moduleDataPairs:
-            #print "%s not seen yet: scanning %s" % ( procedure, melfile )
+            # print "%s not seen yet: scanning %s" % ( procedure, melfile )
             cbParser = MelScanner()
             cbParser.build()
 
@@ -833,9 +841,9 @@ def _melProc_to_pyModule(t, procedure):
             except lex.LexError:
                 print "Error parsing mel file:", melfile
                 global_procs = {}
-            #print "global procs", global_procs
+            # print "global procs", global_procs
             for proc, procInfo in global_procs.items():
-                #print proc, procInfo
+                # print proc, procInfo
                 batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
 
             if procedure in batchData.proc_to_module:
@@ -845,7 +853,7 @@ def _melProc_to_pyModule(t, procedure):
 #            print "failed to get module"
 
         if procedure not in batchData.proc_to_module:
-            #print "could not find script for procedure: %s" % procedure
+            # print "could not find script for procedure: %s" % procedure
             batchData.proc_to_module[procedure] = (None, None)
 
         return batchData.proc_to_module[procedure]
@@ -875,142 +883,143 @@ def hasNonCommentPyCode(pyCode):
 # dictionary of functions used to remap procedures to python commands
 proc_remap = {
 
-        # strings
-        #'capitalizeString'         : ('string', lambda x, t: '%s.capitalize()'     % (x[0]) ), # not equiv
-        'capitalizeString'         : ('string', lambda x, t: '%sutil.capitalize(%s)'     % (t.lexer.pymel_namespace,x[0]) ),
-        'strip'                 : ('string', lambda x, t: '%s.strip()'         % (x[0]) ),
-        'appendStringArray'     : ( None ,   lambda x, t: '%s += %s[:%s]'         % (x[0],x[1],x[2]) ),
-        'stringArrayToString'     : ('string', lambda x, t: '%s.join(%s)'         % (x[1],x[0]) ),
-        'stringArrayCatenate'    : ('string', lambda x, t: '%s + %s'             % (x[0],x[1]) ),
-        'stringArrayContains'    : ('int',    lambda x, t: '%s in %s'             % (x[0],x[1]) ),
-        'stringArrayCount'        : ('int',    lambda x, t: '%s.count(%s)'        % (x[1],x[0]) ),
-        'stringArrayInsertAtIndex'    : ( None, lambda x, t: '%s.insert(%s,%s)'        % (x[1],x[0],x[2]) ),
-        'stringArrayRemove'        : ('string[]', lambda x, t: '[x for x in %s if x not in %s]'    % (x[1],x[0]) ),
-        'stringArrayRemoveAtIndex'    : ('string[]', lambda x, t: '%s.pop(%s)'        % (x[1],x[0]) ),
-        #'stringArrayRemove'        : lambda x, t: 'filter( lambda x: x not in %s, %s )' % (x[0],x[1]) ),
-        'stringToStringArray'    : ('string[]', lambda x, t: '%s.split(%s)'         % (x[0],x[1]) ),
-        'startsWith'            : ('int',    lambda x, t: '%s.startswith(%s)'     % (x[0],x[1]) ),
-        'endsWith'                : ('int',    lambda x, t: '%s.endswith(%s)'     % (x[0],x[1]) ),
-        'tolower'                : ('string', lambda x, t: '%s.lower()'         % (x[0]) ),
-        'toupper'                : ('string', lambda x, t: '%s.upper()'         % (x[0]) ),
-        'tokenize'                : ('string[]', format_tokenize ),
-        'substring'                : ('string', format_substring ),
-        'substitute'            : ('string', lambda x, t: '%s.replace(%s,%s)'         % (x[1],x[0],x[2]) ),
+    # strings
+    #'capitalizeString'         : ('string', lambda x, t: '%s.capitalize()'     % (x[0]) ), # not equiv
+    'capitalizeString': ('string', lambda x, t: '%sutil.capitalize(%s)' % (t.lexer.pymel_namespace, x[0])),
+    'strip': ('string', lambda x, t: '%s.strip()' % (x[0])),
+    'appendStringArray': (None, lambda x, t: '%s += %s[:%s]' % (x[0], x[1], x[2])),
+    'stringArrayToString': ('string', lambda x, t: '%s.join(%s)' % (x[1], x[0])),
+    'stringArrayCatenate': ('string', lambda x, t: '%s + %s' % (x[0], x[1])),
+    'stringArrayContains': ('int', lambda x, t: '%s in %s' % (x[0], x[1])),
+    'stringArrayCount': ('int', lambda x, t: '%s.count(%s)' % (x[1], x[0])),
+    'stringArrayInsertAtIndex': (None, lambda x, t: '%s.insert(%s,%s)' % (x[1], x[0], x[2])),
+    'stringArrayRemove': ('string[]', lambda x, t: '[x for x in %s if x not in %s]' % (x[1], x[0])),
+    'stringArrayRemoveAtIndex': ('string[]', lambda x, t: '%s.pop(%s)' % (x[1], x[0])),
+    #'stringArrayRemove'        : lambda x, t: 'filter( lambda x: x not in %s, %s )' % (x[0],x[1]) ),
+    'stringToStringArray': ('string[]', lambda x, t: '%s.split(%s)' % (x[0], x[1])),
+    'startsWith': ('int', lambda x, t: '%s.startswith(%s)' % (x[0], x[1])),
+    'endsWith': ('int', lambda x, t: '%s.endswith(%s)' % (x[0], x[1])),
+    'tolower': ('string', lambda x, t: '%s.lower()' % (x[0])),
+    'toupper': ('string', lambda x, t: '%s.upper()' % (x[0])),
+    'tokenize': ('string[]', format_tokenize),
+    'substring': ('string', format_substring),
+    'substitute': ('string', lambda x, t: '%s.replace(%s,%s)' % (x[1], x[0], x[2])),
 
-        # misc. keywords
-        'size'                     : ('int',    lambda x, t: 'len(%s)'             % (', '.join(x)) ),
-        'print'                    : ( None ,   lambda x, t: 'print %s'             % (x[0]) ),
-        'clear'                    : ( None ,   lambda x, t: '%s = []'                 % (x[0]) ),
-        'eval'                     : ( None ,   lambda x, t: '%smel.eval(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
-        'python'                   : ( None ,   lambda x, t: '%spython(%s)'     % (t.lexer.pymel_namespace, x[0]) ),
-        'sort'                    : ( None ,   lambda x, t: 'sorted(%s)'            % (x[0]) ),
-        'source'                : ( None ,      format_source ),
-        # error handling
-        'catch'                    : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
-        'catchQuiet'            : ( 'int' ,   lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace,x[0]) ),
+    # misc. keywords
+    'size': ('int', lambda x, t: 'len(%s)' % (', '.join(x))),
+    'print': (None, lambda x, t: 'print %s' % (x[0])),
+    'clear': (None, lambda x, t: '%s = []' % (x[0])),
+    'eval': (None, lambda x, t: '%smel.eval(%s)' % (t.lexer.pymel_namespace, x[0])),
+    'python': (None, lambda x, t: '%spython(%s)' % (t.lexer.pymel_namespace, x[0])),
+    'sort': (None, lambda x, t: 'sorted(%s)' % (x[0])),
+    'source': (None, format_source),
+    # error handling
+    'catch': ('int', lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace, x[0])),
+    'catchQuiet': ('int', lambda x, t: '%scatch(lambda: %s)' % (t.lexer.pymel_namespace, x[0])),
 
-        # system
+    # system
 
-        # TODO: check that new version of system works...
-        # 'system'                : ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )'     % (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows
-        'system'                : ( 'string' ,   lambda x, t: '%sinternal.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),
-        # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec
-        'exec'                    : ( None ,   lambda x, t: ( 'os.popen2(%s)'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
-        'getenv'                : ( 'string', lambda x, t: ( 'os.environ[%s]'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),
-        # TODO : this differs from mel equiv bc it does not return a value
-        'putenv'                : ( None, lambda x, t: ( 'os.environ[%s] = %s'     % (x[0], x[1]), t.lexer.imported_modules.add('os') )[0] ),
+    # TODO: check that new version of system works...
+    # 'system'                : ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )'     % (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows
+    'system': ('string', lambda x, t: '%sinternal.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)' % (t.lexer.pymel_namespace, x[0])),
+    # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec
+    'exec': (None, lambda x, t: ('os.popen2(%s)' % (x[0]), t.lexer.imported_modules.add('os'))[0]),
+    'getenv': ('string', lambda x, t: ('os.environ[%s]' % (x[0]), t.lexer.imported_modules.add('os'))[0]),
+    # TODO : this differs from mel equiv bc it does not return a value
+    'putenv': (None, lambda x, t: ('os.environ[%s] = %s' % (x[0], x[1]), t.lexer.imported_modules.add('os'))[0]),
 
-        # math
-        'deg_to_rad'            : ( 'float', lambda x, t: 'radians(%s)'     % (x[0]) ),
-        'rad_to_deg'            : ( 'float', lambda x, t: 'degrees(%s)'     % (x[0]) ),
+    # math
+    'deg_to_rad': ('float', lambda x, t: 'radians(%s)' % (x[0])),
+    'rad_to_deg': ('float', lambda x, t: 'degrees(%s)' % (x[0])),
 
-        # file i/o
-        'fopen'                    : ('int',    format_fopen ),
-        'fprint'                : ( None ,   lambda x, t: '%s.write(%s)' % (x[0], x[1]) ),
-        'fclose'                : ( None ,   lambda x, t: '%s.close()' % (x[0]) ),
-        'fflush'                : ( None ,   lambda x, t: '%s.flush()' % (x[0]) ),
-        'fgetline'                : ( 'string' ,   lambda x, t: '%s.readline()' % (x[0]) ),
-        'frewind'                : ( None ,   lambda x, t: '%s.seek(0)' % (x[0]) ),
-        'fgetword'                : ( 'string' ,   lambda x, t: "%sfscanf(%s, '%%s')" % (t.lexer.pymel_namespace,x[0]) ),
-        'feof'                    : ( 'int'    ,   lambda x, t: '%sfeof(%s)' % (t.lexer.pymel_namespace,x[0]) ),
-        'fread'                    : ( 'string' ,   format_fread ),
-
-
-        #'filetest'                : lambda x, t: (  (  t.lexer.imported_modules.add('os'),  # add os module for access()
-        #                                        {     '-r' : "Path(%(path)s).access(os.R_OK)",
-        #                                            '-l' : "Path(%(path)s).islink()",
-        #                                            '-w' : "Path(%(path)s).access(os.W_OK)",
-        #                                            '-x' : "Path(%(path)s).access(os.X_OK)",
-        #                                            '-f' : "Path(%(path)s).isfile()",
-        #                                            '-d' : "Path(%(path)s).isdir()",
-        #                                            '-h' : "Path(%(path)s).islink()",
-        #                                            '-f' : "Path(%(path)s).exists() and Path(%(path)s).getsize()",
-        #                                            '-L' : "Path(%(path)s).islink()",
-        #                                            }[ x[0] ] % { 'path' :x[1] })
-        #                                        )[1],
-
-        'filetest'                : ('int',    lambda x, t: (  (  t.lexer.imported_modules.update( ['os', 'os.path'] ),  # add os module for access()
-                                                {     '-r' : "os.access(%(path)s, os.R_OK)",
-                                                    '-l' : "os.path.islink(%(path)s)",
-                                                    '-w' : "os.access(%(path)s, os.W_OK)",
-                                                    '-x' : "os.access(%(path)s, os.X_OK)",
-                                                    '-f' : "os.path.isfile(%(path)s)",
-                                                    '-d' : "os.path.isdir(%(path)s)",
-                                                    '-h' : "os.path.islink(%(path)s)",
-                                                    '-f' : "os.path.exists(%(path)s) and os.path.getsize(%(path)s)",
-                                                    '-L' : "os.path.islink(%(path)s)",
-                                                    }[ x[0] ] % { 'path' :x[1] } )
-                                                )[1] ),
-
-        #'sysFile'                : lambda x, t: {     '-delete'    : "Path(%(path)s).remove()",
-        #                                            '-del'        : "Path(%(path)s).remove()",
-        #                                            '-rename'    : "Path(%(path)s).move(%(param)s)",
-        #                                            '-ren'        : "Path(%(path)s).move(%(param)s)",
-        #                                            '-move'        : "Path(%(path)s).move(%(param)s)",
-        #                                            '-mov'        : "Path(%(path)s).move(%(param)s)",
-        #                                            '-copy'        : "Path(%(path)s).copy(%(param)s)",
-        #                                            '-cp'        : "Path(%(path)s).copy(%(param)s)",
-        #                                            '-makeDir'    : "Path(%(path)s).mkdir()",
-        #                                            '-md'         : "Path(%(path)s).mkdir()",
-        #                                            '-removeEmptyDir' : "Path(%(path)s).removedirs()",
-        #                                            '-red'         : "Path(%(path)s).removedirs()"
-        #                                            }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] }
+    # file i/o
+    'fopen': ('int', format_fopen),
+    'fprint': (None, lambda x, t: '%s.write(%s)' % (x[0], x[1])),
+    'fclose': (None, lambda x, t: '%s.close()' % (x[0])),
+    'fflush': (None, lambda x, t: '%s.flush()' % (x[0])),
+    'fgetline': ('string', lambda x, t: '%s.readline()' % (x[0])),
+    'frewind': (None, lambda x, t: '%s.seek(0)' % (x[0])),
+    'fgetword': ('string', lambda x, t: "%sfscanf(%s, '%%s')" % (t.lexer.pymel_namespace, x[0])),
+    'feof': ('int', lambda x, t: '%sfeof(%s)' % (t.lexer.pymel_namespace, x[0])),
+    'fread': ('string', format_fread),
 
 
+    #'filetest'                : lambda x, t: (  (  t.lexer.imported_modules.add('os'),  # add os module for access()
+    #                                        {     '-r' : "Path(%(path)s).access(os.R_OK)",
+    #                                            '-l' : "Path(%(path)s).islink()",
+    #                                            '-w' : "Path(%(path)s).access(os.W_OK)",
+    #                                            '-x' : "Path(%(path)s).access(os.X_OK)",
+    #                                            '-f' : "Path(%(path)s).isfile()",
+    #                                            '-d' : "Path(%(path)s).isdir()",
+    #                                            '-h' : "Path(%(path)s).islink()",
+    #                                            '-f' : "Path(%(path)s).exists() and Path(%(path)s).getsize()",
+    #                                            '-L' : "Path(%(path)s).islink()",
+    #                                            }[ x[0] ] % { 'path' :x[1] })
+    #                                        )[1],
 
-        'sysFile'                : ('int',    lambda x, t: (  ( t.lexer.imported_modules.update( ['os', 'shutil'] ),
-                                                {    '-delete'    : "os.remove(%(path)s)",
-                                                    '-del'        : "os.remove(%(path)s)",
-                                                    '-rename'    : "os.rename(%(path)s, %(param)s)",
-                                                    '-ren'        : "os.rename(%(path)s, %(param)s)",
-                                                    '-move'        : "os.rename(%(path)s, %(param)s)",
-                                                    '-mov'        : "os.rename(%(path)s, %(param)s)",
-                                                    '-copy'        : "shutil.copy(%(path)s, %(param)s)",
-                                                    '-cp'        : "shutil.copy(%(path)s, %(param)s)",
-                                                    '-makeDir'    : "os.mkdir(%(path)s)",
-                                                    '-md'         : "os.mkdir(%(path)s) ",
-                                                    '-removeEmptyDir' : "os.rmdir(%(path)s)",
-                                                    '-red'         : "os.rmdir(%(path)s)",
-                                                    }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] } )
-                                                )[1] )
+    'filetest': ('int', lambda x, t: ((t.lexer.imported_modules.update(['os', 'os.path']),  # add os module for access()
+                                       {'-r': "os.access(%(path)s, os.R_OK)",
+                                        '-l': "os.path.islink(%(path)s)",
+                                        '-w': "os.access(%(path)s, os.W_OK)",
+                                        '-x': "os.access(%(path)s, os.X_OK)",
+                                        '-f': "os.path.isfile(%(path)s)",
+                                        '-d': "os.path.isdir(%(path)s)",
+                                        '-h': "os.path.islink(%(path)s)",
+                                        '-f': "os.path.exists(%(path)s) and os.path.getsize(%(path)s)",
+                                        '-L': "os.path.islink(%(path)s)",
+                                        }[x[0]] % {'path': x[1]})
+                                      )[1]),
+
+    #'sysFile'                : lambda x, t: {     '-delete'    : "Path(%(path)s).remove()",
+    #                                            '-del'        : "Path(%(path)s).remove()",
+    #                                            '-rename'    : "Path(%(path)s).move(%(param)s)",
+    #                                            '-ren'        : "Path(%(path)s).move(%(param)s)",
+    #                                            '-move'        : "Path(%(path)s).move(%(param)s)",
+    #                                            '-mov'        : "Path(%(path)s).move(%(param)s)",
+    #                                            '-copy'        : "Path(%(path)s).copy(%(param)s)",
+    #                                            '-cp'        : "Path(%(path)s).copy(%(param)s)",
+    #                                            '-makeDir'    : "Path(%(path)s).mkdir()",
+    #                                            '-md'         : "Path(%(path)s).mkdir()",
+    #                                            '-removeEmptyDir' : "Path(%(path)s).removedirs()",
+    #                                            '-red'         : "Path(%(path)s).removedirs()"
+    #                                            }[ x[0] ] % { 'path' :x[-1], 'param':x[-2] }
+
+
+
+    'sysFile': ('int', lambda x, t: ((t.lexer.imported_modules.update(['os', 'shutil']),
+                                      {'-delete': "os.remove(%(path)s)",
+                                       '-del': "os.remove(%(path)s)",
+                                       '-rename': "os.rename(%(path)s, %(param)s)",
+                                       '-ren': "os.rename(%(path)s, %(param)s)",
+                                       '-move': "os.rename(%(path)s, %(param)s)",
+                                       '-mov': "os.rename(%(path)s, %(param)s)",
+                                       '-copy': "shutil.copy(%(path)s, %(param)s)",
+                                       '-cp': "shutil.copy(%(path)s, %(param)s)",
+                                       '-makeDir': "os.mkdir(%(path)s)",
+                                       '-md': "os.mkdir(%(path)s) ",
+                                       '-removeEmptyDir': "os.rmdir(%(path)s)",
+                                       '-red': "os.rmdir(%(path)s)",
+                                       }[x[0]] % {'path': x[-1], 'param': x[-2]})
+                                     )[1])
 }
 
 #: mel commands which were not ported to python, but which have flags that need to be translated
 melCmdFlagList = {
-             'error'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
-             'warning' : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
-             'trace'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } }
-             }
+    'error': {'flags': {'showLineNumber': {'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'}}},
+    'warning': {'flags': {'showLineNumber': {'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'}}},
+    'trace': {'flags': {'showLineNumber': {'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'}}}
+}
 
 #: mel commands which were not ported to python; if we find one of these in pymel, we'll assume it's a replacement
-melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs'] #
-melCmdList = [ x for x in melCmdList if not proc_remap.has_key(x) and ( hasattr(pymel,x) or hasattr(builtin_module,x) ) ]
+melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs']
+melCmdList = [x for x in melCmdList if not proc_remap.has_key(x) and (hasattr(pymel, x) or hasattr(builtin_module, x))]
 
 #  Token -----------------------------------------------------------------------
 
 class Token(str):
+
     def __new__(cls, val, type, lineno=None, **kwargs):
-        self=str.__new__(cls,val)
+        self = str.__new__(cls, val)
         self.type = type
         if lineno is None:
             if hasattr(val, 'lineno') and isinstance(val.lineno, int):
@@ -1018,7 +1027,7 @@ class Token(str):
             elif hasattr(val, 'lexer'):
                 lineno = val.lexer.lineno
         self.lineno = lineno
-        self.__dict__.update( kwargs )
+        self.__dict__.update(kwargs)
         return self
 
     def _getKwargs(self):
@@ -1029,14 +1038,17 @@ class Token(str):
     def __getslice__(self, start, end):
         return type(self)(str.__getslice__(self, start, end), self.type,
                           **self._getKwargs())
-    def __add__(self, other ):
+
+    def __add__(self, other):
         newdict = self.__dict__
         try:
-            newdict.update( other.__dict__ )
-        except: pass
-        return Token( str.__add__( self, other ), **newdict  )
+            newdict.update(other.__dict__)
+        except:
+            pass
+        return Token(str.__add__(self, other), **newdict)
 
 class ArrayToken(Token):
+
     def __new__(cls, val, type, size, lineno=None, **kwargs):
         self = Token.__new__(cls, val, type, lineno=lineno, **kwargs)
         self.size = size
@@ -1063,6 +1075,7 @@ batchData = BatchData()
 #  Comment ---------------------------------------------------------------------
 
 class Comment(object):
+
     def __init__(self, token):
         if token.type not in ('COMMENT', 'COMMENT_BLOCK'):
             raise TypeError("Non-comment token type: %s" % token.type)
@@ -1122,14 +1135,14 @@ def p_translation_unit(t):
     '''translation_unit : external_declaration
                         | translation_unit external_declaration'''
     t[0] = assemble(t, 'p_translation_unit')
-    #print '\n'
+    # print '\n'
 
 # external-declaration:
 def p_external_declaration(t):
     '''external_declaration : statement
                             | function_definition'''
     t[0] = assemble(t, 'p_external_declaration')
-    #if t.lexer.verbose:
+    # if t.lexer.verbose:
     #    print "external_declaration", t[0]
 
 # function-definition:
@@ -1137,9 +1150,8 @@ def p_function_definition(t):
     '''function_definition :  function_declarator function_specifiers_opt ID seen_func LPAREN function_arg_list_opt RPAREN hold_comments compound_statement'''
     #t[0] = assemble(t, 'p_function_definition')
 
-
     # add to the ordered list of procs
-    t.lexer.proc_list.append( t[3] )
+    t.lexer.proc_list.append(t[3])
 
     # global proc
     if t[1][0] == 'global':
@@ -1150,7 +1162,7 @@ def p_function_definition(t):
         # local proc gets prefixed with underscore
         funcName = '_%s' % (t[3],)
 
-    procDict[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
+    procDict[t[3]] = {'returnType': t[2], 'args': t[6]}
 
     comments, docstring = format_held_comments_and_docstring(t, 'func')
     # add the held comments after the func definition, as a docstring
@@ -1162,7 +1174,7 @@ def p_seen_func(t):
     '''seen_func :'''
 
     global batchData
-    #print "seen_func", t[-1].__repr__(), t[-2].__repr__(), t[-3].__repr__()
+    # print "seen_func", t[-1].__repr__(), t[-2].__repr__(), t[-3].__repr__()
 
     if t.lexer.root_module in batchData.currentModules:
         module = t.lexer.root_module
@@ -1171,16 +1183,16 @@ def p_seen_func(t):
 
     if t[-3][0] == 'global':
 
-        #print "adding function: (%s) %s.%s, %s" % (  t.lexer.root_module, module, t[-1], t[-2] )
-        batchData.proc_to_module[ t[-1] ] = ( module, t[-2] )
-    #else:
+        # print "adding function: (%s) %s.%s, %s" % (  t.lexer.root_module, module, t[-1], t[-2] )
+        batchData.proc_to_module[t[-1]] = (module, t[-2])
+    # else:
     #    print "skipping function: (%s) %s.%s, %s" % (  t.lexer.root_module, module, t[-1], t[-2] )
 
 def p_hold_comments(t):
     '''hold_comments :'''
     if t.lexer.verbose:
         print "holding", t.lexer.comment_queue
-    t.lexer.comment_queue_hold.append( t.lexer.comment_queue )
+    t.lexer.comment_queue_hold.append(t.lexer.comment_queue)
     t.lexer.comment_queue = []
 
 # function-specifiers
@@ -1213,7 +1225,7 @@ def p_function_arg_list(t):
                         | function_arg_list COMMA function_arg'''
 
     #t[0] = assemble(t, 'p_function_arg_list')
-    if len(t)>2:
+    if len(t) > 2:
         t[0] = t[1] + [t[3]]
     # start a new list
     else:
@@ -1237,7 +1249,7 @@ def p_declaration_statement(t):
     #
     #t[0] = assemble(t, 'p_declaration_statement')
 
-    def includeGlobalVar( var ):
+    def includeGlobalVar(var):
         # handle whether we initialize this variable to the value of the mel global variable.
         # in some cases, the global variable is only for passing within the same script, in which
         # case the python global variable will suffice.  in other cases, we may want to retrieve a
@@ -1261,10 +1273,8 @@ def p_declaration_statement(t):
     else:
         typ = typ[0]
 
-
     # each declaration is a two-element tuple: ( variable, value )
     for var, val in t[2]:
-
 
         if '[]' in var or isinstance(var, ArrayToken):
             iType = typ + '[]'
@@ -1276,7 +1286,8 @@ def p_declaration_statement(t):
         # this must occur after the bracket check, bc the globalVar attribute never includes brackets
         try:
             var = var.globalVar
-        except AttributeError: pass
+        except AttributeError:
+            pass
 
         # this must occur after the globalVar attribute check, bc otherwise it will convert the Token into a string
         origVar = var
@@ -1287,8 +1298,8 @@ def p_declaration_statement(t):
             # array initialization
             if '[]' in iType:
                 if t.lexer.force_compatibility:
-                    val = '%sutil.defaultlist(%s)' % ( t.lexer.pymel_namespace,
-                                                     mel_type_to_python_type[typ] )
+                    val = '%sutil.defaultlist(%s)' % (t.lexer.pymel_namespace,
+                                                      mel_type_to_python_type[typ])
                 elif isinstance(origVar, ArrayToken) and origVar.size:
                     val = '[%s] * (%s)' % (default_values[typ], origVar.size)
                 else:
@@ -1305,15 +1316,15 @@ def p_declaration_statement(t):
             # global variable -- overwrite init
             if isGlobal:
 
-                t.lexer.global_vars.add( var )
+                t.lexer.global_vars.add(var)
 
                 # this is the old method, leaving here in case we want to add a switch
                 if False:
                     t[0] += 'global %s\n' % var
-                    if includeGlobalVar( var):
+                    if includeGlobalVar(var):
                         t[0] += "%s = %sgetMelGlobal(%r, %r)\n" % (var, t.lexer.pymel_namespace, iType, var)
                 else:
-                    t[0] += "%smelGlobals.initVar(%r, %r)\n" % ( t.lexer.pymel_namespace, iType, var )
+                    t[0] += "%smelGlobals.initVar(%r, %r)\n" % (t.lexer.pymel_namespace, iType, var)
 
             else:
                 t[0] += var + ' = ' + val + '\n'
@@ -1321,12 +1332,12 @@ def p_declaration_statement(t):
         # initialize to value
         else:
 
-            t[0] += merge_assignment_spillover( t, val.lineno, 'declaration_statement' )
-            val = format_assignment_value( val, iType )
+            t[0] += merge_assignment_spillover(t, val.lineno, 'declaration_statement')
+            val = format_assignment_value(val, iType)
 
             try:
                 if val.tokenize:
-                    t[0] += format_tokenize_size(val,var)
+                    t[0] += format_tokenize_size(val, var)
 
             except:
 
@@ -1344,22 +1355,21 @@ def p_declaration_statement(t):
                     if False:
                         t[0] += 'global %s\n' % var
                         t[0] += '%s=%s\n' % (var, val)
-                        if includeGlobalVar( var):
-                            t[0] += "%ssetMelGlobal( '%s', '%s', %s )\n" % ( t.lexer.pymel_namespace, iType, var, var)
+                        if includeGlobalVar(var):
+                            t[0] += "%ssetMelGlobal( '%s', '%s', %s )\n" % (t.lexer.pymel_namespace, iType, var, var)
                     else:
-                        t[0] += "%smelGlobals.initVar( '%s', '%s' )\n" % ( t.lexer.pymel_namespace, iType, var )
-                        t[0] += "%smelGlobals['%s'] = %s\n" % ( t.lexer.pymel_namespace, var, val)
+                        t[0] += "%smelGlobals.initVar( '%s', '%s' )\n" % (t.lexer.pymel_namespace, iType, var)
+                        t[0] += "%smelGlobals['%s'] = %s\n" % (t.lexer.pymel_namespace, var, val)
 
                 else:
                     if array and t.lexer.force_compatibility:
-                        val = '%sutil.defaultlist(%s, %s)' % ( t.lexer.pymel_namespace,
-                                                     mel_type_to_python_type[typ],
-                                                     val )
+                        val = '%sutil.defaultlist(%s, %s)' % (t.lexer.pymel_namespace,
+                                                              mel_type_to_python_type[typ],
+                                                              val)
 
                     t[0] += var + '=' + val + '\n'
 
-
-    append_comments( t, 'declaration_statement' )
+    append_comments(t, 'declaration_statement')
 
 
 # declaration-specifiers
@@ -1387,7 +1397,6 @@ def p_type_specifier(t):
     t[0] = assemble(t, 'p_type_specifier')
 
 
-
 # init-declarator-list:
 def p_init_declarator_list(t):
     '''init_declarator_list : init_declarator
@@ -1398,12 +1407,11 @@ def p_init_declarator_list(t):
     #t[0] = assemble(t, 'p_init_declarator_list')
 
     # add to list
-    if len(t)>2:
+    if len(t) > 2:
         t[0] = t[1] + [t[3]]
     # start a new list
     else:
         t[0] = [t[1]]
-
 
 
 # init-declarator
@@ -1415,11 +1423,10 @@ def p_init_declarator(t):
     #t[0] = assemble(t, 'p_init_declarator', ' ')
 
     if len(t) > 2:
-        t[0] = (t[1], store_assignment_spillover( t[3], t) )
+        t[0] = (t[1], store_assignment_spillover(t[3], t))
 
     else:
-        t[0] = (t[1], None )
-
+        t[0] = (t[1], None)
 
 
 # declarator:
@@ -1436,9 +1443,9 @@ def p_declarator_2(t):
     # var
     # var[]
     # var[1]
-    t[3] = store_assignment_spillover( t[3], t )
+    t[3] = store_assignment_spillover(t[3], t)
     t[0] = ArrayToken(t[1], 'string', t[3])
-    #if len(t) == 5:
+    # if len(t) == 5:
     #    if not t[3]:
     #        t[0] = t[1]
 
@@ -1490,11 +1497,10 @@ def p_statement_complex(t):
     t[0] = assemble(t, 'p_statement_complex')
 
 # labeled-statement:
-#def REMOVED_labeled_statement_1(t):
+# def REMOVED_labeled_statement_1(t):
 #    '''labeled_statement : ID COLON statement'''
 #    # N/A ?
 #    t[0] = assemble(t, 'p_labeled_statement_1')
-
 
 
 def p_labeled_statement_list(t):
@@ -1506,12 +1512,12 @@ def p_labeled_statement_list(t):
     else:
         t[0] = t[1] + [t[2]]
 
-#def REMOVED_labeled_statement_2(t):
+# def REMOVED_labeled_statement_2(t):
 #    '''labeled_statement : CASE constant_expression COLON statement_list_opt'''
 #    #t[0] = assemble(t, 'p_labeled_statement_2')
 #    t[0] = ['case %s == ' + t[2] + ':\n'] + t[4]
 
-#def REMOVED_labeled_statement_3(t):
+# def REMOVED_labeled_statement_3(t):
 #    '''labeled_statement : DEFAULT COLON statement_list'''
 #    #t[0] = assemble(t, 'p_labeled_statement_3')
 #
@@ -1523,14 +1529,14 @@ def p_labeled_statement_2(t):
     fallthrough = True
     block = []
     for line in t[4]:
-        lines = [ x + '\n' for x in line.split('\n')]
+        lines = [x + '\n' for x in line.split('\n')]
         block.extend(lines)
 
-    i=0
-    for i,line in enumerate(block):
-        #print "--->", line
+    i = 0
+    for i, line in enumerate(block):
+        # print "--->", line
         if line.startswith('break'):
-            #print "---breaking----"
+            # print "---breaking----"
             fallthrough = False
             break
 
@@ -1553,16 +1559,16 @@ def p_labeled_statement_3(t):
 def p_expression_statement(t):
     '''expression_statement : expression_opt SEMI'''
 
-    t[0] = merge_assignment_spillover( t, t[1].lineno, 'expression_statement'  )
+    t[0] = merge_assignment_spillover(t, t[1].lineno, 'expression_statement')
     t[0] += t[1] + '\n'
     append_comments(t)
 
 # compound-statement:
 def p_compound_statement(t):
     '''compound_statement   : LBRACE statement_list RBRACE
-                            | LBRACE RBRACE''' # causes reduce/reduce conflict with postfix_expression
+                            | LBRACE RBRACE'''  # causes reduce/reduce conflict with postfix_expression
 
-    #print "compound, emptying queue:", t.lexer.comment_queue
+    # print "compound, emptying queue:", t.lexer.comment_queue
     #t[0] = ''.join(t.lexer.comment_queue)
     #t.lexer.comment_queue = []
 
@@ -1578,7 +1584,7 @@ def p_statement_list_opt(t):
     '''statement_list_opt : statement_list
                   | empty'''
     #t[0] = assemble(t, 'p_expression_list_opt')
-    if isinstance(t[1],list):
+    if isinstance(t[1], list):
         t[0] = t[1]
     else:
         t[0] = []
@@ -1597,25 +1603,25 @@ def p_statement_list(t):
 def p_selection_statement_1(t):
     '''selection_statement : IF LPAREN expression RPAREN statement_required'''
     #t[0] = assemble(t, 'p_selection_statement_1')
-    t[0] = merge_assignment_spillover( t, t[3].lineno, 'selection_statement_1' )
-    t[0] += 'if %s:\n%s' % (t[3],entabLines(t[5]))
+    t[0] = merge_assignment_spillover(t, t[3].lineno, 'selection_statement_1')
+    t[0] += 'if %s:\n%s' % (t[3], entabLines(t[5]))
 
 
 def p_selection_statement_2(t):
     '''selection_statement : IF LPAREN expression RPAREN statement_required ELSE hold_comments statement_required '''
     #t[0] = assemble(t, 'p_selection_statement_2')
-    t[0] = merge_assignment_spillover( t, t[3].lineno, 'selection_statement_2' )
+    t[0] = merge_assignment_spillover(t, t[3].lineno, 'selection_statement_2')
     t[0] += 'if %s:\n%s\n' % (t[3], entabLines(t[5]))
 
     # elif correction
-    match = re.match( r'(?:\s*)(if\b.*:)', t[8] )
+    match = re.match(r'(?:\s*)(if\b.*:)', t[8])
     elseStmnt = ''
     if match:
-        elseStmnt='el%s\n%s' % ( match.group(1), t[8][match.end()+1:] )
+        elseStmnt = 'el%s\n%s' % (match.group(1), t[8][match.end() + 1:])
     else:
-        elseStmnt='else:\n%s' % ( entabLines(t[8]) )
+        elseStmnt = 'else:\n%s' % (entabLines(t[8]))
 
-    t[0] += format_held_comments( t, 'if/else') + elseStmnt
+    t[0] += format_held_comments(t, 'if/else') + elseStmnt
 
 def p_selection_statement_3(t):
     '''selection_statement : SWITCH LPAREN expression RPAREN hold_comments LBRACE labeled_statement_list RBRACE'''
@@ -1675,13 +1681,13 @@ def p_selection_statement_3(t):
                     lines += block
                 else:
                     conditions.add(condition)
-                    i += 1 # on the next while loop, we will skip this case, because it is now subsumed under the current case
+                    i += 1  # on the next while loop, we will skip this case, because it is now subsumed under the current case
 
             else:
                 if hasNonCommentPyCode(block) or lines:
                     lines += block
                 else:
-                    lines.append( 'pass\n' )
+                    lines.append('pass\n')
 
                 if condition is not None and len(conditions) == j:
                     conditions.add(condition)
@@ -1689,11 +1695,11 @@ def p_selection_statement_3(t):
                 break
 
         i += 1
-        conditions.add( mainCondition )
+        conditions.add(mainCondition)
         conditions = list(conditions)
-        block = entabLines( ''.join( lines ) )
-        if len(conditions)>1:
-            t[0] += '%s %s in (%s):\n%s' % ( control, variable, ', '.join(conditions), block )
+        block = entabLines(''.join(lines))
+        if len(conditions) > 1:
+            t[0] += '%s %s in (%s):\n%s' % (control, variable, ', '.join(conditions), block)
         else:
             if conditions[0] is None:
                 if not hasNonCommentPyCode(t[0]):
@@ -1704,17 +1710,16 @@ def p_selection_statement_3(t):
                     else:
                         # otherwise, just set it
                         t[0] = Token(standIn, 'string', t.lexer.lineno)
-                t[0] +=  'else:\n%s' % ( block )
+                t[0] += 'else:\n%s' % (block)
             else:
-                t[0] +=  '%s %s == %s:\n%s' % ( control, variable, conditions[0], block )
+                t[0] += '%s %s == %s:\n%s' % (control, variable, conditions[0], block)
 
-
-    #print t[0]
+    # print t[0]
 
     t[0] = format_held_comments(t, 'switch') + t[0]
 
 
-#def REMOVED_selection_statement_3(t):
+# def REMOVED_selection_statement_3(t):
 #    '''selection_statement : SWITCH LPAREN expression RPAREN hold_comments LBRACE labeled_statement_list RBRACE'''
 #    #t[0] = assemble(t, 'p_selection_statement_3')
 #
@@ -1755,7 +1760,7 @@ def p_selection_statement_3(t):
 def p_iteration_statement_1(t):
     '''iteration_statement : WHILE LPAREN expression RPAREN hold_comments statement_required'''
     #t[0] = assemble(t, 'p_iteration_statement_1')
-    t[0] = format_held_comments(t, 'while') + 'while %s:\n%s\n' % (t[3], entabLines(t[6]) )
+    t[0] = format_held_comments(t, 'while') + 'while %s:\n%s\n' % (t[3], entabLines(t[6]))
 
 
 def p_iteration_statement_2(t):
@@ -1856,16 +1861,16 @@ def p_iteration_statement_2(t):
         t[0] += '\nwhile 1:\n'
 
         if cond_exprs:
-            t[0] += entabLines( 'if not ( %s ):\n\tbreak\n' % ' or '.join(cond_exprs) )
+            t[0] += entabLines('if not ( %s ):\n\tbreak\n' % ' or '.join(cond_exprs))
 
-        t[0] += entabLines( statement_body )
+        t[0] += entabLines(statement_body)
 
         if update_exprs:
-            t[0] += entabLines('\n'.join( update_exprs ) + '\n')
+            t[0] += entabLines('\n'.join(update_exprs) + '\n')
 
         t[0] = format_held_comments(t, 'for') + t[0]
 
-    if len(cond_exprs) == 1 and len(init_exprs) >= 1 and len(update_exprs) >=1:
+    if len(cond_exprs) == 1 and len(init_exprs) >= 1 and len(update_exprs) >= 1:
         #---------------------------------------------
         # Conditional Expression  --> End
         #---------------------------------------------
@@ -1879,7 +1884,7 @@ def p_iteration_statement_2(t):
         except IndexError:
             return default_formatting()
 
-        cond_vars = set( filter( var_reg.match, cond_buf) )
+        cond_vars = set(filter(var_reg.match, cond_buf))
 
         #---------------------------------------------
         # Update Expression --> Step
@@ -1896,11 +1901,11 @@ def p_iteration_statement_2(t):
 
             # update_opt:  ++
             try:
-                update_op = update_buf.pop(1) # this might raise an indexError if the update expression followed the form:  $i = $i+1
+                update_op = update_buf.pop(1)  # this might raise an indexError if the update expression followed the form:  $i = $i+1
                 # find the variables in the update statement, and find which were also present in conditional statement
-                update_vars = filter( var_reg.match, update_buf)
+                update_vars = filter(var_reg.match, update_buf)
                 iterator = list(cond_vars.intersection(update_vars))
-                #print cond_vars, tmp, iterator
+                # print cond_vars, tmp, iterator
             except IndexError:
                 count += 1
             else:
@@ -1927,11 +1932,11 @@ def p_iteration_statement_2(t):
 
         update_exprs.pop(count)
 
-        #print "iterator:%s, update_op:%s, update_expr:%s, step:%s" % (iterator, update_op, update_exprs, step)
+        # print "iterator:%s, update_op:%s, update_expr:%s, step:%s" % (iterator, update_op, update_exprs, step)
 
         # determine the step
         if update_op.startswith('-'):
-            step = '-'+step
+            step = '-' + step
             if cond_relop == '>=':
                 end = end + '-1'
         elif cond_relop == '<=':
@@ -1955,14 +1960,14 @@ def p_iteration_statement_2(t):
                 else:
                     start = iterator
 
-        #print "start: %s, end: %s, step: %s" % (start, end, step)
+        # print "start: %s, end: %s, step: %s" % (start, end, step)
 
         if step == '1':
             t[0] = 'for %s in range(%s,%s):\n%s' % (iterator, start, end, entabLines(statement_body))
         else:
-            t[0] = 'for %s in range(%s,%s,%s):\n%s' % (iterator, start, end, step, entabLines(statement_body) )
+            t[0] = 'for %s in range(%s,%s,%s):\n%s' % (iterator, start, end, step, entabLines(statement_body))
 
-        if len( update_exprs ):
+        if len(update_exprs):
             t[0] += '\n' + entabLines('\n'.join(update_exprs) + '\n')
 
         t[0] = format_held_comments(t, 'for') + t[0]
@@ -1988,8 +1993,8 @@ def p_iteration_statement_4(t):
     if t.lexer.force_compatibility:
         # if we're forcing compatibility, repeat the entire contents of the loop
         # once, then create a while loop...
-        t[0] = t[2]    + '\n'
-        t[0] += 'while %s:\n%s\n' % (t[5], entabLines(t[2]) )
+        t[0] = t[2] + '\n'
+        t[0] += 'while %s:\n%s\n' % (t[5], entabLines(t[2]))
         t[0] = format_held_comments(t, 'do while') + t[0]
     else:
         # otherwise, create a variable, first_run_of_do_while_loop=True
@@ -1997,7 +2002,7 @@ def p_iteration_statement_4(t):
         t[0] = 'first_run_of_do_while_loop = True\n'
         newCondition = 'first_run_of_do_while_loop or (%s)' % t[5]
         newBody = entabLines('first_run_of_do_while_loop = False\n%s' % t[2])
-        t[0] += 'while %s:\n%s\n' % (newCondition, newBody )
+        t[0] += 'while %s:\n%s\n' % (newCondition, newBody)
         t[0] = format_held_comments(t, 'do while') + t[0]
 
 
@@ -2007,7 +2012,7 @@ def p_jump_statement(t):
                     | BREAK SEMI
                     | RETURN expression_opt SEMI'''
     t[0] = assemble(t, 'p_jump_statement')
-    if len(t)==4:
+    if len(t) == 4:
         t[0] = t[1] + ' ' + t[2] + '\n'
     else:
         t[0] = t[1] + '\n'
@@ -2018,8 +2023,6 @@ def p_expression_opt(t):
     '''expression_opt : empty
                       | expression'''
     t[0] = assemble(t, 'p_expression_opt')
-
-
 
 
 # expression:
@@ -2054,7 +2057,7 @@ def p_expression_list_opt(t):
                   | empty'''
     #t[0] = assemble(t, 'p_expression_list_opt')
 
-    if isinstance(t[1],list):
+    if isinstance(t[1], list):
         t[0] = t[1]
     else:
         t[0] = []
@@ -2095,17 +2098,13 @@ def p_conditional_expression_2(t):
     '''conditional_expression : logical_or_expression CONDOP expression COLON conditional_expression '''
 
     # ($x>1) ? 1 : 0  --->  (x>1) and 1 or 0
-    t[1] = store_assignment_spillover( t[1], t )
+    t[1] = store_assignment_spillover(t[1], t)
     t[2] = 'and'
-    t[3] = store_assignment_spillover( t[3], t )
+    t[3] = store_assignment_spillover(t[3], t)
     t[4] = 'or'
-    t[5] = store_assignment_spillover( t[5], t )
+    t[5] = store_assignment_spillover(t[5], t)
     t[0] = assemble(t, 'p_conditional_expression_2', ' ')
     #t[0] = '%s and %s or %s' % ( t[1], t[3], t[5] )
-
-
-
-
 
 
 # logical-or-expression
@@ -2114,9 +2113,9 @@ def p_logical_or_expression_1(t):
                              | logical_or_expression LOR logical_and_expression'''
 
     if len(t) == 4:
-        t[1] = store_assignment_spillover( t[1], t )
+        t[1] = store_assignment_spillover(t[1], t)
         t[2] = 'or'
-        t[3] = store_assignment_spillover( t[3], t )
+        t[3] = store_assignment_spillover(t[3], t)
 
     t[0] = assemble(t, 'p_logical_or_expression', ' ')
 
@@ -2126,29 +2125,26 @@ def p_logical_and_expression_1(t):
                               | logical_and_expression LAND assignment_expression'''
 
     if len(t) == 4:
-        t[1] = store_assignment_spillover( t[1], t )
+        t[1] = store_assignment_spillover(t[1], t)
         t[2] = 'and'
-        t[3] = store_assignment_spillover( t[3], t )
+        t[3] = store_assignment_spillover(t[3], t)
     t[0] = assemble(t, 'p_logical_and_expression', ' ')
-
-
 
 
 # assigment_expression:
 def p_assignment_expression(t):
-
     '''assignment_expression : equality_expression
-                            | postfix_expression assignment_operator assignment_expression''' # changed first item from unary to postfix
+                            | postfix_expression assignment_operator assignment_expression'''  # changed first item from unary to postfix
 #                            | CAPTURE assignment_expression CAPTURE'''
 #                            | unary_expression assignment_operator CAPTURE assignment_expression CAPTURE'''
 
     if len(t) == 4:
-        #print t[1], t[2], t[3]
+        # print t[1], t[2], t[3]
 
-        t[3] = format_assignment_value( t[3], t[1].type )
+        t[3] = format_assignment_value(t[3], t[1].type)
 
-        if hasattr( t[3], 'tokenize' ):
-            t[0] = format_tokenize_size(t[3],t[1])
+        if hasattr(t[3], 'tokenize'):
+            t[0] = format_tokenize_size(t[3], t[1])
 
         else:
 
@@ -2157,7 +2153,7 @@ def p_assignment_expression(t):
                 raise NotImplementedError, "I didn't think we'd make it here. the line below seems very wrong."
                 #t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
 
-            elif t[2] in ['=', ' = '] and  t.lexer.expression_only:
+            elif t[2] in ['=', ' = '] and t.lexer.expression_only:
                 raise TypeError, "This mel code is not capable of being translated as a python expression"
 
             # fill in the append string:
@@ -2166,18 +2162,17 @@ def p_assignment_expression(t):
             #    stage2:        foo.append(%s) = bar
             #    stage3:        foo.append(bar)
 
-            elif hasattr( t[1], 'appendingToArray' ):
+            elif hasattr(t[1], 'appendingToArray'):
                 var = t[1].appendingToArray
-                if hasattr( t[1], 'globalVar' ):
-                    t[0] = '%s += [%s]' % ( var, t[3] )
+                if hasattr(t[1], 'globalVar'):
+                    t[0] = '%s += [%s]' % (var, t[3])
                 else:
-                    t[0] = '%s.append(%s)' % ( var, t[3] )
-
+                    t[0] = '%s.append(%s)' % (var, t[3])
 
             # setting item on a global array
-            elif hasattr( t[1], 'globalVar') and hasattr( t[2], 'indexingItem' ):
+            elif hasattr(t[1], 'globalVar') and hasattr(t[2], 'indexingItem'):
                 var, expr = t[1].indexingItem
-                t[0] = var + '.setItem(%s,%s)' % ( expr, t[3])
+                t[0] = var + '.setItem(%s,%s)' % (expr, t[3])
 
 #                elif t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
 #                    t[0] = t[1] % t[3]
@@ -2213,8 +2208,8 @@ def p_equality_expression_1(t):
                             | equality_expression NE relational_expression'''
 
     if len(t) == 4:
-        t[1] = store_assignment_spillover( t[1], t )
-        t[3] = store_assignment_spillover( t[3], t )
+        t[1] = store_assignment_spillover(t[1], t)
+        t[3] = store_assignment_spillover(t[3], t)
 
     t[0] = assemble(t, 'p_equality_expression_3', ' ')
 
@@ -2228,8 +2223,8 @@ def p_relational_expression_1(t):
                              | relational_expression GE shift_expression'''
 
     if len(t) == 4:
-        t[1] = store_assignment_spillover( t[1], t )
-        t[3] = store_assignment_spillover( t[3], t )
+        t[1] = store_assignment_spillover(t[1], t)
+        t[3] = store_assignment_spillover(t[3], t)
 
     t[0] = assemble(t, 'p_relational_expression_5')
 
@@ -2244,23 +2239,20 @@ def p_additive_expression(t):
                             | additive_expression PLUS multiplicative_expression
                             | additive_expression MINUS multiplicative_expression'''
 
-
-
     if len(t) == 4:
-        t[1] = store_assignment_spillover( t[1], t )
-        t[3] = store_assignment_spillover( t[3], t )
+        t[1] = store_assignment_spillover(t[1], t)
+        t[3] = store_assignment_spillover(t[3], t)
 
         if t[2] == '+':
-            #print t[1], t[1].type, t[3], t[3].type
+            # print t[1], t[1].type, t[3], t[3].type
             if t[1].type == 'string' and t[3].type != 'string':
-                t[0] = Token( '%s + str(%s)' % (t[1], t[3]) , 'string' )
+                t[0] = Token('%s + str(%s)' % (t[1], t[3]), 'string')
                 return
             elif t[3].type == 'string' and t[1].type != 'string':
-                t[0] = Token( 'str(%s) + %s' % (t[1], t[3]), 'string' )
+                t[0] = Token('str(%s) + %s' % (t[1], t[3]), 'string')
                 return
 
     t[0] = assemble(t, 'p_additive_expression', ' ')
-
 
     #    if t[1].endswith('"'):
     #        t[0] = t[1][:-1] + '%s" % ' + t[3]
@@ -2274,12 +2266,10 @@ def p_multiplicative_expression(t):
                                 | multiplicative_expression MOD cast_expression
                                 | multiplicative_expression CROSS cast_expression'''
     if len(t) > 2:
-        t[1] = store_assignment_spillover( t[1], t )
-        t[3] = store_assignment_spillover( t[3], t )
+        t[1] = store_assignment_spillover(t[1], t)
+        t[3] = store_assignment_spillover(t[3], t)
 
     t[0] = assemble(t, 'p_multiplicative_expression', ' ')
-
-
 
 
 # cast-expression:
@@ -2291,13 +2281,13 @@ def p_cast_expression(t):
     # (int)myvar
 
     if len(t) == 5 and t[1] == '(':
-        t[0] =  Token( '%s(%s)' % (mel_type_to_python_type[ t[2] ], t[4]) , t[2].type  )
+        t[0] = Token('%s(%s)' % (mel_type_to_python_type[t[2]], t[4]), t[2].type)
         # skip assemble
         return
 
     # int( x+3 )
     if len(t) == 5 and t[1] == 'string':
-        t[1] = mel_type_to_python_type[ t[1] ]
+        t[1] = mel_type_to_python_type[t[1]]
 
     t[0] = assemble(t, 'p_cast_expression')
 
@@ -2307,12 +2297,12 @@ def p_unary_expression(t):
     '''unary_expression : postfix_expression
                         | unary_operator cast_expression'''
 
-    if len(t)>2:
+    if len(t) > 2:
         if t[1] == '!':
             t[1] = 'not '
 
-        t[2] = store_assignment_spillover( t[2], t )
-        t[0] = Token( t[1] + t[2], t[2].type, t[2].lineno )
+        t[2] = store_assignment_spillover(t[2], t)
+        t[0] = Token(t[1] + t[2], t[2].type, t[2].lineno)
 
     else:
         t[0] = assemble(t, 'p_unary_expression')
@@ -2322,7 +2312,7 @@ def p_unary_expression_2(t):
                         | MINUSMINUS unary_expression'''
     # ++$var --> var+=1
     #t[0] = Operation( t[2], t[1][0] + '=', '1')
-    t[0] = assemble(t, 'p_unary_expression', '', [t[2], t[1][0] + '=1'] )
+    t[0] = assemble(t, 'p_unary_expression', '', [t[2], t[1][0] + '=1'])
     t[0].assignment = t[2]
 
 # unary-command-expression:
@@ -2330,8 +2320,8 @@ def p_unary_command_expression(t):
     '''unary_command_expression : procedure_expression
                                 | unary_operator procedure_expression'''
 
-    if len(t)>2 and t[1] == '!':
-            t[1] = 'not '
+    if len(t) > 2 and t[1] == '!':
+        t[1] = 'not '
     t[0] = assemble(t, 'p_unary_expression')
 
 # unary-operator
@@ -2341,7 +2331,7 @@ def p_unary_operator(t):
                     | NOT'''
     t[0] = assemble(t, 'p_unary_operator')
 
-#def p_catch_expression(t):
+# def p_catch_expression(t):
 #    '''catch_expression : procedure_expression
 #                    | CATCH expression'''
 #    t[0] = assemble(t, 'p_catch_expression')
@@ -2354,7 +2344,7 @@ def p_procedure_expression(t):
     t[0] = assemble(t, 'p_procedure_expression')
 
 
-#def p_procedure(t):
+# def p_procedure(t):
 #    '''procedure : ID LPAREN procedure_expression_list RPAREN
 #                 | ID LPAREN RPAREN '''
 #    #t[0] = assemble(t, 'p_procedure')
@@ -2372,20 +2362,20 @@ def p_procedure(t):
     # myProc()
 
     if len(t) == 5:
-        t[0] = format_command( t[1], t[3], t )
+        t[0] = format_command(t[1], t[3], t)
     elif len(t) == 3:
-        t[0] = format_command( t[1],[t[2]], t )
+        t[0] = format_command(t[1], [t[2]], t)
     else:
-        t[0] = format_command( t[1],[], t )
+        t[0] = format_command(t[1], [], t)
 
 def p_procedure_expression_list(t):
     '''procedure_expression_list : constant_expression
                                | procedure_expression_list COMMA constant_expression'''
-                               #| procedure_expression_list COMMA comment command_expression'''
+    #| procedure_expression_list COMMA comment command_expression'''
 
     #t[0] = assemble(t, 'p_procedure_expression_list', matchFormatting=False )
 
-    if len(t)>2:
+    if len(t) > 2:
         t[0] = t[1] + [t[3]]
     else:
         t[0] = [t[1]]
@@ -2418,7 +2408,6 @@ def p_postfix_expression(t):
 
     # $var++ --> var += 1
 
-
     # ++ and -- must be converted to += and -=
     if len(t) == 3:
         t[2] = t[2][0] + '=1'
@@ -2435,7 +2424,7 @@ def p_postfix_expression_2(t):
 
     #t[0] = assemble(t, 'p_postfix_expression')
     #t[0] = '[%s]' % ', '.join(t[2])
-    t[2] = [ store_assignment_spillover( x, t ) for x in t[2] ]
+    t[2] = [store_assignment_spillover(x, t) for x in t[2]]
     t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ', ', t[2], matchFormatting=True)
 
 def p_postfix_expression_3(t):
@@ -2444,13 +2433,13 @@ def p_postfix_expression_3(t):
     # vector or matrix
 
     #t[0] = assemble(t, 'p_postfix_expression')
-    t[2] = [ store_assignment_spillover( x, t ) for x in t[2] ]
+    t[2] = [store_assignment_spillover(x, t) for x in t[2]]
     # FIXME:
     # it's possible for a MATRIX to be constructed using this syntax, ie:
     #   matrix $vectorMat[1][3] = << 1, 2, 3 >>;
     # ...yet the token we return is always "Vector" - fix any problems that may
     # result of assigned this into a matrix variable...
-    t[0] = Token( 'Vector([%s])' % ', '.join(t[2]), 'vector', t.lexer.lineno )
+    t[0] = Token('Vector([%s])' % ', '.join(t[2]), 'vector', t.lexer.lineno)
 
 def p_postfix_expression_4(t):
     '''postfix_expression : LVEC matrix_row_list RVEC'''
@@ -2458,9 +2447,9 @@ def p_postfix_expression_4(t):
     # vector or matrix
 
     #t[0] = assemble(t, 'p_postfix_expression')
-    t[2] = [[ store_assignment_spillover( x, t ) for x in row ] for row in t[2]]
+    t[2] = [[store_assignment_spillover(x, t) for x in row] for row in t[2]]
     rows = ['[%s]' % ', '.join(row) for row in t[2]]
-    t[0] = Token( 'Matrix([%s])' % ', '.join(rows), 'matrix', t.lexer.lineno )
+    t[0] = Token('Matrix([%s])' % ', '.join(rows), 'matrix', t.lexer.lineno)
 
 def p_postfix_expression_5(t):
     '''postfix_expression : postfix_expression LBRACKET expression RBRACKET'''
@@ -2468,32 +2457,33 @@ def p_postfix_expression_5(t):
     # array element index:
     # $var[2-4]
     type = t[1].type
-    t[3] = store_assignment_spillover( t[3], t )
+    t[3] = store_assignment_spillover(t[3], t)
     if not t[3]:
         t[0] = t[1]
     elif t[3] == 'len(%s)' % t[1]:
         t[0] = t[1] + '[' + t[3] + ']'
         t[0].appendingToArray = str(t[1])
 
-        #if hasattr( t[1], 'globalVar' ):
+        # if hasattr( t[1], 'globalVar' ):
         #    t[0] = t[1] + ' += [%s]'
-        #else:
+        # else:
         #    t[0] = t[1] + '.append(%s)'
     else:
-        lenSubtractReg = re.compile( 'len\(%s\)\s*(-)' % t[1] )
+        lenSubtractReg = re.compile('len\(%s\)\s*(-)' % t[1])
         try:
             # assignment relative to the end of the array:   x[-1]
-            t[0] = t[1] + '[%s]' % (''.join(lenSubtractReg.split( t[3] )) )
+            t[0] = t[1] + '[%s]' % (''.join(lenSubtractReg.split(t[3])))
         except:
-            t[0] = t[1] + '[%s]' % ( t[3] )
+            t[0] = t[1] + '[%s]' % (t[3])
 
     # type is no longer an array
     try:
         t[0].type = type.strip('[]')
-    except AttributeError: pass
+    except AttributeError:
+        pass
 
-    if hasattr( t[1], 'globalVar' ):
-        t[0].indexingItem = ( t[1], t[3] )
+    if hasattr(t[1], 'globalVar'):
+        t[0].indexingItem = (t[1], t[3])
 
 # matrix_row_list:
 def p_matrix_row_list_1(t):
@@ -2523,7 +2513,7 @@ def p_vector_element_list(t):
 def p_primary_expression_paren(t):
     '''primary_expression :    LPAREN expression RPAREN'''
 
-    t[0] = Token( t[1] + t[2] + t[3], t[2].type )
+    t[0] = Token(t[1] + t[2] + t[3], t[2].type)
 
 def p_primary_expression(t):
     '''primary_expression :    boolean
@@ -2544,8 +2534,8 @@ def p_primary_expression2(t):
     if t.lexer.verbose >= 2:
         print "p_primary_expression", t[0]
 
-    #print "mapping", t[1], t.lexer.type_map.get(t[1], None)
-    #print "p_primary_expression", t[0]
+    # print "mapping", t[1], t.lexer.type_map.get(t[1], None)
+    # print "p_primary_expression", t[0]
 
 def p_numerical_constant(t):
     '''numerical_constant : int_constant
@@ -2555,7 +2545,7 @@ def p_numerical_constant(t):
 def p_int_constant(t):
     '''int_constant :     ICONST'''
     # not needed, python understands this notation without the conversion below
-    #if t[1].startswith('0x'):
+    # if t[1].startswith('0x'):
     #    t[1] = "int( '%s', 16 )" % t[1]
     t[0] = Token(t[1], 'int', t.lexer.lineno)
 
@@ -2565,11 +2555,11 @@ def p_float_constant(t):
 
 
 # comment
-#def p_comment(t):
+# def p_comment(t):
 #    '''comment : COMMENT'''
 #    t[0] = '#' + t[1][2:] + '\n'
 
-#def p_comment_block(t):
+# def p_comment_block(t):
 #    '''comment : COMMENT_BLOCK'''
 #    t[0] = '"""%s"""' % t[1][2:-2] + '\n'
 
@@ -2612,7 +2602,7 @@ def p_variable(t):
                      typ, t.lexer.lineno, globalVar=var)
 
     else:
-        t[0] = Token(var, typ, t.lexer.lineno )
+        t[0] = Token(var, typ, t.lexer.lineno)
 
     if t.lexer.verbose >= 2:
         print "p_variable", t[0]
@@ -2620,7 +2610,7 @@ def p_variable(t):
 def p_variable_vector_component(t):
     '''variable :  VAR COMPONENT'''
     t[1] = t[1].lstrip('$')
-    t[0] = Token(t[1]+t[2], 'float', t.lexer.lineno)
+    t[0] = Token(t[1] + t[2], 'float', t.lexer.lineno)
     if t.lexer.verbose >= 2:
         print "p_variable_vector_component", t[0]
 
@@ -2644,14 +2634,14 @@ def p_command_statement_input_list(t):
                                       | command_statement_input_list command_statement_input'''
     #t[0] = assemble(t, 'p_command_input_list')
 
-    if len(t)>2:
+    if len(t) > 2:
         if isinstance(t[2], list):
             t[0] = t[1] + t[2]
-        #print "append"
+        # print "append"
         else:
             t[0] = t[1] + [t[2]]
     else:
-        #print "new"
+        # print "new"
         if isinstance(t[1], list):
             t[0] = t[1]
         else:
@@ -2666,11 +2656,11 @@ def p_command_statement_input(t):
 
 def p_command_statement_input_2(t):
     '''command_statement_input     : object_list'''
-    t[0] =  map( lambda x: "'%s'" % x, t[1])
+    t[0] = map(lambda x: "'%s'" % x, t[1])
 
 def p_command_statement_input_3(t):
     '''command_statement_input     : ELLIPSIS'''
-    t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
+    t[0] = Token("'%s'" % t[1], None, t.lexer.lineno)
 
 # command
 # -- difference between a comamnd_statement and a command:
@@ -2679,9 +2669,9 @@ def p_command_statement_input_3(t):
 def p_command(t):
     '''command : ID
                 | ID command_input_list'''
-    #print "p_command"
+    # print "p_command"
     if len(t) == 2:
-        t[0] = format_command(t[1],[], t)
+        t[0] = format_command(t[1], [], t)
     else:
         t[0] = format_command(t[1], t[2], t)
 
@@ -2692,14 +2682,14 @@ def p_command_input_list(t):
     #t[0] = assemble(t, 'p_command_input_list')
 
     #t[0] = ' '.join(t[1:])
-    if len(t)>2:
+    if len(t) > 2:
         if isinstance(t[2], list):
             t[0] = t[1] + t[2]
-        #print "append"
+        # print "append"
         else:
             t[0] = t[1] + [t[2]]
     else:
-        #print "new"
+        # print "new"
         if isinstance(t[1], list):
             t[0] = t[1]
         else:
@@ -2712,11 +2702,11 @@ def p_command_input(t):
 
 def p_command_input_2(t):
     '''command_input     : object_list'''
-    t[0] =  map( lambda x: "'%s'" % x, t[1])
+    t[0] = map(lambda x: "'%s'" % x, t[1])
 
 def p_command_input_3(t):
     '''command_input     : ELLIPSIS'''
-    t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
+    t[0] = Token("'%s'" % t[1], None, t.lexer.lineno)
 
 def p_object_list(t):
     '''object_list : object
@@ -2724,51 +2714,50 @@ def p_object_list(t):
     #t[0] = assemble(t, 'p_command_input_list')
 
     #t[0] = ' '.join(t[1:])
-    if len(t)>2:
-        #print "append"
+    if len(t) > 2:
+        # print "append"
         # `myFunc foo[0].bar` and `myFunc foo[0] .bar` appear the same to the lexer
         # we must check whitespace, and join or split where necessary
         lastObj = t[1][-1]
-        #print lastObj #, t[1][-1].lexspan[1]
-        #print t[2], t[2].lexspan[0]+1
-        if lastObj.lexspan[1]+1 == t[2].lexspan[0]:
+        # print lastObj #, t[1][-1].lexspan[1]
+        # print t[2], t[2].lexspan[0]+1
+        if lastObj.lexspan[1] + 1 == t[2].lexspan[0]:
             # same object: join together with last element in the list and add to list
-            #print t[1][-1].lexspan[1]+1, t[2].lexspan[0]
-            joinedToken = Token( lastObj + t[2],
-                                    'string',
-                                    lastObj.lineno,
-                                    lexspan = [ lastObj.lexspan[0], t[2].lexspan[1] ] )
-            t[0] = t[1][:-1] + [ joinedToken ]
+            # print t[1][-1].lexspan[1]+1, t[2].lexspan[0]
+            joinedToken = Token(lastObj + t[2],
+                                'string',
+                                lastObj.lineno,
+                                lexspan=[lastObj.lexspan[0], t[2].lexspan[1]])
+            t[0] = t[1][:-1] + [joinedToken]
         else:
-            t[0] = t[1] + [ t[2] ]
-        #print t[0][-2], t[0][-2].lexspan
-        #print t[0][-1], t[0][-1].lexspan
+            t[0] = t[1] + [t[2]]
+        # print t[0][-2], t[0][-2].lexspan
+        # print t[0][-1], t[0][-1].lexspan
     else:
-        #print "new"
+        # print "new"
         t[0] = [t[1]]
-    #print "result", t[0]
+    # print "result", t[0]
 
 def p_object_1(t):
     '''object    : ID'''
     if t.lexer.verbose >= 1:
         print 'p_object_1', t[1]
-    #print t[1], t.lexpos(1), len(t[1]), t.lexpos(1)+len(t[1])
-    t[0] = Token( t[1], 'string', lexspan=(t.lexpos(1),t.lexpos(1)+len(t[1])-1 ) )
+    # print t[1], t.lexpos(1), len(t[1]), t.lexpos(1)+len(t[1])
+    t[0] = Token(t[1], 'string', lexspan=(t.lexpos(1), t.lexpos(1) + len(t[1]) - 1))
     #t[0] = assemble(t, 'p_object_1')
 
-#def p_object_2(t):
+# def p_object_2(t):
 #    '''object    : LOBJECT expression RBRACKET
 #                | LOBJECT expression ROBJECT'''
 #    t[0] = assemble(t, 'p_object_2')
 
 
-
 def p_object_2(t):
     '''object    : ID LBRACKET expression RBRACKET'''
-    #print t.lexpos(1), t.lexpos(2),t.lexpos(3),t.lexpos(4)
+    # print t.lexpos(1), t.lexpos(2),t.lexpos(3),t.lexpos(4)
     if t.lexer.verbose >= 1:
         print 'p_object_2'
-    t[0] = Token( t[1]+t[2]+t[3]+t[4], 'string', lexspan=(t.lexpos(1),t.lexpos(4) ) )
+    t[0] = Token(t[1] + t[2] + t[3] + t[4], 'string', lexspan=(t.lexpos(1), t.lexpos(4)))
     #t[0] = assemble(t, 'p_object_2')
 
 def p_flag(t):
@@ -2800,10 +2789,10 @@ def p_flag(t):
                     '''
 
     # TODO: find complete list
-    flag = t[1] +  t[2]
+    flag = t[1] + t[2]
 
     #t[0] = assemble(t, 'p_flag', '', [flag]  )
-    t[0] = Token( flag, 'flag', t.lexer.lineno )
+    t[0] = Token(flag, 'flag', t.lexer.lineno)
 
 
 # Other
@@ -2816,7 +2805,8 @@ def _error(t):
         print "Error parsing script, attempting to read forward and restart parser"
     while 1:
         tok = yacc.token()             # Get the next token
-        if not tok or tok.type == 'RBRACE': break
+        if not tok or tok.type == 'RBRACE':
+            break
     yacc.restart()
 
 def p_error(t):
@@ -2824,17 +2814,18 @@ def p_error(t):
         raise ValueError, 'script has no contents'
 
     if t.type in ('COMMENT', 'COMMENT_BLOCK'):
-        #print "Removing Comment", t.value
+        # print "Removing Comment", t.value
         # Just discard the token and tell the parser it's okay.
         t.lexer.comment_queue.append(Comment(t))
         yacc.errok()
     else:
         t.lexer.errors.append(t)
-        #if t.lexer.verbose:
+        # if t.lexer.verbose:
         #    print "Error parsing script at %s, attempting to read forward and restart parser" % t.value
         while 1:
             tok = yacc.token()             # Get the next token
-            if not tok or tok.type == 'RBRACE': break
+            if not tok or tok.type == 'RBRACE':
+                break
         yacc.restart()
 
 
@@ -2849,6 +2840,7 @@ _outputdir = tempfile.gettempdir()
 parser = yacc.yacc(method='''LALR''', debug=0, outputdir=_outputdir )
 
 class MelParseError(Exception):
+
     def __init__(self, *args, **kwargs):
         self.data = kwargs.pop('data', None)
         self.file = kwargs.pop('file', None)
@@ -2866,21 +2858,24 @@ class MelParseError(Exception):
         return base
 
 class ExpressionParseError(MelParseError, TypeError):
+
     '''Error when mel code cannot be parsed into a python expression
     '''
     pass
 
 class MelParser(object):
+
     """The MelParser class around which all other mel2py functions are based."""
-    def build(self, rootModule = None, pymelNamespace='', verbosity=0,
+
+    def build(self, rootModule=None, pymelNamespace='', verbosity=0,
               addPymelImport=True, expressionsOnly=False,
-              forceCompatibility=True, parentData=None ):
+              forceCompatibility=True, parentData=None):
 
         # data storage
         self.lexer = lexer.clone()
         self.lexer.proc_list = []  # ordered list of procedures
-        self.lexer.local_procs = {} # dictionary of local procedures and their related data
-        self.lexer.global_procs = {} # dictionary of global procedures and their related data
+        self.lexer.local_procs = {}  # dictionary of local procedures and their related data
+        self.lexer.global_procs = {}  # dictionary of global procedures and their related data
         self.lexer.imported_modules = set([])  # imported external modules, pymel is assumed
         self.lexer.global_vars = set([])
         self.lexer.spillover_pre = []  # some operations require a single line to be split.
@@ -2890,13 +2885,13 @@ class MelParser(object):
         self.lexer.global_var_include_regex = 'gv?[A-Z_].*'     # maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter
         #parser.global_var_include_regex = '.*'
         self.lexer.global_var_exclude_regex = '$'
-        #parser.global_var_exclude_regex = 'g_lm.*'        # Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+        # parser.global_var_exclude_regex = 'g_lm.*'        # Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
 
         # options
-        if pymelNamespace and not pymelNamespace.endswith( '.' ):
+        if pymelNamespace and not pymelNamespace.endswith('.'):
             pymelNamespace = pymelNamespace + '.'
         self.lexer.pymel_namespace = pymelNamespace
-        self.lexer.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
+        self.lexer.root_module = rootModule  # the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
         self.lexer.verbose = verbosity
         self.add_pymel_import = addPymelImport
         self.lexer.force_compatibility = forceCompatibility
@@ -2905,10 +2900,10 @@ class MelParser(object):
         self.lexer.parent_data = parentData
 
     def parse(self, data):
-        data = data.decode( 'utf-8', 'ignore')
+        data = data.decode('utf-8', 'ignore')
         #data = data.encode( 'utf-8', 'ignore')
-        data = data.replace( '\r\n', '\n' )
-        data = data.replace( '\r', '\n' )
+        data = data.replace('\r\n', '\n')
+        data = data.replace('\r', '\n')
 
         self.lexer.raw_parse_data = data
         try:
@@ -2916,7 +2911,8 @@ class MelParser(object):
                 lex.input(data)
                 while 1:
                     tok = lex.token()
-                    if not tok: break      # No more input
+                    if not tok:
+                        break      # No more input
                     print tok
 
             prev_modules = self.lexer.imported_modules.copy()
@@ -2938,13 +2934,13 @@ class MelParser(object):
 
             if translatedStr is None or self.lexer.errors:
                 raise MelParseError(data=data, lexer=self.lexer)
-            #except IndexError, msg:
+            # except IndexError, msg:
             #    raise ValueError, '%s: %s' % (melfile, msg)
-            #except AttributeError:
+            # except AttributeError:
             #    raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
 
             if not self.lexer.expression_only:
-                new_modules = self.lexer.imported_modules.difference( prev_modules )
+                new_modules = self.lexer.imported_modules.difference(prev_modules)
 
                 header = ''
 
@@ -2964,13 +2960,11 @@ class MelParser(object):
                     header += "import %s\n" % new_module
                 translatedStr = header + translatedStr
 
-
             return translatedStr
         finally:
             self.lexer.raw_parse_data = None
 
 scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan, outputdir=_outputdir)
-
 
 
 #simple = SimpleMelGrammar()
@@ -2979,27 +2973,26 @@ scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan, outputdir=_outpu
 #parser = simple.parser
 
 class MelScanner(object):
+
     """Basic mel parser which only tries to get information about procs"""
+
     def build(self):
 
         # data storage
         self.lexer = lexer.clone()
         self.lexer.proc_list = []  # ordered list of procedures
-        self.lexer.local_procs = {} # dictionary of local procedures and their related data
-        self.lexer.global_procs = {} # dictionary of global procedures and their related data
+        self.lexer.local_procs = {}  # dictionary of local procedures and their related data
+        self.lexer.global_procs = {}  # dictionary of global procedures and their related data
         self.lexer.global_vars = set([])
-
 
     def parse(self, data):
         data = data.decode('utf-8', 'ignore')
         #data = data.encode( 'utf-8', 'ignore')
-        data = data.replace( '\r', '\n' )
+        data = data.replace('\r', '\n')
 
         scanner.parse(data, lexer=self.lexer)
-            #translatedStr = simpleParser.parse(data, lexer=self.lexer)
+        #translatedStr = simpleParser.parse(data, lexer=self.lexer)
 
         return self.lexer.proc_list, self.lexer.global_procs, self.lexer.local_procs
 
-#profile.run("yacc.yacc(method='''LALR''')")
-
-
+# profile.run("yacc.yacc(method='''LALR''')")

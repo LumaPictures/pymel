@@ -9,10 +9,10 @@ from warnings import formatwarning, linecache
 
 def formatwarning(message, category, filename, lineno, line=None):
     """Redefined format warning for maya."""
-    if issubclass(category, ExecutionWarning) :
-        s =  u"%s: %s\n" % (category.__name__, message)
-    else :
-        s =  u'%s: %s, at line %s, in "%s"\n' % (category.__name__, message, lineno, filename)
+    if issubclass(category, ExecutionWarning):
+        s = u"%s: %s\n" % (category.__name__, message)
+    else:
+        s = u'%s: %s, at line %s, in "%s"\n' % (category.__name__, message, lineno, filename)
 #        name, ext = os.path.splitext(filename)
 #        line = ""
 #        if ext == ".py" :
@@ -23,7 +23,7 @@ def formatwarning(message, category, filename, lineno, line=None):
 
 warnings.formatwarning = formatwarning
 
-#def showwarning(message, category, filename, lineno, file=None, line=None):
+# def showwarning(message, category, filename, lineno, file=None, line=None):
 #    msg = warnings.formatwarning(message, category, filename, lineno, line)
 #    if file:
 #        msg += " >> %r" % file
@@ -31,14 +31,15 @@ warnings.formatwarning = formatwarning
 #
 #warnings.showwarning = showwarning
 
-class ExecutionWarning (UserWarning) :
+class ExecutionWarning (UserWarning):
+
     """ Simple Warning class that doesn't print any information besides warning message """
 
 def warn(*args, **kwargs):
     """ Default Maya warn which uses ExecutionWarning as the default warning class. """
     if len(args) == 1 and not isinstance(args[0], Warning):
         args = args + (ExecutionWarning,)
-    stacklevel = kwargs.pop("stacklevel",1) + 1 # add to the stack-level so that this wrapper func is skipped
+    stacklevel = kwargs.pop("stacklevel", 1) + 1  # add to the stack-level so that this wrapper func is skipped
     return warnings.warn(stacklevel=stacklevel, *args, **kwargs)
 
 def deprecated(funcOrMessage, className=None):
@@ -53,8 +54,8 @@ def deprecated(funcOrMessage, className=None):
     #@decorator
     def deprecated2(func):
         info = dict(
-            name = func.__name__,
-            module = func.__module__)
+            name=func.__name__,
+            module=func.__module__)
 
         def deprecationLoggedFunc(*args, **kwargs):
             warnings.warn(message % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
@@ -64,7 +65,7 @@ def deprecated(funcOrMessage, className=None):
         deprecationLoggedFunc.__module__ = func.__module__
         deprecationLoggedFunc.__doc__ = message % info + '\n'
         if func.__doc__:
-            deprecationLoggedFunc.__doc__ += '\n' +  func.__doc__
+            deprecationLoggedFunc.__doc__ += '\n' + func.__doc__
         return deprecationLoggedFunc
 
     if className:
@@ -80,6 +81,6 @@ def deprecated(funcOrMessage, className=None):
         message = basemessage
         return deprecated2(funcOrMessage)
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     import doctest
     doctest.testmod()

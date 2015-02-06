@@ -58,26 +58,26 @@ def _addPluginCommand(pluginName, funcName):
         _pluginData[pluginName]['commands'].append(funcName)
     _logger.debug("Adding command: %s" % funcName)
     #_logger.debug("adding new command:", funcName)
-    _factories.cmdlist[funcName] = _cmdcache.getCmdInfoBasic( funcName )
+    _factories.cmdlist[funcName] = _cmdcache.getCmdInfoBasic(funcName)
     _factories.cmdlist[funcName]['plugin'] = pluginName
     _pmcmds.addWrappedCmd(funcName)
-    func = _factories.functionFactory( funcName )
+    func = _factories.functionFactory(funcName)
     try:
         if func:
             coreModule = 'pymel.core.%s' % _cmdcache.getModule(funcName,
                                                                _factories.moduleCmds)
             if coreModule in sys.modules:
-                setattr( sys.modules[coreModule], funcName, func )
+                setattr(sys.modules[coreModule], funcName, func)
             # Note that we add the function to both a core module (ie,
             # pymel.core.other), the pymel.core itself, and pymel.all; this
             # way, we mirror the behavior of 'normal' functions
-            setattr( _module, funcName, func )
+            setattr(_module, funcName, func)
             if 'pymel.all' in sys.modules:
-                setattr( sys.modules['pymel.all'], funcName, func )
+                setattr(sys.modules['pymel.all'], funcName, func)
         else:
-            _logger.warning( "failed to create function" )
+            _logger.warning("failed to create function")
     except Exception, msg:
-        _logger.warning("exception: %s" % str(msg) )
+        _logger.warning("exception: %s" % str(msg))
 
 def _addPluginNode(pluginName, mayaType):
     global _pluginData
@@ -99,7 +99,7 @@ def _removePluginCommand(pluginName, command):
         _pmcmds.removeWrappedCmd(command)
         _module.__dict__.pop(command, None)
     except KeyError:
-        _logger.warn( "Failed to remove %s from module %s" % (command, _module.__name__) )
+        _logger.warn("Failed to remove %s from module %s" % (command, _module.__name__))
 
 def _removePluginNode(pluginName, node):
     global _pluginData
@@ -107,9 +107,9 @@ def _removePluginNode(pluginName, node):
     nodes = _pluginData.get(pluginName, {}).get('dependNodes', [])
     if node in nodes:
         nodes.remove(node)
-    _factories.removePyNode( nodetypes, node )
+    _factories.removePyNode(nodetypes, node)
 
-def _pluginLoaded( *args ):
+def _pluginLoaded(*args):
     global _pluginData
 
     if len(args) > 1:
@@ -140,7 +140,7 @@ def _pluginLoaded( *args ):
         _logger.error("Failed to get depend nodes list from %s", pluginName)
         mayaTypes = None
     #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1)
-    if mayaTypes :
+    if mayaTypes:
         def addPluginPyNodes(*args):
             try:
                 id = _pluginData[pluginName].get('callbackId')
@@ -148,7 +148,7 @@ def _pluginLoaded( *args ):
                 _logger.warning("could not find callback id!")
             else:
                 if id is not None:
-                    _api.MEventMessage.removeCallback( id )
+                    _api.MEventMessage.removeCallback(id)
                     if hasattr(id, 'disown'):
                         id.disown()
 
@@ -175,15 +175,15 @@ def _pluginLoaded( *args ):
         # not
 
         # Detect if we are currently opening/importing a file and load as a callback versus execute now
-        if (_api.MFileIO.isReadingFile() or  _api.MFileIO.isOpeningFile() or
-                ( _versions.current() >= _versions.v2012
-                  and _api.MFileIO.isReferencingFile())):
+        if (_api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile() or
+                (_versions.current() >= _versions.v2012
+                 and _api.MFileIO.isReferencingFile())):
             if _versions.current() >= _versions.v2012 and _api.MFileIO.isReferencingFile():
                 _logger.debug("Installing temporary plugin-loaded nodes callback - PostSceneRead")
-                id = _api.MEventMessage.addEventCallback( 'PostSceneRead', addPluginPyNodes )
+                id = _api.MEventMessage.addEventCallback('PostSceneRead', addPluginPyNodes)
             elif _api.MFileIO.isImportingFile():
                 _logger.debug("Installing temporary plugin-loaded nodes callback - SceneImported")
-                id = _api.MEventMessage.addEventCallback( 'SceneImported', addPluginPyNodes )
+                id = _api.MEventMessage.addEventCallback('SceneImported', addPluginPyNodes)
             else:
                 # pre-2012 referencing operations will fall into this branch,
                 # which will not work (ie, pre-2012, plugins loaded due to
@@ -196,7 +196,7 @@ def _pluginLoaded( *args ):
                 # messages in commits 6e53d7818e9363d55d417c3a80ea7df94c4998ec
                 # and 81bc5ee28f1775a680449fec8724e21e703a52b8).
                 _logger.debug("Installing temporary plugin-loaded nodes callback - SceneOpened")
-                id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
+                id = _api.MEventMessage.addEventCallback('SceneOpened', addPluginPyNodes)
             _pluginData[pluginName]['callbackId'] = id
             # scriptJob not respected in batch mode, had to use _api
             #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 )
@@ -207,7 +207,6 @@ def _pluginLoaded( *args ):
             # if there isn't, then something is wrong...
             _pluginData[pluginName]['callbackId'] = None
             addPluginPyNodes()
-
 
 
 def _pluginUnloaded(*args):
@@ -231,14 +230,14 @@ def _pluginUnloaded(*args):
         # Commands
         commands = data.pop('commands', [])
         if commands:
-            _logger.debug("Removing commands: %s", ', '.join( commands ))
+            _logger.debug("Removing commands: %s", ', '.join(commands))
             for command in commands:
                 _removePluginCommand(pluginName, command)
 
         # Nodes
         nodes = data.pop('dependNodes', [])
         if nodes:
-            _logger.debug("Removing nodes: %s" % ', '.join( nodes ))
+            _logger.debug("Removing nodes: %s" % ', '.join(nodes))
             for node in nodes:
                 _removePluginNode(pluginName, node)
 
@@ -259,14 +258,13 @@ def _installCallbacks():
         _logger.debug("Adding pluginLoaded callback")
         #_pluginLoadedCB = pluginLoadedCallback(module)
 
-
         if _versions.current() >= _versions.v2009:
-            id = _api.MSceneMessage.addStringArrayCallback( _api.MSceneMessage.kAfterPluginLoad, _pluginLoaded  )
+            id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginLoad, _pluginLoaded)
             if hasattr(id, 'disown'):
                 id.disown()
         else:
             # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down
-            cmds.loadPlugin( addCallback='import pymel.core; pymel.core._pluginLoaded("%s")' )
+            cmds.loadPlugin(addCallback='import pymel.core; pymel.core._pluginLoaded("%s")')
     else:
         _logger.debug("PluginLoaded callback already exists")
 
@@ -275,24 +273,23 @@ def _installCallbacks():
         _pluginUnloadedCB = True
 
         # BUG: autodesk still has not add python callback support, and calling this as MEL is not getting the plugin name passed to it
-        #mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
+        # mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
 
         if _versions.current() >= _versions.v2009:
             _logger.debug("Adding pluginUnloaded callback")
-            id = _api.MSceneMessage.addStringArrayCallback( _api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
+            id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded)
             if hasattr(id, 'disown'):
                 id.disown()
-
 
     else:
         _logger.debug("PluginUnloaded callback already exists")
 
     # add commands and nodes for plugins loaded prior to importing pymel
-    preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 )
+    preLoadedPlugins = cmds.pluginInfo(q=1, listPlugins=1)
     if preLoadedPlugins:
-        _logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join( preLoadedPlugins ))
+        _logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join(preLoadedPlugins))
         for plugin in preLoadedPlugins:
-            _pluginLoaded( plugin )
+            _pluginLoaded(plugin)
 
 _installCallbacks()
 
@@ -300,7 +297,3 @@ _installCallbacks()
 # ...userStartup.py / .mel may try to add plugins and then use their commands /
 # nodes with pymel... so do the plugin stuff first
 _startup.finalize()
-
-
-
-

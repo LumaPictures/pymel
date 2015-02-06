@@ -59,20 +59,21 @@ def uncapitalize(s, preserveAcronymns=False):
     try:
         if preserveAcronymns and s[0:2].isupper():
             return s
-    except IndexError: pass
+    except IndexError:
+        pass
 
     return s[0].lower() + s[1:]
 
-def unescape( s ):
+def unescape(s):
     """
     :rtype: string
     """
-    chars = [ r'"', r"'" ]
+    chars = [r'"', r"'"]
     for char in chars:
-        tokens = re.split( r'(\\*)' + char,  s )
-        for i in range(1,len(tokens),2 ):
+        tokens = re.split(r'(\\*)' + char, s)
+        for i in range(1, len(tokens), 2):
             if tokens[i]:
-                tokens[i] = tokens[i][:-1]+'"'
+                tokens[i] = tokens[i][:-1] + '"'
         s = ''.join(tokens)
     return s
 
@@ -87,28 +88,28 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
     def fget(obj):
         val = None
 
-        if hasattr(obj,attr_name):
+        if hasattr(obj, attr_name):
             val = getattr(obj, attr_name)
-            #print "cacheProperty: retrieving cache: %s.%s = %s" % (obj, attr_name, val)
+            # print "cacheProperty: retrieving cache: %s.%s = %s" % (obj, attr_name, val)
 
         if val is None:
-            #print "cacheProperty: running getter: %s.%s" %  (obj, attr_name)
+            # print "cacheProperty: running getter: %s.%s" %  (obj, attr_name)
             val = getter(obj)
-            #print "cacheProperty: caching: %s.%s = %s" % (obj, attr_name, val)
-            setattr(obj, attr_name, val )
+            # print "cacheProperty: caching: %s.%s = %s" % (obj, attr_name, val)
+            setattr(obj, attr_name, val)
         return val
 
     def fset(obj, val):
-        #print "cacheProperty: setting attr %s.%s=%s" % (obj, attr_name, val)
+        # print "cacheProperty: setting attr %s.%s=%s" % (obj, attr_name, val)
         setattr(obj, attr_name, val)
 
-    return property( fget, fset, fdel, doc)
+    return property(fget, fset, fdel, doc)
 
 #===============================================================================
 # System
 #===============================================================================
 
-def timer( command='pass', number=10, setup='import pymel' ):
+def timer(command='pass', number=10, setup='import pymel'):
     import timeit
     t = timeit.Timer(command, setup)
     time = t.timeit(number=number)
@@ -132,12 +133,13 @@ def interpreterBits():
 # Filesystem
 #===============================================================================
 
-def toZip( directory, zipFile ):
+def toZip(directory, zipFile):
     """Sample for storing directory to a ZipFile"""
     import zipfile
 
     zipFile = path(zipFile)
-    if zipFile.exists(): zipFile.remove()
+    if zipFile.exists():
+        zipFile.remove()
 
     z = zipfile.ZipFile(
         zipFile, 'w', compression=zipfile.ZIP_DEFLATED
@@ -150,8 +152,8 @@ def toZip( directory, zipFile ):
     for subdir in directory.dirs('[a-z]*') + [directory]:
         print "adding ", subdir
         for fname in subdir.files('[a-z]*'):
-            archiveName = fname.replace( directory, '' )
-            z.write( fname, archiveName, zipfile.ZIP_DEFLATED )
+            archiveName = fname.replace(directory, '')
+            z.write(fname, archiveName, zipfile.ZIP_DEFLATED)
     z.close()
     return zipFile
 
@@ -168,12 +170,12 @@ def subpackages(packagemod):
     modpkgs_names = set()
     if hasattr(packagemod, '__path__'):
         yield packagemod.__name__, packagemod, True
-        for importer, modname, ispkg in pkgutil.walk_packages(packagemod.__path__, packagemod.__name__+'.'):
+        for importer, modname, ispkg in pkgutil.walk_packages(packagemod.__path__, packagemod.__name__ + '.'):
             if modname not in sys.modules:
                 try:
                     mod = importer.find_module(modname).load_module(modname)
                 except Exception, e:
-                    print "error importing %s: %s" %  ( modname, e)
+                    print "error importing %s: %s" % (modname, e)
             else:
                 mod = sys.modules[modname]
             yield modname, mod, ispkg

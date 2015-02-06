@@ -3,7 +3,10 @@ Maya-related functions, which are useful to both `api` and `core`, including `ma
 that maya is initialized in standalone mode.
 """
 from __future__ import with_statement
-import os.path, sys, glob, inspect
+import os.path
+import sys
+import glob
+import inspect
 import maya
 import maya.OpenMaya as om
 import maya.utils
@@ -46,8 +49,8 @@ def _moduleJoin(*args):
     Joins with the base pymel directory.
     :rtype: string
     """
-    moduleDir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
-    return os.path.realpath(os.path.join( moduleDir, *args))
+    moduleDir = os.path.dirname(os.path.dirname(sys.modules[__name__].__file__))
+    return os.path.realpath(os.path.join(moduleDir, *args))
 
 
 def mayaStartupHasRun():
@@ -70,13 +73,14 @@ def mayaStartupHasStarted():
 def setupFormatting():
     import pprint
     import maya.utils
+
     def myResultCallback(obj):
         return pprint.pformat(obj)
     maya.utils.formatGuiResult = myResultCallback
     # prevent auto-completion generator from getting confused
     maya.utils.formatGuiResult.__module__ = 'maya.utils'
 
-#def loadDynamicLibs():
+# def loadDynamicLibs():
 #    """
 #    due to a bug in maya.app.commands many functions do not return any value the first time they are run,
 #    especially in standalone mode.  this function forces the loading of all dynamic libraries, which is
@@ -100,7 +104,7 @@ def setupFormatting():
 
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
-def mayaInit(forversion=None) :
+def mayaInit(forversion=None):
     """ Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
     it is possible to pass the desired Maya version number to define which Maya to initialize
 
@@ -128,7 +132,7 @@ def mayaInit(forversion=None) :
     :return: returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
 
     """
-    _logger.debug( "startup.mayaInit: called" )
+    _logger.debug("startup.mayaInit: called")
     setupFormatting()
 
     global isInitializing
@@ -136,7 +140,7 @@ def mayaInit(forversion=None) :
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
 
     aboutExists = False
-    try :
+    try:
         from maya.cmds import about
         aboutExists = True
     except ImportError:
@@ -144,20 +148,20 @@ def mayaInit(forversion=None) :
 
     if aboutExists and mayaStartupHasStarted():
         # if this succeeded, we're initialized
-        _logger.debug( "startup.mayaInit: maya already started - exiting" )
+        _logger.debug("startup.mayaInit: maya already started - exiting")
         isInitializing = False
         return False
 
-    _logger.debug( "startup.mayaInit: running" )
+    _logger.debug("startup.mayaInit: running")
 
     # for use with pymel compatible maya package
     oldSkipSetup = os.environ.get('MAYA_SKIP_USERSETUP_PY')
     os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
     try:
         if not aboutExists and not sys.modules.has_key('maya.standalone'):
-            try :
-                _logger.debug( "startup.mayaInit: running standalone.initialize" )
-                import maya.standalone #@UnresolvedImport
+            try:
+                _logger.debug("startup.mayaInit: running standalone.initialize")
+                import maya.standalone  # @UnresolvedImport
                 maya.standalone.initialize(name="python")
 
                 if versions.current() < versions.v2009:
@@ -178,7 +182,7 @@ def mayaInit(forversion=None) :
             os.environ['MAYA_SKIP_USERSETUP_PY'] = oldSkipSetup
 
     if not mayaStartupHasRun():
-        _logger.debug( "running maya.app.startup" )
+        _logger.debug("running maya.app.startup")
         # If we're in 'maya -prompt' mode, and a plugin loads pymel, then we
         # can have a state where maya.standalone has been initialized, but
         # the python startup code hasn't yet been run...
@@ -192,43 +196,43 @@ def mayaInit(forversion=None) :
     return True
 
 def initMEL():
-    if 'PYMEL_SKIP_MEL_INIT' in os.environ or pymel_options.get( 'skip_mel_init', False ) :
-        _logger.info( "Skipping MEL initialization" )
+    if 'PYMEL_SKIP_MEL_INIT' in os.environ or pymel_options.get('skip_mel_init', False):
+        _logger.info("Skipping MEL initialization")
         return
 
-    _logger.debug( "initMEL" )
+    _logger.debug("initMEL")
     mayaVersion = versions.installName()
     prefsDir = getUserPrefsDir()
     if prefsDir is None:
-        _logger.error( "could not initialize user preferences: MAYA_APP_DIR not set" )
+        _logger.error("could not initialize user preferences: MAYA_APP_DIR not set")
     elif not os.path.isdir(prefsDir):
-        _logger.error( "could not initialize user preferences: %s does not exist" % prefsDir  )
+        _logger.error("could not initialize user preferences: %s does not exist" % prefsDir)
 
     # TODO : use cmds.internalVar to get paths
     # got this startup sequence from autodesk support
     startup = [
         #'defaultRunTimeCommands.mel',  # sourced automatically
-        #os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
+        # os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
         'createPreferencesOptVars.mel',
         'createGlobalOptVars.mel',
-        os.path.join( prefsDir, 'userPrefs.mel') if prefsDir else None,
+        os.path.join(prefsDir, 'userPrefs.mel') if prefsDir else None,
         'initialStartup.mel',
         #$HOME/Documents/maya/projects/default/workspace.mel
         'initialPlugins.mel',
         #'initialGUI.mel', #GUI
         #'initialLayout.mel', #GUI
-        #os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
-        #os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
+        # os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
+        # os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
         #'hotkeySetup.mel', #GUI
         'namedCommandSetup.mel',
-        os.path.join( prefsDir, 'userNamedCommands.mel' ) if prefsDir else None,
+        os.path.join(prefsDir, 'userNamedCommands.mel') if prefsDir else None,
         #'initAfter.mel', #GUI
-        os.path.join( prefsDir, 'pluginPrefs.mel' )  if prefsDir else None
+        os.path.join(prefsDir, 'pluginPrefs.mel') if prefsDir else None
     ]
-    if pymel_options.get( 'skip_initial_plugins', False ):
+    if pymel_options.get('skip_initial_plugins', False):
         # initialPlugins.mel is not sourced when running maya -batch, but has been included
         # in the pymel startup sequence since time immemorial. see pymel.conf for more info
-        _logger.info( "Skipping loading Initial Plugins" )
+        _logger.info("Skipping loading Initial Plugins")
         startup.remove('initialPlugins.mel')
 
     try:
@@ -236,7 +240,7 @@ def initMEL():
             _logger.debug("running: %s" % f)
             if f is not None:
                 if os.path.isabs(f) and not os.path.exists(f):
-                    _logger.warning( "Maya startup file %s does not exist" % f )
+                    _logger.warning("Maya startup file %s does not exist" % f)
                 else:
                     # need to encode backslashes (used for windows paths)
                     if isinstance(f, unicode):
@@ -247,17 +251,18 @@ def initMEL():
                     #lang.mel.source( f.encode(encoding)  )
 
                     import maya.mel
-                    maya.mel.eval( 'source "%s"' % f.encode(encoding) )
+                    maya.mel.eval('source "%s"' % f.encode(encoding))
 
     except Exception, e:
-        _logger.error( "could not perform Maya initialization sequence: failed on %s: %s" % ( f, e) )
+        _logger.error("could not perform Maya initialization sequence: failed on %s: %s" % (f, e))
 
     try:
         # make sure it exists
         res = maya.mel.eval('whatIs "userSetup.mel"')
         if res != 'Unknown':
-            maya.mel.eval( 'source "userSetup.mel"')
-    except RuntimeError: pass
+            maya.mel.eval('source "userSetup.mel"')
+    except RuntimeError:
+        pass
 
     _logger.debug("done running mel files")
 
@@ -296,9 +301,9 @@ def finalize():
         maya.app.startup.basic.executeUserSetup()
 
     state = om.MGlobal.mayaState()
-    if state == om.MGlobal.kLibraryApp: # mayapy only
+    if state == om.MGlobal.kLibraryApp:  # mayapy only
         initMEL()
-        #fixMayapy2011SegFault()
+        # fixMayapy2011SegFault()
     elif state == om.MGlobal.kInteractive:
         initAE()
 
@@ -312,7 +317,7 @@ def fixMayapy2011SegFault():
     if versions.v2011 <= currentVer < versions.v2013 or currentVer >= versions.v2014:
         import platform
         if platform.system() == 'Linux':
-            if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
+            if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp:  # mayapy only
                 # In linux maya 2011, once maya has been initialized, if you try
                 # to do a 'normal' sys.exit, it will crash with a segmentation
                 # fault..
@@ -337,6 +342,7 @@ def fixMayapy2011SegFault():
                 # original exit function...
                 if not hasattr('sys', '_orig_exit'):
                     sys._orig_exit = _orig_exit
+
                 def exit(status):
                     sys._exit_status = status
                     _orig_exit(status)
@@ -363,7 +369,8 @@ def fixMayapy2011SegFault():
                             if isinstance(last_value, SystemExit):
                                 try:
                                     exitStatus = last_value.args[0]
-                                except Exception: pass
+                                except Exception:
+                                    pass
                             if exitStatus is None:
                                 exitStatus = 1
                     if exitStatus is None:
@@ -373,27 +380,27 @@ def fixMayapy2011SegFault():
 
 # Fix for non US encodings in Maya
 def encodeFix():
-    if mayaInit() :
+    if mayaInit():
         from maya.cmds import about
 
         mayaEncode = about(cs=True)
         pyEncode = sys.getdefaultencoding()     # Encoding tel que defini par sitecustomize
-        if mayaEncode != pyEncode :             # s'il faut redefinir l'encoding
-            #reload (sys)                       # attention reset aussi sys.stdout et sys.stderr
-            #sys.setdefaultencoding(newEncode)
+        if mayaEncode != pyEncode:             # s'il faut redefinir l'encoding
+            # reload (sys)                       # attention reset aussi sys.stdout et sys.stderr
+            # sys.setdefaultencoding(newEncode)
             #del sys.setdefaultencoding
-            #print "# Encoding changed from '"+pyEncode+'" to "'+newEncode+"' #"
-            if not about(b=True) :              # si pas en batch, donc en mode UI, redefinir stdout et stderr avec encoding Maya
+            # print "# Encoding changed from '"+pyEncode+'" to "'+newEncode+"' #"
+            if not about(b=True):              # si pas en batch, donc en mode UI, redefinir stdout et stderr avec encoding Maya
                 import maya.utils
-                try :
+                try:
                     import maya.app.baseUI
                     import codecs
                     # Replace sys.stdin with a GUI version that will request input from the user
                     sys.stdin = codecs.getreader(mayaEncode)(maya.app.baseUI.StandardInput())
                     # Replace sys.stdout and sys.stderr with versions that can output to Maya's GUI
                     sys.stdout = codecs.getwriter(mayaEncode)(maya.utils.Output())
-                    sys.stderr = codecs.getwriter(mayaEncode)(maya.utils.Output( error=1 ))
-                except ImportError :
+                    sys.stderr = codecs.getwriter(mayaEncode)(maya.utils.Output(error=1))
+                except ImportError:
                     _logger.debug("Unable to import maya.app.baseUI")
 
 
@@ -401,9 +408,9 @@ def encodeFix():
 # Cache utilities
 #===============================================================================
 
-def _dump( data, filename, protocol = -1):
+def _dump(data, filename, protocol=-1):
     with open(filename, mode='wb') as file:
-        pickle.dump( data, file, protocol)
+        pickle.dump(data, file, protocol)
 
 def _load(filename):
     with open(filename, mode='rb') as file:
@@ -442,8 +449,8 @@ class PymelCache(object):
 
         _logger.info(self._actionMessage('Saving', 'to', newPath))
 
-        try :
-            func( data, newPath, 2)
+        try:
+            func(data, newPath, 2)
         except Exception, e:
             self._errorMsg('write', 'to', newPath, e)
 
@@ -456,7 +463,7 @@ class PymelCache(object):
         else:
             short_version = ''
 
-        newPath = _moduleJoin( 'cache', self.NAME+short_version )
+        newPath = _moduleJoin('cache', self.NAME + short_version)
         if self.COMPRESSED:
             newPath += '.zip'
         else:
@@ -484,10 +491,10 @@ class PymelCache(object):
         _logger.debug(traceback.format_exc())
 
 
-
 # Considered using named_tuple, but wanted to make data stored in cache
 # have as few dependencies as possible - ie, just a simple tuple
 class SubItemCache(PymelCache):
+
     '''Used to store various maya information
 
     ie, api / cmd data parsed from docs
@@ -635,7 +642,7 @@ class SubItemCache(PymelCache):
 
     # was called 'caches'
     def contents(self):
-        return tuple( getattr(self, x) for x in self.cacheNames() )
+        return tuple(getattr(self, x) for x in self.cacheNames())
 
 #===============================================================================
 # Config stuff
@@ -647,21 +654,21 @@ def getConfigFile():
 def parsePymelConfig():
     import ConfigParser
 
-    types = {'skip_mel_init' : 'boolean',
-             'check_attr_before_lock' : 'boolean',
-            }
-    defaults = {'skip_mel_init' : 'off',
-                'check_attr_before_lock' : 'off',
+    types = {'skip_mel_init': 'boolean',
+             'check_attr_before_lock': 'boolean',
+             }
+    defaults = {'skip_mel_init': 'off',
+                'check_attr_before_lock': 'off',
                 'preferred_python_qt_binding': 'pyqt',
-               }
+                }
 
     config = ConfigParser.ConfigParser(defaults)
-    config.read( getConfigFile() )
+    config.read(getConfigFile())
 
     d = {}
     for option in config.options('pymel'):
-        getter = getattr( config, 'get' + types.get(option, '') )
-        d[option] = getter( 'pymel', option )
+        getter = getattr(config, 'get' + types.get(option, ''))
+        d[option] = getter('pymel', option)
 
     # just to standardize this setting to be lowercase
     d['preferred_python_qt_binding'] = d['preferred_python_qt_binding'].lower()

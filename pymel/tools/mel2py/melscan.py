@@ -1,4 +1,7 @@
-import sys, os, re, os.path
+import sys
+import os
+import re
+import os.path
 import mellex
 
 try:
@@ -16,18 +19,18 @@ def p_translation_unit(t):
     '''translation_unit : external_declaration
                         | translation_unit external_declaration'''
     pass
-    #print "translation_unit"
+    # print "translation_unit"
     #t[0] = assemble(t, 'p_translation_unit')
-    #print '\n'
+    # print '\n'
 
 # external-declaration:
 def p_external_declaration(t):
     '''external_declaration : function_definition
                             | group'''
     pass
-    #print "external_declaration", t[1]
+    # print "external_declaration", t[1]
     #t[0] = assemble(t, 'p_external_declaration')
-    #if t.lexer.verbose:
+    # if t.lexer.verbose:
     #    print "external_declaration", t[0]
 
 # function-definition:
@@ -36,18 +39,18 @@ def p_function_definition(t):
     #t[0] = assemble(t, 'p_function_definition')
 
     # add to the ordered list of procs
-    t.lexer.proc_list.append( t[3] )
+    t.lexer.proc_list.append(t[3])
 
     # global proc
     if t[1]:
-        #print "adding global"
-        t.lexer.global_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[5] }
+        # print "adding global"
+        t.lexer.global_procs[t[3]] = {'returnType': t[2], 'args': t[5]}
         #t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
 
     # local proc gets prefixed with underscore
     else:
-        #print "adding local"
-        t.lexer.local_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[5] }
+        # print "adding local"
+        t.lexer.local_procs[t[3]] = {'returnType': t[2], 'args': t[5]}
         #t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
 
 def p_function_declarator(t):
@@ -57,10 +60,10 @@ def p_function_declarator(t):
     # string[]
     #
     if len(t) == 2:
-        #print "local proc"
+        # print "local proc"
         t[0] = False
     else:
-        #print "global proc"
+        # print "global proc"
         t[0] = True
 
 def p_type_specifier(t):
@@ -70,7 +73,7 @@ def p_type_specifier(t):
                       | VECTOR
                       | MATRIX
                       '''
-    #print "type_specifier"
+    # print "type_specifier"
     t[0] = t[1]
 
 # function-specifiers
@@ -81,13 +84,12 @@ def p_function_specifiers_opt(t):
     # string
     # string[]
     #
-    #print "function_specifiers_opt"
-    if len(t)==2:
+    # print "function_specifiers_opt"
+    if len(t) == 2:
         t[0] = t[1]
     else:
         t[0] = t[1] + '[]'
     #t[0] = assemble(t, 'p_function_specifiers_opt')
-
 
 
 def p_function_arg(t):
@@ -95,16 +97,16 @@ def p_function_arg(t):
                     | type_specifier VAR LBRACKET RBRACKET'''
     #t[0] = assemble(t, 'p_function_arg')
     if len(t) == 3:
-        t[0] = ( t[1], t[2] )
+        t[0] = (t[1], t[2])
     else:
-        t[0] = ( t[1]+'[]', t[2])
+        t[0] = (t[1] + '[]', t[2])
 
 def p_function_arg_list(t):
     '''function_arg_list : function_arg
                         | function_arg_list COMMA function_arg'''
 
     #t[0] = assemble(t, 'p_function_arg_list')
-    if len(t)>2:
+    if len(t) > 2:
         t[0] = t[1] + [t[3]]
     # start a new list
     else:
@@ -121,24 +123,21 @@ def p_function_arg_list_opt(t):
         t[0] = t[1]
 
 
-
 def p_declaration_specifiers(t):
     '''declaration_specifiers : type_specifier
                               | GLOBAL type_specifier'''
-    #print "declaration_specifiers"
+    # print "declaration_specifiers"
     if len(t) == 2:
-        t[0] = ( None, t[1] )
+        t[0] = (None, t[1])
     else:
-        t[0] = ( t[1], t[2] )
-
-
+        t[0] = (t[1], t[2])
 
 
 def p_group_list_opt(t):
     '''group_list_opt : group_list
                 | empty
                 '''
-    #print "group_list_opt"
+    # print "group_list_opt"
     t[0] = t[1]
 
 def p_group_list(t):
@@ -162,14 +161,14 @@ def p_group(t):
 #        print "adding brackets", t[2]
 #        t[0] = t[2]
 
-#def p_element_list_opt(t):
+# def p_element_list_opt(t):
 #    '''element_list_opt : element_list
 #                | empty
 #                '''
 #    print "empty"
 #    t[0] = t[1]
 #
-#def p_element_list(t):
+# def p_element_list(t):
 #    '''element_list : element
 #                | element_list element
 #                '''
@@ -244,7 +243,7 @@ def p_element(t):
             | ELLIPSIS
 
             '''
-    #print "element", t[1]
+    # print "element", t[1]
     t[0] = t[1]
 
 def p_empty(t):
@@ -252,6 +251,6 @@ def p_empty(t):
     pass
     #t[0] = assemble(t, 'p_empty')
 
-#def p_error(t):
+# def p_error(t):
 #    print "error"
 #    pass
