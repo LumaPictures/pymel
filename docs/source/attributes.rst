@@ -1,12 +1,12 @@
 
-.. currentmodule:: pymel
+.. currentmodule:: pymel.core.general
 
 Attributes
 ==========
 
 The `Attribute` class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
 have become familiar with all the myriad commands for operating on attributes.  This class gathers them all into one
-place. If you forget or are unsure of the right method name, just ask for help by typing `help(Attribute)`.  
+place. If you forget or are unsure of the right method name, just ask for help by typing ``help(Attribute)``.  
 
 For the most part, the names of the methods follow a fairly simple pattern: `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
 
@@ -26,8 +26,8 @@ Accessing Attributes
 
 You can access an attribute class in three ways.  The first two require that you already have a `PyNode` object.
 
-attr Method
-~~~~~~~~~~~
+``attr`` Method
+~~~~~~~~~~~~~~~
 The attr method is the safest way to access an attribute, and can be used to access attributes that conflict with 
 python methods and would therefore fail using shorthand syntax. This method is passed a string which
 is the name of the attribute to be accessed. 
@@ -64,12 +64,12 @@ The last way of getting an attribute is by directly instantiating the class with
 
 explicitly request an Attribute:
 
-    >>> Attribute( 'persp.visibility' ) 
+    >>> Attribute('persp.visibility')
     Attribute(u'persp.visibility')
     
 let `PyNode` figure it out for you:
 
-    >>> PyNode( 'persp.translate' ) 
+    >>> PyNode('persp.translate') 
     Attribute(u'persp.translate')
 
 
@@ -118,10 +118,10 @@ Connecting Attributes
 ---------------------
 As you might expect, connecting and disconnecting attributes is pretty straightforward.
             
-    >>> cam.rotateX.connect( cam.rotateY )
-    >>> cam.rotateX.disconnect( cam.rotateY )
+    >>> cam.rotateX.connect(cam.rotateY)
+    >>> cam.rotateX.disconnect(cam.rotateY)
 
-there are also handy operators for `connection <Attribute.__rshift__>` and `disconnection <Attribute.__floordiv__>`
+there are also handy operators for `connection <Attribute.__rshift__>` and `disconnection <Attribute.__floordiv__>`.  Note that to keep your code clear, it is recommended to use these shorthand operators only when scripting interactively.
 
     >>> c = polyCube(name='testCube')[0]        
     >>> cam.tx >> c.tx    # connect

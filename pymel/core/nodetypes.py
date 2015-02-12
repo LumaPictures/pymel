@@ -226,13 +226,14 @@ class DependNode(general.PyNode):
         return self.__apimobject__()
 
     def __apimobject__(self):
-        "get the MObject for this node if it is valid"
+        "get the ``maya.OpenMaya.MObject`` for this node if it is valid"
         handle = self.__apihandle__()
         if _api.isValidMObjectHandle(handle):
             return handle.object()
         raise general.MayaNodeError(self._name)
 
     def __apihandle__(self):
+        "get the ``maya.OpenMaya.MObjectHandle`` for this node if it is valid"
         return self.__apiobjects__['MObjectHandle']
 
     def __str__(self):
@@ -1215,11 +1216,11 @@ class DagNode(Entity):
         return self.name(long=None, stripUnderWorld=stripUnderWorld, **kwargs)
 
     def __apiobject__(self):
-        "get the MDagPath for this object if it is valid"
+        "get the ``maya.OpenMaya.MDagPath`` for this object if it is valid"
         return self.__apimdagpath__()
 
     def __apimdagpath__(self):
-        "get the MDagPath for this object if it is valid"
+        "get the ``maya.OpenMaya.MDagPath`` for this object if it is valid"
 
         try:
             dag = self.__apiobjects__['MDagPath']
@@ -1245,6 +1246,7 @@ class DagNode(Entity):
 #                    print 'produced valid MDagPath with no name: %s(%s)' % ( argObj.apiTypeStr(), _api.MFnDependencyNode(argObj).name() )
 
     def __apihandle__(self):
+        "get the ``maya.OpenMaya.MObjectHandle`` for this node if it is valid"
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except KeyError:

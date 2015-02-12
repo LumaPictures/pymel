@@ -27,7 +27,6 @@ Chapters:
 	non_existent_objs
 	ui
 	standalone
-	advanced
 
 Appendices:
 
@@ -36,43 +35,6 @@ Appendices:
 
 	eclipse
 	dev
+	design
 	mel_to_python
-	
-
-.. autosummary::
-	:nosignatures:
-	:toctree: generated/
-	
-	pymel.versions
-	pymel.mayautils
-	pymel.core.animation
-	pymel.core.effects
-	pymel.core.general
-	pymel.core.language
-	pymel.core.modeling
-	pymel.core.other
-	pymel.core.rendering
-	pymel.core.runtime
-	pymel.core.system
-	pymel.core.windows
-	pymel.core.context
-	pymel.core.datatypes
-	pymel.core.nodetypes
-	pymel.core.uitypes
-	pymel.util
-	pymel.util.arguments
-	pymel.util.arrays
-	pymel.util.common
-	pymel.util.decoration
-	pymel.util.enum
-	pymel.util.mathutils
-	pymel.util.namedtuple
-	pymel.util.path
-	pymel.util.utilitytypes
-	pymel.tools
-	pymel.tools.envparse
-	pymel.tools.mel2py
-	pymel.tools.py2mel
-	pymel.tools.loggingControl
-	pymel.api.plugins
-
+	modules

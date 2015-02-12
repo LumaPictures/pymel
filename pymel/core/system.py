@@ -439,6 +439,9 @@ Modifications:
 class Translator(object):
 
     """
+    Provides information about a Maya translator, which is used for reading
+    and/or writing file formats.
+
     >>> ascii = Translator('mayaAscii')
     >>> ascii.ext
     u'ma'

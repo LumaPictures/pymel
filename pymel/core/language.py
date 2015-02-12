@@ -23,10 +23,14 @@ import datatypes
 # Mel <---> Python Glue
 #--------------------------
 
-MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector', 'vector[]']
+MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector',
+            'vector[]']
 
 def isValidMelType(typStr):
-    """:rtype: bool"""
+    """Returns whether ``typeStr`` is a valid MEL type identifier
+
+    :rtype: bool
+    """
     return typStr in MELTYPES
 
 def _flatten(iterables):
@@ -144,11 +148,15 @@ def pythonToMelCmd(*commandAndArgs, **kwargs):
 
 def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
     """
-    return the name of the closest MEL type equivalent for the given python object.
-    MEL has no true boolean or matrix types, but it often reserves special treatment for them in other ways.
+    return the name of the closest MEL type equivalent for the given python
+    object.
+
+    MEL has no true boolean or matrix types, but it often reserves special
+    treatment for them in other ways.
+
     To control the handling of these types, use `allowBool` and `allowMatrix`.
-    For python iterables, the first element in the array is used to determine the type. for empty lists, 'string[]' is
-    returned.
+    For python iterables, the first element in the array is used to determine
+    the type. for empty lists, 'string[]' is returned.
 
         >>> from pymel.all import *
         >>> getMelType( 1 )
@@ -174,12 +182,16 @@ def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
         pyObj
             can be either a class or an instance.
         exactOnly : bool
-            If True and no suitable MEL analog can be found, the function will return None.
-            If False, types which do not have an exact mel analog will return the python type name as a string
+            If True and no suitable MEL analog can be found, the function will
+            return None.
+            If False, types which do not have an exact mel analog will return
+            the python type name as a string
         allowBool : bool
-            if True and a bool type is passed, 'bool' will be returned. otherwise 'int'.
+            if True and a bool type is passed, 'bool' will be returned.
+            otherwise 'int'.
         allowMatrix : bool
-            if True and a `Matrix` type is passed, 'matrix' will be returned. otherwise 'int[]'.
+            if True and a `Matrix` type is passed, 'matrix' will be returned.
+            otherwise 'int[]'.
 
     :rtype: `str`
 
@@ -243,9 +255,10 @@ def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
 class MelGlobals(collections.MutableMapping, dict):
 
     """ A dictionary-like class for getting and setting global variables between mel and python.
-    an instance of the class is created by default in the pymel namespace as melGlobals.
 
-    to retrieve existing global variables, just use the name as a key
+    An instance of the class is created by default in the pymel namespace as ``melGlobals``.
+
+    To retrieve existing global variables, just use the name as a key:
 
     >>> melGlobals['gResourceFileList'] #doctest: +ELLIPSIS
     [u'defaultRunTimeCommands.res.mel', u'localizedPanelLabel.res.mel', ...]
@@ -253,9 +266,9 @@ class MelGlobals(collections.MutableMapping, dict):
     >>> melGlobals['gFilterUIDefaultAttributeFilterList']  #doctest: +ELLIPSIS
     [u'DefaultHiddenAttributesFilter', u'animCurveFilter', ..., u'publishedFilter']
 
-    creating new variables requires the use of the initVar function to specify the type
+    Creating new variables requires the use of the `initVar` function to specify the type:
 
-    >>> melGlobals.initVar( 'string', 'gMyStrVar' )
+    >>> melGlobals.initVar('string', 'gMyStrVar')
     '$gMyStrVar'
     >>> melGlobals['gMyStrVar'] = 'fooey'
 
@@ -340,12 +353,14 @@ class MelGlobals(collections.MutableMapping, dict):
 
     @classmethod
     def getType(cls, variable):
+        """Get the type of a global MEL variable"""
         variable = cls._formatVariable(variable)
         info = mel.whatIs(variable).split()
         if len(info) == 2 and info[1] == 'variable':
             MelGlobals.typeMap[variable] = info[0]
             return info[0]
-        raise TypeError, "Cannot determine type for this variable. Use melGlobals.initVar first."
+        raise TypeError("Cannot determine type for this variable. "
+                        "Use melGlobals.initVar first.")
 
     @classmethod
     def _get_decl_statement(cls, type, variable):
@@ -357,6 +372,7 @@ class MelGlobals(collections.MutableMapping, dict):
 
     @classmethod
     def initVar(cls, type, variable):
+        """Initialize a new global MEL variable"""
         if type not in MELTYPES:
             raise TypeError, "type must be a valid mel type: %s" % ', '.join(["'%s'" % x for x in MELTYPES])
         variable = cls._formatVariable(variable)
@@ -374,8 +390,8 @@ class MelGlobals(collections.MutableMapping, dict):
     # ...but may want to switch this in the future...
     @classmethod
     def get(cls, variable, type=None):
-        """get a MEL global variable.  If the type is not specified, the mel ``whatIs`` command will be used
-        to determine it."""
+        """get a MEL global variable.  If the type is not specified, the mel
+        ``whatIs`` command will be used to determine it."""
 
         variable = cls._formatVariable(variable)
         if type is None:
@@ -431,21 +447,23 @@ melGlobals = MelGlobals()
 # for backward compatibility
 def getMelGlobal(type, variable):
     return melGlobals.get(variable, type)
+
 def setMelGlobal(type, variable, value):
     return melGlobals.set(variable, value, type)
 
 
 class Catch(object):
 
-    """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch, you should
-        use the try/except structure. This command is provided for python scripts generated by py2mel.  stores the
-        result of the function in catch.result.
+    """Reproduces the behavior of the mel command of the same name. if writing
+    pymel scripts from scratch, you should use the try/except structure. This
+    command is provided for python scripts generated by py2mel.  stores the
+    result of the function in catch.result.
 
-        >>> if not catch( lambda: myFunc( "somearg" ) ):
-        ...    result = catch.result
-        ...    print "succeeded:", result
+    >>> if not catch( lambda: myFunc( "somearg" ) ):
+    ...    result = catch.result
+    ...    print "succeeded:", result
 
-        """
+    """
     #__metaclass__ = util.Singleton
     result = None
     success = None
@@ -481,7 +499,8 @@ class OptionVarList(tuple):
         raise TypeError, '%s object does not support item assignment - try casting to a list, and assigning the whole list to the optionVar' % self.__class__.__name__
 
     def appendVar(self, val):
-        """values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
+        """values appended to the OptionVarList with this method will be added
+        to the Maya optionVar at the key denoted by self.key.
         """
 
         if isinstance(val, basestring):
@@ -604,11 +623,13 @@ class Env(object):
         return system.Path(cmds.file(q=1, sn=1))
 
     def setUpAxis(self, axis, rotateView=False):
-        """This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
+        """This flag specifies the axis as the world up direction. The valid
+        axis are either 'y' or 'z'."""
         cmds.upAxis(axis=axis, rotateView=rotateView)
 
     def getUpAxis(self):
-        """This flag gets the axis set as the world up direction. The valid axis are either 'y' or 'z'."""
+        """This flag gets the axis set as the world up direction. The valid
+        axis are either 'y' or 'z'."""
         return cmds.upAxis(q=True, axis=True)
 
     def user(self):
@@ -698,12 +719,12 @@ class MelSyntaxError(MelError, SyntaxError):
 
 class Mel(object):
 
-    """This class is a convenience for calling mel scripts from python, but if you are like me, you'll quickly find that it
-    is a necessity. It allows mel scripts to be called as if they were python functions: it automatically formats python
-    arguments into a command string which is executed via maya.mel.eval.  An instance of this class is already created for you
-    when importing pymel and is called `mel`.
-
-
+    """Acts as a namespace from which MEL procedures can be called as if they
+    were python functions.
+    
+    Automatically formats python arguments into a command string which is
+    executed via ``maya.mel.eval``.  An instance of this class is created for
+    you as `pymel.core.mel`.
 
     default:
         >>> import maya.mel as mel
@@ -719,8 +740,9 @@ class Mel(object):
         >>> # run the script
         >>> mel.myScript("firstArg", [1.0, 2.0, 3.0])
 
-    The above is a very simplistic example. The advantages of pymel.mel over maya.mel.eval are more readily
-    apparent when we want to pass a python object to our mel procedure:
+    The above is a very simplistic example. The advantages of pymel.mel over
+    ``maya.mel.eval`` are more readily apparent when we want to pass a python
+    object to our mel procedure:
 
     default:
         >>> import maya.cmds as cmds
@@ -733,13 +755,17 @@ class Mel(object):
         >>> node = PyNode("lambert1")
         >>> mel.myScript( node.type(), node.color.get() )
 
-    In this you can see how `pymel.core.mel` allows you to pass any python object directly to your mel script as if
-    it were a python function, with no need for formatting arguments.  The resulting code is much more readable.
+    In this you can see how `pymel.core.mel` allows you to pass any python
+    object directly to your mel script as if it were a python function, with
+    no need for formatting arguments.  The resulting code is much more readable.
 
-    Another advantage of this class over maya.mel.eval is its handling of mel errors.  If a mel procedure fails to
-    execute, you will get the specific mel error message in the python traceback, and, if they are enabled, line numbers!
+    Another advantage of this class over maya.mel.eval is its handling of mel
+    errors.  If a mel procedure fails to execute, you will get the specific mel
+    error message in the python traceback, and, if they are enabled,
+    line numbers!
 
-    For example, in the example below we redeclare the myScript procedure with a line that will result in an error:
+    For example, in the example below we redeclare the myScript procedure with
+    a line that will result in an error:
 
         >>> commandEcho(lineNumbers=1)  # turn line numbers on
         >>> mel.eval( '''
@@ -753,11 +779,14 @@ class Mel(object):
         Calling Procedure: myScript, in Mel procedure entered interactively.
           myScript("foo",{})
 
-    Notice that the error raised is a `MelConversionError`.  There are several MEL exceptions that may be raised,
-    depending on the type of error encountered: `MelError`, `MelConversionError`, `MelArgumentError`, `MelSyntaxError`, and `MelUnknownProcedureError`.
+    Notice that the error raised is a `MelConversionError`.  There are several
+    MEL exceptions that may be raised, depending on the type of error
+    encountered: `MelError`, `MelConversionError`, `MelArgumentError`,
+    `MelSyntaxError`, and `MelUnknownProcedureError`.
 
-    Here's an example showing a `MelArgumentError`, which also demonstrates the additional traceback
-    information that is provided for you, including the file of the calling script.
+    Here's an example showing a `MelArgumentError`, which also demonstrates
+    the additional traceback information that is provided for you, including
+    the file of the calling script.
 
         >>> mel.startsWith('bar') # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -773,7 +802,10 @@ class Mel(object):
           ...
         MelUnknownProcedureError: Error during execution of MEL script: line 1: ,Cannot find procedure "poop".,
 
-    .. note:: To remain backward compatible with maya.cmds, all MEL exceptions inherit from `MelError`, which in turn inherits from `RuntimeError`.
+    .. note::
+
+        To remain backward compatible with maya.cmds, `MelError`, the base MEL
+        exceptions inherit from , which in turn inherits from `RuntimeError`.
 
 
     """
@@ -799,18 +831,22 @@ class Mel(object):
 
     @classmethod
     def mprint(cls, *args):
-        """mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
-        in certain output, such as the rush render-queue manager."""
+        """mel print command in case the python print command doesn't cut it"""
         # print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args)))
         _mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
 
     @classmethod
     def source(cls, script, language='mel'):
         """use this to source mel or python scripts.
-        language : 'mel', 'python'
-            When set to 'python', the source command will look for the python equivalent of this mel file, if
-            it exists, and attempt to import it. This is particularly useful when transitioning from mel to python
-            via mel2py, with this simple switch you can change back and forth from sourcing mel to importing python.
+
+        :Parameters:
+            language : {'mel', 'python'}
+                When set to 'python', the source command will look for the
+                python equivalent of this mel file, if it exists, and attempt
+                to import it. This is particularly useful when transitioning
+                from mel to python via `pymel.tools.mel2py`, with this simple
+                switch you can change back and forth from sourcing mel to
+                importing python.
 
         """
 
@@ -835,9 +871,11 @@ class Mel(object):
         """
         evaluate a string as a mel command and return the result.
 
-        Behaves like maya.mel.eval, with several improvements:
-            - returns pymel `Vector` and `Matrix` classes
-            - when an error is encountered a `MelError` exception is raised, along with the line number (if enabled) and exact mel error.
+        Behaves like `maya.mel.eval`, with several improvements:
+            - returns `pymel.datatype.Vector` and `pymel.datatype.Matrix`
+              classes
+            - when an error is encountered a `MelError` exception is raised,
+              along with the line number (if enabled) and exact mel error.
 
         >>> mel.eval( 'attributeExists("persp", "translate")' )
         0
@@ -992,7 +1030,11 @@ def conditionExists(conditionName):
     """
     Returns True if the named condition exists, False otherwise.
 
-    Note that 'condition' here refers to the type used by 'isTrue' and 'scriptJob', NOT to the condition NODE.
+    Parameters
+    ----------
+    conditionName : str
+        A type used by `isTrue` and `scriptJob` (*Not* a type used by the
+        condition *node*).
     """
     return conditionName in cmds.scriptJob(listConditions=True)
 

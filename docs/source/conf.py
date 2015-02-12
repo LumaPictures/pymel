@@ -26,13 +26,59 @@ _version = pymel.__version__
 # absolute, like shown here.
 #sys.path.append(os.path.abspath('.'))
 
+
+# Napoleon settings
+# -----------------
+
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = False
+napoleon_use_rtype = True
+
+# fix for pymel.core.general.SCENE erroring during inspection by napoleon
+SKIP = {'_the_instance'}
+
+# must monkeypatch sphinxcontrib.napoleon because app.connect places our callback after napoleon's
+import sphinxcontrib.napoleon
+_orig_skip_member = sphinxcontrib.napoleon._skip_member
+
+import sys
+def skip_unsafe(app, what, name, obj, skip, options):
+    if name in SKIP:
+        return False
+    else:
+        try:
+            return _orig_skip_member(app, what, name, obj, skip, options)
+        except:
+            print "Errored on attribute %s of %s %s" % (name, what, obj)
+            raise
+
+sphinxcontrib.napoleon._skip_member = skip_unsafe
+
+# def setup(app):
+#     import pprint
+#     pprint.pprint(app._listeners['autodoc-skip-member'])
+#     app.connect('autodoc-skip-member', skip_unsafe)
+
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.autosummary',
-              'sphinx.ext.inheritance_diagram', 'sphinx.ext.graphviz']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.graphviz',
+    'sphinxcontrib.napoleon',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['../templates']
@@ -97,11 +143,11 @@ pygments_style = 'sphinx'
 # Options for HTML output
 # -----------------------
 
-# import sphinx_rtd_theme
-# html_theme = "sphinx_rtd_theme"
-# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+import sphinx_rtd_theme
+html_theme = "sphinx_rtd_theme"
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
-html_theme = 'nature'
+# html_theme = 'nature'
 
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
@@ -128,6 +174,12 @@ html_theme = 'nature'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_context = {
+    'css_files': [
+        '_static/theme_overrides.css',  # overrides for wide tables in RTD theme
+        ],
+    }
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
