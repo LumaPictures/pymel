@@ -1484,8 +1484,81 @@ class test_Attribute_iterDescendants(unittest.TestCase):
                          self.blend.attr('inputTarget').iterDescendants(levels=0))
         self.assertEqual(results, [])
 
+class test_Attribute_minMax(unittest.TestCase):
+    def setUp(self):
+        self.cube = pm.polyCube()[0]
+        self.cube.addAttr('boundedSingle', minValue=0.0, softMinValue=10.0, softMaxValue=20.0, maxValue=30.0)
+        self.cube.addAttr('boundedMulti', multi=True, minValue=0.0, softMinValue=10.0, softMaxValue=20.0, maxValue=30.0)
+
+        self.cube.addAttr('unboundedSingle')
+        self.cube.addAttr('unboundedMulti', multi=True)
+
+        self.boundedSingle = self.cube.attr('boundedSingle')
+        self.boundedMulti = self.cube.attr('boundedMulti')
+        self.boundedElem = self.boundedMulti[0]
+
+        self.unboundedSingle = self.cube.attr('unboundedSingle')
+        self.unboundedMulti = self.cube.attr('unboundedMulti')
+        self.unboundedElem = self.unboundedMulti[0]
+
+    def tearDown(self):
+        pm.delete(self.cube)
+
+    def setTest(self, attr, val):
+        attr.set(val)
+        self.assertEqual(attr.get(), val)
+
+    def setBoundsTest(self, attr):
+        self.assertRaises(RuntimeError, attr.set, -5.0)
+        self.setTest(attr, 0.0)
+        self.setTest(attr, 5.0)
+        self.setTest(attr, 10.0)
+        self.setTest(attr, 15.0)
+        self.setTest(attr, 20.0)
+        self.setTest(attr, 25.0)
+        self.setTest(attr, 30.0)
+        self.assertRaises(RuntimeError, attr.set, 35.0)
+
+    def test_set_single(self):
+        self.setBoundsTest(self.boundedSingle)
+
+    def test_set_elem(self):
+        self.setBoundsTest(self.boundedElem)
+
+    def getBoundsTest(self, attr):
+        self.assertEqual(attr.getMin(), 0.0)
+        self.assertEqual(attr.getSoftMin(), 10.0)
+        self.assertEqual(attr.getSoftMax(), 20.0)
+        self.assertEqual(attr.getMax(), 30.0)
+
+    def test_getBounds_boundedSingle(self):
+        self.getBoundsTest(self.boundedSingle)
+
+    def test_getBounds_boundedMulti(self):
+        self.getBoundsTest(self.boundedMulti)
+
+    def test_getBounds_boundedElem(self):
+        self.getBoundsTest(self.boundedElem)
+
+    def getNoBoundsTest(self, attr):
+        self.assertEqual(attr.getMin(), None)
+        self.assertEqual(attr.getSoftMin(), None)
+        self.assertEqual(attr.getSoftMax(), None)
+        self.assertEqual(attr.getMax(), None)
+
+    def test_getBounds_unboundedSingle(self):
+        self.getNoBoundsTest(self.unboundedSingle)
+
+    def test_getBounds_unboundedMulti(self):
+        self.getNoBoundsTest(self.unboundedMulti)
+
+    def test_getBounds_unboundedElem(self):
+        self.getNoBoundsTest(self.unboundedElem)
+
+
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
 #setupUnittestModule(__name__)
+
 

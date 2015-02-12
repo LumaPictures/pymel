@@ -3535,8 +3535,8 @@ class Attribute(PyNode):
 
         :rtype: `float`
         """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMinExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMin=True)[0]
+        if cmds.attributeQuery(self.attrName(), node=self.node(), softMinExists=True):
+            return cmds.attributeQuery(self.attrName(), node=self.node(), softMin=True)[0]
 
     def getSoftMax(self):
         """attributeQuery -softMax
@@ -3544,8 +3544,8 @@ class Attribute(PyNode):
 
         :rtype: `float`
         """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMaxExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMax=True)[0]
+        if cmds.attributeQuery(self.attrName(), node=self.node(), softMaxExists=True):
+            return cmds.attributeQuery(self.attrName(), node=self.node(), softMax=True)[0]
 
     def getMin(self):
         """attributeQuery -min
@@ -3553,8 +3553,8 @@ class Attribute(PyNode):
 
         :rtype: `float`
         """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), minExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), min=True)[0]
+        if cmds.attributeQuery(self.attrName(), node=self.node(), minExists=True):
+            return cmds.attributeQuery(self.attrName(), node=self.node(), min=True)[0]
 
     def getMax(self):
         """attributeQuery -max
@@ -3562,8 +3562,8 @@ class Attribute(PyNode):
 
         :rtype: `float`
         """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), maxExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), max=True)[0]
+        if cmds.attributeQuery(self.attrName(), node=self.node(), maxExists=True):
+            return cmds.attributeQuery(self.attrName(), node=self.node(), max=True)[0]
 
     def getSoftRange(self):
         """attributeQuery -softRange
