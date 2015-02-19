@@ -1146,7 +1146,7 @@ class MainProgressBar(dynModule.ProgressBar):
             progress value is greater than the maxValue, the progress value
             will be set to the maximum. Default value is 100.
 
-        interuruptable : bool
+        interruptable : bool
             Set to True if the isCancelled flag should respond to attempts to
             cancel the operation. Setting this to true will put make the help
             line display message to the user indicating that they can cancel
