@@ -310,18 +310,11 @@ class PopupError(Exception):
 
 def promptForFolder():
     """ Prompt the user for a folder path """
-
-    # a little trick that allows us to change the top-level 'folder' variable from
-    # the nested function ('getfolder') - use a single-element list, and change its content
-    folder = [None]
-
-    def getfolder(*args):
-        folder[0] = args[0]
-    ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
-    folder = _Path(folder[0])
-    if folder.exists():
-        return folder
-
+    ret = cmds.fileDialog2(fm=3, okc='Get Folder')
+    if ret:
+        folder = _Path(ret[0])
+        if folder.exists():
+            return folder
 
 def promptForPath(**kwargs):
     """ Prompt the user for a folder path """
@@ -351,7 +344,6 @@ def promptForPath(**kwargs):
             # Ensure something was entered/selected. But don't test if it exists
             # as this would break mode 1/100+ causing them to return None
             return folder
-
 
 def fileDialog(*args, **kwargs):
     ret = cmds.fileDialog(*args, **kwargs)
