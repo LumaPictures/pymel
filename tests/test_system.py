@@ -569,10 +569,15 @@ class testCase_references(unittest.TestCase):
         self.assertEqual(edits, [])
 
 class testCase_fileInfo(unittest.TestCase):
+    # Only need to test these methods, because we've based the fileInfo on
+    # collections.MutableMapping, and this is these are the required methods to implement that interface.
+    # __delitem__, __getitem__, __iter__, __len__, __setitem__
+    
+
     def setUp(self):
         pm.newFile(f=1)
         cmds.fileInfo('testKey', 'testValue')
-
+    
     def test_get(self):
         default = "the default value!"
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist', default), default)
@@ -582,6 +587,25 @@ class testCase_fileInfo(unittest.TestCase):
     def test_getitem(self):
         self.assertRaises(KeyError, lambda: pm.fileInfo['NoWayDoIExist'])
         self.assertEqual(pm.fileInfo['testKey'], cmds.fileInfo('testKey', q=1)[0])
+
+    def test_delitem(self):
+        _dict = {}
+        self.assertNotEqual(_dict.items(), pm.fileInfo.items())
+        del pm.fileInfo['testKey']
+        self.assertEqual(_dict.items(), pm.fileInfo.items())
+
+    def test_iter(self):
+        _lst = ['testKey']
+        self.assertEqual(list(pm.fileInfo), _lst)
+
+
+    def test_len(self):
+        # So for some reason this throws an error.
+        # That FileInfo has no attribute __len__
+        # Oddly this only seems to happen when in the test
+        _lst = ['testKey']
+        self.assertEqual(len(pm.fileInfo), len(_lst))
+
 
 class testCase_namespaces(unittest.TestCase):
     recurseAvailable= ( pm.versions.current() >= pm.versions.v2011 )

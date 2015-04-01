@@ -38,6 +38,8 @@ the results::
 import sys
 import os
 import warnings
+import collections
+import abc
 
 import maya.mel as _mel
 import maya.OpenMaya as _OpenMaya
@@ -695,8 +697,7 @@ workspace = Workspace()
 #  FileInfo Class
 #-----------------------------------------------
 
-class FileInfo(object):
-
+class FileInfo(collections.MutableMapping):
     """
     store and get custom data specific to this file:
 
@@ -715,12 +716,18 @@ class FileInfo(object):
 
         >>> fileInfo( 'myKey', 'myData' )
 
+    Updated to have a fully functional dictiony interface.
+    
+
     """
-    __metaclass__ = _util.Singleton
 
-    def __contains__(self, item):
-        return item in self.keys()
-
+    class __metaclass__(_util.Singleton, abc.ABCMeta):
+        '''
+        Simple subclass of the abstract base metaclass, and the Pymel Singleton.
+        Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
+        '''
+        pass
+        
     def __getitem__(self, item):
         result = cmds.fileInfo(item, q=1)
         if not result:
@@ -728,7 +735,10 @@ class FileInfo(object):
         elif len(result) > 1:
             raise RuntimeError("error getting fileInfo for key %r - more than one value returned" % item)
         else:
-            return result[0]
+            if isinstance(result[0], str):
+                return result[0].decode('string_escape')
+            else:
+                return result[0].decode('unicode_escape')
 
     def __setitem__(self, item, value):
         cmds.fileInfo(item, value)
@@ -738,57 +748,28 @@ class FileInfo(object):
 
     def __call__(self, *args, **kwargs):
         if kwargs.get('query', kwargs.get('q', False)):
-            return self.items()
+            if not args:
+                return self.items()
+            else:
+                return self[args[0]]
         else:
             cmds.fileInfo(*args, **kwargs)
 
     def items(self):
-        res = cmds.fileInfo(query=1)
-        newRes = []
-        for i in range(0, len(res), 2):
-            newRes.append((res[i], res[i + 1]))
-        return newRes
+        return zip(self.keys(), self.values())
 
     def keys(self):
-        res = cmds.fileInfo(query=1)
-        newRes = []
-        for i in range(0, len(res), 2):
-            newRes.append(res[i])
-        return newRes
-
-    def values(self):
-        res = cmds.fileInfo(query=1)
-        newRes = []
-        for i in range(0, len(res), 2):
-            newRes.append(res[i + 1])
-        return newRes
-
-    def pop(self, *args):
-        if len(args) > 2:
-            raise TypeError, 'pop expected at most 2 arguments, got %d' % len(args)
-        elif len(args) < 1:
-            raise TypeError, 'pop expected at least 1 arguments, got %d' % len(args)
-
-        if args[0] not in self.keys():
-            try:
-                return args[1]
-            except IndexError:
-                raise KeyError, args[0]
-
-        cmds.fileInfo(rm=args[0])
+        return cmds.fileInfo(q=True)[::2]
 
     def __iter__(self):
         return iter(self.keys())
-    has_key = __contains__
+    
+    def __len__(self):
+        return len(self.keys())
 
-    def get(self, key, default=None):
-        if key in self:
-            return self[key]
-        else:
-            return default
+    has_key = collections.MutableMapping.__contains__
 
 fileInfo = FileInfo()
-
 
 #-----------------------------------------------
 #  File Classes
@@ -1971,4 +1952,12 @@ def saveAs(newname, **kwargs):
 #openFile = _factories.make_factories.createflagCmd( 'openFile', cmds.file, 'open',  __name__, returnFunc=Path )
 #renameFile = _factories.make_factories.createflagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
+
 _factories.createFunctions(__name__)
+
+# I don't know why this chunk of code becomes funky when I inherit from MutableMapping.
+# But if I don't declare it after the creation factory, it just gets over-ridden.
+# Probably something to do with the combined metaclass hack?
+
+fileInfo = FileInfo()
+
