@@ -956,10 +956,11 @@ Modifications:
 
         res = cmds.listRelatives(*args, **kwargs)
         if res is None:
-            return []
-        return ls(res, shapes=1)
-
-    results = map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs)))
+            results = []
+        else:
+            results = ls(res, shapes=1)
+    else:
+        results = map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs)))
     # Fix that noIntermediate doesn't seem to work in list relatives
     if kwargs.get('noIntermediate', kwargs.get('ni', False)):
         return [result for result in results if not result.intermediateObject.get()]
