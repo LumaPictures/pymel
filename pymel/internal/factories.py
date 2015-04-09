@@ -540,7 +540,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
                     for line in textwrap.wrap(descr.strip('|'), sum(widths[1:]) - 2):
                         docstring += makerow(['', line], descr_widths)
                     # add some filler at the bottom
-                    docstring += makerow(['', '  ..'], descr_widths)
+                    # docstring += makerow(['', '  ..'], descr_widths)
                 else:
                     docstring += makerow(['', ''], descr_widths)
 

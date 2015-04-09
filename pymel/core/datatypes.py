@@ -1,4 +1,5 @@
-"""
+"""Data classes that are returned by functions within ``pymel.core``
+
 A wrap of Maya's Vector, Point, Color, Matrix, TransformationMatrix, Quaternion, EulerRotation types
 """
 

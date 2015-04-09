@@ -102,7 +102,7 @@ Contributing
 Getting Started with Git
 ========================
 
-The PyMEL project hosts its issues and wiki on `googlecode <http://code.google.com/p/pymel/>`_, but we found Git + Github to be a better solution for managing our code.
+The PyMEL project hosts its code on github.
 
  1. Sign up for a `Github <http://github.com>`_ account
  2. Check out the `Github Guides <http://github.com/guides/home>`_ for instructions on how to setup git for your OS

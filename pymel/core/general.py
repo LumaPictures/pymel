@@ -752,10 +752,15 @@ def _toEnumStr(enums):
     return enumStr
 
 def setEnums(attr, enums):
+    """
+    Set the enumerators for an enum attribute.
+    """
     cmds.addAttr(attr, e=1, en=_toEnumStr(enums))
 
 def getEnums(attr):
     """
+    Get the enumerators for an enum attribute.
+
     :rtype: `util.enum.EnumDict`
 
     >>> addAttr( "persp", ln='numbers', at='enum', enumName="zero:one:two:thousand=1000:three")
@@ -2217,6 +2222,8 @@ class PyNode(_util.ProxyUnicode):
         return self.name()
 
     def __apimfn__(self):
+        """Get a ``maya.OpenMaya*.MFn*`` instance
+        """
         try:
             # if we have it, check that the mobject is still valid by calling
             # __apimobject__

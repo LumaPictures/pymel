@@ -33,7 +33,7 @@ Certainly nothing you would want to write an entire pipeline with.
 
 Enter PyMEL.  The primary reasons for pymel's existence are threefold:
 
-    1. to fix bugs in maya.cmds
+    1. to fix bugs in ``maya.cmds``
     2. to modify the behavior of maya.cmds to improve workflow and make it more pythonic ( like returning an empty list instead of None )
     3. to provide a complete object-oriented design for working with nodes, attributes, and other maya structures
 
@@ -43,10 +43,10 @@ strikes a balance between the complicated yet powerful API, and straightforward 
 
 
 ---------------------------------------
-Procedural (maya.cmds)
+Procedural (``maya.cmds``)
 ---------------------------------------
 
-When approaching the reorganization of the existing commands provided by maya.cmds, PyMEL follows these practical guidelines:
+When approaching the reorganization of the existing commands provided by ``maya.cmds``, PyMEL follows these practical guidelines:
 
     - a value returned by a query flag should be accepted as a valid argument by the corresponding edit flag
         - example: ``camera( 'persp', e=1, focalLength = camera( 'persp', q=1, focalLength=1)   )``
@@ -72,9 +72,9 @@ Object-Oriented
 In constructing the PyNode classes, PyMEL follows these design rules:
 
     - node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax
-        - ( ex. foo.bar retrieves an Attribute class, foo.bar() executes a function )
+        - ( ex. ``foo.bar`` retrieves an ``Attribute`` class, ``foo.bar()`` executes a function )
     - node classes are named after the nodes they control, not the mel commands that they proxy  
-        - ( ex. Locator vs. spaceLactor )
+        - ( ex. ``nt.Locator`` vs. ``spaceLactor`` )
     - a value returned by a get* function should be accepted as a valid argument by the corresponding set* function
 
 

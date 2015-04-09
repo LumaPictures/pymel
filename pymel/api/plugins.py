@@ -12,7 +12,7 @@ A quick example::
     cmds.testCmd()
     testCmd.deregister()
 
-An example of a plugin which creates a node:
+An example of a plugin which creates a node::
 
     import math
 
@@ -79,7 +79,7 @@ An example of a plugin which creates a node:
 import sys
 import os
 import inspect
-from collections import defaultdict
+import collections
 
 import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
@@ -581,7 +581,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
 
     _classification = None
 
-    _callbacks = defaultdict(list)
+    _callbacks = collections.defaultdict(list)
 
     @classmethod
     def initialize(cls):

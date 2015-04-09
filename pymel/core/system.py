@@ -19,8 +19,6 @@ you can do this:
 some of the new commands were changed slightly from their flag name to avoid name clashes and to add to readability:
 
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
-    >>> newFile(f=1)
-    ''
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
     FileReference(u'.../test.ma', refnode=u'testRN')
@@ -441,6 +439,9 @@ Modifications:
 class Translator(object):
 
     """
+    Provides information about a Maya translator, which is used for reading
+    and/or writing file formats.
+
     >>> ascii = Translator('mayaAscii')
     >>> ascii.ext
     u'ma'
@@ -1206,7 +1207,14 @@ class FileReference(object):
                     try:
                         self._refNode = general.PyNode(pathOrRefNode)
                     except general.MayaObjectError:
-                         self._refNode = general.PyNode(mcmds.referenceQuery(unicode(pathOrRefNode), referenceNode=1))
+                        pathOrRefNode = unicode(pathOrRefNode)
+                        try:
+                            refNodeName = mcmds.file(pathOrRefNode, q=1, referenceNode=1)
+                        except RuntimeError:
+                            # referenceQuery command is more stable in certain edge cases, like
+                            # while a file is loading
+                            refNodeName = mcmds.referenceQuery(pathOrRefNode, referenceNode=1)
+                        self._refNode = general.PyNode(refNodeName)
 
         elif namespace:
             namespace = ':' + namespace.strip(':')

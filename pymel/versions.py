@@ -1,5 +1,5 @@
-"""
-Contains functions for easily comparing versions of Maya with the current running version.
+"""Functions for getting and comparing versions of Maya.
+
 Class for storing apiVersions, which are the best method for comparing versions. ::
 
     >>> from pymel import versions
@@ -112,6 +112,12 @@ v2015_EXT1SP5 = 201507
 v2016 = 201600
 
 def current():
+    """Get the current version of Maya
+
+    Returns
+    -------
+    int
+    """
     return _current
 
 def fullName():
@@ -124,9 +130,23 @@ def shortName():
     return _shortName
 
 def is64bit():
+    """Whether this instance of Maya is 64-bit
+
+    Returns
+    -------
+    bool
+    """
     return _is64
 
 def flavor():
+    """The 'flavor' of this instance of Maya
+
+    Requires ``maya.cmds``.
+
+    Returns
+    -------
+    str
+    """
     import maya.cmds
     try:
         return maya.cmds.about(product=1).split()[1]
@@ -134,15 +154,35 @@ def flavor():
         raise RuntimeError, "This method cannot be used until maya is fully initialized"
 
 def isUnlimited():
+    """Whether this instance of Maya is 'Unlimited' (deprecated)
+
+    Returns
+    -------
+    bool
+    """
     return flavor() == 'Unlimited'
 
 def isComplete():
+    """Whether this instance of Maya is 'Unlimited' (deprecated)
+
+    Returns
+    -------
+    bool
+    """
     return flavor() == 'Complete'
 
 def isRenderNode():
     return flavor() == 'Render'
 
 def isEval():
+    """Whether this instance of Maya is an evaluation edition
+
+    Requires ``maya.cmds``.
+
+    Returns
+    -------
+    bool
+    """
     import maya.cmds
     try:
         return maya.cmds.about(evalVersion=1)

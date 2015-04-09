@@ -348,19 +348,21 @@ def melInfo(input):
         >>> mel2py.melInfo('attributeExists')
         (['attributeExists'], {'attributeExists': {'returnType': 'int', 'args': [('string', '$attr'), ('string', '$node')]}}, {})
 
-    :Parameters:
-        input
-            can be a mel file or a sourced mel procedure
+    Parameters
+    ----------
+    input
+        can be a mel file or a sourced mel procedure
 
-    :return:
-        A 3-element tuple:
-            1. the list of procedures in the order the are defined
-            2. a dictionary of global procedures, with the following entries:
-                - returnType: mel type to be returned
-                - args: a list of (type, variable_name) pairs
-            3. a dictionary of local procedures, formatted the same as with globals
-
-
+    Returns
+    -------
+    allProcs : list of str
+        The list of procedures in the order the are defined
+    globalProcs : dict
+        A dictionary of global procedures, with the following entries:
+            - returnType: mel type to be returned
+            - args: a list of (type, variable_name) pairs
+    localProcs : dict
+        A dictionary of local procedures, formatted the same as with globals
     """
 
     # TODO: change this to use _getInputFiles, with an option to prevent recursing directories
@@ -386,25 +388,26 @@ def mel2pyStr(data, currentModule=None, pymelNamespace='', forceCompatibility=Fa
     Note that when converting single lines, the lines must end in a semi-colon, otherwise it is technically
     invalid syntax.
 
-    :Parameters:
-        data : `str`
-            string representing coe to convert
+    Parameters
+    ----------
+    data : `str`
+        string representing coe to convert
 
-        currentModule : `str`
-            the name of the module that the hypothetical code is executing in. In most cases you will
-            leave it at its default, the __main__ namespace.
+    currentModule : `str`
+        the name of the module that the hypothetical code is executing in. In most cases you will
+        leave it at its default, the __main__ namespace.
 
-        pymelNamespace : `str`
-            the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
+    pymelNamespace : `str`
+        the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
 
-        forceCompatibility : `bool`
-            If True, the translator will attempt to use non-standard python types in order to produce
-            python code which more exactly reproduces the behavior of the original mel file, but which
-            will produce "uglier" code.  Use this option if you wish to produce the most reliable code
-            without any manual cleanup.
+    forceCompatibility : `bool`
+        If True, the translator will attempt to use non-standard python types in order to produce
+        python code which more exactly reproduces the behavior of the original mel file, but which
+        will produce "uglier" code.  Use this option if you wish to produce the most reliable code
+        without any manual cleanup.
 
-        verbosity : `int`
-            Set to non-zero for a *lot* of feedback
+    verbosity : `int`
+        Set to non-zero for a *lot* of feedback
     """
 
     mparser = melparse.MelParser()
@@ -423,44 +426,45 @@ def mel2py(input, outputDir=None,
     """
     Batch convert an entire directory
 
-    :Parameters:
-        input
-            May be a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure.
-            If only the name of the mel file is passed, mel2py will attempt to determine the location
-            of the file using the 'whatIs' mel command, which relies on the script already being sourced by maya.
+    Parameters
+    ----------
+    input
+        May be a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure.
+        If only the name of the mel file is passed, mel2py will attempt to determine the location
+        of the file using the 'whatIs' mel command, which relies on the script already being sourced by maya.
 
-        outputDir : `str`
-            Directory where resulting python files will be written to
+    outputDir : `str`
+        Directory where resulting python files will be written to
 
-        pymelNamespace : `str`
-            the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
+    pymelNamespace : `str`
+        the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
 
-        forceCompatibility : `bool`
-            If True, the translator will attempt to use non-standard python types in order to produce
-            python code which more exactly reproduces the behavior of the original mel file, but which
-            will produce "uglier" code.  Use this option if you wish to produce the most reliable code
-            without any manual cleanup.
+    forceCompatibility : `bool`
+        If True, the translator will attempt to use non-standard python types in order to produce
+        python code which more exactly reproduces the behavior of the original mel file, but which
+        will produce "uglier" code.  Use this option if you wish to produce the most reliable code
+        without any manual cleanup.
 
-        verbosity : `int`
-            Set to non-zero for a *lot* of feedback
+    verbosity : `int`
+        Set to non-zero for a *lot* of feedback
 
-        test : `bool`
-            After translation, attempt to import the modules to test for errors
+    test : `bool`
+        After translation, attempt to import the modules to test for errors
 
-        recurse : `bool`
-            If the input is a directory, whether or not to recursively search subdirectories as well.
-            Subdirectories will be converted into packages, and any mel files within those subdirectories
-            will be submodules of that package.
+    recurse : `bool`
+        If the input is a directory, whether or not to recursively search subdirectories as well.
+        Subdirectories will be converted into packages, and any mel files within those subdirectories
+        will be submodules of that package.
 
-        exclude : `str`
-            A comma-separated list of files/directories to exclude from processing, if input is a directory.
+    exclude : `str`
+        A comma-separated list of files/directories to exclude from processing, if input is a directory.
 
-        melPathOnly : `bool`
-            If true, will only translate mel files found on the mel script path.
+    melPathOnly : `bool`
+        If true, will only translate mel files found on the mel script path.
 
-        basePackage : `str`
-            Gives the package that all translated modules will be a part of; if None or an empty string, all
-            translated modules are assumed to have no base package.
+    basePackage : `str`
+        Gives the package that all translated modules will be a part of; if None or an empty string, all
+        translated modules are assumed to have no base package.
     """
     if basePackage is None:
         basePackage = ''

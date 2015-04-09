@@ -36,15 +36,18 @@ def _getFunction(function):
 # a list of arguments to a command.
 
 def getMelArgs(function, exactMelType=True):
-    """
-    given a python function, return ( ( argName, melType ), { argName : default }, { argName : description } )
+    """Inspect the arguments of a python function and return the cloesst
+    compatible MEL arguments.
 
-        function
-        This can be a callable python object or the full, dotted path to the callable object as a string.
+    Returns
+    -------
+    ``((argName, melType ), {argName : default}, {argName : description})``
 
-        If a string representing the python function is passed, it should include all packages and sub-modules, along
-        with the function's name:  'path.to.myFunc'
-
+    Parameters
+    ----------
+    function : callable or str
+        This can be a callable python object or the full, dotted path to the
+        callable object as a string.
     """
 
     melArgs = []

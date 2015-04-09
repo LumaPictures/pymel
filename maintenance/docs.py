@@ -48,7 +48,7 @@ def generate(clean=True):
         clean_generated()
     os.chdir(sourcedir)
 
-    sphinx_autogen( [''] + '--templates ../templates index.rst'.split() )
+    sphinx_autogen( [''] + '--templates ../templates modules.rst'.split() )
     sphinx_autogen( [''] + '--templates ../templates'.split() + glob.glob('generated/pymel.*.rst') )
     print "...done generating %s - %s" % (docsdir, datetime.datetime.now())
 

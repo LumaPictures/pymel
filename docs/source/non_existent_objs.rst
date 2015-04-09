@@ -1,10 +1,10 @@
-.. currentmodule:: pymel
+.. currentmodule:: pymel.core.general
 
 =======================================
 Non-Existent Objects
 =======================================
 
-An exception will be raised if the passed name does not represent an object in the scene. This has several advantages:
+You cannot instantiate a `PyNode` for an object which does not exist.  An exception will be raised if the passed name does not represent an object in the scene. This has several advantages:
 
     1. you will never unwittingly attempt to use a node or attribute that does not exist, either due to a typo or unexpected context
     2. it brings PyMEL's attribute handling more in line with pythonic rules, where attributes must exist before accessing them
@@ -38,14 +38,16 @@ be used to access functions, in which case the `MayaAttributeError` does not mak
 use `AttributeError` to catch both.
 
 
-Explicit notation:
+Explicit notation::
+
     >>> x = polySphere(name='earth')[0]
     >>> x.attr('myAttr')
     Traceback (most recent call last):
         ...
     MayaAttributeError: Maya Attribute does not exist: u'earth.myAttr'
     
-Shorthand notation:
+Shorthand notation::
+
     >>> x = polySphere(name='moon')[0]
     >>> x.myAttr
     Traceback (most recent call last):
@@ -55,18 +57,19 @@ Shorthand notation:
 ---------------------------------------
 Testing Node Existence
 ---------------------------------------
-
         
-Still supported:
-    >>> if objExists( 'fooBar' ): 
+Still supported::
+
+    >>> if objExists('fooBar'): 
     ...     print "It Exists"
     ... else:
     ...     print "It Doesn't Exist"
     It Doesn't Exist
     
-PyMEL construct:
+PyMEL construct::
+
     >>> try:
-    ...     PyNode( 'fooBar' )
+    ...     PyNode('fooBar')
     ...     print "It Exists"
     ... except MayaObjectError:
     ...     print "It Doesn't Exist"
@@ -76,14 +79,16 @@ PyMEL construct:
 Testing Attribute Existence
 ---------------------------------------
 
-Still supported:
-    >>> if objExists( 'persp.spangle' ):
+Still supported::
+
+    >>> if objExists('persp.spangle'):
     ...     print "Attribute Exists"
     ... else:
     ...     print "Attribute Doesn't Exist"
     Attribute Doesn't Exist
             
-PyMEL construct:    
+PyMEL construct::
+
     >>> x = PyNode('persp') 
     >>> if x.hasAttr('spangle'):
     ...     print "Attribute Exists"
@@ -91,7 +96,8 @@ PyMEL construct:
     ...     print "Attribute Doesn't Exist"
     Attribute Doesn't Exist
 
-PyMEL construct:
+PyMEL construct::
+
     >>> try:
     ...     PyNode( 'persp.spangle' )
     ...     print "Attribute Exists"
@@ -99,7 +105,8 @@ PyMEL construct:
     ...     print "Attribute Doesn't Exist"
     Attribute Doesn't Exist
 
-PyMEL construct:
+PyMEL construct::
+
     >>> x = PyNode('persp') 
     >>> try:
     ...     x.spangle
@@ -107,25 +114,6 @@ PyMEL construct:
     ... except AttributeError:
     ...     print "Attribute Doesn't Exist"
     Attribute Doesn't Exist
-    
----------------------------------------
-Other PyMEL Idioms
----------------------------------------
-Two other PyMEL idioms have been removed as a result of this change. `Attribute.add` has been removed because the attribute has to exist
-in order to successfully get an Attribute instance.  Instead, you should use the ``addAttr`` method on the node:
-
-    >>> PyNode('persp').addAttr( 'myNewFloatAttr', at=float )
-
-Similarly, the ``force`` flag for setAttr functions, which creates the attribute before setting if it does not exist, can only be safely used from the node class
-and not the attribute class:
-
-Still supported:
-
-    >>> PyNode('persp').setAttr( 'myNewIntAttr', 2, force=1 )
-
-New construct:
- 
-    >>> PyNode('persp').setDynamicAttr( 'myNewIntAttr', 2 )
       
 --------------------------------------------
 Manipulating Names of Non-Existent Objects
@@ -143,7 +131,7 @@ Asserting Proper Type
 --------------------------------------------
 
 While `PyNode` serves to easily cast any string to its proper class in the node hierarchy, other nodes in the hierarchy can achieve the 
-same effect:
+same effect::
 
     >>> PyNode('lambert1')
     nt.Lambert(u'lambert1')
@@ -151,16 +139,16 @@ same effect:
     nt.Lambert(u'lambert1')
 
 If the determined type does not match the requested type, an error will be raised.  For example, a lambert node is not
-a DAG node:
+a DAG node::
 
-    >>> nt.DagNode( 'lambert1' )
+    >>> nt.DagNode('lambert1')
     Traceback (most recent call last):
     ...
     TypeError: Determined type is Lambert, which is not a subclass of desired type DagNode
 
-This is useful because it can be used as a quick way to assert that a given node is of the desire type.
+This is useful because it can be used as a quick way to assert that a given node is of the desire type. ::
 
-    >>> select( 'lambert1' ) # this line represents user action
+    >>> select('lambert1') # this line represents user action
     >>> try:
     ...    nt.DagNode( selected()[0] )
     ... except TypeError:

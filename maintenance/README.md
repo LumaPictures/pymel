@@ -8,6 +8,7 @@ Building an Official PyMEL Release
   - git
   - graphviz: using an OS package manager like `yum`, `apt-get`, or `brew`, or on windows, from an [installer](http://www.graphviz.org/Download_windows.php)
   - python dependencies:
+
     ```
     curl -O https://bootstrap.pypa.io/get-pip.py
     sudo $MAYA_LOCATION/bin/mayapy get-pip.py
