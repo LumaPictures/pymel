@@ -18,6 +18,7 @@ import inspect
 import sys
 import re
 import os
+import types
 
 import pymel.util as util
 import pymel.versions as versions
@@ -152,14 +153,40 @@ def addWrappedCmd(cmdname, cmd=None):
             pass
         return res
 
-    wrappedCmd.__doc__ = cmd.__doc__
-
     oldname = getattr(cmd, '__name__', None)
     if isinstance(oldname, str):
         # Don't use cmd.__name__, as this could be 'stubFunc'
-        wrappedCmd.__name__ = getCmdName(cmd)
+        newname = getCmdName(cmd)
     else:
-        wrappedCmd.__name__ = str(cmdname)
+        newname = str(cmdname)
+
+    old_code = wrappedCmd.func_code
+    # want to change the name, not just of the func, but of the underlying
+    # code object - this makes it much easier to get useful information when
+    # using cProfile
+    # unfortunately, this isn't easy - have to get hacky...
+    # ...we could do it with a big string and exec, but then we'd lose both
+    # syntax highlighting, and file + lineno info...
+    new_code = types.CodeType(old_code.co_argcount,
+                              old_code.co_nlocals,
+                              old_code.co_stacksize,
+                              old_code.co_flags,
+                              old_code.co_code,
+                              old_code.co_consts,
+                              old_code.co_names,
+                              old_code.co_varnames,
+                              old_code.co_filename,
+                              str('%s_wrapped' % cmdname),  # unicode no good
+                              old_code.co_firstlineno,
+                              old_code.co_lnotab,
+                              old_code.co_freevars,
+                              old_code.co_cellvars)
+    wrappedCmd = types.FunctionType(new_code,
+                                    wrappedCmd.func_globals,
+                                    str(newname),  # unicode no good
+                                    wrappedCmd.func_defaults,
+                                    wrappedCmd.func_closure)
+    wrappedCmd.__doc__ = cmd.__doc__
 
     # for debugging, to make sure commands got wrapped...
     #wrappedCmd = _testDecorator(wrappedCmd)
