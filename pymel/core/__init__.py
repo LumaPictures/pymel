@@ -131,7 +131,12 @@ def _pluginLoaded(*args):
         # clear out the command list first
         _pluginData[pluginName]['commands'] = []
         for funcName in commands:
-            _addPluginCommand(pluginName, funcName)
+            try:
+                _addPluginCommand(pluginName, funcName)
+            except Exception as e:
+                _logger.error("Error adding command %s from plugin %s - %s" %
+                              (funcName, pluginName, e))
+                _logger.debug(traceback.format_exc())
 
     # Nodes
     try:
