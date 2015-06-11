@@ -340,7 +340,7 @@ def fixMayapy2011SegFault():
 
                 # This is just in case anybody else needs to access the
                 # original exit function...
-                if not hasattr('sys', '_orig_exit'):
+                if not hasattr(sys, '_orig_exit'):
                     sys._orig_exit = _orig_exit
 
                 def exit(status):
