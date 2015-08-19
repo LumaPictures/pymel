@@ -703,7 +703,7 @@ class TextScrollList(PyUI):
     def selectIndexedItems(self, selectList):
         """select a list of indices"""
         for x in selectList:
-            self.selectIndexedItem(x)
+            self.setSelectIndexedItem(x)
 
     def removeIndexedItems(self, removeList):
         """remove a list of indices"""
