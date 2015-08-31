@@ -3367,6 +3367,13 @@ class ObjectSet(Entity):
 #    def update( self, set2 ):
 #        sets( self, forceElement=set2 )
 
+    def forceElement(self, member):
+        """Forces addition of the items to the set. If the items are in
+        another set which is in the same partition as the given set,
+        the items will be removed from the other set in order to keep the
+        sets in the partition mutually exclusive with respect to membership."""
+        cmds.sets(member, forceElement=self)
+
     def members(self, flatten=False):
         """return members as a list
         :rtype: `list`
