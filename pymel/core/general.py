@@ -1260,7 +1260,12 @@ Modifications:
     else:
         nodes = cmds.ls(sl=1, type='dagNode')
 
-    if nodes:
+    # There are some situations in which you can only pass one node - ie, with
+    # shape=True, removeObject=True - and we don't want to abort in these
+    # cases
+
+    if (nodes and len(nodes) > 1 and not kwargs.get('removeObject', False)
+            and not kwargs.get('rm', False)):
         if kwargs.get('w', False):
             parent = None
             children = nodes
@@ -1276,9 +1281,11 @@ Modifications:
                 return parent[0]
         if all(getParent(child) == parent for child in children):
             return [PyNode(x) for x in children]
-
     result = cmds.parent(*args, **kwargs)
-    return [PyNode(x) for x in result]
+    # if using removeObject, return is None
+    if result:
+        result = [PyNode(x) for x in result]
+    return result
 
 # Because cmds.duplicate only ever returns node names (ie, NON-UNIQUE, and
 # therefore, nearly useless names - yes, the function that is MOST LIKELY to
