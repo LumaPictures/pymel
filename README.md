@@ -294,7 +294,4 @@ there's a reason why python is rapidly becoming the industry stanadard. with pym
 
 ---
 
-Pymel is developed and maintained by [Luma Pictures](www.lumapictures.com).
-
-
-
+Pymel is developed and maintained by [Luma Pictures](http://www.lumapictures.com).
