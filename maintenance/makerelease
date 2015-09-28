@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# For steps required to make a proper release see RELEASING in this directory
+# For steps required to make a proper release see README.md in this directory
 
 fullVer=$1
 if [ -z "$fullVer" ]; then
