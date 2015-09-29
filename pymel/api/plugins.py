@@ -1011,7 +1011,7 @@ UNREPORTED_COMMANDS = {
     'modelEditorCommand': {'stereoCamera': ['stereoCameraView']},
     'controlCommand': {},
     'constraintCommand': {},
-    'contextCommand': {},  # currently no pluginInfo flag for this in any version, but I'm an optimist...
+    'tool': {},  # Tool replacing contextCommand to match Maya implementation
     #'other':{}, # just to hold any commands we may want that don't fall in other categories
 }
 
