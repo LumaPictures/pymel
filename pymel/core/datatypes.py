@@ -1645,7 +1645,7 @@ class Matrix(MatrixN):
 
     def _getRotate(self):
         t = TransformationMatrix(self)
-        return Quaternion(t.rotation())
+        return Quaternion(t.apicls.rotation(t))
 
     def _setRotate(self, value):
         t = TransformationMatrix(self)
@@ -1657,23 +1657,12 @@ class Matrix(MatrixN):
     rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Matrix, in transform space")
 
     def _getScale(self):
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
         t = TransformationMatrix(self)
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(1.0, 1.0, 1.0)
-        p = ms.asDoublePtr()
-        t.getScale(p, _api.MSpace.kTransform)
-        return Vector([ms.getDoubleArrayItem(p, i) for i in range(3)])
+        return Vector(t.getScale(_api.MSpace.kTransform))
 
     def _setScale(self, value):
         t = TransformationMatrix(self)
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(*Vector(value))
-        p = ms.asDoublePtr()
-        t.setScale(p, _api.MSpace.kTransform)
+        t.setScale(value, _api.MSpace.kTransform)
         self.assign(t.asMatrix())
     scale = property(_getScale, _setScale, None, "The scale expressed in this Matrix, in transform space")
 
@@ -2052,21 +2041,10 @@ class TransformationMatrix(Matrix):
         self.rotateTo(EulerRotation(*args))
 
     def _getScale(self):
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(1.0, 1.0, 1.0)
-        p = ms.asDoublePtr()
-        self.getScale(p, _api.MSpace.kTransform)
-        return Vector([ms.getDoubleArrayItem(p, i) for i in range(3)])
+        return Vector(self.getScale(_api.MSpace.kTransform))
 
     def _setScale(self, value):
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(*Vector(value))
-        p = ms.asDoublePtr()
-        self.setScale(p, _api.MSpace.kTransform)
+        self.setScale(value, _api.MSpace.kTransform)
     scale = property(_getScale, _setScale, None, "The scale expressed in this TransformationMatrix, in transform space")
 
 
