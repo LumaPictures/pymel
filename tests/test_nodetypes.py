@@ -1895,6 +1895,17 @@ class testCase_DagNode(TestCaseExtended):
             setB[x].overrideVisibility.set(0)
             self.assertFalse(setB[x].isVisible())
 
+class testCase_Shape(TestCaseExtended):
+    def setUp(self):
+        self.trans, self.polySphere = pm.polySphere()
+        self.shape = self.trans.getShape()
+
+    def test_getTransform(self):
+        self.assertEqual(self.shape.getTransform(), self.trans)
+
+    def tearDown(self):
+        pm.delete(self.trans)
+
 class testCase_transform(TestCaseExtended):
     def setUp(self):
         self.trans = pm.createNode('transform')

@@ -1678,7 +1678,7 @@ class Shape(DagNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
 
     def getTransform(self):
-        pass
+        return self.getParent(generations=1)
 
     def setParent(self, *args, **kwargs):
         if 'shape' not in kwargs and 's' not in kwargs:
