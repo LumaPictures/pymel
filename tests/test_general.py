@@ -1106,6 +1106,17 @@ class test_PyNodeWraps(unittest.TestCase):
             cmds.setToolTo('artAttrCtx1')
             self.assertPyNodes(artAttrCtx('artAttrCtx1', q=1, paintNodeArray=1))
 
+class test_ParticleComponent(unittest.TestCase):
+    def setUp(self):
+        self.partTr, self.partShape = pm.particle(p=[(0, 0, 0), (1, 2, 3)])
+
+    def test_attr_position(self):
+        self.assertEqual(self.partShape.pt[0].position, [0, 0, 0])
+        self.assertEqual(self.partShape.pt[1].position, [1, 2, 3])
+
+    def tearDown(self):
+        pm.delete([self.partShape, self.partTr])
+
 for cmdName in ('''aimConstraint geometryConstraint normalConstraint
                    orientConstraint parentConstraint pointConstraint
                    pointOnPolyConstraint poleVectorConstraint
