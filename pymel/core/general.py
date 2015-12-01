@@ -5845,7 +5845,7 @@ class ParticleComponent(Component1D):
 
     def attr(self, attr):
         try:
-            return cmds.particle(self._node, q=1, attribute=attr, order=self._currentFlatIndex)
+            return cmds.particle(self._node, q=1, attribute=attr, order=super(ParticleComponent, self).currentItemIndex())
         except RuntimeError:
             raise MayaParticleAttributeError('%s.%s' % (self, attr))
 
