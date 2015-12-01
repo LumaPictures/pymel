@@ -92,8 +92,16 @@ def runOverriddenModule(modName, callingFileFunc, globals):
         if isinstance(findResults[0], file):
             findResults[0].close()
         # ...then check if the found file matched the callingFile
-        if os.path.samefile(findResults[1], callingFile):
-            break
+        try:
+            if os.path.samefile(findResults[1], callingFile):
+                break
+        except AttributeError:
+            # os.samefile does not exist on Windows (as of Python version < 3k)
+            # WARNING: Resorting to a less than ideal method to checking for same file
+            # TODO: Add deeper implementation of the samefile hack for windows
+            # in future, if possible.
+            if os.stat(findResults[1]) == os.stat(callingFile):
+                break
     else:
         # we couldn't find the file - raise an ImportError
         raise ImportError("Couldn't find the file %r when using path %r"
