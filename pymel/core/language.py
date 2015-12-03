@@ -717,6 +717,38 @@ class MelSyntaxError(MelError, SyntaxError):
     """The MEL script has a syntactical error"""
     pass
 
+class MelCallable(object):
+
+    """ Class for wrapping up callables created by Mel class' procedure calls.
+
+        The class is designed to support chained, "namespace-protected" MEL procedure
+        calls, like: Foo.bar.spam(). In this case, Foo, bar and spam would each be MelCallable
+        objects.
+    """
+
+    def __init__(self, head, name):
+        if head:
+            self.full_name = '%s.%s' % (head, name)
+        else:
+            self.full_name = name
+
+    def __getattr__(self, command):
+        if command.startswith('__') and command.endswith('__'):
+            try:
+                return self.__dict__[command]
+            except KeyError:
+                raise AttributeError, "object has no attribute '%s'" % command
+
+        return MelCallable(head=self.full_name, name=command)
+
+    def __call__(self, *args, **kwargs):
+        cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
+        try:
+            Mel.proc = self.full_name
+            return Mel.eval(cmd)
+        finally:
+            Mel.proc = None
+
 class Mel(object):
 
     """Acts as a namespace from which MEL procedures can be called as if they
@@ -819,15 +851,7 @@ class Mel(object):
             except KeyError:
                 raise AttributeError, "object has no attribute '%s'" % command
 
-        def _call(*args, **kwargs):
-            cmd = pythonToMelCmd(command, *args, **kwargs)
-
-            try:
-                self.__class__.proc = command
-                return self.eval(cmd)
-            finally:
-                self.__class__.proc = None
-        return _call
+        return MelCallable(head='', name=command)
 
     @classmethod
     def mprint(cls, *args):
