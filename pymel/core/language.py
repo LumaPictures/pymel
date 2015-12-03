@@ -743,11 +743,7 @@ class MelCallable(object):
 
     def __call__(self, *args, **kwargs):
         cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
-        try:
-            Mel.proc = self.full_name
-            return Mel.eval(cmd)
-        finally:
-            Mel.proc = None
+        return Mel._eval(cmd, self.full_name)
 
 class Mel(object):
 
@@ -907,6 +903,13 @@ class Mel(object):
         u'Foo Bar Spangle'
 
         """
+        return cls._eval(cmd, None)
+
+    @classmethod
+    def _eval(cls, cmd, commandName):
+        # commandName is just used for nicer formatting of error messages,
+        # and is used by MelCallable
+
         # should return a value, like _mm.eval
         # return _mm.eval( cmd )
         # get this before installing the callback
@@ -944,7 +947,7 @@ class Mel(object):
                 e = MelUnknownProcedureError
             elif 'Wrong number of arguments' in msg:
                 e = MelArgumentError
-                if cls.proc:
+                if commandName:
                     # remove the calling proc, it will be added below
                     msg = msg.split('\n', 1)[1].lstrip()
             elif 'Cannot convert data' in msg or 'Cannot cast data' in msg:
@@ -956,12 +959,12 @@ class Mel(object):
             message = "Error during execution of MEL script: %s" % (msg)
             fmtCmd = '\n'.join(['  ' + x for x in cmd.split('\n')])
 
-            if cls.proc:
+            if commandName:
                 if e is not MelUnknownProcedureError:
-                    file = _mm.eval('whatIs "%s"' % cls.proc)
+                    file = _mm.eval('whatIs "%s"' % commandName)
                     if file.startswith('Mel procedure found in: '):
                         file = 'file "%s"' % os.path.realpath(file.split(':')[1].lstrip())
-                    message += '\nCalling Procedure: %s, in %s' % (cls.proc, file)
+                    message += '\nCalling Procedure: %s, in %s' % (commandName, file)
                     message += '\n' + fmtCmd
             else:
                 message += '\nScript:\n%s' % fmtCmd
