@@ -742,16 +742,12 @@ class MelCallable(object):
         return MelCallable(head=self.full_name, name=command)
 
     def __call__(self, *args, **kwargs):
-
-        def _call(*args, **kwargs):
-            cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
-            try:
-                Mel.proc = self.full_name
-                return Mel.eval(cmd)
-            finally:
-                Mel.proc = None
-
-        return _call(*args, **kwargs)
+        cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
+        try:
+            Mel.proc = self.full_name
+            return Mel.eval(cmd)
+        finally:
+            Mel.proc = None
 
 class Mel(object):
 
