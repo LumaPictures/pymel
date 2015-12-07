@@ -322,6 +322,15 @@ class DependNode(general.PyNode):
         except RuntimeError:
             None
 
+    def isNodeReferenced(self):
+        """referenceQuery -isNodeReferenced
+        Return True if this node is from a referenced file, False if not.
+
+        :rtype: `bool`
+
+        """
+        return cmds.referenceQuery(self, isNodeReferenced=1)
+
     isReadOnly = _factories.wrapApiMethod(_api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly')
 
     def classification(self):
