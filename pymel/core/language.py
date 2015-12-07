@@ -830,12 +830,33 @@ class Mel(object):
           ...
         MelUnknownProcedureError: Error during execution of MEL script: line 1: ,Cannot find procedure "poop".,
 
+    Finally, some limitations: this Mel wrapper class cannot be used in
+    situations in which the mel procedure modifies arguments (such as lists)
+    in place, and you wish to then see the modified result in the calling code.
+    Ie:
+
+        >>> origList = []
+        >>> newList = ["yet", "more", "things"]
+        >>> mel.appendStringArray(origList, newList, 2)
+        >>> print origList
+        []
+
+    You will have to fall back to using mel.eval in such situations:
+
+        >>> mel.eval('''
+        ... string $origList[] = {};
+        ... string $newList[] = {"yet", "more", "things"};
+        ... appendStringArray($origList, $newList, 2);
+        ... print $origList;
+        ... ''')
+        yet
+        more
+
     .. note::
 
-        To remain backward compatible with maya.cmds, `MelError`, the base MEL
-        exceptions inherit from , which in turn inherits from `RuntimeError`.
-
-
+        To remain backward compatible with maya.cmds, `MelError`, the base
+        exception class that all these exceptions inherit from, in turn inherits
+        from `RuntimeError`.
     """
     # proc is not an allowed name for a global procedure, so it's safe to use as an attribute
     proc = None
