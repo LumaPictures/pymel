@@ -1255,6 +1255,33 @@ class test_parent(unittest.TestCase):
         self.assertEqual(self.sphere.getParent(), self.cone)
         self.assertEqual(self.cube.getParent(), self.cone)
 
+class test_spaceLocator(unittest.TestCase):
+    def test_nonUniqueName(self):
+        cmds.file(f=1, new=1)
+        loc1 = cmds.spaceLocator(name='theLoc')
+        cmds.group(loc1, name='theGroup')
+        self.assertEqual(cmds.ls('*theLoc', long=True), ['|theGroup|theLoc'])
+        loc2 = pm.spaceLocator(name='theLoc')
+        self.assertEqual(type(loc2), pm.nt.Transform)
+        self.assertEqual(loc2.fullPath(), '|theLoc')
+
+    def test_position(self):
+        cmds.file(f=1, new=1)
+        locTrans = pm.spaceLocator(name='theLoc', position=(1,2,3))
+        locShape = locTrans.getShape()
+        self.assertEqual(type(locShape), pm.nt.Locator)
+        self.assertEqual(locTrans.getTranslation(), pm.dt.Vector(0,0,0))
+        self.assertEqual(locShape.attr('localPosition').get(),
+                         pm.dt.Vector(1,2,3))
+
+        # Ok, this is lame - in create mode, position set's the local position
+        # (on the shape) - but in edit mode, it sets the translation (on the
+        # transform).  I'm not going to bother testing what seems like a bug
+        # / mistake...
+        # pm.spaceLocator(locShape, e=1, position=(4,5,6))
+        # self.assertEqual(locTrans.getTranslation(), pm.dt.Vector(0,0,0))
+        # self.assertEqual(locShape.attr('localPosition').get(),
+        #                  pm.dt.Vector(4,5,6))
 
 class test_lazyDocs(unittest.TestCase):
     # Test can't be reliably run if pymel.all is imported... re-stubbing

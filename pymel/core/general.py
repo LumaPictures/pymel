@@ -1836,16 +1836,29 @@ def selected(**kwargs):
 
 _thisModule = sys.modules[__name__]
 
-# def spaceLocator(*args, **kwargs):
-#    """
-# Modifications:
-#    - returns a locator instead of a list with a single locator
-#    """
-#    res = cmds.spaceLocator(**kwargs)
-#    try:
-#        return Transform(res[0])
-#    except:
-#        return res
+
+def spaceLocator(*args, **kwargs):
+    """
+    Modifications:
+        - returns a single Transform instead of a list with a single locator
+    """
+    import nodetypes
+
+    res = cmds.spaceLocator(**kwargs)
+
+    # unfortunately, spaceLocator returns non-unique names... however, it
+    # doesn't support a parent option - so we can just throw a '|' in front
+    # of the return result to get a unique name
+
+    if (not kwargs.get('query', kwargs.get('q', False))
+            and not kwargs.get('edit', kwargs.get('e', False))):
+        if isinstance(res, list):
+            res = res[0]
+        if isinstance(res, basestring):
+            res = '|' + res
+        res = nodetypes.Transform(res)
+    return res
+
 
 def instancer(*args, **kwargs):
     """
