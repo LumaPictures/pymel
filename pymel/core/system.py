@@ -1533,7 +1533,7 @@ class FileReference(object):
                                onReferenceNode=self.refNode, **kwargs)
         return edits
 
-    def removeReferenceEdits(self, editCommand=None, force=False, **kwargs):
+    def removeReferenceEdits(self, *args, **kwargs):
         """Remove edits from the reference.
 
         Parameters
@@ -1550,7 +1550,7 @@ class FileReference(object):
 
         Notes
         -----
-        By default, removes all edits. If neither of successfulEdits or
+        Removes all edits if no arguments are passed. If neither of successfulEdits or
         failedEdits is given, they both default to True. If only one is given,
         the other defaults to the opposite value. This will only succeed on
         unapplied edits (ie, on unloaded nodes, or failed edits)... However,
@@ -1559,16 +1559,17 @@ class FileReference(object):
         future, however...
         """
 
+        force = kwargs.pop('force', None)
+
         if force and self.isLoaded():
             self.unload()
-
-        if editCommand:
-            kwargs['editCommand'] = editCommand
 
         _translateEditFlags(kwargs)
         kwargs.pop('r', None)
         kwargs['removeEdits'] = True
-        cmds.referenceEdit(str(self.refNode), **kwargs)
+        if not args:
+            args = [str(self.refNode)]
+        cmds.referenceEdit(*args, **kwargs)
 
 def _translateEditFlags(kwargs, addKwargs=True):
     '''Given the pymel values for successfulEdits/failedEdits (which may be
