@@ -2558,8 +2558,8 @@ class testCase_listAttr(unittest.TestCase):
         self.blend = pm.blendShape(self.cube2, self.cube3, self.cube1)[0]
 
     def test_standard(self):
-        results = sorted(x.name() for x in self.blend.listAttr())
-        expected = [
+        results = set(x.name() for x in self.blend.listAttr())
+        expected = {
             u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.baseOriginX',
@@ -2616,12 +2616,18 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.targetOriginZ',
             u'blendShape1.topologyCheck',
             u'blendShape1.useTargetCompWeights',
-            u'blendShape1.weight']
-        self.assertEqual(results, expected)
+            u'blendShape1.weight',
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertIn(u'blendShape1.attributeAliasList', results)
+        self.assertIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].baseWeights', results)
+        self.assertIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
 
     def test_topLevel(self):
-        results = sorted(x.name() for x in self.blend.listAttr(topLevel=True))
-        expected = [
+        results = set(x.name() for x in self.blend.listAttr(topLevel=True))
+        expected = {
             u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.binMembership',
@@ -2644,12 +2650,18 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.targetOrigin',
             u'blendShape1.topologyCheck',
             u'blendShape1.useTargetCompWeights',
-            u'blendShape1.weight']
-        self.assertEqual(results, expected)
+            u'blendShape1.weight',
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertIn(u'blendShape1.attributeAliasList', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
 
     def test_descendants(self):
-        results = sorted(x.name() for x in self.blend.listAttr(descendants=True))
-        expected = [
+        results = set(x.name() for x in self.blend.listAttr(descendants=True))
+        expected = {
             u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.baseOriginX',
@@ -2713,8 +2725,14 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.useTargetCompWeights',
             u'blendShape1.weight',
             u'blendShape1.weight[0]',
-            u'blendShape1.weight[1]']
-        self.assertEqual(results, expected)
+            u'blendShape1.weight[1]',
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertIn(u'blendShape1.attributeAliasList', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertIn(u'blendShape1.inputTarget[0].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
 
 
 # current behavior is that using invalid nodes only raises a warning - may want
