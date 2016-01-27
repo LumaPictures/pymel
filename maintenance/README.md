@@ -63,7 +63,10 @@ Building an Official PyMEL Release
 
   - cd into tests directory, then on WINDOWS run:
 
-        ./pymel_test.py
+        ./pymel_test_output.bat
+        (note that since windows doesn't have tee, you'll see no output...
+        - look at the contents of pymelTestOut.txt in a text editor, and
+        hit refresh to see changes!)
 
     OR, if on linux/mac:
 
