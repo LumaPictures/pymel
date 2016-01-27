@@ -1428,6 +1428,9 @@ class test_addAttr(unittest.TestCase):
 
 
 class test_Attribute_iterDescendants(unittest.TestCase):
+    # FIXME: to prevent this test from changing over time it might be a good idea to create
+    # custom MPxNode type with known attributes
+    # See also: test_nodetypes.testCase_listAttr
     def setUp(self):
         pm.newFile(f=1)
         self.cube1 = pm.polyCube(ch=0)[0]
@@ -1475,9 +1478,10 @@ class test_Attribute_iterDescendants(unittest.TestCase):
 
 
     def test_multiCompound(self):
-        results = sorted(x.name() for x in
-                         self.blend.attr('inputTarget').iterDescendants())
-        expected = [u'blendShape1.inputTarget[0]',
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants())
+        expected = {
+            u'blendShape1.inputTarget[0]',
             u'blendShape1.inputTarget[0].baseWeights',
             u'blendShape1.inputTarget[0].inputTargetGroup',
             u'blendShape1.inputTarget[0].inputTargetGroup[0]',
@@ -1499,24 +1503,32 @@ class test_Attribute_iterDescendants(unittest.TestCase):
             u'blendShape1.inputTarget[0].normalizationGroup',
             u'blendShape1.inputTarget[0].paintTargetIndex',
             u'blendShape1.inputTarget[0].paintTargetWeights',
-        ]
-        self.assertEqual(results, expected)
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
 
         results = sorted(x.name() for x in
                          self.blend.attr('inputTarget').iterDescendants(levels=1))
         expected = [u'blendShape1.inputTarget[0]']
         self.assertEqual(results, expected)
 
-        results = sorted(x.name() for x in
-                         self.blend.attr('inputTarget').iterDescendants(levels=2))
-        expected = [u'blendShape1.inputTarget[0]',
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants(levels=2))
+        expected = {
+            u'blendShape1.inputTarget[0]',
             u'blendShape1.inputTarget[0].baseWeights',
             u'blendShape1.inputTarget[0].inputTargetGroup',
             u'blendShape1.inputTarget[0].normalizationGroup',
             u'blendShape1.inputTarget[0].paintTargetIndex',
             u'blendShape1.inputTarget[0].paintTargetWeights',
-        ]
-        self.assertEqual(results, expected)
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1]', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0]', results)
 
         results = sorted(x.name() for x in
                          self.blend.attr('inputTarget').iterDescendants(levels=0))

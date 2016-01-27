@@ -2550,6 +2550,7 @@ class testCase_Character(unittest.TestCase):
 class testCase_listAttr(unittest.TestCase):
     # FIXME: to prevent this test from changing over time it might be a good idea to create
     # custom MPxNode type with known attributes
+    # See also: test_general.test_Attribute_iterDescendants
     def setUp(self):
         pm.newFile(f=1)
         self.cube1 = pm.polyCube(ch=0)[0]
