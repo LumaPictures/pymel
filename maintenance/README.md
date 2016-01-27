@@ -11,8 +11,11 @@ Building an Official PyMEL Release
 
     ```
     curl -O https://bootstrap.pypa.io/get-pip.py
-    sudo $MAYA_LOCATION/bin/mayapy get-pip.py
-    sudo $MAYA_LOCATION/bin/mayapy -m pip install -r requirements.txt
+
+    # the extra args are to get around an insecure SSL in python < 2.7.9 - see:
+    # https://urllib3.readthedocs.org/en/latest/security.<html id="insecureplatformwarning"></html>
+    sudo $MAYA_LOCATION/bin/mayapy get-pip.py --index-url=http://pypi.python.org/simple/ --trusted-host pypi.python.org
+    sudo $MAYA_LOCATION/bin/mayapy -m pip install -r requirements.txt --index-url=http://pypi.python.org/simple/ --trusted-host pypi.python.org
     ```
 
 2) Build caches
