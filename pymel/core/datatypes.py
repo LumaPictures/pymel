@@ -1987,6 +1987,172 @@ class FloatMatrix(Matrix):
         """
     apicls = _api.MFloatMatrix
 
+class Quaternion(Matrix):
+    apicls = _api.MQuaternion
+    shape = (4,)
+    cnames = ('x', 'y', 'z', 'w')
+
+    def __new__(cls, *args, **kwargs):
+        shape = kwargs.get('shape', None)
+        ndim = kwargs.get('ndim', None)
+        size = kwargs.get('size', None)
+        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
+        # as no other option is actually possible on Quaternion, but this method could be used to allow wrapping
+        # of Maya array classes that can have a variable number of elements
+        shape, ndim, size = cls._expandshape(shape, ndim, size)
+
+        new = cls.apicls.__new__(cls)
+        cls.apicls.__init__(new)
+        return new
+
+    def __init__(self, *args, **kwargs):
+        """ __init__ method for Quaternion """
+        cls = self.__class__
+
+        if args:
+            # allow both forms for arguments
+            if len(args) == 1 and hasattr(args[0], '__iter__'):
+                args = args[0]
+
+            rotate = getattr(args, 'rotate', None)
+            # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
+            if rotate is not None and not callable(rotate):
+                args = args.rotate
+                self.unit = 'radians'
+
+            elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue)):  # isinstance(args[3], EulerRotation.RotationOrder) ) :
+                quat = _api.MQuaternion()
+                quat.assign(EulerRotation(*args, **kwargs))
+                args = quat
+                # allow to initialize directly from 3 rotations and a rotation order
+
+            elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float):
+                # some special init cases are allowed by the api class, want to authorize
+                # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
+                args = (float(args[1]), Vector(args[0]))
+            # shortcut when a direct api init is possible
+
+            try:
+                self.assign(args)
+            except:
+                super(Array, self).__init__(*args)
+
+        if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)):
+            # can also use the form <componentname>=<number>
+            l = list(self.flat)
+            setcomp = False
+            for i, c in enumerate(cls.cnames):
+                if c in kwargs:
+                    if float(l[i]) != float(kwargs[c]):
+                        l[i] = float(kwargs[c])
+                        setcomp = True
+            if setcomp:
+                try:
+                    self.assign(l)
+                except:
+                    msg = ", ".join(map(lambda x, y: x + "=<" + util.clsname(y) + ">", cls.cnames, l))
+                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
+
+    # set properties for easy acces to translation / rotation / scale of a MMatrix or derived class
+    # some of these will only yield dependable results if MMatrix is a MTransformationMatrix and some
+    # will always be zero for some classes (ie only rotation has a value on a MQuaternion
+
+    def _getTranslate(self):
+        return Vector(0.0, 0.0, 0.0)
+    translate = property(_getTranslate, None, None, "The translation expressed in this MMQuaternion, which is always (0.0, 0.0, 0.0)")
+
+    def _getRotate(self):
+        return self
+
+    def _setRotate(self, value):
+        self.assign(Quaternion(value))
+    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Quaternion, in transform space")
+
+    def _getScale(self):
+        return Vector(1.0, 1.0, 1.0)
+    scale = property(_getScale, None, None, "The scale expressed in this Quaternion, which is always (1.0, 1.0, 1.0)")
+
+    # overloads for assign and get though standard way should be to use the data property
+    # to access stored values
+
+    def assign(self, value):
+        """ Wrap the Quaternion api assign method """
+        # api Quaternion assign accepts Matrix, Quaternion and EulerRotation
+        if isinstance(value, Matrix):
+            value = value.rotate
+        else:
+            if not hasattr(value, '__iter__'):
+                value = (value,)
+            value = self.apicls(*value)
+        self.apicls.assign(self, value)
+        return self
+
+    # API get, actually not faster than pulling self[i] for such a short structure
+    def get(self):
+        """ Wrap the Quaternion api get method """
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...
+        ms = _api.MScriptUtil()
+        l = (0,) * self.size
+        ms.createFromDouble(*l)
+        p = ms.asDoublePtr()
+        self.apicls.get(self, p)
+        return tuple([ms.getDoubleArrayItem(p, i) for i in xrange(self.size)])
+
+    def __getitem__(self, i):
+        return self._getitem(i)
+
+    # faster to override __getitem__ cause we know Quaternion only has one dimension
+    def _getitem(self, i):
+        """ Get component i value from self """
+        if hasattr(i, '__iter__'):
+            i = list(i)
+            if len(i) == 1:
+                i = i[0]
+            else:
+                raise IndexError, "class %s instance %s has only %s dimension(s), index %s is out of bounds" % (util.clsname(self), self, self.ndim, i)
+        if isinstance(i, slice):
+            try:
+                return list(self)[i]
+            except:
+                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+        else:
+            if i < 0:
+                i = self.size + i
+            if i < self.size and not i < 0:
+                if hasattr(self.apicls, '__getitem__'):
+                    res = self.apicls.__getitem__(self, i)
+                else:
+                    res = list(self)[i]
+                return res
+            else:
+                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+
+    # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
+    def __setitem__(self, i, a):
+        """ Set component i value on self """
+        v = VectorN(self)
+        v.__setitem__(i, a)
+        self.assign(v)
+
+    def __iter__(self):
+        for i in range(self.size):
+            yield self[i]
+
+    def __len__(self):
+
+        # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
+        return self.size
+#
+#    # TODO : support for optional __iter__ arguments
+#    def __iter__(self, *args, **kwargs):
+#        """ Iterate on the api components """
+#        return self.apicls.__iter__(self.data)
+
+    def __contains__(self, value):
+        """ True if at least one of the vector components is equal to the argument """
+        return value in self.__iter__()
+
 class TransformationMatrix(Matrix):
     apicls = _api.MTransformationMatrix
 
@@ -2407,171 +2573,6 @@ class EulerRotation(Array):
 #            return NotImplemented
 
 
-class Quaternion(Matrix):
-    apicls = _api.MQuaternion
-    shape = (4,)
-    cnames = ('x', 'y', 'z', 'w')
-
-    def __new__(cls, *args, **kwargs):
-        shape = kwargs.get('shape', None)
-        ndim = kwargs.get('ndim', None)
-        size = kwargs.get('size', None)
-        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
-        # as no other option is actually possible on Quaternion, but this method could be used to allow wrapping
-        # of Maya array classes that can have a variable number of elements
-        shape, ndim, size = cls._expandshape(shape, ndim, size)
-
-        new = cls.apicls.__new__(cls)
-        cls.apicls.__init__(new)
-        return new
-
-    def __init__(self, *args, **kwargs):
-        """ __init__ method for Quaternion """
-        cls = self.__class__
-
-        if args:
-            # allow both forms for arguments
-            if len(args) == 1 and hasattr(args[0], '__iter__'):
-                args = args[0]
-
-            rotate = getattr(args, 'rotate', None)
-            # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
-            if rotate is not None and not callable(rotate):
-                args = args.rotate
-                self.unit = 'radians'
-
-            elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue)):  # isinstance(args[3], EulerRotation.RotationOrder) ) :
-                quat = _api.MQuaternion()
-                quat.assign(EulerRotation(*args, **kwargs))
-                args = quat
-                # allow to initialize directly from 3 rotations and a rotation order
-
-            elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float):
-                # some special init cases are allowed by the api class, want to authorize
-                # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
-                args = (float(args[1]), Vector(args[0]))
-            # shortcut when a direct api init is possible
-
-            try:
-                self.assign(args)
-            except:
-                super(Array, self).__init__(*args)
-
-        if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)):
-            # can also use the form <componentname>=<number>
-            l = list(self.flat)
-            setcomp = False
-            for i, c in enumerate(cls.cnames):
-                if c in kwargs:
-                    if float(l[i]) != float(kwargs[c]):
-                        l[i] = float(kwargs[c])
-                        setcomp = True
-            if setcomp:
-                try:
-                    self.assign(l)
-                except:
-                    msg = ", ".join(map(lambda x, y: x + "=<" + util.clsname(y) + ">", cls.cnames, l))
-                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
-
-    # set properties for easy acces to translation / rotation / scale of a MMatrix or derived class
-    # some of these will only yield dependable results if MMatrix is a MTransformationMatrix and some
-    # will always be zero for some classes (ie only rotation has a value on a MQuaternion
-
-    def _getTranslate(self):
-        return Vector(0.0, 0.0, 0.0)
-    translate = property(_getTranslate, None, None, "The translation expressed in this MMQuaternion, which is always (0.0, 0.0, 0.0)")
-
-    def _getRotate(self):
-        return self
-
-    def _setRotate(self, value):
-        self.assign(Quaternion(value))
-    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Quaternion, in transform space")
-
-    def _getScale(self):
-        return Vector(1.0, 1.0, 1.0)
-    scale = property(_getScale, None, None, "The scale expressed in this Quaternion, which is always (1.0, 1.0, 1.0)")
-
-    # overloads for assign and get though standard way should be to use the data property
-    # to access stored values
-
-    def assign(self, value):
-        """ Wrap the Quaternion api assign method """
-        # api Quaternion assign accepts Matrix, Quaternion and EulerRotation
-        if isinstance(value, Matrix):
-            value = value.rotate
-        else:
-            if not hasattr(value, '__iter__'):
-                value = (value,)
-            value = self.apicls(*value)
-        self.apicls.assign(self, value)
-        return self
-
-    # API get, actually not faster than pulling self[i] for such a short structure
-    def get(self):
-        """ Wrap the Quaternion api get method """
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        ms = _api.MScriptUtil()
-        l = (0,) * self.size
-        ms.createFromDouble(*l)
-        p = ms.asDoublePtr()
-        self.apicls.get(self, p)
-        return tuple([ms.getDoubleArrayItem(p, i) for i in xrange(self.size)])
-
-    def __getitem__(self, i):
-        return self._getitem(i)
-
-    # faster to override __getitem__ cause we know Quaternion only has one dimension
-    def _getitem(self, i):
-        """ Get component i value from self """
-        if hasattr(i, '__iter__'):
-            i = list(i)
-            if len(i) == 1:
-                i = i[0]
-            else:
-                raise IndexError, "class %s instance %s has only %s dimension(s), index %s is out of bounds" % (util.clsname(self), self, self.ndim, i)
-        if isinstance(i, slice):
-            try:
-                return list(self)[i]
-            except:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
-        else:
-            if i < 0:
-                i = self.size + i
-            if i < self.size and not i < 0:
-                if hasattr(self.apicls, '__getitem__'):
-                    res = self.apicls.__getitem__(self, i)
-                else:
-                    res = list(self)[i]
-                return res
-            else:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
-
-    # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
-    def __setitem__(self, i, a):
-        """ Set component i value on self """
-        v = VectorN(self)
-        v.__setitem__(i, a)
-        self.assign(v)
-
-    def __iter__(self):
-        for i in range(self.size):
-            yield self[i]
-
-    def __len__(self):
-
-        # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
-        return self.size
-#
-#    # TODO : support for optional __iter__ arguments
-#    def __iter__(self, *args, **kwargs):
-#        """ Iterate on the api components """
-#        return self.apicls.__iter__(self.data)
-
-    def __contains__(self, value):
-        """ True if at least one of the vector components is equal to the argument """
-        return value in self.__iter__()
 
 
 class Unit(float):
