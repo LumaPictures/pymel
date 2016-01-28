@@ -574,19 +574,24 @@ class testCase_fileInfo(unittest.TestCase):
     # __delitem__, __getitem__, __iter__, __len__, __setitem__
     
 
+
     def setUp(self):
         pm.newFile(f=1)
-        cmds.fileInfo('testKey', 'testValue')
+        self.rawDict = {'testKey': 'testValue'}
+        for key, val in self.rawDict.iteritems():
+            cmds.fileInfo(key, val)
     
     def test_get(self):
         default = "the default value!"
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist', default), default)
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist'), None)
         self.assertEqual(pm.fileInfo.get('testKey'), cmds.fileInfo('testKey', q=1)[0])
+        self.assertEqual(pm.fileInfo.get('testKey'), self.rawDict['testKey'])
 
     def test_getitem(self):
         self.assertRaises(KeyError, lambda: pm.fileInfo['NoWayDoIExist'])
         self.assertEqual(pm.fileInfo['testKey'], cmds.fileInfo('testKey', q=1)[0])
+        self.assertEqual(pm.fileInfo['testKey'], self.rawDict['testKey'])
 
     def test_delitem(self):
         _dict = {}
@@ -595,16 +600,10 @@ class testCase_fileInfo(unittest.TestCase):
         self.assertEqual(_dict.items(), pm.fileInfo.items())
 
     def test_iter(self):
-        _lst = ['testKey']
-        self.assertEqual(list(pm.fileInfo), _lst)
-
+        self.assertEqual(sorted(pm.fileInfo), sorted(self.rawDict))
 
     def test_len(self):
-        # So for some reason this throws an error.
-        # That FileInfo has no attribute __len__
-        # Oddly this only seems to happen when in the test
-        _lst = ['testKey']
-        self.assertEqual(len(pm.fileInfo), len(_lst))
+        self.assertEqual(len(pm.fileInfo), len(self.rawDict))
 
 
 class testCase_namespaces(unittest.TestCase):
