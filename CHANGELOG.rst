@@ -5,6 +5,42 @@ What's New
 **********
 
 ==================================
+Version 1.0.8
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+- ui: update promptForFolder to use fileDialog2
+- core: don't abort loading pymel if error adding a plugin command
+
+----------------------------------
+Additions
+----------------------------------
+- added support for 2016.5
+- nodetypes: added ObjectSet.forceElement
+- pmcmds: give wrapped commands unique co_name, for better cProfile info
+- language: added support for namespace-protected MEL procedure calls. Issue #359.
+- update ipymel to work with newer ipython versions
+
+----------------------------------
+Bugfixes
+----------------------------------
+- general: fix for getMin/Max with multi attr elements
+- general: fix listRelatives to make combo of allDescendents, shapes, noIntermediate work
+- general: fix for parent(removeObject=True)
+- general: fix particle attribute in ParticleComponent.attr(). Issue #350
+- general: fix spaceLocator not returning unique names (issue #320)
+- startup: fix for installation of exit handler in fixMayapy2011SegFault
+- uitypes: fix for TextScrollList.selectIndexedItems / selectAll (issue 110)
+- uitypes: MainProgressBar - docs fix
+- all: UI modules cannot be imported when Maya runs in batch mode
+- datatypes: fix for Matrix/TransformationMatrix scale/rotate properties
+- nodetypes: fix Shape.getTransform() to return shape node's transform. Issue #311
+- utils: fix runOverriddenModule() to use os.stat compare in case of Windows OS, where samefile would error out. Issue #358.
+
+
+==================================
 Version 1.0.7
 ==================================
 

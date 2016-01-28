@@ -14,6 +14,13 @@ from maya.OpenMaya import MGlobal as _MGlobal
 
 def parseVersionStr(versionStr, extension=False):
     """
+    Parse a verbose version string (like the one displayed in the Maya title
+    bar) and return the base version.
+
+    :Parameters:
+        extension : `bool`
+            if True, leave the -x64 tag
+
     >>> from pymel.all import *
     >>> versions.parseVersionStr('2008 Service Pack1 x64')
     '2008'
@@ -120,9 +127,7 @@ v2016_EXT2 = v20165
 def current():
     """Get the current version of Maya
 
-    Returns
-    -------
-    int
+    :rtype: int
     """
     return _current
 
@@ -138,9 +143,7 @@ def shortName():
 def is64bit():
     """Whether this instance of Maya is 64-bit
 
-    Returns
-    -------
-    bool
+    :rtype: bool
     """
     return _is64
 
@@ -149,9 +152,7 @@ def flavor():
 
     Requires ``maya.cmds``.
 
-    Returns
-    -------
-    str
+    :rtype: str
     """
     import maya.cmds
     try:
@@ -162,18 +163,14 @@ def flavor():
 def isUnlimited():
     """Whether this instance of Maya is 'Unlimited' (deprecated)
 
-    Returns
-    -------
-    bool
+    :rtype: bool
     """
     return flavor() == 'Unlimited'
 
 def isComplete():
     """Whether this instance of Maya is 'Unlimited' (deprecated)
 
-    Returns
-    -------
-    bool
+    :rtype: bool
     """
     return flavor() == 'Complete'
 
@@ -185,9 +182,7 @@ def isEval():
 
     Requires ``maya.cmds``.
 
-    Returns
-    -------
-    bool
+    :rtype: bool
     """
     import maya.cmds
     try:

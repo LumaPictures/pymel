@@ -20,14 +20,13 @@ def source(file, searchPath=None, recurse=False):
     Search for a python script in the specified path and execute it using
     ``execfile``.
 
-    Parameters
-    ----------
-    searchPath : list of str
-        list of directories in which to search for ``file``.
-        uses ``sys.path`` if no path is specified
-    
-    recurse : bool
-        whether to recurse into directories in ``searchPath``
+    :Parameters:
+        searchPath : list of str
+            list of directories in which to search for ``file``.
+            uses ``sys.path`` if no path is specified
+        
+        recurse : bool
+            whether to recurse into directories in ``searchPath``
     """
     filepath = unicode(file)
     filename = os.path.basename(filepath)
@@ -73,18 +72,16 @@ def getMayaLocation(version=None):
 
     Uses the ``MAYA_LOCATION`` environment variable and ``sys.executable`` path.
 
-    Parameters
-    ----------
-    version : bool
-        if passed, will attempt to find a matching Maya location.  If the
-        version found above does not match the requested version, 
-        this function uses a simple find/replace heuristic to modify the path and test
-        if the desired version exists.
+    Returns None if not found.
 
-    Returns
-    -------
-    str or None
-       The path to Maya's installation directory or None, if not found
+    :Parameters:
+        version : bool
+            if passed, will attempt to find a matching Maya location.  If the
+            version found above does not match the requested version, 
+            this function uses a simple find/replace heuristic to modify the path and test
+            if the desired version exists.
+
+    :rtype: str or None
     """
     try:
         loc = os.path.realpath(os.environ['MAYA_LOCATION'])
@@ -114,20 +111,18 @@ def getMayaLocation(version=None):
 
 def getMayaAppDir(versioned=False):
     """
-    Get the path to the current user's Maya application directory
+    Get the path to the current user's Maya application directory.
 
     First checks ``MAYA_APP_DIR``, then tries OS-specific defaults.
 
-    Parameters
-    ----------
-    versioned : bool
-        if True, the current Maya version including '-x64' suffix, if applicable,
-        will be appended.
+    Returns None, if not found
 
-    Returns
-    -------
-    str or None
-       The path to Maya's application directory or None, if not found
+    :Parameters:
+        versioned : bool
+            if True, the current Maya version including '-x64' suffix, if applicable,
+            will be appended.
+
+    :rtype: str or None
     """
     appDir = os.environ.get('MAYA_APP_DIR', None)
     if appDir is None:
@@ -208,21 +203,20 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
     the ``MAYA_SCRIPT_PATH`` environment variable any found directories containing
     mel scripts.
 
-    The root directories, if given, are always added to the MAYA_SCRIPT_PATH,
+    The root directories, if given, are always added to the ``MAYA_SCRIPT_PATH``,
     even if they don't contain any mel scripts.
 
-    Parameters
-    ----------
-    roots : str or list of str
-        a single path or list of paths to recurse. if left to its default, will use the current
-        ``MAYA_SCRIPT_PATH`` values
+    :Parameters:
+        roots : str or list of str
+            a single path or list of paths to recurse. if left to its default, will use the current
+            ``MAYA_SCRIPT_PATH`` values
 
-    verobse : bool
-        verbose on or off
+        verobse : bool
+            verbose on or off
 
-    excludeRegex : str
-        string to be compiled to a regular expression of paths to skip.  This regex only needs to match
-        the folder name
+        excludeRegex : str
+            string to be compiled to a regular expression of paths to skip.  This regex only needs to match
+            the folder name
 
     """
 

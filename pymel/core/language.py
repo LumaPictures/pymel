@@ -838,7 +838,7 @@ class Mel(object):
         >>> origList = []
         >>> newList = ["yet", "more", "things"]
         >>> mel.appendStringArray(origList, newList, 2)
-        >>> print origList
+        >>> origList
         []
 
     You will have to fall back to using mel.eval in such situations:
@@ -847,10 +847,10 @@ class Mel(object):
         ... string $origList[] = {};
         ... string $newList[] = {"yet", "more", "things"};
         ... appendStringArray($origList, $newList, 2);
-        ... print $origList;
+        ... /* force a return value */
+        ... $origList=$origList;
         ... ''')
-        yet
-        more
+        [u'yet', u'more']
 
     .. note::
 

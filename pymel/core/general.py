@@ -1264,7 +1264,7 @@ Modifications:
     # shape=True, removeObject=True - and we don't want to abort in these
     # cases
 
-    if (nodes and len(nodes) > 1 and not kwargs.get('removeObject', False)
+    if (nodes and not kwargs.get('removeObject', False)
             and not kwargs.get('rm', False)):
         if kwargs.get('w', False):
             parent = None

@@ -1255,6 +1255,27 @@ class test_parent(unittest.TestCase):
         self.assertEqual(self.sphere.getParent(), self.cone)
         self.assertEqual(self.cube.getParent(), self.cone)
 
+    # these testsa are here because removeObject flag is a special case that has
+    # to be specially handled, and there was a bug introduced at one point
+    # because of it
+
+    def test_parent_removeObject_one(self):
+        pm.parent(self.sphere, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+        result = pm.parent(self.sphere, removeObject=True)
+        self.assertIs(result, None)
+        self.assertEqual(self.sphere.exists(), False)
+
+    def test_parent_removeObject_many(self):
+        pm.parent(self.sphere, self.cube)
+        pm.parent(self.cone, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+        self.assertEqual(self.cone.getParent(), self.cube)
+        result = pm.parent(self.sphere, self.cone, removeObject=True)
+        self.assertIs(result, None)
+        self.assertFalse(self.sphere.exists())
+        self.assertFalse(self.cone.exists())
+
 class test_spaceLocator(unittest.TestCase):
     def test_nonUniqueName(self):
         cmds.file(f=1, new=1)
