@@ -841,7 +841,9 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
                 # if funcName == 'lsThroughFilter': #_logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
 
-        if not inFunc:
+        # inFunc may be a custom class object, like fileInfo, which may have it's own boolean testing...
+        # so be sure to check if it's None, not "if not inFunc"!
+        if inFunc is None:
             try:
                 inFunc = getattr(pmcmds, funcName)
                 customFunc = False

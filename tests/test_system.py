@@ -577,19 +577,42 @@ class testCase_references(unittest.TestCase):
         self.assertEqual(edits, [])
 
 class testCase_fileInfo(unittest.TestCase):
+    # Only need to test these methods, because we've based the fileInfo on
+    # collections.MutableMapping, and this is these are the required methods to implement that interface.
+    # __delitem__, __getitem__, __iter__, __len__, __setitem__
+    
+
+
     def setUp(self):
         pm.newFile(f=1)
-        cmds.fileInfo('testKey', 'testValue')
-
+        self.rawDict = {'testKey': 'testValue'}
+        for key, val in self.rawDict.iteritems():
+            cmds.fileInfo(key, val)
+    
     def test_get(self):
         default = "the default value!"
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist', default), default)
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist'), None)
         self.assertEqual(pm.fileInfo.get('testKey'), cmds.fileInfo('testKey', q=1)[0])
+        self.assertEqual(pm.fileInfo.get('testKey'), self.rawDict['testKey'])
 
     def test_getitem(self):
         self.assertRaises(KeyError, lambda: pm.fileInfo['NoWayDoIExist'])
         self.assertEqual(pm.fileInfo['testKey'], cmds.fileInfo('testKey', q=1)[0])
+        self.assertEqual(pm.fileInfo['testKey'], self.rawDict['testKey'])
+
+    def test_delitem(self):
+        _dict = {}
+        self.assertNotEqual(_dict.items(), pm.fileInfo.items())
+        del pm.fileInfo['testKey']
+        self.assertEqual(_dict.items(), pm.fileInfo.items())
+
+    def test_iter(self):
+        self.assertEqual(sorted(pm.fileInfo), sorted(self.rawDict))
+
+    def test_len(self):
+        self.assertEqual(len(pm.fileInfo), len(self.rawDict))
+
 
 class testCase_namespaces(unittest.TestCase):
     recurseAvailable= ( pm.versions.current() >= pm.versions.v2011 )
