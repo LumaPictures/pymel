@@ -130,10 +130,11 @@ def sceneName():
     # because it was sometimes returning an empty string,
     # even when there was a valid file
     name = Path(_OpenMaya.MFileIO.currentFile())
-    if name.basename() == untitledFileName() and \
+    if name.basename().startswith(untitledFileName()) and \
             cmds.file(q=1, sceneName=1) == '':
         return Path()
-    return name
+    else:
+        return name
 
 def untitledFileName():
     """
