@@ -1955,9 +1955,3 @@ def saveAs(newname, **kwargs):
 
 _factories.createFunctions(__name__)
 
-# I don't know why this chunk of code becomes funky when I inherit from MutableMapping.
-# But if I don't declare it after the creation factory, it just gets over-ridden.
-# Probably something to do with the combined metaclass hack?
-
-fileInfo = FileInfo()
-
