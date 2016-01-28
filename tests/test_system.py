@@ -260,7 +260,7 @@ class testCase_references(unittest.TestCase):
             getKwargs['failedEdits'] = True
             self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)), 3)
 
-            kwargs = {'removeEdits':True}
+            kwargs = {}
             if successfulEdits is not None:
                 kwargs['successfulEdits'] = successfulEdits
             if failedEdits is not None:
@@ -268,26 +268,34 @@ class testCase_references(unittest.TestCase):
 
             if force:
                 kwargs['force'] = True
-            else:
-                self.sphereRef1.unload()
 
             self.sphereRef1.removeReferenceEdits(**kwargs)
 
             self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)),
                              expectedNum)
 
-        for force in (True, False):
-            doTest(None, None, force, 0)    # should remove all
-            doTest(None, True, force, 2)    # should remove failed
-            doTest(None, False, force, 1)   # should remove successful
+        # force=True - possible to remove successful edits
+        doTest(None, None, True, 0)    # should remove all
+        doTest(None, True, True, 2)    # should remove failed
+        doTest(None, False, True, 1)   # should remove successful
+        doTest(True, None, True, 1)    # should remove successful
+        doTest(True, True, True, 0)    # should remove all
+        doTest(True, False, True, 1)   # should remove successful
+        doTest(False, None, True, 2)   # should remove failed
+        doTest(False, True, True, 2)   # should remove failed
+        doTest(False, False, True, 3)  # should remove none
 
-            doTest(True, None, force, 1)    # should remove successful
-            doTest(True, True, force, 0)    # should remove all
-            doTest(True, False, force, 1)   # should remove successful
+        # force=False - not possible to remove successful edits
+        doTest(None, None, False, 2)    # should remove failed (tries: all)
+        doTest(None, True, False, 2)    # should remove failed (tries: failed)
+        doTest(None, False, False, 3)   # should remove none (tries: successful)
+        doTest(True, None, False, 3)    # should remove none (tries: successful)
+        doTest(True, True, False, 2)    # should remove failed (tries: all)
+        doTest(True, False, False, 3)   # should remove none (tries: successful)
+        doTest(False, None, False, 2)   # should remove failed (tries: failed)
+        doTest(False, True, False, 2)   # should remove failed (tries: failed)
+        doTest(False, False, False, 3)  # should remove none (tries: none)
 
-            doTest(False, None, force, 2)   # should remove failed
-            doTest(False, True, force, 2)   # should remove failed
-            doTest(False, False, force, 3)  # should remove none
 
     def test_parent(self):
         self.assertEqual(pm.FileReference(namespace='sphere1').parent(), None)
