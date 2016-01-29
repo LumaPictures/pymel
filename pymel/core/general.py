@@ -369,6 +369,7 @@ Modifications:
         - currently does not support compound attributes
         - currently supported python-to-maya mappings:
 
+            ============ ===========
             python type  maya type
             ============ ===========
             float        double
@@ -564,16 +565,6 @@ Modifications:
                     else:
                         kwargs['type'] = 'string'
 
-    if datatype == 'matrix' and _versions.current() < _versions.v2011:
-        import language
-        #language.mel.setAttr( attr, *args, **kwargs )
-        strFlags = ['-%s %s' % (key, language.pythonToMel(val)) for key, val in kwargs.items()]
-        cmd = 'setAttr %s %s %s' % (attr, ' '.join(strFlags), ' '.join([str(x) for x in args]))
-        import maya.mel as _mm
-        # print cmd
-        _mm.eval(cmd)
-        return
-
     # stringify fix
     attr = unicode(attr)
 
@@ -621,8 +612,9 @@ def addAttr(*args, **kwargs):
         >>> addAttr('persp.test', edit=1, hasMaxValue=True)
         >>> addAttr('persp.test', query=1, hasMaxValue=True)
         True
+
   - allow passing a list or dict instead of a string for enumName
-   -Allow user to pass in type and determine whether it is a dataType or attributeType.
+  - allow user to pass in type and determine whether it is a dataType or attributeType.
     Right now float2, float3, double2, double3, long2, long3, short2, and short3 are all treated
     as attributeTypes.
     """
