@@ -7,6 +7,11 @@ import collections
 import inspect
 import ast
 
+OBJ = 0
+OBJTYPE = 1
+SOURCEMOD = 2
+NAMES = 3
+
 builtins = set(__builtin__.__dict__.values())
 
 # some basic data types which may not exist...
@@ -38,7 +43,8 @@ def has_default_constructor(cls):
         safe_methods.add(safe_cls.__init__)
         safe_methods.add(safe_cls.__new__)
 
-    for method in (getattr(cls, '__init__', None), getattr(cls, '__new__', None)):
+    for method in (getattr(cls, '__init__', None),
+                   getattr(cls, '__new__', None)):
         if method in safe_methods:
             continue
         if method is None:
@@ -82,15 +88,16 @@ class ModuleNamesVisitor(ast.NodeVisitor):
             self.generic_visit(node)
 
         # we are looking for statements which could define a new name...
-        elif isinstance(node, (ast.Assign,
-                             ast.ClassDef,
-                             ast.FunctionDef,
-                             ast.Import,
-                             ast.ImportFrom,
-                             ast.For,
-                             ast.With,
-                             ast.TryExcept,
-                            )):
+        elif isinstance(node,
+                        (ast.Assign,
+                         ast.ClassDef,
+                         ast.FunctionDef,
+                         ast.Import,
+                         ast.ImportFrom,
+                         ast.For,
+                         ast.With,
+                         ast.TryExcept,
+                        )):
             self.addNames(node)
 
     def addNames(self, obj):
@@ -157,6 +164,44 @@ def get_static_module_names(module):
     visitor.visit(moduleAst)
     return visitor.names
 
+
+def have_id_name(id_to_data, id_obj, name):
+    "return if the id_object has the passed name"
+    data = id_to_data.get(id_obj, None)
+    if data is None:
+        return False
+    return name in data[NAMES]
+
+
+def get_importall_modules(id_to_data, other_module_names):
+    importall_modules = []
+    for other_mod, other_id_names in other_module_names.iteritems():
+        other_all = getattr(other_mod, '__all__', None)
+        visible_other = 0
+        in_this = []
+        for id_obj, other_names in other_id_names.iteritems():
+            for other_name in other_names:
+                if not visiblename(other_name, other_all):
+                    continue
+                visible_other += 1
+                if have_id_name(id_to_data, id_obj, other_name):
+                    in_this.append((id_obj, other_name))
+        # rough heuristic - if 90% of the objects can be found in this
+        # module, we assume an import all was done... note that we're not
+        # even checking if they're present in this module with the same
+        # name... it's a rough heuristic anyway...
+
+        # chose .85 just because core.language gets .87 in pymel.core
+        if float(len(in_this)) / visible_other > .85:
+            importall_modules.append(other_mod)
+            # go through and REMOVE all the in_this entries from
+            # id_to_data...
+            for id_obj, other_name in in_this:
+                data = id_to_data[id_obj]
+                data[NAMES].remove(other_name)
+                if not data[NAMES]:
+                    del id_to_data[id_obj]
+    return importall_modules
 
 # for the sake of stubtest, don't import anything pymel/maya at module level
 #import pymel.util as util
@@ -330,11 +375,6 @@ class StubDoc(Doc):
         # which the object can be found in this module.
         id_to_data = {}
 
-        OBJ = 0
-        OBJTYPE = 1
-        SOURCEMOD = 2
-        NAMES = 3
-
         def add_obj(obj, name=None, source_module=None):
             id_obj = id(obj)
             if id_obj in id_to_data:
@@ -397,13 +437,6 @@ class StubDoc(Doc):
                     and name not in self.ALLOWABLE_DOUBLE_UNDER_ATTRS):
                 continue
             add_obj(obj, name)
-
-        def have_id_name(id_obj, name):
-            "return if the id_object has the passed name"
-            data = id_to_data.get(id_obj, None)
-            if data is None:
-                return False
-            return name in data[NAMES]
 
         # We now need to do two things:
         #  1) find the parent classes for any classes we will define in this
@@ -534,33 +567,7 @@ class StubDoc(Doc):
             new_to_this_module = add_parent_classes() + find_import_data()
 
         # check the other modules for possible "from mod import *" action...
-        importall_modules = []
-        for other_mod, other_id_names in other_module_names.iteritems():
-            other_all = getattr(other_mod, '__all__', None)
-            visible_other = 0
-            in_this = []
-            for id_obj, other_names in other_id_names.iteritems():
-                for other_name in other_names:
-                    if not visiblename(other_name, other_all):
-                        continue
-                    visible_other += 1
-                    if have_id_name(id_obj, other_name):
-                        in_this.append((id_obj, other_name))
-            # rough heuristic - if 90% of the objects can be found in this
-            # module, we assume an import all was done... note that we're not
-            # even checking if they're present in this module with the same
-            # name... it's a rough heuristic anyway...
-
-            # chose .85 just because core.language gets .87 in pymel.core
-            if float(len(in_this)) / visible_other > .85:
-                importall_modules.append(other_mod)
-                # go through and REMOVE all the in_this entries from
-                # id_to_data...
-                for id_obj, other_name in in_this:
-                    data = id_to_data[id_obj]
-                    data[NAMES].remove(other_name)
-                    if not data[NAMES]:
-                        del id_to_data[id_obj]
+        importall_modules = get_importall_modules(id_to_data, other_module_names)
 
         # We finally have all the objects that will be added to this module
         # (with their names in this module), all the parent clases for classes
@@ -575,10 +582,10 @@ class StubDoc(Doc):
         data = []
         imported = []
 
-        bins = {'module':modules,
-                'class':classes,
-                'func':funcs,
-                'data':data
+        bins = {'module': modules,
+                'class': classes,
+                'func': funcs,
+                'data': data
                }
         for id_obj, (obj, objtype, source_module, names) in id_to_data.iteritems():
             if source_module == this_module or objtype == 'module':
@@ -780,14 +787,15 @@ class StubDoc(Doc):
             self.static_module_names[module] = get_static_module_names(module)
         return name in self.static_module_names[module]
 
-    def classname(self, object, modname):
+    def classname(self, object, modname, realmodule=None):
         """Get a class name and qualify it with a module name if necessary."""
         if id(object) in self.id_map:
             return self.id_map[id(object)]
 
         name = object.__name__
         missing = None
-        realmodule = object.__module__
+        if realmodule is None:
+            realmodule = object.__module__
         # first, see if the object's module is THIS module...
         if realmodule not in [modname, '__builtin__']:
             # next, check if the module is in map of 'known' modules...
@@ -938,7 +946,43 @@ class StubDoc(Doc):
 
             objRepr = self.repr(object)
             if objRepr[0] == '<' and objRepr[-1] == '>':
+                # representation needs to be converted to a string
                 objRepr = repr(objRepr)
+
+            # get the object's module
+            if hasattr(object, '__module__'):
+                realmodule = object.__module__
+            elif re.match('[a-zA-Z_.]+(\(.*\))?$', objRepr):
+                # it's a standard instance repr: e.g. foo.Bar('spangle')
+                # see if we know the module
+                realmodule = None
+                name = objRepr
+                while True:
+                    parts = name.rsplit('.', 1)
+                    if len(parts) == 1:
+                        # done splitting
+                        break
+                    name = parts[0]
+                    if name in self.module_map:
+                        realmodule = name
+                        break
+            else:
+                realmodule = None
+            if realmodule:
+                # this code was added to handle PySide objects used as defaults
+                # specifically maya.app.renderSetup.views.lightEditor.itemModel
+                if objRepr.startswith(realmodule + '.'):
+                    newObjRepr = objRepr[len(realmodule) + 1:]
+                else:
+                    newObjRepr = objRepr
+                try:
+                    modname = self.module_map[realmodule]
+                except KeyError:
+                    print "Not a known module"
+                    pass
+                else:
+                    objRepr = modname + '.' + newObjRepr
+
         return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
