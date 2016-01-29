@@ -621,22 +621,50 @@ def addAttr(*args, **kwargs):
         >>> addAttr('persp.test', edit=1, hasMaxValue=True)
         >>> addAttr('persp.test', query=1, hasMaxValue=True)
         True
+
   - allow passing a list or dict instead of a string for enumName
-   -Allow user to pass in type and determine whether it is a dataType or attributeType.
-    Right now float2, float3, double2, double3, long2, long3, short2, and short3 are all treated
-    as attributeTypes.
+  - Allow user to pass in type and determine whether it is a dataType or
+    attributeType. Types that may be both, such as float2, float3, double2,
+    double3, long2, long3, short2, and short3 are all treated as
+    attributeTypes. In addition, as a convenience, since these attributeTypes
+    are actually treated as compound attributes, the child attributes are
+    automatically created, with X/Y/Z appended, unless usedAsColor is set, in
+    which case R/G/B is added. Alternatively, the suffices can explicitly
+    specified with childSuffixes:
+
+        >>> addAttr('persp', ln='autoDouble', type='double', k=1)
+        >>> addAttr('persp.autoDouble', query=1, attributeType=1)
+        u'double'
+        >>> addAttr('persp.autoDouble', query=1, dataType=1)
+        u'TdataNumeric'
+        >>> addAttr('persp', ln='autoMesh', type='mesh', k=1)
+        >>> addAttr('persp.autoMesh', query=1, attributeType=1)
+        u'typed'
+        >>> addAttr('persp.autoMesh', query=1, dataType=1)
+        u'mesh'
+        >>> addAttr('persp', ln='autoDouble3Vec', type='double3', k=1)
+        >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoDouble3' in x.name()]
+        [u'autoDouble3Vec', u'autoDouble3VecX', u'autoDouble3VecY', u'autoDouble3VecZ']
+        >>> addAttr('persp', ln='autoFloat3Col', type='float3', usedAsColor=1)
+        >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoFloat3' in x.name()]
+        [u'autoFloat3Col', u'autoFloat3ColR', u'autoFloat3ColG', u'autoFloat3ColB']
+        >>> addAttr('persp', ln='autoLong2', type='long2', childSuffixes=['_first', '_second'])
+        >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoLong2' in x.name()]
+        [u'autoLong2', u'autoLong2_first', u'autoLong2_second']
+
     """
     attributeTypes = [ 'bool', 'long', 'short', 'byte', 'char', 'enum',
                        'float', 'double', 'doubleAngle', 'doubleLinear',
                        'compound', 'message', 'time', 'fltMatrix', 'reflectance',
                        'spectrum', 'float2', 'float3', 'double2', 'double3', 'long2',
-                       'long3', 'short2', 'short3' ]
+                       'long3', 'short2', 'short3', datatypes.Vector ]
 
     dataTypes = [ 'string', 'stringArray', 'matrix', 'reflectanceRGB',
                   'spectrumRGB', 'doubleArray', 'Int32Array', 'vectorArray',
                   'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray' ]
 
     type = kwargs.pop('type', kwargs.pop('typ', None ))
+    childSuffixes = kwargs.pop('childSuffixes', None)
 
     if type is not None:
         if type in attributeTypes:
@@ -649,7 +677,7 @@ def addAttr(*args, **kwargs):
     at = kwargs.pop('attributeType', kwargs.pop('at', None))
     if at is not None:
         try:
-            kwargs['at'] = {
+            at = {
                 float: 'double',
                 int: 'long',
                 bool: 'bool',
@@ -658,7 +686,8 @@ def addAttr(*args, **kwargs):
                 unicode: 'string'
             }[at]
         except KeyError:
-            kwargs['at'] = at
+            pass
+        kwargs['at'] = at
 
     if kwargs.get('e', kwargs.get('edit', False)):
         for editArg, value in kwargs.iteritems():
@@ -680,6 +709,7 @@ def addAttr(*args, **kwargs):
     # MObject stringify Fix
     #args = map(unicode, args)
     res = cmds.addAttr(*args, **kwargs)
+
     if kwargs.get('q', kwargs.get('query', False)):
         # When addAttr is queried, and has multiple other query flags - ie,
         #   addAttr('joint1.sweetpea', q=1, parent=1, dataType=1)
@@ -706,6 +736,49 @@ def addAttr(*args, **kwargs):
             if isinstance(node, Attribute):
                 node = node.node()
             res = node.attr(res)
+    elif not kwargs.get('e', kwargs.get('edit', False)):
+        # if we were creating an attribute, and used "type", check if we
+        # made a compound type...
+        if type is not None and at:
+            # string parse the attributeType, because the type may be an
+            # actual python type...
+            baseType = at[:-1]
+            num = at[-1]
+            if (baseType in ('float', 'double', 'short', 'long')
+                    and num in ('2', '3')):
+                num = int(num)
+                if childSuffixes is None:
+                    if kwargs.get('usedAsColor', kwargs.get('uac')):
+                        childSuffixes = 'RGB'
+                    else:
+                        childSuffixes = 'XYZ'
+                baseLongName = kwargs.get('longName', kwargs.get('ln'))
+                baseShortName = kwargs.get('shortName', kwargs.get('sn'))
+
+                childKwargs = dict(kwargs)
+
+                for kwarg in (
+                        'longName', 'ln',
+                        'shortName', 'sn',
+                        'attributeType', 'at',
+                        'dataType', 'dt',
+                        'multi', 'm',
+                        'indexMatters', 'im',
+                        'parent', 'p',
+                        'numberOfChildren', 'nc',
+                        'usedAsColor', 'uac',
+                ):
+                    childKwargs.pop(kwarg, None)
+
+                childKwargs['attributeType'] = baseType
+                childKwargs['parent'] = baseLongName
+
+                for i in xrange(num):
+                    suffix = childSuffixes[i]
+                    childKwargs['longName'] = baseLongName + suffix
+                    if baseShortName:
+                        childKwargs['shortName'] = baseShortName + suffix
+                    cmds.addAttr(*args, **childKwargs)
 
 #    else:
 #        # attempt to gather Attributes we just made
