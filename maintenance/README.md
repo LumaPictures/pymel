@@ -44,11 +44,21 @@ Building an Official PyMEL Release
 
     ```python
     import sys
-    pymelPath = r'C:\Dev\Projects\eclipse\workspace\pymelProject\pymel'   # ...or wherever YOUR pymel version is installed
-    if not os.path.isfile(os.path.join(pymelPath, 'pymel', '__init__.py')):
+    import os
+    pymelPath = r'E:\Projects\Dev\_work\pymel'   # ...or wherever YOUR pymel version is installed
+    pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
+    if not os.path.isfile(pymelInit):
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
+    import pymel
+    if not pymel.__file__.startswith(pymelInit):  # don't check equality, it may be a .pyc
+        for mod in list(sys.modules):
+            if mod.split('.')[0] == 'pymel':
+                del sys.modules[mod]
+    import pymel
+    assert pymel.__file__.startswith(pymelInit)                
+    print pymel.__file__
     import pymel.core as pm
     ```
 
