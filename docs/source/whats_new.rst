@@ -13,6 +13,10 @@ Changes
 ----------------------------------
 - ui: update promptForFolder to use fileDialog2
 - core: don't abort loading pymel if error adding a plugin command
+- system: ensure sceneName always returns Path('') for untitled scenes (this was the described behavior, but it would return e.g. /path/to/untitled.mb under some circumstances)
+- system: changed FileInfo to inherit from collections.MutableMapping. This gives it a complete dictionary interface, like OptionVarDict.
+- language: added support for namespace-protected MEL procedure calls. Issue #359.
+- update ipymel to work with newer ipython versions
 
 ----------------------------------
 Additions
@@ -20,8 +24,7 @@ Additions
 - added support for 2016.5
 - nodetypes: added ObjectSet.forceElement
 - pmcmds: give wrapped commands unique co_name, for better cProfile info
-- language: added support for namespace-protected MEL procedure calls. Issue #359.
-- update ipymel to work with newer ipython versions
+- general: added ability to pass type to addAttr. The type is automatically determined to be a dataType or an attributeType
 
 ----------------------------------
 Bugfixes
@@ -30,14 +33,14 @@ Bugfixes
 - general: fix listRelatives to make combo of allDescendents, shapes, noIntermediate work
 - general: fix for parent(removeObject=True)
 - general: fix particle attribute in ParticleComponent.attr(). Issue #350
-- general: fix spaceLocator not returning unique names (issue #320)
+- general: fix spaceLocator not returning unique names. Issue #320
 - startup: fix for installation of exit handler in fixMayapy2011SegFault
-- uitypes: fix for TextScrollList.selectIndexedItems / selectAll (issue 110)
-- uitypes: MainProgressBar - docs fix
-- all: UI modules cannot be imported when Maya runs in batch mode
+- uitypes: fix for TextScrollList.selectIndexedItems / selectAll. Issue 110
+- uitypes: fix docs for MainProgressBar
+- all: don't try to UI modules when Maya runs in batch mode
 - datatypes: fix for Matrix/TransformationMatrix scale/rotate properties
 - nodetypes: fix Shape.getTransform() to return shape node's transform. Issue #311
-- utils: fix runOverriddenModule() to use os.stat compare in case of Windows OS, where samefile would error out. Issue #358.
+- utils: fix runOverriddenModule() to use os.stat compare in case of Windows OS, where samefile would error. Issue #358.
 
 
 ==================================
@@ -64,6 +67,7 @@ Changes
 Additions
 ----------------------------------
 
+- added support for 2016
 - language: added Env.playbackTimes convenience property for getting/setting all timeline values at once
 - allapi: added example usage to SafeApiPtr
 - general: added Attribute.iterDescendants
@@ -112,6 +116,7 @@ Changes
 Additions
 ----------------------------------
 
+- added support for 2015
 - added (functional) namespace method to Attribute, Component
 - general: added mute accessors to Attributes
 - system: provide ReferenceEdit.rawEditData property for getting faster unparsed access to reference edits
