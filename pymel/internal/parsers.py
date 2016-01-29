@@ -1033,7 +1033,6 @@ class ApiDocParser(object):
 
     def parseMethod(self, proto):
         methodName, returnType, returnQualifiers = self.getMethodNameAndOutput(proto)
-        print methodName
         if methodName is None:
             return
         # convert to unicode
