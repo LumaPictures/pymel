@@ -1447,6 +1447,46 @@ class test_addAttr(unittest.TestCase):
                          enumName={'giraffe':1, 'gazelle':5, 'lion':3})
         self.assertEqual(self.loc.attr('testEnumAttr').getEnums(), newEnums)
 
+    def test_type_double(self):
+        self.loc.addAttr('autoDouble', type='double')
+        self.assertEqual(pm.addAttr(self.loc + '.autoDouble', query=1,
+                                    attributeType=1),
+                         'double')
+        self.assertEqual(pm.addAttr(self.loc + '.autoDouble', query=1,
+                                    dataType=1),
+                         'TdataNumeric')
+
+    def test_type_mesh(self):
+        self.loc.addAttr('autoMesh', type='mesh')
+        self.assertEqual(pm.addAttr(self.loc + '.autoMesh', query=1,
+                                    attributeType=1),
+                         'typed')
+        self.assertEqual(pm.addAttr(self.loc + '.autoMesh', query=1,
+                                    dataType=1),
+                         'mesh')
+
+    def test_type_vector(self):
+        self.loc.addAttr('autoVec', type=pm.dt.Vector)
+        self.assertEqual([x.attrName() for x in self.loc.listAttr()
+                         if 'autoVec' in x.attrName()],
+                         [u'autoVec', u'autoVecX',
+                          u'autoVecY', u'autoVecZ'])
+
+    def test_type_float3Color(self):
+        self.loc.addAttr('autoFloat3Col', type='float3', usedAsColor=1)
+        self.assertEqual([x.attrName() for x in self.loc.listAttr()
+                         if 'autoFloat3Col' in x.attrName()],
+                         [u'autoFloat3Col', u'autoFloat3ColR',
+                          u'autoFloat3ColG', u'autoFloat3ColB'])
+
+    def test_type_long2(self):
+        self.loc.addAttr('autoLong2', type='long2',
+                         childSuffixes=['_first', '_second'])
+        self.assertEqual([x.attrName() for x in self.loc.listAttr()
+                         if 'autoLong2' in x.attrName()],
+                         [u'autoLong2', u'autoLong2_first',
+                          u'autoLong2_second'])
+
 
 class test_Attribute_iterDescendants(unittest.TestCase):
     # FIXME: to prevent this test from changing over time it might be a good idea to create
