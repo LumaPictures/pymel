@@ -21,7 +21,7 @@ some of the new commands were changed slightly from their flag name to avoid nam
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
-    FileReference(u'.../test.ma', refnode=u'testRN')
+    FileReference(u'...test.ma', refnode=u'testRN')
 
 Notice that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 
@@ -31,7 +31,7 @@ the results::
     >>> expFile.exists()
     True
     >>> expFile.remove() # doctest: +ELLIPSIS
-    Path('.../test.ma')
+    Path('...test.ma')
 
 """
 
