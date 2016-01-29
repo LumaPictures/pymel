@@ -1666,6 +1666,45 @@ class test_Attribute_minMax(unittest.TestCase):
     def test_getBounds_unboundedElem(self):
         self.getNoBoundsTest(self.unboundedElem)
 
+class test_Attribute_getSetAttrCmds(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.loc = pm.spaceLocator()
+
+    def test_float(self):
+        attr = self.loc.attr('translateX')
+        attr.set(5.5)
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, ['setAttr ".tx" 5.5;'])
+
+    def test_string(self):
+        self.loc.addAttr('myString', dataType='string')
+        attr = self.loc.attr('myString')
+        attr.set('foo')
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, ['setAttr ".myString" -type "string" "foo";'])
+
+    def test_float3(self):
+        attr = self.loc.attr('rotate')
+        attr.set((1.0, 2.0, 33.3))
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, [
+            'setAttr ".r" -type "double3" 1 2 33.3 ;',
+        ])
+
+    def test_intMulti(self):
+        self.loc.addAttr('myIntMulti', attributeType='long', multi=True)
+        attr = self.loc.attr('myIntMulti')
+        attr[0].set(1)
+        attr[1].set(5)
+        attr[5].set(7)
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, [
+            'setAttr -s 3 ".myIntMulti";',
+            'setAttr ".myIntMulti[0]" 1;',
+            'setAttr ".myIntMulti[1]" 5;',
+            'setAttr ".myIntMulti[5]" 7;',
+        ])
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
