@@ -303,7 +303,8 @@ def finalize():
     state = om.MGlobal.mayaState()
     if state == om.MGlobal.kLibraryApp:  # mayapy only
         initMEL()
-        # fixMayapy2011SegFault()
+        if pymel_options['fix_linux_mayapy_segfault']:
+            fixMayapy2011SegFault()
     elif state == om.MGlobal.kInteractive:
         initAE()
 
@@ -654,13 +655,17 @@ def getConfigFile():
 def parsePymelConfig():
     import ConfigParser
 
-    types = {'skip_mel_init': 'boolean',
-             'check_attr_before_lock': 'boolean',
-             }
-    defaults = {'skip_mel_init': 'off',
-                'check_attr_before_lock': 'off',
-                'preferred_python_qt_binding': 'pyqt',
-                }
+    types = {
+        'skip_mel_init': 'boolean',
+        'check_attr_before_lock': 'boolean',
+        'fix_linux_mayapy_segfault': 'boolean',
+    }
+    defaults = {
+        'skip_mel_init': 'off',
+        'check_attr_before_lock': 'off',
+        'preferred_python_qt_binding': 'pyqt',
+        'fix_linux_mayapy_segfault': 'on',
+    }
 
     config = ConfigParser.ConfigParser(defaults)
     config.read(getConfigFile())
