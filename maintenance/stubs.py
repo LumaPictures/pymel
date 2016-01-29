@@ -158,7 +158,7 @@ def get_static_module_names(module):
     return visitor.names
 
 
-# for the sake of stubtest, don't importy anything pymel/maya at module level
+# for the sake of stubtest, don't import anything pymel/maya at module level
 #import pymel.util as util
 
 class NoUnicodeTextRepr(TextRepr):
@@ -180,6 +180,18 @@ class NoUnicodeTextRepr(TextRepr):
 
     def repr_unicode(self, uStr, level):
         return self.repr_string(str(uStr), level)
+
+    def repr1(self, x, level):
+        # believe it or not there are cases where split(s) fails and s.split()
+        # succeeds.  specifically, I'm seeing this error with a PySide object:
+        # SystemError: Objects/longobject.c:244: bad argument to internal function
+        # so this is a slight edit of TextRepr.repr1
+        if hasattr(type(x), '__name__'):
+            methodname = 'repr_' + join(type(x).__name__.split(), '_')
+            if hasattr(self, methodname):
+                return getattr(self, methodname)(x, level)
+        return cram(stripid(repr(x)), self.maxother)
+
 
 class StubDoc(Doc):
     """Formatter class for text documentation."""
@@ -923,6 +935,7 @@ class StubDoc(Doc):
                 # pydev can't handle unicode literals - ie, u'stuff' - so
                 # convert to normal strings
                 object = str(object)
+
             objRepr = self.repr(object)
             if objRepr[0] == '<' and objRepr[-1] == '>':
                 objRepr = repr(objRepr)

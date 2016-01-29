@@ -1,0 +1,53 @@
+------------------------------------
+Additions
+------------------------------------
+language: added note that Mel can't handle arguments modified in-place
+nodetypes: added ObjectSet.forceElement
+------------------------------------
+Bug Fixes
+------------------------------------
+datatypes: fix for Matrix/TransformationMatrix scale/rotate properties
+general: fix for getMin/Max with multi attr elements
+general: fix for parent(removeObject)
+startup: fix for installation of exit handler in fixMayapy2011SegFault
+uitypes: MainProgressBar - docs fix
+uitypes: fix for TextScrollList.selectIndexedItems / selectAll (issue 110)
+------------------------------------
+Uncategorized
+------------------------------------
+Add cache for 2016.5
+Add support for namespace-protected MEL procedure calls. Issue #359.
+Add test_ParticleComponent to test particle's get attr after bug fix Issue #350.
+Fix Shape.getTransform() to return shape node's transform. Issue #311
+Fix lumapictures link
+Fix maya.utils.runOverriddenModule() to use os.stat compare in case of Windows OS, where samefile would error out. Issue #358.
+Fix particle attribute in ParticleComponent.attr(). Issue #350
+Fix typo in heading - "Seting" to "Setting"
+README.md: note for getting around SSL issues with pip
+Refactor - support for namespace-protected MEL procedure calls. Issue #359.
+This is a pull request for a change I already discussed with Chad. Can you guys take a look at it please? Thanks!
+UI modules cannot be imported when Maya runs in batch mode
+Update README to be sexier!
+Update README to be sexier!
+Update changelog for 1.0.8
+Update promptForFolder to use fileDialog2
+add 2016.5 version
+added 2016.5 caches
+added more 2016 versions
+bump version to 1.0.8
+core: don't abort loading pymel if error adding a plugin command
+fix a bug introduced to parenting to world by commit 9982bed6b2beb0db054dface7b8bc82d231591df
+fix for test_nodtetypes.testCase_listAttr to deal with new attrs on blendshape
+fix spaceLocator not returning unique names (issue #320)
+general: listRelatives - make combo of allDescendents, shapes, noIntermediate work
+ignore pycharm .idea dir
+lanaguage: MelCallable - get rid of unnecessary _call func
+language: Mel - get rid of proc global
+maintenance/README.me - update to use pymel_test_output.bat on windows
+make docs prettier
+makerelease: name changed from RELEASING to README.md
+minor doctest fix
+oops, versions are ints, not floats
+pmcmds: give wrapped commands unique co_name, for better cProfile info
+test_general - more test fixes to deal with new attrs in blendshape
+update ipymel

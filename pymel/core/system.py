@@ -544,7 +544,7 @@ class WorkspaceEntryDict(object):
         return '%s(%r)' % (self.__class__.__name__, self.entryType)
 
     def __getitem__(self, item):
-        res = cmds.workspace(item, **{'q': 1, self.entryType + 'Entry': 1})
+        res = cmds.workspace(**{self.entryType + 'Entry': item})
         if not res:
             raise KeyError, item
         return res

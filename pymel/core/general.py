@@ -369,6 +369,7 @@ Modifications:
         - currently does not support compound attributes
         - currently supported python-to-maya mappings:
 
+            ============ ===========
             python type  maya type
             ============ ===========
             float        double
@@ -564,16 +565,6 @@ Modifications:
                     else:
                         kwargs['type'] = 'string'
 
-    if datatype == 'matrix' and _versions.current() < _versions.v2011:
-        import language
-        #language.mel.setAttr( attr, *args, **kwargs )
-        strFlags = ['-%s %s' % (key, language.pythonToMel(val)) for key, val in kwargs.items()]
-        cmd = 'setAttr %s %s %s' % (attr, ' '.join(strFlags), ' '.join([str(x) for x in args]))
-        import maya.mel as _mm
-        # print cmd
-        _mm.eval(cmd)
-        return
-
     # stringify fix
     attr = unicode(attr)
 
@@ -623,7 +614,7 @@ def addAttr(*args, **kwargs):
         True
 
   - allow passing a list or dict instead of a string for enumName
-  - Allow user to pass in type and determine whether it is a dataType or
+  - allow user to pass in type and determine whether it is a dataType or
     attributeType. Types that may be both, such as float2, float3, double2,
     double3, long2, long3, short2, and short3 are all treated as
     attributeTypes. In addition, as a convenience, since these attributeTypes
@@ -651,7 +642,6 @@ def addAttr(*args, **kwargs):
         >>> addAttr('persp', ln='autoLong2', type='long2', childSuffixes=['_first', '_second'])
         >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoLong2' in x.name()]
         [u'autoLong2', u'autoLong2_first', u'autoLong2_second']
-
     """
     attributeTypes = [ 'bool', 'long', 'short', 'byte', 'char', 'enum',
                        'float', 'double', 'doubleAngle', 'doubleLinear',
@@ -3963,6 +3953,44 @@ class Attribute(PyNode):
         return self.getParent(generations=None, arrays=arrays)
 
     parent = getParent
+
+    # FIXME: temporary fix, remove once method can be parsed from 2016 docs
+    def getSetAttrCmds(self, valueSelector='all', useLongNames=False):
+        """
+        Returns an array of strings containing  setAttr  commands
+        for this plug and all of its descendent plugs.
+
+        :Parameters:
+            valueSelector : `Attribute.MValueSelector`
+                kAll - return setAttr commands for the plug and its children,
+         regardless of their values.   kNonDefault - only return setAttr
+         commands for the plug or its children if they are not at their default
+         values.   kChanged - for nodes from referenced files, setAttr commands
+         are only returned if the plug or one of its children has changed since
+         its file was loaded. For all other nodes, the behaviour is the same a
+         kNonDefault.   Note that if the plug is compound and one of its
+         children has changed, then setAttrs will be generated for *all* of its
+         children, even those which have not changed.
+         (default: kAll)
+
+            values: 'all', 'nonDefault', 'changed', 'lastAttrSelector'
+                useLongNames : `bool`
+                    Normally, the returned commands will use the short names for
+         flags and attributes. If this parameter is true then their long
+         names will be used instead. (default: false)
+
+
+        :rtype: `list` list
+
+        Derived from api method `maya.OpenMaya.MPlug.getSetAttrCmds`
+        """
+        result = []
+        valueSelector = getattr(self.MValueSelector, valueSelector)
+        # parameter order appears to be wrong in the docs. An error is raised
+        # if valueSelector is passed in as second parameter.
+        self.__apimplug__().getSetAttrCmds(result, useLongNames, valueSelector)
+        return result
+
 
 def _MObjectIn(x):
     if isinstance(x, PyNode):
