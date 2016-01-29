@@ -635,9 +635,9 @@ def addAttr(*args, **kwargs):
     dataTypes = [ 'string', 'stringArray', 'matrix', 'reflectanceRGB',
                   'spectrumRGB', 'doubleArray', 'Int32Array', 'vectorArray',
                   'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray' ]
-    
+
     type = kwargs.pop('type', kwargs.pop('typ', None ))
-    
+
     if type is not None:
         if type in attributeTypes:
             kwargs['at'] = type
@@ -645,7 +645,7 @@ def addAttr(*args, **kwargs):
             kwargs['dt'] = type
         else:
             raise TypeError, "type not supported"
-    
+
     at = kwargs.pop('attributeType', kwargs.pop('at', None))
     if at is not None:
         try:
