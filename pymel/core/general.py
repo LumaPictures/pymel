@@ -4118,6 +4118,13 @@ class Component(PyNode):
             mfnComp.setComplete(True)
         return isEmpty
 
+    @classmethod
+    def _compOrEmptyList(cls, node, components):
+        if (not isinstance(components, (_api.MObject, _api.MFnComponent))
+                and not components):
+            return []
+        return cls(node, components)
+
     def __init__(self, *args, **kwargs):
         # the Component class can be instantiated several ways:
         # Component(dagPath, component):
@@ -5322,7 +5329,7 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedFaces(self):
         """
@@ -5330,7 +5337,7 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedVertices(self):
         """
@@ -5338,7 +5345,7 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshVertex._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def isConnectedTo(self, component):
         """
@@ -5377,7 +5384,7 @@ class MeshEdge(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedFaces(self):
         """
@@ -5385,7 +5392,7 @@ class MeshEdge(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedVertices(self):
         """
@@ -5425,7 +5432,7 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedFaces(self):
         """
@@ -5433,7 +5440,7 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedVertices(self):
         """
@@ -5441,7 +5448,7 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshVertex._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def isConnectedTo(self, component):
         """

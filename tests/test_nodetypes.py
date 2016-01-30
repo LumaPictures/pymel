@@ -2233,21 +2233,43 @@ class testCase_Mesh(unittest.TestCase):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
             self.assertEqual(self.trans.vtx[i].getColor(), color)
 
-class testCase_MeshVert(unittest.TestCase):
+class MeshComponentTesterMixin(object):
     def setUp(self):
         pm.newFile(f=1)
-        self.trans = pm.polyCube()[0]
-        self.cube = self.trans.getShape()
 
+    def makeCube(self):
+        self.cubeTrans = pm.polyCube()[0]
+        self.cube = self.cubeTrans.getShape()
+
+    def makeDegenerate(self):
+        # for testing an unconnected vert - don't know of a way to have an
+        # unconnected edge...
+        import maya.OpenMaya as om
+        pts = om.MFloatPointArray()
+        pts.append(0, 0, 0)
+        pts.append(1, 0, 0)
+        pts.append(0, 0, 1)
+        pts.append(1, 0, 1)
+        counts = om.MIntArray(1, 3)
+        indices = om.MIntArray()
+        indices.append(0)
+        indices.append(1)
+        indices.append(2)
+        self.degenTrans = pm.PyNode(om.MFnMesh().create(4, 1, pts, counts, indices))
+        self.degen = self.degenTrans.getShape()
+
+class testCase_MeshVert(unittest.TestCase, MeshComponentTesterMixin):
     def test_setVertexColor(self):
+        self.makeCube()
         for i in range(8):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
-            self.trans.vtx[i].setColor(color)
+            self.cubeTrans.vtx[i].setColor(color)
         for i in range(8):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
             self.assertEqual(self.cube.vtx[i].getColor(), color)
 
     def test_connections(self):
+        self.makeCube()
         self.assertTrue(self.cube.vtx[2].isConnectedTo(self.cube.vtx[3]))
         self.assertFalse(self.cube.vtx[2].isConnectedTo(self.cube.vtx[7]))
 
@@ -2257,13 +2279,46 @@ class testCase_MeshVert(unittest.TestCase):
         self.assertTrue(self.cube.vtx[6].isConnectedTo(self.cube.f[5]))
         self.assertFalse(self.cube.vtx[6].isConnectedTo(self.cube.f[0]))
 
-class testCase_MeshEdge(unittest.TestCase):
-    def setUp(self):
-        pm.newFile(f=1)
-        self.trans = pm.polyCube()[0]
-        self.cube = self.trans.getShape()
+    def test_connectedVertices_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.vtx[0].connectedVertices())
+        expected = [1, 2, 6]
+        self.assertEqual(result, expected)
+        
+    def test_connectedVertices_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.vtx[3].connectedVertices())
+        expected = []
+        self.assertEqual(result, expected)
 
+    def test_connectedEdges_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.vtx[0].connectedEdges())
+        expected = [0, 4, 10]
+        self.assertEqual(result, expected)
+
+    def test_connectedEdges_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.vtx[3].connectedEdges())
+        expected = []
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.vtx[0].connectedFaces())
+        expected = [0, 3, 5]
+        self.assertEqual(result, expected)
+        
+    def test_connectedFaces_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.vtx[3].connectedFaces())
+        expected = []
+        self.assertEqual(result, expected)
+
+
+class testCase_MeshEdge(unittest.TestCase, MeshComponentTesterMixin):
     def test_connections(self):
+        self.makeCube()
         self.assertTrue(self.cube.e[7].isConnectedTo(self.cube.vtx[5]))
         self.assertFalse(self.cube.e[5].isConnectedTo(self.cube.vtx[5]))
 
@@ -2273,14 +2328,30 @@ class testCase_MeshEdge(unittest.TestCase):
         self.assertTrue(self.cube.e[1].isConnectedTo(self.cube.f[0]))
         self.assertFalse(self.cube.e[6].isConnectedTo(self.cube.f[2]))
 
+    # no degenerate tests, because don't know how to make an unconnected edge!
 
-class testCase_MeshFace(unittest.TestCase):
-    def setUp(self):
-        pm.newFile(f=1)
-        self.trans = pm.polyCube()[0]
-        self.cube = self.trans.getShape()
+    def test_connectedVertices_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.e[0].connectedVertices())
+        expected = [0, 1]
+        self.assertEqual(result, expected)
 
+    def test_connectedEdges_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.e[0].connectedEdges())
+        expected = [4, 5, 10, 11]
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.e[0].connectedFaces())
+        expected = [0, 3]
+        self.assertEqual(result, expected)
+
+
+class testCase_MeshFace(unittest.TestCase, MeshComponentTesterMixin):
     def test_connections(self):
+        self.makeCube()
         # Oddly enough, in a cube, all the verts 'connected' to the face
         # are the ones NOT contained in it, and all the ones that are
         # contained are considered not connected...
@@ -2292,6 +2363,43 @@ class testCase_MeshFace(unittest.TestCase):
 
         self.assertTrue(self.cube.f[2].isConnectedTo(self.cube.f[1]))
         self.assertFalse(self.cube.f[5].isConnectedTo(self.cube.f[4]))
+
+    def test_connectedVertices_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.f[0].connectedVertices())
+        expected = [4, 5, 6, 7]
+        self.assertEqual(result, expected)
+
+    def test_connectedVertices_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.f[0].connectedVertices())
+        expected = []
+        self.assertEqual(result, expected)
+
+    def test_connectedEdges_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.f[0].connectedEdges())
+        expected = [6, 7, 10, 11]
+        self.assertEqual(result, expected)
+
+    def test_connectedEdges_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.f[0].connectedEdges())
+        expected = []
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.f[0].connectedFaces())
+        expected = [1, 3, 4, 5]
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.f[0].connectedFaces())
+        expected = []
+        self.assertEqual(result, expected)
+
 
 class testCase_ConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
