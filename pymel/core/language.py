@@ -264,7 +264,7 @@ class MelGlobals(collections.MutableMapping, dict):
     [u'defaultRunTimeCommands.res.mel', u'localizedPanelLabel.res.mel', ...]
     >>> # works with or without $
     >>> melGlobals['gFilterUIDefaultAttributeFilterList']  #doctest: +ELLIPSIS
-    [...]
+    [u'DefaultHiddenAttributesFilter', u'animCurveFilter', ..., u'publishedFilter']
 
     Creating new variables requires the use of the `initVar` function to specify the type:
 
