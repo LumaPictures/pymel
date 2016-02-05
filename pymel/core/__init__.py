@@ -120,7 +120,11 @@ def _pluginLoaded(*args):
 
     if not pluginName:
         return
-
+    
+    # Check to see if plugin is really loaded
+    if not (cmds.pluginInfo(pluginName, query=1, loaded=1)): 
+        return
+        
     _logger.debug("Plugin loaded: %s", pluginName)
     _pluginData[pluginName] = {}
 
