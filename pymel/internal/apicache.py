@@ -83,6 +83,8 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         if not GhostObjsOkHere.OK():
             _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be unnecessary in maya versions past 2012 (except when rebuilding cache)')
 
+    _logger.debug("Creating ghost node: %s" % mayaType)
+
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
@@ -166,8 +168,7 @@ class _GhostObjMaker(object):
                 obj = api.toMObject(allObj[0])
             else:
                 if mayaType in ApiCache.CRASH_TYPES:
-                    # the two items in CRASH_TYPES are both manips...
-                    if self.manipError:
+                    if self.manipError and "Manip" in mayaType:
                         raise ManipNodeTypeError
                     obj = None
                 else:
@@ -615,6 +616,27 @@ class ApiCache(startup.SubItemCache):
         'moveVertexManip': 'kMoveVertexManip',
     }
 
+    # For some reason, a bunch of nodes crashed Maya 2016 Ext1, but they
+    # apparently worked with 2016.5 / 2016 Ext2 (since it didn't crash when I
+    # built it's cache - though it was a pre-release, so perhaps it didn't have
+    # all plugins?)
+    if versions.v2016_EXT1 <= versions.current() < versions.v2016_EXT2:
+        CRASH_TYPES.update({
+            'type': 'kPluginDependNode',
+            'vectorExtrude': 'kPluginDependNode',
+            'shellDeformer': 'kPluginDependNode',
+            'displayPoints': 'kPluginLocatorNode',
+            'svgToPoly': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'vectorAdjust': 'kPluginDeformerNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+        })
+
     # hold any overrides for mayaTypesToApiTypes...
     # ie, for cases where the name guess is wrong, or for weird plugin types
     # that don't inherit from an mpx type (ie, vectorRenderGlobals), etc
@@ -761,6 +783,7 @@ class ApiCache(startup.SubItemCache):
                 reservedMayaTypes[mayaType] = apiGuess
 
         reservedMayaTypes.update(self.MAYA_TO_API_OVERRIDES)
+        reservedMayaTypes.update(self.CRASH_TYPES)
         # filter to make sure all these types exist in current version (some are Maya2008 only)
         reservedMayaTypes = dict((item[0], item[1])
                                  for item in reservedMayaTypes.iteritems()
