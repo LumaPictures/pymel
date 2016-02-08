@@ -40,6 +40,10 @@ isInitializing = False
 finalizeEnabled = True
 _finalizeCalled = False
 
+_mayaExitCallbackId = None
+_mayaUninitialized = False
+_atExitCallbackInstalled = False
+
 # tells whether this maya package has been modified to work with pymel
 pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
 
@@ -105,6 +109,19 @@ def setupFormatting():
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
 def mayaInit(forversion=None):
+    global _mayaUninitialized
+    _mayaUninitialized = False
+
+    result = _mayaInit(forversion=forversion)
+
+    if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp:  # mayapy only
+        if pymel_options['fix_mayapy_segfault']:
+            fixMayapySegFault()
+
+    return result
+
+
+def _mayaInit(forversion=None):
     """ Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
     it is possible to pass the desired Maya version number to define which Maya to initialize
 
@@ -307,6 +324,57 @@ def finalize():
             fixMayapy2011SegFault()
     elif state == om.MGlobal.kInteractive:
         initAE()
+
+def fixMayapySegFault():
+    # first, install a maya exit callback that will let us know if uninitialize
+    # has already been called...
+    def mayaExitCallback(data):
+        global _mayaUninitialized
+        _mayaUninitialized = True
+        import maya.cmds
+        # Turn off undo, because maya seems to have a bug where uninitialize()
+        # will crash if undo is on, and certain custom conditions have been
+        # created - ie, from the command line:
+        
+        # mayapy -c 'import maya.standalone
+        # maya.standalone.initialize()
+        # import maya.cmds as cmds
+        # import maya.OpenMaya as om
+        # om.MGlobal.executeCommand("""
+        # global proc int _pymel_undoOrRedoAvailable()
+        # {
+        #     return (isTrue("UndoAvailable") || isTrue("RedoAvailable"));
+        # }
+        # """, False, False)
+        # cmds.condition("UndoOrRedoAvailable", initialize=True,
+        #                d=["UndoAvailable", "RedoAvailable"],
+        #                s="_pymel_undoOrRedoAvailable")
+        # cmds.setAttr("persp.tx", 20)
+        # print "uninitializing..."
+        # maya.standalone.uninitialize()'; echo $?
+        # # Seg fault - 139
+        maya.cmds.undoInfo(state=False)
+
+    global _mayaExitCallbackId
+    if _mayaExitCallbackId is not None:
+        om.MMessage.removeCallback(_mayaExitCallbackId)
+        if hasattr(_mayaExitCallbackId, 'disown'):
+            _mayaExitCallbackId.disown()
+
+    om.MSceneMessage.addCallback(om.MSceneMessage.kMayaExiting,
+                                 mayaExitCallback)
+
+    # Now, install a python atexit handler
+    def uninitializeMayaOnPythonExit():
+        if not _mayaUninitialized:
+            import maya.standalone  # @UnresolvedImport
+            maya.standalone.uninitialize()
+
+    global _atExitCallbackInstalled
+    if not _atExitCallbackInstalled:
+        import atexit
+        atexit.register(uninitializeMayaOnPythonExit)
+        _atExitCallbackInstalled = True
 
 
 # Have all the checks inside here, in case people want to insert this in their
@@ -661,13 +729,15 @@ def parsePymelConfig():
     types = {
         'skip_mel_init': 'boolean',
         'check_attr_before_lock': 'boolean',
+        'fix_mayapy_segfault': 'boolean',
         'fix_linux_mayapy_segfault': 'boolean',
     }
     defaults = {
         'skip_mel_init': 'off',
         'check_attr_before_lock': 'off',
         'preferred_python_qt_binding': 'pyqt',
-        'fix_linux_mayapy_segfault': 'on',
+        'fix_mayapy_segfault': 'on',
+        'fix_linux_mayapy_segfault': 'off',
     }
 
     config = ConfigParser.ConfigParser(defaults)
