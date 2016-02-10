@@ -47,6 +47,15 @@ _atExitCallbackInstalled = False
 # tells whether this maya package has been modified to work with pymel
 pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
 
+# used to test by using hasattr(maya.standalone, 'uninitialize')...
+# but that requires importing maya.standalone, and pymel actually checks for
+# it's existence in maya.cmds
+# would like to remove that check, but could potentially break backward compat -
+# ie, if someone does:
+#    import maya.standalone
+#    import pymel
+#    import maya.standalone.initialize()
+_hasUninitialize = versions.current() >= versions.v2016
 
 def _moduleJoin(*args):
     """
@@ -736,8 +745,10 @@ def parsePymelConfig():
         'skip_mel_init': 'off',
         'check_attr_before_lock': 'off',
         'preferred_python_qt_binding': 'pyqt',
-        'fix_mayapy_segfault': 'on',
-        'fix_linux_mayapy_segfault': 'off',
+        # want to use the "better" fix_mayapy_segfault if uninitialize is
+        # available
+        'fix_mayapy_segfault': 'on' if _hasUninitialize else 'off',
+        'fix_linux_mayapy_segfault': 'off' if _hasUninitialize else 'on',
     }
 
     config = ConfigParser.ConfigParser(defaults)
