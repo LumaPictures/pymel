@@ -130,12 +130,20 @@ if _versions.current() >= _versions.v2011:
         '''
         if ptr is None:
             return
+ 
 
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+        try:
+          import PySide2.QtCore as qtcore
+          import PySide2.QtGui as qtgui
+          import PySide2.QtWidgets as qtwidget
+          from shiboken2 import wrapInstance
+        except ImportError:
+          import PySide.QtCore as qtcore
+          import PySide.QtGui as qtgui
+          import PySide.QtGui as qtwidget
+          from shiboken import wrapInstance
 
-        qObj = shiboken.wrapInstance(long(ptr), qtcore.QObject)
+        qObj = wrapInstance(long(ptr), qtcore.QObject)
         metaObj = qObj.metaObject()
         cls = metaObj.className()
         superCls = metaObj.superClass().className()
@@ -143,9 +151,13 @@ if _versions.current() >= _versions.v2011:
             base = getattr(qtgui, cls)
         elif hasattr(qtgui, superCls):
             base = getattr(qtgui, superCls)
+        elif hasattr(qtwidget, cls):
+            base = getattr(qtwidget, cls)
+        elif hasattr(qtwidget, superCls):
+            base = getattr(qtwidget, superCls)
         else:
-            base = qtgui.QWidget
-        return shiboken.wrapInstance(long(ptr), base)
+            base = qtwidget.QWidget
+        return wrapInstance(long(ptr), base)
 
     def toPySideObject(mayaName):
         """
@@ -160,7 +172,10 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import PySide.QtCore as qtcore
+        try:
+          import PySide2.QtCore as qtcore
+        except ImportError:
+          import PySide.QtCore as qtcore
 
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is None:
@@ -172,48 +187,51 @@ if _versions.current() >= _versions.v2011:
 
     def toPySideControl(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget.
+        Given the name of a Maya UI control, return the corresponding QWidget.
         If the object does not exist, returns None
 
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+        try:
+          import PySide2.QtWidgets as qtwidget
+        except ImportError:
+          import PySide.QtGui as qtwidget
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QWidget)
+            return pysideWrapInstance(long(ptr), qtwidget.QWidget)
 
     def toPySideLayout(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget.
+        Given the name of a Maya UI control, return the corresponding QWidget.
         If the object does not exist, returns None
 
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+        try:
+          import PySide2.QtWidgets as qtwidget
+        except ImportError:
+          import PySide.QtGui as qtwidget
         ptr = mui.MQtUtil.findLayout(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QWidget)
+            return pysideWrapInstance(long(ptr), qtwidget.QWidget)
 
     def toPySideWindow(mayaName):
         """
-        Given the name of a May UI control, return the corresponding QWidget.
+        Given the name of a Maya UI control, return the corresponding QWidget.
         If the object does not exist, returns None
 
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+        try:
+          import PySide2.QtWidgets as qtwidget
+        except ImportError:
+          import PySide.QtGui as qtwidget`
         ptr = mui.MQtUtil.findWindow(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QWidget)
+            return pysideWrapInstance(long(ptr), qtwidget.QWidget)
 
     def toPySideMenuItem(mayaName):
         """
@@ -225,12 +243,13 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+        try:
+          import PySide2.QtWidget as qtwidget
+        except ImportError:
+          import PySide.QtGui as qtwidget
         ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QAction)
+            return pysideWrapInstance(long(ptr), qtwidget.QAction)
 
     # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
     try:
@@ -245,7 +264,12 @@ if _versions.current() >= _versions.v2011:
         import PySide
         pySideAvailable = True
     except ImportError:
-        pySideAvailable = False
+        try:
+          import shiboken2
+          import PySide2
+          pySideAvailable = True
+        except ImportError:
+          pySideAvailable = False
 
     if pyQtAvailable and not pySideAvailable:
         qtBinding = 'pyqt'
