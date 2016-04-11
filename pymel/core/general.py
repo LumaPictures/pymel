@@ -21,6 +21,7 @@ import pymel.internal.pwarnings as _warnings
 import pymel.internal.startup as _startup
 import pymel.api as _api
 import pymel.versions as _versions
+import pymel.core.system as system
 import datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
@@ -1174,6 +1175,9 @@ Modifications:
 #        res.append( PyNode( tmp[i], tmp[i+1] ) )
 #
 #    return res
+    if kwargs.get('showNamespace', kwargs.get('sns', False)):
+        return [system.Namespace(item) if i % 2 else PyNode(item) for i, item in enumerate(res)]
+
     return map(PyNode, res)
 
 
