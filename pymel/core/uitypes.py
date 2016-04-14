@@ -1291,7 +1291,9 @@ _uiTypesToCommands = {
     'rowGroupLayout': 'rowLayout',
     'TcolorIndexSlider': 'rowLayout',
     'TcolorSlider': 'rowLayout',
-    'floatingWindow': 'window'
+    'floatingWindow': 'window',
+    'field': 'textField'
 }
 
 dynModule._lazyModule_update()
+
