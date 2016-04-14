@@ -1292,7 +1292,8 @@ _uiTypesToCommands = {
     'TcolorIndexSlider': 'rowLayout',
     'TcolorSlider': 'rowLayout',
     'floatingWindow': 'window',
-    'field': 'textField'
+    'field': 'textField',
+    'staticText': 'text'
 }
 
 dynModule._lazyModule_update()
