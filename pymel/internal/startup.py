@@ -516,7 +516,7 @@ class SubItemCache(PymelCache):
     ...     DESC = 'the maya nodes cache'
     ...     COMPRESSED = False
     ...     _CACHE_NAMES = ['nodeTypes']
-    ...     AUTO_SAVE = FALSE
+    ...     AUTO_SAVE = False
     ...     def rebuild(self):
     ...         import maya.cmds
     ...         self.nodeTypes = maya.cmds.allNodeTypes(includeAbstract=True)
