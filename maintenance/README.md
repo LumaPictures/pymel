@@ -246,5 +246,5 @@ A few notes on rebuilding:
         
   - then run the release script:
 
-        ./maintenance/makerelease $PYMEL_VERSION
+        ./maintenance/makerelease 1.0.5rc1
 
