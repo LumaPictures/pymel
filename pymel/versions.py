@@ -123,6 +123,7 @@ v2016_EXT1 = v2016_SP3
 v2016_EXT1SP4 = v2016_SP4
 v20165 = 201650
 v2016_EXT2 = v20165
+v2017 = 201700
 
 def current():
     """Get the current version of Maya

@@ -5,6 +5,33 @@ What's New
 **********
 
 ==================================
+Version 1.0.9
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+- turn fixMayapy2011SegFault on by default, control with config
+
+----------------------------------
+Additions
+----------------------------------
+- added support for 2017
+- Added support for PySide2
+
+----------------------------------
+Bug Fixes
+----------------------------------
+- arrays: fix error messages for non-existent axes (issue #369)
+- general: remove hard-coded getSetAttrCmds; also fix tests (default is short attr names)
+- general: Fix for showNamespaces breaking ls
+- general: Mesh*.connected* raises error if list is empty (issue #367)
+- general: Fix a bug where parenting to a non-existent node did not raise an error
+- language: restore gFilterUIDefaultAttributeFilterList, in prep for autodesk fix
+- ui: textField and text lose their type (issue #349)
+
+
+==================================
 Version 1.0.8
 ==================================
 
@@ -15,7 +42,7 @@ Changes
 - core: don't abort loading pymel if error adding a plugin command
 - system: ensure sceneName always returns Path('') for untitled scenes (this was the described behavior, but it would return e.g. /path/to/untitled.mb under some circumstances)
 - system: changed FileInfo to inherit from collections.MutableMapping. This gives it a complete dictionary interface, like OptionVarDict.
-- language: added support for namespace-protected MEL procedure calls. Issue #359.
+- language: added support for namespace-protected MEL procedure calls. (issue #359).
 - update ipymel to work with newer ipython versions
 
 ----------------------------------
@@ -32,15 +59,15 @@ Bugfixes
 - general: fix for getMin/Max with multi attr elements
 - general: fix listRelatives to make combo of allDescendents, shapes, noIntermediate work
 - general: fix for parent(removeObject=True)
-- general: fix particle attribute in ParticleComponent.attr(). Issue #350
-- general: fix spaceLocator not returning unique names. Issue #320
+- general: fix particle attribute in ParticleComponent.attr(). (issue #350)
+- general: fix spaceLocator not returning unique names. (issue #320)
 - startup: fix for installation of exit handler in fixMayapy2011SegFault
-- uitypes: fix for TextScrollList.selectIndexedItems / selectAll. Issue 110
+- uitypes: fix for TextScrollList.selectIndexedItems / selectAll. (issue 110)
 - uitypes: fix docs for MainProgressBar
 - all: don't try to UI modules when Maya runs in batch mode
 - datatypes: fix for Matrix/TransformationMatrix scale/rotate properties
-- nodetypes: fix Shape.getTransform() to return shape node's transform. Issue #311
-- utils: fix runOverriddenModule() to use os.stat compare in case of Windows OS, where samefile would error. Issue #358.
+- nodetypes: fix Shape.getTransform() to return shape node's transform. (issue #311)
+- utils: fix runOverriddenModule() to use os.stat compare in case of Windows OS, where samefile would error. (issue #358).
 
 
 ==================================
