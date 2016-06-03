@@ -21,6 +21,7 @@ import pymel.internal.pwarnings as _warnings
 import pymel.internal.startup as _startup
 import pymel.api as _api
 import pymel.versions as _versions
+import pymel.core.system as system
 import datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
@@ -1174,6 +1175,9 @@ Modifications:
 #        res.append( PyNode( tmp[i], tmp[i+1] ) )
 #
 #    return res
+    if kwargs.get('showNamespace', kwargs.get('sns', False)):
+        return [system.Namespace(item) if i % 2 else PyNode(item) for i, item in enumerate(res)]
+
     return map(PyNode, res)
 
 
@@ -1324,7 +1328,7 @@ Maya Bug Fix:
 def parent(*args, **kwargs):
     """
 Modifications:
-    - if parent is 'None', world=True is automatically set
+    - if parent is `None`, world=True is automatically set
     - if the given parent is the current parent, don't error (similar to mel)
     """
     if args and args[-1] is None:
@@ -1333,22 +1337,20 @@ Modifications:
         if 'world' in kwargs:
             del kwargs['world']
         kwargs['w'] = True
+        args = args[:-1]
     elif 'world' in kwargs:
         # Standardize on 'w', for easier checking later
         kwargs['w'] = kwargs['world']
         del kwargs['world']
 
-    # if you try to parent to the current parent, maya errors...
-    # check for this and return if that's the case
     if args:
-        nodes = cmds.ls(args, type='dagNode')
+        nodes = args
     else:
         nodes = cmds.ls(sl=1, type='dagNode')
 
     # There are some situations in which you can only pass one node - ie, with
     # shape=True, removeObject=True - and we don't want to abort in these
     # cases
-
     if (nodes and not kwargs.get('removeObject', False)
             and not kwargs.get('rm', False)):
         if kwargs.get('w', False):
@@ -1358,6 +1360,8 @@ Modifications:
             parent = PyNode(nodes[-1])
             children = nodes[:-1]
 
+        # if you try to parent to the current parent, maya errors...
+        # check for this and return if that's the case
         def getParent(obj):
             parent = cmds.listRelatives(obj, parent=1)
             if not parent:
@@ -1366,6 +1370,7 @@ Modifications:
                 return parent[0]
         if all(getParent(child) == parent for child in children):
             return [PyNode(x) for x in children]
+
     result = cmds.parent(*args, **kwargs)
     # if using removeObject, return is None
     if result:

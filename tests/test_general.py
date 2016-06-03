@@ -1276,6 +1276,11 @@ class test_parent(unittest.TestCase):
         self.assertFalse(self.sphere.exists())
         self.assertFalse(self.cone.exists())
 
+    def test_parent_to_nonexistent_object(self):
+        with self.assertRaises(pm.MayaNodeError):
+            pm.parent(self.sphere, 'does_not_exist')
+
+
 class test_spaceLocator(unittest.TestCase):
     def test_nonUniqueName(self):
         cmds.file(f=1, new=1)

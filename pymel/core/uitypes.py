@@ -131,11 +131,20 @@ if _versions.current() >= _versions.v2011:
         if ptr is None:
             return
 
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+        try:
+            import PySide2.QtCore as qtcore
+            import PySide2.QtGui as qtgui
+            import PySide2.QtWidgets as qtwidgets
+            from shiboken2 import wrapInstance
+        except ImportError:
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtgui
+            import PySide.QtGui as qtwidgets
+            from shiboken import wrapInstance
 
-        qObj = shiboken.wrapInstance(long(ptr), qtcore.QObject)
+        qObj = wrapInstance(long(ptr), qtcore.QObject)
+
         metaObj = qObj.metaObject()
         cls = metaObj.className()
         superCls = metaObj.superClass().className()
@@ -143,9 +152,13 @@ if _versions.current() >= _versions.v2011:
             base = getattr(qtgui, cls)
         elif hasattr(qtgui, superCls):
             base = getattr(qtgui, superCls)
+        elif hasattr(qtwidgets, cls):
+            base = getattr(qtwidgets, cls)
+        elif hasattr(qtwidgets, superCls):
+            base = getattr(qtwidgets, superCls)
         else:
-            base = qtgui.QWidget
-        return shiboken.wrapInstance(long(ptr), base)
+            base = qtwidgets.QWidget
+        return wrapInstance(long(ptr), base)
 
     def toPySideObject(mayaName):
         """
@@ -160,7 +173,11 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import PySide.QtCore as qtcore
+
+        try:
+            import PySide2.QtCore as qtcore
+        except ImportError:
+            import PySide.QtCore as qtcore
 
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is None:
@@ -178,12 +195,19 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+
+        try:
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
+        except ImportError:
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
+
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QWidget)
+            return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
 
     def toPySideLayout(mayaName):
         """
@@ -193,12 +217,19 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+
+        try:
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
+        except ImportError:
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
+
         ptr = mui.MQtUtil.findLayout(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QWidget)
+            return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
 
     def toPySideWindow(mayaName):
         """
@@ -208,12 +239,18 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+   
+        try:
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
+        except ImportError:
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
         ptr = mui.MQtUtil.findWindow(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QWidget)
+            return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
 
     def toPySideMenuItem(mayaName):
         """
@@ -225,12 +262,18 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
+        try:
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
+        except ImportError:
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
+           
         ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtgui.QAction)
+            return pysideWrapInstance(long(ptr), qtwidgets.QAction)
 
     # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
     try:
@@ -246,6 +289,12 @@ if _versions.current() >= _versions.v2011:
         pySideAvailable = True
     except ImportError:
         pySideAvailable = False
+        try:
+            import shiboken2
+            import PySide2
+            pySideAvailable = True
+        except ImportError:
+            pySideAvailable = False
 
     if pyQtAvailable and not pySideAvailable:
         qtBinding = 'pyqt'
@@ -1242,7 +1291,10 @@ _uiTypesToCommands = {
     'rowGroupLayout': 'rowLayout',
     'TcolorIndexSlider': 'rowLayout',
     'TcolorSlider': 'rowLayout',
-    'floatingWindow': 'window'
+    'floatingWindow': 'window',
+    'field': 'textField',
+    'staticText': 'text'
 }
 
 dynModule._lazyModule_update()
+

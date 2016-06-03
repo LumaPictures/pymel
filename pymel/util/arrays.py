@@ -2050,7 +2050,7 @@ class Array(object):
         if axis < 0:
             axis += ndim
         if axis not in range(ndim):
-            raise ValueError, "cannot append on axis %s, axis does not exist for %s of shape %s" % (axis, util.clsname(self), shape)
+            raise ValueError, "cannot append on axis %s, axis does not exist for %s of shape %s" % (axis, clsname(self), shape)
         itself = self.axisiter(axis)
         itemshape = itself.itemshape
         itemdim = len(itemshape)
@@ -2257,7 +2257,7 @@ class Array(object):
             if axis < 0:
                 axis += ndim
             if axis not in range(ndim):
-                raise ValueError, "cannot stack on axis %s, axis does not exist for %s of shape %s" % (axis, util.clsname(self), shape)
+                raise ValueError, "cannot stack on axis %s, axis does not exist for %s of shape %s" % (axis, clsname(self), shape)
             itself = self.axisiter(axis)
             itother = other.axisiter(axis)
             if itself.itemshape == itother.itemshape:
