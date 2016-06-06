@@ -718,7 +718,7 @@ class FileInfo(collections.MutableMapping):
         >>> fileInfo( 'myKey', 'myData' )
 
     Updated to have a fully functional dictiony interface.
-    
+
 
     """
 
@@ -728,7 +728,7 @@ class FileInfo(collections.MutableMapping):
         Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
         '''
         pass
-        
+
     def __getitem__(self, item):
         result = cmds.fileInfo(item, q=1)
         if not result:
@@ -764,7 +764,7 @@ class FileInfo(collections.MutableMapping):
 
     def __iter__(self):
         return iter(self.keys())
-    
+
     def __len__(self):
         return len(self.keys())
 
@@ -1416,8 +1416,14 @@ class FileReference(object):
 #        return cmds.file( self.withCopyNumber(), **kwargs )
 
     @_factories.addMelDocs('file', 'removeReference')
-    def remove(self):
-        return cmds.file(rfn=self.refNode, removeReference=1)
+    def remove(self, force=False, **kwargs):
+        if force:
+            referenceNodes = cmds.referenceQuery(self.refNode, n=1)
+            namespaceNodes = cmds.namespaceInfo(self.namespace, ls=1)
+            for node in namespaceNodes:
+                if cmds.objExists(node) and node not in referenceNodes:
+                    cmds.delete(node)
+        return cmds.file(rfn=self.refNode, removeReference=1, **kwargs)
 
 #    @_factories.addMelDocs('file', 'unloadReference')
 #    def unload(self):
