@@ -254,7 +254,10 @@ class Namespace(unicode):
 
         self.setCurrent()
         try:
-            namespaces = map(self.__class__, cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+            # workaround: namespaceInfo sometimes returns duplicates
+            seen = set()
+            namespaces = map(self.__class__, [ns for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+                                              if not (ns in seen or seen.add(ns))])
 
             if not internal:
                 for i in [":UI", ":shared"]:
