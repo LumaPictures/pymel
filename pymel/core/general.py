@@ -2004,6 +2004,13 @@ class MayaAttributeEnumError(MayaAttributeError):
 class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
 
+class MayaInstanceError(MayaNodeError):
+    def __str__(self):
+        msg = "Maya %s was reparented to an instance, and dag path is now ambiguous:" % (self._objectDescription)
+        if self.node:
+            msg += ": %r" % (self.node)
+        return msg
+
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
 
@@ -2103,14 +2110,14 @@ class PyNode(_util.ProxyUnicode):
                     argObj = argObj.__apimplug__()
                 elif isinstance(argObj, Component):
                     try:
-                        argObj = argObj._node.__apiobjects__['MDagPath']
+                        argObj = argObj._node.__apimdagpath__()
                     except KeyError:
                         argObj = argObj._node.__apiobjects__['MObjectHandle']
 
                 elif isinstance(argObj, PyNode):
                     try:
-                        argObj = argObj.__apiobjects__['MDagPath']
-                    except KeyError:
+                        argObj = argObj.__apimdagpath__()
+                    except (KeyError, AttributeError):
                         argObj = argObj.__apiobjects__['MObjectHandle']
 
                 elif hasattr(argObj, '__module__') and argObj.__module__.startswith('maya.OpenMaya'):

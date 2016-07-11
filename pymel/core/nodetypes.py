@@ -1226,6 +1226,22 @@ class DagNode(Entity):
             dag = self.__apiobjects__['MDagPath']
             # test for validity: if the object is not valid an error will be raised
             self.__apimobject__()
+            if not dag.isValid():
+                # Usually this only happens if the object was reparented, with
+                # instancing.
+                #
+                # Most of the time, this makes sense - there's no way to know
+                # which of the new instances we "want".  Hoever, occasionally,
+                # when the object was reparented, there were multiple instances,
+                # and the MDagPath was invalidated; however, subsequently, other
+                # instances were removed, so it's no longer instanced. Check for
+                # this...
+                mfnDag = _api.MFnDagNode(self.__apimobject__())
+                if not mfnDag.isInstanced():
+                    # throw a KeyError, this will cause to regen from
+                    # first MDagPath
+                    raise KeyError
+                raise general.MayaInstanceError(mfnDag.name())
             return dag
         except KeyError:
             # class was instantiated from an MObject, but we can still retrieve the first MDagPath
@@ -1251,7 +1267,7 @@ class DagNode(Entity):
             handle = self.__apiobjects__['MObjectHandle']
         except KeyError:
             try:
-                handle = _api.MObjectHandle(self.__apiobjects__['MDagPath'].node())
+                handle = _api.MObjectHandle(self.__apimdagpath__().node())
             except RuntimeError:
                 raise general.MayaNodeError(self._name)
             self.__apiobjects__['MObjectHandle'] = handle
