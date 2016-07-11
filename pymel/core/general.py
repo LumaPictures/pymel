@@ -2100,7 +2100,7 @@ class PyNode(_util.ProxyUnicode):
 
                 if isinstance(argObj, Attribute):
                     attrNode = argObj._node
-                    argObj = argObj.__apiobjects__['MPlug']
+                    argObj = argObj.__apimplug__()
                 elif isinstance(argObj, Component):
                     try:
                         argObj = argObj._node.__apiobjects__['MDagPath']
@@ -2767,7 +2767,7 @@ class Attribute(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = _api.MObjectHandle(self.__apiobjects__['MPlug'].attribute())
+            handle = _api.MObjectHandle(self.__apimplug__().attribute())
             self.__apiobjects__['MObjectHandle'] = handle
         if _api.isValidMObjectHandle(handle):
             return handle.object()
@@ -6085,7 +6085,7 @@ class AttributeDefaults(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = self.__apiobjects__['MPlug'].attribute()
+            handle = self.__apimplug__().attribute()
             self.__apiobjects__['MObjectHandle'] = handle
         if _api.isValidMObjectHandle(handle):
             return handle.object()
