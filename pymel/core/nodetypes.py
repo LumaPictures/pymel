@@ -1224,8 +1224,12 @@ class DagNode(Entity):
 
         try:
             dag = self.__apiobjects__['MDagPath']
-            # test for validity: if the object is not valid an error will be raised
-            self.__apimobject__()
+            # If we have a cached mobject, test for validity: if the object is
+            # not valid an error will be raised
+            # Check if MObjectHandle in self.__apiobjects__ to avoid recursive
+            # loop...
+            if 'MObjectHandle' in self.__apiobjects__:
+                self.__apimobject__()
             if not dag.isValid():
                 # Usually this only happens if the object was reparented, with
                 # instancing.
@@ -1236,12 +1240,16 @@ class DagNode(Entity):
                 # and the MDagPath was invalidated; however, subsequently, other
                 # instances were removed, so it's no longer instanced. Check for
                 # this...
-                mfnDag = _api.MFnDagNode(self.__apimobject__())
-                if not mfnDag.isInstanced():
-                    # throw a KeyError, this will cause to regen from
-                    # first MDagPath
-                    raise KeyError
-                raise general.MayaInstanceError(mfnDag.name())
+                # Check if MObjectHandle in self.__apiobjects__ to avoid recursive
+                # loop...
+                if 'MObjectHandle' in self.__apiobjects__:
+                    mfnDag = _api.MFnDagNode(self.__apimobject__())
+                    if not mfnDag.isInstanced():
+                        # throw a KeyError, this will cause to regen from
+                        # first MDagPath
+                        raise KeyError
+                    raise general.MayaInstanceError(mfnDag.name())
+                raise general.MayaInstanceError()
             return dag
         except KeyError:
             # class was instantiated from an MObject, but we can still retrieve the first MDagPath
