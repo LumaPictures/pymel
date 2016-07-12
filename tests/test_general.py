@@ -1463,7 +1463,7 @@ class test_parent_instance(unittest.TestCase):
         pm.parent(orig, parent, r=1)
         self.assertTrue(orig.isInstanced())
         self.assertEqual(orig.getParent(), parent)
-        
+
 
 class test_spaceLocator(unittest.TestCase):
     def test_nonUniqueName(self):

@@ -961,8 +961,17 @@ class DagNode(Entity):
             try:
                 name = self._updateName(long)
             except general.MayaObjectError:
-                _logger.warn("object %s no longer exists" % self._name)
-                name = self._name
+                # if we have an error, but we're only looking for the nodeName,
+                # use the non-dag version
+                if long is None:
+                    # don't use DependNode._updateName, as that can still
+                    # raise MayaInstanceError - want this to work, so people
+                    # have a way to get the correct instance, assuming they know
+                    # what the parent should be
+                    name = _api.MFnDependencyNode(self.__apimobject__()).name()
+                else:
+                    _logger.warn("object %s no longer exists" % self._name)
+                    name = self._name
         else:
             name = self._name
 
@@ -1240,16 +1249,12 @@ class DagNode(Entity):
                 # and the MDagPath was invalidated; however, subsequently, other
                 # instances were removed, so it's no longer instanced. Check for
                 # this...
-                # Check if MObjectHandle in self.__apiobjects__ to avoid recursive
-                # loop...
-                if 'MObjectHandle' in self.__apiobjects__:
-                    mfnDag = _api.MFnDagNode(self.__apimobject__())
-                    if not mfnDag.isInstanced():
-                        # throw a KeyError, this will cause to regen from
-                        # first MDagPath
-                        raise KeyError
-                    raise general.MayaInstanceError(mfnDag.name())
-                raise general.MayaInstanceError()
+                mfnDag = _api.MFnDagNode(self.__apiobjects__['MDagPath'].node())
+                if not mfnDag.isInstanced():
+                    # throw a KeyError, this will cause to regen from
+                    # first MDagPath
+                    raise KeyError
+                raise general.MayaInstanceError(mfnDag.name())
             return dag
         except KeyError:
             # class was instantiated from an MObject, but we can still retrieve the first MDagPath
@@ -1276,6 +1281,11 @@ class DagNode(Entity):
         except KeyError:
             try:
                 handle = _api.MObjectHandle(self.__apimdagpath__().node())
+            except general.MayaInstanceError:
+                if 'MDagPath' in self.__apiobjects__:
+                    handle = _api.MObjectHandle(self.__apiobjects__['MDagPath'].node())
+                else:
+                    raise general.MayaNodeError(self._name)
             except RuntimeError:
                 raise general.MayaNodeError(self._name)
             self.__apiobjects__['MObjectHandle'] = handle
