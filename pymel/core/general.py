@@ -1343,8 +1343,22 @@ Modifications:
         kwargs['w'] = kwargs['world']
         del kwargs['world']
 
+    origPyNodes = []
+    origParent = None
+    origParentDag = None
     if args:
         nodes = args
+        origPyNodes
+        if 'w' in kwargs:
+            origPyNodes = nodes
+        else:
+            origPyNodes = nodes[:-1]
+            origParent = nodes[-1]
+        origPyNodes = [x for x in origPyNodes if isinstance(x, PyNode)]
+        # Make sure we have an MObjectHandle for all origPyNodes - may need
+        # these later to fix issues with instancing...
+        for n in origPyNodes:
+            n.__apimobject__()
     else:
         nodes = cmds.ls(sl=1, type='dagNode')
 
@@ -1375,6 +1389,47 @@ Modifications:
     # if using removeObject, return is None
     if result:
         result = [PyNode(x) for x in result]
+
+    # fix the MDagPath for any ORIGINAL PyNodes, if instancing is involved
+    # (ie, if DependNode.setParent is called, we want to set the MDagPath to the
+    # correct instance if possible)
+    for origNode in origPyNodes:
+        try:
+            origNode.__apimdagpath__()
+        except AttributeError:
+            continue
+        except MayaInstanceError:
+            # Was problem, try to fix the MDagPath!
+            if origParentDag is None:
+                if origParent is not None and not isinstance(origParent, PyNode):
+                    origParent = PyNode(origParent)
+                origParentDag = origParent.__apimdagpath__()
+
+            mfnDag = _api.MFnDagNode(origNode.__apimobject__())
+            dags = _api.MDagPathArray()
+            mfnDag.getAllPaths(dags)
+            foundDag = None
+
+            # Look for an instance whose parent is the parent we reparented to
+            for i in xrange(dags.length()):
+                dag = dags[i]
+                parentDag = _api.MDagPath(dag)
+                parentDag.pop()
+                if origParent is None:
+                    if parentDag.length() == 0:
+                        foundDag = dag
+                        break
+                else:
+                    if parentDag == origParentDag:
+                        foundDag = dag
+                        break
+            if foundDag is not None:
+                # copy the one from the array, or else we'll get a crash, when
+                # the array is freed and we try to use it!
+                origNode.__apiobjects__['MDagPath'] = _api.MDagPath(foundDag)
+        else:
+            continue
+
     return result
 
 # Because cmds.duplicate only ever returns node names (ie, NON-UNIQUE, and

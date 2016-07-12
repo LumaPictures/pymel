@@ -1283,7 +1283,7 @@ class test_parent(unittest.TestCase):
 # TODO: make test cases for all combinations of
 #  origNode - not instanced, direct-instanced, indirect-instanced
 #  newParentNode - not instanced, direct-instanced, indirect-instanced
-#  cmds.parent, pm.parent, PyNode.setParent
+#  cmds.parent, pm.parent
 #  relative=True/False
 
 class test_parent_instance(unittest.TestCase):
@@ -1409,21 +1409,61 @@ class test_parent_instance(unittest.TestCase):
 
     def test_cmds_parent_inst_to_inst(self):
         orig = pm.PyNode(self.instSphereB1)
-        parent = pm.PyNode(self.instParentA1)
+        parent = pm.PyNode(self.instParentA2)
         self.assertTrue(orig.isInstanced())
         self.assertTrue(parent.isInstanced())
-        cmds.parent(self.instSphereB1, self.instParentA1, r=1)
+        cmds.parent(self.instSphereB1, self.instParentA2, r=1)
         self.assertTrue(orig.isInstanced())
         self.assertRaises(pm.MayaInstanceError, orig.__apimdagpath__)
         # getting instanceNumber will trigger usage of dag path
         self.assertRaises(pm.MayaInstanceError, orig.instanceNumber)
         # we end up with FOUR instances... see note in test_cmds_parent_inst_to_nonInst
-        pm.delete(self.A2)
-        pm.delete('{}|transform1'.format(self.instParentA1))
+        pm.delete(self.A1)
+        pm.delete('{}|transform1'.format(self.instParentA2))
         self.assertFalse(orig.isInstanced())
         self.assertTrue(orig.__apimdagpath__().isValid())
         self.assertEqual(orig.instanceNumber(), 0)
 
+    
+    def test_pm_parent_nonInst_to_nonInst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertFalse(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        # getting instanceNumber will trigger usage of dag path
+        self.assertEqual(orig.instanceNumber(), 0)
+    
+    
+    def test_pm_parent_nonInst_to_inst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.instParentA1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+
+    def test_pm_parent_inst_to_nonInst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertTrue(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+
+    def test_pm_parent_inst_to_inst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.instParentA2)
+        self.assertTrue(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+        
 
 class test_spaceLocator(unittest.TestCase):
     def test_nonUniqueName(self):
