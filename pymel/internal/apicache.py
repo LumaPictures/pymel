@@ -500,6 +500,40 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
         print mayaType, lineage
         raise
 
+    if len(set(lineage)) != len(lineage):
+        # cyclical lineage:  first discovered with xgen nodes.
+        # might be a result of multiple inheritance being returned strangely by nodeType.
+        #
+        # an example lineage is:
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator',
+        #  u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'aiSkyDomeLight']
+        # note the repeat - we will try to fix lineages like this, resolving to:
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator', u'aiSkyDomeLight']
+
+        # first pop the rightmost element, which is the mayaType...
+        if lineage.pop() != mayaType:
+            raise RuntimeError("lineage for %s did not end with it's own node type" % mayaType)
+
+        # then try to find the first element somewhere else - this should indicate the start of the repeated chain...
+        try:
+            nextIndex = lineage.index(lineage[0], 1)
+        except ValueError:
+            # unknown case, don't know how to fix...
+            pass
+        else:
+            firstLineage = lineage[:nextIndex]
+            secondLineage = lineage[nextIndex:]
+            if len(firstLineage) < len(secondLineage):
+                shorter = firstLineage
+                longer = secondLineage
+            else:
+                shorter = secondLineage
+                longer = firstLineage
+            if longer[:len(shorter)] == shorter:
+                # yay! we know how to fix!
+                lineage = longer
+                lineage.append(mayaType)
+
     if updateCache and lineage:
         if len(set(lineage)) != len(lineage):
             # cyclical lineage:  first discovered with xgen nodes.
