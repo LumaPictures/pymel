@@ -2837,10 +2837,11 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
         nodeType = classdict.get('__melnode__')
 
+        isVirtual = '_isVirtual' in classdict or any(hasattr(b, '_isVirtual')
+                                                     for b in bases)
         if nodeType is None:
             # check for a virtual class...
-            if '_isVirtual' in classdict or any(hasattr(b, '_isVirtual')
-                                                for b in bases):
+            if isVirtual:
                 for b in bases:
                     if hasattr(b, '__melnode__'):
                         nodeType = b.__melnode__
@@ -2851,6 +2852,33 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
                 # not a virtual class, just use the classname
                 nodeType = util.uncapitalize(classname)
             classdict['__melnode__'] = nodeType
+
+        from pymel.core.nodetypes import mayaTypeNameToPymelTypeName, \
+            pymelTypeNameToMayaTypeName
+
+        # mapping from pymel type to maya type should always be made...
+        oldMayaType = pymelTypeNameToMayaTypeName.get(classname)
+        if oldMayaType is None:
+            pymelTypeNameToMayaTypeName[classname] = nodeType
+        elif oldMayaType != nodeType:
+            _logger.raiseLog(_logger.WARNING,
+                             'creating new pymel node class %r for maya node '
+                             'type %r, but a pymel class with the same name '
+                             'already existed for maya node type %r' % (
+                                 classname, nodeType, oldMayaType))
+
+        # mapping from maya type to pymel type only happens if it's NOT a
+        # virtual class...
+        if not isVirtual:
+            oldPymelType = mayaTypeNameToPymelTypeName.get(nodeType)
+            if oldPymelType is None:
+                mayaTypeNameToPymelTypeName[nodeType] = classname
+            elif oldPymelType != classname:
+                _logger.raiseLog(_logger.WARNING,
+                                 'creating new pymel node class %r for maya node '
+                                 'type %r, but there already existed a pymel'
+                                 'class %r for the same maya node type' % (
+                                     classname, nodeType, oldPymelType))
 
         addMayaType(nodeType)
         apicls = toApiFunctionSet(nodeType)
@@ -2999,11 +3027,35 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
     """
     create a PyNode type for a maya node.
     """
+    # dynModule is generally pymel.core.nodetypes, but don't want to rely on
+    # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
+    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\
+        pymelTypeNameToMayaTypeName
+
+    def getPymelTypeName(mayaTypeName):
+        pymelTypeName = mayaTypeNameToPymelTypeName.get(mayaTypeName)
+        if pymelTypeName is None:
+            pymelTypeName = str(util.capitalize(mayaTypeName))
+            pymelTypeNameBase = pymelTypeName
+            num = 1
+            while pymelTypeName in pymelTypeNameToMayaTypeName:
+                num += 1
+                pymelTypeName = pymelTypeNameBase + str(num)
+            mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
+            pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
+        return pymelTypeName
+
 
     #_logger.debug("addPyNode adding %s->%s on dynModule %s" % (mayaType, parentMayaType, dynModule))
     # unicode is not liked by metaNode
-    pyNodeTypeName = str(util.capitalize(mayaType))
-    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    parentPyNodeTypeName = mayaTypeNameToPymelTypeName.get(parentMayaType)
+    if parentPyNodeTypeName is None:
+        _logger.raiseLog(_logger.WARNING,
+                         'trying to create PyNode for maya type %r, but could'
+                         ' not find a registered PyNode for parent type %r' % (
+                             mayaType, parentMayaType))
+        parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    pyNodeTypeName = getPymelTypeName(mayaType)
 
     # If pymel.all is loaded, we will need to get the actual node in order to
     # store it on pymel.all, so in that case don't bother with the lazy-loading
@@ -3022,7 +3074,13 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
     return pyNodeTypeName
 
 def removePyNode(dynModule, mayaType):
-    pyNodeTypeName = str(util.capitalize(mayaType))
+    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName
+    pyNodeTypeName = mayaTypeNameToPymelTypeName.get(mayaType)
+    if not pyNodeTypeName:
+        _logger.raiseLog(_logger.WARNING,
+                         'trying to remove PyNode for maya type %r, but could '
+                         'not find an associated PyNode registered' % mayaType)
+        pyNodeTypeName = str(util.capitalize(mayaType))
     removePyNodeType(pyNodeTypeName)
 
     _logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))

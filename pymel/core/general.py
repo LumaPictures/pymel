@@ -44,9 +44,10 @@ def _getPymelTypeFromObject(obj, name):
         # __apiobjects__ = {'MDagPath':MDagPath(...)}, but a pymel type of
         # DependNode... and DependNode.__apihandle__() always assumes that
         # MObjectHandle is always in __apiobjects__
-        pymelType = getattr(nodetypes, _util.capitalize(mayaType),
-                            nodetypes.DagNode if obj.hasFn(_api.MFn.kDagNode)
-                            else nodetypes.DependNode)
+        pymelTypeName = nodetypes.mayaTypeNameToPymelTypeName.get(
+            mayaType,
+            'DagNode' if obj.hasFn(_api.MFn.kDagNode) else 'DependNode')
+        pymelType = getattr(nodetypes, pymelTypeName)
         pymelType = _factories.virtualClasses.getVirtualClass(pymelType, obj, name, fnDepend)
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)

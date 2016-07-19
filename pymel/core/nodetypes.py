@@ -40,6 +40,11 @@ _thisModule = sys.modules[__name__]
 # If we're reloading, clear the pynode types out
 _factories.clearPyNodeTypes()
 
+# Dictionary mapping from maya node type names (ie, surfaceShape) to pymel
+# class names, in this module - ie, SurfaceShape
+mayaTypeNameToPymelTypeName = {}
+pymelTypeNameToMayaTypeName = {}
+
 class DependNode(general.PyNode):
     __apicls__ = _api.MFnDependencyNode
     __metaclass__ = _factories.MetaMayaNodeWrapper
