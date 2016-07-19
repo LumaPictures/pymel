@@ -3380,9 +3380,19 @@ def mayaTypeToApiType(mayaType):
 def isMayaType(mayaType):
     '''Whether the given type is a currently-defined maya node name
     '''
-    # using objectType instead of MNodeClass or nodeType(isTypeName) because
-    # it's available < 2012
-    return bool(cmds.objectType(tagFromType=mayaType))
+    if versions.current() >= versions.v2012:
+        # use nodeType(isTypeName) preferentially, because it returns results
+        # for some objects that objectType(tagFromType) returns 0 for
+        # (like TadskAssetInstanceNode_TdependNode, which is a parent of
+        # adskMaterial
+        try:
+            cmds.nodeType(mayaType, isTypeName=True)
+        except RuntimeError:
+            return False
+        else:
+            return True
+    else:
+        return bool(cmds.objectType(tagFromType=mayaType))
 
 # Keep around for debugging/info gathering...
 def getComponentTypes():
