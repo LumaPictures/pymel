@@ -3697,10 +3697,70 @@ class TransferAttributes(DependNode):
 
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
+class NodetypesLazyLoadModule(_util.LazyLoadModule):
+    '''Like a standard lazy load  module, but with dynamic PyNode class creation
+    '''
+    @classmethod
+    def _unwrappedNodeTypes(cls):
+        # get node types, but avoid checking inheritance for all nodes for
+        # speed. Note that this means we're potentially missing some abstract
+        # edge cases - TadskAssetInstanceNode_TdependNode type stuff, that only
+        # shows up in inheritance hierarchies - but I can't see people wanting
+        # to access those directly from nodetypes anyway, so I'm judging that
+        # an acceptable risk
+        allNodes = _apicache._getAllMayaTypes(addAncestors=False,
+                                              noManips='fast')
+
+        return allNodes - set(mayaTypeNameToPymelTypeName)
+
+    def __getattr__(self, name):
+        '''Check to see if the name corresponds to a PyNode that hasn't been
+        added yet'''
+        # In the normal course of operation, this __getattr__ shouldn't be
+        # needed - PyNodes corresponding to maya node types should be created
+        # when pymel starts up, or when a plugin loads.
+        # However, there are some unusual sitations that can arise where new
+        # node types are missed... because a plugin can actually register new
+        # nodes at any time, not just during it's initialization!
+        #
+        # This happened with mtoa - if you have an mtoa extension, which adds
+        # some maya nodes, but requires another maya plugin... those nodes
+        # will not be added until that other maya plugin is loaded... but
+        # the nodes will be added to mtoa, NOT the plugin that triggered
+        # the plugin-loaded callback. Also, the node adding happens within
+        # ANOTHER plugin-loaded callback, which generally runs AFTER pymel's
+        # plugin-loaded callback!
+        uncapName = _util.uncapitalize(name)
+        if uncapName in self._unwrappedNodeTypes():
+            # it's a maya node we haven't wrapped yet! Wrap it and return!
+            import pymel.core
+
+            mayaType = uncapName
+
+            # See if it's a plugin node...
+            nodeClass = _api.MNodeClass(mayaType)
+            try:
+                pluginPath = nodeClass.pluginName()
+                plugin = cmds.pluginInfo(pluginPath, q=1, name=1)
+            except RuntimeError:
+                # if we can't find a plugin
+                pyNodeName =_factories.addCustomPyNode(self, mayaType,
+                                                       immediate=True)
+            else:
+                pyNodeName = pymel.core._addPluginNode(plugin, mayaType,
+                                                       immediate=True)
+            if pyNodeName != name:
+                _logger.raiseLog(_logger.WARNING,
+                                 "dynamically added node when %r requested, but"
+                                 " returned PyNode had name %r" % (
+                                     name, pyNodeName))
+            return self.__dict__[pyNodeName]
+        raise AttributeError(name)
+
 
 def _createPyNodes():
 
-    dynModule = _util.LazyLoadModule(__name__, globals())
+    dynModule = NodetypesLazyLoadModule(__name__, globals())
 
     for mayaType, parents, children in _factories.nodeHierarchy:
 

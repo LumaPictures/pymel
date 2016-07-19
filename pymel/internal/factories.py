@@ -2989,7 +2989,7 @@ def addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName,
     setattr(dynModule, pyNodeTypeName, PyNodeType)
     return PyNodeType
 
-def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
+def addCustomPyNode(dynModule, mayaType, extraAttrs=None, immediate=False):
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
 
@@ -3016,14 +3016,19 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
         # some nodes in the hierarchy for this node might not exist, so we cycle through all
         parent = 'dependNode'
 
+        pynodeName = None
         for node in inheritance:
-            nodeName = addPyNode(dynModule, node, parent, extraAttrs=extraAttrs)
+            pynodeName = addPyNode(dynModule, node, parent,
+                                   extraAttrs=extraAttrs, immediate=immediate)
             parent = node
             if 'pymel.all' in sys.modules:
                 # getattr forces loading of Lazy object
-                setattr(sys.modules['pymel.all'], nodeName, getattr(dynModule, nodeName))
+                setattr(sys.modules['pymel.all'], pynodeName,
+                        getattr(dynModule, pynodeName))
+        return pynodeName
 
-def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
+def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
+              immediate=False):
     """
     create a PyNode type for a maya node.
     """
@@ -3060,7 +3065,7 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
     # If pymel.all is loaded, we will need to get the actual node in order to
     # store it on pymel.all, so in that case don't bother with the lazy-loading
     # behavior...
-    if 'pymel.all' in sys.modules:
+    if immediate or 'pymel.all' in sys.modules:
         newType = addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs)
         setattr(sys.modules['pymel.all'], pyNodeTypeName, newType)
     # otherwise, do the lazy-loading thing
