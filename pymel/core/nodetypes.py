@@ -641,18 +641,17 @@ class DependNode(general.PyNode):
 
         alias = kwargs.pop('alias', False)
         # stringify fix
-        res = map(lambda x: self.attr(x), _util.listForNone(cmds.listAttr(self.name(), **kwargs)))
+        res = [self.attr(x) for x in _util.listForNone(cmds.listAttr(self.name(), **kwargs))]
         if alias:
-            res = [x[1] for x in self.listAliases() if x[1] in res]
-
-#            aliases = dict( (x[1], x[0]) for x in general.aliasAttr(self.name()) )
-#            tmp = res
-#            res = []
-#            for at in tmp:
-#                try:
-#                    res.append( aliases[at], at )
-#                except KeyError:
-#                    pass
+            # need to make sure that our alias wasn't filtered out by one of
+            # the other kwargs (keyable, etc)...
+            # HOWEVER, we can't just do a straight up check to see if the
+            # results of listAlias() are in res - because the attributes in
+            # res are index-less (ie, ,myAttr[-1]), while the results returned
+            # by listAliases() have indices (ie, .myAttr[25])... so instead we
+            # just do a comparison of the names (which are easily hashable)
+            res = set(x.attrName() for x in res)
+            res = [x[1] for x in self.listAliases() if x[1].attrName() in res]
         if topLevel:
             res = [x for x in res if x.getParent() is None]
         return res

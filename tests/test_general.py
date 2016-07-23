@@ -418,6 +418,14 @@ class testCase_nodesAndAttributes(unittest.TestCase):
     def test_attribute_instance_equality(self):
         self.assertEqual( self.sphere1.t, self.sphere3.t )
 
+    def test_attribute_indexed_equality(self):
+        self.assertEqual( self.sphere1.pnts[5], self.sphere3.pnts[5] )
+        self.assertNotEqual(self.sphere1.pnts[5], self.sphere3.pnts[10])
+
+    def test_attribute_indexed_parent_equality(self):
+        self.assertEqual( self.sphere1.pnts[5].px, self.sphere3.pnts[5].px )
+        self.assertNotEqual(self.sphere1.pnts[5].px, self.sphere3.pnts[10].px)
+
     def test_attribute_cascading(self):
         self.sphere1.primaryVisibility.set(1)
         shape = self.sphere1.getShape()

@@ -2973,12 +2973,6 @@ class Attribute(PyNode):
         """
         :rtype: `bool`
         """
-        thisPlug = self.__apimplug__()
-        try:
-            thisIndex = thisPlug.logicalIndex()
-        except RuntimeError:
-            thisIndex = None
-
         if not isinstance(other, Attribute):
             try:
                 other = PyNode(other)
@@ -2987,13 +2981,35 @@ class Attribute(PyNode):
             except (ValueError, TypeError):  # could not cast to PyNode
                 return False
 
+        # Unfortunately, it seems that comparing two MPlugs for equality is
+        # essentially the same as just comparing their attribute objects. That
+        # means, that for instace, the plugs for objects like these will compare
+        # equal:
+        #    node.attr[1] == node.attr[50]
+        #    node.attr[5].subAttr == node.attr[7].subAttr
+        # Thefore, in order for the attributes to truly be equal:
+        #    1) the attributes must be equal
+        #    2) the indices must be equal
+        #    3) the indices of any parents must be equal
+
+        thisPlug = self.__apimplug__()
         otherPlug = other.__apimplug__()
-        # foo.bar[10] and foo.bar[20] and foo.bar eval to the same object in _api.  i don't think this is very intuitive.
+        if thisPlug != otherPlug:
+            return False
+
+        try:
+            thisIndex = thisPlug.logicalIndex()
+        except RuntimeError:
+            thisIndex = None
         try:
             otherIndex = otherPlug.logicalIndex()
         except RuntimeError:
             otherIndex = None
-        return thisPlug == otherPlug and thisIndex == otherIndex
+
+        if thisIndex != otherIndex:
+            return False
+
+        return self.parent() == other.parent()
 
     def __hash__(self):
         """
