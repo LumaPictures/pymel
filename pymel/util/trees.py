@@ -1504,7 +1504,7 @@ def treeFromChildLink(isExactChildFn, *args):
         >>> failedTree = treeFromChildLink (isChild, *lst)
         Traceback (most recent call last):
             ...
-        ValueError: A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: 'isChild'
+        ValueError: A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: 'isChild' - child: aab - new parents: ['a'] - oldparent: aa
     """
     deq = deque()
     for arg in args:
