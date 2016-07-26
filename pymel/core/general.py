@@ -1347,10 +1347,12 @@ Modifications:
     origPyNodes = []
     origParent = None
     origParentDag = None
+    removeObj = kwargs.get('removeObject', False) or kwargs.get('rm', False)
+
     if args:
         nodes = args
         origPyNodes
-        if 'w' in kwargs:
+        if 'w' in kwargs or removeObj:
             origPyNodes = nodes
         else:
             origPyNodes = nodes[:-1]
@@ -1363,11 +1365,11 @@ Modifications:
     else:
         nodes = cmds.ls(sl=1, type='dagNode')
 
+
     # There are some situations in which you can only pass one node - ie, with
     # shape=True, removeObject=True - and we don't want to abort in these
     # cases
-    if (nodes and not kwargs.get('removeObject', False)
-            and not kwargs.get('rm', False)):
+    if nodes and not removeObj:
         if kwargs.get('w', False):
             parent = None
             children = nodes
@@ -1401,8 +1403,8 @@ Modifications:
             continue
         except MayaInstanceError:
             # Was problem, try to fix the MDagPath!
-            if origParentDag is None:
-                if origParent is not None and not isinstance(origParent, PyNode):
+            if origParentDag is None and origParent is not None:
+                if not isinstance(origParent, PyNode):
                     origParent = PyNode(origParent)
                 origParentDag = origParent.__apimdagpath__()
 
@@ -1428,6 +1430,12 @@ Modifications:
                 # copy the one from the array, or else we'll get a crash, when
                 # the array is freed and we try to use it!
                 origNode.__apiobjects__['MDagPath'] = _api.MDagPath(foundDag)
+        except MayaNodeError:
+            # if we were using removeObject, it's possible the object is now
+            # deleted... in this case (but only this case!), it's ok to ignore
+            # a deleted node
+            if removeObj:
+                continue
         else:
             continue
 
