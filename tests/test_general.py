@@ -1263,7 +1263,7 @@ class test_parent(unittest.TestCase):
         self.assertEqual(self.sphere.getParent(), self.cone)
         self.assertEqual(self.cube.getParent(), self.cone)
 
-    # these testsa are here because removeObject flag is a special case that has
+    # these tests are here because removeObject flag is a special case that has
     # to be specially handled, and there was a bug introduced at one point
     # because of it
 
