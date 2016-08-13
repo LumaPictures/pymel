@@ -324,9 +324,9 @@ class DependNode(general.PyNode):
 
     isReadOnly = _factories.wrapApiMethod(_api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly')
 
-    def classification(self):
+    def classification(self, **kwargs):
         'getClassification'
-        return general.getClassification(self.type())
+        return general.getClassification(self.type(), **kwargs)
         # return self.__apimfn__().classification( self.type() )
 
 #}

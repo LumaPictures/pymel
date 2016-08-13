@@ -2782,3 +2782,17 @@ class testCase_invalidNode(unittest.TestCase):
 #    currentUnit(linear=startLinear)
 #    pm.delete( light )
 #                    #print types
+
+class testCase_classification(unittest.TestCase):
+    def setUp(self):
+        self.tr, _ = pm.polySphere()
+
+    def testClassification(self):
+        self.assertIn('drawdb/geometry/transform', self.tr.classification())
+
+    def testSatisfies(self):
+        self.assertFalse(self.tr.classification(satisfies='blah'))
+        self.assertTrue(self.tr.classification(satisfies='drawdb/geometry'))
+
+    def tearDown(self):
+        pm.delete(self.tr)
