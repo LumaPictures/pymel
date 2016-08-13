@@ -1965,14 +1965,23 @@ Modifications:
     cmds.delete(*args, **kwargs)
 
 
-def getClassification(*args):
+def getClassification(*args, **kwargs):
     """
 Modifications:
   - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
 
     :rtype: `unicode` list
+
+Modifications:
+  - supports satisfies flag.
+    Returns true if the given node type's classification satisfies the classification string which is passed with the flag.
+
+    :rtype: `bool`
     """
-    return cmds.getClassification(*args)[0].split(':')
+    if kwargs and len(kwargs) == 1 and 'satisfies' in kwargs:
+        return cmds.getClassification(*args, **kwargs)
+    else:
+        return cmds.getClassification(*args, **kwargs)[0].split(':')
 
 
 #--------------------------
