@@ -1,6 +1,6 @@
 
 ==================================================
-Setting Up PyMEL Autocompletion in Eclipse
+Seting Up PyMEL Autocompletion in Eclipse
 ==================================================
 
 The methodology for setting up auto-completion has been dramatically simplified with this release.  We now include "stub" files which can be used with almost any IDE to provide code completion.  These stub files comprise "dummy" versions of the pymel and maya packages: they contain all the function and class definitions along with their documentation strings, but do not contain any functional code.  This method (first brought to my attention by Ron Bublitz) has many advantages over using the "real" pymel package for completion:

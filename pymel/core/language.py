@@ -725,12 +725,13 @@ class MelCallable(object):
         calls, like: Foo.bar.spam(). In this case, Foo, bar and spam would each be MelCallable
         objects.
     """
+    # proc is not an allowed name for a global procedure, so it's safe to use as an attribute
+    proc = None
 
-    def __init__(self, head, name):
-        if head:
-            self.full_name = '%s.%s' % (head, name)
-        else:
-            self.full_name = name
+    def __init__(self, command, head, name):
+        self.command = command  # The callable
+        self.head = head    # Foo.bar.spam(): Foo.bar would be head
+        self.name = name    # Foo.bar.spam(): spam would be name
 
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
@@ -739,19 +740,25 @@ class MelCallable(object):
             except KeyError:
                 raise AttributeError, "object has no attribute '%s'" % command
 
-        return MelCallable(head=self.full_name, name=command)
-
-    def __call__(self, *args, **kwargs):
+        if self.head:
+            new_head = '%s.%s' % (self.head, self.name)
+        else:
+            new_head = self.name
 
         def _call(*args, **kwargs):
-            cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
-            try:
-                Mel.proc = self.full_name
-                return Mel.eval(cmd)
-            finally:
-                Mel.proc = None
+            cmd = pythonToMelCmd(command, *args, **kwargs)
 
-        return _call(*args, **kwargs)
+            try:
+                self.__class__.proc = command
+                return Mel.eval('%s.%s' % (new_head, cmd))
+            finally:
+                self.__class__.proc = None
+
+        _call_obj = MelCallable(command=_call, head=new_head, name=command)
+        return _call_obj
+
+    def __call__(self, *args, **kwargs):
+        return self.command(*args, **kwargs)
 
 class Mel(object):
 
@@ -855,7 +862,17 @@ class Mel(object):
             except KeyError:
                 raise AttributeError, "object has no attribute '%s'" % command
 
-        return MelCallable(head='', name=command)
+        def _call(*args, **kwargs):
+            cmd = pythonToMelCmd(command, *args, **kwargs)
+
+            try:
+                self.__class__.proc = command
+                return self.eval(cmd)
+            finally:
+                self.__class__.proc = None
+
+        _call_obj = MelCallable(command=_call, head='', name=command)
+        return _call_obj
 
     @classmethod
     def mprint(cls, *args):
