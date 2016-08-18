@@ -901,9 +901,13 @@ Modifications:
         set, or frozenset, making it's behavior consistent with when None is
         passed, or no args and nothing is selected (would formerly raise a
         TypeError)
-  - When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
+  - When 'connections' flag is True, (and 'plugs' is True) the attribute pairs are returned in a 2D-array::
 
         [['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']]
+
+        Note that if 'plugs' is False (the default), for backward compatibility, the returned pairs are somewhat less intuitive attrs + nodes::
+
+        [['checker1.outColor', 'lambert1'], ['checker1.color1', 'fractal1']]
 
   - added sourceFirst keyword arg. when sourceFirst is true and connections is also true,
         the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
