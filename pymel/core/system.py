@@ -1416,8 +1416,10 @@ class FileReference(object):
 #        return cmds.file( self.withCopyNumber(), **kwargs )
 
     @_factories.addMelDocs('file', 'removeReference')
-    def remove(self):
-        return cmds.file(rfn=self.refNode, removeReference=1)
+    def remove(self, mergeNamespaceWithParent=False, mergeNamespaceWithRoot=False):
+        return cmds.file(rfn=self.refNode, removeReference=1,
+                         mergeNamespaceWithParent=mergeNamespaceWithParent,
+                         mergeNamespaceWithRoot=mergeNamespaceWithRoot)
 
 #    @_factories.addMelDocs('file', 'unloadReference')
 #    def unload(self):
