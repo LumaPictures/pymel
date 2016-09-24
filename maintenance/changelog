@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 import os
 import sys
 import subprocess
@@ -52,7 +52,7 @@ with open(outfile, 'w') as f:
         f.write(('-' * 34) + '\n')
 
         for line in sorted(categories[key]):
-            f.write(line + '\n')
+            f.write('- '+ line + '\n')
         f.write('\n')
 
     writesection('Changes', 'change')
