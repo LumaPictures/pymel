@@ -107,6 +107,7 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     # root logger, and any other handlers specified... to override
     # this, save the existing handlers first
     root = logging.root
+    root_logger_level = root.level  # restore root level below if NOTSET
     # make sure you get a COPY of handlers!
     rootHandlers = root.handlers[:]
     oldLogHandlers = {}
@@ -153,6 +154,12 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
                 oldHandlers = oldLogHandlers.get(logName)
             if oldHandlers:
                 _addOldHandlers(logger, oldHandlers, secName, cp)
+
+        # if root logger level not explicitly set in the pymel.conf file,
+        # then set it back to the original value.  The root logger always
+        # has to have a level.
+        if logging.root.level == logging.NOTSET:
+            logging.root.setLevel(root_logger_level)
 
     finally:
         logging._releaseLock()
