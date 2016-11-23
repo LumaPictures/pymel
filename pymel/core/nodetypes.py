@@ -2781,7 +2781,7 @@ class Mesh(SurfaceShape):
     numEdges = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'edge', 'numEdges')
     numFaces = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'face', 'numFaces')
 
-    numTriangles = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'triangles', 'numTriangles')
+    numTriangles = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'triangle', 'numTriangles')
     numSelectedTriangles = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles')
     numSelectedFaces = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'faceComponent', 'numSelectedFaces')
     numSelectedEdges = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'edgeComponent', 'numSelectedEdges')
