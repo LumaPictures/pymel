@@ -1416,13 +1416,7 @@ class FileReference(object):
 #        return cmds.file( self.withCopyNumber(), **kwargs )
 
     @_factories.addMelDocs('file', 'removeReference')
-    def remove(self, force=False, **kwargs):
-        if force:
-            referenceNodes = cmds.referenceQuery(self.refNode, n=1)
-            namespaceNodes = cmds.namespaceInfo(self.namespace, ls=1)
-            for node in namespaceNodes:
-                if cmds.objExists(node) and node not in referenceNodes:
-                    cmds.delete(node)
+    def remove(self, **kwargs):
         return cmds.file(rfn=self.refNode, removeReference=1, **kwargs)
 
 #    @_factories.addMelDocs('file', 'unloadReference')
