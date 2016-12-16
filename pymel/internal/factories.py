@@ -1236,6 +1236,9 @@ class ApiTypeRegister(object):
     """
     types = {}
     inCast = {}
+    # outcast functions have signature:
+    #     func(pynodeInstance, value)
+    # ...but as far as I can tell, only MPlug actually uses self
     outCast = {}
     refInit = {}
     refCast = {}
@@ -1695,7 +1698,7 @@ class ApiArgUtil(object):
         except ValueError:
             raise ValueError, "expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input)
 
-    def fromInternalUnits(self, result, pynodeInstance=None):
+    def fromInternalUnits(self, result):
         # units
         unit = self.methodInfo['returnInfo'].get('unitType', None)
         returnType = self.methodInfo['returnInfo']['type']
@@ -1704,16 +1707,16 @@ class ApiArgUtil(object):
         if unit == 'linear' or returnType in ('MPoint', 'MFloatPoint'):
             unitCast = ApiTypeRegister.outCast['MDistance']
             if util.isIterable(result):
-                result = [unitCast(pynodeInstance, val) for val in result]
+                result = [unitCast(None, val) for val in result]
             else:
-                result = unitCast(pynodeInstance, result)
+                result = unitCast(None, result)
         elif unit == 'angular':
             #_logger.debug("angular")
             unitCast = ApiTypeRegister.outCast['MAngle']
             if util.isIterable(result):
-                result = [unitCast(pynodeInstance, val) for val in result]
+                result = [unitCast(None, val) for val in result]
             else:
-                result = unitCast(pynodeInstance, result)
+                result = unitCast(None, result)
         return result
 
     def toInternalUnits(self, arg, input):
@@ -1766,7 +1769,7 @@ class ApiArgUtil(object):
                 if f is None:
                     return result
 
-                result = self.fromInternalUnits(result, pynodeInstance)
+                result = self.fromInternalUnits(result)
 
                 return f(pynodeInstance, result)
 #                except:
