@@ -1698,12 +1698,8 @@ class ApiArgUtil(object):
         except ValueError:
             raise ValueError, "expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input)
 
-    def fromInternalUnits(self, result):
-        # units
-        unit = self.methodInfo['returnInfo'].get('unitType', None)
-        returnType = self.methodInfo['returnInfo']['type']
+    def fromInternalUnits(self, result, returnType, unit=None):
         #_logger.debug(unit)
-        # returnType in ['MPoint'] or
         if unit == 'linear' or returnType in ('MPoint', 'MFloatPoint'):
             unitCast = ApiTypeRegister.outCast['MDistance']
             if util.isIterable(result):
@@ -1769,7 +1765,13 @@ class ApiArgUtil(object):
                 if f is None:
                     return result
 
-                result = self.fromInternalUnits(result)
+                # I believe methodInfo['returnInfo']['type'] is always the
+                # same as returnType = self.methodInfo['returnType'], but the
+                # old logic would use methodInfo['returnInfo']['type'], and I'm
+                # paranoid...
+                result = self.fromInternalUnits(result,
+                                                returnType=self.methodInfo['returnInfo']['type'],
+                                                unit=self.methodInfo['returnInfo'].get('unitType', None))
 
                 return f(pynodeInstance, result)
 #                except:
@@ -1795,7 +1797,7 @@ class ApiArgUtil(object):
         if f is None:
             return outArg
 
-        result = self.fromInternalUnits(outArg)
+        result = self.fromInternalUnits(outArg, argtype)
         return f(result)
 
     def getDefaults(self):
