@@ -1680,21 +1680,12 @@ class ApiArgUtil(object):
         returnType = self.methodInfo['returnInfo']['type']
         #_logger.debug(unit)
         # returnType in ['MPoint'] or
-        if unit == 'linear' or returnType == 'MPoint':
+        if unit == 'linear' or returnType in ('MPoint', 'MFloatPoint'):
             unitCast = ApiTypeRegister.outCast['MDistance']
             if util.isIterable(result):
                 result = [unitCast(pynodeInstance, val) for val in result]
             else:
                 result = unitCast(pynodeInstance, result)
-
-        # maybe this should not be hardwired here
-        # the main reason it is hardwired is because we don't want to convert the w component, which we
-        # would do if we iterated normally
-        elif returnType == 'MPoint':
-            #_logger.debug("linear")
-            unitCast = ApiTypeRegister.outCast['MDistance']
-            result = [unitCast(pynodeInstance, result[0]), unitCast(pynodeInstance, result[1]), unitCast(pynodeInstance, result[2])]
-
         elif unit == 'angular':
             #_logger.debug("angular")
             unitCast = ApiTypeRegister.outCast['MAngle']
@@ -2152,7 +2143,6 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         inArgs = argHelper.inArgs()
         outArgs = argHelper.outArgs()
         argList = argHelper.argList()
-        argInfo = argHelper.argInfo()
 
         getterArgHelper = argHelper.getGetterInfo()
 
