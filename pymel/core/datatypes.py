@@ -2680,6 +2680,10 @@ class Time(Unit):
     apicls = _api.MTime
     Unit = _factories.apiClassInfo['MTime']['pymelEnums']['Unit']
 
+    @classmethod
+    def _inCast(cls, x):
+        return cls(x)._data
+
 
 class Distance(Unit):
 
@@ -2779,6 +2783,10 @@ class Distance(Unit):
     def asMiles(self):
         return self.asUnit('miles')
 
+    @classmethod
+    def _outCast(cls, instance, result):
+        return cls(result, 'centimeters').asUIUnit()
+
 
 class Angle(Unit):
     apicls = _api.MAngle
@@ -2795,6 +2803,10 @@ class Angle(Unit):
 
     def asAngSeconds(self):
         return self.asUnit('angSeconds')
+
+    @classmethod
+    def _outCast(cls, instance, result):
+        return cls(result, 'radians').asUIUnit()
 
 
 class BoundingBox(_api.MBoundingBox):
@@ -2838,9 +2850,9 @@ class BoundingBox(_api.MBoundingBox):
 #_factories.ApiTypeRegister.register( 'MColor', Color )
 #_factories.ApiTypeRegister.register( 'MQuaternion', Quaternion )
 #_factories.ApiTypeRegister.register( 'MEulerRotation', EulerRotation )
-_factories.ApiTypeRegister.register('MTime', Time, inCast=lambda x: Time(x)._data)
-_factories.ApiTypeRegister.register('MDistance', Distance, outCast=lambda instance, result: Distance(result, 'centimeters').asUIUnit())
-_factories.ApiTypeRegister.register('MAngle', Angle, outCast=lambda instance, result: Angle(result, 'radians').asUIUnit())
+_factories.ApiTypeRegister.register('MTime', Time, inCast=Time._inCast)
+_factories.ApiTypeRegister.register('MDistance', Distance, outCast=Distance._outCast)
+_factories.ApiTypeRegister.register('MAngle', Angle, outCast=Angle._outCast)
 
 
 #_floatUpConvertDict = {_api.MFloatArray:_api.MDoubleArray,

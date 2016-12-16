@@ -1340,7 +1340,10 @@ class ApiTypeRegister(object):
         elif apiArrayItemType is not None:
             pass
         else:
-            cls.outCast[apiTypeName] = lambda self, x: pymelType(x)
+            # could be a lambda, but explicit function is better for debbuging
+            def pymelTypeOutCast(self, x):
+                return pymelType(x)
+            cls.outCast[apiTypeName] = pymelTypeOutCast
 
         # register argument casting
         if inCast:
@@ -1380,7 +1383,12 @@ class ApiTypeRegister(object):
             except AttributeError:
                 if apiArrayItemType:
                     cls.refInit[apiTypeName] = list
-                    cls.inCast[apiTypeName] = lambda x: [apiArrayItemType(y) for y in x]
+
+                    # could be a lambda, but explicit function is better for debbuging
+                    def apiArrayInCast(x):
+                        return [apiArrayItemType(y) for y in x]
+
+                    cls.inCast[apiTypeName] = apiArrayInCast
                     cls.refCast[apiTypeName] = None
                     cls.outCast[apiTypeName] = None
 
@@ -1392,11 +1400,24 @@ class ApiTypeRegister(object):
                     cls.inCast[apiTypeName] = cls._makeApiArraySetter(apiType, apiArrayItemType)
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
                     if apiType == api.MDagPathArray:
-                        cls.refCast[apiTypeName] = lambda x: [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
-                        cls.outCast[apiTypeName] = lambda self, x: [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+                        # could be a lambdas, but explicit functions are better for debbuging
+                        def pymelDagArrayRefCast(x):
+                            return [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+
+                        def pymelDagArrayOutCast(self, x):
+                            return [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+
+                        cls.refCast[apiTypeName] = pymelDagArrayRefCast
+                        cls.outCast[apiTypeName] = pymelDagArrayOutCast
                     else:
-                        cls.refCast[apiTypeName] = lambda x: [pymelType(x[i]) for i in range(x.length())]
-                        cls.outCast[apiTypeName] = lambda self, x: [pymelType(x[i]) for i in range(x.length())]
+                        def pymelArrayRefCast(x):
+                            return [pymelType(x[i]) for i in range(x.length())]
+
+                        def pymelArrayOutCast(self, x):
+                            return [pymelType(x[i]) for i in range(x.length())]
+
+                        cls.refCast[apiTypeName] = pymelArrayRefCast
+                        cls.outCast[apiTypeName] = pymelArrayOutCast
 
                 #-- Api types
                 else:
