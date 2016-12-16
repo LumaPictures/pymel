@@ -796,11 +796,7 @@ class Menu(PyUI):
 
     def getItemArray(self):
         """ Modified to return pymel instances """
-        children = cmds.menu(self, query=True, itemArray=True)
-        if children:
-            return [MenuItem(item) for item in cmds.menu(self, query=True, itemArray=True)]
-        else:
-            return []
+        return [MenuItem(self + '|' + item) for item in cmds.menu(self, query=True, itemArray=True) or []]
 
     def makeDefault(self):
         """
