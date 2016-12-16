@@ -1674,7 +1674,7 @@ class ApiArgUtil(object):
         except ValueError:
             raise ValueError, "expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input)
 
-    def fromInternalUnits(self, result, instance=None):
+    def fromInternalUnits(self, result, pynodeInstance=None):
         # units
         unit = self.methodInfo['returnInfo'].get('unitType', None)
         returnType = self.methodInfo['returnInfo']['type']
@@ -1683,9 +1683,9 @@ class ApiArgUtil(object):
         if unit == 'linear' or returnType == 'MPoint':
             unitCast = ApiTypeRegister.outCast['MDistance']
             if util.isIterable(result):
-                result = [unitCast(instance, val) for val in result]
+                result = [unitCast(pynodeInstance, val) for val in result]
             else:
-                result = unitCast(instance, result)
+                result = unitCast(pynodeInstance, result)
 
         # maybe this should not be hardwired here
         # the main reason it is hardwired is because we don't want to convert the w component, which we
@@ -1693,15 +1693,15 @@ class ApiArgUtil(object):
         elif returnType == 'MPoint':
             #_logger.debug("linear")
             unitCast = ApiTypeRegister.outCast['MDistance']
-            result = [unitCast(instance, result[0]), unitCast(instance, result[1]), unitCast(instance, result[2])]
+            result = [unitCast(pynodeInstance, result[0]), unitCast(pynodeInstance, result[1]), unitCast(pynodeInstance, result[2])]
 
         elif unit == 'angular':
             #_logger.debug("angular")
             unitCast = ApiTypeRegister.outCast['MAngle']
             if util.isIterable(result):
-                result = [unitCast(instance, val) for val in result]
+                result = [unitCast(pynodeInstance, val) for val in result]
             else:
-                result = unitCast(instance, result)
+                result = unitCast(pynodeInstance, result)
         return result
 
     def toInternalUnits(self, arg, input):
@@ -1726,7 +1726,7 @@ class ApiArgUtil(object):
 
         return input
 
-    def castResult(self, instance, result):
+    def castResult(self, pynodeInstance, result):
         returnType = self.methodInfo['returnType']
         if returnType:
             # special case check - some functions return an MObject, but return
@@ -1754,9 +1754,9 @@ class ApiArgUtil(object):
                 if f is None:
                     return result
 
-                result = self.fromInternalUnits(result, instance)
+                result = self.fromInternalUnits(result, pynodeInstance)
 
-                return f(instance, result)
+                return f(pynodeInstance, result)
 #                except:
 #                    cls = instance.__class__
 #                    if returnType != cls.__name__:
