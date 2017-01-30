@@ -15,7 +15,7 @@ from operator import itemgetter
 
 # Maya imports
 import maya.cmds as cmds
-import maya.mel as mm
+import maya.mel as mm #@UnusedImport
 
 # PyMEL imports
 import pymel.api as api
