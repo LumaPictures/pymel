@@ -1253,12 +1253,20 @@ class DagNode(Entity):
                 # and the MDagPath was invalidated; however, subsequently, other
                 # instances were removed, so it's no longer instanced. Check for
                 # this...
-                mfnDag = _api.MFnDagNode(self.__apiobjects__['MDagPath'].node())
-                if not mfnDag.isInstanced():
-                    # throw a KeyError, this will cause to regen from
-                    # first MDagPath
-                    raise KeyError
-                raise general.MayaInstanceError(mfnDag.name())
+
+                # in some cases, doing dag.node() will crash maya if the dag
+                # isn't valid... so try using MObjectHandle
+                handle = self.__apiobjects__.get('MObjectHandle')
+                if handle is not None and handle.isValid():
+                    mfnDag = _api.MFnDagNode(handle.object())
+                    if not mfnDag.isInstanced():
+                        # throw a KeyError, this will cause to regen from
+                        # first MDagPath
+                        raise KeyError
+                    raise general.MayaInstanceError(mfnDag.name())
+                else:
+                    name = getattr(self, '_name', '<unknown>')
+                    raise general.MayaInstanceError(name)
             return dag
         except KeyError:
             # class was instantiated from an MObject, but we can still retrieve the first MDagPath
