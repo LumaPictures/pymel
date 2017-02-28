@@ -1367,37 +1367,158 @@ class DagNode(Entity):
         """
         return DagNode('|' + self.longName()[1:].split('|')[0])
 
-#    def hasParent(self, parent ):
-#        try:
-#            return self.__apimfn__().hasParent( parent.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(parent)
-#            if obj:
-#               return self.__apimfn__().hasParent( obj )
-#
-#    def hasChild(self, child ):
-#        try:
-#            return self.__apimfn__().hasChild( child.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(child)
-#            if obj:
-#               return self.__apimfn__().hasChild( obj )
-#
-#    def isParentOf( self, parent ):
-#        try:
-#            return self.__apimfn__().isParentOf( parent.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(parent)
-#            if obj:
-#               return self.__apimfn__().isParentOf( obj )
-#
-#    def isChildOf( self, child ):
-#        try:
-#            return self.__apimfn__().isChildOf( child.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(child)
-#            if obj:
-#               return self.__apimfn__().isChildOf( obj )
+    # For some reason, this wasn't defined on Transform...?
+    # maya seems to have a bug right now (2016.53) that causes crashes when
+    # accessing MDagPaths after creating an instance, so not enabling this
+    # at the moment...
+    # def getAllPaths(self):
+    #     dagPaths = _api.MDagPathArray()
+    #     self.__apimfn__().getAllPaths(dagPaths)
+    #     return [DagNode(dagPaths[i]) for i in xrange(dagPaths.length())]
+
+    def hasParent(self, parent):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        parentMObj = toMObj(parent)
+        thisMFn = self.__apimfn__()
+        if thisMFn.hasParent(parentMObj):
+            return True
+
+        # quick out... MFnDagNode handles things right if all instances aren't
+        # underworld nodes
+
+        if not thisMFn.isInstanced() and not thisMFn.inUnderWorld():
+            return False
+
+        # See if it's underworld parent is the given parent...
+        # Note that MFnDagPath implementation considers all instances, so we
+        # should too...
+        allPaths = _api.MDagPathArray()
+        thisMFn.getAllPaths(allPaths)
+        for i in xrange(allPaths.length()):
+            path = allPaths[i]
+            pathCount = path.pathCount()
+            if pathCount <= 1:
+                continue
+            # if there's an underworld, there should be at least 3 nodes -
+            # the top parent, the underworld root, and the node in the
+            # underworld
+            assert path.length() >= 3
+            # if they are in the same underworld, MFnDagNode.hasParent would
+            # work - only care about the case where the "immediate" parent is
+            # outside of this node's underworld
+            # Unfortunately, MDagPath.pop() has some strange behavior   - ie, if
+            #     path = |camera1|cameraShape1->|imagePlane1
+            # Then popping it once gives:
+            #     path = |camera1|cameraShape1->|
+            # ...and again gives:
+            #     path = |camera1|cameraShape1
+            # So, we check that popping once has the same pathCount, but twice
+            # has a different path count
+            path.pop()
+            if path.pathCount() != pathCount:
+                continue
+            path.pop()
+            if path.pathCount() != pathCount -1:
+                continue
+            if path.node() == parentMObj:
+                return True
+        return False
+
+    def hasChild(self, child):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        childMObj = toMObj(child)
+        thisMFn = self.__apimfn__()
+        if self.__apimfn__().hasChild(childMObj):
+            return True
+
+        # because hasChild / hasParent consider all instances,
+        # self.hasChild(child) is equivalent to child.hasParent(self)...
+        if not isinstance(child, general.PyNode):
+            child = DagNode(childMObj)
+        return child.hasParent(self)
+
+    def isChildOf(self, parent):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        parentMObj = toMObj(parent)
+        thisMFn = self.__apimfn__()
+        if thisMFn.isChildOf(parentMObj):
+            return True
+
+        # quick out... MFnDagNode handles things right if all instances aren't
+        # underworld nodes
+        if not thisMFn.isInstanced() and not thisMFn.inUnderWorld():
+            return False
+
+        # For each instance path, if it's in the underworld, check to see
+        # if the parent at the same "underworld" level as the parent is the
+        # parent, or a child of it
+        dagArray = _api.MDagPathArray()
+        _api.MDagPath.getAllPathsTo(parentMObj, dagArray)
+        allParentLevels = set()
+        for i in xrange(dagArray.length()):
+            parentMDag = dagArray[i]
+            allParentLevels.add(parentMDag.pathCount())
+        # we only get one parentMFn, but this should be fine as (aside from
+        # not dealing with underworld correctly), MFnDagNode.isParentOf works
+        # correctly for all instances...
+        parentMFn = _api.MFnDagNode(parentMObj)
+
+        dagArray.clear()
+        thisMFn.getAllPaths(dagArray)
+        for i in xrange(dagArray.length()):
+            childMDag = dagArray[i]
+            childPathLevels = childMDag.pathCount()
+            if childPathLevels <= 1:
+                continue
+            for parentUnderworldLevel in allParentLevels:
+                if childMDag.pathCount() <= parentUnderworldLevel:
+                    # standard MFnDagNode.isChildOf would have handled this...
+                    continue
+                sameLevelMDag = _api.MDagPath()
+                childMDag.getPath(sameLevelMDag, parentUnderworldLevel - 1)
+                sameLevelMObj = sameLevelMDag.node()
+                if sameLevelMObj == parentMObj:
+                    return True
+                if parentMFn.isParentOf(sameLevelMObj):
+                    return True
+        return False
+
+    def isParentOf(self, child):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        childMObj = toMObj(child)
+        thisMFn = self.__apimfn__()
+        if thisMFn.isParentOf(childMObj):
+            return True
+
+        # because isChildOf / isParentOf consider all instances,
+        # self.isParentOf(child) is equivalent to child.isChildOf(self)...
+        if not isinstance(child, general.PyNode):
+            child = DagNode(childMObj)
+        return child.isChildOf(self)
 
     def isInstanceOf(self, other):
         """

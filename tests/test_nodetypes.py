@@ -2923,3 +2923,96 @@ class testCase_classification(unittest.TestCase):
 
     def tearDown(self):
         pm.delete(self.tr)
+
+class testCase_parentTests(unittest.TestCase):
+    def setUp(self):
+        self.cam = pm.createNode('camera')
+        self.camTrans = self.cam.getParent()
+        self.ipTrans, self.ip = pm.imagePlane(camera=self.cam)
+
+    def tearDown(self):
+        pm.delete(self.camTrans)
+
+    def test_hasParent(self):
+        self.assertFalse(self.camTrans.hasParent(self.camTrans))
+        self.assertFalse(self.camTrans.hasParent(self.cam))
+        self.assertFalse(self.camTrans.hasParent(self.ipTrans))
+        self.assertFalse(self.camTrans.hasParent(self.ip))
+
+        self.assertTrue(self.cam.hasParent(self.camTrans))
+        self.assertFalse(self.cam.hasParent(self.cam))
+        self.assertFalse(self.cam.hasParent(self.ipTrans))
+        self.assertFalse(self.cam.hasParent(self.ip))
+
+        self.assertFalse(self.ipTrans.hasParent(self.camTrans))
+        self.assertTrue(self.ipTrans.hasParent(self.cam))
+        self.assertFalse(self.ipTrans.hasParent(self.ipTrans))
+        self.assertFalse(self.ipTrans.hasParent(self.ip))
+
+        self.assertFalse(self.ip.hasParent(self.camTrans))
+        self.assertFalse(self.ip.hasParent(self.cam))
+        self.assertTrue(self.ip.hasParent(self.ipTrans))
+        self.assertFalse(self.ip.hasParent(self.ip))
+
+    def test_hasChild(self):
+        self.assertFalse(self.camTrans.hasChild(self.camTrans))
+        self.assertTrue(self.camTrans.hasChild(self.cam))
+        self.assertFalse(self.camTrans.hasChild(self.ipTrans))
+        self.assertFalse(self.camTrans.hasChild(self.ip))
+
+        self.assertFalse(self.cam.hasChild(self.camTrans))
+        self.assertFalse(self.cam.hasChild(self.cam))
+        self.assertTrue(self.cam.hasChild(self.ipTrans))
+        self.assertFalse(self.cam.hasChild(self.ip))
+
+        self.assertFalse(self.ipTrans.hasChild(self.camTrans))
+        self.assertFalse(self.ipTrans.hasChild(self.cam))
+        self.assertFalse(self.ipTrans.hasChild(self.ipTrans))
+        self.assertTrue(self.ipTrans.hasChild(self.ip))
+
+        self.assertFalse(self.ip.hasChild(self.camTrans))
+        self.assertFalse(self.ip.hasChild(self.cam))
+        self.assertFalse(self.ip.hasChild(self.ipTrans))
+        self.assertFalse(self.ip.hasChild(self.ip))
+
+    def test_isParentOf(self):
+        self.assertFalse(self.camTrans.isParentOf(self.camTrans))
+        self.assertTrue(self.camTrans.isParentOf(self.cam))
+        self.assertTrue(self.camTrans.isParentOf(self.ipTrans))
+        self.assertTrue(self.camTrans.isParentOf(self.ip))
+
+        self.assertFalse(self.cam.isParentOf(self.camTrans))
+        self.assertFalse(self.cam.isParentOf(self.cam))
+        self.assertTrue(self.cam.isParentOf(self.ipTrans))
+        self.assertTrue(self.cam.isParentOf(self.ip))
+
+        self.assertFalse(self.ipTrans.isParentOf(self.camTrans))
+        self.assertFalse(self.ipTrans.isParentOf(self.cam))
+        self.assertFalse(self.ipTrans.isParentOf(self.ipTrans))
+        self.assertTrue(self.ipTrans.isParentOf(self.ip))
+
+        self.assertFalse(self.ip.isParentOf(self.camTrans))
+        self.assertFalse(self.ip.isParentOf(self.cam))
+        self.assertFalse(self.ip.isParentOf(self.ipTrans))
+        self.assertFalse(self.ip.isParentOf(self.ip))
+        
+    def test_isChildOf(self):
+        self.assertFalse(self.camTrans.isChildOf(self.camTrans))
+        self.assertFalse(self.camTrans.isChildOf(self.cam))
+        self.assertFalse(self.camTrans.isChildOf(self.ipTrans))
+        self.assertFalse(self.camTrans.isChildOf(self.ip))
+
+        self.assertTrue(self.cam.isChildOf(self.camTrans))
+        self.assertFalse(self.cam.isChildOf(self.cam))
+        self.assertFalse(self.cam.isChildOf(self.ipTrans))
+        self.assertFalse(self.cam.isChildOf(self.ip))
+
+        self.assertTrue(self.ipTrans.isChildOf(self.camTrans))
+        self.assertTrue(self.ipTrans.isChildOf(self.cam))
+        self.assertFalse(self.ipTrans.isChildOf(self.ipTrans))
+        self.assertFalse(self.ipTrans.isChildOf(self.ip))
+
+        self.assertTrue(self.ip.isChildOf(self.camTrans))
+        self.assertTrue(self.ip.isChildOf(self.cam))
+        self.assertTrue(self.ip.isChildOf(self.ipTrans))
+        self.assertFalse(self.ip.isChildOf(self.ip))
