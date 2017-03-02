@@ -431,6 +431,13 @@ class Enum(object):
         else:
             return self._values
 
+    def itervalues(self):
+        "iterator over EnumValue objects"
+        if operator.isMappingType(self._values):
+            return self._values.itervalues()
+        else:
+            return iter(self._values)
+
     def keys(self):
         "return a list of keys as strings"
         if not hasattr(self, '_keyStrings'):
