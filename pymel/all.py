@@ -30,7 +30,10 @@ import versions
 
 from core import nodetypes
 from core.nodetypes import *
-from core.uitypes import *
+
+# if in batch mode we may not have UI commands
+if not cmds.about(batch=True):
+    from core.uitypes import *
 
 # These two were imported into 'old' pymel top level module,
 # so make sure they're imported here as well

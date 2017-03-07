@@ -163,19 +163,22 @@ def toZip(directory, zipFile):
 
 def subpackages(packagemod):
     """
-    Given a module object, returns an iterator which yields a tuple (modulename, moduleobject, ispkg)
+    Given a module object, returns an iterator which yields a tuple
+    (modulename, moduleobject, ispkg)
     for the given module and all it's submodules/subpackages.
     """
     modpkgs = []
     modpkgs_names = set()
     if hasattr(packagemod, '__path__'):
         yield packagemod.__name__, packagemod, True
-        for importer, modname, ispkg in pkgutil.walk_packages(packagemod.__path__, packagemod.__name__ + '.'):
+        for importer, modname, ispkg in pkgutil.walk_packages(
+                packagemod.__path__, packagemod.__name__ + '.'):
             if modname not in sys.modules:
                 try:
                     mod = importer.find_module(modname).load_module(modname)
                 except Exception, e:
                     print "error importing %s: %s" % (modname, e)
+                    mod = None
             else:
                 mod = sys.modules[modname]
             yield modname, mod, ispkg

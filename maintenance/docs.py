@@ -38,9 +38,69 @@ builddir = os.path.join(docsdir, BUILD)
 
 from pymel.internal.cmdcache import fixCodeExamples
 
+def get_internal_cmds():
+    cmds = []
+    with open(os.path.join(docsdir, 'internalCmds.txt')) as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                cmds.append(line)
+    return set(cmds)
+
+def monkeypatch_autosummary():
+    """
+    Monkeypatch sphinx to remove autodesk internal commands from the docs. 
+
+    This request comes from Autodesk.
+
+    Instead we do something unbelievably hacky and simply make it appear as
+    if these objects don't exist.
+
+    Other solutions investigated:
+    - adding a jinja filter for use inside the template: you can provide your
+      own template loader, but there's no callback or easily monkey-patchable
+      function to setup the template environment, which is where the filters 
+      need to be added.  I guess you could monkey-patch 
+      jinja2.sandbox.SandboxedEnvironment...
+    - adding a 'autodoc-skip-member' callback: our module template does not use
+      the :members: directive (because it does some extra fanciness to group 
+      objects into sections by type) and as a result 'autodoc-skip-member'
+      never fires for module members.
+    """
+    # this function should get an award for most roundabout solution to a problem
+    import sphinx.util.inspect
+    import sphinx.ext.autosummary
+    import inspect
+    if sphinx.util.inspect.safe_getattr.__module__ != 'sphinx.util.inspect':
+        print "already patched"
+        return
+
+    _orig_safe_getattr = sphinx.util.inspect.safe_getattr
+
+    internal_cmds = get_internal_cmds()
+
+    def safe_getattr(obj, name, *defargs):
+        if name not in {'__get__', '__set__', '__delete__'}:
+            if hasattr(obj, '__name__') and \
+                    obj.__name__ in {'pymel.core.other'} and \
+                    name in internal_cmds:
+                print "SKIP %s.%s" % (obj.__name__, name)
+                # raising an AttributeError silently skips the object
+                raise AttributeError
+        return _orig_safe_getattr(obj, name, *defargs)
+
+    # autosummary does `from sphinx.util.inspect import safe_getattr` so we 
+    # need to override it there
+    sphinx.ext.autosummary.safe_getattr = safe_getattr
+    # this is not strictly necessar, but I'm paranoid about future changes to 
+    # sphinx breaking this hack
+    sphinx.util.inspect.safe_getattr = safe_getattr
+
 def generate(clean=True):
-    "delete build and generated directories and generate a top-level documentation source file for each module."
+    """delete build and auto-generated source directories and re-generate a 
+    top-level documentation source file for each module."""
     print "generating %s - %s" % (docsdir, datetime.datetime.now())
+    monkeypatch_autosummary()
     from sphinx.ext.autosummary.generate import main as sphinx_autogen
 
     if clean:

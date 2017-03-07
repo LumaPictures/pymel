@@ -40,9 +40,22 @@ isInitializing = False
 finalizeEnabled = True
 _finalizeCalled = False
 
+_mayaExitCallbackId = None
+_mayaUninitialized = False
+_atExitCallbackInstalled = False
+
 # tells whether this maya package has been modified to work with pymel
 pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
 
+# used to test by using hasattr(maya.standalone, 'uninitialize')...
+# but that requires importing maya.standalone, and pymel actually checks for
+# it's existence in maya.cmds
+# would like to remove that check, but could potentially break backward compat -
+# ie, if someone does:
+#    import maya.standalone
+#    import pymel
+#    import maya.standalone.initialize()
+_hasUninitialize = versions.current() >= versions.v2016
 
 def _moduleJoin(*args):
     """
@@ -105,6 +118,19 @@ def setupFormatting():
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
 def mayaInit(forversion=None):
+    global _mayaUninitialized
+    _mayaUninitialized = False
+
+    result = _mayaInit(forversion=forversion)
+
+    if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp:  # mayapy only
+        if pymel_options['fix_mayapy_segfault']:
+            fixMayapySegFault()
+
+    return result
+
+
+def _mayaInit(forversion=None):
     """ Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
     it is possible to pass the desired Maya version number to define which Maya to initialize
 
@@ -303,9 +329,67 @@ def finalize():
     state = om.MGlobal.mayaState()
     if state == om.MGlobal.kLibraryApp:  # mayapy only
         initMEL()
-        # fixMayapy2011SegFault()
+        if pymel_options['fix_linux_mayapy_segfault']:
+            fixMayapy2011SegFault()
     elif state == om.MGlobal.kInteractive:
         initAE()
+
+def fixMayapySegFault():
+    # first, install a maya exit callback that will let us know if uninitialize
+    # has already been called...
+    def mayaExitCallback(data):
+        global _mayaUninitialized
+        _mayaUninitialized = True
+        import maya.cmds
+        # Turn off undo, because maya seems to have a bug where uninitialize()
+        # will crash if undo is on, and certain custom conditions have been
+        # created - ie, from the command line:
+        
+        # mayapy -c 'import maya.standalone
+        # maya.standalone.initialize()
+        # import maya.cmds as cmds
+        # import maya.OpenMaya as om
+        # om.MGlobal.executeCommand("""
+        # global proc int _pymel_undoOrRedoAvailable()
+        # {
+        #     return (isTrue("UndoAvailable") || isTrue("RedoAvailable"));
+        # }
+        # """, False, False)
+        # cmds.condition("UndoOrRedoAvailable", initialize=True,
+        #                d=["UndoAvailable", "RedoAvailable"],
+        #                s="_pymel_undoOrRedoAvailable")
+        # cmds.setAttr("persp.tx", 20)
+        # print "uninitializing..."
+        # maya.standalone.uninitialize()'; echo $?
+        # # Seg fault - 139
+        maya.cmds.undoInfo(state=False)
+
+    global _mayaExitCallbackId
+    if _mayaExitCallbackId is not None:
+        om.MMessage.removeCallback(_mayaExitCallbackId)
+        if hasattr(_mayaExitCallbackId, 'disown'):
+            _mayaExitCallbackId.disown()
+
+    om.MSceneMessage.addCallback(om.MSceneMessage.kMayaExiting,
+                                 mayaExitCallback)
+
+    # Now, install a python atexit handler
+    def uninitializeMayaOnPythonExit():
+        if not _mayaUninitialized:
+            import maya.standalone  # @UnresolvedImport
+            maya.standalone.uninitialize()
+            # These fixed some hangs on exit (specifically, from pymel unittests)
+            # in maya 2016.51 (Ext 2, SP1)
+            sys.stdout.flush()
+            sys.stderr.flush()
+            sys.__stdout__.flush()
+            sys.__stderr__.flush()
+
+    global _atExitCallbackInstalled
+    if not _atExitCallbackInstalled:
+        import atexit
+        atexit.register(uninitializeMayaOnPythonExit)
+        _atExitCallbackInstalled = True
 
 
 # Have all the checks inside here, in case people want to insert this in their
@@ -515,6 +599,7 @@ class SubItemCache(PymelCache):
     ...     DESC = 'the maya nodes cache'
     ...     COMPRESSED = False
     ...     _CACHE_NAMES = ['nodeTypes']
+    ...     AUTO_SAVE = False
     ...     def rebuild(self):
     ...         import maya.cmds
     ...         self.nodeTypes = maya.cmds.allNodeTypes(includeAbstract=True)
@@ -542,6 +627,7 @@ class SubItemCache(PymelCache):
     ITEM_TYPES = {}
     STORAGE_TYPES = {}
     DEFAULT_TYPE = dict
+    AUTO_SAVE = True
 
     def __init__(self):
         for name in self._CACHE_NAMES:
@@ -568,7 +654,8 @@ class SubItemCache(PymelCache):
         data = self.load()
         if data is None:
             self.rebuild()
-            self.save()
+            if self.AUTO_SAVE:
+                self.save()
 
     # override this...
     def rebuild(self):
@@ -654,13 +741,21 @@ def getConfigFile():
 def parsePymelConfig():
     import ConfigParser
 
-    types = {'skip_mel_init': 'boolean',
-             'check_attr_before_lock': 'boolean',
-             }
-    defaults = {'skip_mel_init': 'off',
-                'check_attr_before_lock': 'off',
-                'preferred_python_qt_binding': 'pyqt',
-                }
+    types = {
+        'skip_mel_init': 'boolean',
+        'check_attr_before_lock': 'boolean',
+        'fix_mayapy_segfault': 'boolean',
+        'fix_linux_mayapy_segfault': 'boolean',
+    }
+    defaults = {
+        'skip_mel_init': 'off',
+        'check_attr_before_lock': 'off',
+        'preferred_python_qt_binding': 'pyqt',
+        # want to use the "better" fix_mayapy_segfault if uninitialize is
+        # available
+        'fix_mayapy_segfault': 'on' if _hasUninitialize else 'off',
+        'fix_linux_mayapy_segfault': 'off' if _hasUninitialize else 'on',
+    }
 
     config = ConfigParser.ConfigParser(defaults)
     config.read(getConfigFile())

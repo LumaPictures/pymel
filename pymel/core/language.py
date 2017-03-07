@@ -717,6 +717,34 @@ class MelSyntaxError(MelError, SyntaxError):
     """The MEL script has a syntactical error"""
     pass
 
+class MelCallable(object):
+
+    """ Class for wrapping up callables created by Mel class' procedure calls.
+
+        The class is designed to support chained, "namespace-protected" MEL procedure
+        calls, like: Foo.bar.spam(). In this case, Foo, bar and spam would each be MelCallable
+        objects.
+    """
+
+    def __init__(self, head, name):
+        if head:
+            self.full_name = '%s.%s' % (head, name)
+        else:
+            self.full_name = name
+
+    def __getattr__(self, command):
+        if command.startswith('__') and command.endswith('__'):
+            try:
+                return self.__dict__[command]
+            except KeyError:
+                raise AttributeError, "object has no attribute '%s'" % command
+
+        return MelCallable(head=self.full_name, name=command)
+
+    def __call__(self, *args, **kwargs):
+        cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
+        return Mel._eval(cmd, self.full_name)
+
 class Mel(object):
 
     """Acts as a namespace from which MEL procedures can be called as if they
@@ -802,12 +830,33 @@ class Mel(object):
           ...
         MelUnknownProcedureError: Error during execution of MEL script: line 1: ,Cannot find procedure "poop".,
 
+    Finally, some limitations: this Mel wrapper class cannot be used in
+    situations in which the mel procedure modifies arguments (such as lists)
+    in place, and you wish to then see the modified result in the calling code.
+    Ie:
+
+        >>> origList = []
+        >>> newList = ["yet", "more", "things"]
+        >>> mel.appendStringArray(origList, newList, 2)
+        >>> origList
+        []
+
+    You will have to fall back to using mel.eval in such situations:
+
+        >>> mel.eval('''
+        ... string $origList[] = {};
+        ... string $newList[] = {"yet", "more", "things"};
+        ... appendStringArray($origList, $newList, 2);
+        ... /* force a return value */
+        ... $origList=$origList;
+        ... ''')
+        [u'yet', u'more']
+
     .. note::
 
-        To remain backward compatible with maya.cmds, `MelError`, the base MEL
-        exceptions inherit from , which in turn inherits from `RuntimeError`.
-
-
+        To remain backward compatible with maya.cmds, `MelError`, the base
+        exception class that all these exceptions inherit from, in turn inherits
+        from `RuntimeError`.
     """
     # proc is not an allowed name for a global procedure, so it's safe to use as an attribute
     proc = None
@@ -819,15 +868,7 @@ class Mel(object):
             except KeyError:
                 raise AttributeError, "object has no attribute '%s'" % command
 
-        def _call(*args, **kwargs):
-            cmd = pythonToMelCmd(command, *args, **kwargs)
-
-            try:
-                self.__class__.proc = command
-                return self.eval(cmd)
-            finally:
-                self.__class__.proc = None
-        return _call
+        return MelCallable(head='', name=command)
 
     @classmethod
     def mprint(cls, *args):
@@ -883,6 +924,13 @@ class Mel(object):
         u'Foo Bar Spangle'
 
         """
+        return cls._eval(cmd, None)
+
+    @classmethod
+    def _eval(cls, cmd, commandName):
+        # commandName is just used for nicer formatting of error messages,
+        # and is used by MelCallable
+
         # should return a value, like _mm.eval
         # return _mm.eval( cmd )
         # get this before installing the callback
@@ -920,7 +968,7 @@ class Mel(object):
                 e = MelUnknownProcedureError
             elif 'Wrong number of arguments' in msg:
                 e = MelArgumentError
-                if cls.proc:
+                if commandName:
                     # remove the calling proc, it will be added below
                     msg = msg.split('\n', 1)[1].lstrip()
             elif 'Cannot convert data' in msg or 'Cannot cast data' in msg:
@@ -932,12 +980,12 @@ class Mel(object):
             message = "Error during execution of MEL script: %s" % (msg)
             fmtCmd = '\n'.join(['  ' + x for x in cmd.split('\n')])
 
-            if cls.proc:
+            if commandName:
                 if e is not MelUnknownProcedureError:
-                    file = _mm.eval('whatIs "%s"' % cls.proc)
+                    file = _mm.eval('whatIs "%s"' % commandName)
                     if file.startswith('Mel procedure found in: '):
                         file = 'file "%s"' % os.path.realpath(file.split(':')[1].lstrip())
-                    message += '\nCalling Procedure: %s, in %s' % (cls.proc, file)
+                    message += '\nCalling Procedure: %s, in %s' % (commandName, file)
                     message += '\n' + fmtCmd
             else:
                 message += '\nScript:\n%s' % fmtCmd

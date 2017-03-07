@@ -732,18 +732,24 @@ def main():
     ipy_ver = IPython.__version__.split('.')
     ipy_ver = [int(x) if x.isdigit() else x for x in ipy_ver]
 
-    if ipy_ver < [0, 11]:
-        import IPython.Shell
-
-        shell = IPython.Shell.start()
-        setup(shell)
-        shell.mainloop()
-    else:
+    if ipy_ver >= [1, 0]:
+        import IPython.terminal.ipapp
+        app = IPython.terminal.ipapp.TerminalIPythonApp.instance()
+        app.initialize()
+        setup(app.shell)
+        app.start()
+    elif ipy_ver >= [0, 11]:
         import IPython.frontend.terminal.ipapp
         app = IPython.frontend.terminal.ipapp.TerminalIPythonApp.instance()
         app.initialize()
         setup(app.shell)
         app.start()
+    else:
+        import IPython.Shell
+
+        shell = IPython.Shell.start()
+        setup(shell)
+        shell.mainloop()
 
 if __name__ == '__main__':
     main()

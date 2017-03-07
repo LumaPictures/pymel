@@ -6,6 +6,12 @@ import pkgutil              #@Reimport
 import collections
 import inspect
 import ast
+import keyword
+
+OBJ = 0
+OBJTYPE = 1
+SOURCEMOD = 2
+NAMES = 3
 
 builtins = set(__builtin__.__dict__.values())
 
@@ -38,7 +44,8 @@ def has_default_constructor(cls):
         safe_methods.add(safe_cls.__init__)
         safe_methods.add(safe_cls.__new__)
 
-    for method in (getattr(cls, '__init__', None), getattr(cls, '__new__', None)):
+    for method in (getattr(cls, '__init__', None),
+                   getattr(cls, '__new__', None)):
         if method in safe_methods:
             continue
         if method is None:
@@ -82,15 +89,16 @@ class ModuleNamesVisitor(ast.NodeVisitor):
             self.generic_visit(node)
 
         # we are looking for statements which could define a new name...
-        elif isinstance(node, (ast.Assign,
-                             ast.ClassDef,
-                             ast.FunctionDef,
-                             ast.Import,
-                             ast.ImportFrom,
-                             ast.For,
-                             ast.With,
-                             ast.TryExcept,
-                            )):
+        elif isinstance(node,
+                        (ast.Assign,
+                         ast.ClassDef,
+                         ast.FunctionDef,
+                         ast.Import,
+                         ast.ImportFrom,
+                         ast.For,
+                         ast.With,
+                         ast.TryExcept,
+                        )):
             self.addNames(node)
 
     def addNames(self, obj):
@@ -158,7 +166,45 @@ def get_static_module_names(module):
     return visitor.names
 
 
-# for the sake of stubtest, don't importy anything pymel/maya at module level
+def have_id_name(id_to_data, id_obj, name):
+    "return if the id_object has the passed name"
+    data = id_to_data.get(id_obj, None)
+    if data is None:
+        return False
+    return name in data[NAMES]
+
+
+def get_importall_modules(id_to_data, other_module_names):
+    importall_modules = []
+    for other_mod, other_id_names in other_module_names.iteritems():
+        other_all = getattr(other_mod, '__all__', None)
+        visible_other = 0
+        in_this = []
+        for id_obj, other_names in other_id_names.iteritems():
+            for other_name in other_names:
+                if not visiblename(other_name, other_all):
+                    continue
+                visible_other += 1
+                if have_id_name(id_to_data, id_obj, other_name):
+                    in_this.append((id_obj, other_name))
+        # rough heuristic - if 90% of the objects can be found in this
+        # module, we assume an import all was done... note that we're not
+        # even checking if they're present in this module with the same
+        # name... it's a rough heuristic anyway...
+
+        # chose .85 just because core.language gets .87 in pymel.core
+        if float(len(in_this)) / visible_other > .85:
+            importall_modules.append(other_mod)
+            # go through and REMOVE all the in_this entries from
+            # id_to_data...
+            for id_obj, other_name in in_this:
+                data = id_to_data[id_obj]
+                data[NAMES].remove(other_name)
+                if not data[NAMES]:
+                    del id_to_data[id_obj]
+    return importall_modules
+
+# for the sake of stubtest, don't import anything pymel/maya at module level
 #import pymel.util as util
 
 class NoUnicodeTextRepr(TextRepr):
@@ -180,6 +226,18 @@ class NoUnicodeTextRepr(TextRepr):
 
     def repr_unicode(self, uStr, level):
         return self.repr_string(str(uStr), level)
+
+    def repr1(self, x, level):
+        # believe it or not there are cases where split(s) fails and s.split()
+        # succeeds.  specifically, I'm seeing this error with a PySide object:
+        # SystemError: Objects/longobject.c:244: bad argument to internal function
+        # so this is a slight edit of TextRepr.repr1
+        if hasattr(type(x), '__name__'):
+            methodname = 'repr_' + join(type(x).__name__.split(), '_')
+            if hasattr(self, methodname):
+                return getattr(self, methodname)(x, level)
+        return cram(stripid(repr(x)), self.maxother)
+
 
 class StubDoc(Doc):
     """Formatter class for text documentation."""
@@ -239,9 +297,9 @@ class StubDoc(Doc):
         for entry in tree:
             if type(entry) is type(()):
                 c, bases = entry
-                result = result + prefix + self.classname(c, modname)
+                result = result + prefix + self.classname(c, modname)[0]
                 if bases and bases != (parent,):
-                    parents = map(lambda c, m=modname: self.classname(c, m), bases)
+                    parents = map(lambda c, m=modname: self.classname(c, m)[0], bases)
                     result = result + '(%s)' % join(parents, ', ')
                 result = result + '\n'
             elif type(entry) is type([]):
@@ -318,11 +376,6 @@ class StubDoc(Doc):
         # which the object can be found in this module.
         id_to_data = {}
 
-        OBJ = 0
-        OBJTYPE = 1
-        SOURCEMOD = 2
-        NAMES = 3
-
         def add_obj(obj, name=None, source_module=None):
             id_obj = id(obj)
             if id_obj in id_to_data:
@@ -385,13 +438,6 @@ class StubDoc(Doc):
                     and name not in self.ALLOWABLE_DOUBLE_UNDER_ATTRS):
                 continue
             add_obj(obj, name)
-
-        def have_id_name(id_obj, name):
-            "return if the id_object has the passed name"
-            data = id_to_data.get(id_obj, None)
-            if data is None:
-                return False
-            return name in data[NAMES]
 
         # We now need to do two things:
         #  1) find the parent classes for any classes we will define in this
@@ -522,33 +568,7 @@ class StubDoc(Doc):
             new_to_this_module = add_parent_classes() + find_import_data()
 
         # check the other modules for possible "from mod import *" action...
-        importall_modules = []
-        for other_mod, other_id_names in other_module_names.iteritems():
-            other_all = getattr(other_mod, '__all__', None)
-            visible_other = 0
-            in_this = []
-            for id_obj, other_names in other_id_names.iteritems():
-                for other_name in other_names:
-                    if not visiblename(other_name, other_all):
-                        continue
-                    visible_other += 1
-                    if have_id_name(id_obj, other_name):
-                        in_this.append((id_obj, other_name))
-            # rough heuristic - if 90% of the objects can be found in this
-            # module, we assume an import all was done... note that we're not
-            # even checking if they're present in this module with the same
-            # name... it's a rough heuristic anyway...
-
-            # chose .85 just because core.language gets .87 in pymel.core
-            if float(len(in_this)) / visible_other > .85:
-                importall_modules.append(other_mod)
-                # go through and REMOVE all the in_this entries from
-                # id_to_data...
-                for id_obj, other_name in in_this:
-                    data = id_to_data[id_obj]
-                    data[NAMES].remove(other_name)
-                    if not data[NAMES]:
-                        del id_to_data[id_obj]
+        importall_modules = get_importall_modules(id_to_data, other_module_names)
 
         # We finally have all the objects that will be added to this module
         # (with their names in this module), all the parent clases for classes
@@ -563,10 +583,10 @@ class StubDoc(Doc):
         data = []
         imported = []
 
-        bins = {'module':modules,
-                'class':classes,
-                'func':funcs,
-                'data':data
+        bins = {'module': modules,
+                'class': classes,
+                'func': funcs,
+                'data': data
                }
         for id_obj, (obj, objtype, source_module, names) in id_to_data.iteritems():
             if source_module == this_module or objtype == 'module':
@@ -575,6 +595,11 @@ class StubDoc(Doc):
                 imported.append((obj, names, source_module))
 
         # Before adding things, prepopulate our module_map and id_map
+
+        # these are modules which may or may not be used.  if we add an import
+        # line it should be as close to possible to where it is used to avoid
+        # circular imports
+        self.maybe_modules = {}
 
         for obj, names in modules:
             self.add_to_module_map(obj.__name__, names[0])
@@ -598,10 +623,9 @@ class StubDoc(Doc):
         #    5) func defs
         #    6) data
 
-        if modules:
-            contents = []
-            #print "modules", this_module
+        if modules:  # module imports
             for obj, names in modules:
+                print obj, names
                 for import_name in names:
                     realname = getattr(obj, '__name__', None)
                     if not realname:
@@ -611,10 +635,9 @@ class StubDoc(Doc):
                         continue
                     import_text = self.import_mod_text(this_module, realname, import_name)
                     if import_text:
-                        contents.append(import_text)
-            result = result + join(contents, '\n') + '\n\n'
+                        self.maybe_modules[import_name] = import_text
 
-        if importall_modules:
+        if importall_modules:  # from MODULE import *
             # special-case handling for pymel.internal.pmcmds, which ends up
             # with a bunch of 'from pymel.core.X import *' commands
             if this_name == 'pymel.internal.pmcmds':
@@ -634,7 +657,7 @@ class StubDoc(Doc):
                     contents.append(import_text)
             result = result + '\n'.join(contents) + '\n\n'
 
-        if imported:
+        if imported:  # from MODULE import OBJ
             contents = []
             for obj, names, source_module in imported:
                 for name in names:
@@ -768,14 +791,16 @@ class StubDoc(Doc):
             self.static_module_names[module] = get_static_module_names(module)
         return name in self.static_module_names[module]
 
-    def classname(self, object, modname):
+    def classname(self, object, modname, realmodule=None):
         """Get a class name and qualify it with a module name if necessary."""
         if id(object) in self.id_map:
-            return self.id_map[id(object)]
+            return self.id_map[id(object)], None
 
+        import_text = None
         name = object.__name__
         missing = None
-        realmodule = object.__module__
+        if realmodule is None:
+            realmodule = object.__module__
         # first, see if the object's module is THIS module...
         if realmodule not in [modname, '__builtin__']:
             # next, check if the module is in map of 'known' modules...
@@ -823,12 +848,15 @@ class StubDoc(Doc):
                 if not newmodname:
                     missing = True
                     newmodname = realmodule
+                else:
+                    print "newmodname", newmodname, realmodule, self.maybe_modules
                 if missing:
                     self.missing_modules.add(realmodule)
                     self.add_to_module_map(realmodule, realmodule)
             if newmodname:
                 name = newmodname + '.' + name
-        return name
+                import_text = self.maybe_modules.pop(newmodname, None)
+        return name, import_text
 
     def docclass(self, object, name=None, mod=None):
         """Produce text documentation for a given class object."""
@@ -839,8 +867,13 @@ class StubDoc(Doc):
         title = 'class ' + name
 
         if bases:
-            parents = [self.classname(c, mod) for c in bases]
+            data = [self.classname(c, mod) for c in bases]
+            parents = [d[0] for d in data]
+            imports = [d[1] for d in data if d[1] is not None]
             title = title + '(%s)' % join(parents, ', ')
+            if imports:
+                imports = '\n'.join(imports)
+                title = imports + '\n\n' + title
         title += ':\n'
 
         doc = getdoc(object)
@@ -923,15 +956,56 @@ class StubDoc(Doc):
                 # pydev can't handle unicode literals - ie, u'stuff' - so
                 # convert to normal strings
                 object = str(object)
+
             objRepr = self.repr(object)
             if objRepr[0] == '<' and objRepr[-1] == '>':
+                # representation needs to be converted to a string
                 objRepr = repr(objRepr)
+                realmodule = None
+            # get the object's module
+            elif hasattr(object, '__module__'):
+                realmodule = object.__module__
+            elif re.match('[a-zA-Z_.]+(\(.*\))?$', objRepr):
+                # it's a standard instance repr: e.g. foo.Bar('spangle')
+                # see if we know the module
+                realmodule = None
+                name = objRepr
+                while True:
+                    parts = name.rsplit('.', 1)
+                    if len(parts) == 1:
+                        # done splitting
+                        break
+                    name = parts[0]
+                    if name in self.module_map:
+                        realmodule = name
+                        break
+            else:
+                realmodule = None
+
+            if realmodule:
+                # this code was added to handle PySide objects used as defaults
+                # specifically maya.app.renderSetup.views.lightEditor.itemModel
+                if objRepr.startswith(realmodule + '.'):
+                    newObjRepr = objRepr[len(realmodule) + 1:]
+                else:
+                    newObjRepr = objRepr
+                try:
+                    modname = self.module_map[realmodule]
+                except KeyError:
+                    print "WARNING: Not a known module: %r" % realmodule
+                    pass
+                else:
+                    objRepr = modname + '.' + newObjRepr
+
         return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
         """Produce text documentation for a function or method object."""
         realname = object.__name__
         name = name or realname
+        if name in keyword.kwlist:
+            name += '_'
+
         skipdocs = 0
         method = None
         if inspect.ismethod(object):
@@ -1101,6 +1175,7 @@ class StubDoc(Doc):
                     # relative to avoid circular imports
                     fromname = '.'
                     importname = '.'.join(realparts[len(currparts):])
+            print "adding", realname, asname, importname
             self.add_to_module_map(realname, asname if asname else importname)
             if importname in self.importSubstitutions:
                 return '%s = None' % asname
@@ -1164,6 +1239,9 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
 
     for modname, mod, ispkg in util.subpackages(packagemod):
         print modname, ":"
+        if mod is None:
+            # failed to import
+            continue
         if not exclude or not re.match( exclude, modname ):
             contents = stubs.docmodule(mod)
         else:
@@ -1187,12 +1265,15 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                 f.write( contents )
 
 
-def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya', 'PySide', 'shiboken'),
+def pymelstubs(extensions=('py', 'pypredef', 'pi'),
+               modules=('pymel', 'maya', 'PySide2', 'shiboken2'),
+               exclude=None,
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
 
     Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
-
+    
+    buildFailures = []
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
     outputdir = os.path.join(pymeldir, 'extras', 'completion')
     print "Stub output dir:", outputdir
@@ -1200,8 +1281,13 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya', 'P
         os.makedirs(outputdir)
 
     for modulename in modules:
-        print "making stubs for: %s" % modulename
-        packagestubs(modulename, outputdir=outputdir, extensions=extensions)
+        try:
+            print "making stubs for: %s" % modulename
+            packagestubs(modulename, outputdir=outputdir, extensions=extensions,
+                         exclude=exclude)
+        except:
+            buildFailures.append(modulename)
+    
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
         # useful to put on the path of non-maya python interpreters, in
@@ -1227,7 +1313,13 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'), modules=('pymel', 'maya', 'P
         srcUtilDir = os.path.join(pymeldir, 'pymel', 'util')
         destUtilDir = os.path.join(pyRealUtilDir, 'pymel', 'util')
         copyDir(srcUtilDir, destUtilDir)
-
+    
+    if buildFailures:
+        print "WARNING! Module specified failed to build :"
+        for failedModule in buildFailures:
+            print "   ", failedModule
+        print "(Try specify different list of modules for 'modules' keyword argument)" 
+    
     return outputdir
 
 # don't start name with test - don't want it automatically run by nose

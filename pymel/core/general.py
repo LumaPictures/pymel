@@ -21,6 +21,7 @@ import pymel.internal.pwarnings as _warnings
 import pymel.internal.startup as _startup
 import pymel.api as _api
 import pymel.versions as _versions
+import pymel.core.system as system
 import datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
@@ -43,9 +44,10 @@ def _getPymelTypeFromObject(obj, name):
         # __apiobjects__ = {'MDagPath':MDagPath(...)}, but a pymel type of
         # DependNode... and DependNode.__apihandle__() always assumes that
         # MObjectHandle is always in __apiobjects__
-        pymelType = getattr(nodetypes, _util.capitalize(mayaType),
-                            nodetypes.DagNode if obj.hasFn(_api.MFn.kDagNode)
-                            else nodetypes.DependNode)
+        pymelTypeName = nodetypes.mayaTypeNameToPymelTypeName.get(
+            mayaType,
+            'DagNode' if obj.hasFn(_api.MFn.kDagNode) else 'DependNode')
+        pymelType = getattr(nodetypes, pymelTypeName)
         pymelType = _factories.virtualClasses.getVirtualClass(pymelType, obj, name, fnDepend)
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
@@ -369,6 +371,7 @@ Modifications:
         - currently does not support compound attributes
         - currently supported python-to-maya mappings:
 
+            ============ ===========
             python type  maya type
             ============ ===========
             float        double
@@ -564,16 +567,6 @@ Modifications:
                     else:
                         kwargs['type'] = 'string'
 
-    if datatype == 'matrix' and _versions.current() < _versions.v2011:
-        import language
-        #language.mel.setAttr( attr, *args, **kwargs )
-        strFlags = ['-%s %s' % (key, language.pythonToMel(val)) for key, val in kwargs.items()]
-        cmd = 'setAttr %s %s %s' % (attr, ' '.join(strFlags), ' '.join([str(x) for x in args]))
-        import maya.mel as _mm
-        # print cmd
-        _mm.eval(cmd)
-        return
-
     # stringify fix
     attr = unicode(attr)
 
@@ -601,7 +594,7 @@ Modifications:
 
 def addAttr(*args, **kwargs):
     """
-Modifications:
+    Modifications:
   - allow python types to be passed to set -at type
             str         string
             float       double
@@ -623,11 +616,60 @@ Modifications:
         True
 
   - allow passing a list or dict instead of a string for enumName
+  - allow user to pass in type and determine whether it is a dataType or
+    attributeType. Types that may be both, such as float2, float3, double2,
+    double3, long2, long3, short2, and short3 are all treated as
+    attributeTypes. In addition, as a convenience, since these attributeTypes
+    are actually treated as compound attributes, the child attributes are
+    automatically created, with X/Y/Z appended, unless usedAsColor is set, in
+    which case R/G/B is added. Alternatively, the suffices can explicitly
+    specified with childSuffixes:
+
+        >>> addAttr('persp', ln='autoDouble', type='double', k=1)
+        >>> addAttr('persp.autoDouble', query=1, attributeType=1)
+        u'double'
+        >>> addAttr('persp.autoDouble', query=1, dataType=1)
+        u'TdataNumeric'
+        >>> addAttr('persp', ln='autoMesh', type='mesh', k=1)
+        >>> addAttr('persp.autoMesh', query=1, attributeType=1)
+        u'typed'
+        >>> addAttr('persp.autoMesh', query=1, dataType=1)
+        u'mesh'
+        >>> addAttr('persp', ln='autoDouble3Vec', type='double3', k=1)
+        >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoDouble3' in x.name()]
+        [u'autoDouble3Vec', u'autoDouble3VecX', u'autoDouble3VecY', u'autoDouble3VecZ']
+        >>> addAttr('persp', ln='autoFloat3Col', type='float3', usedAsColor=1)
+        >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoFloat3' in x.name()]
+        [u'autoFloat3Col', u'autoFloat3ColR', u'autoFloat3ColG', u'autoFloat3ColB']
+        >>> addAttr('persp', ln='autoLong2', type='long2', childSuffixes=['_first', '_second'])
+        >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoLong2' in x.name()]
+        [u'autoLong2', u'autoLong2_first', u'autoLong2_second']
     """
+    attributeTypes = [ 'bool', 'long', 'short', 'byte', 'char', 'enum',
+                       'float', 'double', 'doubleAngle', 'doubleLinear',
+                       'compound', 'message', 'time', 'fltMatrix', 'reflectance',
+                       'spectrum', 'float2', 'float3', 'double2', 'double3', 'long2',
+                       'long3', 'short2', 'short3', datatypes.Vector ]
+
+    dataTypes = [ 'string', 'stringArray', 'matrix', 'reflectanceRGB',
+                  'spectrumRGB', 'doubleArray', 'Int32Array', 'vectorArray',
+                  'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray' ]
+
+    type = kwargs.pop('type', kwargs.pop('typ', None ))
+    childSuffixes = kwargs.pop('childSuffixes', None)
+
+    if type is not None:
+        if type in attributeTypes:
+            kwargs['at'] = type
+        elif type in dataTypes:
+            kwargs['dt'] = type
+        else:
+            raise TypeError, "type not supported"
+
     at = kwargs.pop('attributeType', kwargs.pop('at', None))
     if at is not None:
         try:
-            kwargs['at'] = {
+            at = {
                 float: 'double',
                 int: 'long',
                 bool: 'bool',
@@ -636,7 +678,8 @@ Modifications:
                 unicode: 'string'
             }[at]
         except KeyError:
-            kwargs['at'] = at
+            pass
+        kwargs['at'] = at
 
     if kwargs.get('e', kwargs.get('edit', False)):
         for editArg, value in kwargs.iteritems():
@@ -658,6 +701,7 @@ Modifications:
     # MObject stringify Fix
     #args = map(unicode, args)
     res = cmds.addAttr(*args, **kwargs)
+
     if kwargs.get('q', kwargs.get('query', False)):
         # When addAttr is queried, and has multiple other query flags - ie,
         #   addAttr('joint1.sweetpea', q=1, parent=1, dataType=1)
@@ -684,6 +728,49 @@ Modifications:
             if isinstance(node, Attribute):
                 node = node.node()
             res = node.attr(res)
+    elif not kwargs.get('e', kwargs.get('edit', False)):
+        # if we were creating an attribute, and used "type", check if we
+        # made a compound type...
+        if type is not None and at:
+            # string parse the attributeType, because the type may be an
+            # actual python type...
+            baseType = at[:-1]
+            num = at[-1]
+            if (baseType in ('float', 'double', 'short', 'long')
+                    and num in ('2', '3')):
+                num = int(num)
+                if childSuffixes is None:
+                    if kwargs.get('usedAsColor', kwargs.get('uac')):
+                        childSuffixes = 'RGB'
+                    else:
+                        childSuffixes = 'XYZ'
+                baseLongName = kwargs.get('longName', kwargs.get('ln'))
+                baseShortName = kwargs.get('shortName', kwargs.get('sn'))
+
+                childKwargs = dict(kwargs)
+
+                for kwarg in (
+                        'longName', 'ln',
+                        'shortName', 'sn',
+                        'attributeType', 'at',
+                        'dataType', 'dt',
+                        'multi', 'm',
+                        'indexMatters', 'im',
+                        'parent', 'p',
+                        'numberOfChildren', 'nc',
+                        'usedAsColor', 'uac',
+                ):
+                    childKwargs.pop(kwarg, None)
+
+                childKwargs['attributeType'] = baseType
+                childKwargs['parent'] = baseLongName
+
+                for i in xrange(num):
+                    suffix = childSuffixes[i]
+                    childKwargs['longName'] = baseLongName + suffix
+                    if baseShortName:
+                        childKwargs['shortName'] = baseShortName + suffix
+                    cmds.addAttr(*args, **childKwargs)
 
 #    else:
 #        # attempt to gather Attributes we just made
@@ -814,9 +901,13 @@ Modifications:
         set, or frozenset, making it's behavior consistent with when None is
         passed, or no args and nothing is selected (would formerly raise a
         TypeError)
-  - When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
+  - When 'connections' flag is True, (and 'plugs' is True) the attribute pairs are returned in a 2D-array::
 
         [['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']]
+
+        Note that if 'plugs' is False (the default), for backward compatibility, the returned pairs are somewhat less intuitive attrs + nodes::
+
+        [['checker1.outColor', 'lambert1'], ['checker1.color1', 'fractal1']]
 
   - added sourceFirst keyword arg. when sourceFirst is true and connections is also true,
         the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
@@ -1089,6 +1180,9 @@ Modifications:
 #        res.append( PyNode( tmp[i], tmp[i+1] ) )
 #
 #    return res
+    if kwargs.get('showNamespace', kwargs.get('sns', False)):
+        return [system.Namespace(item) if i % 2 else PyNode(item) for i, item in enumerate(res)]
+
     return map(PyNode, res)
 
 
@@ -1239,7 +1333,7 @@ Maya Bug Fix:
 def parent(*args, **kwargs):
     """
 Modifications:
-    - if parent is 'None', world=True is automatically set
+    - if parent is `None`, world=True is automatically set
     - if the given parent is the current parent, don't error (similar to mel)
     """
     if args and args[-1] is None:
@@ -1248,24 +1342,38 @@ Modifications:
         if 'world' in kwargs:
             del kwargs['world']
         kwargs['w'] = True
+        args = args[:-1]
     elif 'world' in kwargs:
         # Standardize on 'w', for easier checking later
         kwargs['w'] = kwargs['world']
         del kwargs['world']
 
-    # if you try to parent to the current parent, maya errors...
-    # check for this and return if that's the case
+    origPyNodes = []
+    origParent = None
+    origParentDag = None
+    removeObj = kwargs.get('removeObject', False) or kwargs.get('rm', False)
+
     if args:
-        nodes = cmds.ls(args, type='dagNode')
+        nodes = args
+        origPyNodes
+        if 'w' in kwargs or removeObj:
+            origPyNodes = nodes
+        else:
+            origPyNodes = nodes[:-1]
+            origParent = nodes[-1]
+        origPyNodes = [x for x in origPyNodes if isinstance(x, PyNode)]
+        # Make sure we have an MObjectHandle for all origPyNodes - may need
+        # these later to fix issues with instancing...
+        for n in origPyNodes:
+            n.__apimobject__()
     else:
         nodes = cmds.ls(sl=1, type='dagNode')
+
 
     # There are some situations in which you can only pass one node - ie, with
     # shape=True, removeObject=True - and we don't want to abort in these
     # cases
-
-    if (nodes and len(nodes) > 1 and not kwargs.get('removeObject', False)
-            and not kwargs.get('rm', False)):
+    if nodes and not removeObj:
         if kwargs.get('w', False):
             parent = None
             children = nodes
@@ -1273,6 +1381,8 @@ Modifications:
             parent = PyNode(nodes[-1])
             children = nodes[:-1]
 
+        # if you try to parent to the current parent, maya errors...
+        # check for this and return if that's the case
         def getParent(obj):
             parent = cmds.listRelatives(obj, parent=1)
             if not parent:
@@ -1281,10 +1391,58 @@ Modifications:
                 return parent[0]
         if all(getParent(child) == parent for child in children):
             return [PyNode(x) for x in children]
+
     result = cmds.parent(*args, **kwargs)
     # if using removeObject, return is None
     if result:
         result = [PyNode(x) for x in result]
+
+    # fix the MDagPath for any ORIGINAL PyNodes, if instancing is involved
+    # (ie, if DependNode.setParent is called, we want to set the MDagPath to the
+    # correct instance if possible)
+    for origNode in origPyNodes:
+        try:
+            origNode.__apimdagpath__()
+        except AttributeError:
+            continue
+        except MayaInstanceError:
+            # Was problem, try to fix the MDagPath!
+            if origParentDag is None and origParent is not None:
+                if not isinstance(origParent, PyNode):
+                    origParent = PyNode(origParent)
+                origParentDag = origParent.__apimdagpath__()
+
+            mfnDag = _api.MFnDagNode(origNode.__apimobject__())
+            dags = _api.MDagPathArray()
+            mfnDag.getAllPaths(dags)
+            foundDag = None
+
+            # Look for an instance whose parent is the parent we reparented to
+            for i in xrange(dags.length()):
+                dag = dags[i]
+                parentDag = _api.MDagPath(dag)
+                parentDag.pop()
+                if origParent is None:
+                    if parentDag.length() == 0:
+                        foundDag = dag
+                        break
+                else:
+                    if parentDag == origParentDag:
+                        foundDag = dag
+                        break
+            if foundDag is not None:
+                # copy the one from the array, or else we'll get a crash, when
+                # the array is freed and we try to use it!
+                origNode.__apiobjects__['MDagPath'] = _api.MDagPath(foundDag)
+        except MayaNodeError:
+            # if we were using removeObject, it's possible the object is now
+            # deleted... in this case (but only this case!), it's ok to ignore
+            # a deleted node
+            if removeObj:
+                continue
+        else:
+            continue
+
     return result
 
 # Because cmds.duplicate only ever returns node names (ie, NON-UNIQUE, and
@@ -1807,14 +1965,23 @@ Modifications:
     cmds.delete(*args, **kwargs)
 
 
-def getClassification(*args):
+def getClassification(*args, **kwargs):
     """
 Modifications:
   - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
 
     :rtype: `unicode` list
+
+Modifications:
+  - supports satisfies flag.
+    Returns true if the given node type's classification satisfies the classification string which is passed with the flag.
+
+    :rtype: `bool`
     """
-    return cmds.getClassification(*args)[0].split(':')
+    if kwargs and len(kwargs) == 1 and 'satisfies' in kwargs:
+        return cmds.getClassification(*args, **kwargs)
+    else:
+        return cmds.getClassification(*args, **kwargs)[0].split(':')
 
 
 #--------------------------
@@ -1836,16 +2003,29 @@ def selected(**kwargs):
 
 _thisModule = sys.modules[__name__]
 
-# def spaceLocator(*args, **kwargs):
-#    """
-# Modifications:
-#    - returns a locator instead of a list with a single locator
-#    """
-#    res = cmds.spaceLocator(**kwargs)
-#    try:
-#        return Transform(res[0])
-#    except:
-#        return res
+
+def spaceLocator(*args, **kwargs):
+    """
+    Modifications:
+        - returns a single Transform instead of a list with a single locator
+    """
+    import nodetypes
+
+    res = cmds.spaceLocator(**kwargs)
+
+    # unfortunately, spaceLocator returns non-unique names... however, it
+    # doesn't support a parent option - so we can just throw a '|' in front
+    # of the return result to get a unique name
+
+    if (not kwargs.get('query', kwargs.get('q', False))
+            and not kwargs.get('edit', kwargs.get('e', False))):
+        if isinstance(res, list):
+            res = res[0]
+        if isinstance(res, basestring):
+            res = '|' + res
+        res = nodetypes.Transform(res)
+    return res
+
 
 def instancer(*args, **kwargs):
     """
@@ -1900,6 +2080,13 @@ class MayaAttributeEnumError(MayaAttributeError):
 
 class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
+
+class MayaInstanceError(MayaNodeError):
+    def __str__(self):
+        msg = "Maya %s was reparented to an instance, and dag path is now ambiguous:" % (self._objectDescription)
+        if self.node:
+            msg += ": %r" % (self.node)
+        return msg
 
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
@@ -1997,17 +2184,17 @@ class PyNode(_util.ProxyUnicode):
 
                 if isinstance(argObj, Attribute):
                     attrNode = argObj._node
-                    argObj = argObj.__apiobjects__['MPlug']
+                    argObj = argObj.__apimplug__()
                 elif isinstance(argObj, Component):
                     try:
-                        argObj = argObj._node.__apiobjects__['MDagPath']
+                        argObj = argObj._node.__apimdagpath__()
                     except KeyError:
                         argObj = argObj._node.__apiobjects__['MObjectHandle']
 
                 elif isinstance(argObj, PyNode):
                     try:
-                        argObj = argObj.__apiobjects__['MDagPath']
-                    except KeyError:
+                        argObj = argObj.__apimdagpath__()
+                    except (KeyError, AttributeError):
                         argObj = argObj.__apiobjects__['MObjectHandle']
 
                 elif hasattr(argObj, '__module__') and argObj.__module__.startswith('maya.OpenMaya'):
@@ -2664,7 +2851,7 @@ class Attribute(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = _api.MObjectHandle(self.__apiobjects__['MPlug'].attribute())
+            handle = _api.MObjectHandle(self.__apimplug__().attribute())
             self.__apiobjects__['MObjectHandle'] = handle
         if _api.isValidMObjectHandle(handle):
             return handle.object()
@@ -2807,12 +2994,6 @@ class Attribute(PyNode):
         """
         :rtype: `bool`
         """
-        thisPlug = self.__apimplug__()
-        try:
-            thisIndex = thisPlug.logicalIndex()
-        except RuntimeError:
-            thisIndex = None
-
         if not isinstance(other, Attribute):
             try:
                 other = PyNode(other)
@@ -2821,13 +3002,35 @@ class Attribute(PyNode):
             except (ValueError, TypeError):  # could not cast to PyNode
                 return False
 
+        # Unfortunately, it seems that comparing two MPlugs for equality is
+        # essentially the same as just comparing their attribute objects. That
+        # means, that for instace, the plugs for objects like these will compare
+        # equal:
+        #    node.attr[1] == node.attr[50]
+        #    node.attr[5].subAttr == node.attr[7].subAttr
+        # Thefore, in order for the attributes to truly be equal:
+        #    1) the attributes must be equal
+        #    2) the indices must be equal
+        #    3) the indices of any parents must be equal
+
+        thisPlug = self.__apimplug__()
         otherPlug = other.__apimplug__()
-        # foo.bar[10] and foo.bar[20] and foo.bar eval to the same object in _api.  i don't think this is very intuitive.
+        if thisPlug != otherPlug:
+            return False
+
+        try:
+            thisIndex = thisPlug.logicalIndex()
+        except RuntimeError:
+            thisIndex = None
         try:
             otherIndex = otherPlug.logicalIndex()
         except RuntimeError:
             otherIndex = None
-        return thisPlug == otherPlug and thisIndex == otherIndex
+
+        if thisIndex != otherIndex:
+            return False
+
+        return self.parent() == other.parent()
 
     def __hash__(self):
         """
@@ -3856,6 +4059,7 @@ class Attribute(PyNode):
 
     parent = getParent
 
+
 def _MObjectIn(x):
     if isinstance(x, PyNode):
         return x.__apimobject__()
@@ -4018,6 +4222,13 @@ class Component(PyNode):
         if completeStatus:
             mfnComp.setComplete(True)
         return isEmpty
+
+    @classmethod
+    def _compOrEmptyList(cls, node, components):
+        if (not isinstance(components, (_api.MObject, _api.MFnComponent))
+                and not components):
+            return []
+        return cls(node, components)
 
     def __init__(self, *args, **kwargs):
         # the Component class can be instantiated several ways:
@@ -5223,7 +5434,7 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedFaces(self):
         """
@@ -5231,7 +5442,7 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedVertices(self):
         """
@@ -5239,7 +5450,7 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshVertex._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def isConnectedTo(self, component):
         """
@@ -5278,7 +5489,7 @@ class MeshEdge(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedFaces(self):
         """
@@ -5286,7 +5497,7 @@ class MeshEdge(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedVertices(self):
         """
@@ -5326,7 +5537,7 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedFaces(self):
         """
@@ -5334,7 +5545,7 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def connectedVertices(self):
         """
@@ -5342,7 +5553,7 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        return MeshVertex._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
 
     def isConnectedTo(self, component):
         """
@@ -5845,7 +6056,7 @@ class ParticleComponent(Component1D):
 
     def attr(self, attr):
         try:
-            return cmds.particle(self._node, q=1, attribute=attr, order=self._currentFlatIndex)
+            return cmds.particle(self._node, q=1, attribute=attr, order=super(ParticleComponent, self).currentItemIndex())
         except RuntimeError:
             raise MayaParticleAttributeError('%s.%s' % (self, attr))
 
@@ -5974,7 +6185,7 @@ class AttributeDefaults(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = self.__apiobjects__['MPlug'].attribute()
+            handle = self.__apimplug__().attribute()
             self.__apiobjects__['MObjectHandle'] = handle
         if _api.isValidMObjectHandle(handle):
             return handle.object()

@@ -40,6 +40,11 @@ _thisModule = sys.modules[__name__]
 # If we're reloading, clear the pynode types out
 _factories.clearPyNodeTypes()
 
+# Dictionary mapping from maya node type names (ie, surfaceShape) to pymel
+# class names, in this module - ie, SurfaceShape
+mayaTypeNameToPymelTypeName = {}
+pymelTypeNameToMayaTypeName = {}
+
 class DependNode(general.PyNode):
     __apicls__ = _api.MFnDependencyNode
     __metaclass__ = _factories.MetaMayaNodeWrapper
@@ -324,9 +329,9 @@ class DependNode(general.PyNode):
 
     isReadOnly = _factories.wrapApiMethod(_api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly')
 
-    def classification(self):
+    def classification(self, **kwargs):
         'getClassification'
-        return general.getClassification(self.type())
+        return general.getClassification(self.type(), **kwargs)
         # return self.__apimfn__().classification( self.type() )
 
 #}
@@ -636,18 +641,17 @@ class DependNode(general.PyNode):
 
         alias = kwargs.pop('alias', False)
         # stringify fix
-        res = map(lambda x: self.attr(x), _util.listForNone(cmds.listAttr(self.name(), **kwargs)))
+        res = [self.attr(x) for x in _util.listForNone(cmds.listAttr(self.name(), **kwargs))]
         if alias:
-            res = [x[1] for x in self.listAliases() if x[1] in res]
-
-#            aliases = dict( (x[1], x[0]) for x in general.aliasAttr(self.name()) )
-#            tmp = res
-#            res = []
-#            for at in tmp:
-#                try:
-#                    res.append( aliases[at], at )
-#                except KeyError:
-#                    pass
+            # need to make sure that our alias wasn't filtered out by one of
+            # the other kwargs (keyable, etc)...
+            # HOWEVER, we can't just do a straight up check to see if the
+            # results of listAlias() are in res - because the attributes in
+            # res are index-less (ie, ,myAttr[-1]), while the results returned
+            # by listAliases() have indices (ie, .myAttr[25])... so instead we
+            # just do a comparison of the names (which are easily hashable)
+            res = set(x.attrName() for x in res)
+            res = [x[1] for x in self.listAliases() if x[1].attrName() in res]
         if topLevel:
             res = [x for x in res if x.getParent() is None]
         return res
@@ -961,8 +965,17 @@ class DagNode(Entity):
             try:
                 name = self._updateName(long)
             except general.MayaObjectError:
-                _logger.warn("object %s no longer exists" % self._name)
-                name = self._name
+                # if we have an error, but we're only looking for the nodeName,
+                # use the non-dag version
+                if long is None:
+                    # don't use DependNode._updateName, as that can still
+                    # raise MayaInstanceError - want this to work, so people
+                    # have a way to get the correct instance, assuming they know
+                    # what the parent should be
+                    name = _api.MFnDependencyNode(self.__apimobject__()).name()
+                else:
+                    _logger.warn("object %s no longer exists" % self._name)
+                    name = self._name
         else:
             name = self._name
 
@@ -1224,8 +1237,36 @@ class DagNode(Entity):
 
         try:
             dag = self.__apiobjects__['MDagPath']
-            # test for validity: if the object is not valid an error will be raised
-            self.__apimobject__()
+            # If we have a cached mobject, test for validity: if the object is
+            # not valid an error will be raised
+            # Check if MObjectHandle in self.__apiobjects__ to avoid recursive
+            # loop...
+            if 'MObjectHandle' in self.__apiobjects__:
+                self.__apimobject__()
+            if not dag.isValid():
+                # Usually this only happens if the object was reparented, with
+                # instancing.
+                #
+                # Most of the time, this makes sense - there's no way to know
+                # which of the new instances we "want".  Hoever, occasionally,
+                # when the object was reparented, there were multiple instances,
+                # and the MDagPath was invalidated; however, subsequently, other
+                # instances were removed, so it's no longer instanced. Check for
+                # this...
+
+                # in some cases, doing dag.node() will crash maya if the dag
+                # isn't valid... so try using MObjectHandle
+                handle = self.__apiobjects__.get('MObjectHandle')
+                if handle is not None and handle.isValid():
+                    mfnDag = _api.MFnDagNode(handle.object())
+                    if not mfnDag.isInstanced():
+                        # throw a KeyError, this will cause to regen from
+                        # first MDagPath
+                        raise KeyError
+                    raise general.MayaInstanceError(mfnDag.name())
+                else:
+                    name = getattr(self, '_name', '<unknown>')
+                    raise general.MayaInstanceError(name)
             return dag
         except KeyError:
             # class was instantiated from an MObject, but we can still retrieve the first MDagPath
@@ -1251,7 +1292,12 @@ class DagNode(Entity):
             handle = self.__apiobjects__['MObjectHandle']
         except KeyError:
             try:
-                handle = _api.MObjectHandle(self.__apiobjects__['MDagPath'].node())
+                handle = _api.MObjectHandle(self.__apimdagpath__().node())
+            except general.MayaInstanceError:
+                if 'MDagPath' in self.__apiobjects__:
+                    handle = _api.MObjectHandle(self.__apiobjects__['MDagPath'].node())
+                else:
+                    raise general.MayaNodeError(self._name)
             except RuntimeError:
                 raise general.MayaNodeError(self._name)
             self.__apiobjects__['MObjectHandle'] = handle
@@ -1321,37 +1367,158 @@ class DagNode(Entity):
         """
         return DagNode('|' + self.longName()[1:].split('|')[0])
 
-#    def hasParent(self, parent ):
-#        try:
-#            return self.__apimfn__().hasParent( parent.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(parent)
-#            if obj:
-#               return self.__apimfn__().hasParent( obj )
-#
-#    def hasChild(self, child ):
-#        try:
-#            return self.__apimfn__().hasChild( child.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(child)
-#            if obj:
-#               return self.__apimfn__().hasChild( obj )
-#
-#    def isParentOf( self, parent ):
-#        try:
-#            return self.__apimfn__().isParentOf( parent.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(parent)
-#            if obj:
-#               return self.__apimfn__().isParentOf( obj )
-#
-#    def isChildOf( self, child ):
-#        try:
-#            return self.__apimfn__().isChildOf( child.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(child)
-#            if obj:
-#               return self.__apimfn__().isChildOf( obj )
+    # For some reason, this wasn't defined on Transform...?
+    # maya seems to have a bug right now (2016.53) that causes crashes when
+    # accessing MDagPaths after creating an instance, so not enabling this
+    # at the moment...
+    # def getAllPaths(self):
+    #     dagPaths = _api.MDagPathArray()
+    #     self.__apimfn__().getAllPaths(dagPaths)
+    #     return [DagNode(dagPaths[i]) for i in xrange(dagPaths.length())]
+
+    def hasParent(self, parent):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        parentMObj = toMObj(parent)
+        thisMFn = self.__apimfn__()
+        if thisMFn.hasParent(parentMObj):
+            return True
+
+        # quick out... MFnDagNode handles things right if all instances aren't
+        # underworld nodes
+
+        if not thisMFn.isInstanced() and not thisMFn.inUnderWorld():
+            return False
+
+        # See if it's underworld parent is the given parent...
+        # Note that MFnDagPath implementation considers all instances, so we
+        # should too...
+        allPaths = _api.MDagPathArray()
+        thisMFn.getAllPaths(allPaths)
+        for i in xrange(allPaths.length()):
+            path = allPaths[i]
+            pathCount = path.pathCount()
+            if pathCount <= 1:
+                continue
+            # if there's an underworld, there should be at least 3 nodes -
+            # the top parent, the underworld root, and the node in the
+            # underworld
+            assert path.length() >= 3
+            # if they are in the same underworld, MFnDagNode.hasParent would
+            # work - only care about the case where the "immediate" parent is
+            # outside of this node's underworld
+            # Unfortunately, MDagPath.pop() has some strange behavior   - ie, if
+            #     path = |camera1|cameraShape1->|imagePlane1
+            # Then popping it once gives:
+            #     path = |camera1|cameraShape1->|
+            # ...and again gives:
+            #     path = |camera1|cameraShape1
+            # So, we check that popping once has the same pathCount, but twice
+            # has a different path count
+            path.pop()
+            if path.pathCount() != pathCount:
+                continue
+            path.pop()
+            if path.pathCount() != pathCount -1:
+                continue
+            if path.node() == parentMObj:
+                return True
+        return False
+
+    def hasChild(self, child):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        childMObj = toMObj(child)
+        thisMFn = self.__apimfn__()
+        if self.__apimfn__().hasChild(childMObj):
+            return True
+
+        # because hasChild / hasParent consider all instances,
+        # self.hasChild(child) is equivalent to child.hasParent(self)...
+        if not isinstance(child, general.PyNode):
+            child = DagNode(childMObj)
+        return child.hasParent(self)
+
+    def isChildOf(self, parent):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        parentMObj = toMObj(parent)
+        thisMFn = self.__apimfn__()
+        if thisMFn.isChildOf(parentMObj):
+            return True
+
+        # quick out... MFnDagNode handles things right if all instances aren't
+        # underworld nodes
+        if not thisMFn.isInstanced() and not thisMFn.inUnderWorld():
+            return False
+
+        # For each instance path, if it's in the underworld, check to see
+        # if the parent at the same "underworld" level as the parent is the
+        # parent, or a child of it
+        dagArray = _api.MDagPathArray()
+        _api.MDagPath.getAllPathsTo(parentMObj, dagArray)
+        allParentLevels = set()
+        for i in xrange(dagArray.length()):
+            parentMDag = dagArray[i]
+            allParentLevels.add(parentMDag.pathCount())
+        # we only get one parentMFn, but this should be fine as (aside from
+        # not dealing with underworld correctly), MFnDagNode.isParentOf works
+        # correctly for all instances...
+        parentMFn = _api.MFnDagNode(parentMObj)
+
+        dagArray.clear()
+        thisMFn.getAllPaths(dagArray)
+        for i in xrange(dagArray.length()):
+            childMDag = dagArray[i]
+            childPathLevels = childMDag.pathCount()
+            if childPathLevels <= 1:
+                continue
+            for parentUnderworldLevel in allParentLevels:
+                if childMDag.pathCount() <= parentUnderworldLevel:
+                    # standard MFnDagNode.isChildOf would have handled this...
+                    continue
+                sameLevelMDag = _api.MDagPath()
+                childMDag.getPath(sameLevelMDag, parentUnderworldLevel - 1)
+                sameLevelMObj = sameLevelMDag.node()
+                if sameLevelMObj == parentMObj:
+                    return True
+                if parentMFn.isParentOf(sameLevelMObj):
+                    return True
+        return False
+
+    def isParentOf(self, child):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        childMObj = toMObj(child)
+        thisMFn = self.__apimfn__()
+        if thisMFn.isParentOf(childMObj):
+            return True
+
+        # because isChildOf / isParentOf consider all instances,
+        # self.isParentOf(child) is equivalent to child.isChildOf(self)...
+        if not isinstance(child, general.PyNode):
+            child = DagNode(childMObj)
+        return child.isChildOf(self)
 
     def isInstanceOf(self, other):
         """
@@ -1678,7 +1845,7 @@ class Shape(DagNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
 
     def getTransform(self):
-        pass
+        return self.getParent(generations=1)
 
     def setParent(self, *args, **kwargs):
         if 'shape' not in kwargs and 's' not in kwargs:
@@ -2781,7 +2948,7 @@ class Mesh(SurfaceShape):
     numEdges = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'edge', 'numEdges')
     numFaces = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'face', 'numFaces')
 
-    numTriangles = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'triangles', 'numTriangles')
+    numTriangles = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'triangle', 'numTriangles')
     numSelectedTriangles = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles')
     numSelectedFaces = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'faceComponent', 'numSelectedFaces')
     numSelectedEdges = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'edgeComponent', 'numSelectedEdges')
@@ -3658,10 +3825,70 @@ class TransferAttributes(DependNode):
 
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
+class NodetypesLazyLoadModule(_util.LazyLoadModule):
+    '''Like a standard lazy load  module, but with dynamic PyNode class creation
+    '''
+    @classmethod
+    def _unwrappedNodeTypes(cls):
+        # get node types, but avoid checking inheritance for all nodes for
+        # speed. Note that this means we're potentially missing some abstract
+        # edge cases - TadskAssetInstanceNode_TdependNode type stuff, that only
+        # shows up in inheritance hierarchies - but I can't see people wanting
+        # to access those directly from nodetypes anyway, so I'm judging that
+        # an acceptable risk
+        allNodes = _apicache._getAllMayaTypes(addAncestors=False,
+                                              noManips='fast')
+
+        return allNodes - set(mayaTypeNameToPymelTypeName)
+
+    def __getattr__(self, name):
+        '''Check to see if the name corresponds to a PyNode that hasn't been
+        added yet'''
+        # In the normal course of operation, this __getattr__ shouldn't be
+        # needed - PyNodes corresponding to maya node types should be created
+        # when pymel starts up, or when a plugin loads.
+        # However, there are some unusual sitations that can arise where new
+        # node types are missed... because a plugin can actually register new
+        # nodes at any time, not just during it's initialization!
+        #
+        # This happened with mtoa - if you have an mtoa extension, which adds
+        # some maya nodes, but requires another maya plugin... those nodes
+        # will not be added until that other maya plugin is loaded... but
+        # the nodes will be added to mtoa, NOT the plugin that triggered
+        # the plugin-loaded callback. Also, the node adding happens within
+        # ANOTHER plugin-loaded callback, which generally runs AFTER pymel's
+        # plugin-loaded callback!
+        uncapName = _util.uncapitalize(name)
+        if uncapName in self._unwrappedNodeTypes():
+            # it's a maya node we haven't wrapped yet! Wrap it and return!
+            import pymel.core
+
+            mayaType = uncapName
+
+            # See if it's a plugin node...
+            nodeClass = _api.MNodeClass(mayaType)
+            try:
+                pluginPath = nodeClass.pluginName()
+                plugin = cmds.pluginInfo(pluginPath, q=1, name=1)
+            except RuntimeError:
+                # if we can't find a plugin
+                pyNodeName =_factories.addCustomPyNode(self, mayaType,
+                                                       immediate=True)
+            else:
+                pyNodeName = pymel.core._addPluginNode(plugin, mayaType,
+                                                       immediate=True)
+            if pyNodeName != name:
+                _logger.raiseLog(_logger.WARNING,
+                                 "dynamically added node when %r requested, but"
+                                 " returned PyNode had name %r" % (
+                                     name, pyNodeName))
+            return self.__dict__[pyNodeName]
+        raise AttributeError(name)
+
 
 def _createPyNodes():
 
-    dynModule = _util.LazyLoadModule(__name__, globals())
+    dynModule = NodetypesLazyLoadModule(__name__, globals())
 
     for mayaType, parents, children in _factories.nodeHierarchy:
 

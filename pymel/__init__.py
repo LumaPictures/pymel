@@ -23,11 +23,11 @@ Attitude Studio, and ImageMovers Digital.
 """
 
 
-__versiontuple__ = (1, 0, 7)
+__versiontuple__ = (1, 0, 9)
 __version__ = '.'.join(str(x) for x in __versiontuple__)
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 
 import sys
-assert sys.version_info > (2, 6), ("pymel version %s is compatible with Maya2011/python2.6 or later" % __version__)
+assert sys.version_info > (2, 6), ("pymel version %s is compatible with Maya2013/python2.6 or later" % __version__)
 
 #import internal.plogging as plogging

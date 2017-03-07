@@ -568,7 +568,7 @@ class universalmethod(object):
         newfunc.__doc__ = self.__doc__
         return newfunc
 
-def LazyLoadModule(name, contents):
+class LazyLoadModule(types.ModuleType):
     """
     :param name: name of the module
     :param contents: dictionary of initial module globals
@@ -631,113 +631,110 @@ def LazyLoadModule(name, contents):
         # update the lazyModule with our new additions (ie, fooExpanded)
         lazyModule._updateLazyModule(globals())
     """
-    class _LazyLoadModule(types.ModuleType):
+    class LazyLoader(object):
 
-        class LazyLoader(object):
+        """
+        A data descriptor that delays instantiation of an object
+        until it is first accessed.
+        """
 
-            """
-            A data descriptor that delays instantiation of an object
-            until it is first accessed.
-            """
+        def __init__(self, name, creator, *creatorArgs, **creatorKwargs):
+            self.creator = creator
+            self.args = creatorArgs
+            self.kwargs = creatorKwargs
+            self.name = name
 
-            def __init__(self, name, creator, *creatorArgs, **creatorKwargs):
-                self.creator = creator
-                self.args = creatorArgs
-                self.kwargs = creatorKwargs
-                self.name = name
+        def __get__(self, obj, objtype):
+            # In case the LazyLoader happens to get stored on more
+            # than one object, cache the created object so the exact
+            # same one will be returned
+            if not hasattr(self, 'newobj'):
+                # use the callback to create the object that will replace us
+                self.newobj = self.creator(*self.args, **self.kwargs)
+                if isinstance(obj, types.ModuleType) and hasattr(self.newobj, '__module__'):
+                    self.newobj.__module__ = obj.__name__
+            # print "Lazy-loaded object:", self.name
+            # delattr( obj.__class__, self.name) # should we overwrite with None?
+            # overwrite ourselves with the newly created object
+            setattr(obj, self.name, self.newobj)
+            return self.newobj
 
-            def __get__(self, obj, objtype):
-                # In case the LazyLoader happens to get stored on more
-                # than one object, cache the created object so the exact
-                # same one will be returned
-                if not hasattr(self, 'newobj'):
-                    # use the callback to create the object that will replace us
-                    self.newobj = self.creator(*self.args, **self.kwargs)
-                    if isinstance(obj, types.ModuleType) and hasattr(self.newobj, '__module__'):
-                        self.newobj.__module__ = obj.__name__
-                # print "Lazy-loaded object:", self.name
-                # delattr( obj.__class__, self.name) # should we overwrite with None?
-                # overwrite ourselves with the newly created object
-                setattr(obj, self.name, self.newobj)
-                return self.newobj
+    def __init__(self, name, contents):
+        types.ModuleType.__init__(self, name)
+        self.__dict__.update(contents)
+        self._lazyGlobals = contents  # globals of original module
+        # add ourselves to sys.modules, overwriting the original module
+        sys.modules[name] = self
+        # the above line assigns a None value to all entries in the original globals.
+        # luckily, we have a copy on this module we can use to restore it.
+        self._lazyGlobals.update(self.__dict__)
 
-        def __init__(self, name, contents):
-            types.ModuleType.__init__(self, name)
-            self.__dict__.update(contents)
-            self._lazyGlobals = contents  # globals of original module
-            # add ourselves to sys.modules, overwriting the original module
-            sys.modules[name] = self
-            # the above line assigns a None value to all entries in the original globals.
-            # luckily, we have a copy on this module we can use to restore it.
-            self._lazyGlobals.update(self.__dict__)
+    @property
+    def __all__(self):
+        public = [x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_')]
+        return public
 
-        @property
-        def __all__(self):
-            public = [x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_')]
-            return public
+    @classmethod
+    def _lazyModule_addAttr(cls, name, creator, *creatorArgs, **creatorKwargs):
+        lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
+        setattr(cls, name, lazyObj)
+        return lazyObj
 
-        @classmethod
-        def _lazyModule_addAttr(cls, name, creator, *creatorArgs, **creatorKwargs):
-            lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
-            setattr(cls, name, lazyObj)
-            return lazyObj
-
-        def __setitem__(self, attr, args):
-            """
-            dynModule['attrName'] = ( callbackFunc, ( 'arg1', ), {} )
-            """
-            # args will either be a single callable, or will be a tuple of
-            # ( callable, (args,), {kwargs} )
-            if hasattr(args, '__call__'):
-                callback = args
-            elif isinstance(args, (tuple, list)):
-                if len(args) >= 1:
-                    assert hasattr(args[0], '__call__'), 'first argument must be callable'
-                    callback = args[0]
-                else:
-                    raise ValueError, "must supply at least one argument"
-                if len(args) >= 2:
-                    assert hasattr(args[1], '__iter__'), 'second argument must be iterable'
-                    cb_args = args[1]
-                else:
-                    cb_args = ()
-                    cb_kwargs = {}
-                if len(args) == 3:
-                    assert operator.isMappingType(args[2]), 'third argument must be a mapping type'
-                    cb_kwargs = args[2]
-                else:
-                    cb_kwargs = {}
-                if len(args) > 3:
-                    raise ValueError, "if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively"
+    def __setitem__(self, attr, args):
+        """
+        dynModule['attrName'] = ( callbackFunc, ( 'arg1', ), {} )
+        """
+        # args will either be a single callable, or will be a tuple of
+        # ( callable, (args,), {kwargs} )
+        if hasattr(args, '__call__'):
+            callback = args
+        elif isinstance(args, (tuple, list)):
+            if len(args) >= 1:
+                assert hasattr(args[0], '__call__'), 'first argument must be callable'
+                callback = args[0]
             else:
-                raise ValueError, "the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})"
-            self._lazyModule_addAttr(attr, callback, *cb_args, **cb_kwargs)
+                raise ValueError, "must supply at least one argument"
+            if len(args) >= 2:
+                assert hasattr(args[1], '__iter__'), 'second argument must be iterable'
+                cb_args = args[1]
+            else:
+                cb_args = ()
+                cb_kwargs = {}
+            if len(args) == 3:
+                assert operator.isMappingType(args[2]), 'third argument must be a mapping type'
+                cb_kwargs = args[2]
+            else:
+                cb_kwargs = {}
+            if len(args) > 3:
+                raise ValueError, "if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively"
+        else:
+            raise ValueError, "the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})"
+        self._lazyModule_addAttr(attr, callback, *cb_args, **cb_kwargs)
 
-        def __getitem__(self, attr):
-            """
-            return a LazyLoader without initializing it, or, if a LazyLoader does not exist with this name,
-            a real object
-            """
-            try:
-                return self.__class__.__dict__[attr]
-            except KeyError:
-                return self.__dict__[attr]
+    def __getitem__(self, attr):
+        """
+        return a LazyLoader without initializing it, or, if a LazyLoader does not exist with this name,
+        a real object
+        """
+        try:
+            return self.__class__.__dict__[attr]
+        except KeyError:
+            return self.__dict__[attr]
 
-        # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
-        # 'real' entries in the module
-        def _lazyModule_update(self):
-            """
-            Used to update the contents of the LazyLoadModule with the contents of another dict.
-            """
-            # For debugging, print out a list of things in the _lazyGlobals that
-            # AREN'T in __dict__
+    # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
+    # 'real' entries in the module
+    def _lazyModule_update(self):
+        """
+        Used to update the contents of the LazyLoadModule with the contents of another dict.
+        """
+        # For debugging, print out a list of things in the _lazyGlobals that
+        # AREN'T in __dict__
 #            print "_lazyModule_update:"
 #            print "only in dynamic module:", [x for x in
 #                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(self._lazyGlobals)
 #                                              if not x.startswith('__')]
-            self.__dict__.update(self._lazyGlobals)
+        self.__dict__.update(self._lazyGlobals)
 
-    return _LazyLoadModule(name, contents)
 
 # Note - since anything referencing attributes that only exist on the lazy module
 # must be prefaced with a ref to the lazy module, if we are converting a pre-existing

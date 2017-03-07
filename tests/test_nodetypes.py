@@ -1895,6 +1895,17 @@ class testCase_DagNode(TestCaseExtended):
             setB[x].overrideVisibility.set(0)
             self.assertFalse(setB[x].isVisible())
 
+class testCase_Shape(TestCaseExtended):
+    def setUp(self):
+        self.trans, self.polySphere = pm.polySphere()
+        self.shape = self.trans.getShape()
+
+    def test_getTransform(self):
+        self.assertEqual(self.shape.getTransform(), self.trans)
+
+    def tearDown(self):
+        pm.delete(self.trans)
+
 class testCase_transform(TestCaseExtended):
     def setUp(self):
         self.trans = pm.createNode('transform')
@@ -2222,21 +2233,43 @@ class testCase_Mesh(unittest.TestCase):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
             self.assertEqual(self.trans.vtx[i].getColor(), color)
 
-class testCase_MeshVert(unittest.TestCase):
+class MeshComponentTesterMixin(object):
     def setUp(self):
         pm.newFile(f=1)
-        self.trans = pm.polyCube()[0]
-        self.cube = self.trans.getShape()
 
+    def makeCube(self):
+        self.cubeTrans = pm.polyCube()[0]
+        self.cube = self.cubeTrans.getShape()
+
+    def makeDegenerate(self):
+        # for testing an unconnected vert - don't know of a way to have an
+        # unconnected edge...
+        import maya.OpenMaya as om
+        pts = om.MFloatPointArray()
+        pts.append(0, 0, 0)
+        pts.append(1, 0, 0)
+        pts.append(0, 0, 1)
+        pts.append(1, 0, 1)
+        counts = om.MIntArray(1, 3)
+        indices = om.MIntArray()
+        indices.append(0)
+        indices.append(1)
+        indices.append(2)
+        self.degenTrans = pm.PyNode(om.MFnMesh().create(4, 1, pts, counts, indices))
+        self.degen = self.degenTrans.getShape()
+
+class testCase_MeshVert(unittest.TestCase, MeshComponentTesterMixin):
     def test_setVertexColor(self):
+        self.makeCube()
         for i in range(8):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
-            self.trans.vtx[i].setColor(color)
+            self.cubeTrans.vtx[i].setColor(color)
         for i in range(8):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
             self.assertEqual(self.cube.vtx[i].getColor(), color)
 
     def test_connections(self):
+        self.makeCube()
         self.assertTrue(self.cube.vtx[2].isConnectedTo(self.cube.vtx[3]))
         self.assertFalse(self.cube.vtx[2].isConnectedTo(self.cube.vtx[7]))
 
@@ -2246,13 +2279,46 @@ class testCase_MeshVert(unittest.TestCase):
         self.assertTrue(self.cube.vtx[6].isConnectedTo(self.cube.f[5]))
         self.assertFalse(self.cube.vtx[6].isConnectedTo(self.cube.f[0]))
 
-class testCase_MeshEdge(unittest.TestCase):
-    def setUp(self):
-        pm.newFile(f=1)
-        self.trans = pm.polyCube()[0]
-        self.cube = self.trans.getShape()
+    def test_connectedVertices_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.vtx[0].connectedVertices())
+        expected = [1, 2, 6]
+        self.assertEqual(result, expected)
+        
+    def test_connectedVertices_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.vtx[3].connectedVertices())
+        expected = []
+        self.assertEqual(result, expected)
 
+    def test_connectedEdges_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.vtx[0].connectedEdges())
+        expected = [0, 4, 10]
+        self.assertEqual(result, expected)
+
+    def test_connectedEdges_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.vtx[3].connectedEdges())
+        expected = []
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.vtx[0].connectedFaces())
+        expected = [0, 3, 5]
+        self.assertEqual(result, expected)
+        
+    def test_connectedFaces_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.vtx[3].connectedFaces())
+        expected = []
+        self.assertEqual(result, expected)
+
+
+class testCase_MeshEdge(unittest.TestCase, MeshComponentTesterMixin):
     def test_connections(self):
+        self.makeCube()
         self.assertTrue(self.cube.e[7].isConnectedTo(self.cube.vtx[5]))
         self.assertFalse(self.cube.e[5].isConnectedTo(self.cube.vtx[5]))
 
@@ -2262,14 +2328,30 @@ class testCase_MeshEdge(unittest.TestCase):
         self.assertTrue(self.cube.e[1].isConnectedTo(self.cube.f[0]))
         self.assertFalse(self.cube.e[6].isConnectedTo(self.cube.f[2]))
 
+    # no degenerate tests, because don't know how to make an unconnected edge!
 
-class testCase_MeshFace(unittest.TestCase):
-    def setUp(self):
-        pm.newFile(f=1)
-        self.trans = pm.polyCube()[0]
-        self.cube = self.trans.getShape()
+    def test_connectedVertices_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.e[0].connectedVertices())
+        expected = [0, 1]
+        self.assertEqual(result, expected)
 
+    def test_connectedEdges_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.e[0].connectedEdges())
+        expected = [4, 5, 10, 11]
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.e[0].connectedFaces())
+        expected = [0, 3]
+        self.assertEqual(result, expected)
+
+
+class testCase_MeshFace(unittest.TestCase, MeshComponentTesterMixin):
     def test_connections(self):
+        self.makeCube()
         # Oddly enough, in a cube, all the verts 'connected' to the face
         # are the ones NOT contained in it, and all the ones that are
         # contained are considered not connected...
@@ -2281,6 +2363,43 @@ class testCase_MeshFace(unittest.TestCase):
 
         self.assertTrue(self.cube.f[2].isConnectedTo(self.cube.f[1]))
         self.assertFalse(self.cube.f[5].isConnectedTo(self.cube.f[4]))
+
+    def test_connectedVertices_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.f[0].connectedVertices())
+        expected = [4, 5, 6, 7]
+        self.assertEqual(result, expected)
+
+    def test_connectedVertices_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.f[0].connectedVertices())
+        expected = []
+        self.assertEqual(result, expected)
+
+    def test_connectedEdges_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.f[0].connectedEdges())
+        expected = [6, 7, 10, 11]
+        self.assertEqual(result, expected)
+
+    def test_connectedEdges_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.f[0].connectedEdges())
+        expected = []
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_norm(self):
+        self.makeCube()
+        result = sorted(x.index() for x in self.cube.f[0].connectedFaces())
+        expected = [1, 3, 4, 5]
+        self.assertEqual(result, expected)
+
+    def test_connectedFaces_degenerate(self):
+        self.makeDegenerate()
+        result = sorted(x.index() for x in self.degen.f[0].connectedFaces())
+        expected = []
+        self.assertEqual(result, expected)
+
 
 class testCase_ConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
@@ -2539,6 +2658,7 @@ class testCase_Character(unittest.TestCase):
 class testCase_listAttr(unittest.TestCase):
     # FIXME: to prevent this test from changing over time it might be a good idea to create
     # custom MPxNode type with known attributes
+    # See also: test_general.test_Attribute_iterDescendants
     def setUp(self):
         pm.newFile(f=1)
         self.cube1 = pm.polyCube(ch=0)[0]
@@ -2547,8 +2667,8 @@ class testCase_listAttr(unittest.TestCase):
         self.blend = pm.blendShape(self.cube2, self.cube3, self.cube1)[0]
 
     def test_standard(self):
-        results = sorted(x.name() for x in self.blend.listAttr())
-        expected = [
+        results = set(x.name() for x in self.blend.listAttr())
+        expected = {
             u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.baseOriginX',
@@ -2605,12 +2725,18 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.targetOriginZ',
             u'blendShape1.topologyCheck',
             u'blendShape1.useTargetCompWeights',
-            u'blendShape1.weight']
-        self.assertEqual(results, expected)
+            u'blendShape1.weight',
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertIn(u'blendShape1.attributeAliasList', results)
+        self.assertIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].baseWeights', results)
+        self.assertIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
 
     def test_topLevel(self):
-        results = sorted(x.name() for x in self.blend.listAttr(topLevel=True))
-        expected = [
+        results = set(x.name() for x in self.blend.listAttr(topLevel=True))
+        expected = {
             u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.binMembership',
@@ -2633,12 +2759,18 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.targetOrigin',
             u'blendShape1.topologyCheck',
             u'blendShape1.useTargetCompWeights',
-            u'blendShape1.weight']
-        self.assertEqual(results, expected)
+            u'blendShape1.weight',
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertIn(u'blendShape1.attributeAliasList', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
 
     def test_descendants(self):
-        results = sorted(x.name() for x in self.blend.listAttr(descendants=True))
-        expected = [
+        results = set(x.name() for x in self.blend.listAttr(descendants=True))
+        expected = {
             u'blendShape1.attributeAliasList',
             u'blendShape1.baseOrigin',
             u'blendShape1.baseOriginX',
@@ -2702,8 +2834,14 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.useTargetCompWeights',
             u'blendShape1.weight',
             u'blendShape1.weight[0]',
-            u'blendShape1.weight[1]']
-        self.assertEqual(results, expected)
+            u'blendShape1.weight[1]',
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertIn(u'blendShape1.attributeAliasList', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertIn(u'blendShape1.inputTarget[0].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
 
 
 # current behavior is that using invalid nodes only raises a warning - may want
@@ -2771,3 +2909,110 @@ class testCase_invalidNode(unittest.TestCase):
 #    currentUnit(linear=startLinear)
 #    pm.delete( light )
 #                    #print types
+
+class testCase_classification(unittest.TestCase):
+    def setUp(self):
+        self.tr, _ = pm.polySphere()
+
+    def testClassification(self):
+        self.assertIn('drawdb/geometry/transform', self.tr.classification())
+
+    def testSatisfies(self):
+        self.assertFalse(self.tr.classification(satisfies='blah'))
+        self.assertTrue(self.tr.classification(satisfies='drawdb/geometry'))
+
+    def tearDown(self):
+        pm.delete(self.tr)
+
+class testCase_parentTests(unittest.TestCase):
+    def setUp(self):
+        self.cam = pm.createNode('camera')
+        self.camTrans = self.cam.getParent()
+        self.ipTrans, self.ip = pm.imagePlane(camera=self.cam)
+
+    def tearDown(self):
+        pm.delete(self.camTrans)
+
+    def test_hasParent(self):
+        self.assertFalse(self.camTrans.hasParent(self.camTrans))
+        self.assertFalse(self.camTrans.hasParent(self.cam))
+        self.assertFalse(self.camTrans.hasParent(self.ipTrans))
+        self.assertFalse(self.camTrans.hasParent(self.ip))
+
+        self.assertTrue(self.cam.hasParent(self.camTrans))
+        self.assertFalse(self.cam.hasParent(self.cam))
+        self.assertFalse(self.cam.hasParent(self.ipTrans))
+        self.assertFalse(self.cam.hasParent(self.ip))
+
+        self.assertFalse(self.ipTrans.hasParent(self.camTrans))
+        self.assertTrue(self.ipTrans.hasParent(self.cam))
+        self.assertFalse(self.ipTrans.hasParent(self.ipTrans))
+        self.assertFalse(self.ipTrans.hasParent(self.ip))
+
+        self.assertFalse(self.ip.hasParent(self.camTrans))
+        self.assertFalse(self.ip.hasParent(self.cam))
+        self.assertTrue(self.ip.hasParent(self.ipTrans))
+        self.assertFalse(self.ip.hasParent(self.ip))
+
+    def test_hasChild(self):
+        self.assertFalse(self.camTrans.hasChild(self.camTrans))
+        self.assertTrue(self.camTrans.hasChild(self.cam))
+        self.assertFalse(self.camTrans.hasChild(self.ipTrans))
+        self.assertFalse(self.camTrans.hasChild(self.ip))
+
+        self.assertFalse(self.cam.hasChild(self.camTrans))
+        self.assertFalse(self.cam.hasChild(self.cam))
+        self.assertTrue(self.cam.hasChild(self.ipTrans))
+        self.assertFalse(self.cam.hasChild(self.ip))
+
+        self.assertFalse(self.ipTrans.hasChild(self.camTrans))
+        self.assertFalse(self.ipTrans.hasChild(self.cam))
+        self.assertFalse(self.ipTrans.hasChild(self.ipTrans))
+        self.assertTrue(self.ipTrans.hasChild(self.ip))
+
+        self.assertFalse(self.ip.hasChild(self.camTrans))
+        self.assertFalse(self.ip.hasChild(self.cam))
+        self.assertFalse(self.ip.hasChild(self.ipTrans))
+        self.assertFalse(self.ip.hasChild(self.ip))
+
+    def test_isParentOf(self):
+        self.assertFalse(self.camTrans.isParentOf(self.camTrans))
+        self.assertTrue(self.camTrans.isParentOf(self.cam))
+        self.assertTrue(self.camTrans.isParentOf(self.ipTrans))
+        self.assertTrue(self.camTrans.isParentOf(self.ip))
+
+        self.assertFalse(self.cam.isParentOf(self.camTrans))
+        self.assertFalse(self.cam.isParentOf(self.cam))
+        self.assertTrue(self.cam.isParentOf(self.ipTrans))
+        self.assertTrue(self.cam.isParentOf(self.ip))
+
+        self.assertFalse(self.ipTrans.isParentOf(self.camTrans))
+        self.assertFalse(self.ipTrans.isParentOf(self.cam))
+        self.assertFalse(self.ipTrans.isParentOf(self.ipTrans))
+        self.assertTrue(self.ipTrans.isParentOf(self.ip))
+
+        self.assertFalse(self.ip.isParentOf(self.camTrans))
+        self.assertFalse(self.ip.isParentOf(self.cam))
+        self.assertFalse(self.ip.isParentOf(self.ipTrans))
+        self.assertFalse(self.ip.isParentOf(self.ip))
+        
+    def test_isChildOf(self):
+        self.assertFalse(self.camTrans.isChildOf(self.camTrans))
+        self.assertFalse(self.camTrans.isChildOf(self.cam))
+        self.assertFalse(self.camTrans.isChildOf(self.ipTrans))
+        self.assertFalse(self.camTrans.isChildOf(self.ip))
+
+        self.assertTrue(self.cam.isChildOf(self.camTrans))
+        self.assertFalse(self.cam.isChildOf(self.cam))
+        self.assertFalse(self.cam.isChildOf(self.ipTrans))
+        self.assertFalse(self.cam.isChildOf(self.ip))
+
+        self.assertTrue(self.ipTrans.isChildOf(self.camTrans))
+        self.assertTrue(self.ipTrans.isChildOf(self.cam))
+        self.assertFalse(self.ipTrans.isChildOf(self.ipTrans))
+        self.assertFalse(self.ipTrans.isChildOf(self.ip))
+
+        self.assertTrue(self.ip.isChildOf(self.camTrans))
+        self.assertTrue(self.ip.isChildOf(self.cam))
+        self.assertTrue(self.ip.isChildOf(self.ipTrans))
+        self.assertFalse(self.ip.isChildOf(self.ip))

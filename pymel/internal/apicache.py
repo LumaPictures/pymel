@@ -83,6 +83,8 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         if not GhostObjsOkHere.OK():
             _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be unnecessary in maya versions past 2012 (except when rebuilding cache)')
 
+    _logger.debug("Creating ghost node: %s" % mayaType)
+
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
@@ -166,8 +168,7 @@ class _GhostObjMaker(object):
                 obj = api.toMObject(allObj[0])
             else:
                 if mayaType in ApiCache.CRASH_TYPES:
-                    # the two items in CRASH_TYPES are both manips...
-                    if self.manipError:
+                    if self.manipError and "Manip" in mayaType:
                         raise ManipNodeTypeError
                     obj = None
                 else:
@@ -308,8 +309,10 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
     addAncestors : bool
         If true, add to the list of nodes returned all of their ancestors as
         well
-    noManips : bool
-        If true, filter out any manipulator node types
+    noManips : bool | 'fast'
+        If true, filter out any manipulator node types; if the special value
+        'fast', then it will filter out manipulator node types, but will do so
+        using a faster method that may potentially be less thorough
     noPlugins : bool
         If true, filter out any nodes defined in plugins (note - if
         basePluginTypes is True, and noPlugins is False, the basePluginTypes
@@ -357,6 +360,15 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
     if basePluginTypes:
         import pymel.api.plugins
         abstractNodes.update(pymel.api.plugins.pluginMayaTypes)
+
+    # If we're doing addAncestors anyway, might was well get manips with the
+    # more thorough method, using the inheritance chain, since we're doing that
+    # anyway...
+    if noManips == 'fast' and not addAncestors:
+        manips = set(cmds.nodeType('manip3D', isTypeName=1, derived=1))
+        realNodes.difference_update(manips)
+        abstractNodes.difference_update(manips)
+        noManips = False
     if addAncestors or noManips:
         # There are a few nodes which will not be returned even by
         # allNodeTypes(includeAbstract=True), but WILL show up in the
@@ -499,6 +511,40 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
         print mayaType, lineage
         raise
 
+    if len(set(lineage)) != len(lineage):
+        # cyclical lineage:  first discovered with xgen nodes.
+        # might be a result of multiple inheritance being returned strangely by nodeType.
+        #
+        # an example lineage is:
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator',
+        #  u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'aiSkyDomeLight']
+        # note the repeat - we will try to fix lineages like this, resolving to:
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator', u'aiSkyDomeLight']
+
+        # first pop the rightmost element, which is the mayaType...
+        if lineage.pop() != mayaType:
+            raise RuntimeError("lineage for %s did not end with it's own node type" % mayaType)
+
+        # then try to find the first element somewhere else - this should indicate the start of the repeated chain...
+        try:
+            nextIndex = lineage.index(lineage[0], 1)
+        except ValueError:
+            # unknown case, don't know how to fix...
+            pass
+        else:
+            firstLineage = lineage[:nextIndex]
+            secondLineage = lineage[nextIndex:]
+            if len(firstLineage) < len(secondLineage):
+                shorter = firstLineage
+                longer = secondLineage
+            else:
+                shorter = secondLineage
+                longer = firstLineage
+            if longer[:len(shorter)] == shorter:
+                # yay! we know how to fix!
+                lineage = longer
+                lineage.append(mayaType)
+
     if updateCache and lineage:
         if len(set(lineage)) != len(lineage):
             # cyclical lineage:  first discovered with xgen nodes.
@@ -614,6 +660,27 @@ class ApiCache(startup.SubItemCache):
         'xformManip': 'kXformManip',
         'moveVertexManip': 'kMoveVertexManip',
     }
+
+    # For some reason, a bunch of nodes crashed Maya 2016 Ext1, but they
+    # apparently worked with 2016.5 / 2016 Ext2 (since it didn't crash when I
+    # built it's cache - though it was a pre-release, so perhaps it didn't have
+    # all plugins?)
+    if versions.v2016_EXT1 <= versions.current() < versions.v2016_EXT2:
+        CRASH_TYPES.update({
+            'type': 'kPluginDependNode',
+            'vectorExtrude': 'kPluginDependNode',
+            'shellDeformer': 'kPluginDependNode',
+            'displayPoints': 'kPluginLocatorNode',
+            'svgToPoly': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'vectorAdjust': 'kPluginDeformerNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+            'objectGrpToComp': 'kPluginDependNode',
+        })
 
     # hold any overrides for mayaTypesToApiTypes...
     # ie, for cases where the name guess is wrong, or for weird plugin types
@@ -761,6 +828,7 @@ class ApiCache(startup.SubItemCache):
                 reservedMayaTypes[mayaType] = apiGuess
 
         reservedMayaTypes.update(self.MAYA_TO_API_OVERRIDES)
+        reservedMayaTypes.update(self.CRASH_TYPES)
         # filter to make sure all these types exist in current version (some are Maya2008 only)
         reservedMayaTypes = dict((item[0], item[1])
                                  for item in reservedMayaTypes.iteritems()
