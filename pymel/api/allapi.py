@@ -93,8 +93,9 @@ class SafeApiPtr(object):
 
     def __init__(self, valueType, scriptUtil=None, size=1, asTypeNPtr=False):
         """
-        :Parameters:
-        valueType : `string`
+        Parameters
+        ----------
+        valueType : str
             The name of the maya pointer type you would like
             returned - ie, 'int', 'short', 'float'.
         scriptUtil : `MScriptUtil`

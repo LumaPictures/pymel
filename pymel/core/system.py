@@ -52,6 +52,7 @@ import pymel.internal as _internal
 import pymel.internal.pmcmds as cmds
 import pymel.versions as versions
 
+
 _logger = _internal.getLogger(__name__)
 
 
@@ -79,18 +80,19 @@ except (KeyError, AssertionError):
 
 
 def _getTypeFromExtension(path, mode='write'):
-    '''
+    """
     Parameters
     ----------
     path : str
         path from with to pull the extension from - note that it may NOT be
         ONLY the extension - ie, "obj" and ".obj", will not work, but
         "foo.obj" will
-    mode : {'write', 'read'}
+    mode : str
+        {'write', 'read'}
         the type is basically a string name of a file translator, which can
         have different ones registered for reading or writing; this specifies
         whether you're looking for the read or write translator
-    '''
+    """
     ext = Path(path).ext
     return str(Translator.fromExtension(ext, mode=mode))
 
@@ -146,7 +148,7 @@ def untitledFileName():
 
 class UndoChunk(object):
 
-    '''Context manager for encapsulating code in a single undo.
+    """Context manager for encapsulating code in a single undo.
 
     Use in a with statement
     Wrapper for cmds.undoInfo(openChunk=1)/cmds.undoInfo(closeChunk=1)
@@ -163,7 +165,7 @@ class UndoChunk(object):
     >>> pm.undo() # Due to the undo chunk, all three are undone at once
     >>> pm.ls("MyNode*", type='transform')
     []
-    '''
+    """
 
     def __enter__(self):
         cmds.undoInfo(openChunk=1)
@@ -220,28 +222,54 @@ class Namespace(unicode):
     __gt__ = lambda self, other: self.__cmp__(other) > 0
 
     def splitAll(self):
+        """
+        Returns
+        -------
+        List[unicode]
+        """
         return self.strip(":").split(":")
 
     def shortName(self):
+        """
+        Returns
+        -------
+        unicode
+        """
         return self.splitAll()[-1]
 
     def getParent(self):
+        """
+        Returns
+        -------
+        Namespace
+        """
         if (unicode(self) != u":"):
             return self.__class__(':'.join(self.splitAll()[:-1]))
 
     def ls(self, pattern="*", **kwargs):
+        """
+        Returns
+        -------
+        List[general.PyNode]
+        """
         return general.ls(self + pattern, **kwargs)
 
     def getNode(self, nodeName, verify=True):
+        """
+        Returns
+        -------
+        general.PyNode
+        """
         node = general.PyNode(self + nodeName)
         if verify and not node.exists():
             raise Exception("Node '%s' does not exist" % node)
         return node
 
     def listNamespaces(self, recursive=False, internal=False):
-        '''List the namespaces contained within this namespace.
+        """List the namespaces contained within this namespace.
 
-        :parameters:
+        Parameters
+        ----------
         recursive : `bool`
             Set to True to enable recursive search of sub (and sub-sub, etc)
             namespaces
@@ -249,7 +277,11 @@ class Namespace(unicode):
             By default, this command filters out certain automatically created
             maya namespaces (ie, :UI, :shared); set to True to show these
             internal namespaces as well
-        '''
+
+        Returns
+        -------
+        List[Namespace]
+        """
         curNS = Namespace.getCurrent()
 
         self.setCurrent()
@@ -275,9 +307,10 @@ class Namespace(unicode):
         return namespaces
 
     def listNodes(self, recursive=False, internal=False):
-        '''List the nodes contained within this namespace.
+        """List the nodes contained within this namespace.
 
-        :parameters:
+        Parameters
+        ----------
         recursive : `bool`
             Set to True to enable recursive search of sub (and sub-sub, etc)
             namespaces
@@ -285,7 +318,11 @@ class Namespace(unicode):
             By default, this command filters out nodes in certain automatically
             created maya namespaces (ie, :UI, :shared); set to True to show
             these internal namespaces as well
-        '''
+
+        Returns
+        -------
+        List[general.PyNode]
+        """
         curNS = Namespace.getCurrent()
 
         self.setCurrent()
@@ -311,7 +348,7 @@ class Namespace(unicode):
         cmds.namespace(set=self)
 
     def clean(self, haltOnError=True, reparentOtherChildren=True):
-        '''Deletes all nodes in this namespace
+        """Deletes all nodes in this namespace
 
         Parameters
         ----------
@@ -324,7 +361,7 @@ class Namespace(unicode):
             in this namespace, then will attempt to reparent these children
             under world (errors during these reparenting attempts is controlled
             by haltOnError)
-        '''
+        """
         cur = Namespace.getCurrent()
         self.setCurrent()
         toDelete = cmds.namespaceInfo(ls=1, dp=1) or []
@@ -367,7 +404,7 @@ class Namespace(unicode):
     #   add in support for flags to control recursive behavior, and handling of
     #   children of transforms that are NOT in this namespace
     def remove(self, haltOnError=True, reparentOtherChildren=True):
-        '''Removes this namespace
+        """Removes this namespace
 
         Recursively deletes any nodes and sub-namespaces
 
@@ -382,7 +419,7 @@ class Namespace(unicode):
             in this namespace, then will attempt to reparent these children
             under world (errors during these reparenting attempts is controlled
             by haltOnError)
-        '''
+        """
         self.clean(haltOnError=haltOnError,
                    reparentOtherChildren=reparentOtherChildren)
         for subns in self.listNamespaces():
@@ -402,15 +439,20 @@ def listNamespaces_old():
         return []
 
 def listNamespaces(root=None, recursive=False, internal=False):
-    """Returns a list of the namespaces in the scene"""
+    """Returns a list of the namespaces in the scene
+
+    Returns
+    -------
+    List[Namespace]
+    """
     return Namespace(root or ":").listNamespaces(recursive, internal)
 
 
 def namespaceInfo(*args, **kwargs):
     """
-Modifications:
-    - returns an empty list when the result is None
-    - returns wrapped classes for listOnlyDependencyNodes
+    Modifications:
+        - returns an empty list when the result is None
+        - returns wrapped classes for listOnlyDependencyNodes
     """
     pyNodeWrap = kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False))
     if pyNodeWrap:
@@ -726,10 +768,10 @@ class FileInfo(collections.MutableMapping):
     """
 
     class __metaclass__(_util.Singleton, abc.ABCMeta):
-        '''
+        """
         Simple subclass of the abstract base metaclass, and the Pymel Singleton.
         Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
-        '''
+        """
         pass
 
     def __getitem__(self, item):
@@ -831,37 +873,34 @@ def iterReferences(parentReference=None, recursive=False, namespaces=False,
 
     Parameters
     ----------
-    parentReference : string, `Path`, or `FileReference`
+    parentReference : Union[str, Path, FileReference]
         a reference to get sub-references from. If None (default), the current
         scene is used.
-
     recursive : bool
         recursively determine all references and sub-references
-
     namespaces : bool
         controls whether namespaces are returned
-
     refNodes : bool
         controls whether reference PyNodes are returned
-
-    refNodes : bool
+    references : bool
         controls whether FileReferences returned
-
-    recurseType : string
+    recurseType : str
         if recursing, whether to do a 'breadth' or 'depth' first search;
         defaults to a 'depth' first
-
-    loaded : bool or None
+    loaded : Optional[bool]
         whether to return loaded references in the return result; if both of
         loaded/unloaded are not given (or None), then both are assumed True;
         if only one is given, the other is assumed to have the opposite boolean
         value
-
-    unloaded : bool or None
+    unloaded : Optional[bool]
         whether to return unloaded references in the return result; if both of
         loaded/unloaded are not given (or None), then both are assumed True;
         if only one is given, the other is assumed to have the opposite boolean
         value
+
+    Returns
+    -------
+    Iterator[Union[FileReference, Tuple[unicode, FileReference], Tuple[unicode, FileReference, nt.Reference]]]
     """
     import general
 
@@ -939,6 +978,9 @@ def listReferences(parentReference=None, recursive=False, namespaces=False,
     """
     Like iterReferences, except returns a list instead of an iterator.
 
+    Returns
+    -------
+    List[Union[FileReference, Tuple[unicode, FileReference], Tuple[unicode, FileReference, nt.Reference]]]
     """
     return list(iterReferences(parentReference=parentReference,
                                recursive=recursive,
@@ -990,6 +1032,11 @@ listReferences.__doc__ += iterReferences.__doc__
 #    return res
 
 def getReferences(parentReference=None, recursive=False):
+    """
+    Returns
+    -------
+    Dict[unicode, FileReference]
+    """
     return dict(iterReferences(parentReference=parentReference, recursive=recursive, namespaces=True, refNodes=False))
 
 #@decorator
@@ -1299,6 +1346,11 @@ class FileReference(object):
         return hash(self.withCopyNumber())
 
     def subReferences(self):
+        """
+        Returns
+        -------
+        Dict[unicode, FileReference]
+        """
         namespace = self.namespace + ':'
         res = {}
         for x in cmds.file(self, q=1, reference=1):
@@ -1321,6 +1373,11 @@ class FileReference(object):
 
     @property
     def fullNamespace(self):
+        """
+        Returns
+        -------
+        unicode
+        """
         if self.refNode.isReferenced():
             # getting the fullnamespace for a referenced node is actually a
             # little tricky... initially, we just used the namespace of the
@@ -1365,6 +1422,11 @@ class FileReference(object):
 
     @property
     def path(self):
+        """
+        Returns
+        -------
+        Path
+        """
         # TODO: check in cache to see if this has changed
         #        if not ReferenceCache.callbacksEnabled or _internal.Version.current < _internal.Version.v2009:
         #            ReferenceCache.refresh()
@@ -1376,7 +1438,12 @@ class FileReference(object):
         return Path(path)
 
     def withCopyNumber(self):
-        """return the path with the copy number at the end"""
+        """return the path with the copy number at the end
+
+        Returns
+        -------
+        unicode
+        """
         # the file path is subject to change
         path = cmds.referenceQuery(self.refNode, filename=1)
         return path
@@ -1386,12 +1453,21 @@ class FileReference(object):
 #        return unicode( self.path() )
 
     def unresolvedPath(self):
+        """
+        Returns
+        -------
+        Path
+        """
         path = cmds.referenceQuery(self.refNode, filename=1, unresolvedName=1, withoutCopyNumber=1)
         return Path(path)
 
     def parent(self):
-        '''Returns the parent FileReference object, or None
-        '''
+        """Returns the parent FileReference object, or None
+
+        Returns
+        -------
+        Optional[FileReference]
+        """
         parentNode = cmds.referenceQuery(self.refNode, referenceNode=1,
                                          parent=1)
         if parentNode is None:
@@ -1556,9 +1632,9 @@ class FileReference(object):
         cmds.referenceEdit(str(self.refNode), **kwargs)
 
 def _translateEditFlags(kwargs, addKwargs=True):
-    '''Given the pymel values for successfulEdits/failedEdits (which may be
+    """Given the pymel values for successfulEdits/failedEdits (which may be
     True, False, or None), returns the corresponding maya.cmds values to use
-    '''
+    """
     successful = kwargs.pop('successfulEdits', kwargs.pop('scs', None))
     failed = kwargs.pop('failedEdits', kwargs.pop('fld', None))
 
@@ -1937,6 +2013,11 @@ def saveFile(**kwargs):
 
 
 def saveAs(newname, **kwargs):
+    """
+    Returns
+    -------
+    Path
+    """
     _setTypeKwargFromExtension(newname, kwargs)
     cmds.file(rename=newname)
     kwargs['save'] = True

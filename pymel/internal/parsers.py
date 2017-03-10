@@ -23,7 +23,9 @@ def mayaIsRunning():
 
     Early in interactive startup it is possible for commands to exist but for Maya to not yet be initialized.
 
-    :rtype: bool
+    Returns
+    -------
+    bool
     """
 
     # Implementation is essentially just a wrapper for getRunningMayaVersionString -

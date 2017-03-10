@@ -20,13 +20,13 @@ def source(file, searchPath=None, recurse=False):
     Search for a python script in the specified path and execute it using
     ``execfile``.
 
-    :Parameters:
-        searchPath : list of str
-            list of directories in which to search for ``file``.
-            uses ``sys.path`` if no path is specified
-        
-        recurse : bool
-            whether to recurse into directories in ``searchPath``
+    Parameters
+    ----------
+    searchPath : Iterable[str]
+        list of directories in which to search for ``file``.
+        uses ``sys.path`` if no path is specified
+    recurse : bool
+        whether to recurse into directories in ``searchPath``
     """
     filepath = unicode(file)
     filename = os.path.basename(filepath)
@@ -74,14 +74,17 @@ def getMayaLocation(version=None):
 
     Returns None if not found.
 
-    :Parameters:
-        version : bool
-            if passed, will attempt to find a matching Maya location.  If the
-            version found above does not match the requested version, 
-            this function uses a simple find/replace heuristic to modify the path and test
-            if the desired version exists.
+    Parameters
+    ----------
+    version : bool
+        if passed, will attempt to find a matching Maya location.  If the
+        version found above does not match the requested version,
+        this function uses a simple find/replace heuristic to modify the path and test
+        if the desired version exists.
 
-    :rtype: str or None
+    Returns
+    -------
+    Optional[str]
     """
     try:
         loc = os.path.realpath(os.environ['MAYA_LOCATION'])
@@ -117,12 +120,15 @@ def getMayaAppDir(versioned=False):
 
     Returns None, if not found
 
-    :Parameters:
-        versioned : bool
-            if True, the current Maya version including '-x64' suffix, if applicable,
-            will be appended.
+    Parameters
+    ----------
+    versioned : bool
+        if True, the current Maya version including '-x64' suffix, if applicable,
+        will be appended.
 
-    :rtype: str or None
+    Returns
+    -------
+    Optional[str]
     """
     appDir = os.environ.get('MAYA_APP_DIR', None)
     if appDir is None:

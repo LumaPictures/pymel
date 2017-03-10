@@ -1436,11 +1436,11 @@ def equivalentSpace(space1, space2, rotationOnly=False):
 
     Parameters
     ----------
-    space1 : int or str
+    space1 : Union[int, str]
         the first space to compare (may be either the integer enum value, or the
         api enum name - ie, "kPostTransform" - or the pymel enum name - ie,
         "postTransform" )
-    space2 : int or str
+    space2 : Union[int, str]
         the seoncd space to compare (may be either the integer enum value, or
         the api enum name - ie, "kPostTransform" - or the pymel enum name - ie,
         "postTransform")
@@ -1526,7 +1526,7 @@ def equivalentSpace(space1, space2, rotationOnly=False):
 class Matrix(MatrixN):
 
     """
-        A 4x4 transformation matrix based on api Matrix
+    A 4x4 transformation matrix based on api Matrix
 
         >>> from pymel.all import *
         >>> import pymel.core.datatypes as dt
@@ -1980,11 +1980,11 @@ class Matrix(MatrixN):
         return self.__class__._convert(self.asMatrix(weight))
 
 class FloatMatrix(Matrix):
-
-    """ A 4x4 matrix class that wraps Maya's api FloatMatrix class,
-        It behaves identically to Matrix, but it also derives from api's FloatMatrix
-        to keep api methods happy
-        """
+    """
+    A 4x4 matrix class that wraps Maya's api FloatMatrix class,
+    It behaves identically to Matrix, but it also derives from api's FloatMatrix
+    to keep api methods happy
+    """
     apicls = _api.MFloatMatrix
 
 class Quaternion(Matrix):
@@ -2076,7 +2076,7 @@ class Quaternion(Matrix):
     # to access stored values
 
     def assign(self, value):
-        """ Wrap the Quaternion api assign method """
+        """Wrap the Quaternion api assign method """
         # api Quaternion assign accepts Matrix, Quaternion and EulerRotation
         if isinstance(value, Matrix):
             value = value.rotate
@@ -2089,7 +2089,7 @@ class Quaternion(Matrix):
 
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
-        """ Wrap the Quaternion api get method """
+        """Wrap the Quaternion api get method """
         # need to keep a ref to the MScriptUtil alive until
         # all pointers aren't needed...
         ms = _api.MScriptUtil()
@@ -2104,7 +2104,7 @@ class Quaternion(Matrix):
 
     # faster to override __getitem__ cause we know Quaternion only has one dimension
     def _getitem(self, i):
-        """ Get component i value from self """
+        """Get component i value from self """
         if hasattr(i, '__iter__'):
             i = list(i)
             if len(i) == 1:
@@ -2581,14 +2581,14 @@ class Unit(float):
     @classmethod
     def getUIUnit(cls):
         """
-            Returns the global UI units currently in use for that type
+        Returns the global UI units currently in use for that type
         """
         return cls.sUnit(cls.apicls.uiUnit())
 
     @classmethod
     def setUIUnit(cls, unit=None):
         """
-            Sets the global UI units currently to use for that type
+        Sets the global UI units currently to use for that type
         """
         if unit is None:
             cls.apicls.setUIUnit(cls.apicls.internalUnit())
@@ -2598,7 +2598,7 @@ class Unit(float):
     @classmethod
     def getInternalUnit(cls):
         """
-            Returns the inernal units currently in use for that type
+        Returns the inernal units currently in use for that type
         """
         return cls.sUnit(cls.apicls.internalUnit())
 
@@ -2610,7 +2610,7 @@ class Unit(float):
     @classmethod
     def kUnit(cls, unit=None):
         """
-            Converts a string unit name to the internal int unit enum representation
+        Converts a string unit name to the internal int unit enum representation
         """
         if unit:
             return cls.Unit.getIndex(unit)
@@ -2620,7 +2620,7 @@ class Unit(float):
     @classmethod
     def sUnit(cls, unit=None):
         """
-            Converts an internal int unit enum representation tp the string unit name
+        Converts an internal int unit enum representation tp the string unit name
         """
         if unit:
             return cls.Unit.getKey(unit)
@@ -2629,7 +2629,7 @@ class Unit(float):
 
     def getUnit(self):
         """
-            Returns the units currently in effect for this instance
+        Returns the units currently in effect for this instance
         """
         return self.__class__.sUnit(self._unit)
 #    def setUnit(self, unit=None) :

@@ -1180,23 +1180,6 @@ class MainProgressBar(dynModule.ProgressBar):
     If an exception occur after beginProgress() but before endProgress() maya
     gui becomes unresponsive. Use this class to escape this behavior.
 
-     :Parameters:
-        minValue : int
-            Minimum or startingvalue of progress indicatior. If the progress
-            value is less than the minValue, the progress value will be set
-            to the minimum.  Default value is 0
-
-        maxValue : int
-            The maximum or endingvalue of the progress indicator. If the
-            progress value is greater than the maxValue, the progress value
-            will be set to the maximum. Default value is 100.
-
-        interruptable : bool
-            Set to True if the isCancelled flag should respond to attempts to
-            cancel the operation. Setting this to true will put make the help
-            line display message to the user indicating that they can cancel
-            the operation.
-
     Here's an example::
 
         with MainProgressBar(0,20,True) as bar:
@@ -1207,6 +1190,24 @@ class MainProgressBar(dynModule.ProgressBar):
                     break
     '''
     def __new__(cls, minValue=0, maxValue=100, interruptable=True):
+        """
+
+        Parameters
+        ----------
+        minValue : int
+            Minimum or startingvalue of progress indicatior. If the progress
+            value is less than the minValue, the progress value will be set
+            to the minimum.  Default value is 0
+        maxValue : int
+            The maximum or endingvalue of the progress indicator. If the
+            progress value is greater than the maxValue, the progress value
+            will be set to the maximum. Default value is 100.
+        interruptable : bool
+            Set to True if the isCancelled flag should respond to attempts to
+            cancel the operation. Setting this to true will put make the help
+            line display message to the user indicating that they can cancel
+            the operation.
+        """
         from language import melGlobals
         bar = dynModule.ProgressBar.__new__(
             cls, melGlobals['gMainProgressBar'], create=False)

@@ -192,7 +192,8 @@ class Enum(object):
     def __init__(self, name, keys, **kwargs):
         """ Create an enumeration instance
 
-        :Parameters:
+        Parameters
+        ----------
         name : `str`
             The name of this enumeration
         keys : `dict` from `str` to `int`, or iterable of keys

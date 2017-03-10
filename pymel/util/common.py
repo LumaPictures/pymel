@@ -46,15 +46,18 @@ def capitalize(s):
         >>> 'fooBAR'.capitalize()
         'Foobar'
 
-    :rtype: string
+    Returns
+    -------
+    str
     """
     return s[0].upper() + s[1:]
 
 def uncapitalize(s, preserveAcronymns=False):
     """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'
 
-    :rtype: string
-
+    Returns
+    -------
+    str
     """
     try:
         if preserveAcronymns and s[0:2].isupper():
@@ -66,7 +69,9 @@ def uncapitalize(s, preserveAcronymns=False):
 
 def unescape(s):
     """
-    :rtype: string
+    Returns
+    -------
+    str
     """
     chars = [r'"', r"'"]
     for char in chars:
@@ -121,7 +126,9 @@ def interpreterBits():
     Returns the number of bits of the architecture the interpreter was compiled on
     (ie, 32 or 64).
 
-    :rtype: `int`
+    Returns
+    -------
+    int
     """
     # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
     # even when Maya is running in 32-bit mode. The struct technique

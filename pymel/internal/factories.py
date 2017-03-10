@@ -1254,7 +1254,8 @@ class ApiTypeRegister(object):
         This ensures that each created ref stems from a unique MScriptUtil,
         so no two refs point to the same storage!
 
-        :Parameters:
+        Parameters
+        ----------
         size : `int`
             If other then 1, the returned function will initialize storage for
             an array of the given size.
@@ -2129,22 +2130,21 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         #. process result and return it
 
 
-    :Parameters:
+    Parameters
+    ----------
 
-        apiClass : class
-            the api class
-        methodName : string
-            the name of the api method
-        newName : string
-            optionally provided if a name other than that of api method is desired
-        proxy : bool
-            If True, then __apimfn__ function used to retrieve the proxy class. If False,
-            then we assume that the class being wrapped inherits from the underlying api class.
-        overloadIndex : None or int
-            which of the overloaded C++ signatures to use as the basis of our wrapped function.
-
-
-        """
+    apiClass : class
+        the api class
+    methodName : string
+        the name of the api method
+    newName : string
+        optionally provided if a name other than that of api method is desired
+    proxy : bool
+        If True, then __apimfn__ function used to retrieve the proxy class. If False,
+        then we assume that the class being wrapped inherits from the underlying api class.
+    overloadIndex : None or int
+        which of the overloaded C++ signatures to use as the basis of our wrapped function.
+    """
 
     #getattr( api, apiClassName )
 

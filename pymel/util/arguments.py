@@ -16,7 +16,10 @@ def isIterable(obj):
     """
     Returns True if an object is iterable and not a string or ProxyUnicode type, otherwise returns False.
 
-    :rtype: bool"""
+    Returns
+    -------
+    bool
+    """
     if isinstance(obj, basestring):
         return False
     elif isinstance(obj, ProxyUnicode):
@@ -33,7 +36,10 @@ def isScalar(obj):
     """
     Returns True if an object is a number or complex type, otherwise returns False.
 
-    :rtype: bool"""
+    Returns
+    -------
+    bool
+    """
     return operator.isNumberType(obj) and not isinstance(obj, complex)
 
 # TODO : this is unneeded as operator provides it, can call directly to operator methods
@@ -41,7 +47,9 @@ def isNumeric(obj):
     """
     Returns True if an object is a number type, otherwise returns False.
 
-    :rtype: bool
+    Returns
+    -------
+    bool
     """
     return operator.isNumberType(obj)
 
@@ -49,7 +57,10 @@ def isSequence(obj):
     """
     same as `operator.isSequenceType`
 
-    :rtype: bool"""
+    Returns
+    -------
+    bool
+    """
     return operator.isSequenceType(obj)
 
 def isMapping(obj):
@@ -58,7 +69,10 @@ def isMapping(obj):
 
     same as `operator.isMappingType`
 
-    :rtype: bool"""
+    Returns
+    -------
+    bool
+    """
     return operator.isMappingType(obj)
 
 clsname = lambda x: type(x).__name__

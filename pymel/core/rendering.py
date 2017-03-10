@@ -15,8 +15,6 @@ def shadingNode(*args, **kwargs):
 def createSurfaceShader(shadertype, name=None):
     """
     create a shader and shading group
-
-
     """
     classification = _general.getClassification(shadertype)
     # print classification
@@ -38,16 +36,16 @@ def createSurfaceShader(shadertype, name=None):
 
 def lsThroughFilter(*args, **kwargs):
     """
-Modifications:
-  - returns an empty list when the result is None
-  - returns wrapped classes
+    Modifications:
+      - returns an empty list when the result is None
+      - returns wrapped classes
     """
     return map(_general.PyNode, _util.listForNone(cmds.lsThroughFilter(*args, **kwargs)))
 
 def pointLight(*args, **kwargs):
     """
-Maya Bug Fix:
-  - name flag was ignored
+    Maya Bug Fix:
+      - name flag was ignored
     """
     if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
         return cmds.pointLight(*args, **kwargs)
@@ -63,8 +61,8 @@ Maya Bug Fix:
 
 def spotLight(*args, **kwargs):
     """
-Maya Bug Fix:
-  - name flag was ignored
+    Maya Bug Fix:
+      - name flag was ignored
     """
     if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
         return cmds.spotLight(*args, **kwargs)
@@ -80,8 +78,8 @@ Maya Bug Fix:
 
 def directionalLight(*args, **kwargs):
     """
-Maya Bug Fix:
-  - name flag was ignored
+    Maya Bug Fix:
+      - name flag was ignored
     """
 
     if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
@@ -98,8 +96,8 @@ Maya Bug Fix:
 
 def ambientLight(*args, **kwargs):
     """
-Maya Bug Fix:
-  - name flag was ignored
+    Maya Bug Fix:
+      - name flag was ignored
     """
     if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
         return cmds.ambientLight(*args, **kwargs)

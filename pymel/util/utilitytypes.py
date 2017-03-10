@@ -386,30 +386,31 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
     will break hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
     a valid __hash__ method.
 
-    :Parameters:
+    Parameters
+    ----------
     cls : `type`
         The class to wrap
-    classname : `string`
+    classname : str
         The name to give the resulting proxy class
-    dataAttrName : `string`
+    dataAttrName : str
         The name of an attribute on which an instance of the wrapped class will
         be stored.
         Either dataAttrname or dataFuncName must be given, but not both.
-    dataFuncName : `string`
+    dataFuncName : str
         The name of an attribute on which reside a function, which takes no
         arguments, and when called, will return an instance of the wrapped
         class.
         Either dataAttrname or dataFuncName must be given, but not both.
-    remove : `string` iterable
+    remove : Iterable[str]
         An iterable of name of attributes which should NOT be wrapped.
         Note that certain attributes will never be wrapped - the list of
         such items is found in the NOT_PROXY_WRAPPED constant.
-    makeDefaultInit : `bool`
+    makeDefaultInit : bool
         If True and dataAttrName is True, then a 'default' __init__ function
         will be created, which creates an instance of the wrapped class, and
         assigns it to the dataAttr. Defaults to False
         If dataAttrName is False, does nothing
-    sourceIsImmutable : `bool`
+    sourceIsImmutable : bool
         This parameter is included only for backwards compatibility - it is
         ignored.
 
