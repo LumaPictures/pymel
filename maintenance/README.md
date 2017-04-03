@@ -142,7 +142,7 @@ Indicated by this error:
   - test the new stubs: from shell in the pymel directory, do:
 
     ```
-    python -c "import maintenance.stubs;maintenance.stubs.stubstest('./extras/completion/py')"
+    python -m maintenance.stubs -o ./extras/completion --test
     ```
 
     be sure to run the test using the same major version of python as maya
