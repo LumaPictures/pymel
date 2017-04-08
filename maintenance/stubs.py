@@ -9,6 +9,7 @@ import collections
 import inspect
 import ast
 import keyword
+import json
 
 OBJ = 0
 OBJTYPE = 1
@@ -24,6 +25,18 @@ if 'basestring' not in globals():
     basestring = str
 
 verbose = False
+
+
+# def classify_class_attrs(object):
+#     """Wrap inspect.classify_class_attrs, with fixup for data descriptors."""
+#     def fixup(data):
+#         name, kind, cls, value = data
+#         if inspect.isdatadescriptor(value):
+#             if kind == 'property':
+#                 print name, value, cls
+#             kind = 'data descriptor'
+#         return name, kind, cls, value
+#     return map(fixup, inspect.classify_class_attrs(object))
 
 
 def walk_packages(path=None, prefix='', onerror=None, skip_regex=None):
@@ -379,9 +392,11 @@ class StubDoc(Doc):
         '__version__', '__author__', '__date__', '__credits__')
 
     SIMPLE_TYPES = (basestring, bytes, bool, int, long, float, complex)
+    PASS = 'pass'
 
     def __init__(self, import_exclusions=None, import_substitutions=None,
-                 import_filter=None, debugmodules=None):
+                 import_filter=None, debugmodules=None, skipdocs=False,
+                 type_data_file=None):
         self.missing_modules = set([])
         self.module_map = {}
         # Mapping of (module, dontImportThese)
@@ -389,9 +404,17 @@ class StubDoc(Doc):
         self.import_substitutions = import_substitutions or {}
         self.import_filter = import_filter
         self.debugmodules = debugmodules or ()
+        self.skipdocs = skipdocs
+
         self.id_map = {}
         self.static_module_names = {}
         self.safe_constructor_classes = set()
+
+        self.type_data = None
+        if type_data_file is not None:
+            with open(type_data_file) as f:
+                self.type_data = json.load(f)
+
         if hasattr(Doc, '__init__'):
             Doc.__init__(self)
 
@@ -401,10 +424,12 @@ class StubDoc(Doc):
 
     def indent(self, text, prefix='    '):
         """Indent text by prepending a given prefix to each line."""
-        if not text: return ''
+        if not text:
+            return ''
         lines = split(text, '\n')
         lines = map(lambda line, prefix=prefix: prefix + line, lines)
-        if lines: lines[-1] = rstrip(lines[-1])
+        if lines:
+            lines[-1] = rstrip(lines[-1])
         return join(lines, '\n')
 
     # def section(self, title, contents):
@@ -884,16 +909,17 @@ class StubDoc(Doc):
             self.static_module_names[module] = get_static_module_names(module)
         return name in self.static_module_names[module]
 
-    def classname(self, object, modname, realmodule=None):
+    def classname(self, klass, modname, realmodule=None):
         """Get a class name and qualify it with a module name if necessary."""
-        if id(object) in self.id_map:
-            return self.id_map[id(object)], None
-
-        import_text = None
-        name = object.__name__
-        missing = None
+        if id(klass) in self.id_map:
+            return self.id_map[id(klass)], None
         if realmodule is None:
-            realmodule = object.__module__
+            realmodule = klass.__module__
+        return self._classname(klass.__name__, modname, realmodule, klass)
+
+    def _classname(self, realname, modname, realmodule, klass=None):
+        import_text = None
+        missing = None
         # first, see if the object's module is THIS module...
         if realmodule not in [modname, '__builtin__']:
             # next, check if the module is in map of 'known' modules...
@@ -902,15 +928,20 @@ class StubDoc(Doc):
             else:
                 newmodname = None
                 missing = False
-                # check all known modules... see if any of them have this module
-                # in their contents...
-                for m in self.module_map.keys():
-                    mod = sys.modules[m]
-                    #print '\t', m, mod
-                    if object in mod.__dict__.values():
-                        #print '\tfound'
-                        newmodname = self.module_map[m]
-                        break
+                if klass is not None:
+                    # check all known modules... see if any of them have this class
+                    # in their contents...
+                    for m in self.module_map.keys():
+                        try:
+                            mod = sys.modules[m]
+                        except KeyError:
+                            continue
+                        else:
+                            #print '\t', m, mod
+                            if klass in mod.__dict__.values():
+                                #print '\tfound'
+                                newmodname = self.module_map[m]
+                                break
                 if not newmodname:
                     # try to see if any parent modules are known...
                     mod_parts = realmodule.split('.')
@@ -947,9 +978,9 @@ class StubDoc(Doc):
                     self.missing_modules.add(realmodule)
                     self.add_to_module_map(realmodule, realmodule)
             if newmodname:
-                name = newmodname + '.' + name
+                realname = newmodname + '.' + realname
                 import_text = self.maybe_modules.pop(newmodname, None)
-        return name, import_text
+        return realname, import_text
 
     def docclass(self, object, name=None, mod=None):
         """Produce text documentation for a given class object."""
@@ -957,6 +988,7 @@ class StubDoc(Doc):
         realname = object.__name__
         name = name or realname
         bases = object.__bases__
+        full_name = mod + '.' + name
 
         title = 'class ' + name
 
@@ -978,15 +1010,16 @@ class StubDoc(Doc):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
                 for name, kind, homecls, value in ok:       #@UnusedVariable
+                    # docroutine
                     push(self.document(getattr(object, name),
-                                       name, mod, object))
+                                       name, full_name, object, kind))
             return attrs
 
         def spilldescriptors(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
                 for name, kind, homecls, value in ok:       #@UnusedVariable
-                    push(self._docdescriptor(name, value, mod))
+                    push(self._docdescriptor(name, value, full_name))
             return attrs
 
         def spilldata(msg, attrs, predicate):
@@ -999,32 +1032,32 @@ class StubDoc(Doc):
                     else:
                         doc = None
                     push(self.docother(getattr(object, name),
-                                       name, mod, maxlen=70, doc=doc) + '\n')
+                                       name, full_name, maxlen=70, doc=doc) + '\n')
             return attrs
 
         attrs = filter(lambda data: visiblename(data[0]),
-                       classify_class_attrs(object))
+                       inspect.classify_class_attrs(object))
 
         thisclass = object
         attrs, inherited = pydoc._split_list(attrs, lambda t: t[2] is thisclass)
 
         if thisclass is not __builtin__.object:
             if attrs:
-                tag = None
-
                 # Sort attrs by name.
                 attrs.sort()
 
                 # Pump out the attrs, segregated by kind.
-                attrs = spill("Methods %s:\n" % tag, attrs,
+                attrs = spill("Methods", attrs,
                               lambda t: t[1] == 'method')
-                attrs = spill("Class methods %s:\n" % tag, attrs,
+                attrs = spill("Class methods", attrs,
                               lambda t: t[1] == 'class method')
-                attrs = spill("Static methods %s:\n" % tag, attrs,
+                attrs = spill("Static methods", attrs,
                               lambda t: t[1] == 'static method')
-                attrs = spilldescriptors("Data descriptors %s:\n" % tag, attrs,
+                attrs = spill("Properties", attrs,
+                              lambda t: t[1] == 'property')
+                attrs = spilldescriptors("Data descriptors", attrs,
                                          lambda t: t[1] == 'data descriptor')
-                attrs = spilldata("Data and other attributes %s:\n" % tag, attrs,
+                attrs = spilldata("Data and other attributes", attrs,
                                   lambda t: t[1] == 'data')
             else:
                 contents.append('pass')
@@ -1094,45 +1127,55 @@ class StubDoc(Doc):
 
         return '=' + objRepr
 
-    def docroutine(self, object, name=None, mod=None, cl=None):
-        """Produce text documentation for a function or method object."""
+    def docroutine_getspec(self, obj, parent=None, kind=None, signature_data=None):
+        if inspect.isfunction(obj):
+            args, varargs, varkw, defaults = inspect.getargspec(obj)
+            return inspect.formatargspec(
+                args, varargs, varkw, defaults, formatvalue=self.formatvalue)
+        else:
+            return '(*args, **kwargs)'
 
-        realname = object.__name__
+    def _add_docs(self, obj, decl, skipdocs):
+        if skipdocs:
+            doc = ''
+        else:
+            doc = getdoc(obj) or ''
+        if doc:
+            doc = rstrip(self.indent(self.docstring(doc)))
+            return decl + '\n' + doc + '\n' + self.indent(self.PASS)
+        else:
+            return decl + ' ' + self.PASS
+
+    def docroutine(self, obj, name=None, parent=None, parent_cls=None, kind=None, signature_data=None):
+        """Produce text documentation for a function or method object."""
+        realname = obj.__name__
         name = name or realname
         if name in keyword.kwlist:
             name += '_'
 
-        skipdocs = 0
-        method = None
-        if inspect.ismethod(object):
-            method = object
-            object = object.im_func
+        if inspect.ismethod(obj):
+            method = obj
+            obj = obj.im_func
+        else:
+            method = None
 
         title = name
-        if inspect.isfunction(object):
-            args, varargs, varkw, defaults = inspect.getargspec(object)
-            argspec = inspect.formatargspec(
-                args, varargs, varkw, defaults, formatvalue=self.formatvalue)
-        else:
-            argspec = '(*args, **kwargs)'
-        decl = 'def ' + title + argspec + ':'
 
-        if isinstance(object, staticmethod):
+        decl = 'def ' + title + self.docroutine_getspec(obj, parent, kind, signature_data) + ':'
+
+        if kind == 'static method' or isinstance(obj, staticmethod):
             decl = '@staticmethod\n' + decl
-        elif isinstance(object, classmethod):
+        elif kind == 'class method' or isinstance(obj, classmethod):
             decl = '@classmethod\n' + decl
 
         if realname == '__getattr__' and method and method.im_class.__name__ == 'Mel':
             # special case handling for pymel.core.language.Mel.__getattr__,
             # so that if you do pm.mel.someMelFunction, it thinks it's valid
             return decl + '\n' + self.indent('return lambda *args: None') + '\n\n'
-        elif skipdocs:
-            return decl + 'pass\n'
         else:
-            doc = getdoc(object) or ''
-            return decl + '\n' + (doc and rstrip(self.indent(self.docstring(doc))) + '\n\n') + self.indent('pass') + '\n\n'
+            return self._add_docs(obj, decl, self.skipdocs)
 
-    def _docdescriptor(self, name, value, mod):
+    def _docdescriptor(self, name, obj, mod):
         results = []
         push = results.append
 
@@ -1141,15 +1184,16 @@ class StubDoc(Doc):
             push('\n')
         return ''.join(results)
 
-    def docproperty(self, object, name=None, mod=None, cl=None):
+    def docproperty(self, obj, name=None, mod=None, klass=None, kind=None):
         """Produce text documentation for a property."""
-        # print "docproperty", name, object
-        return self._docdescriptor(name, object, mod)
+        # print "docproperty", name, obj, mod, kind
+        decl = '@property\ndef %s(self):' % (name,)
+        return self._add_docs(obj, decl, self.skipdocs)
 
-    def docdata(self, object, name=None, mod=None, cl=None):
+    def docdata(self, obj, name=None, mod=None, klass=None):
         """Produce text documentation for a data descriptor."""
         # print "docdata", name, object
-        return self._docdescriptor(name, object, mod)
+        return self._docdescriptor(name, obj, mod)
 
     def docother_data_repr(self, obj):
         """Get string representation for a value"""
@@ -1298,22 +1342,175 @@ class StubDoc(Doc):
         return result
 
 
+
+class PEP484StubDoc(StubDoc):
+    PASS = '...'
+
+    def docother(self, obj, name=None, mod=None, parent=None, maxlen=None,
+                 doc=None):
+        """Produce text documentation for a data object."""
+        # print "docother", name, object
+        if name in ['__metaclass__']:
+            return ''
+
+        if name == '__all__':
+            value = pprint.pformat(obj)
+            typ = None
+        else:
+            # value = self.docother_data_repr(obj)
+            value = None
+            if inspect.isclass(obj):
+                typ = 'Type[%s]' % self.classname(obj, modname=mod)[0]
+            else:
+                typ = self.classname(obj.__class__, modname=mod)[0]
+
+        assert name is not None, "Name of object %r is None" % obj
+        if name == 'None':
+            # special case exception for None, which is syntactically invalid
+            # to assign to but can still be used as an attribute
+            name = "locals()['None']"
+        if typ is not None:
+            line = name + ' : ' + typ
+        else:
+            line = name
+        if value is not None:
+            line += ' = ' + value
+        # line += '\n'
+        return line
+
+    def docroutine_getspec(self, obj, parent=None, method_kind=None,
+                           signature_data=None):
+        if signature_data is None:
+            return StubDoc.docroutine_getspec(self, obj, parent, method_kind)
+
+        # NOTE: parent is the complete dotted path of the parent, including
+        # e.g. the class
+        IDENTIFIER = r'([a-zA-Z_][a-zA-Z0-9_.]*)'
+
+        if method_kind is not None:
+            # remove the class
+            module = parent.rsplit('.', 1)[0]
+        else:
+            module = parent
+
+        def get_id(typestr):
+            parts = typestr.rsplit('.', 1)
+            if len(parts) == 2 and module == parts[0]:
+                # the type is from the same module.  remove the module name, but
+                # also wrap the name in quotes.  types specified as strings are
+                # forward-references and are perfectly valid.  the only
+                # alternative to this is trying to order definitions based on
+                # their types, which would be very hard, and would still require
+                # forward references in some cases.
+                return str(repr(parts[1]))
+            elif len(parts) == 1:
+                # not an identifier
+                return typestr
+            else:
+                # typ = pydoc.locate(typestr)
+                # if typ is not None:
+                #     print "located", `typestr`, module
+                #     return self.classname(typ, module)[0]
+                # else:
+                #     print "could not import", `typestr`, module
+                #     return typestr
+                return self._classname(parts[1], module, parts[0])[0]
+
+        def make_annotation(typestr):
+            # FIXME: being lazy here: we should only pass the parts of the
+            # result that matched the IDENTIFER regex to get_id()
+            return ''.join([get_id(x)
+                            for x in re.split(IDENTIFIER, str(typestr))])
+
+        # def make_annotation(typestr):
+        #     typ = pydoc.locate(typestr)
+        #     if typ:
+        #         return self.classname(typ, parent)[0]
+        #     else:
+        #         print "could not locate", typestr
+        #         return typestr
+
+        args = []
+        if method_kind == 'method':
+            args.append('self')
+        elif method_kind == 'class method':
+            args.append('cls')
+        for arg in signature_data['args']:
+            argdef = arg['name'] + ': ' + make_annotation(arg['type'])
+            default = arg.get('default')
+            if default:
+                argdef += ' = ' + default
+            args.append(argdef)
+        signature = '(' + ', '.join(args) + ')'
+        signature += ' -> ' + make_annotation(signature_data['result'])
+        return signature
+
+    def _get_type_data(self, pathparts):
+        doc = self.type_data
+        for p in pathparts:
+            try:
+                doc = doc[p]
+            except KeyError as err:
+                # print parents, err
+                return None
+        return doc
+
+    def docroutine(self, obj, name=None, parent=None, parent_cls=None,
+                   kind=None, signature_data=None):
+        parents = parent.split('.')
+        doc = self._get_type_data(parents + [name])
+
+        if doc is None or len(doc) == 1:
+            return StubDoc.docroutine(self, obj, name, parent, parent_cls,
+                                      kind, doc[0] if doc else None)
+        else:
+            defs = []
+            for signature_data in doc:
+                defs.append('@override')
+                defs.append(StubDoc.docroutine(self, obj, name, parent,
+                                               parent_cls, kind, signature_data))
+            return '\n'.join(defs)
+
+    def docproperty_get_sig(self, obj, name, parent, doc, propkind):
+        parents = parent.split('.')
+        if doc is None:
+            altname = propkind.capitalize() + name[0].upper() + name[1:]
+            doc = self._get_type_data(parents + [altname])
+        if doc:
+            signature = self.docroutine_getspec(obj, parent=parent,
+                                                method_kind='method',
+                                                signature_data=doc[0])
+        else:
+            signature = '(self)' if propkind == 'get' else '(self, value)'
+        return signature
+
+    def docproperty(self, obj, name=None, parent=None, klass=None, kind=None):
+        """Produce text documentation for a property."""
+        # print "docproperty", name, obj, mod, kind
+        parents = parent.split('.')
+        doc = self._get_type_data(parents + [name])
+        signature = self.docproperty_get_sig(obj, name, parent, doc, 'get')
+        decl = '@property\ndef %s%s:' % (name, signature)
+        result = self._add_docs(obj, decl, self.skipdocs)
+        if obj.fset is not None:
+            signature = self.docproperty_get_sig(obj, name, parent, doc, 'set')
+            decl = '@%s.setter\ndef %s%s:' % (name, name, signature)
+            result += '\n' + self._add_docs(obj, decl, skipdocs=True)
+        return result
+
+
 def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                  skip_module_regex=None, import_exclusions=None, import_filter=None,
-                 debugmodules=None):
-    stubgen = StubDoc(
-        import_exclusions=import_exclusions,
-        import_filter=import_filter,
-        debugmodules=debugmodules)
+                 debugmodules=None, type_data_file=None):
 
     def get_python_file(modname, extension, ispkg):
         basedir = os.path.join(outputdir, extension)
         if extension == 'pypredef':
             curfile = os.path.join(basedir, modname)
         else:
-            curfile = os.path.join(basedir, *modname.split('.') )
+            curfile = os.path.join(basedir, *modname.split('.'))
             if ispkg:
-                curfile = os.path.join(curfile, '__init__' )
+                curfile = os.path.join(curfile, '__init__')
 
         curfile = curfile + os.extsep + extension
         return curfile
@@ -1351,15 +1548,23 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
         if verbose:
             print modname, ": starting"
 
-        contents = stubgen.docmodule(mod)
         for extension in extensions:
+            stub_class = PEP484StubDoc if extension == 'pyi' else StubDoc
+            stubgen = stub_class(
+                import_exclusions=import_exclusions,
+                import_filter=import_filter,
+                debugmodules=debugmodules,
+                type_data_file=type_data_file)
+
+            contents = stubgen.docmodule(mod)
+
             basedir = os.path.join(outputdir, extension)
             if extension == 'pypredef':
                 curfile = os.path.join(basedir, modname)
             else:
-                curfile = os.path.join(basedir, *modname.split('.') )
+                curfile = os.path.join(basedir, *modname.split('.'))
                 if ispkg:
-                    curfile = os.path.join(curfile, '__init__' )
+                    curfile = os.path.join(curfile, '__init__')
 
             curfile = curfile + os.extsep + extension
 
