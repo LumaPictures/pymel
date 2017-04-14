@@ -112,7 +112,8 @@ def subpackages(packagemod, skip_regex=None):
     if hasattr(packagemod, '__path__'):
         yield packagemod.__name__, packagemod, True
         for importer, modname, ispkg in walk_packages(
-                packagemod.__path__, packagemod.__name__ + '.', skip_regex=skip_regex):
+                packagemod.__path__, packagemod.__name__ + '.',
+                skip_regex=skip_regex):
             # if skip_regex and re.match(skip_regex, modname):
             #     print("skipping %s %s" % (modname, skip_regex))
             #     mod = None
@@ -244,7 +245,7 @@ class ModuleNamesVisitor(ast.NodeVisitor):
             self.add_names(node)
 
     def add_names(self, obj):
-        #print "add_names: %r" % obj
+        # print "add_names: %r" % obj
         # string... add it!
         if isinstance(obj, basestring):
             self.names.add(obj)
@@ -371,8 +372,8 @@ class NoUnicodeTextRepr(TextRepr):
     def repr1(self, x, level):
         # believe it or not there are cases where split(s) fails and s.split()
         # succeeds.  specifically, I'm seeing this error with a PySide object:
-        # SystemError: Objects/longobject.c:244: bad argument to internal function
-        # so this is a slight edit of TextRepr.repr1
+        # SystemError: Objects/longobject.c:244: bad argument to internal
+        # function so this is a slight edit of TextRepr.repr1
         if hasattr(type(x), '__name__'):
             methodname = 'repr_' + join(type(x).__name__.split(), '_')
             if hasattr(self, methodname):
@@ -396,7 +397,7 @@ class StubDoc(Doc):
 
     def __init__(self, import_exclusions=None, import_substitutions=None,
                  import_filter=None, debugmodules=None, skipdocs=False,
-                 type_data_file=None):
+                 type_data=None):
         self.missing_modules = set([])
         self.module_map = {}
         # Mapping of (module, dontImportThese)
@@ -410,10 +411,7 @@ class StubDoc(Doc):
         self.static_module_names = {}
         self.safe_constructor_classes = set()
 
-        self.type_data = None
-        if type_data_file is not None:
-            with open(type_data_file) as f:
-                self.type_data = json.load(f)
+        self.type_data = type_data
 
         if hasattr(Doc, '__init__'):
             Doc.__init__(self)
@@ -512,8 +510,8 @@ class StubDoc(Doc):
 
                     # we've found a new class... add it...
                     new_to_this_module += 1
-                    self.docmodule_add_obj(parent_class, this_module, id_to_data,
-                                           all_names)
+                    self.docmodule_add_obj(parent_class, this_module,
+                                           id_to_data, all_names)
                     source_module = id_to_data[id_parent][SOURCEMOD]
                     if source_module == this_module:
                         untraversed_classes.append(parent_class)
@@ -639,10 +637,10 @@ class StubDoc(Doc):
         #     define a dummy placeholder for it in this module)
 
         # Since both of these can end up adding new objects to the list of
-        # objects defined in this module (ie, whose source_module == this_module),
-        # which can then cause the need to check for updates on the other,
-        # we run both in a loop until neither task finds any new things added
-        # to this module's namespace
+        # objects defined in this module (ie, whose
+        # source_module == this_module), which can then cause the need to check
+        # for updates on the other, we run both in a loop until neither task
+        # finds any new things added to this module's namespace
 
         # maps from the id of a class to it's parent classes, for classes
         # which we will define in this module...
@@ -650,8 +648,10 @@ class StubDoc(Doc):
 
         # maps from an id_obj to its ('default') name in the source module
         import_other_name = {}
-        # maps from module to a dict, mapping from id to names within that module
+        # maps from module to a dict, mapping from id to names within that
+        # module
         other_module_names = {}
+
         def find_import_data():
             unknown_import_objs = list(
                 (obj, source_module) for (obj, objtype, source_module, names)
@@ -929,17 +929,17 @@ class StubDoc(Doc):
                 newmodname = None
                 missing = False
                 if klass is not None:
-                    # check all known modules... see if any of them have this class
-                    # in their contents...
+                    # check all known modules... see if any of them have this
+                    # class in their contents...
                     for m in self.module_map.keys():
                         try:
                             mod = sys.modules[m]
                         except KeyError:
                             continue
                         else:
-                            #print '\t', m, mod
+                            # print '\t', m, mod
                             if klass in mod.__dict__.values():
-                                #print '\tfound'
+                                # print '\tfound'
                                 newmodname = self.module_map[m]
                                 break
                 if not newmodname:
@@ -956,11 +956,11 @@ class StubDoc(Doc):
                             # so we want to set modname to
                             #    (module_map['xml.sax']).handler...
                             newmodname = '.'.join([self.module_map[parentmod]] + sub_parts)
-                            # we still need to make sure that the module gets imported,
-                            # so that the parent module has the correct
-                            # attributes on it - ie, if xml.sax exists, but
-                            # we've never imported xml.sax.handler, the 'handler'
-                            # attribute will not be on xml.sax
+                            # we still need to make sure that the module gets
+                            # imported, so that the parent module has the
+                            # correct attributes on it - ie, if xml.sax exists,
+                            # but we've never imported xml.sax.handler, the
+                            # 'handler' attribute will not be on xml.sax
                             if sub_parts:
                                 missing = True
 
@@ -1009,7 +1009,7 @@ class StubDoc(Doc):
         def spill(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:       #@UnusedVariable
+                for name, kind, homecls, value in ok:
                     # docroutine
                     push(self.document(getattr(object, name),
                                        name, full_name, object, kind))
@@ -1018,14 +1018,14 @@ class StubDoc(Doc):
         def spilldescriptors(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:       #@UnusedVariable
+                for name, kind, homecls, value in ok:
                     push(self._docdescriptor(name, value, full_name))
             return attrs
 
         def spilldata(msg, attrs, predicate):
             ok, attrs = pydoc._split_list(attrs, predicate)
             if ok:
-                for name, kind, homecls, value in ok:       #@UnusedVariable
+                for name, kind, homecls, value in ok:
                     if (hasattr(value, '__call__') or
                             inspect.isdatadescriptor(value)):
                         doc = getdoc(value)
@@ -1168,7 +1168,8 @@ class StubDoc(Doc):
         elif kind == 'class method' or isinstance(obj, classmethod):
             decl = '@classmethod\n' + decl
 
-        if realname == '__getattr__' and method and method.im_class.__name__ == 'Mel':
+        if (realname == '__getattr__' and method and
+                    method.im_class.__name__ == 'Mel'):
             # special case handling for pymel.core.language.Mel.__getattr__,
             # so that if you do pm.mel.someMelFunction, it thinks it's valid
             return decl + '\n' + self.indent('return lambda *args: None') + '\n\n'
@@ -1228,6 +1229,7 @@ class StubDoc(Doc):
             return ''
 
         safe_constructors = {}
+
         def has_safe_default_constructor(obj):
             # if the object is of a class that's defined in 'the current' stub
             # module, and that class has a default constructor, then we can
@@ -1342,7 +1344,6 @@ class StubDoc(Doc):
         return result
 
 
-
 class PEP484StubDoc(StubDoc):
     PASS = '...'
 
@@ -1446,6 +1447,8 @@ class PEP484StubDoc(StubDoc):
         return signature
 
     def _get_type_data(self, pathparts):
+        if self.type_data is None:
+            return None
         doc = self.type_data
         for p in pathparts:
             try:
@@ -1459,6 +1462,31 @@ class PEP484StubDoc(StubDoc):
                    kind=None, signature_data=None):
         parents = parent.split('.')
         doc = self._get_type_data(parents + [name])
+
+        if doc is None:
+            CMP = {
+                'args': [
+                    {
+                        'name': 'other',
+                        'type': 'Any'
+                    }
+                ],
+                'result': 'bool'
+            }
+            special = {
+                '__eq__': CMP,
+                '__ne__': CMP,
+                '__ge__': CMP,
+                '__le__': CMP,
+                '__gt__': CMP,
+                '__lt__': CMP,
+                '__len__': {'args': [], 'result': 'int'},
+                '__str__': {'args': [], 'result': 'str'},
+                '__repr__': {'args': [], 'result': 'str'},
+                '__nonzero__': {'args': [], 'result': 'bool'},
+            }
+            if name in special:
+                doc = [special[name]]
 
         if doc is None or len(doc) == 1:
             return StubDoc.docroutine(self, obj, name, parent, parent_cls,
@@ -1474,8 +1502,13 @@ class PEP484StubDoc(StubDoc):
     def docproperty_get_sig(self, obj, name, parent, doc, propkind):
         parents = parent.split('.')
         if doc is None:
+            # foo ->  GetFoo
             altname = propkind.capitalize() + name[0].upper() + name[1:]
             doc = self._get_type_data(parents + [altname])
+            if doc is None and propkind == 'get':
+                # foo ->  IsFoo
+                altname = 'Is' + name[0].upper() + name[1:]
+                doc = self._get_type_data(parents + [altname])
         if doc:
             signature = self.docroutine_getspec(obj, parent=parent,
                                                 method_kind='method',
@@ -1501,7 +1534,7 @@ class PEP484StubDoc(StubDoc):
 
 def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                  skip_module_regex=None, import_exclusions=None, import_filter=None,
-                 debugmodules=None, type_data_file=None):
+                 debugmodules=None, type_data=None):
 
     def get_python_file(modname, extension, ispkg):
         basedir = os.path.join(outputdir, extension)
@@ -1524,7 +1557,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                 # pypredefs don't make directories / __init__.py
                 continue
             parts = packagename.split('.')
-            # if, ie, our packagename is 'my.long.sub.package', this will give us
+            # if our packagename is 'my.long.sub.package', this will give us
             #   my
             #   my.long
             #   my.long.sub
@@ -1540,6 +1573,10 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                     with open(parent_file, 'a'):
                         pass
 
+    if isinstance(type_data, str):
+        with open(type_data) as f:
+            type_data = json.load(f)
+
     for modname, mod, ispkg in subpackages(packagemod, skip_module_regex):
         if mod is None:
             # failed to import or skipped
@@ -1554,7 +1591,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                 import_exclusions=import_exclusions,
                 import_filter=import_filter,
                 debugmodules=debugmodules,
-                type_data_file=type_data_file)
+                type_data=type_data)
 
             contents = stubgen.docmodule(mod)
 
@@ -1664,7 +1701,8 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         print "WARNING! Module specified failed to build :"
         for failedModule in buildFailures:
             print "   ", failedModule
-        print "(Try specify different list of modules for 'modules' keyword argument)" 
+        print "(Try specify different list of modules for 'modules' keyword " \
+              "argument)"
     
     return outputdir
 
