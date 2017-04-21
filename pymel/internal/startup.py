@@ -378,6 +378,12 @@ def fixMayapySegFault():
         if not _mayaUninitialized:
             import maya.standalone  # @UnresolvedImport
             maya.standalone.uninitialize()
+            # These fixed some hangs on exit (specifically, from pymel unittests)
+            # in maya 2016.51 (Ext 2, SP1)
+            sys.stdout.flush()
+            sys.stderr.flush()
+            sys.__stdout__.flush()
+            sys.__stderr__.flush()
 
     global _atExitCallbackInstalled
     if not _atExitCallbackInstalled:

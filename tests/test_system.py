@@ -168,6 +168,33 @@ class testCase_references(unittest.TestCase):
             self.assertEqual(ref, pm.FileReference(str(ref.withCopyNumber())))
             self.assertEqual(ref, pm.FileReference(namespace=ref.fullNamespace))
 
+    def test_file_reference_remove_merge_namespace_parent(self):
+        pm.openFile(self.masterFile, f=1)
+        self.sphereRef1 = pm.FileReference(namespace='sphere1')
+        pm.system.Namespace('sphere1').setCurrent()
+        pm.system.Namespace.create('foobar')
+        pm.system.Namespace('sphere1:foobar').setCurrent()
+        pm.modeling.polyCube(n='testCube')
+        self.tempRef1 = pm.system.createReference(self.sphereFile, namespace='foobar')
+        pm.system.FileReference(self.tempRef1).remove(mergeNamespaceWithParent=1)
+        self.assertIn('sphere1:testCube', pm.system.namespaceInfo('sphere1', ls=1))
+
+    def test_file_reference_remove_merge_namespace_root(self):
+        pm.openFile(self.masterFile, f=1)
+        self.sphereRef1 = pm.FileReference(namespace='sphere1')
+        pm.system.Namespace('sphere1').setCurrent()
+        pm.modeling.polyCube(n='testCube')
+        pm.system.FileReference(self.sphereRef1).remove(mergeNamespaceWithRoot=1)
+        self.assertIn('testCube', pm.system.namespaceInfo(':', ls=1))
+
+    def test_file_reference_remove_force(self):
+        pm.openFile(self.masterFile, f=1)
+        self.sphereRef1 = pm.FileReference(namespace='sphere1')
+        pm.system.Namespace('sphere1').setCurrent()
+        pm.modeling.polyCube(n='testCube')
+        pm.system.FileReference(self.sphereRef1).remove(force=True)
+        self.assertFalse(pm.general.objExists('testCube'))
+
     def test_failed_ref_edits(self):
         self.createFailedEdits()
 
@@ -580,7 +607,7 @@ class testCase_fileInfo(unittest.TestCase):
     # Only need to test these methods, because we've based the fileInfo on
     # collections.MutableMapping, and this is these are the required methods to implement that interface.
     # __delitem__, __getitem__, __iter__, __len__, __setitem__
-    
+
 
 
     def setUp(self):
@@ -588,7 +615,7 @@ class testCase_fileInfo(unittest.TestCase):
         self.rawDict = {'testKey': 'testValue'}
         for key, val in self.rawDict.iteritems():
             cmds.fileInfo(key, val)
-    
+
     def test_get(self):
         default = "the default value!"
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist', default), default)

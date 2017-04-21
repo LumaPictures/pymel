@@ -1236,6 +1236,9 @@ class ApiTypeRegister(object):
     """
     types = {}
     inCast = {}
+    # outcast functions have signature:
+    #     func(pynodeInstance, value)
+    # ...but as far as I can tell, only MPlug actually uses self
     outCast = {}
     refInit = {}
     refCast = {}
@@ -1340,7 +1343,10 @@ class ApiTypeRegister(object):
         elif apiArrayItemType is not None:
             pass
         else:
-            cls.outCast[apiTypeName] = lambda self, x: pymelType(x)
+            # could be a lambda, but explicit function is better for debbuging
+            def pymelTypeOutCast(self, x):
+                return pymelType(x)
+            cls.outCast[apiTypeName] = pymelTypeOutCast
 
         # register argument casting
         if inCast:
@@ -1380,7 +1386,12 @@ class ApiTypeRegister(object):
             except AttributeError:
                 if apiArrayItemType:
                     cls.refInit[apiTypeName] = list
-                    cls.inCast[apiTypeName] = lambda x: [apiArrayItemType(y) for y in x]
+
+                    # could be a lambda, but explicit function is better for debbuging
+                    def apiArrayInCast(x):
+                        return [apiArrayItemType(y) for y in x]
+
+                    cls.inCast[apiTypeName] = apiArrayInCast
                     cls.refCast[apiTypeName] = None
                     cls.outCast[apiTypeName] = None
 
@@ -1392,11 +1403,24 @@ class ApiTypeRegister(object):
                     cls.inCast[apiTypeName] = cls._makeApiArraySetter(apiType, apiArrayItemType)
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
                     if apiType == api.MDagPathArray:
-                        cls.refCast[apiTypeName] = lambda x: [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
-                        cls.outCast[apiTypeName] = lambda self, x: [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+                        # could be a lambdas, but explicit functions are better for debbuging
+                        def pymelDagArrayRefCast(x):
+                            return [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+
+                        def pymelDagArrayOutCast(self, x):
+                            return [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+
+                        cls.refCast[apiTypeName] = pymelDagArrayRefCast
+                        cls.outCast[apiTypeName] = pymelDagArrayOutCast
                     else:
-                        cls.refCast[apiTypeName] = lambda x: [pymelType(x[i]) for i in range(x.length())]
-                        cls.outCast[apiTypeName] = lambda self, x: [pymelType(x[i]) for i in range(x.length())]
+                        def pymelArrayRefCast(x):
+                            return [pymelType(x[i]) for i in range(x.length())]
+
+                        def pymelArrayOutCast(self, x):
+                            return [pymelType(x[i]) for i in range(x.length())]
+
+                        cls.refCast[apiTypeName] = pymelArrayRefCast
+                        cls.outCast[apiTypeName] = pymelArrayOutCast
 
                 #-- Api types
                 else:
@@ -1674,34 +1698,21 @@ class ApiArgUtil(object):
         except ValueError:
             raise ValueError, "expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input)
 
-    def fromInternalUnits(self, result, instance=None):
-        # units
-        unit = self.methodInfo['returnInfo'].get('unitType', None)
-        returnType = self.methodInfo['returnInfo']['type']
+    def fromInternalUnits(self, result, returnType, unit=None):
         #_logger.debug(unit)
-        # returnType in ['MPoint'] or
-        if unit == 'linear' or returnType == 'MPoint':
+        if unit == 'linear' or returnType in ('MPoint', 'MFloatPoint'):
             unitCast = ApiTypeRegister.outCast['MDistance']
             if util.isIterable(result):
-                result = [unitCast(instance, val) for val in result]
+                result = [unitCast(None, val) for val in result]
             else:
-                result = unitCast(instance, result)
-
-        # maybe this should not be hardwired here
-        # the main reason it is hardwired is because we don't want to convert the w component, which we
-        # would do if we iterated normally
-        elif returnType == 'MPoint':
-            #_logger.debug("linear")
-            unitCast = ApiTypeRegister.outCast['MDistance']
-            result = [unitCast(instance, result[0]), unitCast(instance, result[1]), unitCast(instance, result[2])]
-
+                result = unitCast(None, result)
         elif unit == 'angular':
             #_logger.debug("angular")
             unitCast = ApiTypeRegister.outCast['MAngle']
             if util.isIterable(result):
-                result = [unitCast(instance, val) for val in result]
+                result = [unitCast(None, val) for val in result]
             else:
-                result = unitCast(instance, result)
+                result = unitCast(None, result)
         return result
 
     def toInternalUnits(self, arg, input):
@@ -1726,7 +1737,7 @@ class ApiArgUtil(object):
 
         return input
 
-    def castResult(self, instance, result):
+    def castResult(self, pynodeInstance, result):
         returnType = self.methodInfo['returnType']
         if returnType:
             # special case check - some functions return an MObject, but return
@@ -1754,9 +1765,15 @@ class ApiArgUtil(object):
                 if f is None:
                     return result
 
-                result = self.fromInternalUnits(result, instance)
+                # I believe methodInfo['returnInfo']['type'] is always the
+                # same as returnType = self.methodInfo['returnType'], but the
+                # old logic would use methodInfo['returnInfo']['type'], and I'm
+                # paranoid...
+                result = self.fromInternalUnits(result,
+                                                returnType=self.methodInfo['returnInfo']['type'],
+                                                unit=self.methodInfo['returnInfo'].get('unitType', None))
 
-                return f(instance, result)
+                return f(pynodeInstance, result)
 #                except:
 #                    cls = instance.__class__
 #                    if returnType != cls.__name__:
@@ -1780,7 +1797,7 @@ class ApiArgUtil(object):
         if f is None:
             return outArg
 
-        result = self.fromInternalUnits(outArg)
+        result = self.fromInternalUnits(outArg, argtype)
         return f(result)
 
     def getDefaults(self):
@@ -2152,7 +2169,6 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         inArgs = argHelper.inArgs()
         outArgs = argHelper.outArgs()
         argList = argHelper.argList()
-        argInfo = argHelper.argInfo()
 
         getterArgHelper = argHelper.getGetterInfo()
 
@@ -2837,10 +2853,11 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
         nodeType = classdict.get('__melnode__')
 
+        isVirtual = '_isVirtual' in classdict or any(hasattr(b, '_isVirtual')
+                                                     for b in bases)
         if nodeType is None:
             # check for a virtual class...
-            if '_isVirtual' in classdict or any(hasattr(b, '_isVirtual')
-                                                for b in bases):
+            if isVirtual:
                 for b in bases:
                     if hasattr(b, '__melnode__'):
                         nodeType = b.__melnode__
@@ -2851,6 +2868,33 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
                 # not a virtual class, just use the classname
                 nodeType = util.uncapitalize(classname)
             classdict['__melnode__'] = nodeType
+
+        from pymel.core.nodetypes import mayaTypeNameToPymelTypeName, \
+            pymelTypeNameToMayaTypeName
+
+        # mapping from pymel type to maya type should always be made...
+        oldMayaType = pymelTypeNameToMayaTypeName.get(classname)
+        if oldMayaType is None:
+            pymelTypeNameToMayaTypeName[classname] = nodeType
+        elif oldMayaType != nodeType:
+            _logger.raiseLog(_logger.WARNING,
+                             'creating new pymel node class %r for maya node '
+                             'type %r, but a pymel class with the same name '
+                             'already existed for maya node type %r' % (
+                                 classname, nodeType, oldMayaType))
+
+        # mapping from maya type to pymel type only happens if it's NOT a
+        # virtual class...
+        if not isVirtual:
+            oldPymelType = mayaTypeNameToPymelTypeName.get(nodeType)
+            if oldPymelType is None:
+                mayaTypeNameToPymelTypeName[nodeType] = classname
+            elif oldPymelType != classname:
+                _logger.raiseLog(_logger.WARNING,
+                                 'creating new pymel node class %r for maya node '
+                                 'type %r, but there already existed a pymel'
+                                 'class %r for the same maya node type' % (
+                                     classname, nodeType, oldPymelType))
 
         addMayaType(nodeType)
         apicls = toApiFunctionSet(nodeType)
@@ -2961,7 +3005,7 @@ def addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName,
     setattr(dynModule, pyNodeTypeName, PyNodeType)
     return PyNodeType
 
-def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
+def addCustomPyNode(dynModule, mayaType, extraAttrs=None, immediate=False):
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
 
@@ -2988,27 +3032,56 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
         # some nodes in the hierarchy for this node might not exist, so we cycle through all
         parent = 'dependNode'
 
+        pynodeName = None
         for node in inheritance:
-            nodeName = addPyNode(dynModule, node, parent, extraAttrs=extraAttrs)
+            pynodeName = addPyNode(dynModule, node, parent,
+                                   extraAttrs=extraAttrs, immediate=immediate)
             parent = node
             if 'pymel.all' in sys.modules:
                 # getattr forces loading of Lazy object
-                setattr(sys.modules['pymel.all'], nodeName, getattr(dynModule, nodeName))
+                setattr(sys.modules['pymel.all'], pynodeName,
+                        getattr(dynModule, pynodeName))
+        return pynodeName
 
-def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
+def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
+              immediate=False):
     """
     create a PyNode type for a maya node.
     """
+    # dynModule is generally pymel.core.nodetypes, but don't want to rely on
+    # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
+    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\
+        pymelTypeNameToMayaTypeName
+
+    def getPymelTypeName(mayaTypeName):
+        pymelTypeName = mayaTypeNameToPymelTypeName.get(mayaTypeName)
+        if pymelTypeName is None:
+            pymelTypeName = str(util.capitalize(mayaTypeName))
+            pymelTypeNameBase = pymelTypeName
+            num = 1
+            while pymelTypeName in pymelTypeNameToMayaTypeName:
+                num += 1
+                pymelTypeName = pymelTypeNameBase + str(num)
+            mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
+            pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
+        return pymelTypeName
+
 
     #_logger.debug("addPyNode adding %s->%s on dynModule %s" % (mayaType, parentMayaType, dynModule))
     # unicode is not liked by metaNode
-    pyNodeTypeName = str(util.capitalize(mayaType))
-    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    parentPyNodeTypeName = mayaTypeNameToPymelTypeName.get(parentMayaType)
+    if parentPyNodeTypeName is None:
+        _logger.raiseLog(_logger.WARNING,
+                         'trying to create PyNode for maya type %r, but could'
+                         ' not find a registered PyNode for parent type %r' % (
+                             mayaType, parentMayaType))
+        parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    pyNodeTypeName = getPymelTypeName(mayaType)
 
     # If pymel.all is loaded, we will need to get the actual node in order to
     # store it on pymel.all, so in that case don't bother with the lazy-loading
     # behavior...
-    if 'pymel.all' in sys.modules:
+    if immediate or 'pymel.all' in sys.modules:
         newType = addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs)
         setattr(sys.modules['pymel.all'], pyNodeTypeName, newType)
     # otherwise, do the lazy-loading thing
@@ -3022,7 +3095,13 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
     return pyNodeTypeName
 
 def removePyNode(dynModule, mayaType):
-    pyNodeTypeName = str(util.capitalize(mayaType))
+    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName
+    pyNodeTypeName = mayaTypeNameToPymelTypeName.get(mayaType)
+    if not pyNodeTypeName:
+        _logger.raiseLog(_logger.WARNING,
+                         'trying to remove PyNode for maya type %r, but could '
+                         'not find an associated PyNode registered' % mayaType)
+        pyNodeTypeName = str(util.capitalize(mayaType))
     removePyNodeType(pyNodeTypeName)
 
     _logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
@@ -3380,9 +3459,19 @@ def mayaTypeToApiType(mayaType):
 def isMayaType(mayaType):
     '''Whether the given type is a currently-defined maya node name
     '''
-    # using objectType instead of MNodeClass or nodeType(isTypeName) because
-    # it's available < 2012
-    return bool(cmds.objectType(tagFromType=mayaType))
+    if versions.current() >= versions.v2012:
+        # use nodeType(isTypeName) preferentially, because it returns results
+        # for some objects that objectType(tagFromType) returns 0 for
+        # (like TadskAssetInstanceNode_TdependNode, which is a parent of
+        # adskMaterial
+        try:
+            cmds.nodeType(mayaType, isTypeName=True)
+        except RuntimeError:
+            return False
+        else:
+            return True
+    else:
+        return bool(cmds.objectType(tagFromType=mayaType))
 
 # Keep around for debugging/info gathering...
 def getComponentTypes():

@@ -11,7 +11,7 @@ import unittest
 from pymel.util.scanf import (sscanf, fscanf, CharacterBufferFromIterable,
                               makeCharBuffer, handleWhitespace, handleChar,
                               handleDecimalInt, handleString, CappedBuffer,
-                              IncompleteCaptureError, FormatError)
+                              IncompleteCaptureError, FormatError, compile)
 
 
 class ScanfTests(unittest.TestCase):

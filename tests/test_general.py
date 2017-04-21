@@ -418,6 +418,14 @@ class testCase_nodesAndAttributes(unittest.TestCase):
     def test_attribute_instance_equality(self):
         self.assertEqual( self.sphere1.t, self.sphere3.t )
 
+    def test_attribute_indexed_equality(self):
+        self.assertEqual( self.sphere1.pnts[5], self.sphere3.pnts[5] )
+        self.assertNotEqual(self.sphere1.pnts[5], self.sphere3.pnts[10])
+
+    def test_attribute_indexed_parent_equality(self):
+        self.assertEqual( self.sphere1.pnts[5].px, self.sphere3.pnts[5].px )
+        self.assertNotEqual(self.sphere1.pnts[5].px, self.sphere3.pnts[10].px)
+
     def test_attribute_cascading(self):
         self.sphere1.primaryVisibility.set(1)
         shape = self.sphere1.getShape()
@@ -1255,7 +1263,7 @@ class test_parent(unittest.TestCase):
         self.assertEqual(self.sphere.getParent(), self.cone)
         self.assertEqual(self.cube.getParent(), self.cone)
 
-    # these testsa are here because removeObject flag is a special case that has
+    # these tests are here because removeObject flag is a special case that has
     # to be specially handled, and there was a bug introduced at one point
     # because of it
 
@@ -1279,6 +1287,190 @@ class test_parent(unittest.TestCase):
     def test_parent_to_nonexistent_object(self):
         with self.assertRaises(pm.MayaNodeError):
             pm.parent(self.sphere, 'does_not_exist')
+
+# TODO: make test cases for all combinations of
+#  origNode - not instanced, direct-instanced, indirect-instanced
+#  newParentNode - not instanced, direct-instanced, indirect-instanced
+#  cmds.parent, pm.parent
+#  relative=True/False
+
+class test_parent_instance(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.A1 = cmds.createNode('transform', name='A1')
+        self.A2 = cmds.createNode('transform', name='A2')
+        self.B1 = cmds.createNode('transform', name='B1')
+        self.B2 = cmds.createNode('transform', name='B2')
+        self.nonInstParent = cmds.createNode('transform', name='nonInstParent')
+
+        self.instParentA1 = cmds.createNode('transform', name='instParentA',
+                                            parent=self.A1)
+        cmds.parent(self.instParentA1, self.A2, addObject=True)
+        self.instParentA1 = '{}|instParentA'.format(self.A1)
+        self.instParentA2 = '{}|instParentA'.format(self.A2)
+        self.assertTrue(cmds.objExists(self.instParentA1))
+        self.assertTrue(cmds.objExists(self.instParentA2))
+
+        self.instParentB1 = cmds.createNode('transform', name='instParentB',
+                                            parent=self.B1)
+        cmds.parent(self.instParentB1, self.B2, addObject=True)
+        self.instParentB1 = '{}|instParentB'.format(self.B1)
+        self.instParentB2 = '{}|instParentB'.format(self.B2)
+        self.assertTrue(cmds.objExists(self.instParentB1))
+        self.assertTrue(cmds.objExists(self.instParentB2))
+
+        instSphere = cmds.polySphere()[0]
+        cmds.parent(instSphere, self.instParentB1)
+        self.instSphereB1 = '{}|{}'.format(self.instParentB1, instSphere)
+        self.instSphereB2 = '{}|{}'.format(self.instParentB2, instSphere)
+        self.assertTrue(cmds.objExists(self.instSphereB1))
+        self.assertTrue(cmds.objExists(self.instSphereB2))
+
+        self.nonInstCube = cmds.polyCube()[0]
+
+    def test_cmds_parent_nonInst_to_nonInst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertFalse(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        cmds.parent(self.nonInstCube, self.nonInstParent, r=1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        # getting instanceNumber will trigger usage of dag path
+        self.assertEqual(orig.instanceNumber(), 0)
+
+
+    def test_cmds_parent_nonInst_to_inst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.instParentA1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        cmds.parent(self.nonInstCube, self.instParentA1, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertRaises(pm.MayaInstanceError, orig.__apimdagpath__)
+        # getting instanceNumber will trigger usage of dag path
+        self.assertRaises(pm.MayaInstanceError, orig.instanceNumber)
+        # if we delete the other inst, we should be able to use it again
+        pm.delete(self.A2)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        self.assertEqual(orig.instanceNumber(), 0)
+
+    def test_cmds_parent_inst_to_nonInst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertTrue(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        cmds.parent(self.instSphereB1, self.nonInstParent, r=1)
+        # Ok... so it seems that even if you specify r=1, when parenting an
+        # indirectly-instanced object (ie, one that only has one node as a
+        # direct parent... but that parent, or one of it's ancestors, has
+        # multiple parents), it still creates multiple transforms, so the number
+        # of instances is preserved.
+        #
+        # In my case, I start with this hierarchy:
+        #
+        #     B1   B2          nonInstParent
+        #      |____|
+        #        |
+        #    instParentB
+        #        |
+        #      pSphere1
+        #
+        # ...and then if I do parent(pShere1, nonInstParent, r=1), I get:
+        #
+        #     B1   B2          nonInstParent
+        #      |____|             __|____
+        #        |               |       |
+        #    instParentB    transform1   |
+        #                        |_______|
+        #                            |
+        #                         pSphere1
+        #
+        # That is, pShere is parented directly under nonInstParent once, and
+        # under a newly-created transform1 once. Transform1 will always be zero,
+        # so it doesn't serve much of a purpose... and I can't think of why
+        # you'd ever want some objects directly parented, and some with extra
+        # transforms... so this seems like a bug... but we're stuck with it.
+        #
+        # For completeness, if you do parent(pShere1, nonInstParent), you get:
+        #
+        #     B1   B2          nonInstParent
+        #      |____|             __|_______
+        #        |               |          |
+        #    instParentB    transform1   transform2
+        #                        |__________|
+        #                            |
+        #                         pSphere1
+        #
+        # ...which is at least consistent...
+        #
+        self.assertTrue(orig.isInstanced())
+        self.assertRaises(pm.MayaInstanceError, orig.__apimdagpath__)
+        # getting instanceNumber will trigger usage of dag path
+        self.assertRaises(pm.MayaInstanceError, orig.instanceNumber)
+        # if we delete the other inst, we should be able to use it again
+        pm.delete('{}|transform1'.format(self.nonInstParent))
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        self.assertEqual(orig.instanceNumber(), 0)
+
+    def test_cmds_parent_inst_to_inst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.instParentA2)
+        self.assertTrue(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        cmds.parent(self.instSphereB1, self.instParentA2, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertRaises(pm.MayaInstanceError, orig.__apimdagpath__)
+        # getting instanceNumber will trigger usage of dag path
+        self.assertRaises(pm.MayaInstanceError, orig.instanceNumber)
+        # we end up with FOUR instances... see note in test_cmds_parent_inst_to_nonInst
+        pm.delete(self.A1)
+        pm.delete('{}|transform1'.format(self.instParentA2))
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        self.assertEqual(orig.instanceNumber(), 0)
+
+    
+    def test_pm_parent_nonInst_to_nonInst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertFalse(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        # getting instanceNumber will trigger usage of dag path
+        self.assertEqual(orig.instanceNumber(), 0)
+    
+    
+    def test_pm_parent_nonInst_to_inst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.instParentA1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+
+    def test_pm_parent_inst_to_nonInst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertTrue(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+
+    def test_pm_parent_inst_to_inst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.instParentA2)
+        self.assertTrue(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
 
 
 class test_spaceLocator(unittest.TestCase):

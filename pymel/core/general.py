@@ -44,9 +44,10 @@ def _getPymelTypeFromObject(obj, name):
         # __apiobjects__ = {'MDagPath':MDagPath(...)}, but a pymel type of
         # DependNode... and DependNode.__apihandle__() always assumes that
         # MObjectHandle is always in __apiobjects__
-        pymelType = getattr(nodetypes, _util.capitalize(mayaType),
-                            nodetypes.DagNode if obj.hasFn(_api.MFn.kDagNode)
-                            else nodetypes.DependNode)
+        pymelTypeName = nodetypes.mayaTypeNameToPymelTypeName.get(
+            mayaType,
+            'DagNode' if obj.hasFn(_api.MFn.kDagNode) else 'DependNode')
+        pymelType = getattr(nodetypes, pymelTypeName)
         pymelType = _factories.virtualClasses.getVirtualClass(pymelType, obj, name, fnDepend)
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
@@ -900,9 +901,13 @@ Modifications:
         set, or frozenset, making it's behavior consistent with when None is
         passed, or no args and nothing is selected (would formerly raise a
         TypeError)
-  - When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
+  - When 'connections' flag is True, (and 'plugs' is True) the attribute pairs are returned in a 2D-array::
 
         [['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']]
+
+        Note that if 'plugs' is False (the default), for backward compatibility, the returned pairs are somewhat less intuitive attrs + nodes::
+
+        [['checker1.outColor', 'lambert1'], ['checker1.color1', 'fractal1']]
 
   - added sourceFirst keyword arg. when sourceFirst is true and connections is also true,
         the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
@@ -1343,16 +1348,32 @@ Modifications:
         kwargs['w'] = kwargs['world']
         del kwargs['world']
 
+    origPyNodes = []
+    origParent = None
+    origParentDag = None
+    removeObj = kwargs.get('removeObject', False) or kwargs.get('rm', False)
+
     if args:
         nodes = args
+        origPyNodes
+        if 'w' in kwargs or removeObj:
+            origPyNodes = nodes
+        else:
+            origPyNodes = nodes[:-1]
+            origParent = nodes[-1]
+        origPyNodes = [x for x in origPyNodes if isinstance(x, PyNode)]
+        # Make sure we have an MObjectHandle for all origPyNodes - may need
+        # these later to fix issues with instancing...
+        for n in origPyNodes:
+            n.__apimobject__()
     else:
         nodes = cmds.ls(sl=1, type='dagNode')
+
 
     # There are some situations in which you can only pass one node - ie, with
     # shape=True, removeObject=True - and we don't want to abort in these
     # cases
-    if (nodes and not kwargs.get('removeObject', False)
-            and not kwargs.get('rm', False)):
+    if nodes and not removeObj:
         if kwargs.get('w', False):
             parent = None
             children = nodes
@@ -1375,6 +1396,53 @@ Modifications:
     # if using removeObject, return is None
     if result:
         result = [PyNode(x) for x in result]
+
+    # fix the MDagPath for any ORIGINAL PyNodes, if instancing is involved
+    # (ie, if DependNode.setParent is called, we want to set the MDagPath to the
+    # correct instance if possible)
+    for origNode in origPyNodes:
+        try:
+            origNode.__apimdagpath__()
+        except AttributeError:
+            continue
+        except MayaInstanceError:
+            # Was problem, try to fix the MDagPath!
+            if origParentDag is None and origParent is not None:
+                if not isinstance(origParent, PyNode):
+                    origParent = PyNode(origParent)
+                origParentDag = origParent.__apimdagpath__()
+
+            mfnDag = _api.MFnDagNode(origNode.__apimobject__())
+            dags = _api.MDagPathArray()
+            mfnDag.getAllPaths(dags)
+            foundDag = None
+
+            # Look for an instance whose parent is the parent we reparented to
+            for i in xrange(dags.length()):
+                dag = dags[i]
+                parentDag = _api.MDagPath(dag)
+                parentDag.pop()
+                if origParent is None:
+                    if parentDag.length() == 0:
+                        foundDag = dag
+                        break
+                else:
+                    if parentDag == origParentDag:
+                        foundDag = dag
+                        break
+            if foundDag is not None:
+                # copy the one from the array, or else we'll get a crash, when
+                # the array is freed and we try to use it!
+                origNode.__apiobjects__['MDagPath'] = _api.MDagPath(foundDag)
+        except MayaNodeError:
+            # if we were using removeObject, it's possible the object is now
+            # deleted... in this case (but only this case!), it's ok to ignore
+            # a deleted node
+            if removeObj:
+                continue
+        else:
+            continue
+
     return result
 
 # Because cmds.duplicate only ever returns node names (ie, NON-UNIQUE, and
@@ -1897,14 +1965,23 @@ Modifications:
     cmds.delete(*args, **kwargs)
 
 
-def getClassification(*args):
+def getClassification(*args, **kwargs):
     """
 Modifications:
   - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
 
     :rtype: `unicode` list
+
+Modifications:
+  - supports satisfies flag.
+    Returns true if the given node type's classification satisfies the classification string which is passed with the flag.
+
+    :rtype: `bool`
     """
-    return cmds.getClassification(*args)[0].split(':')
+    if kwargs and len(kwargs) == 1 and 'satisfies' in kwargs:
+        return cmds.getClassification(*args, **kwargs)
+    else:
+        return cmds.getClassification(*args, **kwargs)[0].split(':')
 
 
 #--------------------------
@@ -2004,6 +2081,13 @@ class MayaAttributeEnumError(MayaAttributeError):
 class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
 
+class MayaInstanceError(MayaNodeError):
+    def __str__(self):
+        msg = "Maya %s was reparented to an instance, and dag path is now ambiguous:" % (self._objectDescription)
+        if self.node:
+            msg += ": %r" % (self.node)
+        return msg
+
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
 
@@ -2100,17 +2184,17 @@ class PyNode(_util.ProxyUnicode):
 
                 if isinstance(argObj, Attribute):
                     attrNode = argObj._node
-                    argObj = argObj.__apiobjects__['MPlug']
+                    argObj = argObj.__apimplug__()
                 elif isinstance(argObj, Component):
                     try:
-                        argObj = argObj._node.__apiobjects__['MDagPath']
+                        argObj = argObj._node.__apimdagpath__()
                     except KeyError:
                         argObj = argObj._node.__apiobjects__['MObjectHandle']
 
                 elif isinstance(argObj, PyNode):
                     try:
-                        argObj = argObj.__apiobjects__['MDagPath']
-                    except KeyError:
+                        argObj = argObj.__apimdagpath__()
+                    except (KeyError, AttributeError):
                         argObj = argObj.__apiobjects__['MObjectHandle']
 
                 elif hasattr(argObj, '__module__') and argObj.__module__.startswith('maya.OpenMaya'):
@@ -2767,7 +2851,7 @@ class Attribute(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = _api.MObjectHandle(self.__apiobjects__['MPlug'].attribute())
+            handle = _api.MObjectHandle(self.__apimplug__().attribute())
             self.__apiobjects__['MObjectHandle'] = handle
         if _api.isValidMObjectHandle(handle):
             return handle.object()
@@ -2910,12 +2994,6 @@ class Attribute(PyNode):
         """
         :rtype: `bool`
         """
-        thisPlug = self.__apimplug__()
-        try:
-            thisIndex = thisPlug.logicalIndex()
-        except RuntimeError:
-            thisIndex = None
-
         if not isinstance(other, Attribute):
             try:
                 other = PyNode(other)
@@ -2924,13 +3002,35 @@ class Attribute(PyNode):
             except (ValueError, TypeError):  # could not cast to PyNode
                 return False
 
+        # Unfortunately, it seems that comparing two MPlugs for equality is
+        # essentially the same as just comparing their attribute objects. That
+        # means, that for instace, the plugs for objects like these will compare
+        # equal:
+        #    node.attr[1] == node.attr[50]
+        #    node.attr[5].subAttr == node.attr[7].subAttr
+        # Thefore, in order for the attributes to truly be equal:
+        #    1) the attributes must be equal
+        #    2) the indices must be equal
+        #    3) the indices of any parents must be equal
+
+        thisPlug = self.__apimplug__()
         otherPlug = other.__apimplug__()
-        # foo.bar[10] and foo.bar[20] and foo.bar eval to the same object in _api.  i don't think this is very intuitive.
+        if thisPlug != otherPlug:
+            return False
+
+        try:
+            thisIndex = thisPlug.logicalIndex()
+        except RuntimeError:
+            thisIndex = None
         try:
             otherIndex = otherPlug.logicalIndex()
         except RuntimeError:
             otherIndex = None
-        return thisPlug == otherPlug and thisIndex == otherIndex
+
+        if thisIndex != otherIndex:
+            return False
+
+        return self.parent() == other.parent()
 
     def __hash__(self):
         """
@@ -6085,7 +6185,7 @@ class AttributeDefaults(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = self.__apiobjects__['MPlug'].attribute()
+            handle = self.__apimplug__().attribute()
             self.__apiobjects__['MObjectHandle'] = handle
         if _api.isValidMObjectHandle(handle):
             return handle.object()

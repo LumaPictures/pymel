@@ -254,7 +254,10 @@ class Namespace(unicode):
 
         self.setCurrent()
         try:
-            namespaces = map(self.__class__, cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+            # workaround: namespaceInfo sometimes returns duplicates
+            seen = set()
+            namespaces = map(self.__class__, [ns for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+                                              if not (ns in seen or seen.add(ns))])
 
             if not internal:
                 for i in [":UI", ":shared"]:
@@ -718,7 +721,7 @@ class FileInfo(collections.MutableMapping):
         >>> fileInfo( 'myKey', 'myData' )
 
     Updated to have a fully functional dictiony interface.
-    
+
 
     """
 
@@ -728,7 +731,7 @@ class FileInfo(collections.MutableMapping):
         Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
         '''
         pass
-        
+
     def __getitem__(self, item):
         result = cmds.fileInfo(item, q=1)
         if not result:
@@ -764,7 +767,7 @@ class FileInfo(collections.MutableMapping):
 
     def __iter__(self):
         return iter(self.keys())
-    
+
     def __len__(self):
         return len(self.keys())
 
@@ -1416,8 +1419,8 @@ class FileReference(object):
 #        return cmds.file( self.withCopyNumber(), **kwargs )
 
     @_factories.addMelDocs('file', 'removeReference')
-    def remove(self):
-        return cmds.file(rfn=self.refNode, removeReference=1)
+    def remove(self, **kwargs):
+        return cmds.file(rfn=self.refNode, removeReference=1, **kwargs)
 
 #    @_factories.addMelDocs('file', 'unloadReference')
 #    def unload(self):
@@ -1464,12 +1467,17 @@ class FileReference(object):
         return not cmds.file(rfn=self.refNode, q=1, deferReference=1)
 
     @_factories.addMelDocs('referenceQuery', 'nodes')
-    def nodes(self):
+    def nodes(self, recursive=False):
         import general
         nodes = cmds.referenceQuery(str(self.refNode), nodes=1, dagPath=1)
         if not nodes:
             nodes = []
-        return [general.PyNode(x) for x in nodes]
+        nodes = [general.PyNode(x) for x in nodes]
+        if not recursive:
+            return nodes
+        for ref in iterReferences(parentReference=self, recursive=True):
+            nodes.extend(ref.nodes(recursive=False))
+        return nodes
 
     @_factories.addMelDocs('file', 'copyNumberList')
     def copyNumberList(self):

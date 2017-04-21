@@ -309,8 +309,10 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
     addAncestors : bool
         If true, add to the list of nodes returned all of their ancestors as
         well
-    noManips : bool
-        If true, filter out any manipulator node types
+    noManips : bool | 'fast'
+        If true, filter out any manipulator node types; if the special value
+        'fast', then it will filter out manipulator node types, but will do so
+        using a faster method that may potentially be less thorough
     noPlugins : bool
         If true, filter out any nodes defined in plugins (note - if
         basePluginTypes is True, and noPlugins is False, the basePluginTypes
@@ -358,6 +360,15 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
     if basePluginTypes:
         import pymel.api.plugins
         abstractNodes.update(pymel.api.plugins.pluginMayaTypes)
+
+    # If we're doing addAncestors anyway, might was well get manips with the
+    # more thorough method, using the inheritance chain, since we're doing that
+    # anyway...
+    if noManips == 'fast' and not addAncestors:
+        manips = set(cmds.nodeType('manip3D', isTypeName=1, derived=1))
+        realNodes.difference_update(manips)
+        abstractNodes.difference_update(manips)
+        noManips = False
     if addAncestors or noManips:
         # There are a few nodes which will not be returned even by
         # allNodeTypes(includeAbstract=True), but WILL show up in the
@@ -499,6 +510,40 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
     except Exception:
         print mayaType, lineage
         raise
+
+    if len(set(lineage)) != len(lineage):
+        # cyclical lineage:  first discovered with xgen nodes.
+        # might be a result of multiple inheritance being returned strangely by nodeType.
+        #
+        # an example lineage is:
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator',
+        #  u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'aiSkyDomeLight']
+        # note the repeat - we will try to fix lineages like this, resolving to:
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator', u'aiSkyDomeLight']
+
+        # first pop the rightmost element, which is the mayaType...
+        if lineage.pop() != mayaType:
+            raise RuntimeError("lineage for %s did not end with it's own node type" % mayaType)
+
+        # then try to find the first element somewhere else - this should indicate the start of the repeated chain...
+        try:
+            nextIndex = lineage.index(lineage[0], 1)
+        except ValueError:
+            # unknown case, don't know how to fix...
+            pass
+        else:
+            firstLineage = lineage[:nextIndex]
+            secondLineage = lineage[nextIndex:]
+            if len(firstLineage) < len(secondLineage):
+                shorter = firstLineage
+                longer = secondLineage
+            else:
+                shorter = secondLineage
+                longer = firstLineage
+            if longer[:len(shorter)] == shorter:
+                # yay! we know how to fix!
+                lineage = longer
+                lineage.append(mayaType)
 
     if updateCache and lineage:
         if len(set(lineage)) != len(lineage):

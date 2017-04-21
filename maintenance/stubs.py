@@ -1272,7 +1272,8 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
     """ Builds pymel stub files for autocompletion.
 
     Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
-
+    
+    buildFailures = []
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
     outputdir = os.path.join(pymeldir, 'extras', 'completion')
     print "Stub output dir:", outputdir
@@ -1280,9 +1281,13 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         os.makedirs(outputdir)
 
     for modulename in modules:
-        print "making stubs for: %s" % modulename
-        packagestubs(modulename, outputdir=outputdir, extensions=extensions,
-                     exclude=exclude)
+        try:
+            print "making stubs for: %s" % modulename
+            packagestubs(modulename, outputdir=outputdir, extensions=extensions,
+                         exclude=exclude)
+        except:
+            buildFailures.append(modulename)
+    
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
         # useful to put on the path of non-maya python interpreters, in
@@ -1308,7 +1313,13 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         srcUtilDir = os.path.join(pymeldir, 'pymel', 'util')
         destUtilDir = os.path.join(pyRealUtilDir, 'pymel', 'util')
         copyDir(srcUtilDir, destUtilDir)
-
+    
+    if buildFailures:
+        print "WARNING! Module specified failed to build :"
+        for failedModule in buildFailures:
+            print "   ", failedModule
+        print "(Try specify different list of modules for 'modules' keyword argument)" 
+    
     return outputdir
 
 # don't start name with test - don't want it automatically run by nose
