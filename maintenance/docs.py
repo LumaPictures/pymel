@@ -40,6 +40,19 @@ from pymel.internal.cmdcache import fixCodeExamples
 
 def get_internal_cmds():
     cmds = []
+    # they first provided them as 'internalCmds.txt', then as
+    # internalCommandList.txt
+    notfound = []
+    for filename in ('internalCmds.txt', 'internalCommandList.txt'):
+        cmdlistPath = os.path.join(docsdir, filename)
+        if os.path.isfile(cmdlistPath):
+            break
+        else:
+            notfound.append(cmdlistPath)
+    else:
+        filepaths = ', '.join(notfound)
+        raise RuntimeError("could not find list of internal commands - tried: {}"
+                           .format(filepaths))
     with open(os.path.join(docsdir, 'internalCmds.txt')) as f:
         for line in f:
             line = line.strip()

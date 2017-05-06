@@ -184,7 +184,8 @@ Indicated by this error:
     cmdcache.fixCodeExamples()
     ```
 
-  - copy the list of internal commands provided by autodesk to `docs/internalCmds.txt`
+  - copy the list of internal commands provided by autodesk to `docs/internalCmds.txt`,
+    or `docs/internalCommandList.txt`
 
   - turn of autoload for all plugins, so that pymel is not imported at startup
     (I haven't identified which plugins use pymel, but it includes mtoa and at
