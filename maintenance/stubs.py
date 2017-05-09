@@ -394,10 +394,11 @@ class StubDoc(Doc):
 
     SIMPLE_TYPES = (basestring, bytes, bool, int, long, float, complex)
     PASS = 'pass'
+    UNKNOWN_SIGNATURE = '(*args, **kwargs)'
 
     def __init__(self, import_exclusions=None, import_substitutions=None,
                  import_filter=None, debugmodules=None, skipdocs=False,
-                 type_data=None):
+                 type_data=None, imports_precede_classes=True):
         self.missing_modules = set([])
         self.module_map = {}
         # Mapping of (module, dontImportThese)
@@ -412,6 +413,8 @@ class StubDoc(Doc):
         self.safe_constructor_classes = set()
 
         self.type_data = type_data
+        # a hack to avoid cyclical imports that doesn't always work
+        self.imports_precede_classes = imports_precede_classes
 
         if hasattr(Doc, '__init__'):
             Doc.__init__(self)
@@ -448,9 +451,9 @@ class StubDoc(Doc):
         for entry in tree:
             if type(entry) is type(()):
                 c, bases = entry
-                result = result + prefix + self.classname(c, modname)[0]
+                result = result + prefix + self.classname(c, modname)
                 if bases and bases != (parent,):
-                    parents = map(lambda c, m=modname: self.classname(c, m)[0], bases)
+                    parents = map(lambda c, m=modname: self.classname(c, m), bases)
                     result = result + '(%s)' % join(parents, ', ')
                 result = result + '\n'
             elif type(entry) is type([]):
@@ -593,7 +596,7 @@ class StubDoc(Doc):
 
         this_name = this_module.__name__  # ignore the passed-in name
         desc = splitdoc(getdoc(this_module))[1]
-        result = ''
+        self.contents = []
         self.module_map = {}
         self.id_map = {}
         self.missing_modules = set([])
@@ -601,7 +604,7 @@ class StubDoc(Doc):
         all = getattr(this_module, '__all__', None)
 
         if desc:
-            result += result + self.docstring(desc)
+            self.contents.extend(self.docstring(desc).split('\n'))
 
         # set of all names in this module
         all_names = set()
@@ -768,23 +771,21 @@ class StubDoc(Doc):
                 this_name, modules, imported, importall_modules)
 
         if importall_modules:  # from MODULE import *
-            contents = []
             for mod in importall_modules:
                 import_text = self.import_mod_text(this_module, mod.__name__, '*')
                 if import_text:
-                    contents.append(import_text)
-            result = result + '\n'.join(contents) + '\n\n'
+                    self.contents.append(import_text)
+            self.contents.extend(['', ''])
 
         if imported:  # from MODULE import OBJ
-            contents = []
             for obj, names, source_module in imported:
                 for name in names:
                     import_text = self.import_obj_text(source_module.__name__,
                                                        import_other_name[id(obj)],
                                                        name)
                     if import_text:
-                        contents.append(import_text)
-            result = result + '\n'.join(contents) + '\n\n'
+                        self.contents.append(import_text)
+            self.contents.extend(['', ''])
 
         if classes:
             # sort in order of resolution
@@ -826,9 +827,10 @@ class StubDoc(Doc):
                         print classres[j]
                         if j == i:
                             print '-'*80
-                    classres[i] = ''.join(line.split( u'\xa0'))
+                    classres[i] = ''.join(line.split(u'\xa0'))
 
-            result = result + join(classres, '\n') + '\n\n'
+            self.contents.extend(classres)
+            self.contents.extend(['', ''])
 
         if funcs:
             contents = []
@@ -837,7 +839,8 @@ class StubDoc(Doc):
                 contents.append(self.document(obj, name, this_name))
             for alias in names[1:]:
                 contents.append('%s = %s' % (alias, name))
-            result = result + join(contents, '\n') + '\n\n'
+            self.contents.extend(contents)
+            self.contents.extend(['', ''])
 
         if data:
             contents = []
@@ -846,7 +849,8 @@ class StubDoc(Doc):
                 contents.append(self.docother(obj, name, this_name, maxlen=70))
             for alias in names[1:]:
                 contents.append('%s = %s' % (alias, name))
-            result = result + join(contents, '\n') + '\n\n'
+            self.contents.extend(contents)
+            self.contents.extend(['', ''])
 
 #        if hasattr(this_module, '__version__'):
 #            version = str(this_module.__version__)
@@ -859,13 +863,17 @@ class StubDoc(Doc):
 #            result = result + self.section('AUTHOR', str(this_module.__author__)) + '\n\n'
 #        if hasattr(this_module, '__credits__'):
 #            result = result + self.section('CREDITS', str(this_module.__credits__)) + '\n\n'
-        if self.missing_modules:
+
+        missing = [self.import_mod_text(this_module, mod, '')
+                   for mod in self.missing_modules]
+        missing += self.maybe_modules.values()
+        if missing:
             contents = []
-            for mod in self.missing_modules:
-                import_text = self.import_mod_text(this_module, mod, '')
+            for import_text in missing:
                 if import_text:
                     contents.append(import_text)
-            result = join(contents, '\n') + '\n\n'  + result
+            self.contents = contents + ['', ''] + self.contents
+        result = join(self.contents, '\n')
         self.safe_constructor_classes = set()
         return result
 
@@ -909,15 +917,21 @@ class StubDoc(Doc):
             self.static_module_names[module] = get_static_module_names(module)
         return name in self.static_module_names[module]
 
-    def classname(self, klass, modname, realmodule=None):
+    def classname(self, klass, modname, realmodule=None, consume_import=False):
         """Get a class name and qualify it with a module name if necessary."""
         if id(klass) in self.id_map:
-            return self.id_map[id(klass)], None
+            result = self.id_map[id(klass)]
+            if consume_import:
+                return result, None
+            else:
+                return result
         if realmodule is None:
             realmodule = klass.__module__
-        return self._classname(klass.__name__, modname, realmodule, klass)
+        return self._classname(klass.__name__, modname, realmodule, klass,
+                               consume_import=consume_import)
 
-    def _classname(self, realname, modname, realmodule, klass=None):
+    def _classname(self, realname, modname, realmodule, klass=None,
+                   consume_import=False):
         import_text = None
         missing = None
         # first, see if the object's module is THIS module...
@@ -965,6 +979,7 @@ class StubDoc(Doc):
                                 missing = True
 
                             # ...though we can add an entry to the module map
+
                             self.add_to_module_map(realmodule, newmodname)
 
                         sub_parts.insert(0, mod_parts.pop())
@@ -979,8 +994,12 @@ class StubDoc(Doc):
                     self.add_to_module_map(realmodule, realmodule)
             if newmodname:
                 realname = newmodname + '.' + realname
-                import_text = self.maybe_modules.pop(newmodname, None)
-        return realname, import_text
+                if consume_import:
+                    import_text = self.maybe_modules.pop(newmodname, None)
+        if consume_import:
+            return realname, import_text
+        else:
+            return realname
 
     def docclass(self, object, name=None, mod=None):
         """Produce text documentation for a given class object."""
@@ -993,9 +1012,15 @@ class StubDoc(Doc):
         title = 'class ' + name
 
         if bases:
-            data = [self.classname(c, mod) for c in bases]
-            parents = [d[0] for d in data]
-            imports = [d[1] for d in data if d[1] is not None]
+            data = [self.classname(c, mod, consume_import=self.imports_precede_classes)
+                    for c in bases]
+            if self.imports_precede_classes:
+                parents = [d[0] for d in data]
+                imports = [d[1] for d in data if d[1] is not None]
+            else:
+                parents = data
+                imports = []
+
             title = title + '(%s)' % join(parents, ', ')
             if imports:
                 imports = '\n'.join(imports)
@@ -1133,7 +1158,7 @@ class StubDoc(Doc):
             return inspect.formatargspec(
                 args, varargs, varkw, defaults, formatvalue=self.formatvalue)
         else:
-            return '(*args, **kwargs)'
+            return self.UNKNOWN_SIGNATURE
 
     def _add_docs(self, obj, decl, skipdocs):
         if skipdocs:
@@ -1326,6 +1351,7 @@ class StubDoc(Doc):
 
             if verbose:
                 print "adding", realname, asname, importname
+
             self.add_to_module_map(realname, asname if asname else importname)
             if importname in self.import_substitutions:
                 return '%s = None' % asname
@@ -1346,6 +1372,16 @@ class StubDoc(Doc):
 
 class PEP484StubDoc(StubDoc):
     PASS = '...'
+    UNKNOWN_SIGNATURE = '(...)'
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('imports_precede_classes', False)
+        StubDoc.__init__(self, *args, **kwargs)
+
+    def docmodule(self, *args, **kwargs):
+        result = StubDoc.docmodule(self, *args, **kwargs)
+        result = 'from typing import Any, Container, Dict, Generic, Iterable, Iterator, List, Optional, Set, Tuple, TypeVar, Union\n' + result
+        return result
 
     def docother(self, obj, name=None, mod=None, parent=None, maxlen=None,
                  doc=None):
@@ -1361,9 +1397,9 @@ class PEP484StubDoc(StubDoc):
             # value = self.docother_data_repr(obj)
             value = None
             if inspect.isclass(obj):
-                typ = 'Type[%s]' % self.classname(obj, modname=mod)[0]
+                typ = 'Type[%s]' % self.classname(obj, modname=mod)
             else:
-                typ = self.classname(obj.__class__, modname=mod)[0]
+                typ = self.classname(obj.__class__, modname=mod)
 
         assert name is not None, "Name of object %r is None" % obj
         if name == 'None':
@@ -1415,7 +1451,9 @@ class PEP484StubDoc(StubDoc):
                 # else:
                 #     print "could not import", `typestr`, module
                 #     return typestr
-                return self._classname(parts[1], module, parts[0])[0]
+                id = self._classname(parts[1], modname=module,
+                                     realmodule=parts[0])
+                return id
 
         def make_annotation(typestr):
             # FIXME: being lazy here: we should only pass the parts of the
@@ -1426,7 +1464,7 @@ class PEP484StubDoc(StubDoc):
         # def make_annotation(typestr):
         #     typ = pydoc.locate(typestr)
         #     if typ:
-        #         return self.classname(typ, parent)[0]
+        #         return self.classname(typ, parent)
         #     else:
         #         print "could not locate", typestr
         #         return typestr
@@ -1440,7 +1478,8 @@ class PEP484StubDoc(StubDoc):
             argdef = arg['name'] + ': ' + make_annotation(arg['type'])
             default = arg.get('default')
             if default:
-                argdef += ' = ' + default
+                # argdef += ' = ' + default
+                argdef += ' = ...'
             args.append(argdef)
         signature = '(' + ', '.join(args) + ')'
         signature += ' -> ' + make_annotation(signature_data['result'])
@@ -1450,11 +1489,12 @@ class PEP484StubDoc(StubDoc):
         if self.type_data is None:
             return None
         doc = self.type_data
-        for p in pathparts:
+        for i, p in enumerate(pathparts):
+            if i != 0:
+                doc = doc['members']
             try:
                 doc = doc[p]
             except KeyError as err:
-                # print parents, err
                 return None
         return doc
 
@@ -1462,38 +1502,55 @@ class PEP484StubDoc(StubDoc):
                    kind=None, signature_data=None):
         parents = parent.split('.')
         doc = self._get_type_data(parents + [name])
+        sigs = None
+        CMP = {
+            'args': [
+                {
+                    'name': 'other',
+                    'type': 'Any'
+                }
+            ],
+            'result': 'bool'
+        }
+        special = {
+            '__eq__': CMP,
+            '__ne__': CMP,
+            '__ge__': CMP,
+            '__le__': CMP,
+            '__gt__': CMP,
+            '__lt__': CMP,
+            '__len__': {'args': [], 'result': 'int'},
+            '__str__': {'args': [], 'result': 'str'},
+            '__repr__': {'args': [], 'result': 'str'},
+            '__nonzero__': {'args': [], 'result': 'bool'},
+        }
+        if name in special:
+            doc = {'signatures': [special[name]]}
 
-        if doc is None:
-            CMP = {
-                'args': [
-                    {
-                        'name': 'other',
-                        'type': 'Any'
-                    }
-                ],
-                'result': 'bool'
-            }
-            special = {
-                '__eq__': CMP,
-                '__ne__': CMP,
-                '__ge__': CMP,
-                '__le__': CMP,
-                '__gt__': CMP,
-                '__lt__': CMP,
-                '__len__': {'args': [], 'result': 'int'},
-                '__str__': {'args': [], 'result': 'str'},
-                '__repr__': {'args': [], 'result': 'str'},
-                '__nonzero__': {'args': [], 'result': 'bool'},
-            }
-            if name in special:
-                doc = [special[name]]
+        if doc is not None:
+            try:
+                sigs = doc['signatures']
+            except KeyError:
+                print("Document missing 'signature' entry %s" % '.'.join(
+                      parents + [name]))
+                print(doc)
+                sigs = None
 
-        if doc is None or len(doc) == 1:
+        if sigs is None or len(sigs) == 1:
+            if sigs is None:
+                sig = None
+            else:
+                try:
+                    sig = sigs[0]
+                except IndexError:
+                    print("Could not extract signature from %s" % '.'.join(parents + [name]))
+                    print(doc)
+                    raise
             return StubDoc.docroutine(self, obj, name, parent, parent_cls,
-                                      kind, doc[0] if doc else None)
+                                      kind, sig)
         else:
             defs = []
-            for signature_data in doc:
+            for signature_data in sigs:
                 defs.append('@override')
                 defs.append(StubDoc.docroutine(self, obj, name, parent,
                                                parent_cls, kind, signature_data))
@@ -1502,17 +1559,21 @@ class PEP484StubDoc(StubDoc):
     def docproperty_get_sig(self, obj, name, parent, doc, propkind):
         parents = parent.split('.')
         if doc is None:
-            # foo ->  GetFoo
-            altname = propkind.capitalize() + name[0].upper() + name[1:]
+            # foo -> Foo
+            altname = name[0].upper() + name[1:]
             doc = self._get_type_data(parents + [altname])
-            if doc is None and propkind == 'get':
-                # foo ->  IsFoo
-                altname = 'Is' + name[0].upper() + name[1:]
+            if doc is None:
+                # foo ->  GetFoo
+                altname = propkind.capitalize() + altname
                 doc = self._get_type_data(parents + [altname])
+                if doc is None and propkind == 'get':
+                    # foo ->  IsFoo
+                    altname = 'Is' + name[0].upper() + name[1:]
+                    doc = self._get_type_data(parents + [altname])
         if doc:
             signature = self.docroutine_getspec(obj, parent=parent,
                                                 method_kind='method',
-                                                signature_data=doc[0])
+                                                signature_data=doc['signatures'][0])
         else:
             signature = '(self)' if propkind == 'get' else '(self, value)'
         return signature
