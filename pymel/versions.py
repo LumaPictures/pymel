@@ -129,7 +129,7 @@ v2017 = 201700
 v2017U1 = 201701
 v2017U2 = 201720
 v2017U3 = 201740
-v2018 = 201800
+v2018 = 20180000
 
 def current():
     """Get the current version of Maya
