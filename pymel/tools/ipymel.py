@@ -41,9 +41,7 @@ import IPython
 ipy_ver = IPython.__version__.split('.')
 ipy_ver = [int(x) if x.isdigit() else x for x in ipy_ver]
 
-ver11 = ipy_ver >= [0, 11]
-
-if not ver11:
+if ipy_ver < [0, 11]:
     def get_ipython():
         import IPython.ipapi
         return IPython.ipapi.get()
@@ -56,13 +54,28 @@ if not ver11:
 
     def get_colors(obj):
         return color_table[obj.rc.colors].colors
-else:
+else:  # >= [0, 11]
     import IPython.utils.coloransi as coloransi
     from IPython.core.page import page
     from IPython.core.error import UsageError
 
     def get_colors(obj):
         return color_table[ip.colors].colors
+
+if ipy_ver >= [0, 13]:
+    def define_magic(interpreter, function):
+        def get_ipython():
+            return interpreter
+        from IPython.core.magic import register_line_magic
+        register_line_magic(function)
+else:
+    def define_magic(interpreter, function):
+        interpreter.define_magic(function.__name__, function)
+
+try:
+    from IPython.core.error import TryNext
+except ImportError:
+    from IPython.ipapi import TryNext
 
 
 Colors = coloransi.TermColors
@@ -145,6 +158,7 @@ LightBGColors = ColorScheme(
 # Build table of color schemes (needed by the dag_parser)
 color_table = ColorSchemeTable([NoColor, LinuxColors, LightBGColors],
                                _scheme_default)
+color_table['Neutral'] = LightBGColors
 
 
 def finalPipe(obj):
@@ -282,7 +296,7 @@ def pymel_python_completer(self, event):
     m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
 
     if not m:
-        raise IPython.ipapi.TryNext
+        raise TryNext
 
     expr, attr = m.group(1, 3)
     # print type(self.Completer), dir(self.Completer)
@@ -296,7 +310,7 @@ def pymel_python_completer(self, event):
             # print "second"
             obj = eval(expr, self.Completer.global_namespace)
         except:
-            raise IPython.ipapi.TryNext
+            raise TryNext
     # print "complete"
     if isinstance(obj, (pm.nt.DependNode, pm.Attribute)):
         # print "isinstance"
@@ -318,7 +332,7 @@ def pymel_python_completer(self, event):
         #matches = [ colorize.colorize(x,'magenta') for x in matches ]
         return matches
 
-    raise IPython.ipapi.TryNext
+    raise TryNext
 
 def buildRecentFileMenu():
     import pymel.core as pm
@@ -376,7 +390,7 @@ def open_completer(self, event):
             return ents
         return []
 
-    raise IPython.ipapi.TryNext
+    raise TryNext
 
 class TreePager(object):
 
@@ -469,14 +483,12 @@ class DagTree(TreePager):
 
         return name
 
+# formerly: magic_dag
 dag_parser = OptionParser()
 dag_parser.add_option("-d", type="int", dest="maxdepth")
 dag_parser.add_option("-t", action="store_false", dest="shapes", default=True)
 dag_parser.add_option("-s", action="store_true", dest="shapes")
-def magic_dag(self, parameter_s=''):
-    """
-
-    """
+def dag(self, parameter_s=''):
     import pymel.core as pm
 
     options, args = dag_parser.parse_args(parameter_s.split())
@@ -504,11 +516,12 @@ class DGHistoryTree(TreePager):
         roots = pm.listConnections(root, plugs=True, connections=True, source=True, destination=False, sourceFirst=True)
         return TreePager.make_tree(self, roots)
 
+# formerly: magic_dghist
 dg_parser = OptionParser()
 dg_parser.add_option("-d", type="int", dest="maxdepth")
 dg_parser.add_option("-t", action="store_false", dest="shapes", default=True)
 dg_parser.add_option("-s", action="store_true", dest="shapes")
-def magic_dghist(self, parameter_s=''):
+def dghist(self, parameter_s=''):
     """
 
     """
@@ -526,7 +539,8 @@ def magic_dghist(self, parameter_s=''):
 
     page(dgtree.make_tree(roots))
 
-def magic_open(self, parameter_s=''):
+# formerly: magic_open
+def openf(self, parameter_s=''):
     """Change the current working directory.
 
     This command automatically maintains an internal list of directories
@@ -692,9 +706,9 @@ def setup(shell):
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
 
-    ip.define_magic('openf', magic_open)
-    ip.define_magic('dag', magic_dag)
-    ip.define_magic('dghist', magic_dghist)
+    define_magic(ip, openf)
+    define_magic(ip, dag)
+    define_magic(ip, dghist)
 
     # add projects
     ip.ex("""
