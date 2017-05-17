@@ -2704,7 +2704,27 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
         # instead of calling the super's __setattr__, which would
         # use the property, inserts it into the object's __dict__
         # manually
-        return bool(foo2.bar != 7)
+        if foo2.bar != 7:
+            return True
+
+        # Starting in Maya2018 (at least on windows?), many wrapped datatypes
+        # define a __setattr__ which will work in the "general" case tested
+        # above, but will still take precedence if a "_swig_property" is
+        # defined - ie, MEulerRotation.order.  Check to see if the apicls has
+        # any properties, and ensure that our property still overrides theirs...
+        for name, member in inspect.getmembers(apiClass,
+                                               lambda x: isinstance(x, property)):
+            setattr(MyClass1, name, MyClass1.__dict__['bar'])
+            try:
+                setattr(foo2, name, 1.23456)
+            except Exception:
+                return True
+            if getattr(foo2, name) != 1.23456:
+                return True
+            # only check for one property - we assume that all apicls properties
+            # will behave the same way...
+            break
+        return False
 
 class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 

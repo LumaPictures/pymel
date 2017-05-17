@@ -171,7 +171,18 @@ class TestMMatrixSetAttr(unittest.TestCase):
         # We expect it to fail on windows, and pass on other operating systems...
         shouldPass = os.name != 'nt'
         try:
-            class MyClass1(object):
+            class InfoBaseClass(object):
+                # These two are just so we can trace what's going on...
+                def __getattribute__(self, name):
+                    # don't just use 'normal' repr, as that will
+                    # call __getattribute__!
+                    print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
+                    return super(MyClass1, self).__getattribute__(name)
+                def __setattr__(self, name, val):
+                    print "__setattr__(%r, %r, %r)" % (self, name, val)
+                    return super(MyClass1, self).__setattr__(name, val)
+
+            class MyClass1(InfoBaseClass):
                 def __init__(self):
                     self._bar = 'not set'
 
@@ -183,22 +194,11 @@ class TestMMatrixSetAttr(unittest.TestCase):
                     return self._bar
                 bar = property(_getBar, _setBar)
 
-                # These two are just so we can trace what's going on...
-                def __getattribute__(self, name):
-                    # don't just use 'normal' repr, as that will
-                    # call __getattribute__!
-                    print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
-                    return super(MyClass1, self).__getattribute__(name)
-                def __setattr__(self, name, val):
-                    print "__setattr__(%r, %r, %r)" % (self, name, val)
-                    return super(MyClass1, self).__setattr__(name, val)
-
             foo1 = MyClass1()
             # works like we expect...
             foo1.bar = 7
             print "foo1.bar:", foo1.bar
             self.assertTrue(foo1.bar == 7)
-
 
             class MyClass2(MyClass1, om.MMatrix): pass
 
@@ -212,6 +212,34 @@ class TestMMatrixSetAttr(unittest.TestCase):
             # manually
             print "foo2.bar:", foo2.bar
             self.assertTrue(foo2.bar == 7)
+
+            # Starting in Maya2018 (at least on windows?), many wrapped datatypes
+            # define a __setattr__ which will work in the "general" case tested
+            # above, but will still take precedence if a "_swig_property" is
+            # defined - ie, MEulerRotation.order.  Check to see if the apicls has
+            # any properties, and ensure that our property still overrides theirs...
+            class MyEulerClass1(InfoBaseClass):
+                def _setOrder(self, val):
+                    print "setting order to:", val
+                    self._order = val
+                def _getOrder(self):
+                    print "getting order..."
+                    return self._order
+                order = property(_getOrder, _setOrder)
+
+            er1 = MyEulerClass1()
+            # works like we expect...
+            er1.order = "new order"
+            print "er1.order:", er1.order
+            self.assertTrue(er1.order == "new order")
+
+            class MyEulerClass2(MyEulerClass1, om.MEulerRotation): pass
+
+            er2 = MyClass2()
+            er2.order = "does it work?"
+            print "er2.order:", er2.order
+            self.assertTrue(er2.order == "does it work?")
+
         except Exception:
             if shouldPass:
                 raise
