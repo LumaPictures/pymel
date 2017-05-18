@@ -2330,12 +2330,22 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
             wrappedApiFunc = classmethod(wrappedApiFunc)
 
         if argHelper.isDeprecated():
+            argDescriptions = []
+            for arg in argList:
+                argName = arg[0]
+                argType = arg[1]
+                if isinstance(argType, apicache.ApiEnum):
+                    argType = argType[0]
+                elif inspect.isclass(argType):
+                    argType = argType.__name__
+                argDescriptions.append('{} {}'.format(argType, argName))
+            argStr = ', '.join(argDescriptions)
+            methodDesc = "{}.{}({})".format(apiClassName, methodName, argStr)
             beforeDeprecationWrapper = wrappedApiFunc
 
             def wrappedApiFunc(*args, **kwargs):
                 import warnings
-                warnings.warn("%s.%s is deprecated" % (apiClassName,
-                                                       methodName),
+                warnings.warn("{} is deprecated".format(methodDesc),
                               DeprecationWarning, stacklevel=2)
                 return beforeDeprecationWrapper(*args, **kwargs)
         return wrappedApiFunc
