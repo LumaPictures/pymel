@@ -3713,6 +3713,10 @@ class AnimCurve(DependNode):
                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent' + tangentInType.capitalize()),
                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent' + tangentOutType.capitalize()))
 
+    def numKeyframes(self):
+        # just because MFnAnimCurve.numKeyframes is deprecated...
+        return self.numKeys()
+
 class GeometryFilter(DependNode):
     pass
 class SkinCluster(GeometryFilter):
