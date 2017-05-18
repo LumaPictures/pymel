@@ -2337,7 +2337,7 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
                 warnings.warn("%s.%s is deprecated" % (apiClassName,
                                                        methodName),
                               DeprecationWarning, stacklevel=2)
-                beforeDeprecationWrapper(*args, **kwargs)
+                return beforeDeprecationWrapper(*args, **kwargs)
         return wrappedApiFunc
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
