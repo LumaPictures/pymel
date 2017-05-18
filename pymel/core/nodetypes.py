@@ -3828,6 +3828,7 @@ _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 class NodetypesLazyLoadModule(_util.LazyLoadModule):
     '''Like a standard lazy load  module, but with dynamic PyNode class creation
     '''
+    _checkedForNewReservedTypes = False
     @classmethod
     def _unwrappedNodeTypes(cls):
         # get node types, but avoid checking inheritance for all nodes for
@@ -3838,8 +3839,29 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
         # an acceptable risk
         allNodes = _apicache._getAllMayaTypes(addAncestors=False,
                                               noManips='fast')
+        unknownNodes = allNodes - set(mayaTypeNameToPymelTypeName)
+        if unknownNodes:
+            # first, check for any new abstract node types - this can happen
+            # if, for instance, we have an "extension" release of maya,
+            # which introduces new nodes (and abstract nodes), but the caches
+            # were built with the "base" release
+            # we do these first because they can't be queried by creating nodes,
+            # and for derived nodes, we may be able to get by just using the
+            # type for the abstract node...
+            if not cls._checkedForNewReservedTypes:
+                cls._checkedForNewReservedTypes = True
+                # this should build mayaTypesToApiTypes and mayaTypesToApiEnums
+                # for all reserved types...
+                cache = _apicache.ApiCache()
+                cache._buildMayaToApiInfo(reservedOnly=True)
+                # and update the cache in use with these results...
+                # ...now update with any that were missing...
+                for mayaType, apiType in cache.mayaTypesToApiTypes.iteritems():
+                    if mayaType not in _factories._apiCacheInst.mayaTypesToApiTypes:
+                        _factories._apiCacheInst.mayaTypesToApiTypes[mayaType] = apiType
+                        _factories._apiCacheInst.mayaTypesToApiEnums[mayaType] = cache.mayaTypesToApiEnums[mayaType]
 
-        return allNodes - set(mayaTypeNameToPymelTypeName)
+        return unknownNodes - set(mayaTypeNameToPymelTypeName)
 
     def __getattr__(self, name):
         '''Check to see if the name corresponds to a PyNode that hasn't been

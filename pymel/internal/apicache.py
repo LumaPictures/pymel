@@ -81,7 +81,11 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         # only time post-2012 when we should have to call this func is when
         # rebuilding caches - ie, running from inside ApiCache
         if not GhostObjsOkHere.OK():
-            _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be unnecessary in maya versions past 2012 (except when rebuilding cache)')
+            _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be '
+                                              'unnecessary in maya versions '
+                                              'past 2012 (except when '
+                                              'rebuilding cache)  - was making '
+                                              'a {!r} object'.format(mayaType))
 
     _logger.debug("Creating ghost node: %s" % mayaType)
 
@@ -731,7 +735,7 @@ class ApiCache(startup.SubItemCache):
             setattr(self, name, {})
         self.docLocation = docLocation
 
-    def _buildMayaToApiInfo(self):
+    def _buildMayaToApiInfo(self, reservedOnly=True):
 
         self._buildMayaNodeInfo()
         # Fixes for types that don't have a MFn by doing a node creation and testing it
@@ -744,10 +748,11 @@ class ApiCache(startup.SubItemCache):
         # abstract nodes, so relying on caching of parent hierarchies when
         # querying a real hierarchy is the only way to get inheritance info
         # for abstract types
-        for mayaType in itertools.chain(self.realMayaTypes,
-                                        self.abstractMayaTypes):
-            if mayaType not in self.mayaTypesToApiTypes:
-                toCreate.append(mayaType)
+        if not reservedOnly:
+            for mayaType in itertools.chain(self.realMayaTypes,
+                                            self.abstractMayaTypes):
+                if mayaType not in self.mayaTypesToApiTypes:
+                    toCreate.append(mayaType)
 
         if toCreate:
             # Put in a debug, because ghost nodes can be problematic...
