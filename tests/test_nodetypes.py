@@ -13,6 +13,7 @@ from maintenance.pymelControlPanel import getClassHierarchy
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
 import pymel.util.arrays as arrays
+import pymel.versions as versions
 
 from pymel.util.testing import TestCaseExtended, setCompare
 
@@ -2590,34 +2591,36 @@ class testCase_renderLayers(TestCaseExtended):
         self.layer.removeMembers([self.sphere, self.cube])
         self.assertEqual(self.layer.listMembers(), [])
 
-    def test_setCurrent(self):
-        self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
-                         pm.nt.RenderLayer.currentLayer())
-        self.layer.setCurrent()
-        self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
+    # can't use unittest.skipIf, because nose doesn't seem to recognize it...
+    if versions.current() < versions.v2018:
+        def test_setCurrent(self):
+            self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
+                             pm.nt.RenderLayer.currentLayer())
+            self.layer.setCurrent()
+            self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
 
-    def test_adjustments(self):
-        widthAttr = pm.PyNode("defaultResolution.width")
-        self.assertEqual(self.layer.listAdjustments(), [])
-        self.layer.addAdjustments(widthAttr)
-        self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
+        def test_adjustments(self):
+            widthAttr = pm.PyNode("defaultResolution.width")
+            self.assertEqual(self.layer.listAdjustments(), [])
+            self.layer.addAdjustments(widthAttr)
+            self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
 
-        origVal = widthAttr.get()
-        adjVal = origVal + 5
+            origVal = widthAttr.get()
+            adjVal = origVal + 5
 
-        self.layer.setCurrent()
-        widthAttr.set(adjVal)
-        self.assertEqual(widthAttr.get(), adjVal)
-        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-        self.assertEqual(widthAttr.get(), origVal)
-        self.layer.setCurrent()
-        self.assertEqual(widthAttr.get(), adjVal)
+            self.layer.setCurrent()
+            widthAttr.set(adjVal)
+            self.assertEqual(widthAttr.get(), adjVal)
+            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+            self.assertEqual(widthAttr.get(), origVal)
+            self.layer.setCurrent()
+            self.assertEqual(widthAttr.get(), adjVal)
 
-        self.layer.removeAdjustments(widthAttr)
-        self.assertEqual(self.layer.listAdjustments(), [])
-        self.assertEqual(widthAttr.get(), origVal)
-        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-        self.assertEqual(widthAttr.get(), origVal)
+            self.layer.removeAdjustments(widthAttr)
+            self.assertEqual(self.layer.listAdjustments(), [])
+            self.assertEqual(widthAttr.get(), origVal)
+            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+            self.assertEqual(widthAttr.get(), origVal)
 
 class testCase_Character(unittest.TestCase):
     def setUp(self):
