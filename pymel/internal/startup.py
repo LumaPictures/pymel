@@ -2,7 +2,6 @@
 Maya-related functions, which are useful to both `api` and `core`, including `mayaInit` which ensures
 that maya is initialized in standalone mode.
 """
-from __future__ import with_statement
 import os.path
 import sys
 import glob

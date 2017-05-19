@@ -3,7 +3,6 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-from __future__ import with_statement
 
 import sys, platform, os, shutil, time, inspect, tempfile, doctest, re
 
