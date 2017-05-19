@@ -11,11 +11,8 @@ import maya.cmds as cmds
 class testCase_references(unittest.TestCase):
 
     def setUp(self):
-        self.temp = os.path.join(tempfile.gettempdir(), 'referencesTest')
-        if not os.path.isdir(self.temp):
-            os.makedirs(self.temp)
+        self.temp = tempfile.mkdtemp(prefix='referencesTest')
         print "created temp dir: %s" % self.temp
-
 
         # Refs:
         #  sphere.ma
