@@ -139,9 +139,10 @@ def nose_test(argv, module=None, pymelDir=None):
         noseArgv.extend(extraArgs)
     noseKwArgs['argv'] = noseArgv
 
-    with DocTestPatcher():
-        print "running nose:", noseKwArgs
-        nose.main( **noseKwArgs)
+    with UnittestDescriptionDisabler():
+        with DocTestPatcher():
+            print "running nose:", noseKwArgs
+            nose.main( **noseKwArgs)
 
 def unit2_test(argv, **kwargs):
     # insert the verbose flag
@@ -158,7 +159,39 @@ def unit2_test(argv, **kwargs):
         sys.modules['unittest'] = sys.modules['unittest2']
 
     print "running unittest:", kwargs
-    unittest.main(**kwargs)
+    with UnittestDescriptionDisabler():
+        unittest.main(**kwargs)
+
+
+class UnittestDescriptionDisabler(object):
+    """Disables printing of the test "descriptions" in the unittest results
+
+    The description is the first line of the docstring - but it makes it harder
+    to parse results, or quickly identify the failing test, so we disable
+    printing them - ie, we want:
+    """
+
+    # initally, tried to set the default for TextTestRunner(descriptions=False)
+    # While this worked for unittest, for nose, it disabled TOO much - ie,
+    # doctests, generators, etc
+
+    # now just making it so that _testMethodDoc is always None...
+    def __enter__(self):
+        from unittest import TestCase
+        old_init = TestCase.__dict__['__init__']
+        self._old_init = old_init
+
+        def newInit(self, *args, **kwargs):
+            result = old_init(self, *args, **kwargs)
+            self._testMethodDoc = None
+            return result
+
+        TestCase.__init__ = newInit
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        from unittest import TestCase
+        TestCase.__init__ = self._old_init
+
 
 class DocTestPatcher(object):
     """
