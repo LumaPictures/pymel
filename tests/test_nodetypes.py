@@ -1,15 +1,29 @@
 import sys
+import os
 import unittest
 import itertools
 import re
 import platform
 import inspect
 import math
+import inspect
 
 import maya.cmds as cmds
 import pymel.core as pm
 import pymel.api as api
-from maintenance.pymelControlPanel import getClassHierarchy
+
+THIS_FILE = os.path.abspath(inspect.getsourcefile(lambda: None))
+THIS_DIR = os.path.dirname(THIS_FILE)
+PARENT_DIR = os.path.dirname(THIS_DIR)
+try:
+    from maintenance.pymelControlPanel import getClassHierarchy
+except ImportError:
+    if PARENT_DIR not in sys.path:
+        sys.path.append(PARENT_DIR)
+        from maintenance.pymelControlPanel import getClassHierarchy
+    else:
+        raise
+
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
 import pymel.util.arrays as arrays
