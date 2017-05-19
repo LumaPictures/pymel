@@ -113,7 +113,9 @@ def nose_test(argv, module=None, pymelDir=None):
                     ^maintenance
                     ^pymel_test
                     ^TestPymel
-                    ^testPassContribution$'''.split()
+                    ^testPassContribution$
+                    ^test_main$
+                    '''.split()
 
         # default inGui to false - if we are in gui, we should be able to query
         # (definitively) that we are, but same may not be true from command line
