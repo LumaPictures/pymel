@@ -6,6 +6,7 @@ import itertools
 from pprint import pprint
 
 import pymel.core as pm
+import pymel.versions
 import maya.cmds as cmds
 
 class testCase_references(unittest.TestCase):
@@ -173,8 +174,47 @@ class testCase_references(unittest.TestCase):
         pm.system.Namespace('sphere1:foobar').setCurrent()
         pm.modeling.polyCube(n='testCube')
         self.tempRef1 = pm.system.createReference(self.sphereFile, namespace='foobar')
+        pm.modeling.polyCube(n=':sphere1:foobar:foobar:bob')
+        self.assertTrue(cmds.objExists(':sphere1:foobar:testCube'))
+        self.assertTrue(cmds.objExists(':sphere1:foobar:foobar:bob'))
+        self.assertFalse(cmds.objExists(':testCube'))
+        self.assertFalse(cmds.objExists(':sphere1:testCube'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar1:testCube'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:testCube'))
+        self.assertFalse(cmds.objExists(':bob'))
+        self.assertFalse(cmds.objExists(':sphere1:bob'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar:bob'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar1:bob'))
         pm.system.FileReference(self.tempRef1).remove(mergeNamespaceWithParent=1)
-        self.assertIn('sphere1:testCube', pm.system.namespaceInfo('sphere1', ls=1))
+        # Before maya 2018, there was a bug where removing the ref, which lives
+        # in "sphere1:foobar:foobar", would also delete "sphere1:foobar" -
+        # leaving just "sphere1:", where everything was moved into...
+        if pymel.versions.current() < pymel.versions.v2018:
+            # when it deletes sphere1:foobar, it tries to move sphere1:foobar:foobar
+            # to sphere1:foobar... but apparently that causes a name conflict,
+            # so it makes sphere1:foobar1 instead
+            self.assertTrue(cmds.objExists(':sphere1:testCube'))
+            self.assertTrue(cmds.objExists(':sphere1:foobar1:bob'))
+            self.assertFalse(cmds.objExists(':testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar1:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:testCube'))
+            self.assertFalse(cmds.objExists(':bob'))
+            self.assertFalse(cmds.objExists(':sphere1:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:bob'))
+        else:
+            self.assertTrue(cmds.objExists(':sphere1:foobar:testCube'))
+            self.assertTrue(cmds.objExists(':sphere1:foobar:bob'))
+            self.assertFalse(cmds.objExists(':testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar1:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:testCube'))
+            self.assertFalse(cmds.objExists(':bob'))
+            self.assertFalse(cmds.objExists(':sphere1:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar1:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:bob'))
+
 
     def test_file_reference_remove_merge_namespace_root(self):
         pm.openFile(self.masterFile, f=1)
