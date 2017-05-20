@@ -221,9 +221,7 @@ class testCase_mayaSetAttr(unittest.TestCase):
         #assert cmds.getAttr( 'node.reflectanceRGBAttr' )        == 1.0
         # TODO : finish non-numeric
 
-def test_pymel_setAttr():
-
-    _makeAllAttrTypes('node2')
+def addPymelSetAttrTests():
     for data in [
         ('short2',  (1,2)),
         ('short3',  (1,2,3)),
@@ -250,17 +248,16 @@ def test_pymel_setAttr():
         mainVal = data[1]
 
         for i, val in enumerate(data[1:]):
-            def testSetAttr(*args):
-                at = 'node2.' + typ + 'Attr'
+            def testSetAttr(self):
+                at = 'node.' + typ + 'Attr'
                 setAttr(at, val)
                 newval = getAttr(at)
                 assert newval == mainVal, "setAttr %s: returned value %r is not equal to input value %r" % (typ, newval, mainVal)
 
             testSetAttr.__name__ = 'test_setAttr_' + typ + '_' + str(i)
             testSetAttr.description = testSetAttr.__name__
-            #print typ
-            #testSetAttr()
-            yield testSetAttr,
+            setattr(testCase_mayaSetAttr, testSetAttr.__name__, testSetAttr)
+addPymelSetAttrTests()
 
 class testCase_mayaLockAttr(unittest.TestCase):
 
