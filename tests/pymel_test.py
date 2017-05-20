@@ -43,7 +43,7 @@ import unittest
 import argparse
 
 RUNNERS = ('pytest', 'unittest', 'nose')
-DEFAULT_RUNNER = 'nose'
+DEFAULT_RUNNER = 'pytest'
 
 def getParser():
     testsDir = os.path.dirname(os.path.abspath(sys.argv[0]))

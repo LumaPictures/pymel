@@ -242,8 +242,8 @@ Operating System :: MacOS
               entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main' },
               package_data={'pymel': ['*.conf' ], 'pymel.cache' : ['*.zip'] },
               install_requires=requirements,
-              tests_require=['nose'],
-              test_suite = 'nose.collector',
+              tests_require=['pytest'],
+              setup_requires=['pytest-runner'],
               data_files = get_data_files()
              )
     finally:
