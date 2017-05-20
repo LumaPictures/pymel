@@ -4,7 +4,12 @@
 
 #import doctest
 
-import sys, platform, os, shutil, time, inspect, tempfile, doctest, re
+import doctest
+import inspect
+import os
+import pipes
+import re
+import sys
 
 # tee class adapted from http://shallowsky.com/blog/programming/python-tee.html
 class Tee(object):
@@ -34,26 +39,18 @@ class Tee(object):
 #outputlog = open(logfilename, "w")
 #sys.stderr = tee(stderrsav, outputlog)
 
-try:
-    import nose
-except ImportError, e:
-    print "To run pymel's tests you must have nose installed"
-    raise e
-
-# Get the 'new' version of unittest
-if sys.version_info >= (2, 7, 0):
-    import unittest
-else:
-    import unittest2 as unittest
-
+import unittest
 import argparse
+
+RUNNERS = ('pytest', 'unittest', 'nose')
+DEFAULT_RUNNER = 'nose'
 
 def getParser():
     testsDir = os.path.dirname(os.path.abspath(sys.argv[0]))
     pymelRoot = os.path.dirname( testsDir )
 
     parser = argparse.ArgumentParser(description='Run the pymel tests')
-    parser.add_argument('extra_args', nargs='*', help='args to pass to nose or unit/unit2')
+    parser.add_argument('--runner', default=DEFAULT_RUNNER, choices=RUNNERS)
     parser.add_argument('--app-dir', help='''make the tests use the given dir as
         the MAYA_APP_DIR (ie, the base maya settings folder)''')
     #parser.add_argument('--test', help='''specific TestCase or test function to
@@ -66,8 +63,33 @@ def getParser():
 
 _PYTHON_DOT_NAME_RE = re.compile(r'[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)+')
 
-def isPythonDottedName(name):
-    return bool(_PYTHON_DOT_NAME_RE.match(name))
+# testPa and testPassContribution are maya commands, not unittests... while
+# the test_main functions are functions that are run when a test module is
+# "executed" them - running them would effectively run all the tests in that
+# module twice
+EXCLUDE_TEST_NAMES = tuple('''testPa
+    testPassContribution
+    test_main'''.split())
+
+EXCLUDE_TEST_MODULES = tuple('''windows
+    pymel/all.py
+    pymel/tools
+    examples/example1.py
+    pymel/util/testing.py
+    eclipseDebug.py
+    pymel/internal/pmcmds.py
+    maya
+    maintenance
+    tests/pymel_test.py
+    tests/TestPymel.py'''.split())
+
+EXCLUDE_TEST_GUI_MODULES = tuple('''tests/test_uitypes.py
+    tests/test_windows.py'''.split())
+
+def rstripstr(orig, tostrip):
+    if tostrip and orig.endswith(tostrip):
+        return orig[:-len(tostrip)]
+    return orig
 
 def moduleObjNameSplit(moduleName):
     '''Returns the name split into the module part and the object name part
@@ -84,10 +106,28 @@ def moduleObjNameSplit(moduleName):
         moduleParts.append(name)
     return '.'.join(moduleParts), '.'.join(split[len(moduleParts):])
 
+def inGui():
+    try:
+        import maya.cmds
+        return not maya.cmds.about(batch=1)
+    except Exception:
+        # default inGui to false - if we are in gui, we should be able to query
+        # (definitively) that we are, but same may not be true from command line
+        return False
+
+def get_exclude_modules():
+    exclude_modules = EXCLUDE_TEST_MODULES
+    # if we're not in gui mode, disable the gui tests
+    if not inGui():
+        exclude_modules += EXCLUDE_TEST_GUI_MODULES
+    return exclude_modules
+
 def nose_test(argv, module=None, pymelDir=None):
     """
     Run pymel unittests / doctests
     """
+    import nose
+
     arg0 = argv[0]
     extraArgs = argv[1:]
 
@@ -100,35 +140,16 @@ def nose_test(argv, module=None, pymelDir=None):
     noseKwArgs={}
     noseArgv = "dummyArg0 --with-doctest -vv".split()
     if module is None:
-        #module = 'pymel' # if you don't set a module, nose will search the cwd
-        excludes = r'''^windows
-                    \Wall\.py$
-                    ^tools
-                    ^example1
-                    ^testing
-                    ^eclipseDebug
-                    ^pmcmds
-                    ^testPa
-                    ^maya
-                    ^maintenance
-                    ^pymel_test
-                    ^TestPymel
-                    ^testPassContribution$
-                    ^test_main$
-                    '''.split()
+        excludes = []
+        exclude_modules = get_exclude_modules()
+        # we can use regexp with nose, and I'm not sure exactly how the test
+        # names will be formatted - examples.example1 or example1? - so just
+        # matching against the last module
+        exclude_modules = [rstripstr(x.split('/')[-1], '.py')
+                           for x in exclude_modules]
+        excludes.extend('(?:^|\.){}(?:$|\.)'.format(m) for m in exclude_modules)
 
-        # default inGui to false - if we are in gui, we should be able to query
-        # (definitively) that we are, but same may not be true from command line
-        inGui = False
-        try:
-            import maya.cmds
-            inGui = not maya.cmds.about(batch=1)
-        except Exception: pass
-
-        # if we're not in gui mode, disable the gui tests
-        if not inGui:
-            excludes.extend('^test_uitypes ^test_windows'.split())
-
+        excludes.extend('^{}$'.format(t) for t in EXCLUDE_TEST_NAMES)
         noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in excludes ] )  ]
 
     if inspect.ismodule(module):
@@ -162,6 +183,18 @@ def unit2_test(argv, **kwargs):
     with UnittestDescriptionDisabler():
         unittest.main(**kwargs)
 
+def pytest_test(argv, **kwargs):
+    import pytest
+    argv[0] = 'pytest'
+    argv[1:1] = ['-vv', '--doctest-modules'] # verbose
+
+    exclude_modules = get_exclude_modules()
+    argv.extend('--ignore={}'.format(x) for x in exclude_modules)
+
+    # the test excludes are handled by conftest.py, since I couldn't find
+    # a way to exclude them from the "command line"
+    print " ".join(pipes.quote(x) for x in argv)
+    pytest.main(args=argv[1:])
 
 class UnittestDescriptionDisabler(object):
     """Disables printing of the test "descriptions" in the unittest results
@@ -233,8 +266,7 @@ class DocTestPatcher(object):
         doctest.DocTestFinder._from_module = _from_module
 
     def set_wantFile(self):
-        import nose
-#        if nose.__versioninfo__ > (1,0,0):
+        #        if nose.__versioninfo__ > (1,0,0):
 #            self.orig_wantFile = None
 #            return
 
@@ -266,7 +298,7 @@ class DocTestPatcher(object):
 
 def main(argv):
     parser = getParser()
-    parsed = parser.parse_args(argv[1:])
+    parsed, extra_args = parser.parse_known_args(argv[1:])
 
     if parsed.app_dir:
         if not os.path.exists(parsed.app_dir):
@@ -290,27 +322,20 @@ def main(argv):
 
     os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
 
+    argv = [argv[0]] + extra_args
+
     oldPath = os.getcwd()
     # make sure our cwd is the pymel project working directory
     os.chdir( pymelRoot )
     try:
-        # Try to guess whether we were given an arg which is a TestCase or
-        # test method/function, and if so, run new unittest (because it can
-        # easily handle specific TestCase/method/function)... else run nose
-        # (because it's what the test suite was originally set up to use)
-        useNose = True
-        if parsed.extra_args:
-            name = parsed.extra_args[-1]
-            if isPythonDottedName(name):
-                modulePart, objPart = moduleObjNameSplit(name)
-                if modulePart and objPart:
-                    useNose = False
-
-        argv = [argv[0]] + parsed.extra_args
-        if useNose:
+        if parsed.runner == 'nose':
             nose_test(argv)
-        else:
+        elif parsed.runner == 'unittest':
             unit2_test(argv)
+        elif parsed.runner == 'pytest':
+            pytest_test(argv)
+        else:
+            raise ValueError("unrecognized runner: {}".format(parsed.runner))
     finally:
         os.chdir(oldPath)
 
