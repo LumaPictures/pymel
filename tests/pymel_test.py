@@ -134,9 +134,6 @@ def nose_test(argv, module=None, pymelDir=None):
     if pymelDir:
         os.chdir(pymelDir)
 
-    os.environ['MAYA_PSEUDOTRANS_MODE']='5'
-    os.environ['MAYA_PSEUDOTRANS_VALUE']=','
-
     noseKwArgs={}
     noseArgv = "dummyArg0 --with-doctest -vv".split()
     if module is None:
@@ -327,6 +324,14 @@ def main(argv):
     oldPath = os.getcwd()
     # make sure our cwd is the pymel project working directory
     os.chdir( pymelRoot )
+
+    # These will make maya surround all "translated" strings with ","... and I
+    # believe make it always use the english (or perhaps the raw, before-lookup)
+    # value. In any case, it makes the tests more consitent, regardless of
+    # language, and some of the doctests (ie, pymel.core.language) require it
+    os.environ['MAYA_PSEUDOTRANS_MODE']='5'
+    os.environ['MAYA_PSEUDOTRANS_VALUE']=','
+
     try:
         if parsed.runner == 'nose':
             nose_test(argv)
