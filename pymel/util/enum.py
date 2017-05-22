@@ -59,6 +59,7 @@ __url__ = "http://cheeseshop.python.org/pypi/enum/"
 __version__ = "0.4.3"
 
 import operator
+from collections import OrderedDict
 
 class EnumException(Exception):
 
@@ -280,8 +281,12 @@ class Enum(object):
             # throw away any docs for the extra keys
             keyDict[key] = val
 
+        # always store values as an OrderedDict, to provide unified behavior,
+        # regardless of how it's constructed
         if not operator.isMappingType(values):
-            values = tuple(values)
+            values = OrderedDict(enumerate(values))
+        elif not isinstance(values, OrderedDict):
+            values = OrderedDict((key, values[key]) for key in sorted(values))
 
         super(Enum, self).__setattr__('_keys', keyDict)
         super(Enum, self).__setattr__('_values', values)
@@ -422,25 +427,16 @@ class Enum(object):
 
     def values(self):
         "return a list of `EnumValue`s"
-        if operator.isMappingType(self._values):
-            return tuple([self._values[k] for k in sorted(self._values.keys())])
-        else:
-            return self._values
+        return tuple(self._values.values())
 
     def itervalues(self):
         "iterator over EnumValue objects"
-        if operator.isMappingType(self._values):
-            return self._values.itervalues()
-        else:
-            return iter(self._values)
+        return self._values.itervalues()
 
     def keys(self):
         "return a list of keys as strings"
         if not hasattr(self, '_keyStrings'):
-            if operator.isMappingType(self._values):
-                keyStrings = tuple([self._values[k].key for k in sorted(self._values.keys())])
-            else:
-                keyStrings = tuple([v.key for v in self._values])
+            keyStrings = tuple(v.key for v in self._values.itervalues())
             super(Enum, self).__setattr__('_keyStrings', keyStrings)
         return self._keyStrings
 
