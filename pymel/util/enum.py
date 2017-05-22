@@ -171,17 +171,13 @@ class EnumValue(object):
     def __cmp__(self, other):
         result = NotImplemented
         self_type = self.enumtype
-        try:
-            assert self_type == other.enumtype
+        if isinstance(other, EnumValue) and self_type == other.enumtype:
             result = cmp(self.index, other.index)
-        except (AssertionError, AttributeError):
+        else:
             if isinstance(other, basestring):
                 result = cmp(self.key, other)
             elif isinstance(other, int):
                 result = cmp(self.index, other)
-            else:
-                result = NotImplemented
-
         return result
 
 # Modified to support multiple keys for the same value
