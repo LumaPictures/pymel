@@ -1949,6 +1949,9 @@ def saveAs(newname, **kwargs):
     cmds.file(**kwargs)
     return Path(newname)
 
+def isModified():
+    return cmds.file(q=True, modified=True)
+
 # ReferenceCache.setupFileReferenceCallbacks()
 
 #createReference = _factories.make_factories.createflagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
