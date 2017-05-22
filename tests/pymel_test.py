@@ -41,13 +41,16 @@ class Tee(object):
 
 import unittest
 import argparse
+import inspect
 
 RUNNERS = ('pytest', 'unittest', 'nose')
 DEFAULT_RUNNER = 'pytest'
 
+THIS_FILE = os.path.abspath(inspect.getsourcefile(lambda: None))
+
 def getParser():
-    testsDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    pymelRoot = os.path.dirname( testsDir )
+    testsDir = os.path.dirname(THIS_FILE)
+    pymelRoot = os.path.dirname(testsDir)
 
     parser = argparse.ArgumentParser(description='Run the pymel tests')
     parser.add_argument('--runner', default=DEFAULT_RUNNER, choices=RUNNERS)
@@ -184,6 +187,28 @@ def pytest_test(argv, **kwargs):
     import pytest
     argv[0] = 'pytest'
     argv[1:1] = ['-vv', '--doctest-modules'] # verbose
+    origStdOut = sys.stdout
+    wrappedStdout = None
+    if inGui():
+        # maya's own stdout redirection messes with pytest's... disable it
+        argv.insert(1, '--capture=no')
+
+        # also, pytest will try to query if sys.stdout is a tty, but Maya's
+        # output redirector has no "isatty" method...
+        stdoutType = type(sys.stdout)
+        if stdoutType.__name__ == 'Output' and stdoutType.__module__ == 'maya' \
+                and not hasattr(stdoutType, 'isatty'):
+            # maya.Output is a compiled / builtin object, so we can't assign
+            # to it's "isatty" or it's __class__ - so use a proxy class..
+            from pymel.util.utilitytypes import proxyClass
+            _ProxyMayaOutput = proxyClass(stdoutType, '_ProxyMayaOutput',
+                                          dataAttrName='_mayaOutput')
+            class ProxyMayaOutput(_ProxyMayaOutput):
+                def __init__(self, toWrap):
+                    self._mayaOutput = toWrap
+                def isatty(self):
+                    return False
+            wrappedStdout = ProxyMayaOutput(sys.stdout)
 
     exclude_modules = get_exclude_modules()
     argv.extend('--ignore={}'.format(x) for x in exclude_modules)
@@ -191,7 +216,14 @@ def pytest_test(argv, **kwargs):
     # the test excludes are handled by conftest.py, since I couldn't find
     # a way to exclude them from the "command line"
     print " ".join(pipes.quote(x) for x in argv)
-    pytest.main(args=argv[1:])
+
+    if wrappedStdout is not None:
+        sys.stdout = wrappedStdout
+    try:
+        pytest.main(args=argv[1:])
+    finally:
+        if wrappedStdout is not None:
+            sys.stdout = origStdOut
 
 class UnittestDescriptionDisabler(object):
     """Disables printing of the test "descriptions" in the unittest results
