@@ -308,7 +308,7 @@ if pymel.versions.current() >= pymel.versions.v2014:
 # Also, I'm making the code in each of the test functions self-contained (ie,
 # has all imports, etc) for easy copy-paste testing...
 
-#class TestSubdivSelectCrash(unittest.TestCas):
+# class TestSubdivSelectCrash(unittest.TestCase):
 #    def testCmds(self):
 #        import maya.cmds as cmds
 #        cmds.file(new=1, f=1)

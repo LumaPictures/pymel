@@ -1420,6 +1420,12 @@ class testCase_components(unittest.TestCase):
 
     # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
     def _failIfWillMakeMayaCrash(self, comp):
+        # As of Maya 2018 (and possibly before??), the tests in
+        # test_nodetypes seem to no longer make maya crash... even though
+        # test_mayaBugs.TestSubdivSelectCrash still DOES crash maya...
+        # In any case, we no longer auto-fail these tests... though leaving the
+        # code here in case it starts crashing things again
+        return
         try:
             if isinstance(comp, basestring):
 #                if versions.current() >= versions.v2011:
