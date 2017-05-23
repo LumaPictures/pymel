@@ -654,6 +654,8 @@ class testCase_apiUndo(unittest.TestCase):
         self.origUndoState = cmds.undoInfo(q=1, state=1)
         # reset all undo queues
         cmds.undoInfo(state=0)
+        if cmds.undoInfo(q=1, chunkName=1):
+            cmds.undoInfo(closeChunk=1)
         setAttr( 'persp.focalLength', 35 )
         setAttr( 'top.focalLength', 35 )
         factories.apiUndo.flushUndo()
