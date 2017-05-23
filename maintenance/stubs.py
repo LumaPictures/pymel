@@ -943,11 +943,11 @@ class StubDoc(Doc):
         """Format an argument default value as text."""
         # check if the object is os.environ...
         isEnviron = False
-        if object == os.environ:
-            isEnviron = True
-        elif isinstance(object, dict):
-            # If over 90% of the keys are in os.environ, assume it's os.environ
-            if len(set(object) & set(os.environ)) > (len(object) * 0.9):
+        if isinstance(object, dict):
+            if object == os.environ:
+                isEnviron = True
+            elif len(set(object) & set(os.environ)) > (len(object) * 0.9):
+                # If over 90% of the keys are in os.environ, assume it's os.environ
                 isEnviron = True
         if isEnviron:
             objRepr = repr({'PROXY_FOR':'os.environ'})
