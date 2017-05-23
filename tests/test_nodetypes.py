@@ -444,6 +444,8 @@ class testCase_invertibles(unittest.TestCase):
 
                     elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
                         args = [ 6, 4.5 ]
+                    elif setMethod == 'setIcon':
+                        args = [ 'polyCylinder.png' ]
                     else:
                         args = [ self.getTypedArg(typ) for typ in setArgTypes ]
                     #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
