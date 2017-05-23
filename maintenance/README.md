@@ -92,6 +92,16 @@ Building an Official PyMEL Release
         export PATH=$PATH:$MAYA_LOCATION/bin
         ./pymel_test_output.bash
 
+  - then run the tests in a gui session of maya - on windows:
+
+        ./pymel_test_output.bat --gui
+        - again, look at the contents of pymelTestOut.txt in a text editor
+
+    OR, if on linux/mac:
+
+        export PATH=$PATH:$MAYA_LOCATION/bin
+        ./pymel_test_output.bash --gui
+
 
 ## 4) Resolve Issues
 
