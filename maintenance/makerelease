@@ -68,7 +68,7 @@ baseVer = sys.argv[1]
 print "current stub version is: %r" % pymel.__version__
 assert pymel.__version__ == baseVer' "$baseVer"
 
-cd "$mtnc/.." && python -m maintenance.stubs -o ./extras/completion --test
+cd "$mtnc/.." && python -c "import maintenance.stubs;maintenance.stubs.stubstest('./extras/completion/py')"
 
 if [ $? -gt 0 ]; then
     echo "ERROR: python completion stubs are not working"
