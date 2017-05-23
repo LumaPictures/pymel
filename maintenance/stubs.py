@@ -1285,9 +1285,10 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
             print "making stubs for: %s" % modulename
             packagestubs(modulename, outputdir=outputdir, extensions=extensions,
                          exclude=exclude)
-        except:
-            buildFailures.append(modulename)
-    
+        except Exception as err:
+            import traceback
+            buildFailures.append((modulename, err, traceback.format_exc()))
+
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
         # useful to put on the path of non-maya python interpreters, in
@@ -1315,11 +1316,13 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         copyDir(srcUtilDir, destUtilDir)
     
     if buildFailures:
+        indent = '   '
         print "WARNING! Module specified failed to build :"
-        for failedModule in buildFailures:
-            print "   ", failedModule
+        for failedModule, err, traceStr in buildFailures:
+            print "{}{} - {}".format(indent, failedModule, err)
+            print indent * 2 + traceStr.replace('\n', '\n' + indent * 2)
         print "(Try specify different list of modules for 'modules' keyword argument)" 
-    
+
     return outputdir
 
 # don't start name with test - don't want it automatically run by nose
