@@ -54,14 +54,20 @@ def getParser():
 
     parser = argparse.ArgumentParser(description='Run the pymel tests')
     parser.add_argument('--runner', default=DEFAULT_RUNNER, choices=RUNNERS)
+    parser.add_argument('--gui', action='store_true', help='''Launch a gui
+        sesssion of Maya to run the tests in''')
+    parser.add_argument('--gui-stdout', action='store_true', help='''If on,
+        then before the tests run, the "standard" stdout and stderr will be 
+        restored, so the tests print to the console, NOT the gui script 
+        editor''')
     parser.add_argument('--app-dir', help='''make the tests use the given dir as
         the MAYA_APP_DIR (ie, the base maya settings folder)''')
     #parser.add_argument('--test', help='''specific TestCase or test function to
         #run; if given, will be run using the "new" unittest"''')
-    parser.add_argument('--tests-dir', help='''The directory that contains the test modules''',
-        default=testsDir)
-    parser.add_argument('--pymel-root', help='''The directory that contains the test modules''',
-        default=pymelRoot)
+    parser.add_argument('--tests-dir', help='''The directory that contains 
+        the test modules''', default=testsDir)
+    parser.add_argument('--pymel-root', help='''The directory that contains 
+        the test modules''', default=pymelRoot)
     return parser
 
 _PYTHON_DOT_NAME_RE = re.compile(r'[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)+')
@@ -124,6 +130,13 @@ def get_exclude_modules():
     if not inGui():
         exclude_modules += EXCLUDE_TEST_GUI_MODULES
     return exclude_modules
+
+def isMayaOutput(stream):
+    if inspect.isclass(stream):
+        streamCls = stream
+    else:
+        streamCls = type(stream)
+    return streamCls.__name__ == 'Output' and streamCls.__module__ == 'maya'
 
 def nose_test(argv, module=None, pymelDir=None):
     """
@@ -196,8 +209,7 @@ def pytest_test(argv, **kwargs):
         # also, pytest will try to query if sys.stdout is a tty, but Maya's
         # output redirector has no "isatty" method...
         stdoutType = type(sys.stdout)
-        if stdoutType.__name__ == 'Output' and stdoutType.__module__ == 'maya' \
-                and not hasattr(stdoutType, 'isatty'):
+        if isMayaOutput(stdoutType) and not hasattr(stdoutType, 'isatty'):
             # maya.Output is a compiled / builtin object, so we can't assign
             # to it's "isatty" or it's __class__ - so use a proxy class..
             from pymel.util.utilitytypes import proxyClass
@@ -329,52 +341,93 @@ def main(argv):
     parser = getParser()
     parsed, extra_args = parser.parse_known_args(argv[1:])
 
-    if parsed.app_dir:
-        if not os.path.exists(parsed.app_dir):
-            os.makedirs(parsed.app_dir)
-        os.environ['MAYA_APP_DIR'] = parsed.app_dir
-
-    testsDir = parsed.tests_dir
-    pymelRoot = parsed.pymel_root
-
-    pypath = os.environ.get('PYTHONPATH', '').split(os.pathsep)
-    # add the test dir to the python path - that way,
-    # we can do 'pymel_test test_general' in order to run just the tests
-    # in test_general
-    sys.path.append(testsDir)
-    pypath.append(testsDir)
-
-    # ...and add this copy of pymel to the python path, highest priority,
-    # to make sure it overrides any 'builtin' pymel/maya packages
-    sys.path.insert(0, pymelRoot)
-    pypath.insert(0, pymelRoot)
-
-    os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
-
-    argv = [argv[0]] + extra_args
-
-    oldPath = os.getcwd()
-    # make sure our cwd is the pymel project working directory
-    os.chdir( pymelRoot )
-
-    # These will make maya surround all "translated" strings with ","... and I
-    # believe make it always use the english (or perhaps the raw, before-lookup)
-    # value. In any case, it makes the tests more consitent, regardless of
-    # language, and some of the doctests (ie, pymel.core.language) require it
-    os.environ['MAYA_PSEUDOTRANS_MODE']='5'
-    os.environ['MAYA_PSEUDOTRANS_VALUE']=','
-
+    saved_stdout = None
+    saved_stderr = None
+    if parsed.gui_stdout:
+        if isMayaOutput(sys.stderr):
+            print "Redirecting sys.stderr to sys.__stderr__..."
+            saved_stderr = sys.stderr
+            sys.stderr = sys.__stderr__
+        if isMayaOutput(sys.stdout):
+            print "Redirecting sys.stdout to sys.__stdout__..."
+            saved_stdout = sys.stdout
+            sys.stdout = sys.__stdout__
     try:
-        if parsed.runner == 'nose':
-            nose_test(argv)
-        elif parsed.runner == 'unittest':
-            unit2_test(argv)
-        elif parsed.runner == 'pytest':
-            pytest_test(argv)
-        else:
-            raise ValueError("unrecognized runner: {}".format(parsed.runner))
+        testsDir = parsed.tests_dir
+        pymelRoot = parsed.pymel_root
+
+        # setup environ vars - need to do this before launch the gui subprocess
+
+        pypath = os.environ.get('PYTHONPATH', '').split(os.pathsep)
+        # add the test dir to the python path - that way,
+        # we can do 'pymel_test test_general' in order to run just the tests
+        # in test_general
+        sys.path.append(testsDir)
+        pypath.append(testsDir)
+
+        # ...and add this copy of pymel to the python path, highest priority,
+        # to make sure it overrides any 'builtin' pymel/maya packages
+        sys.path.insert(0, pymelRoot)
+        pypath.insert(0, pymelRoot)
+
+        os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
+        # These will make maya surround all "translated" strings with ","... and I
+        # believe make it always use the english (or perhaps the raw, before-lookup)
+        # value. In any case, it makes the tests more consitent, regardless of
+        # language, and some of the doctests (ie, pymel.core.language) require it
+        os.environ['MAYA_PSEUDOTRANS_MODE']='5'
+        os.environ['MAYA_PSEUDOTRANS_VALUE']=','
+
+        if parsed.app_dir:
+            if not os.path.exists(parsed.app_dir):
+                os.makedirs(parsed.app_dir)
+            os.environ['MAYA_APP_DIR'] = parsed.app_dir
+
+        if parsed.gui:
+            import subprocess
+
+            newArgs = list(argv)
+            newArgs.remove('--gui')
+
+            # assume that argv[0] is mayapy, and look for maya(.exe) relative to it
+            mayaBinDir = os.path.dirname(argv[0])
+            mayaBin = os.path.join(mayaBinDir, 'maya')
+            if os.name == 'nt':
+                mayaBin += '.exe'
+            newArgs[0] = mayaBin
+
+            pyCmd = 'import sys; sys.argv = {!r}; execfile({!r})'.format(newArgs,
+                                                                         THIS_FILE)
+            melCmd = 'python("{}")'.format(pyCmd.replace('\\', '\\\\')
+                                           .replace('"', r'\"'))
+            mayaArgs = [mayaBin, '-command', melCmd]
+            print mayaArgs
+            sys.exit(subprocess.call(mayaArgs))
+
+        argv = [argv[0]] + extra_args
+
+        oldPath = os.getcwd()
+        # make sure our cwd is the pymel project working directory
+        os.chdir( pymelRoot )
+
+        try:
+            if parsed.runner == 'nose':
+                nose_test(argv)
+            elif parsed.runner == 'unittest':
+                unit2_test(argv)
+            elif parsed.runner == 'pytest':
+                pytest_test(argv)
+            else:
+                raise ValueError("unrecognized runner: {}".format(parsed.runner))
+        finally:
+            os.chdir(oldPath)
     finally:
-        os.chdir(oldPath)
+        if saved_stdout is not None:
+            sys.stdout = saved_stdout
+            print "...restored maya gui sys.stdout"
+        if saved_stderr is not None:
+            sys.stderr = saved_stderr
+            print "...restored maya gui sys.stderr"
 
 if __name__ == '__main__':
     main(sys.argv)

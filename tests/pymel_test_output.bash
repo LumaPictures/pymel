@@ -25,7 +25,7 @@ else:
 mayapy_dir=$(dirname "$(which mayapy)")
 
 
-THE_CMD="export DISPLAY=:0.0;export HOME=$HOME;export TERM=$TERM;export SHELL=$SHELL;export USER=$USER;export PATH="'$PATH'":$mayapy_dir;export PYTHONPATH='$pymel_dir:$nose_dir:$unittest2_dir';${this_dir}/pymel_test.py --app-dir='$settings_dir' $@ 2>&1 | tee pymelTestOut.txt"
+THE_CMD="export DISPLAY=:0.0;export HOME=$HOME;export TERM=$TERM;export SHELL=$SHELL;export USER=$USER;export PATH="'$PATH'":$mayapy_dir;export PYTHONPATH='$pymel_dir:$nose_dir:$unittest2_dir';${this_dir}/pymel_test.py --gui-stdout --app-dir='$settings_dir' $@ 2>&1 | tee pymelTestOut.txt"
 
 echo $THE_CMD
 
