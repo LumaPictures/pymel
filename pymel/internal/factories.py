@@ -1943,22 +1943,6 @@ class ApiUndo(object):
                     # cmds.undoInfo(state=1)
                     self.cb_enabled = True
 
-    def _attrChanged_85(self):
-        print "attr changed", self.cb_enabled, api.MGlobal.isUndoing()
-        if self.cb_enabled:
-
-            if api.MGlobal.isUndoing():
-                cmdObj = self.undo_queue.pop()
-                print "calling undoIt"
-                cmdObj.undoIt()
-                self.redo_queue.append(cmdObj)
-
-            elif api.MGlobal.isRedoing():
-                cmdObj = self.redo_queue.pop()
-                print "calling redoIt"
-                cmdObj.redoIt()
-                self.undo_queue.append(cmdObj)
-
     def _createNode(self):
         """
         Create the undo node.
