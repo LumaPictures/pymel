@@ -7,11 +7,14 @@ import collections
 import inspect
 import ast
 import keyword
+import re
 
 OBJ = 0
 OBJTYPE = 1
 SOURCEMOD = 2
 NAMES = 3
+
+PYTHON_OBJECT_RE = re.compile('^[a-zA-Z_][a-zA-Z_0-9]*(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*(?:\(.*\))?$')
 
 builtins = set(__builtin__.__dict__.values())
 
@@ -319,7 +322,7 @@ class StubDoc(Doc):
                            #'precompmodule':''
                           }
 
-    def docmodule(self, this_module, name=None, mod=None):
+    def docmodule(self, this_module, name=None, mod=None, stubmodules=None):
         """Produce text documentation for a given module object."""
 
         this_name = this_module.__name__ # ignore the passed-in name
@@ -330,6 +333,10 @@ class StubDoc(Doc):
         self.missing_modules = set([])
         self.safe_constructor_classes = set()
         all = getattr(this_module, '__all__', None)
+        if stubmodules is None:
+            self.stubmodules = set([this_name])
+        else:
+            self.stubmodules = set(stubmodules)
 
         if desc:
             result += result + self.docstring(desc)
@@ -965,8 +972,9 @@ class StubDoc(Doc):
             # get the object's module
             elif hasattr(object, '__module__'):
                 realmodule = object.__module__
-            elif re.match('[a-zA-Z_.]+(\(.*\))?$', objRepr):
+            elif PYTHON_OBJECT_RE.match(objRepr):
                 # it's a standard instance repr: e.g. foo.Bar('spangle')
+                # ...or a constant, like PySide2.QtGui.QPalette.ColorRole.NoRole
                 # see if we know the module
                 realmodule = None
                 name = objRepr
@@ -976,11 +984,13 @@ class StubDoc(Doc):
                         # done splitting
                         break
                     name = parts[0]
-                    if name in self.module_map:
+                    if name in self.module_map or name in sys.modules:
                         realmodule = name
                         break
             else:
                 realmodule = None
+
+            foundSafeRepr = False
 
             if realmodule:
                 # this code was added to handle PySide objects used as defaults
@@ -992,11 +1002,72 @@ class StubDoc(Doc):
                 try:
                     modname = self.module_map[realmodule]
                 except KeyError:
-                    print "WARNING: Not a known module: %r" % realmodule
-                    pass
-                else:
-                    objRepr = modname + '.' + newObjRepr
+                    # check to see if it's an attribute on an object we're
+                    # bringing in already - ie, PySide2.QtGui.QPalette.ColorRole.NoRole
+                    # if we're already doing "from PySide2.QtGui import QPalette"
+                    currentObj = sys.modules.get(realmodule)
+                    foundObj = False
 
+                    # check to see if the module this object is in is one that
+                    # we're making a stub for; if so, it's highly likely that
+                    # even if we can drill all the way down to get the object
+                    # off the "real" thing, we may not be able to do so off the
+                    # stub-object.  ie, if we do:
+                    #    from PySide2.QtGui import QPalette
+                    # and PySide2 is the "real" module, then we can do:
+                    #    QPalette.ColorRole.NoRole
+                    # safely. However, if we're stubbing all of PySide2, then
+                    # PySide2.QtGui will be a stub module, and QPalette.ColorRole
+                    # will be None.
+                    # So it's not safe to use the "real name" if we have a stub
+                    # module...
+                    if realmodule in self.stubmodules or any(
+                            realmodule.startswith(stubmod + '.') for stubmod in
+                            self.stubmodules):
+                        currentObj = None
+
+                    if currentObj is not None:
+                        if not newObjRepr:
+                            remainingPieces = []
+                        else:
+                            remainingPieces = newObjRepr.split('.')
+                            # reverse so we can pop off the end for efficiency...
+                            remainingPieces.reverse()
+                        finalNamePieces = []
+                        while True:
+                            if not finalNamePieces:
+                                importedObjName = self.id_map.get(id(currentObj))
+                                if importedObjName is not None:
+                                    # we found an object that was already imported into
+                                    # the namespace - ie, we got QPallete - but we need
+                                    # to see if we can drill down to the desired object
+                                    # - ie, QPalette.ColorRole.NoRole - so keep going
+                                    finalNamePieces.append(importedObjName)
+                            if not remainingPieces:
+                                if finalNamePieces:
+                                    # if we found an imported object, and we have no
+                                    # more pieces, we successfully drilled down all
+                                    # the way!
+                                    foundObj = True
+                                    objRepr = '.'.join(finalNamePieces)
+                                break
+                            nextPiece = remainingPieces.pop()
+                            if not hasattr(currentObj, nextPiece):
+                                # we got to a part of the name we couldn't retrieve,
+                                # abort
+                                break
+                            if finalNamePieces:
+                                finalNamePieces.append(nextPiece)
+                            currentObj = getattr(currentObj, nextPiece)
+                    if not foundObj:
+                        print "WARNING: Not a known module: %r" % realmodule
+                else:
+                    if modname:
+                        objRepr = modname + '.' + newObjRepr
+        if not foundSafeRepr:
+            # turn the object into a string - this is guaranteed
+            # safe, and is still more informative than using None
+            objRepr = repr(objRepr)
         return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
@@ -1196,7 +1267,8 @@ class StubDoc(Doc):
 
 stubs = StubDoc()
 
-def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'), exclude=None):
+def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
+                 exclude=None, stubmodules=None):
     import pymel.util as util
 
     def get_python_file(modname, extension, ispkg):
@@ -1243,7 +1315,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             # failed to import
             continue
         if not exclude or not re.match( exclude, modname ):
-            contents = stubs.docmodule(mod)
+            contents = stubs.docmodule(mod, stubmodules=stubmodules)
         else:
             contents = ''
         for extension in extensions:
@@ -1284,7 +1356,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         try:
             print "making stubs for: %s" % modulename
             packagestubs(modulename, outputdir=outputdir, extensions=extensions,
-                         exclude=exclude)
+                         exclude=exclude, stubmodules=modules)
         except Exception as err:
             import traceback
             buildFailures.append((modulename, err, traceback.format_exc()))
