@@ -8,6 +8,7 @@ import inspect
 import ast
 import keyword
 import re
+import types
 
 OBJ = 0
 OBJTYPE = 1
@@ -79,6 +80,44 @@ def is_dict_like(obj):
     for method in ('__getitem__', '__setitem__', 'keys'):
         if not inspect.ismethod(getattr(obj, method, None)):
             return False
+    return True
+
+def is_named_tuple(cls):
+    '''Detect whether we think a class is the result of a namedtuple call'''
+    if not inspect.isclass(cls):
+        raise ValueError('is_named_tuple must be passed class objects - got '
+                         '{!r}'.format(cls))
+
+    if not isinstance(cls, type):
+        # print "old-style class"
+        return False
+
+    if cls.__bases__ != (tuple,):
+        # print "wrong bases"
+        return False
+
+    if cls.__dict__.get('__slots__') != ():
+        # print "no slots"
+        return False
+
+    fields = cls.__dict__.get('_fields')
+    if not isinstance(fields, tuple):
+        # print "no fields"
+        return False
+    if not all(isinstance(f, basestring) for f in fields):
+        # print "non-string fields"
+        return False
+
+    if not isinstance(cls.__dict__.get('_make'), classmethod):
+        # print "no _make"
+        return False
+    if not isinstance(cls.__dict__.get('_asdict'), types.FunctionType):
+        # print "no _asdict"
+        return False
+    if not isinstance(cls.__dict__.get('_replace'), types.FunctionType):
+        # print "no _replace"
+        return False
+
     return True
 
 
@@ -482,6 +521,18 @@ class StubDoc(Doc):
                                 return True
                 return False
 
+            def handle_named_tuple(cls):
+                if is_named_tuple(cls):
+                    add_obj(collections.namedtuple, source_module=collections)
+                    # note that even though we may be adding a new object to the
+                    # module namespace, we don't have to worry about incrementing
+                    # new_to_this_module, as that's only used to signal whether
+                    # we need to continue looking for new parent classes, etc -
+                    # namedtuple is essentially a builtin that we don't need
+                    # to inspect further
+                    return True
+                return False
+
             # deal with the classes - for classes in this module, we need to find
             # their base classes, and make sure they are also defined, or imported
             untraversed_classes = list(obj for (obj, objtype, source_module, names)
@@ -492,6 +543,8 @@ class StubDoc(Doc):
             new_to_this_module = 0
             while untraversed_classes:
                 child_class = untraversed_classes.pop()
+                if handle_named_tuple(child_class):
+                    continue
                 try:
                     parents = [x for x in child_class.__bases__]
                 except Exception:
@@ -500,6 +553,9 @@ class StubDoc(Doc):
                 class_parents[id(child_class)] = parents
 
                 for parent_class in parents:
+                    # note that even if the parent class is a named tuple,
+                    # we will still need to process it to add it to the module
+                    handle_named_tuple(parent_class)
                     id_parent = id(parent_class)
                     parent_mod = inspect.getmodule(parent_class)
                     if id_parent not in id_to_data:
@@ -870,6 +926,19 @@ class StubDoc(Doc):
         """Produce text documentation for a given class object."""
         realname = object.__name__
         name = name or realname
+
+        if is_named_tuple(object):
+            title = '{name} = {namedtuple}({realname!r}, {fields!r})'.format(
+                name=name, namedtuple=self.id_map[id(collections.namedtuple)],
+                realname=realname, fields=object._fields)
+            contents = []
+        else:
+            title, contents = self._docclass(object, name, mod=mod)
+        contents = '\n'.join(contents)
+
+        return title + self.indent(rstrip(contents), '    ') + '\n\n'
+
+    def _docclass(self, object, name, mod=None):
         bases = object.__bases__
 
         title = 'class ' + name
@@ -943,9 +1012,7 @@ class StubDoc(Doc):
             else:
                 contents.append('pass')
 
-        contents = '\n'.join(contents)
-
-        return title + self.indent(rstrip(contents), '    ') + '\n\n'
+        return title, contents
 
     def formatvalue(self, object):
         """Format an argument default value as text."""
