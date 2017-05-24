@@ -43,6 +43,9 @@ def has_default_constructor(cls):
     '''
     # these classes's __init__/__new__ are slot_wrapper objects, which we can't
     # query... but we know that they are ok...
+    if is_named_tuple(cls):
+        return False
+
     safe_methods = set()
     for safe_cls in (object, list, dict, tuple, set, frozenset, str, unicode):
         safe_methods.add(safe_cls.__init__)
