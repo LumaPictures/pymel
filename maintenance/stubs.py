@@ -1210,30 +1210,6 @@ class StubDoc(Doc):
         if name in ['__metaclass__']:
             return ''
 
-        safe_constructors = {}
-        def has_safe_default_constructor(obj):
-            # if the object is of a class that's defined in 'the current' stub
-            # module, and that class has a default constructor, then we can
-            # assume that it's safe to create one...
-            cls = get_class(obj)
-            id_cls = id(cls)
-            if id_cls not in self.currentsafe_constructors:
-                def _is_safe_cls(cls):
-                    obj_module = getattr(cls, '__module__', None)
-                    if self.current_module != obj_module:
-                        return False
-                    # ok, the class of the object seems to be from the current module...
-                    # make doubly sure by checking the id_map
-                    name = self.id_map.get(id(cls))
-                    if not name:
-                        return False
-
-                result = _is_safe_cls(cls)
-                safe_constructors[id_cls] = result
-                return result
-            return safe_constructors[id_cls]
-
-
         value = None
         if name == '__all__':
             value = pprint.pformat(object)
