@@ -965,6 +965,7 @@ class StubDoc(Doc):
                 object = str(object)
 
             objRepr = self.repr(object)
+            isPythonNameRepr = None
             if objRepr[0] == '<' and objRepr[-1] == '>':
                 # representation needs to be converted to a string
                 objRepr = repr(objRepr)
@@ -988,6 +989,7 @@ class StubDoc(Doc):
                         realmodule = name
                         break
             else:
+                isPythonNameRepr = False
                 realmodule = None
 
             foundSafeRepr = False
@@ -1063,11 +1065,19 @@ class StubDoc(Doc):
                         print "WARNING: Not a known module: %r" % realmodule
                 else:
                     if modname:
-                        objRepr = modname + '.' + newObjRepr
-        if not foundSafeRepr:
-            # turn the object into a string - this is guaranteed
-            # safe, and is still more informative than using None
-            objRepr = repr(objRepr)
+                        # it's possible that we got a module, but that the repr
+                        # we have isn't a python name - ie, our module might be
+                        # "os", and our repr is '{"dict": "wrapper"}', but we don't
+                        # want to end up with 'os.{"dict": "wrapper"}'
+                        if isPythonNameRepr is None:
+                            isPythonNameRepr = bool(
+                                PYTHON_OBJECT_RE.match(objRepr))
+                        if isPythonNameRepr:
+                            objRepr = modname + '.' + newObjRepr
+            if not foundSafeRepr:
+                # turn the object into a string - this is guaranteed
+                # safe, and is still more informative than using None
+                objRepr = repr(objRepr)
         return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
