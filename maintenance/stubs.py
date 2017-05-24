@@ -466,9 +466,8 @@ class StubDoc(Doc):
         # which we will define in this module...
         class_parents = {}
         def add_parent_classes():
-            def is_class_module_added(parent_class):
+            def is_module_added(parent_mod):
                 found_parent_mod = False
-                parent_mod = inspect.getmodule(parent_class)
                 if parent_mod:
                     if id(parent_mod) in id_to_data:
                         return True
@@ -502,13 +501,15 @@ class StubDoc(Doc):
 
                 for parent_class in parents:
                     id_parent = id(parent_class)
+                    parent_mod = inspect.getmodule(parent_class)
                     if id_parent not in id_to_data:
                         if parent_class in builtins:
                             continue
 
                         # We've found a class that's not in this namespace...
                         # ...but perhaps it's parent module is?
-                        if is_class_module_added(parent_class):
+                        if parent_mod and parent_mod is not this_module \
+                                and is_module_added(parent_mod):
                             # the parent module was there... skip this parent class..
                             continue
 
@@ -520,14 +521,14 @@ class StubDoc(Doc):
                             untraversed_classes.append(parent_class)
                     else:
                         # make sure that the class's module exists in the current namespace
-                        if not is_class_module_added(parent_class):
-                            mod = inspect.getmodule(parent_class)
-                            if mod is not None:
-                                # perhaps this logic should be handled in add_obj.
-                                # we privatize this because we're adding an object which
-                                # did not exist in the original namespace (not in id_to_data)
-                                # so we don't want to cause any conflicts
-                                add_obj(mod, name='_' + mod.__name__.split('.')[-1])
+                        if parent_mod is not None and not \
+                                is_module_added(parent_class):
+                            # perhaps this logic should be handled in add_obj.
+                            # we privatize this because we're adding an object which
+                            # did not exist in the original namespace (not in id_to_data)
+                            # so we don't want to cause any conflicts
+                            add_obj(parent_mod,
+                                    name='_' + parent_mod.__name__.split('.')[-1])
 
             return new_to_this_module
 
