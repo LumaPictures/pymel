@@ -950,6 +950,9 @@ class StubDoc(Doc):
         """Format an argument default value as text."""
         # check if the object is os.environ...
         isEnviron = False
+        # os.environ is an old-style class, can't use isinstance on it!
+        if object is os.environ or object.__class__ == os.environ.__class__:
+            isEnviron = True
         if isinstance(object, dict):
             if object == os.environ:
                 isEnviron = True
