@@ -1398,7 +1398,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
 
 
 def pymelstubs(extensions=('py', 'pypredef', 'pi'),
-               modules=('pymel', 'maya', 'PySide2', 'shiboken2'),
+               modules=('pymel', 'maya', 'PySide2', 'shiboken2', 'flux'),
                exclude=None,
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
