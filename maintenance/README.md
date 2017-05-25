@@ -145,6 +145,7 @@ Indicated by this error:
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
     import maintenance.stubs
+    assert maintenance.__file__.startswith(pymelPath)
     reload(maintenance.stubs)
     maintenance.stubs.pymelstubs()
     ```
@@ -191,6 +192,7 @@ Indicated by this error:
         sys.path.insert(0, pymelPath)
     os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
     import pymel.internal.cmdcache as cmdcache
+    assert pymel.__file__.startswith(pymelPath)
     cmdcache.fixCodeExamples()
     ```
 
@@ -212,6 +214,7 @@ Indicated by this error:
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
     import maintenance.docs as docs
+    assert docs.__file__.startswith(pymelPath)
     docs.generate()
     docs.build(graphviz_dot=None)  #specify the location of dot executable if not on the PATH
     ```
