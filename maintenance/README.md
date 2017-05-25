@@ -215,7 +215,7 @@ Indicated by this error:
         sys.path.insert(0, pymelPath)
     import maintenance.docs as docs
     assert docs.__file__.startswith(pymelPath)
-    docs.generate()
+    docs.generate() # do this to ensure it cleans the generated source dir
     docs.build(graphviz_dot=None)  #specify the location of dot executable if not on the PATH
     ```
 

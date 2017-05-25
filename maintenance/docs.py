@@ -154,7 +154,7 @@ def copy_changelog():
     whatsnew = os.path.join(pymel_root, 'docs', 'source', 'whats_new.rst')
     shutil.copy2(changelog, whatsnew)
 
-def build(clean=True, **kwargs):
+def build(clean=True, opts=None, filenames=None, **kwargs):
     from sphinx import main as sphinx_build
     print "building %s - %s" % (docsdir, datetime.datetime.now())
 
@@ -171,7 +171,10 @@ def build(clean=True, **kwargs):
 
     #import pymel.internal.cmdcache as cmdcache
     #cmdcache.fixCodeExamples()
-    opts = ['']
+    if opts is None:
+        opts = ['']
+    else:
+        opts = [''] + lists(opts)
     opts += '-b html -d build/doctrees'.split()
 
     # set some defaults
@@ -184,6 +187,8 @@ def build(clean=True, **kwargs):
     opts.append('-P')
     opts.append(SOURCE)
     opts.append(BUILD)
+    if filenames is not None:
+        opts.extend(filenames)
     print "sphinx_build({!r})".format(opts)
     sphinx_build(opts)
     print "...done building %s - %s" % (docsdir, datetime.datetime.now())
