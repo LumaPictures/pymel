@@ -5,6 +5,74 @@ What's New
 **********
 
 ==================================
+Version 1.0.10
+==================================
+
+----------------------------------
+Changes
+----------------------------------
+- default testing engine changes to pytest (from nose)
+- remove ply as requirement, as we have pymel.util.external.ply
+- utilitytypes: make LazyLoadModule a class, not func
+
+----------------------------------
+Additions
+----------------------------------
+- added support for 2018
+- system: add FileReference.nodes(recursive=True) flag
+- Adding pm.isModified function (replacement for cmds.file(q=1, modified=1)
+  (thanks, bob-white!)
+- Added file reference remove flags (thanks, wesbondie!)
+- added mergeNamespaceWithParent and mergeNamespaceWithRoot to
+  FileReference.remove to match docs (thanks mjmvisser!)
+- add kwargs support to getClassfication - issue #343 (thanks kartikg3!)
+- plugins: add FileTranslator plugin helper base class to pymel.api.plugins
+- util.enum: add Enum.itervalues
+- maintenance: make stub generation more general-purpose; add cli
+- stubs: improvements to PEP484 pyi stub file generation
+- tests support pytest now
+
+----------------------------------
+Bug Fixes
+----------------------------------
+- fix for Attribute equality for compound multi attrs
+- cmds.file(new=1, type='mayaAscii') will crash maya - pm.newFile() will now
+  automatically ignore any type/typ flags to avoid this - issue #346
+  (thanks bob-white!)
+- fix for mesh.numTriangles() raising a TypeErorr - issue #388
+  (thanks kartikg3!)
+- fix for uitypes.Menu.getItemArray exceptions (thanks bob-white!)
+- plogging: fix for setting of root logging level (thanks sdalgo!)
+- fix to deal with nodes showing up multiple times in inheritance tree from
+  cmds.nodeType (ie, aiSkyDomeLight)
+- ipymel now working again with modern versions of IPython
+- fix for PyNode becoming invalid if instance is reparented in some situations
+- deprecated api-wrapped functions weren't returning values
+- dynamically create PyNodes from nodetypes - fixes issue with some maya node
+  types that can't get detected on plugin load
+- fix for hasParent/hasChild/isParentOf/isChildOf with underworld nodes
+- pm.parent will set PyNodes fed in to use the correct instance / parent
+- better fix for mayapy segfaults (run maya.standalone.uninitialize)
+- factories: some functions using MFloatPoint weren't doing unit conversion
+- some node types that are dag nodes don't work with MFnDagNode - however,
+  .nodeName() should still work (as that doesn't need MFnDagNode)
+- nodetypes: attempt to deal with crash with instances;
+  get it when you add an instance of an object, and then access the old object;
+  this doesn't completely solve the issue, but it may be impossible to avoid
+  completely without a patch for the underlying problem from autodesk
+- fix for pm.listNamespaces() returning duplicates weed out - issue #380
+  (thanks mjmvisser!)
+- datatypes: fix to deal with new swig-generated setattr in 2018
+- factories: fix for fromInternalUnits with ref-casts
+- factories: fix for isMayaType, for weird types
+  (ie, TadskAssetInstanceNode_TdependNode, which is a parent of adskMaterial)
+- factories: prefer non-deprecated api methods
+- startup: fix some hangs on exit in maya 2016.51
+- pymel.conf: fix name of fix_linux_mayapy_segfault
+- stubs: fix for detection of os.environ
+
+
+==================================
 Version 1.0.9
 ==================================
 
