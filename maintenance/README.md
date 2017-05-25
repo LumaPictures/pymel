@@ -149,7 +149,7 @@ Indicated by this error:
     maintenance.stubs.pymelstubs()
     ```
 
-  - test the new stubs: from shell in the pymel directory, do:
+  - test the new stubs: from shell in the pymel base directory, do:
 
     ```
     python -m maintenance.stubs -o ./extras/completion --test
