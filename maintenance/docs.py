@@ -184,6 +184,7 @@ def build(clean=True, **kwargs):
     opts.append('-P')
     opts.append(SOURCE)
     opts.append(BUILD)
+    print "sphinx_build({!r})".format(opts)
     sphinx_build(opts)
     print "...done building %s - %s" % (docsdir, datetime.datetime.now())
 
