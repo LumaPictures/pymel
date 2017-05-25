@@ -891,14 +891,23 @@ class StubDoc(Doc):
                     sub_parts = []
                     while mod_parts:
                         parentmod = '.'.join(mod_parts)
-                        if parentmod in self.module_map:
+                        parentmodName = self.module_map.get(parentmod)
+                        if parentmodName is not None:
                             # we have a parent module - so, ie,
                             # our class is xml.sax.handler.ErrorHandler,
                             # and we found the parent class xml.sax
                             # then our sub_parts will be ['handler']
                             # so we want to set modname to
                             #    (module_map['xml.sax']).handler...
-                            newmodname = '.'.join([self.module_map[parentmod]] + sub_parts)
+                            newmodname = '.'.join([parentmodName] + sub_parts)
+
+                            # check to see if the parentmod is in maybe_modules
+                            # if so, we will need to make sure it is imported
+                            # now
+                            parent_import_text = self.maybe_modules.pop(parentmodName, None)
+                            if parent_import_text:
+                                import_text = parent_import_text
+
                             # we still need to make sure that the module gets imported,
                             # so that the parent module has the correct
                             # attributes on it - ie, if xml.sax exists, but
@@ -909,6 +918,7 @@ class StubDoc(Doc):
 
                             # ...though we can add an entry to the module map
                             self.add_to_module_map(realmodule, newmodname)
+                            break
 
                         sub_parts.insert(0, mod_parts.pop())
 
@@ -922,7 +932,8 @@ class StubDoc(Doc):
                     self.add_to_module_map(realmodule, realmodule)
             if newmodname:
                 name = newmodname + '.' + name
-                import_text = self.maybe_modules.pop(newmodname, None)
+                if not import_text:
+                    import_text = self.maybe_modules.pop(newmodname, None)
         return name, import_text
 
     def docclass(self, object, name=None, mod=None):
