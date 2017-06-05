@@ -668,6 +668,9 @@ class StubDoc(Doc):
                         contents.append(import_text)
             result = result + '\n'.join(contents) + '\n\n'
 
+        # typing module for type-checking in e.g. PyCharm
+        result += 'if False:\n    from typing import Dict, List, Tuple, Union, Optional\n'
+
         if classes:
             # sort in order of resolution
             def nonconflicting(classlist):
@@ -1285,8 +1288,10 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
             print "making stubs for: %s" % modulename
             packagestubs(modulename, outputdir=outputdir, extensions=extensions,
                          exclude=exclude)
-        except:
-            buildFailures.append(modulename)
+        except Exception as err:
+            import traceback
+            error = traceback.format_exc()
+            buildFailures.append((modulename, error))
     
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
@@ -1316,8 +1321,9 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
     
     if buildFailures:
         print "WARNING! Module specified failed to build :"
-        for failedModule in buildFailures:
+        for failedModule, err in buildFailures:
             print "   ", failedModule
+            print "   ", err
         print "(Try specify different list of modules for 'modules' keyword argument)" 
     
     return outputdir

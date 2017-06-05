@@ -28,6 +28,7 @@ from . import apicache
 from . import cmdcache
 from . import plogging
 from . import pmcmds
+from . import docstrings
 
 _logger = plogging.getLogger(__name__)
 
@@ -140,13 +141,11 @@ loadCmdCache()
 #        Mappings and Lists
 #---------------------------------------------------------------
 
-DOC_WIDTH = 120
-
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name']
 
 #: controls whether command docstrings will contain examples parsed from autodesk docs
 # examples are usually only included when creating documentation, otherwise it's too much info
-includeDocExamples = bool(os.environ.get('PYMEL_INCLUDE_EXAMPLES', False))
+docstringMode = os.environ.get('PYMEL_DOCSTRINGS_MODE', 'pydoc')
 
 # Lookup from PyNode type name as a string to PyNode type as a class
 pyNodeNamesToPyNodes = {}
@@ -378,7 +377,7 @@ simpleCommandWraps = {
 }
 #---------------------------------------------------------------
 
-if includeDocExamples:
+if docstringMode == 'html':
     examples = cmdcache.CmdProcessedExamplesCache().read()
     for cmd, example in examples.iteritems():
         try:
@@ -427,6 +426,7 @@ def getUncachedCmds():
 #-----------------------
 # Function Factory
 #-----------------------
+
 docCacheLoaded = False
 def loadCmdDocCache():
     global docCacheLoaded
@@ -442,154 +442,36 @@ def _addCmdDocs(func, cmdName):
         return func
 
     if func.__doc__:
-        docstring = func.__doc__ + '\n\n'
+        docstring = func.__doc__
     else:
         docstring = ''
     util.addLazyDocString(func, addCmdDocsCallback, cmdName, docstring)
     return func
 
+
 def addCmdDocsCallback(cmdName, docstring=''):
-    def section(title):
-        if includeDocExamples:
-            return '.. rubric:: %s' % title
-        else:
-            return title
+    return docBuilderCls(cmdName).build(docstring)
 
-    loadCmdDocCache()
 
-    cmdInfo = cmdlist[cmdName]
+if docstringMode == 'html':
+    docBuilderCls = docstrings.RstDocstringBuilder
+elif docstringMode == 'stubs':
+    docBuilderCls = docstrings.NumpyDocstringBuilder
+else:
+    docBuilderCls = docstrings.PyDocstringBuilder
 
-    #docstring = cmdInfo['description'] + '\n\n' + '\n'.join(textwrap.wrap(docstring.strip(), DOC_WIDTH))
-
-    docstring = '\n'.join(textwrap.wrap(cmdInfo['description'], DOC_WIDTH)) + '\n\n' + docstring.strip()
-
-#    if func.__doc__:
-#        docstring += func.__doc__ + '\n\n'
-
-    docstring = docstring.rstrip() + '\n\n'
-
-    flagDocs = cmdInfo['flags']
-
-    if flagDocs and not set(flagDocs.keys()).issubset(['edit', 'query']):
-
-        widths = [3, 100, 32, 32]
-        altwidths = [widths[0] + widths[1]] + widths[2:]
-        rowsep = '+' + '+'.join(['-' * (w - 1) for w in widths]) + '+\n'
-        headersep = '+' + '+'.join(['=' * (w - 1) for w in widths]) + '+\n'
-
-        def makerow(items, widths):
-            return '|' + '|'.join(' ' + i.ljust(w - 2) for i, w in zip(items, widths)) + '|\n'
-
-        docstring += section('Flags:') + '\n'
-
-        if includeDocExamples:
-            docstring += '\n' + rowsep
-            docstring += makerow(['Long Name / Short Name', 'Argument Types', 'Properties'], altwidths)
-            docstring += headersep
-
-        for flag in sorted(flagDocs.keys()):
-            if flag in ['edit', 'query']:
-                continue
-            docs = flagDocs[flag]
-
-            # type
-            try:
-                typ = docs['args']
-            except KeyError, e:
-                raise KeyError("Error retrieving doc information for: %s, %s\n%s" % (cmdName, flag, e))
-            if isinstance(typ, list):
-                try:
-                    typ = [x.__name__ for x in typ]
-                except:
-                    typ = [str(x) for x in typ]
-                typ = ', '.join(typ)
-            else:
-                try:
-                    typ = typ.__name__
-                except:
-                    pass
-
-            # docstring
-            descr = docs.get('docstring', '')
-
-            # modes
-            tmpmodes = docs.get('modes', [])
-            modes = []
-            if 'create' in tmpmodes:
-                modes.append('create')
-            if 'query' in tmpmodes:
-                modes.append('query')
-            if 'edit' in tmpmodes:
-                modes.append('edit')
-
-            if includeDocExamples:
-                for data in util.izip_longest(['``%s`` / ``%s``' % (flag, docs['shortname'])],
-                                              textwrap.wrap('*%s*' % typ, widths[2] - 2),
-                                              ['.. image:: /images/%s.gif' % m for m in modes],
-                                              fillvalue=''):
-                    docstring += makerow(data, altwidths)
-
-                #docstring += makerow( ['**%s (%s)**' % (flag, docs['shortname']), '*%s*' % typ, ''], altwidths )
-                # for m in modes:
-                #    docstring += makerow( ['', '', '.. image:: /images/%s.gif' % m], altwidths )
-
-                docstring += rowsep
-
-                descr_widths = [widths[0], sum(widths[1:])]
-                if descr:
-                    for line in textwrap.wrap(descr.strip('|'), sum(widths[1:]) - 2):
-                        docstring += makerow(['', line], descr_widths)
-                    # add some filler at the bottom
-                    # docstring += makerow(['', '  ..'], descr_widths)
-                else:
-                    docstring += makerow(['', ''], descr_widths)
-
-                # empty row for spacing
-                #docstring += rowsep
-                #docstring += makerow( ['']*len(widths), widths )
-                # closing separator
-                docstring += rowsep
-
-            else:
-                descr = '\n'.join(['      ' + x for x in textwrap.wrap(descr, DOC_WIDTH)])
-                # add trailing newline
-                descr = descr + '\n' if descr else ''
-                docstring += '  - %s %s [%s]\n%s\n' % (
-                    (flag + ' : ' + docs['shortname']).ljust(30),
-                    ('(' + typ + ')').ljust(15),
-                    ','.join(modes),
-                    descr)
-#            #modified
-#            try:
-#                modified = docs['modified']
-#                if modified:
-#                    docstring += '        - modifies: *%s*\n' % ( ', '.join( modified ))
-#            except KeyError: pass
-#
-#            #secondary flags
-#            try:
-#                docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
-#            except KeyError: pass
-#
-            # args
-
-    docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName)
-
-    if includeDocExamples and cmdInfo.get('example', None):
-        #docstring = ".. |create| image:: /images/create.gif\n.. |edit| image:: /images/edit.gif\n.. |query| image:: /images/query.gif\n\n" + docstring
-        docstring += '\n\n' + section('Example:') + '\n\n::\n' + cmdInfo['example']
-
-    return docstring
-
-    #func.__doc__ = docstring
-    # return func
 
 def _addFlagCmdDocs(func, cmdName, flag, docstring=''):
     util.addLazyDocString(func, addFlagCmdDocsCallback, cmdName, flag, docstring)
     return func
 
+
 def addFlagCmdDocsCallback(cmdName, flag, docstring):
-    loadCmdDocCache()
+    """
+    Add documentation to a method that corresponds to a single command flag
+    """
+    builder = docBuilderCls(cmdName)
+
     allFlagInfo = cmdlist[cmdName]['flags']
     try:
         flagInfo = allFlagInfo[flag]
@@ -604,13 +486,11 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
             docstring += newdocs + '\n\n'
 
         if 'secondaryFlags' in flagInfo:
-            docstring += 'Flags:\n'
+            builder.startFlagSection()
             for secondaryFlag in flagInfo['secondaryFlags']:
-                flagdoc = allFlagInfo[secondaryFlag]['docstring']
-                docstring += '  - %s:\n%s\n' % (secondaryFlag,
-                                                '\n'.join(['      ' + x for x in textwrap.wrap(flagdoc, DOC_WIDTH)]))
+                docstring += builder._addFlag(flag, allFlagInfo[secondaryFlag])
 
-        docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName)
+        docstring += builder.addFooter()
     return docstring
 
 #    func.__doc__ = docstring
@@ -841,7 +721,8 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
                 # if funcName == 'lsThroughFilter': #_logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
 
-        # inFunc may be a custom class object, like fileInfo, which may have it's own boolean testing...
+        # inFunc may be a custom class object, like fileInfo, which may have
+        # it's own boolean testing...
         # so be sure to check if it's None, not "if not inFunc"!
         if inFunc is None:
             try:
@@ -870,18 +751,21 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
         try:
             newFuncName = inFunc.__name__
             if funcName != newFuncName:
-                _logger.warn("Function found in module %s has different name than desired: %s != %s. simple fix? %s" % (inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None))
+                _logger.warn("Function found in module %s has different name "
+                             "than desired: %s != %s. simple fix? %s" %
+                             (inFunc.__module__, funcName, newFuncName,
+                              funcType == types.FunctionType and returnFunc is None))
         except AttributeError:
             _logger.warn("%s had no '__name__' attribute" % inFunc)
 
     timeRangeFlags = _getTimeRangeFlags(funcName)
 
-    # some refactoring done here - to avoid code duplication (and make things clearer),
+    # some refactoring done here - to avoid code duplication (and make things
+    # clearer),
     # we now ALWAYS do things in the following order:
-    # 1. Perform operations which modify the execution of the function (ie, adding return funcs)
+    # 1. Perform operations which modify the execution of the function (ie,
+    #    adding return funcs)
     # 2. Modify the function descriptors - ie, __doc__, __name__, etc
-
-    # 1. Perform operations which modify the execution of the function (ie, adding return funcs)
 
     newFunc = inFunc
 
@@ -948,7 +832,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
         newFunc = newFuncWithTimeRangeFlags
 
     if returnFunc:
-        # need to define a seperate var here to hold
+        # need to define a separate var here to hold
         # the old value of newFunc, b/c 'return newFunc'
         # would be recursive
         beforeReturnFunc = newFunc
@@ -957,7 +841,8 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
             res = beforeReturnFunc(*args, **kwargs)
             if not kwargs.get('query', kwargs.get('q', False)):  # and 'edit' not in kwargs and 'e' not in kwargs:
                 if isinstance(res, list):
-                    # some node commands unnecessarily return a list with a single object
+                    # some node commands unnecessarily return a list with a
+                    # single object
                     if cmdInfo.get('resultNeedsUnpacking', False):
                         res = returnFunc(res[0])
                     else:
@@ -1010,7 +895,10 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
                     break
             return res
         newFunc = simpleWrapFunc
-        doc = 'Modifications:\n'
+
+        # create an initial docstring.  this will be filled out below
+        # by _addCmdDocs
+        doc = docBuilderCls.section('Modifications')
         for func, wrapCondition in wraps:
             if wrapCondition != Always:
                 # use only the long flag name
@@ -1061,6 +949,9 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
     return newFunc
 
 def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None):
+    """
+    Add documentation to a method that corresponds to a single command flag
+    """
     #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = pmcmds.getCmdName(inFunc)
@@ -2362,25 +2253,26 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
     argList = argHelper.argList()
     argInfo = argHelper.argInfo()
 
-    def formatDocstring(type):
+    def formatDocstring(typ):
         """
         convert
         "['one', 'two', 'three', ['1', '2', '3']]"
         to
         "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
         """
-        if not isinstance(type, list):
-            pymelType = ApiTypeRegister.types.get(type, type)
+        if not isinstance(typ, list):
+            pymelType = ApiTypeRegister.types.get(typ, typ)
         else:
-            pymelType = type
+            pymelType = typ
 
         if isinstance(pymelType, apicache.ApiEnum):
             pymelType = pymelType.pymelName()
 
-        doc = repr(pymelType).replace("'", "`")
-        if type in ApiTypeRegister.arrayItemTypes.keys():
-            doc += ' list'
-        return doc
+        print "TYPE", pymelType, type(pymelType)
+        pymelType = repr(pymelType) #.replace("'", "`")
+        if typ in ApiTypeRegister.arrayItemTypes.keys():
+            pymelType = 'List[%s]' % pymelType
+        return pymelType
 
     # Docstrings
     docstring = argHelper.getMethodDocs()
@@ -2390,18 +2282,18 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
 
     S = '    '
     if len(inArgs):
-        docstring += '\n\n:Parameters:\n'
+        docstring += '\n\n' + docBuilderCls.section('Parameters')
         for name in inArgs:
             info = argInfo[name]
             type = info['type']
             typeStr = formatDocstring(type)
 
-            docstring += S + '%s : %s\n' % (name, typeStr)
-            docstring += S * 2 + '%s\n' % (info['doc'])
+            docstring += '%s : %s\n' % (name, typeStr)
+            docstring += S + '%s\n' % (info['doc'])
             if isinstance(type, apicache.ApiEnum):
                 apiClassName, enumName = type
                 enumValues = apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
-                docstring += '\n' + S * 2 + 'values: %s\n' % ', '.join(['%r' % x for x in enumValues if x not in ['invalid', 'last']])
+                docstring += '\n' + S + 'values: %s\n' % ', '.join(['%r' % x for x in enumValues if x not in ['invalid', 'last']])
 
     # Results doc strings
     results = []
@@ -2415,10 +2307,13 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
         results.append(rtype)
 
     if len(results) == 1:
-        results = results[0]
-        docstring += '\n\n:rtype: %s\n' % results
+        resultsStr = results[0]
     elif results:
-        docstring += '\n\n:rtype: (%s)\n' % ', '.join(results)
+        resultsStr = 'Tuple[%s]' % ', '.join(results)
+    else:
+        resultsStr = None
+    if resultsStr:
+        docstring += '\n\n' + docBuilderCls.section('Returns') + resultsStr + '\n'
 
     docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName)
     if not undoable:

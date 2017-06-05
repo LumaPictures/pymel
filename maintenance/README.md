@@ -134,6 +134,7 @@ Indicated by this error:
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
+    os.environ['PYMEL_DOCSTRINGS_MODE'] = 'stubs'
     import maintenance.stubs
     reload(maintenance.stubs)
     maintenance.stubs.pymelstubs()
@@ -179,7 +180,7 @@ Indicated by this error:
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
-    os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
+    os.environ['PYMEL_DOCSTRINGS_MODE'] = 'html'
     import pymel.internal.cmdcache as cmdcache
     cmdcache.fixCodeExamples()
     ```
