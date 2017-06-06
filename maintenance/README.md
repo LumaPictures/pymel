@@ -80,29 +80,41 @@ Building an Official PyMEL Release
 
 ## 3) Run Tests
 
-  - cd into tests directory, then on WINDOWS run:
+  - cd into tests directory, then
+    
+    - on WINDOWS run:
 
-        `pymel_test_output.bat`
-        (note that since windows doesn't have tee, you'll see no output...
-        - look at the contents of pymelTestOut.txt in a text editor, and
-        hit refresh to see changes!)
+      ```
+      pymel_test_output.bat
+      ```
+       
+      (note that since windows doesn't have tee, you'll see no output...
+      look at the contents of pymelTestOut.txt in a text editor, and
+    hit refresh to see changes!)
 
-    OR, if on linux/mac:
+    - OR, if on linux/mac:
 
-        ```
-        export PATH=$PATH:$MAYA_LOCATION/bin
-        ./pymel_test_output.bash
-        ```
+      ```
+      export PATH=$PATH:$MAYA_LOCATION/bin
+      ./pymel_test_output.bash
+      ```
 
-  - then run the tests in a gui session of maya - on windows:
+  - then run the tests in a gui session of maya...
+  
+    - on windows:
 
-        `pymel_test_output.bat --gui`
-        - again, look at the contents of pymelTestOut.txt in a text editor
+      ```
+      pymel_test_output.bat --gui
+      ```
+      
+      again, look at the contents of pymelTestOut.txt in a text editor
 
-    OR, if on linux/mac:
+    - OR, if on linux/mac:
 
-        export PATH=$PATH:$MAYA_LOCATION/bin
-        ./pymel_test_output.bash --gui
+      ```
+      export PATH=$PATH:$MAYA_LOCATION/bin
+      ./pymel_test_output.bash --gui
+      ```
 
 
 ## 4) Resolve Issues
