@@ -90,6 +90,7 @@ EXCLUDE_TEST_MODULES = tuple('''windows
     maya
     maintenance
     extras
+    docs
     tests/pymel_test.py
     tests/TestPymel.py'''.split())
 
