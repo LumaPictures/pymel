@@ -414,7 +414,7 @@ class TestMFnCompatibility(unittest.TestCase):
     def test_nucleus_MFnTransform(self):
         self._assertInheritMFnConistency('nucleus', 'transform', om.MFnTransform)
 
-    def test_symmetryConstraint_test_nucleus_MFnDagNode(self):
+    def test_symmetryConstraint_MFnDagNode(self):
         self._assertInheritMFnConistency('symmetryConstraint', 'dagNode', om.MFnDagNode)
 
     def test_symmetryConstraint_MFnTransform(self):
