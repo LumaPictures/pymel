@@ -668,6 +668,58 @@ class testCase_apiUndo(unittest.TestCase):
         factories.apiUndo.flushUndo()
         cmds.undoInfo(state=1)
 
+    def test_undoRedoAvailable_newFile(self):
+        # try to start from as clean a place as possible... other tests might
+        # conceivable put us in a "bad state" - ie, running
+        # test_transform_translation would leave the scene with
+        #   UndoAvailable=1, RedoAvailable=1, UndoOrRedoAvailable=1
+        # then do a new file command in it's tearDown, and leave us in a state
+        # where:
+        #   UndoAvailable=0, RedoAvailable=0, UndoOrRedoAvailable=1
+        cmds.undoInfo(state=0)
+        cmds.undoInfo(state=1)
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        cmds.condition('UndoOrRedoAvailable', e=1, state=False)
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=1, RedoAvailable=0, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=0, RedoAvailable=1, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        cmds.undo()
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=1, RedoAvailable=1, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        SCENE.persp.setFocalLength(20)
+        cmds.undo()
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
     def _do_undo_test(self, module):
         self.assertTrue(module.undoInfo(q=1, state=1))
         self.assertFalse(module.isTrue('UndoAvailable'))
