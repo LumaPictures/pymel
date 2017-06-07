@@ -300,6 +300,7 @@ class StubDoc(Doc):
                        'pymel.api':set(['pymel.internal.apicache']),
                        'pymel'    :set(['pymel.all']),
                        'maya.precomp':set(['precompmodule']),
+                       'ctypes': set(['WinError']),
                       }
     debugmodule = 'pymel.core'
 
