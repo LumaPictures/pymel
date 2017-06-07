@@ -177,10 +177,10 @@ class TestMMatrixSetAttr(unittest.TestCase):
                     # don't just use 'normal' repr, as that will
                     # call __getattribute__!
                     print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
-                    return super(MyClass1, self).__getattribute__(name)
+                    return super(InfoBaseClass, self).__getattribute__(name)
                 def __setattr__(self, name, val):
                     print "__setattr__(%r, %r, %r)" % (self, name, val)
-                    return super(MyClass1, self).__setattr__(name, val)
+                    return super(InfoBaseClass, self).__setattr__(name, val)
 
             class MyClass1(InfoBaseClass):
                 def __init__(self):
