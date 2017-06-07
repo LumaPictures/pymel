@@ -191,6 +191,14 @@ Indicated by this error:
 
 ## 7) Build Docs
 
+  - WARNING: When I last attempted to build the docs on windows, the inheritance
+    graphs were not generated properly, despite the fact that graphviz was
+    installed, and the proper executable path was passed into
+    `docs.build(graphviz_dot=...)`.  As a result, I just ended up building the
+    docs on Linux, where the graphs were generated correctly.  Would like to
+    track down why this isn't working on Windows at some point, but may just
+    keep building the docs on Linux for now...
+
   - if you need to rebuild all the examples, delete `pymel/cache/mayaCmdsExamples.zip`.
     Be warned that the next step will cause your computer to freak out and
     possibly crash as it runs all of the examples from the Autodesk docs.
