@@ -1891,7 +1891,12 @@ class ApiUndo(object):
         }
         ''', False, False)
         cmds.condition('UndoOrRedoAvailable', initialize=True,
-                       d=['UndoAvailable', 'RedoAvailable'],
+                       d=['UndoAvailable', 'RedoAvailable',
+                          # strictly speaking, we shouldn't need these three
+                          # dependencies, but there's a bug with setting of
+                          # UndoOrRedoAvailable + opening a new file... see
+                          # test_mayaBugs::TestUndoRedoConditionNewFile
+                          'newing', 'readingFile', 'opening'],
                        s='_pymel_undoOrRedoAvailable')
 
         # Now, we install our callback...
