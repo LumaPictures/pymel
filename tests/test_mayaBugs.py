@@ -309,12 +309,16 @@ class TestUndoRedoConditionNewFile(unittest.TestCase):
         if self.CONDITION in om2.MEventMessage.getEventNames():
             cmds.condition(self.CONDITION, delete=True)
 
-        def isUndoOrRedoAvailable(*args, **kwargs):
-            return cmds.isTrue("UndoAvailable") or cmds.isTrue("RedoAvailable")
+        om.MGlobal.executeCommand('''
+        global proc int _test_UndoOrRedoAvailable_proc()
+        {
+            return (isTrue("UndoAvailable") || isTrue("RedoAvailable"));
+        }
+        ''', False, False)
 
         cmds.condition(self.CONDITION, initialize=True,
                        d=['UndoAvailable', 'RedoAvailable'],
-                       s=isUndoOrRedoAvailable)
+                       s='_test_UndoOrRedoAvailable_proc')
 
     def tearDown(self):
         try:
@@ -327,24 +331,24 @@ class TestUndoRedoConditionNewFile(unittest.TestCase):
     def _doTest(self):
         self.assertFalse(cmds.isTrue('UndoAvailable'))
         self.assertFalse(cmds.isTrue('RedoAvailable'))
-        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+        self.assertFalse(cmds.isTrue(self.CONDITION))
 
         cmds.setAttr('persp.tx', 10)
         cmds.setAttr('top.tx', 10)
         self.assertTrue(cmds.isTrue('UndoAvailable'))
         self.assertFalse(cmds.isTrue('RedoAvailable'))
-        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        self.assertTrue(cmds.isTrue(self.CONDITION))
 
         cmds.undo()
         self.assertTrue(cmds.isTrue('UndoAvailable'))
         self.assertTrue(cmds.isTrue('RedoAvailable'))
-        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        self.assertTrue(cmds.isTrue(self.CONDITION))
 
         # after doing a new file, does UndoOrRedoAvailable reset properly?
         cmds.file(new=1, force=1)
         self.assertFalse(cmds.isTrue('UndoAvailable'))
         self.assertFalse(cmds.isTrue('RedoAvailable'))
-        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'),
+        self.assertFalse(cmds.isTrue(self.CONDITION),
             'expected failure here')
 
     def runTest(self):
