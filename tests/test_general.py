@@ -651,6 +651,11 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 class testCase_apiUndo(unittest.TestCase):
 
     def setUp(self):
+        # ensure undo callbacks are set up
+        import pymel.internal.factories
+        if pymel.internal.factories.apiUndo.undoStateCallbackId is None:
+            pymel.internal.factories.apiUndo.installUndoStateCallbacks()
+
         self.origUndoState = cmds.undoInfo(q=1, state=1)
         # reset all undo queues
         cmds.undoInfo(state=0)
