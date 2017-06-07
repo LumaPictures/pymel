@@ -157,14 +157,22 @@ class TestMMatrixSetAttr(unittest.TestCase):
     def setUp(self):
         # pymel essentially fixes this bug by wrapping
         # the api's __setattr__... so undo this before testing
+        self.origSetAttrs = {}
+        self.fixedSetAttrs = {}
         if 'pymel.internal.factories' in sys.modules:
             factories = sys.modules['pymel.internal.factories']
-            self.origSetAttr = factories.MetaMayaTypeWrapper._originalApiSetAttrs.get(om.MMatrix, None)
+            for cls in (om.MMatrix, om.MEulerRotation):
+                origSetAttr = factories.MetaMayaTypeWrapper._originalApiSetAttrs.get(
+                    cls, None)
+                if origSetAttr:
+                    print "restoring original %s.__setattr__" % (cls.__name__)
+                    self.origSetAttrs[cls] = origSetAttr
+                    self.fixedSetAttrs[cls] = cls.__setattr__
+                    cls.__setattr__ = origSetAttr
+                else:
+                    print "%s did not seem to have an altered __setattr__" % (cls.__name__)
         else:
-            self.origSetAttr = None
-        if self.origSetAttr:
-            self.fixedSetAttr = om.MMatrix.__setattr__
-            om.MMatrix.__setattr__ = self.origSetAttr
+            print "pymel.internal.factories was not imported yet..."
         cmds.file(new=1, f=1)
 
     def runTest(self):
@@ -247,11 +255,10 @@ class TestMMatrixSetAttr(unittest.TestCase):
             if not shouldPass:
                 self.fail("MMatrix setattr bug seems to have been fixed!")
 
-
     def tearDown(self):
         # Restore the 'fixed' __setattr__'s
-        if self.origSetAttr:
-            om.MMatrix.__setattr__ = self.fixedSetAttr
+        for cls, origSetAttr in self.origSetAttrs.iteritems():
+            cls.__setattr__ = origSetAttr
 
 # Introduced in maya 2014
 # Change request #: BSPR-12597
