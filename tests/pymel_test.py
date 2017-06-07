@@ -66,8 +66,8 @@ def getParser():
         #run; if given, will be run using the "new" unittest"''')
     parser.add_argument('--tests-dir', help='''The directory that contains 
         the test modules''', default=testsDir)
-    parser.add_argument('--pymel-root', help='''The directory that contains 
-        the test modules''', default=pymelRoot)
+    parser.add_argument('--pymel-root', help='''The base directory of the pymel
+        source repository''', default=pymelRoot)
     return parser
 
 _PYTHON_DOT_NAME_RE = re.compile(r'[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)+')
@@ -354,6 +354,7 @@ def main(argv):
             print "Redirecting sys.stdout to sys.__stdout__..."
             saved_stdout = sys.stdout
             sys.stdout = sys.__stdout__
+
     try:
         testsDir = parsed.tests_dir
         pymelRoot = parsed.pymel_root
@@ -411,6 +412,9 @@ def main(argv):
         oldPath = os.getcwd()
         # make sure our cwd is the pymel project working directory
         os.chdir( pymelRoot )
+
+        import pymel
+        print "using pymel from: %s" % inspect.getsourcefile(pymel)
 
         try:
             if parsed.runner == 'nose':
