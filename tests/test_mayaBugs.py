@@ -306,7 +306,7 @@ class TestUndoRedoConditionNewFile(unittest.TestCase):
         # there seems to be a bug with cmds.scriptJob(listConditions=1) where
         # it returns none from a non-gui session
         import maya.api.OpenMaya as om2
-        if self.CONDITION in om2.MEventMessage.getEventNames():
+        if self.CONDITION in om2.MConditionMessage.getConditionNames():
             cmds.condition(self.CONDITION, delete=True)
 
         om.MGlobal.executeCommand('''
