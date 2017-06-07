@@ -292,7 +292,11 @@ if pymel.versions.current() >= pymel.versions.v2014:
             else:
                 self.fail("ShapeParentInstance bug fixed!")
 
-
+# This test gives inconsistent results - the bug will show up (meaning the
+# unittest "passes") if the test is run by itself (or just this module is run),
+# but the bug will not show up (meaning the unittest "fails") if the entire test
+# suite is run
+@unittest.skip("inconsistent results")
 class TestUndoRedoConditionNewFile(unittest.TestCase):
     CONDITION = '_pymel_test_UndoRedoAvailable'
 
