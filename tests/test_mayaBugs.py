@@ -293,6 +293,69 @@ if pymel.versions.current() >= pymel.versions.v2014:
                 self.fail("ShapeParentInstance bug fixed!")
 
 
+class TestUndoRedoConditionNewFile(unittest.TestCase):
+    CONDITION = '_pymel_test_UndoRedoAvailable'
+
+    def setUp(self):
+        self.origUndoState = cmds.undoInfo(q=1, state=1)
+        # flush the undo queue
+        cmds.undoInfo(state=0)
+        cmds.undoInfo(state=1)
+        cmds.file(new=1, f=1)
+
+        # there seems to be a bug with cmds.scriptJob(listConditions=1) where
+        # it returns none from a non-gui session
+        import maya.api.OpenMaya as om2
+        if self.CONDITION in om2.MEventMessage.getEventNames():
+            cmds.condition(self.CONDITION, delete=True)
+
+        def isUndoOrRedoAvailable(*args, **kwargs):
+            return cmds.isTrue("UndoAvailable") or cmds.isTrue("RedoAvailable")
+
+        cmds.condition(self.CONDITION, initialize=True,
+                       d=['UndoAvailable', 'RedoAvailable'],
+                       s=isUndoOrRedoAvailable)
+
+    def tearDown(self):
+        try:
+            cmds.condition(self.CONDITION, delete=True)
+        finally:
+            if self.origUndoState != cmds.undoInfo(q=1, state=1):
+                cmds.undoInfo(state=self.origUndoState)
+
+
+    def _doTest(self):
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        cmds.setAttr('persp.tx', 10)
+        cmds.setAttr('top.tx', 10)
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+
+        cmds.undo()
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # after doing a new file, does UndoOrRedoAvailable reset properly?
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+    def runTest(self):
+        try:
+            self._doTest()
+        except AssertionError:
+            pass
+        else:
+            # check that things are BAD!
+            self.fail("UndoRedoCondition with newFile bug fixed!")
+
+
 #===============================================================================
 # Current bugs that will cause Maya to CRASH (and so are commented out!)
 #===============================================================================
