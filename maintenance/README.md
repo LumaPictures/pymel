@@ -280,7 +280,7 @@ A few notes on rebuilding:
 
         git tag -a 1.0.5rc1 -m "pymel release 1.0.5rc1"
         
-  - then run the release script:
+  - then run the release script, on a linux or osx machine:
 
         ./maintenance/makerelease 1.0.5rc1
 
