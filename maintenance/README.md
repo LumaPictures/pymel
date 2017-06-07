@@ -284,3 +284,6 @@ A few notes on rebuilding:
 
         ./maintenance/makerelease 1.0.5rc1
 
+  - then make sure you push the tag!
+  
+        git push origin --tags
