@@ -243,7 +243,7 @@ class TestMMatrixSetAttr(unittest.TestCase):
 
             class MyEulerClass2(MyEulerClass1, om.MEulerRotation): pass
 
-            er2 = MyClass2()
+            er2 = MyEulerClass2()
             er2.order = "does it work?"
             print "er2.order:", er2.order
             self.assertTrue(er2.order == "does it work?")
