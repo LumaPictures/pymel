@@ -356,6 +356,24 @@ class TestUndoRedoConditionNewFile(unittest.TestCase):
             self.fail("UndoRedoCondition with newFile bug fixed!")
 
 
+class TestScriptJobListConditions(unittest.TestCase):
+    def _doTest(self):
+        # this seems to return None in non-gui mayapy sessions
+        conditions = cmds.scriptJob(listConditions=1)
+        self.assertIsNot(conditions, None)
+        self.assertIn('DagObjectCreated', conditions)
+        self.assertIn('UndoAvailable', conditions)
+
+    def runTest(self):
+        try:
+            self._doTest()
+        except AssertionError:
+            pass
+        else:
+            # check that things are BAD!
+            self.fail("scriptJob(listConditions=1) bug fixed!")
+
+
 #===============================================================================
 # Current bugs that will cause Maya to CRASH (and so are commented out!)
 #===============================================================================
