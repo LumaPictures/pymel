@@ -344,13 +344,15 @@ class TestUndoRedoConditionNewFile(unittest.TestCase):
         cmds.file(new=1, force=1)
         self.assertFalse(cmds.isTrue('UndoAvailable'))
         self.assertFalse(cmds.isTrue('RedoAvailable'))
-        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'),
+            'expected failure here')
 
     def runTest(self):
         try:
             self._doTest()
-        except AssertionError:
-            pass
+        except AssertionError as e:
+            if e.args[0] != 'expected failure here':
+                raise
         else:
             # check that things are BAD!
             self.fail("UndoRedoCondition with newFile bug fixed!")
@@ -360,15 +362,16 @@ class TestScriptJobListConditions(unittest.TestCase):
     def _doTest(self):
         # this seems to return None in non-gui mayapy sessions
         conditions = cmds.scriptJob(listConditions=1)
-        self.assertIsNot(conditions, None)
+        self.assertIsNot(conditions, None, 'expected failure here')
         self.assertIn('DagObjectCreated', conditions)
         self.assertIn('UndoAvailable', conditions)
 
     def runTest(self):
         try:
             self._doTest()
-        except AssertionError:
-            pass
+        except AssertionError as e:
+            if e.args[0] != 'expected failure here':
+                raise
         else:
             # check that things are BAD!
             self.fail("scriptJob(listConditions=1) bug fixed!")
