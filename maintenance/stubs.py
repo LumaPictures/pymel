@@ -295,12 +295,16 @@ class StubDoc(Doc):
     ALLOWABLE_DOUBLE_UNDER_ATTRS = ('__version__', '__author__', '__date__',
                                     '__credits__')
 
-    # Mapping of (module, dontImportThese)
+    # Mapping of (module, objectsToNeverImportFromIt)
+    OBJECT_IMPORT_EXCLUDES = {
+        'ctypes': set(['WinError']),
+    }
+
+    # Mapping of (module, modulesNotToImport)
     MODULE_EXCLUDES = {
                        'pymel.api':set(['pymel.internal.apicache']),
                        'pymel'    :set(['pymel.all']),
                        'maya.precomp':set(['precompmodule']),
-                       'ctypes': set(['WinError']),
                       }
     debugmodule = 'pymel.core'
 
@@ -1331,6 +1335,10 @@ class StubDoc(Doc):
                 return result
 
     def import_obj_text(self, importmodule, importname, asname):
+        if importname in self.OBJECT_IMPORT_EXCLUDES.get(importmodule, ()):
+            print "%s had %s in OBJECT_IMPORT_EXCLUDES" % (importmodule, importname)
+            return ''
+
         result = 'from %s import %s' % (importmodule, importname)
         if asname and asname != importname:
             result += (' as ' + asname)
