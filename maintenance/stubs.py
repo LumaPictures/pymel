@@ -524,17 +524,18 @@ class StubDoc(Doc):
                             return True
             return False
 
-            def handle_named_tuple(cls):
-                if is_named_tuple(cls):
-                    add_obj(collections.namedtuple, source_module=collections)
-                    # note that even though we may be adding a new object to the
-                    # module namespace, we don't have to worry about incrementing
-                    # new_to_this_module, as that's only used to signal whether
-                    # we need to continue looking for new parent classes, etc -
-                    # namedtuple is essentially a builtin that we don't need
-                    # to inspect further
-                    return True
-                return False
+        def handle_named_tuple(cls):
+            if is_named_tuple(cls):
+                self.docmodule_add_obj(collections.namedtuple, None, id_to_data,
+                                       all_names, source_module=collections)
+                # note that even though we may be adding a new object to the
+                # module namespace, we don't have to worry about incrementing
+                # new_to_this_module, as that's only used to signal whether
+                # we need to continue looking for new parent classes, etc -
+                # namedtuple is essentially a builtin that we don't need
+                # to inspect further
+                return True
+            return False
 
         # deal with the classes - for classes in this module, we need to
         # find their base classes, and make sure they are also defined, or
@@ -1379,7 +1380,7 @@ class StubDoc(Doc):
         decl = '@property\ndef %s(self):' % (name,)
         return self._add_docs(obj, decl, self.skipdocs)
 
-    def docdata(self, obj, name=None, mod=None, klass=None):
+    def docdata(self, obj, name=None, mod=None, *args):
         """Produce text documentation for a data descriptor."""
         # print "docdata", name, object
         return self._docdescriptor(name, obj, mod)
@@ -1968,7 +1969,7 @@ def get_parser():
     # This ensure that it is parsed by our documentation generator.
     parser = argparse.ArgumentParser(
         description='Generate stub files')
-    parser.add_argument('modules', nargs='+')
+    parser.add_argument('modules', nargs='*')
 
     parser.add_argument('--skip-module-regex', '-s', dest='skip_module_regex',
                         metavar='REGEX',
