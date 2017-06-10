@@ -654,6 +654,10 @@ class StubDoc(Doc):
             names = [name]
         id_to_data[id_obj] = (obj, objtype, source_module, names)
 
+    def docmodule_get_missing_modules(self, this_module):
+        return [self.import_mod_text(this_module, mod, '')
+                for mod in self.missing_modules]
+
     def docmodule(self, this_module, name=None, mod=None, stubmodules=None):
         """Produce text documentation for a given module object."""
 
@@ -931,9 +935,7 @@ class StubDoc(Doc):
 #        if hasattr(this_module, '__credits__'):
 #            result = result + self.section('CREDITS', str(this_module.__credits__)) + '\n\n'
 
-        missing = [self.import_mod_text(this_module, mod, '')
-                   for mod in self.missing_modules]
-        missing += self.maybe_modules.values()
+        missing = self.docmodule_get_missing_modules(this_module)
         if missing:
             contents = []
             for import_text in missing:
@@ -1517,6 +1519,10 @@ class PEP484StubDoc(StubDoc):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('imports_precede_classes', False)
         StubDoc.__init__(self, *args, **kwargs)
+
+    def docmodule_get_missing_modules(self, this_module):
+        missing = super(self, PEP484StubDoc).docmodule_get_missing_modules(this_module)
+        return missing + self.maybe_modules.values()
 
     def docmodule(self, *args, **kwargs):
         result = StubDoc.docmodule(self, *args, **kwargs)
