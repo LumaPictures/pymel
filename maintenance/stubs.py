@@ -18,7 +18,8 @@ OBJTYPE = 1
 SOURCEMOD = 2
 NAMES = 3
 
-PYTHON_OBJECT_RE = re.compile('^[a-zA-Z_][a-zA-Z_0-9]*(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*(?:\(.*\))?$')
+PYTHON_OBJECT_RE = re.compile(
+    '^[a-zA-Z_][a-zA-Z_0-9]*(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*(?:\(.*\))?$')
 
 builtins = set(__builtin__.__dict__.values())
 
@@ -142,7 +143,7 @@ def get_source_module(obj, default):
     if mod == __builtin__ and obj in builtins:
         return mod
     if (not mod or inspect.isbuiltin(obj) or isdata(obj)
-        or not mod.__name__ or mod.__name__.startswith('_')):
+            or not mod.__name__ or mod.__name__.startswith('_')):
         mod = default
     return mod
 
@@ -198,8 +199,8 @@ def has_default_constructor(cls):
         if method in safe_methods:
             continue
         if method is None:
-            # we got an old-style class that didn't define an __init__ or __new__...
-            # it's ok..
+            # we got an old-style class that didn't define an __init__ or
+            # __new__... it's ok..
             continue
 
         try:
@@ -483,11 +484,6 @@ class StubDoc(Doc):
             lines[-1] = rstrip(lines[-1])
         return join(lines, '\n')
 
-    # def section(self, title, contents):
-    #     """Format a section with a given heading."""
-    #     quotes = "'''" if '"""' in contents else '"""'
-    #     return rstrip(self.indent( quotes +'\n' + contents + '\n' + quotes)) + '\n\n'
-
     def docstring(self, contents):
         """Format a section with a given heading."""
         quotes = "'''" if '"""' in contents else '"""'
@@ -770,7 +766,8 @@ class StubDoc(Doc):
         new_to_this_module = 1
         while new_to_this_module:
             new_to_this_module = self.docmodule_add_parent_classes(
-                this_module, id_to_data, class_parents, all_names) + find_import_data()
+                this_module, id_to_data, class_parents, all_names)
+            new_to_this_module += find_import_data()
 
         # check the other modules for possible "from mod import *" action...
         importall_modules = get_importall_modules(id_to_data, other_module_names)
@@ -838,7 +835,8 @@ class StubDoc(Doc):
                         continue
                     if realname == this_name:
                         continue
-                    import_text = self.import_mod_text(this_module, realname, import_name)
+                    import_text = self.import_mod_text(this_module, realname,
+                                                       import_name)
                     if import_text:
                         self.maybe_modules[import_name] = import_text
 
@@ -1050,7 +1048,8 @@ class StubDoc(Doc):
                             # if so, we will need to make sure it is imported
                             # now
                             if consume_import:
-                                import_text = self.maybe_modules.pop(parentmodName, None)
+                                import_text = self.maybe_modules.pop(
+                                    parentmodName, None)
 
                             # we still need to make sure that the module gets
                             # imported, so that the parent module has the
@@ -1342,7 +1341,8 @@ class StubDoc(Doc):
         else:
             return decl + ' ' + self.PASS
 
-    def docroutine(self, obj, name=None, parent=None, parent_cls=None, kind=None, signature_data=None):
+    def docroutine(self, obj, name=None, parent=None, parent_cls=None,
+                   kind=None, signature_data=None):
         """Produce text documentation for a function or method object."""
         realname = obj.__name__
         name = name or realname
@@ -1357,7 +1357,8 @@ class StubDoc(Doc):
 
         title = name
 
-        decl = 'def ' + title + self.docroutine_getspec(obj, parent, kind, signature_data) + ':'
+        decl = 'def ' + title + self.docroutine_getspec(obj, parent, kind,
+                                                        signature_data) + ':'
 
         if kind == 'static method' or isinstance(obj, staticmethod):
             decl = '@staticmethod\n' + decl
@@ -1418,7 +1419,8 @@ class StubDoc(Doc):
             value = 'None'
         return value
 
-    def docother(self, object, name=None, mod=None, parent=None, maxlen=None, doc=None):
+    def docother(self, object, name=None, mod=None, parent=None, maxlen=None,
+                 doc=None):
         """Produce text documentation for a data object."""
         # print "docother", name, object
         if name in ['__metaclass__']:
@@ -1488,7 +1490,8 @@ class StubDoc(Doc):
                         # this name is in the expected module names...
                         if not self._module_has_static_name(currmodule, asname):
                             if currname in self.debugmodules:
-                                print "\t\tparent, and not in static module names - no import"
+                                print "\t\tparent, and not in static module " \
+                                      "names - no import"
                             return ''
 
                     # if we're doing a renamed parent import, we want to make it
@@ -1535,7 +1538,9 @@ class PEP484StubDoc(StubDoc):
 
     def docmodule(self, *args, **kwargs):
         result = StubDoc.docmodule(self, *args, **kwargs)
-        result = 'from typing import Any, Container, Dict, Generic, Iterable, Iterator, List, Optional, Set, Tuple, TypeVar, Union\n' + result
+        result = 'from typing import Any, Container, Dict, Generic, ' \
+                 'Iterable, Iterator, List, Optional, Set, Tuple, ' \
+                 'TypeVar, Union\n' + result
         return result
 
     def docother(self, obj, name=None, mod=None, parent=None, maxlen=None,
@@ -1726,9 +1731,9 @@ class PEP484StubDoc(StubDoc):
                     altname = 'Is' + name[0].upper() + name[1:]
                     doc = self._get_type_data(parents + [altname])
         if doc:
-            signature = self.docroutine_getspec(obj, parent=parent,
-                                                method_kind='method',
-                                                signature_data=doc['signatures'][0])
+            signature = self.docroutine_getspec(
+                obj, parent=parent,  method_kind='method',
+                signature_data=doc['signatures'][0])
         else:
             signature = '(self)' if propkind == 'get' else '(self, value)'
         return signature
@@ -1749,8 +1754,9 @@ class PEP484StubDoc(StubDoc):
 
 
 def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
-                 skip_module_regex=None, import_exclusions=None, import_filter=None,
-                 debugmodules=None, type_data=None, stubmodules=None):
+                 skip_module_regex=None, import_exclusions=None,
+                 import_filter=None, debugmodules=None, type_data=None,
+                 stubmodules=None):
 
     def get_python_file(modname, extension, ispkg):
         basedir = os.path.join(outputdir, extension)
@@ -1834,104 +1840,9 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
         print "done"
 
 
-def pymelstubs(extensions=('py', 'pypredef', 'pi'),
-               modules=('pymel', 'maya', 'PySide2', 'shiboken2', 'flux'),
-               skip_module_regex=None,
-               pyRealUtil=False):
-    """ Builds pymel stub files for autocompletion.
-
-    Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
-    
-    buildFailures = []
-    pymeldir = os.path.dirname(os.path.dirname(sys.modules[__name__].__file__))
-    outputdir = os.path.join(pymeldir, 'extras', 'completion')
-    print "Stub output dir:", outputdir
-    if not os.path.exists(outputdir):
-        os.makedirs(outputdir)
-
-    importExclusions = {
-            'pymel.api': set(['pymel.internal.apicache']),
-            'pymel': set(['pymel.all']),
-            'maya.precomp': set(['precompmodule']),
-        }
-
-    def filterImports(current, modules, imported, importall_modules):
-        if importall_modules:  # from MODULE import *
-            # special-case handling for pymel.internal.pmcmds, which ends up
-            # with a bunch of 'from pymel.core.X import *' commands
-            if current == 'pymel.internal.pmcmds':
-                importall_modules = [
-                    x for x in importall_modules
-                    if not getattr(x, '__name__', 'pymel.core').startswith('pymel.core')]
-                imported = [(obj, names, source_module)
-                            for obj, names, source_module in imported
-                            if not getattr(source_module, '__name__', 'pymel.core').startswith('pymel.core')]
-                if not any(x.__name__ == 'maya.cmds' for x in importall_modules):
-                    import maya.cmds
-                    importall_modules.append(maya.cmds)
-
-        return modules, imported, importall_modules
-
-    for modulename in modules:
-        try:
-            print "making stubs for: %s" % modulename
-            packagestubs(modulename, outputdir=outputdir, extensions=extensions,
-                         skip_module_regex=skip_module_regex, import_exclusions=importExclusions,
-                         import_filter=filterImports,
-                         debugmodules={'pymel.core'}, stubmodules=modules)
-
-        except Exception as err:
-            import traceback
-            buildFailures.append((modulename, err, traceback.format_exc()))
-
-    if pyRealUtil:
-        # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
-        # useful to put on the path of non-maya python interpreters, in
-        # situations where you want to be able to import the "dummy" maya/pymel
-        # stubs, but still have acces to the handy non-maya-required pymel.util
-        def copyDir(src, dest):
-            # ignore if the source dir doesn't exist...
-            if os.path.isdir(src):
-                import shutil
-                if os.path.isdir(dest):
-                    shutil.rmtree(dest)
-                elif os.path.isfile(dest):
-                    raise RuntimeError(
-                        "A file called %s existed (expected a dir "
-                        "or nothing)" % dest)
-                shutil.copytree(src, dest)
-            elif os.path.isfile(src):
-                raise RuntimeError(
-                    "A file called %s existed (expected a dir "
-                    "or nothing)" % src)
-
-        pyDir = os.path.join(outputdir, 'py')
-        pyRealUtilDir = os.path.join(outputdir, 'pyRealUtil')
-        print "creating %s" % pyRealUtilDir
-        copyDir(pyDir, pyRealUtilDir)
-
-        srcUtilDir = os.path.join(pymeldir, 'pymel', 'util')
-        destUtilDir = os.path.join(pyRealUtilDir, 'pymel', 'util')
-        copyDir(srcUtilDir, destUtilDir)
-    
-    if buildFailures:
-        indent = '   '
-        print "WARNING! Module specified failed to build :"
-        for failedModule, err, traceStr in buildFailures:
-            print "{}{} - {}".format(indent, failedModule, err)
-            print indent * 2 + traceStr.replace('\n', '\n' + indent * 2)
-        print "(Try specify different list of modules for 'modules' keyword " \
-              "argument)"
-
-    return outputdir
-
-
 # don't start name with test - don't want it automatically run by nose
 def stubstest(pystubdir, extensions, doprint=True):
     '''Test the stubs modules.
-
-    Don't call this from 'inside maya', as we've probably already loaded all
-    the various 'real' modules, which can give problems.
     '''
     def importError(modname):
         print 'error importing %s:' % modname
@@ -1951,8 +1862,8 @@ def stubstest(pystubdir, extensions, doprint=True):
                     print 'testing %s' % modname
                 try:
                     # Don't use the importer returned by walk_packages, as it
-                    # doesn't always properly update parent packages's dictionary
-                    # with submodule name - ie, you would do:
+                    # doesn't always properly update parent packages's
+                    # dictionary with submodule name - ie, you would do:
                     # import pymel.all
                     # print pymel.all
                     # ...and find that pymel had no attribute 'all'
@@ -1964,8 +1875,8 @@ def stubstest(pystubdir, extensions, doprint=True):
                 else:
                     modfile = os.path.dirname(os.path.realpath(mod.__file__))
                     if not modfile.startswith(stubdir):
-                        print("Warning: Imported module does not appear to be in "
-                              "stub dir:\n   %s\n   %s" % (modfile, stubdir))
+                        print("Warning: Imported module does not appear to be "
+                              "in stub dir:\n   %s\n   %s" % (modfile, stubdir))
         finally:
             sys.path.pop(0)
     print 'done walking modules'

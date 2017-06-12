@@ -158,10 +158,10 @@ Indicated by this error:
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
-    import maintenance.stubs
+    import maintenance.pymelstubs
     assert maintenance.__file__.startswith(pymelPath)
-    reload(maintenance.stubs)
-    maintenance.stubs.pymelstubs()
+    reload(maintenance.pymelstubs)
+    maintenance.pymelstubs.pymelstubs()
     ```
 
   - test the new stubs: from shell in the pymel base directory, do:
