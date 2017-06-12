@@ -15,6 +15,7 @@ import pymel.api as _api  # @UnresolvedImport
 import pymel.internal.apicache as _apicache
 import pymel.internal.pwarnings as _warnings
 from pymel.internal import getLogger as _getLogger
+from pymel.internal.startup import pymel_options as _pymel_options
 import datatypes
 _logger = _getLogger(__name__)
 
@@ -152,7 +153,7 @@ class DependNode(general.PyNode):
             try:
                 self._updateName()
             except general.MayaObjectError:
-                _logger.warn("object %s no longer exists" % self._name)
+                general.DeletedMayaNodeError.handle(self)
         name = self._name
         if stripNamespace:
             if levels:
@@ -962,20 +963,36 @@ class DagNode(Entity):
         u'|imagePlane1|imagePlaneShape1'
         '''
         if update or long or self._name is None:
+            exists = True
+            if _pymel_options['deleted_pynode_name_access'] != 'ignore':
+                exists = self.exists()
             try:
                 name = self._updateName(long)
+                # _updateName for dag nodes won't actually check if the object
+                # still exists... so we do that check ourselves. Also, even
+                # though we may already know the object doesn't exist, we still
+                # try to update the name... because having an updated name may
+                # be nice for any potential error / warning messages
+                if not exists:
+                    raise general.MayaObjectError
             except general.MayaObjectError:
                 # if we have an error, but we're only looking for the nodeName,
                 # use the non-dag version
-                if long is None and self.exists():
+                if long is None and exists:
                     # don't use DependNode._updateName, as that can still
                     # raise MayaInstanceError - want this to work, so people
                     # have a way to get the correct instance, assuming they know
                     # what the parent should be
                     name = _api.MFnDependencyNode(self.__apimobject__()).name()
                 else:
-                    _logger.warn("object %s no longer exists" % self._name)
+                    if not exists:
+                        general.DeletedMayaNodeError.handle(self)
                     name = self._name
+                    if name is None:
+                        # if we've never gotten a name, but we're set to ignore
+                        # deleted node errors, then just reraise the original
+                        # error
+                        raise
         else:
             name = self._name
 

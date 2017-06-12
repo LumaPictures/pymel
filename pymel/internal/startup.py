@@ -754,6 +754,7 @@ def parsePymelConfig():
         # available
         'fix_mayapy_segfault': 'on' if _hasUninitialize else 'off',
         'fix_linux_mayapy_segfault': 'off' if _hasUninitialize else 'on',
+        'deleted_pynode_name_access': 'warn',
     }
 
     config = ConfigParser.ConfigParser(defaults)

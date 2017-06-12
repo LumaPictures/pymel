@@ -2086,6 +2086,37 @@ class MayaInstanceError(MayaNodeError):
             msg += ": %r" % (self.node)
         return msg
 
+class DeletedMayaNodeError(MayaNodeError):
+    def __init__(self, node=None):
+        if hasattr(node, '_name'):
+            # Since the object has been deleted, normal name lookup for
+            # DependNode may not work
+            node = node._name
+        super(DeletedMayaNodeError, self).__init__(node=node)
+
+    def __str__(self):
+        if self.node:
+            # using this formatting for backwards compatibility
+            msg = "object %s no longer exists" % self.node
+        else:
+            msg = "object no longer exists"
+        return msg
+
+    @classmethod
+    def handle(cls, pynode):
+        option  = _startup.pymel_options['deleted_pynode_name_access']
+        if option == 'ignore':
+            return
+        errorInst = cls(pynode)
+        if option == 'warn':
+            _logger.warn(str(errorInst))
+        elif option == 'error':
+            raise errorInst
+        else:
+            raise ValueError(
+                "unrecognized value for 'deleted_pynode_name_access': {}"
+                .format(option))
+
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
 
