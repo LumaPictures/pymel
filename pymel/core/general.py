@@ -2108,6 +2108,17 @@ class DeletedMayaNodeError(MayaNodeError):
         if option == 'ignore':
             return
         errorInst = cls(pynode)
+
+        if option == 'warn_deprecated':
+            import warnings
+            # Don't use DeprecationWarning, as this is ignored as of python-2.7
+            warnings.warn(FutureWarning(
+                "The default value for 'deleted_pynode_name_access' as "
+                "'warn' is deprecated, and will soon be changed to "
+                "'error'.  To remove this warning, update your personal"
+                "pymel.conf and change it to 'error' to get the new behavior "
+                "(preferred) or 'warn' to keep the old behavior."))
+            option = 'warn'
         if option == 'warn':
             _logger.warn(str(errorInst))
         elif option == 'error':
