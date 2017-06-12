@@ -2568,7 +2568,10 @@ class PyNode(_util.ProxyUnicode):
     def exists(self, **kwargs):
         "objExists"
         try:
-            if self.__apiobject__():
+            # use __apimobject__, not __apiobject__, because that's the one
+            # that calls _api.isValidMObjectHandle (ie, we don't want to get
+            # an MDagPath, which won't do that validation)
+            if self.__apimobject__():
                 return True
         except MayaObjectError:
             pass

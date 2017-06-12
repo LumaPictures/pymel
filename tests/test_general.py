@@ -1965,6 +1965,57 @@ class test_Attribute_getSetAttrCmds(unittest.TestCase):
             'setAttr ".myIntMulti[5]" 7;',
         ])
 
+class test_exists(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, force=1)
+
+    def test_depend_node(self):
+        node = pm.createNode('time')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_dag_node(self):
+        node = pm.createNode('transform')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_attribute(self):
+        node = pm.createNode('transform')
+        attr = node.attr('tx')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+    def test_dyn_attribute(self):
+        # test node deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test attr deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        self.assertFalse(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test deletion of both
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
