@@ -967,7 +967,7 @@ class DagNode(Entity):
             except general.MayaObjectError:
                 # if we have an error, but we're only looking for the nodeName,
                 # use the non-dag version
-                if long is None:
+                if long is None and self.exists():
                     # don't use DependNode._updateName, as that can still
                     # raise MayaInstanceError - want this to work, so people
                     # have a way to get the correct instance, assuming they know
