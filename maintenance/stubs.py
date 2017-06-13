@@ -1533,7 +1533,7 @@ class PEP484StubDoc(StubDoc):
         StubDoc.__init__(self, *args, **kwargs)
 
     def docmodule_get_missing_modules(self, this_module):
-        missing = super(self, PEP484StubDoc).docmodule_get_missing_modules(this_module)
+        missing = StubDoc.docmodule_get_missing_modules(self, this_module)
         return missing + self.maybe_modules.values()
 
     def docmodule(self, *args, **kwargs):
