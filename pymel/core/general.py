@@ -3785,6 +3785,8 @@ class Attribute(PyNode):
             except TypeError:
                 return False
 
+    def listDefault(self):
+        return cmds.attributeQuery(self.attrName(), node=self.node(), listDefault=True)
 #}
 #--------------------------
 # xxx{ Ranges
