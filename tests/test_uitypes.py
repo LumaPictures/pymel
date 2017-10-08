@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import sys
 import unittest
 import maya.cmds as cmds

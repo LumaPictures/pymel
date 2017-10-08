@@ -80,17 +80,41 @@ Building an Official PyMEL Release
 
 ## 3) Run Tests
 
-  - cd into tests directory, then on WINDOWS run:
+  - cd into tests directory, then
+    
+    - on WINDOWS run:
 
-        ./pymel_test_output.bat
-        (note that since windows doesn't have tee, you'll see no output...
-        - look at the contents of pymelTestOut.txt in a text editor, and
-        hit refresh to see changes!)
+      ```
+      pymel_test_output.bat
+      ```
+       
+      (note that since windows doesn't have tee, you'll see no output...
+      look at the contents of pymelTestOut.txt in a text editor, and
+    hit refresh to see changes!)
 
-    OR, if on linux/mac:
+    - OR, if on linux/mac:
 
-        export PATH=$PATH:$MAYA_LOCATION/bin
-        ./pymel_test_output.bash
+      ```
+      export PATH=$PATH:$MAYA_LOCATION/bin
+      ./pymel_test_output.bash
+      ```
+
+  - then run the tests in a gui session of maya...
+  
+    - on windows:
+
+      ```
+      pymel_test_output.bat --gui
+      ```
+      
+      again, look at the contents of pymelTestOut.txt in a text editor
+
+    - OR, if on linux/mac:
+
+      ```
+      export PATH=$PATH:$MAYA_LOCATION/bin
+      ./pymel_test_output.bash --gui
+      ```
 
 
 ## 4) Resolve Issues
@@ -135,11 +159,12 @@ Indicated by this error:
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
     import maintenance.stubs
+    assert maintenance.__file__.startswith(pymelPath)
     reload(maintenance.stubs)
     maintenance.stubs.pymelstubs()
     ```
 
-  - test the new stubs: from shell in the pymel directory, do:
+  - test the new stubs: from shell in the pymel base directory, do:
 
     ```
     python -c "import maintenance.stubs;maintenance.stubs.stubstest('./extras/completion/py')"
@@ -166,6 +191,14 @@ Indicated by this error:
 
 ## 7) Build Docs
 
+  - WARNING: When I last attempted to build the docs on windows, the inheritance
+    graphs were not generated properly, despite the fact that graphviz was
+    installed, and the proper executable path was passed into
+    `docs.build(graphviz_dot=...)`.  As a result, I just ended up building the
+    docs on Linux, where the graphs were generated correctly.  Would like to
+    track down why this isn't working on Windows at some point, but may just
+    keep building the docs on Linux for now...
+
   - if you need to rebuild all the examples, delete `pymel/cache/mayaCmdsExamples.zip`.
     Be warned that the next step will cause your computer to freak out and
     possibly crash as it runs all of the examples from the Autodesk docs.
@@ -181,10 +214,12 @@ Indicated by this error:
         sys.path.insert(0, pymelPath)
     os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
     import pymel.internal.cmdcache as cmdcache
+    assert pymel.__file__.startswith(pymelPath)
     cmdcache.fixCodeExamples()
     ```
 
-  - copy the list of internal commands provided by autodesk to `docs/internalCmds.txt`
+  - copy the list of internal commands provided by autodesk to `docs/internalCmds.txt`,
+    or `docs/internalCommandList.txt`
 
   - turn of autoload for all plugins, so that pymel is not imported at startup
     (I haven't identified which plugins use pymel, but it includes mtoa and at
@@ -201,7 +236,8 @@ Indicated by this error:
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
     import maintenance.docs as docs
-    docs.generate()
+    assert docs.__file__.startswith(pymelPath)
+    docs.generate() # do this to ensure it cleans the generated source dir
     docs.build(graphviz_dot=None)  #specify the location of dot executable if not on the PATH
     ```
 
@@ -244,7 +280,10 @@ A few notes on rebuilding:
 
         git tag -a 1.0.5rc1 -m "pymel release 1.0.5rc1"
         
-  - then run the release script:
+  - then run the release script, on a linux or osx machine:
 
         ./maintenance/makerelease 1.0.5rc1
 
+  - then make sure you push the tag!
+  
+        git push origin --tags

@@ -157,21 +157,40 @@ class TestMMatrixSetAttr(unittest.TestCase):
     def setUp(self):
         # pymel essentially fixes this bug by wrapping
         # the api's __setattr__... so undo this before testing
+        self.origSetAttrs = {}
+        self.fixedSetAttrs = {}
         if 'pymel.internal.factories' in sys.modules:
             factories = sys.modules['pymel.internal.factories']
-            self.origSetAttr = factories.MetaMayaTypeWrapper._originalApiSetAttrs.get(om.MMatrix, None)
+            for cls in (om.MMatrix, om.MEulerRotation):
+                origSetAttr = factories.MetaMayaTypeWrapper._originalApiSetAttrs.get(
+                    cls, None)
+                if origSetAttr:
+                    print "restoring original %s.__setattr__" % (cls.__name__)
+                    self.origSetAttrs[cls] = origSetAttr
+                    self.fixedSetAttrs[cls] = cls.__setattr__
+                    cls.__setattr__ = origSetAttr
+                else:
+                    print "%s did not seem to have an altered __setattr__" % (cls.__name__)
         else:
-            self.origSetAttr = None
-        if self.origSetAttr:
-            self.fixedSetAttr = om.MMatrix.__setattr__
-            om.MMatrix.__setattr__ = self.origSetAttr
+            print "pymel.internal.factories was not imported yet..."
         cmds.file(new=1, f=1)
 
     def runTest(self):
         # We expect it to fail on windows, and pass on other operating systems...
         shouldPass = os.name != 'nt'
         try:
-            class MyClass1(object):
+            class InfoBaseClass(object):
+                # These two are just so we can trace what's going on...
+                def __getattribute__(self, name):
+                    # don't just use 'normal' repr, as that will
+                    # call __getattribute__!
+                    print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
+                    return super(InfoBaseClass, self).__getattribute__(name)
+                def __setattr__(self, name, val):
+                    print "__setattr__(%r, %r, %r)" % (self, name, val)
+                    return super(InfoBaseClass, self).__setattr__(name, val)
+
+            class MyClass1(InfoBaseClass):
                 def __init__(self):
                     self._bar = 'not set'
 
@@ -183,22 +202,11 @@ class TestMMatrixSetAttr(unittest.TestCase):
                     return self._bar
                 bar = property(_getBar, _setBar)
 
-                # These two are just so we can trace what's going on...
-                def __getattribute__(self, name):
-                    # don't just use 'normal' repr, as that will
-                    # call __getattribute__!
-                    print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
-                    return super(MyClass1, self).__getattribute__(name)
-                def __setattr__(self, name, val):
-                    print "__setattr__(%r, %r, %r)" % (self, name, val)
-                    return super(MyClass1, self).__setattr__(name, val)
-
             foo1 = MyClass1()
             # works like we expect...
             foo1.bar = 7
             print "foo1.bar:", foo1.bar
             self.assertTrue(foo1.bar == 7)
-
 
             class MyClass2(MyClass1, om.MMatrix): pass
 
@@ -212,6 +220,34 @@ class TestMMatrixSetAttr(unittest.TestCase):
             # manually
             print "foo2.bar:", foo2.bar
             self.assertTrue(foo2.bar == 7)
+
+            # Starting in Maya2018 (at least on windows?), many wrapped datatypes
+            # define a __setattr__ which will work in the "general" case tested
+            # above, but will still take precedence if a "_swig_property" is
+            # defined - ie, MEulerRotation.order.  Check to see if the apicls has
+            # any properties, and ensure that our property still overrides theirs...
+            class MyEulerClass1(InfoBaseClass):
+                def _setOrder(self, val):
+                    print "setting order to:", val
+                    self._order = val
+                def _getOrder(self):
+                    print "getting order..."
+                    return self._order
+                order = property(_getOrder, _setOrder)
+
+            er1 = MyEulerClass1()
+            # works like we expect...
+            er1.order = "new order"
+            print "er1.order:", er1.order
+            self.assertTrue(er1.order == "new order")
+
+            class MyEulerClass2(MyEulerClass1, om.MEulerRotation): pass
+
+            er2 = MyEulerClass2()
+            er2.order = "does it work?"
+            print "er2.order:", er2.order
+            self.assertTrue(er2.order == "does it work?")
+
         except Exception:
             if shouldPass:
                 raise
@@ -219,11 +255,10 @@ class TestMMatrixSetAttr(unittest.TestCase):
             if not shouldPass:
                 self.fail("MMatrix setattr bug seems to have been fixed!")
 
-
     def tearDown(self):
         # Restore the 'fixed' __setattr__'s
-        if self.origSetAttr:
-            om.MMatrix.__setattr__ = self.fixedSetAttr
+        for cls, origSetAttr in self.origSetAttrs.iteritems():
+            cls.__setattr__ = origSetAttr
 
 # Introduced in maya 2014
 # Change request #: BSPR-12597
@@ -264,6 +299,98 @@ if pymel.versions.current() >= pymel.versions.v2014:
             else:
                 self.fail("ShapeParentInstance bug fixed!")
 
+# This test gives inconsistent results - the bug will show up (meaning the
+# unittest "passes") if the test is run by itself (or just this module is run),
+# but the bug will not show up (meaning the unittest "fails") if the entire test
+# suite is run
+@unittest.skip("inconsistent results")
+class TestUndoRedoConditionNewFile(unittest.TestCase):
+    CONDITION = '_pymel_test_UndoRedoAvailable'
+
+    def setUp(self):
+        self.origUndoState = cmds.undoInfo(q=1, state=1)
+        # flush the undo queue
+        cmds.undoInfo(state=0)
+        cmds.undoInfo(state=1)
+        cmds.file(new=1, f=1)
+
+        # there seems to be a bug with cmds.scriptJob(listConditions=1) where
+        # it returns none from a non-gui session
+        import maya.api.OpenMaya as om2
+        if self.CONDITION in om2.MConditionMessage.getConditionNames():
+            cmds.condition(self.CONDITION, delete=True)
+
+        om.MGlobal.executeCommand('''
+        global proc int _test_UndoOrRedoAvailable_proc()
+        {
+            return (isTrue("UndoAvailable") || isTrue("RedoAvailable"));
+        }
+        ''', False, False)
+
+        cmds.condition(self.CONDITION, initialize=True,
+                       d=['UndoAvailable', 'RedoAvailable'],
+                       s='_test_UndoOrRedoAvailable_proc')
+
+    def tearDown(self):
+        try:
+            cmds.condition(self.CONDITION, delete=True)
+        finally:
+            if self.origUndoState != cmds.undoInfo(q=1, state=1):
+                cmds.undoInfo(state=self.origUndoState)
+
+
+    def _doTest(self):
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue(self.CONDITION))
+
+        cmds.setAttr('persp.tx', 10)
+        cmds.setAttr('top.tx', 10)
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue(self.CONDITION))
+
+        cmds.undo()
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue(self.CONDITION))
+
+        # after doing a new file, does UndoOrRedoAvailable reset properly?
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue(self.CONDITION),
+            'expected failure here')
+
+    def runTest(self):
+        try:
+            self._doTest()
+        except AssertionError as e:
+            if e.args[0] != 'expected failure here':
+                raise
+        else:
+            # check that things are BAD!
+            self.fail("UndoRedoCondition with newFile bug fixed!")
+
+
+class TestScriptJobListConditions(unittest.TestCase):
+    def _doTest(self):
+        # this seems to return None in non-gui mayapy sessions
+        conditions = cmds.scriptJob(listConditions=1)
+        self.assertIsNot(conditions, None, 'expected failure here')
+        self.assertIn('DagObjectCreated', conditions)
+        self.assertIn('UndoAvailable', conditions)
+
+    def runTest(self):
+        try:
+            self._doTest()
+        except AssertionError as e:
+            if e.args[0] != 'expected failure here':
+                raise
+        else:
+            # check that things are BAD!
+            self.fail("scriptJob(listConditions=1) bug fixed!")
+
 
 #===============================================================================
 # Current bugs that will cause Maya to CRASH (and so are commented out!)
@@ -280,7 +407,7 @@ if pymel.versions.current() >= pymel.versions.v2014:
 # Also, I'm making the code in each of the test functions self-contained (ie,
 # has all imports, etc) for easy copy-paste testing...
 
-#class TestSubdivSelectCrash(unittest.TestCas):
+# class TestSubdivSelectCrash(unittest.TestCase):
 #    def testCmds(self):
 #        import maya.cmds as cmds
 #        cmds.file(new=1, f=1)
@@ -386,7 +513,7 @@ class TestMFnCompatibility(unittest.TestCase):
     def test_nucleus_MFnTransform(self):
         self._assertInheritMFnConistency('nucleus', 'transform', om.MFnTransform)
 
-    def test_symmetryConstraint_test_nucleus_MFnDagNode(self):
+    def test_symmetryConstraint_MFnDagNode(self):
         self._assertInheritMFnConistency('symmetryConstraint', 'dagNode', om.MFnDagNode)
 
     def test_symmetryConstraint_MFnTransform(self):

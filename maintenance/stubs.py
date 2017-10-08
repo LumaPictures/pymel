@@ -7,11 +7,15 @@ import collections
 import inspect
 import ast
 import keyword
+import re
+import types
 
 OBJ = 0
 OBJTYPE = 1
 SOURCEMOD = 2
 NAMES = 3
+
+PYTHON_OBJECT_RE = re.compile('^[a-zA-Z_][a-zA-Z_0-9]*(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*(?:\(.*\))?$')
 
 builtins = set(__builtin__.__dict__.values())
 
@@ -39,6 +43,9 @@ def has_default_constructor(cls):
     '''
     # these classes's __init__/__new__ are slot_wrapper objects, which we can't
     # query... but we know that they are ok...
+    if is_named_tuple(cls):
+        return False
+
     safe_methods = set()
     for safe_cls in (object, list, dict, tuple, set, frozenset, str, unicode):
         safe_methods.add(safe_cls.__init__)
@@ -76,6 +83,44 @@ def is_dict_like(obj):
     for method in ('__getitem__', '__setitem__', 'keys'):
         if not inspect.ismethod(getattr(obj, method, None)):
             return False
+    return True
+
+def is_named_tuple(cls):
+    '''Detect whether we think a class is the result of a namedtuple call'''
+    if not inspect.isclass(cls):
+        raise ValueError('is_named_tuple must be passed class objects - got '
+                         '{!r}'.format(cls))
+
+    if not isinstance(cls, type):
+        # print "old-style class"
+        return False
+
+    if cls.__bases__ != (tuple,):
+        # print "wrong bases"
+        return False
+
+    if cls.__dict__.get('__slots__') != ():
+        # print "no slots"
+        return False
+
+    fields = cls.__dict__.get('_fields')
+    if not isinstance(fields, tuple):
+        # print "no fields"
+        return False
+    if not all(isinstance(f, basestring) for f in fields):
+        # print "non-string fields"
+        return False
+
+    if not isinstance(cls.__dict__.get('_make'), classmethod):
+        # print "no _make"
+        return False
+    if not isinstance(cls.__dict__.get('_asdict'), types.FunctionType):
+        # print "no _asdict"
+        return False
+    if not isinstance(cls.__dict__.get('_replace'), types.FunctionType):
+        # print "no _replace"
+        return False
+
     return True
 
 
@@ -250,7 +295,12 @@ class StubDoc(Doc):
     ALLOWABLE_DOUBLE_UNDER_ATTRS = ('__version__', '__author__', '__date__',
                                     '__credits__')
 
-    # Mapping of (module, dontImportThese)
+    # Mapping of (module, objectsToNeverImportFromIt)
+    OBJECT_IMPORT_EXCLUDES = {
+        'ctypes': set(['WinError']),
+    }
+
+    # Mapping of (module, modulesNotToImport)
     MODULE_EXCLUDES = {
                        'pymel.api':set(['pymel.internal.apicache']),
                        'pymel'    :set(['pymel.all']),
@@ -319,7 +369,7 @@ class StubDoc(Doc):
                            #'precompmodule':''
                           }
 
-    def docmodule(self, this_module, name=None, mod=None):
+    def docmodule(self, this_module, name=None, mod=None, stubmodules=None):
         """Produce text documentation for a given module object."""
 
         this_name = this_module.__name__ # ignore the passed-in name
@@ -330,6 +380,10 @@ class StubDoc(Doc):
         self.missing_modules = set([])
         self.safe_constructor_classes = set()
         all = getattr(this_module, '__all__', None)
+        if stubmodules is None:
+            self.stubmodules = set([this_name])
+        else:
+            self.stubmodules = set(stubmodules)
 
         if desc:
             result += result + self.docstring(desc)
@@ -459,9 +513,8 @@ class StubDoc(Doc):
         # which we will define in this module...
         class_parents = {}
         def add_parent_classes():
-            def is_class_module_added(parent_class):
+            def is_module_added(parent_mod):
                 found_parent_mod = False
-                parent_mod = inspect.getmodule(parent_class)
                 if parent_mod:
                     if id(parent_mod) in id_to_data:
                         return True
@@ -476,6 +529,18 @@ class StubDoc(Doc):
                                 return True
                 return False
 
+            def handle_named_tuple(cls):
+                if is_named_tuple(cls):
+                    add_obj(collections.namedtuple, source_module=collections)
+                    # note that even though we may be adding a new object to the
+                    # module namespace, we don't have to worry about incrementing
+                    # new_to_this_module, as that's only used to signal whether
+                    # we need to continue looking for new parent classes, etc -
+                    # namedtuple is essentially a builtin that we don't need
+                    # to inspect further
+                    return True
+                return False
+
             # deal with the classes - for classes in this module, we need to find
             # their base classes, and make sure they are also defined, or imported
             untraversed_classes = list(obj for (obj, objtype, source_module, names)
@@ -486,6 +551,8 @@ class StubDoc(Doc):
             new_to_this_module = 0
             while untraversed_classes:
                 child_class = untraversed_classes.pop()
+                if handle_named_tuple(child_class):
+                    continue
                 try:
                     parents = [x for x in child_class.__bases__]
                 except Exception:
@@ -494,14 +561,19 @@ class StubDoc(Doc):
                 class_parents[id(child_class)] = parents
 
                 for parent_class in parents:
+                    # note that even if the parent class is a named tuple,
+                    # we will still need to process it to add it to the module
+                    handle_named_tuple(parent_class)
                     id_parent = id(parent_class)
+                    parent_mod = inspect.getmodule(parent_class)
                     if id_parent not in id_to_data:
                         if parent_class in builtins:
                             continue
 
                         # We've found a class that's not in this namespace...
                         # ...but perhaps it's parent module is?
-                        if is_class_module_added(parent_class):
+                        if parent_mod and parent_mod is not this_module \
+                                and is_module_added(parent_mod):
                             # the parent module was there... skip this parent class..
                             continue
 
@@ -513,14 +585,14 @@ class StubDoc(Doc):
                             untraversed_classes.append(parent_class)
                     else:
                         # make sure that the class's module exists in the current namespace
-                        if not is_class_module_added(parent_class):
-                            mod = inspect.getmodule(parent_class)
-                            if mod is not None:
-                                # perhaps this logic should be handled in add_obj.
-                                # we privatize this because we're adding an object which
-                                # did not exist in the original namespace (not in id_to_data)
-                                # so we don't want to cause any conflicts
-                                add_obj(mod, name='_' + mod.__name__.split('.')[-1])
+                        if parent_mod is not None and not \
+                                is_module_added(parent_class):
+                            # perhaps this logic should be handled in add_obj.
+                            # we privatize this because we're adding an object which
+                            # did not exist in the original namespace (not in id_to_data)
+                            # so we don't want to cause any conflicts
+                            add_obj(parent_mod,
+                                    name='_' + parent_mod.__name__.split('.')[-1])
 
             return new_to_this_module
 
@@ -824,14 +896,23 @@ class StubDoc(Doc):
                     sub_parts = []
                     while mod_parts:
                         parentmod = '.'.join(mod_parts)
-                        if parentmod in self.module_map:
+                        parentmodName = self.module_map.get(parentmod)
+                        if parentmodName is not None:
                             # we have a parent module - so, ie,
                             # our class is xml.sax.handler.ErrorHandler,
                             # and we found the parent class xml.sax
                             # then our sub_parts will be ['handler']
                             # so we want to set modname to
                             #    (module_map['xml.sax']).handler...
-                            newmodname = '.'.join([self.module_map[parentmod]] + sub_parts)
+                            newmodname = '.'.join([parentmodName] + sub_parts)
+
+                            # check to see if the parentmod is in maybe_modules
+                            # if so, we will need to make sure it is imported
+                            # now
+                            parent_import_text = self.maybe_modules.pop(parentmodName, None)
+                            if parent_import_text:
+                                import_text = parent_import_text
+
                             # we still need to make sure that the module gets imported,
                             # so that the parent module has the correct
                             # attributes on it - ie, if xml.sax exists, but
@@ -842,6 +923,7 @@ class StubDoc(Doc):
 
                             # ...though we can add an entry to the module map
                             self.add_to_module_map(realmodule, newmodname)
+                            break
 
                         sub_parts.insert(0, mod_parts.pop())
 
@@ -855,13 +937,27 @@ class StubDoc(Doc):
                     self.add_to_module_map(realmodule, realmodule)
             if newmodname:
                 name = newmodname + '.' + name
-                import_text = self.maybe_modules.pop(newmodname, None)
+                if not import_text:
+                    import_text = self.maybe_modules.pop(newmodname, None)
         return name, import_text
 
     def docclass(self, object, name=None, mod=None):
         """Produce text documentation for a given class object."""
         realname = object.__name__
         name = name or realname
+
+        if is_named_tuple(object):
+            title = '{name} = {namedtuple}({realname!r}, {fields!r})'.format(
+                name=name, namedtuple=self.id_map[id(collections.namedtuple)],
+                realname=realname, fields=object._fields)
+            contents = []
+        else:
+            title, contents = self._docclass(object, name, mod=mod)
+        contents = '\n'.join(contents)
+
+        return title + self.indent(rstrip(contents), '    ') + '\n\n'
+
+    def _docclass(self, object, name, mod=None):
         bases = object.__bases__
 
         title = 'class ' + name
@@ -935,19 +1031,20 @@ class StubDoc(Doc):
             else:
                 contents.append('pass')
 
-        contents = '\n'.join(contents)
-
-        return title + self.indent(rstrip(contents), '    ') + '\n\n'
+        return title, contents
 
     def formatvalue(self, object):
         """Format an argument default value as text."""
         # check if the object is os.environ...
         isEnviron = False
-        if object == os.environ:
+        # os.environ is an old-style class, can't use isinstance on it!
+        if object is os.environ or object.__class__ == os.environ.__class__:
             isEnviron = True
-        elif isinstance(object, dict):
-            # If over 90% of the keys are in os.environ, assume it's os.environ
-            if len(set(object) & set(os.environ)) > (len(object) * 0.9):
+        if isinstance(object, dict):
+            if object == os.environ:
+                isEnviron = True
+            elif len(set(object) & set(os.environ)) > (len(object) * 0.9):
+                # If over 90% of the keys are in os.environ, assume it's os.environ
                 isEnviron = True
         if isEnviron:
             objRepr = repr({'PROXY_FOR':'os.environ'})
@@ -958,6 +1055,7 @@ class StubDoc(Doc):
                 object = str(object)
 
             objRepr = self.repr(object)
+            isPythonNameRepr = None
             if objRepr[0] == '<' and objRepr[-1] == '>':
                 # representation needs to be converted to a string
                 objRepr = repr(objRepr)
@@ -965,8 +1063,9 @@ class StubDoc(Doc):
             # get the object's module
             elif hasattr(object, '__module__'):
                 realmodule = object.__module__
-            elif re.match('[a-zA-Z_.]+(\(.*\))?$', objRepr):
+            elif PYTHON_OBJECT_RE.match(objRepr):
                 # it's a standard instance repr: e.g. foo.Bar('spangle')
+                # ...or a constant, like PySide2.QtGui.QPalette.ColorRole.NoRole
                 # see if we know the module
                 realmodule = None
                 name = objRepr
@@ -976,11 +1075,14 @@ class StubDoc(Doc):
                         # done splitting
                         break
                     name = parts[0]
-                    if name in self.module_map:
+                    if name in self.module_map or name in sys.modules:
                         realmodule = name
                         break
             else:
+                isPythonNameRepr = False
                 realmodule = None
+
+            foundSafeRepr = False
 
             if realmodule:
                 # this code was added to handle PySide objects used as defaults
@@ -992,11 +1094,80 @@ class StubDoc(Doc):
                 try:
                     modname = self.module_map[realmodule]
                 except KeyError:
-                    print "WARNING: Not a known module: %r" % realmodule
-                    pass
-                else:
-                    objRepr = modname + '.' + newObjRepr
+                    # check to see if it's an attribute on an object we're
+                    # bringing in already - ie, PySide2.QtGui.QPalette.ColorRole.NoRole
+                    # if we're already doing "from PySide2.QtGui import QPalette"
+                    currentObj = sys.modules.get(realmodule)
+                    foundObj = False
 
+                    # check to see if the module this object is in is one that
+                    # we're making a stub for; if so, it's highly likely that
+                    # even if we can drill all the way down to get the object
+                    # off the "real" thing, we may not be able to do so off the
+                    # stub-object.  ie, if we do:
+                    #    from PySide2.QtGui import QPalette
+                    # and PySide2 is the "real" module, then we can do:
+                    #    QPalette.ColorRole.NoRole
+                    # safely. However, if we're stubbing all of PySide2, then
+                    # PySide2.QtGui will be a stub module, and QPalette.ColorRole
+                    # will be None.
+                    # So it's not safe to use the "real name" if we have a stub
+                    # module...
+                    if realmodule in self.stubmodules or any(
+                            realmodule.startswith(stubmod + '.') for stubmod in
+                            self.stubmodules):
+                        currentObj = None
+
+                    if currentObj is not None:
+                        if not newObjRepr:
+                            remainingPieces = []
+                        else:
+                            remainingPieces = newObjRepr.split('.')
+                            # reverse so we can pop off the end for efficiency...
+                            remainingPieces.reverse()
+                        finalNamePieces = []
+                        while True:
+                            if not finalNamePieces:
+                                importedObjName = self.id_map.get(id(currentObj))
+                                if importedObjName is not None:
+                                    # we found an object that was already imported into
+                                    # the namespace - ie, we got QPallete - but we need
+                                    # to see if we can drill down to the desired object
+                                    # - ie, QPalette.ColorRole.NoRole - so keep going
+                                    finalNamePieces.append(importedObjName)
+                            if not remainingPieces:
+                                if finalNamePieces:
+                                    # if we found an imported object, and we have no
+                                    # more pieces, we successfully drilled down all
+                                    # the way!
+                                    foundObj = True
+                                    objRepr = '.'.join(finalNamePieces)
+                                break
+                            nextPiece = remainingPieces.pop()
+                            if not hasattr(currentObj, nextPiece):
+                                # we got to a part of the name we couldn't retrieve,
+                                # abort
+                                break
+                            if finalNamePieces:
+                                finalNamePieces.append(nextPiece)
+                            currentObj = getattr(currentObj, nextPiece)
+                    if not foundObj:
+                        print "WARNING: Not a known module: %r" % realmodule
+                else:
+                    if modname:
+                        # it's possible that we got a module, but that the repr
+                        # we have isn't a python name - ie, our module might be
+                        # "os", and our repr is '{"dict": "wrapper"}', but we don't
+                        # want to end up with 'os.{"dict": "wrapper"}'
+                        if isPythonNameRepr is None:
+                            isPythonNameRepr = bool(
+                                PYTHON_OBJECT_RE.match(objRepr))
+                        if isPythonNameRepr:
+                            objRepr = modname + '.' + newObjRepr
+            if not foundSafeRepr:
+                # turn the object into a string - this is guaranteed
+                # safe, and is still more informative than using None
+                objRepr = repr(objRepr)
         return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
@@ -1057,30 +1228,6 @@ class StubDoc(Doc):
         """Produce text documentation for a data object."""
         if name in ['__metaclass__']:
             return ''
-
-        safe_constructors = {}
-        def has_safe_default_constructor(obj):
-            # if the object is of a class that's defined in 'the current' stub
-            # module, and that class has a default constructor, then we can
-            # assume that it's safe to create one...
-            cls = get_class(obj)
-            id_cls = id(cls)
-            if id_cls not in self.currentsafe_constructors:
-                def _is_safe_cls(cls):
-                    obj_module = getattr(cls, '__module__', None)
-                    if self.current_module != obj_module:
-                        return False
-                    # ok, the class of the object seems to be from the current module...
-                    # make doubly sure by checking the id_map
-                    name = self.id_map.get(id(cls))
-                    if not name:
-                        return False
-
-                result = _is_safe_cls(cls)
-                safe_constructors[id_cls] = result
-                return result
-            return safe_constructors[id_cls]
-
 
         value = None
         if name == '__all__':
@@ -1188,6 +1335,10 @@ class StubDoc(Doc):
                 return result
 
     def import_obj_text(self, importmodule, importname, asname):
+        if importname in self.OBJECT_IMPORT_EXCLUDES.get(importmodule, ()):
+            print "%s had %s in OBJECT_IMPORT_EXCLUDES" % (importmodule, importname)
+            return ''
+
         result = 'from %s import %s' % (importmodule, importname)
         if asname and asname != importname:
             result += (' as ' + asname)
@@ -1196,7 +1347,8 @@ class StubDoc(Doc):
 
 stubs = StubDoc()
 
-def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'), exclude=None):
+def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
+                 exclude=None, stubmodules=None):
     import pymel.util as util
 
     def get_python_file(modname, extension, ispkg):
@@ -1243,7 +1395,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             # failed to import
             continue
         if not exclude or not re.match( exclude, modname ):
-            contents = stubs.docmodule(mod)
+            contents = stubs.docmodule(mod, stubmodules=stubmodules)
         else:
             contents = ''
         for extension in extensions:
@@ -1266,7 +1418,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
 
 
 def pymelstubs(extensions=('py', 'pypredef', 'pi'),
-               modules=('pymel', 'maya', 'PySide2', 'shiboken2'),
+               modules=('pymel', 'maya', 'PySide2', 'shiboken2', 'flux'),
                exclude=None,
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
@@ -1284,10 +1436,11 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         try:
             print "making stubs for: %s" % modulename
             packagestubs(modulename, outputdir=outputdir, extensions=extensions,
-                         exclude=exclude)
-        except:
-            buildFailures.append(modulename)
-    
+                         exclude=exclude, stubmodules=modules)
+        except Exception as err:
+            import traceback
+            buildFailures.append((modulename, err, traceback.format_exc()))
+
     if pyRealUtil:
         # build a copy of 'py' stubs, that have a REAL copy of pymel.util...
         # useful to put on the path of non-maya python interpreters, in
@@ -1315,11 +1468,13 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         copyDir(srcUtilDir, destUtilDir)
     
     if buildFailures:
+        indent = '   '
         print "WARNING! Module specified failed to build :"
-        for failedModule in buildFailures:
-            print "   ", failedModule
+        for failedModule, err, traceStr in buildFailures:
+            print "{}{} - {}".format(indent, failedModule, err)
+            print indent * 2 + traceStr.replace('\n', '\n' + indent * 2)
         print "(Try specify different list of modules for 'modules' keyword argument)" 
-    
+
     return outputdir
 
 # don't start name with test - don't want it automatically run by nose

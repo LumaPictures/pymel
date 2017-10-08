@@ -955,13 +955,6 @@ class Mel(object):
             res = _api.MCommandResult()
             _api.MGlobal.executeCommand(cmd, res, False, undoState)
         except Exception:
-            # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            _api.MMessage.removeCallback(id)
-            _mc.commandEcho(lineNumbers=lineNumbers)
-            # 8.5 fix
-            if hasattr(id, 'disown'):
-                id.disown()
-
             msg = '\n'.join(errors)
 
             if 'Cannot find procedure' in msg:
@@ -991,12 +984,6 @@ class Mel(object):
                 message += '\nScript:\n%s' % fmtCmd
             raise e, message
         else:
-            # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            _api.MMessage.removeCallback(id)
-            _mc.commandEcho(lineNumbers=lineNumbers)
-            # 8.5 fix
-            if hasattr(id, 'disown'):
-                id.disown()
             resType = res.resultType()
 
             if resType == _api.MCommandResult.kInvalid:
@@ -1039,6 +1026,12 @@ class Mel(object):
                 result = _api.MMatrixArray()
                 res.getResult(result)
                 return [datatypes.Matrix(result[i]) for i in range(result.length())]
+        finally:
+            _api.MMessage.removeCallback(id)
+            _mc.commandEcho(lineNumbers=lineNumbers)
+            # 8.5 fix
+            if hasattr(id, 'disown'):
+                id.disown()
 
     @staticmethod
     def error(msg, showLineNumber=False):

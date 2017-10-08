@@ -6,8 +6,6 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 
 
 """
-from __future__ import with_statement
-
 import sys
 import os
 import re
@@ -2088,6 +2086,48 @@ class MayaInstanceError(MayaNodeError):
             msg += ": %r" % (self.node)
         return msg
 
+class DeletedMayaNodeError(MayaNodeError):
+    def __init__(self, node=None):
+        if hasattr(node, '_name'):
+            # Since the object has been deleted, normal name lookup for
+            # DependNode may not work
+            node = node._name
+        super(DeletedMayaNodeError, self).__init__(node=node)
+
+    def __str__(self):
+        if self.node:
+            # using this formatting for backwards compatibility
+            msg = "object %s no longer exists" % self.node
+        else:
+            msg = "object no longer exists"
+        return msg
+
+    @classmethod
+    def handle(cls, pynode):
+        option  = _startup.pymel_options['deleted_pynode_name_access']
+        if option == 'ignore':
+            return
+        errorInst = cls(pynode)
+
+        if option == 'warn_deprecated':
+            import warnings
+            # Don't use DeprecationWarning, as this is ignored as of python-2.7
+            warnings.warn(FutureWarning(
+                "The default value for 'deleted_pynode_name_access' as "
+                "'warn' is deprecated, and will soon be changed to "
+                "'error'.  To remove this warning, update your personal"
+                "pymel.conf and change it to 'error' to get the new behavior "
+                "(preferred) or 'warn' to keep the old behavior."))
+            option = 'warn'
+        if option == 'warn':
+            _logger.warn(str(errorInst))
+        elif option == 'error':
+            raise errorInst
+        else:
+            raise ValueError(
+                "unrecognized value for 'deleted_pynode_name_access': {}"
+                .format(option))
+
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
 
@@ -2570,7 +2610,10 @@ class PyNode(_util.ProxyUnicode):
     def exists(self, **kwargs):
         "objExists"
         try:
-            if self.__apiobject__():
+            # use __apimobject__, not __apiobject__, because that's the one
+            # that calls _api.isValidMObjectHandle (ie, we don't want to get
+            # an MDagPath, which won't do that validation)
+            if self.__apimobject__():
                 return True
         except MayaObjectError:
             pass

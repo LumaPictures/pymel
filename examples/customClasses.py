@@ -191,12 +191,10 @@ def testJoint():
 
 #-------------------------------------------------------------------------------
 
-# make sure Mayatomr plugin is loaded or the Mib_amb_occlusion node type might not exist
-pm.loadPlugin('Mayatomr')
-class Mib_amb_occlusion(pm.nt.Mib_amb_occlusion):
+class MyRamp(pm.nt.Ramp):
     """This is an example of how to replace a node.  Use this technique with care"""
-    def occlude(self):
-        print "occluding!"
+    def ramp(self):
+        print "ramp!"
 
     @staticmethod
     def _isVirtual(obj, name):
@@ -205,9 +203,10 @@ class Mib_amb_occlusion(pm.nt.Mib_amb_occlusion):
         """
         return True
 
-virtualClasses.register( Mib_amb_occlusion, nameRequired=False )
+virtualClasses.register( MyRamp, nameRequired=False )
 
 
 def testMib():
-    n = pm.createNode('mib_amb_occlusion')
-    n.occlude()
+    n = pm.createNode('ramp')
+    assert isinstance(n, MyRamp)
+    n.ramp()

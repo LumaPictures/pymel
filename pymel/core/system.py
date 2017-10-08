@@ -1881,6 +1881,7 @@ Modifications:
     - returns empty string, for consistency with sceneName()
       ...if you wish to know the untitled scene name, use untitledFileName()
     """
+    kwargs.pop('type', kwargs.pop('typ', None))
     cmds.file(**kwargs)
     return ''
 
@@ -1947,6 +1948,9 @@ def saveAs(newname, **kwargs):
     kwargs['save'] = True
     cmds.file(**kwargs)
     return Path(newname)
+
+def isModified():
+    return cmds.file(q=True, modified=True)
 
 # ReferenceCache.setupFileReferenceCallbacks()
 

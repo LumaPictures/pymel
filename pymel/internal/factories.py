@@ -1891,7 +1891,12 @@ class ApiUndo(object):
         }
         ''', False, False)
         cmds.condition('UndoOrRedoAvailable', initialize=True,
-                       d=['UndoAvailable', 'RedoAvailable'],
+                       d=['UndoAvailable', 'RedoAvailable',
+                          # strictly speaking, we shouldn't need these three
+                          # dependencies, but there's a bug with setting of
+                          # UndoOrRedoAvailable + opening a new file... see
+                          # test_mayaBugs::TestUndoRedoConditionNewFile
+                          'newing', 'readingFile', 'opening'],
                        s='_pymel_undoOrRedoAvailable')
 
         # Now, we install our callback...
@@ -1942,22 +1947,6 @@ class ApiUndo(object):
                 finally:
                     # cmds.undoInfo(state=1)
                     self.cb_enabled = True
-
-    def _attrChanged_85(self):
-        print "attr changed", self.cb_enabled, api.MGlobal.isUndoing()
-        if self.cb_enabled:
-
-            if api.MGlobal.isUndoing():
-                cmdObj = self.undo_queue.pop()
-                print "calling undoIt"
-                cmdObj.undoIt()
-                self.redo_queue.append(cmdObj)
-
-            elif api.MGlobal.isRedoing():
-                cmdObj = self.redo_queue.pop()
-                print "calling redoIt"
-                cmdObj.redoIt()
-                self.undo_queue.append(cmdObj)
 
     def _createNode(self):
         """
@@ -2330,14 +2319,24 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
             wrappedApiFunc = classmethod(wrappedApiFunc)
 
         if argHelper.isDeprecated():
+            argDescriptions = []
+            for arg in argList:
+                argName = arg[0]
+                argType = arg[1]
+                if isinstance(argType, apicache.ApiEnum):
+                    argType = argType[0]
+                elif inspect.isclass(argType):
+                    argType = argType.__name__
+                argDescriptions.append('{} {}'.format(argType, argName))
+            argStr = ', '.join(argDescriptions)
+            methodDesc = "{}.{}({})".format(apiClassName, methodName, argStr)
             beforeDeprecationWrapper = wrappedApiFunc
 
             def wrappedApiFunc(*args, **kwargs):
                 import warnings
-                warnings.warn("%s.%s is deprecated" % (apiClassName,
-                                                       methodName),
+                warnings.warn("{} is deprecated".format(methodDesc),
                               DeprecationWarning, stacklevel=2)
-                beforeDeprecationWrapper(*args, **kwargs)
+                return beforeDeprecationWrapper(*args, **kwargs)
         return wrappedApiFunc
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
@@ -2509,24 +2508,48 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
                                 herited[attr] = base
 
                 ##_logger.debug("Methods info: %(methods)s" % classInfo)
+
                 # Class Methods
-                for methodName, info in classInfo['methods'].items():
-                    # don't rewrap if already herited from a base class that is not the apicls
-                    #_logger.debug("Checking method %s" % (methodName))
 
-                    try:
-                        pymelName = info[0]['pymelName']
-                        removeAttrs.append(methodName)
-                    except KeyError:
-                        pymelName = methodName
+                # iterate over the methods so that we get all non-deprecated
+                # methods first
+                # This is because, if two api methods map to the same pymel
+                # method name, then the first one "wins" - and we want to prefer
+                # non-deprecated.
+                def non_deprecated_methods_first():
+                    deprecated = []
+                    for methodName, info in classInfo['methods'].iteritems():
+                        # don't rewrap if already herited from a base class that is not the apicls
+                        # _logger.debug("Checking method %s" % (methodName))
 
-#                    if classname == 'DependNode' and pymelName in ('setName','getName'):
-#                        raise Exception('debug')
+                        try:
+                            pymelName = info[0]['pymelName']
+                            removeAttrs.append(methodName)
+                        except KeyError:
+                            pymelName = methodName
+                        pymelName, overrideData = _getApiOverrideNameAndData(
+                            classname, pymelName)
 
-                    pymelName, data = _getApiOverrideNameAndData(classname, pymelName)
+                        # if classname == 'DependNode' and pymelName in ('setName','getName'):
+                        #                        raise Exception('debug')
+                        overloadIndex = overrideData.get('overloadIndex', None)
+                        if overloadIndex is None:
+                            #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                            continue
+                        if not overrideData.get('enabled', True):
+                            #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
+                            continue
+                        yieldTuple = (methodName, info, classname, pymelName,
+                                      overloadIndex)
+                        if info[overloadIndex].get('deprecated', False):
+                            deprecated.append(yieldTuple)
+                        else:
+                            yield yieldTuple
+                    for yieldTuple in deprecated:
+                        yield yieldTuple
 
-                    overloadIndex = data.get('overloadIndex', None)
-
+                for (methodName, info, classname, pymelName, overloadIndex) \
+                        in non_deprecated_methods_first():
                     assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
 
                     # TODO: some methods are being wrapped for the base class,
@@ -2535,18 +2558,14 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
                     # HikGroundPlane, etc...
                     # Figure out why this happens, and stop it!
                     if pymelName not in herited:
-                        if overloadIndex is not None:
-                            if data.get('enabled', True):
-                                if pymelName not in classdict:
-                                    #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
-                                    method = wrapApiMethod(apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex)
-                                    if method:
-                                        #_logger.debug("%s.%s successfully created" % (classname, pymelName ))
-                                        classdict[pymelName] = method
-                                    # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-                                # else: #_logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
-                            # else: #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                        # else: #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                        if pymelName not in classdict:
+                            #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
+                            method = wrapApiMethod(apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex)
+                            if method:
+                                #_logger.debug("%s.%s successfully created" % (classname, pymelName ))
+                                classdict[pymelName] = method
+                            # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
+                        # else: #_logger.debug("%s.%s: already defined, skipping" % (apicls.__name__, methodName ))
                     # else: #_logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
 
                 if 'pymelEnums' in classInfo:
@@ -2684,7 +2703,27 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
         # instead of calling the super's __setattr__, which would
         # use the property, inserts it into the object's __dict__
         # manually
-        return bool(foo2.bar != 7)
+        if foo2.bar != 7:
+            return True
+
+        # Starting in Maya2018 (at least on windows?), many wrapped datatypes
+        # define a __setattr__ which will work in the "general" case tested
+        # above, but will still take precedence if a "_swig_property" is
+        # defined - ie, MEulerRotation.order.  Check to see if the apicls has
+        # any properties, and ensure that our property still overrides theirs...
+        for name, member in inspect.getmembers(apiClass,
+                                               lambda x: isinstance(x, property)):
+            setattr(MyClass1, name, MyClass1.__dict__['bar'])
+            try:
+                setattr(foo2, name, 1.23456)
+            except Exception:
+                return True
+            if getattr(foo2, name) != 1.23456:
+                return True
+            # only check for one property - we assume that all apicls properties
+            # will behave the same way...
+            break
+        return False
 
 class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 

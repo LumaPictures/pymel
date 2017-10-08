@@ -1,18 +1,33 @@
 import sys
+import os
 import unittest
 import itertools
 import re
 import platform
 import inspect
 import math
+import inspect
 
 import maya.cmds as cmds
 import pymel.core as pm
 import pymel.api as api
-from maintenance.pymelControlPanel import getClassHierarchy
+
+THIS_FILE = os.path.abspath(inspect.getsourcefile(lambda: None))
+THIS_DIR = os.path.dirname(THIS_FILE)
+PARENT_DIR = os.path.dirname(THIS_DIR)
+try:
+    from maintenance.pymelControlPanel import getClassHierarchy
+except ImportError:
+    if PARENT_DIR not in sys.path:
+        sys.path.append(PARENT_DIR)
+        from maintenance.pymelControlPanel import getClassHierarchy
+    else:
+        raise
+
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
 import pymel.util.arrays as arrays
+import pymel.versions as versions
 
 from pymel.util.testing import TestCaseExtended, setCompare
 
@@ -429,6 +444,8 @@ class testCase_invertibles(unittest.TestCase):
 
                     elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
                         args = [ 6, 4.5 ]
+                    elif setMethod == 'setIcon':
+                        args = [ 'polyCylinder.png' ]
                     else:
                         args = [ self.getTypedArg(typ) for typ in setArgTypes ]
                     #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
@@ -1405,6 +1422,12 @@ class testCase_components(unittest.TestCase):
 
     # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
     def _failIfWillMakeMayaCrash(self, comp):
+        # As of Maya 2018 (and possibly before??), the tests in
+        # test_nodetypes seem to no longer make maya crash... even though
+        # test_mayaBugs.TestSubdivSelectCrash still DOES crash maya...
+        # In any case, we no longer auto-fail these tests... though leaving the
+        # code here in case it starts crashing things again
+        return
         try:
             if isinstance(comp, basestring):
 #                if versions.current() >= versions.v2011:
@@ -2590,34 +2613,36 @@ class testCase_renderLayers(TestCaseExtended):
         self.layer.removeMembers([self.sphere, self.cube])
         self.assertEqual(self.layer.listMembers(), [])
 
-    def test_setCurrent(self):
-        self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
-                         pm.nt.RenderLayer.currentLayer())
-        self.layer.setCurrent()
-        self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
+    # can't use unittest.skipIf, because nose doesn't seem to recognize it...
+    if versions.current() < versions.v2018:
+        def test_setCurrent(self):
+            self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
+                             pm.nt.RenderLayer.currentLayer())
+            self.layer.setCurrent()
+            self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
 
-    def test_adjustments(self):
-        widthAttr = pm.PyNode("defaultResolution.width")
-        self.assertEqual(self.layer.listAdjustments(), [])
-        self.layer.addAdjustments(widthAttr)
-        self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
+        def test_adjustments(self):
+            widthAttr = pm.PyNode("defaultResolution.width")
+            self.assertEqual(self.layer.listAdjustments(), [])
+            self.layer.addAdjustments(widthAttr)
+            self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
 
-        origVal = widthAttr.get()
-        adjVal = origVal + 5
+            origVal = widthAttr.get()
+            adjVal = origVal + 5
 
-        self.layer.setCurrent()
-        widthAttr.set(adjVal)
-        self.assertEqual(widthAttr.get(), adjVal)
-        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-        self.assertEqual(widthAttr.get(), origVal)
-        self.layer.setCurrent()
-        self.assertEqual(widthAttr.get(), adjVal)
+            self.layer.setCurrent()
+            widthAttr.set(adjVal)
+            self.assertEqual(widthAttr.get(), adjVal)
+            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+            self.assertEqual(widthAttr.get(), origVal)
+            self.layer.setCurrent()
+            self.assertEqual(widthAttr.get(), adjVal)
 
-        self.layer.removeAdjustments(widthAttr)
-        self.assertEqual(self.layer.listAdjustments(), [])
-        self.assertEqual(widthAttr.get(), origVal)
-        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-        self.assertEqual(widthAttr.get(), origVal)
+            self.layer.removeAdjustments(widthAttr)
+            self.assertEqual(self.layer.listAdjustments(), [])
+            self.assertEqual(widthAttr.get(), origVal)
+            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+            self.assertEqual(widthAttr.get(), origVal)
 
 class testCase_Character(unittest.TestCase):
     def setUp(self):

@@ -45,8 +45,6 @@ Example::
 path.py requires Python 2.5 or later.
 """
 
-from __future__ import with_statement
-
 import sys
 import warnings
 import os

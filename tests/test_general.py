@@ -1,7 +1,8 @@
-import sys, os, inspect, unittest
+import sys, os, inspect, unittest, logging
 #from testingutils import setupUnittestModule
 from pymel.core import *
 import pymel.core as pm
+import pymel.core.general
 import pymel.versions as versions
 import pymel.internal.factories as factories
 import pymel.internal.pmcmds as pmcmds
@@ -221,9 +222,7 @@ class testCase_mayaSetAttr(unittest.TestCase):
         #assert cmds.getAttr( 'node.reflectanceRGBAttr' )        == 1.0
         # TODO : finish non-numeric
 
-def test_pymel_setAttr():
-
-    _makeAllAttrTypes('node2')
+def addPymelSetAttrTests():
     for data in [
         ('short2',  (1,2)),
         ('short3',  (1,2,3)),
@@ -250,17 +249,16 @@ def test_pymel_setAttr():
         mainVal = data[1]
 
         for i, val in enumerate(data[1:]):
-            def testSetAttr(*args):
-                at = 'node2.' + typ + 'Attr'
+            def testSetAttr(self):
+                at = 'node.' + typ + 'Attr'
                 setAttr(at, val)
                 newval = getAttr(at)
                 assert newval == mainVal, "setAttr %s: returned value %r is not equal to input value %r" % (typ, newval, mainVal)
 
             testSetAttr.__name__ = 'test_setAttr_' + typ + '_' + str(i)
             testSetAttr.description = testSetAttr.__name__
-            #print typ
-            #testSetAttr()
-            yield testSetAttr,
+            setattr(testCase_mayaSetAttr, testSetAttr.__name__, testSetAttr)
+addPymelSetAttrTests()
 
 class testCase_mayaLockAttr(unittest.TestCase):
 
@@ -654,104 +652,169 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 class testCase_apiUndo(unittest.TestCase):
 
     def setUp(self):
+        # ensure undo callbacks are set up
+        import pymel.internal.factories
+        if pymel.internal.factories.apiUndo.undoStateCallbackId is None:
+            pymel.internal.factories.apiUndo.installUndoStateCallbacks()
+
         self.origUndoState = cmds.undoInfo(q=1, state=1)
         # reset all undo queues
         cmds.undoInfo(state=0)
+        for chunksClosed in xrange(100):
+            chunkName = cmds.undoInfo(q=1, chunkName=1)
+            if not chunkName:
+                break
+            print "closing chunk: {}".format(chunkName)
+            cmds.undoInfo(closeChunk=1)
+        else:
+            print "WARNING - hit maximum number of open undo chunks: {}".format(chunksClosed + 1)
+
         setAttr( 'persp.focalLength', 35 )
         setAttr( 'top.focalLength', 35 )
         factories.apiUndo.flushUndo()
         cmds.undoInfo(state=1)
 
-    def test_undo_cmds(self):
+    def test_undoRedoAvailable_newFile(self):
+        # try to start from as clean a place as possible... other tests might
+        # conceivable put us in a "bad state" - ie, running
+        # test_transform_translation would leave the scene with
+        #   UndoAvailable=1, RedoAvailable=1, UndoOrRedoAvailable=1
+        # then do a new file command in it's tearDown, and leave us in a state
+        # where:
+        #   UndoAvailable=0, RedoAvailable=0, UndoOrRedoAvailable=1
+        cmds.undoInfo(state=0)
+        cmds.undoInfo(state=1)
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        cmds.condition('UndoOrRedoAvailable', e=1, state=False)
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=1, RedoAvailable=0, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=0, RedoAvailable=1, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        cmds.undo()
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=1, RedoAvailable=1, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        SCENE.persp.setFocalLength(20)
+        cmds.undo()
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+    def _do_undo_test(self, module):
+        self.assertTrue(module.undoInfo(q=1, state=1))
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertFalse(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 35)
+        self.assertEqual(SCENE.persp.getFocalLength(), 35)
         self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
-        self.assertEqual(SCENE.top.getFocalLength(), 35)
         SCENE.top.setFocalLength(20)
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
         self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 35)
         self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-        cmds.undoInfo(stateWithoutFlush=0)  #--------------------------------
+        module.undoInfo(stateWithoutFlush=0)  #--------------------------------
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 35)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
         SCENE.persp.setFocalLength(20)
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20)
         self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-        cmds.undoInfo(stateWithoutFlush=1)  #--------------------------------
+        module.undoInfo(stateWithoutFlush=1)  #--------------------------------
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-        cmds.undo()  # undo top focal length back to 35
-
+        module.undo()  # undo top focal length back to 35
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertTrue(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
         self.assertEqual(SCENE.top.getFocalLength(), 35.0)
         self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
-        cmds.redo()
-
+        module.redo()
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
         self.assertEqual(SCENE.top.getFocalLength(), 20.0)
         self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
         self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
         # clear maya's undo queue
         # we override undoInfo in system to flush the cache
-        cmds.undoInfo(state=0)
-        cmds.undoInfo(state=1)
-
+        module.undoInfo(state=0)
+        module.undoInfo(state=1)
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertFalse(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
         self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
         SCENE.top.setFocalLength(200)
-        cmds.undo()
-
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 200.0)
         self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
+        module.undo()
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertTrue(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
         self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
     def test_undo_pm(self):
-        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
+        self._do_undo_test(pm)
 
-        self.assertEqual(SCENE.top.getFocalLength(), 35)
-        SCENE.top.setFocalLength(20)
-        self.assertEqual(SCENE.top.getFocalLength(), 20)
-        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
-
-        pm.undoInfo(stateWithoutFlush=0)  #--------------------------------
-
-        SCENE.persp.setFocalLength(20)
-        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
-
-        pm.undoInfo(stateWithoutFlush=1)  #--------------------------------
-
-        pm.undo()  # undo top focal length back to 35
-
-        self.assertEqual(SCENE.top.getFocalLength(), 35.0)
-        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-
-        pm.redo()
-
-        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
-        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
-
-        # clear maya's undo queue
-        # we override undoInfo in system to flush the cache
-        pm.undoInfo(state=0)
-        pm.undoInfo(state=1)
-
-        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
-
-        SCENE.top.setFocalLength(200)
-        pm.undo()
-
-        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
-
-        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
-
-#    def tearDown(self):
-#
-#        # reset all undo queues
-#        cmds.undoInfo(state=0)
-#        setAttr( 'persp.focalLength', 35 )
-#        setAttr( 'top.focalLength', 35 )
-#        factories.apiUndo.flushUndo()
-#        cmds.undoInfo(state=1)
+    def test_undo_cmds(self):
+        self._do_undo_test(cmds)
 
     def tearDown(self):
         # cleaning
@@ -1902,6 +1965,159 @@ class test_Attribute_getSetAttrCmds(unittest.TestCase):
             'setAttr ".myIntMulti[1]" 5;',
             'setAttr ".myIntMulti[5]" 7;',
         ])
+
+class test_exists(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, force=1)
+
+    def test_depend_node(self):
+        node = pm.createNode('time')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_dag_node(self):
+        node = pm.createNode('transform')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_attribute(self):
+        node = pm.createNode('transform')
+        attr = node.attr('tx')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+    def test_dyn_attribute(self):
+        # test node deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test attr deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        self.assertFalse(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test deletion of both
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+
+class CapturingHandler(logging.Handler):
+    '''Log handler that just records emitted messages'''
+    def __init__(self, *args, **kwargs):
+        super(CapturingHandler, self).__init__(*args, **kwargs)
+        self.capturedMessagesByLevel = {}
+
+    def emit(self, record):
+        messages = self.capturedMessagesByLevel.setdefault(record.levelno, [])
+        messages.append(record.msg)
+
+
+class test_deletedNameAccess(unittest.TestCase):
+
+    class SetOptionAndCatchWarnings(object):
+        '''Temporarily set deleted_pynode_name_access, and catch warnings
+        emitted using the given logger'''
+        def __init__(self, newOption, logger=pymel.core.general._logger):
+            self.oldOption = None
+            self.newOption = newOption
+            self.logger = logger
+            self.capturingHandler = CapturingHandler(logging.DEBUG)
+            self.capturedWarnings = self.capturingHandler.capturedMessagesByLevel.setdefault(logging.WARN, [])
+            self.emittedWarnings = []
+
+        def __enter__(self):
+            from pymel.internal.startup import pymel_options
+            self.oldOption = pymel_options['deleted_pynode_name_access']
+            pymel_options['deleted_pynode_name_access'] = self.newOption
+            self.logger.addHandler(self.capturingHandler)
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            from pymel.internal.startup import pymel_options
+            pymel_options['deleted_pynode_name_access'] = self.oldOption
+            self.logger.removeHandler(self.capturingHandler)
+
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.name = 'test_obj'
+        self.deleted_node = pm.createNode('transform', name=self.name)
+        pm.delete(self.deleted_node)
+        self.assertFalse(self.deleted_node.exists())
+
+    def test_ignore(self):
+        capturer = self.SetOptionAndCatchWarnings('ignore')
+        with capturer:
+            self.assertEqual(self.deleted_node.name(), self.name)
+            self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            pm.delete(self.deleted_node)
+            self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # check that the joint was deleted
+        self.assertFalse(joint.exists())
+
+    def test_warn(self):
+        capturer = self.SetOptionAndCatchWarnings('warn')
+        with capturer:
+            self.assertEqual(self.deleted_node.name(), self.name)
+        self.assertEqual(len(capturer.capturedWarnings), 1)
+        self.assertIn('no longer exists', capturer.capturedWarnings[0])
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            pm.delete(self.deleted_node)
+        self.assertEqual(len(capturer.capturedWarnings), 2)
+        self.assertIn('no longer exists', capturer.capturedWarnings[1])
+
+        # check that the joint was deleted
+        self.assertFalse(joint.exists())
+
+    def test_error(self):
+        capturer = self.SetOptionAndCatchWarnings('error')
+        with capturer:
+            self.assertRaises(pymel.core.DeletedMayaNodeError,
+                              self.deleted_node.name)
+        self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            self.assertRaises(pymel.core.DeletedMayaNodeError,
+                              pm.delete, self.deleted_node)
+        self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # check that the joint was NOT deleted
+        self.assertTrue(joint.exists())
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
