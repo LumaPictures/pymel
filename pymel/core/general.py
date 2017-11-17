@@ -11,6 +11,7 @@ import os
 import re
 import itertools
 import inspect
+import collections
 
 import pymel.internal.pmcmds as cmds
 import pymel.util as _util
@@ -4699,11 +4700,21 @@ class DimensionedComponent(Component):
     def _translateNegativeIndice(self, negIndex, partialIndex):
         raise NotImplementedError
 
+    # subclasses should not override this - override _getitem_overrideable
+    # instead
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
                              "specified component (ie, 'cube.vtx')")
+        # if this is an iteraTOR, not just an iterABLE, then
+        # _validateGetItemIndice will "use it up" while iterating. first,
+        # store it in a more "permanent" form
+        if isinstance(item, collections.Iterator):
+            item = tuple(item)
         self._validateGetItemIndice(item)
+        self._getitem_overrideable(item)
+
+    def _getitem_overrideable(self, item):
         return self.__class__(self._node,
                               ComponentIndex(self._partialIndex + (item,)))
 
@@ -5954,11 +5965,7 @@ class NurbsSurfaceRange(NurbsSurfaceIsoparm):
     _ComponentLabel__ = ("u", "v", "uv")
     _apienum__ = _api.MFn.kSurfaceRangeComponent
 
-    def __getitem__(self, item):
-        if self.currentDimension() is None:
-            raise IndexError("Indexing only allowed on an incompletely "
-                             "specified component")
-        self._validateGetItemIndice(item)
+    def _getitem_overrideable(self, item):
         # You only get a NurbsSurfaceRange if BOTH indices are slices - if
         # either is a single value, you get an isoparm
         if (not isinstance(item, (slice, HashableSlice)) or
@@ -5966,7 +5973,7 @@ class NurbsSurfaceRange(NurbsSurfaceIsoparm):
              not isinstance(self._partialIndex[0], (slice, HashableSlice)))):
             return NurbsSurfaceIsoparm(self._node, self._partialIndex + (item,))
         else:
-            return super(NurbsSurfaceRange, self).__getitem__(item)
+            return super(NurbsSurfaceRange, self)._getitem_overrideable(item)
 
 class NurbsSurfaceCV(Component2D):
     _ComponentLabel__ = "cv"

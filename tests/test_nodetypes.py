@@ -1863,6 +1863,18 @@ class testCase_components(unittest.TestCase):
         selStrs = list(x.format(cube=cube) for x in selStrs)
         self.assertEqual(cmds.ls(sl=1), selStrs)
 
+    def test_iterable_getitem(self):
+        cube = self.nodes['cube']
+        indices = iter([0, 1, 2, 4])
+        faces = pm.PyNode(cube).f[indices]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
 
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
