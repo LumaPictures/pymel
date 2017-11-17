@@ -1,7 +1,8 @@
-import sys, os, inspect, unittest
+import sys, os, inspect, unittest, logging
 #from testingutils import setupUnittestModule
 from pymel.core import *
 import pymel.core as pm
+import pymel.core.general
 import pymel.versions as versions
 import pymel.internal.factories as factories
 import pymel.internal.pmcmds as pmcmds
@@ -1964,6 +1965,159 @@ class test_Attribute_getSetAttrCmds(unittest.TestCase):
             'setAttr ".myIntMulti[1]" 5;',
             'setAttr ".myIntMulti[5]" 7;',
         ])
+
+class test_exists(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, force=1)
+
+    def test_depend_node(self):
+        node = pm.createNode('time')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_dag_node(self):
+        node = pm.createNode('transform')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_attribute(self):
+        node = pm.createNode('transform')
+        attr = node.attr('tx')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+    def test_dyn_attribute(self):
+        # test node deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test attr deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        self.assertFalse(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test deletion of both
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+
+class CapturingHandler(logging.Handler):
+    '''Log handler that just records emitted messages'''
+    def __init__(self, *args, **kwargs):
+        super(CapturingHandler, self).__init__(*args, **kwargs)
+        self.capturedMessagesByLevel = {}
+
+    def emit(self, record):
+        messages = self.capturedMessagesByLevel.setdefault(record.levelno, [])
+        messages.append(record.msg)
+
+
+class test_deletedNameAccess(unittest.TestCase):
+
+    class SetOptionAndCatchWarnings(object):
+        '''Temporarily set deleted_pynode_name_access, and catch warnings
+        emitted using the given logger'''
+        def __init__(self, newOption, logger=pymel.core.general._logger):
+            self.oldOption = None
+            self.newOption = newOption
+            self.logger = logger
+            self.capturingHandler = CapturingHandler(logging.DEBUG)
+            self.capturedWarnings = self.capturingHandler.capturedMessagesByLevel.setdefault(logging.WARN, [])
+            self.emittedWarnings = []
+
+        def __enter__(self):
+            from pymel.internal.startup import pymel_options
+            self.oldOption = pymel_options['deleted_pynode_name_access']
+            pymel_options['deleted_pynode_name_access'] = self.newOption
+            self.logger.addHandler(self.capturingHandler)
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            from pymel.internal.startup import pymel_options
+            pymel_options['deleted_pynode_name_access'] = self.oldOption
+            self.logger.removeHandler(self.capturingHandler)
+
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.name = 'test_obj'
+        self.deleted_node = pm.createNode('transform', name=self.name)
+        pm.delete(self.deleted_node)
+        self.assertFalse(self.deleted_node.exists())
+
+    def test_ignore(self):
+        capturer = self.SetOptionAndCatchWarnings('ignore')
+        with capturer:
+            self.assertEqual(self.deleted_node.name(), self.name)
+            self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            pm.delete(self.deleted_node)
+            self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # check that the joint was deleted
+        self.assertFalse(joint.exists())
+
+    def test_warn(self):
+        capturer = self.SetOptionAndCatchWarnings('warn')
+        with capturer:
+            self.assertEqual(self.deleted_node.name(), self.name)
+        self.assertEqual(len(capturer.capturedWarnings), 1)
+        self.assertIn('no longer exists', capturer.capturedWarnings[0])
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            pm.delete(self.deleted_node)
+        self.assertEqual(len(capturer.capturedWarnings), 2)
+        self.assertIn('no longer exists', capturer.capturedWarnings[1])
+
+        # check that the joint was deleted
+        self.assertFalse(joint.exists())
+
+    def test_error(self):
+        capturer = self.SetOptionAndCatchWarnings('error')
+        with capturer:
+            self.assertRaises(pymel.core.DeletedMayaNodeError,
+                              self.deleted_node.name)
+        self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            self.assertRaises(pymel.core.DeletedMayaNodeError,
+                              pm.delete, self.deleted_node)
+        self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # check that the joint was NOT deleted
+        self.assertTrue(joint.exists())
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
