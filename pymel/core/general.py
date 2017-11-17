@@ -4790,6 +4790,16 @@ class DimensionedComponent(Component):
                 self._currentDimension = None
         return self._currentDimension
 
+    # Used by __add__ in subclasses
+    def _validate_add(self, other):
+        if not isinstance(other, type(self)):
+            raise TypeError("cannot add a {} and {} object".format(type(other),
+                                                                   type(self)))
+        if self.node() != other.node():
+            raise ValueError("cannot add {} objects for different nodes:"
+                             " {} and {}".format(type(self), self.node(),
+                                                 other.node()))
+
 class ComponentIndex(tuple):
 
     """
@@ -5279,6 +5289,29 @@ class Component1D(DiscreteComponent):
         """
         for compIndex in self._compIndexObjIter():
             yield compIndex[0]
+
+    # TODO: also add __add__ / __iadd__ for 2D / 3D components
+    def __add__(self, other):
+        self._validate_add(other)
+        newMfnComp = self._mfncompclass()
+        newMObj = newMfnComp.create(self._apienum__)
+        indices = _api.MIntArray()
+        for compObj in (self, other):
+            otherMfnComp = compObj.__apicomponent__()
+            otherMfnComp.getElements(indices)
+            newMfnComp.addElements(indices)
+        return type(self)(self.__apimdagpath__(), newMObj)
+
+    def __iadd__(self, other):
+        self._validate_add(other)
+        indices = _api.MIntArray()
+        otherMfnComp = other.__apicomponent__()
+        otherMfnComp.getElements(indices)
+        self.__apicomponent__().addElements(indices)
+        # clean up possibly out-of-date cached items
+        self.__apiobjects__.pop('ComponentIndex', None)
+        self._indices = None
+        return self
 
 class Component2D(DiscreteComponent):
     _mfncompclass = _api.MFnDoubleIndexedComponent

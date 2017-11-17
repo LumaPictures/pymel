@@ -1876,6 +1876,30 @@ class testCase_components(unittest.TestCase):
         selStrs = list(x.format(cube=cube) for x in selStrs)
         self.assertEqual(cmds.ls(sl=1), selStrs)
 
+    def test_add(self):
+        cube = self.nodes['cube']
+        verts0str = '{cube}.vtx[0:2]'.format(cube=cube)
+        verts1str = '{cube}.vtx[6:7]'.format(cube=cube)
+        verts0 = pm.PyNode(verts0str)
+        verts1 = pm.PyNode(verts1str)
+        pm.select(verts0)
+        self.assertEqual(cmds.ls(sl=1), [verts0str])
+        pm.select(verts1)
+        self.assertEqual(cmds.ls(sl=1), [verts1str])
+        verts01 = verts0 + verts1
+        pm.select(verts0)
+        self.assertEqual(cmds.ls(sl=1), [verts0str])
+        pm.select(verts1)
+        self.assertEqual(cmds.ls(sl=1), [verts1str])
+        pm.select(verts01)
+        self.assertEqual(cmds.ls(sl=1), [verts0str, verts1str])
+        verts0 += verts1
+        pm.select(verts0)
+        self.assertEqual(cmds.ls(sl=1), [verts0str, verts1str])
+        pm.select(verts1)
+        self.assertEqual(cmds.ls(sl=1), [verts1str])
+
+
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
     evalStringId = '_evalStrings'
