@@ -4672,27 +4672,28 @@ class DimensionedComponent(Component):
             index = ComponentIndex(index + (HashableSlice(None),))
 
         indices = [ComponentIndex(label=index.label)]
-        for dimIndex in index:
-            if isinstance(dimIndex, (slice, HashableSlice)):
-                newIndices = []
-                for oldPartial in indices:
-                    newIndices.extend(self._sliceToIndices(dimIndex,
-                                                           partialIndex=oldPartial))
-                indices = newIndices
-            elif _util.isIterable(dimIndex):
+        def flattenDimIndex(dimIndex, partialIndex):
+            if _util.isIterable(dimIndex):
                 if allowIterable:
-                    newIndices = []
-                    for oldPartial in indices:
-                        for indice in dimIndex:
-                            newIndices.append(oldPartial + (indice,))
-                    indices = newIndices
+                    for dimPiece in dimIndex:
+                        for indice in flattenDimIndex(dimPiece, partialIndex):
+                            yield indice
                 else:
                     raise IndexError(index)
+            elif isinstance(dimIndex, (slice, HashableSlice)):
+                for indice in self._sliceToIndices(dimIndex,
+                                                   partialIndex=oldPartial):
+                    yield indice
             elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
-                indices = [x + (self._translateNegativeIndice(dimIndex, x),)
-                           for x in indices]
+                yield partialIndex + (self._translateNegativeIndice(dimIndex, partialIndex),)
             else:
-                indices = [x + (dimIndex,) for x in indices]
+                yield partialIndex + (dimIndex,)
+
+        for dimIndex in index:
+            newIndices = []
+            for oldPartial in indices:
+                newIndices.extend(flattenDimIndex(dimIndex, oldPartial))
+            indices = newIndices
         return indices
 
     def _translateNegativeIndice(self, negIndex, partialIndex):

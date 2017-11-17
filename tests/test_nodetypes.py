@@ -1826,6 +1826,43 @@ class testCase_components(unittest.TestCase):
             shape = trans.getShape()
             assertListCompForNodeClass(shape, nodeClass)
 
+    def test_list_and_slice_getitem(self):
+        cube = self.nodes['cube']
+        faces = pm.PyNode(cube).f[0:2, 4]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
+
+    def test_tuple_getitem(self):
+        cube = self.nodes['cube']
+        faces = pm.PyNode(cube).f[0, 1, 2, 4]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
+
+    def test_list_getitem(self):
+        cube = self.nodes['cube']
+        indices = [0, 1, 2, 4]
+        faces = pm.PyNode(cube).f[indices]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
+
 
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
