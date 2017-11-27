@@ -2,13 +2,14 @@
 # Condition objects - used for chaining together tests that yield True/False results
 #------------------------------------------------------------------------------
 
+class NO_DATA(Exception):
+    pass
+
 class Condition(object):
 
     """
     Used to chain together objects for conditional testing.
     """
-    class NO_DATA(Exception):
-        pass
 
     def __init__(self, value=None):
         self.value = value
@@ -46,7 +47,7 @@ class Inverse(Condition):
     def __init__(self, toInvert):
         self.toInvert = toInvert
 
-    def eval(self, data=Condition.NO_DATA):
+    def eval(self, data=NO_DATA):
         return not self.toInvert.eval(data)
 
     def __str__(self):
@@ -62,7 +63,7 @@ class AndOrAbstract(Condition):
             else:
                 self.args.append(arg)
 
-    def eval(self, data=Condition.NO_DATA):
+    def eval(self, data=NO_DATA):
         for arg in self.args:
             if isinstance(arg, Condition):
                 val = arg.eval(data)

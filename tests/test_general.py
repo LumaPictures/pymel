@@ -1,7 +1,8 @@
-import sys, os, inspect, unittest
+import sys, os, inspect, unittest, logging
 #from testingutils import setupUnittestModule
 from pymel.core import *
 import pymel.core as pm
+import pymel.core.general
 import pymel.versions as versions
 import pymel.internal.factories as factories
 import pymel.internal.pmcmds as pmcmds
@@ -221,9 +222,7 @@ class testCase_mayaSetAttr(unittest.TestCase):
         #assert cmds.getAttr( 'node.reflectanceRGBAttr' )        == 1.0
         # TODO : finish non-numeric
 
-def test_pymel_setAttr():
-
-    _makeAllAttrTypes('node2')
+def addPymelSetAttrTests():
     for data in [
         ('short2',  (1,2)),
         ('short3',  (1,2,3)),
@@ -250,17 +249,16 @@ def test_pymel_setAttr():
         mainVal = data[1]
 
         for i, val in enumerate(data[1:]):
-            def testSetAttr(*args):
-                at = 'node2.' + typ + 'Attr'
+            def testSetAttr(self):
+                at = 'node.' + typ + 'Attr'
                 setAttr(at, val)
                 newval = getAttr(at)
                 assert newval == mainVal, "setAttr %s: returned value %r is not equal to input value %r" % (typ, newval, mainVal)
 
             testSetAttr.__name__ = 'test_setAttr_' + typ + '_' + str(i)
             testSetAttr.description = testSetAttr.__name__
-            #print typ
-            #testSetAttr()
-            yield testSetAttr,
+            setattr(testCase_mayaSetAttr, testSetAttr.__name__, testSetAttr)
+addPymelSetAttrTests()
 
 class testCase_mayaLockAttr(unittest.TestCase):
 
@@ -417,6 +415,14 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
     def test_attribute_instance_equality(self):
         self.assertEqual( self.sphere1.t, self.sphere3.t )
+
+    def test_attribute_indexed_equality(self):
+        self.assertEqual( self.sphere1.pnts[5], self.sphere3.pnts[5] )
+        self.assertNotEqual(self.sphere1.pnts[5], self.sphere3.pnts[10])
+
+    def test_attribute_indexed_parent_equality(self):
+        self.assertEqual( self.sphere1.pnts[5].px, self.sphere3.pnts[5].px )
+        self.assertNotEqual(self.sphere1.pnts[5].px, self.sphere3.pnts[10].px)
 
     def test_attribute_cascading(self):
         self.sphere1.primaryVisibility.set(1)
@@ -646,104 +652,169 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 class testCase_apiUndo(unittest.TestCase):
 
     def setUp(self):
+        # ensure undo callbacks are set up
+        import pymel.internal.factories
+        if pymel.internal.factories.apiUndo.undoStateCallbackId is None:
+            pymel.internal.factories.apiUndo.installUndoStateCallbacks()
+
         self.origUndoState = cmds.undoInfo(q=1, state=1)
         # reset all undo queues
         cmds.undoInfo(state=0)
+        for chunksClosed in xrange(100):
+            chunkName = cmds.undoInfo(q=1, chunkName=1)
+            if not chunkName:
+                break
+            print "closing chunk: {}".format(chunkName)
+            cmds.undoInfo(closeChunk=1)
+        else:
+            print "WARNING - hit maximum number of open undo chunks: {}".format(chunksClosed + 1)
+
         setAttr( 'persp.focalLength', 35 )
         setAttr( 'top.focalLength', 35 )
         factories.apiUndo.flushUndo()
         cmds.undoInfo(state=1)
 
-    def test_undo_cmds(self):
+    def test_undoRedoAvailable_newFile(self):
+        # try to start from as clean a place as possible... other tests might
+        # conceivable put us in a "bad state" - ie, running
+        # test_transform_translation would leave the scene with
+        #   UndoAvailable=1, RedoAvailable=1, UndoOrRedoAvailable=1
+        # then do a new file command in it's tearDown, and leave us in a state
+        # where:
+        #   UndoAvailable=0, RedoAvailable=0, UndoOrRedoAvailable=1
+        cmds.undoInfo(state=0)
+        cmds.undoInfo(state=1)
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        cmds.condition('UndoOrRedoAvailable', e=1, state=False)
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=1, RedoAvailable=0, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=0, RedoAvailable=1, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        cmds.undo()
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+        # check what happens if UndoAvailable=1, RedoAvailable=1, and we do
+        # a newFile...
+        SCENE.top.setFocalLength(20)
+        SCENE.persp.setFocalLength(20)
+        cmds.undo()
+        self.assertTrue(cmds.isTrue('UndoAvailable'))
+        self.assertTrue(cmds.isTrue('RedoAvailable'))
+        self.assertTrue(cmds.isTrue('UndoOrRedoAvailable'))
+        cmds.file(new=1, force=1)
+        self.assertFalse(cmds.isTrue('UndoAvailable'))
+        self.assertFalse(cmds.isTrue('RedoAvailable'))
+        self.assertFalse(cmds.isTrue('UndoOrRedoAvailable'))
+
+    def _do_undo_test(self, module):
+        self.assertTrue(module.undoInfo(q=1, state=1))
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertFalse(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 35)
+        self.assertEqual(SCENE.persp.getFocalLength(), 35)
         self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
-        self.assertEqual(SCENE.top.getFocalLength(), 35)
         SCENE.top.setFocalLength(20)
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
         self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 35)
         self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-        cmds.undoInfo(stateWithoutFlush=0)  #--------------------------------
+        module.undoInfo(stateWithoutFlush=0)  #--------------------------------
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 35)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
         SCENE.persp.setFocalLength(20)
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20)
         self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-        cmds.undoInfo(stateWithoutFlush=1)  #--------------------------------
+        module.undoInfo(stateWithoutFlush=1)  #--------------------------------
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
-        cmds.undo()  # undo top focal length back to 35
-
+        module.undo()  # undo top focal length back to 35
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertTrue(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
         self.assertEqual(SCENE.top.getFocalLength(), 35.0)
         self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
-        cmds.redo()
-
+        module.redo()
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
         self.assertEqual(SCENE.top.getFocalLength(), 20.0)
         self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
         self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
         # clear maya's undo queue
         # we override undoInfo in system to flush the cache
-        cmds.undoInfo(state=0)
-        cmds.undoInfo(state=1)
-
+        module.undoInfo(state=0)
+        module.undoInfo(state=1)
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertFalse(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
         self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
         SCENE.top.setFocalLength(200)
-        cmds.undo()
-
+        self.assertTrue(module.isTrue('UndoAvailable'))
+        self.assertFalse(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 200.0)
         self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
 
+        module.undo()
+        self.assertFalse(module.isTrue('UndoAvailable'))
+        self.assertTrue(module.isTrue('RedoAvailable'))
+        self.assertTrue(module.isTrue('UndoOrRedoAvailable'))
+        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
+        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
         self.assertEqual(len(factories.apiUndo.undo_queue), 0)
 
     def test_undo_pm(self):
-        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
+        self._do_undo_test(pm)
 
-        self.assertEqual(SCENE.top.getFocalLength(), 35)
-        SCENE.top.setFocalLength(20)
-        self.assertEqual(SCENE.top.getFocalLength(), 20)
-        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
-
-        pm.undoInfo(stateWithoutFlush=0)  #--------------------------------
-
-        SCENE.persp.setFocalLength(20)
-        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
-
-        pm.undoInfo(stateWithoutFlush=1)  #--------------------------------
-
-        pm.undo()  # undo top focal length back to 35
-
-        self.assertEqual(SCENE.top.getFocalLength(), 35.0)
-        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-
-        pm.redo()
-
-        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
-        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-        self.assertEqual(len(factories.apiUndo.undo_queue), 1)
-
-        # clear maya's undo queue
-        # we override undoInfo in system to flush the cache
-        pm.undoInfo(state=0)
-        pm.undoInfo(state=1)
-
-        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
-
-        SCENE.top.setFocalLength(200)
-        pm.undo()
-
-        self.assertEqual(SCENE.persp.getFocalLength(), 20.0)
-        self.assertEqual(SCENE.top.getFocalLength(), 20.0)
-
-        self.assertEqual(len(factories.apiUndo.undo_queue), 0)
-
-#    def tearDown(self):
-#
-#        # reset all undo queues
-#        cmds.undoInfo(state=0)
-#        setAttr( 'persp.focalLength', 35 )
-#        setAttr( 'top.focalLength', 35 )
-#        factories.apiUndo.flushUndo()
-#        cmds.undoInfo(state=1)
+    def test_undo_cmds(self):
+        self._do_undo_test(cmds)
 
     def tearDown(self):
         # cleaning
@@ -1106,6 +1177,17 @@ class test_PyNodeWraps(unittest.TestCase):
             cmds.setToolTo('artAttrCtx1')
             self.assertPyNodes(artAttrCtx('artAttrCtx1', q=1, paintNodeArray=1))
 
+class test_ParticleComponent(unittest.TestCase):
+    def setUp(self):
+        self.partTr, self.partShape = pm.particle(p=[(0, 0, 0), (1, 2, 3)])
+
+    def test_attr_position(self):
+        self.assertEqual(self.partShape.pt[0].position, [0, 0, 0])
+        self.assertEqual(self.partShape.pt[1].position, [1, 2, 3])
+
+    def tearDown(self):
+        pm.delete([self.partShape, self.partTr])
+
 for cmdName in ('''aimConstraint geometryConstraint normalConstraint
                    orientConstraint parentConstraint pointConstraint
                    pointOnPolyConstraint poleVectorConstraint
@@ -1244,6 +1326,243 @@ class test_parent(unittest.TestCase):
         self.assertEqual(self.sphere.getParent(), self.cone)
         self.assertEqual(self.cube.getParent(), self.cone)
 
+    # these tests are here because removeObject flag is a special case that has
+    # to be specially handled, and there was a bug introduced at one point
+    # because of it
+
+    def test_parent_removeObject_one(self):
+        pm.parent(self.sphere, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+        result = pm.parent(self.sphere, removeObject=True)
+        self.assertIs(result, None)
+        self.assertEqual(self.sphere.exists(), False)
+
+    def test_parent_removeObject_many(self):
+        pm.parent(self.sphere, self.cube)
+        pm.parent(self.cone, self.cube)
+        self.assertEqual(self.sphere.getParent(), self.cube)
+        self.assertEqual(self.cone.getParent(), self.cube)
+        result = pm.parent(self.sphere, self.cone, removeObject=True)
+        self.assertIs(result, None)
+        self.assertFalse(self.sphere.exists())
+        self.assertFalse(self.cone.exists())
+
+    def test_parent_to_nonexistent_object(self):
+        with self.assertRaises(pm.MayaNodeError):
+            pm.parent(self.sphere, 'does_not_exist')
+
+# TODO: make test cases for all combinations of
+#  origNode - not instanced, direct-instanced, indirect-instanced
+#  newParentNode - not instanced, direct-instanced, indirect-instanced
+#  cmds.parent, pm.parent
+#  relative=True/False
+
+class test_parent_instance(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.A1 = cmds.createNode('transform', name='A1')
+        self.A2 = cmds.createNode('transform', name='A2')
+        self.B1 = cmds.createNode('transform', name='B1')
+        self.B2 = cmds.createNode('transform', name='B2')
+        self.nonInstParent = cmds.createNode('transform', name='nonInstParent')
+
+        self.instParentA1 = cmds.createNode('transform', name='instParentA',
+                                            parent=self.A1)
+        cmds.parent(self.instParentA1, self.A2, addObject=True)
+        self.instParentA1 = '{}|instParentA'.format(self.A1)
+        self.instParentA2 = '{}|instParentA'.format(self.A2)
+        self.assertTrue(cmds.objExists(self.instParentA1))
+        self.assertTrue(cmds.objExists(self.instParentA2))
+
+        self.instParentB1 = cmds.createNode('transform', name='instParentB',
+                                            parent=self.B1)
+        cmds.parent(self.instParentB1, self.B2, addObject=True)
+        self.instParentB1 = '{}|instParentB'.format(self.B1)
+        self.instParentB2 = '{}|instParentB'.format(self.B2)
+        self.assertTrue(cmds.objExists(self.instParentB1))
+        self.assertTrue(cmds.objExists(self.instParentB2))
+
+        instSphere = cmds.polySphere()[0]
+        cmds.parent(instSphere, self.instParentB1)
+        self.instSphereB1 = '{}|{}'.format(self.instParentB1, instSphere)
+        self.instSphereB2 = '{}|{}'.format(self.instParentB2, instSphere)
+        self.assertTrue(cmds.objExists(self.instSphereB1))
+        self.assertTrue(cmds.objExists(self.instSphereB2))
+
+        self.nonInstCube = cmds.polyCube()[0]
+
+    def test_cmds_parent_nonInst_to_nonInst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertFalse(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        cmds.parent(self.nonInstCube, self.nonInstParent, r=1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        # getting instanceNumber will trigger usage of dag path
+        self.assertEqual(orig.instanceNumber(), 0)
+
+
+    def test_cmds_parent_nonInst_to_inst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.instParentA1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        cmds.parent(self.nonInstCube, self.instParentA1, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertRaises(pm.MayaInstanceError, orig.__apimdagpath__)
+        # getting instanceNumber will trigger usage of dag path
+        self.assertRaises(pm.MayaInstanceError, orig.instanceNumber)
+        # if we delete the other inst, we should be able to use it again
+        pm.delete(self.A2)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        self.assertEqual(orig.instanceNumber(), 0)
+
+    def test_cmds_parent_inst_to_nonInst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertTrue(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        cmds.parent(self.instSphereB1, self.nonInstParent, r=1)
+        # Ok... so it seems that even if you specify r=1, when parenting an
+        # indirectly-instanced object (ie, one that only has one node as a
+        # direct parent... but that parent, or one of it's ancestors, has
+        # multiple parents), it still creates multiple transforms, so the number
+        # of instances is preserved.
+        #
+        # In my case, I start with this hierarchy:
+        #
+        #     B1   B2          nonInstParent
+        #      |____|
+        #        |
+        #    instParentB
+        #        |
+        #      pSphere1
+        #
+        # ...and then if I do parent(pShere1, nonInstParent, r=1), I get:
+        #
+        #     B1   B2          nonInstParent
+        #      |____|             __|____
+        #        |               |       |
+        #    instParentB    transform1   |
+        #                        |_______|
+        #                            |
+        #                         pSphere1
+        #
+        # That is, pShere is parented directly under nonInstParent once, and
+        # under a newly-created transform1 once. Transform1 will always be zero,
+        # so it doesn't serve much of a purpose... and I can't think of why
+        # you'd ever want some objects directly parented, and some with extra
+        # transforms... so this seems like a bug... but we're stuck with it.
+        #
+        # For completeness, if you do parent(pShere1, nonInstParent), you get:
+        #
+        #     B1   B2          nonInstParent
+        #      |____|             __|_______
+        #        |               |          |
+        #    instParentB    transform1   transform2
+        #                        |__________|
+        #                            |
+        #                         pSphere1
+        #
+        # ...which is at least consistent...
+        #
+        self.assertTrue(orig.isInstanced())
+        self.assertRaises(pm.MayaInstanceError, orig.__apimdagpath__)
+        # getting instanceNumber will trigger usage of dag path
+        self.assertRaises(pm.MayaInstanceError, orig.instanceNumber)
+        # if we delete the other inst, we should be able to use it again
+        pm.delete('{}|transform1'.format(self.nonInstParent))
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        self.assertEqual(orig.instanceNumber(), 0)
+
+    def test_cmds_parent_inst_to_inst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.instParentA2)
+        self.assertTrue(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        cmds.parent(self.instSphereB1, self.instParentA2, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertRaises(pm.MayaInstanceError, orig.__apimdagpath__)
+        # getting instanceNumber will trigger usage of dag path
+        self.assertRaises(pm.MayaInstanceError, orig.instanceNumber)
+        # we end up with FOUR instances... see note in test_cmds_parent_inst_to_nonInst
+        pm.delete(self.A1)
+        pm.delete('{}|transform1'.format(self.instParentA2))
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        self.assertEqual(orig.instanceNumber(), 0)
+
+    
+    def test_pm_parent_nonInst_to_nonInst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertFalse(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(orig.__apimdagpath__().isValid())
+        # getting instanceNumber will trigger usage of dag path
+        self.assertEqual(orig.instanceNumber(), 0)
+    
+    
+    def test_pm_parent_nonInst_to_inst(self):
+        orig = pm.PyNode(self.nonInstCube)
+        parent = pm.PyNode(self.instParentA1)
+        self.assertFalse(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+
+    def test_pm_parent_inst_to_nonInst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.nonInstParent)
+        self.assertTrue(orig.isInstanced())
+        self.assertFalse(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+
+    def test_pm_parent_inst_to_inst(self):
+        orig = pm.PyNode(self.instSphereB1)
+        parent = pm.PyNode(self.instParentA2)
+        self.assertTrue(orig.isInstanced())
+        self.assertTrue(parent.isInstanced())
+        pm.parent(orig, parent, r=1)
+        self.assertTrue(orig.isInstanced())
+        self.assertEqual(orig.getParent(), parent)
+
+
+class test_spaceLocator(unittest.TestCase):
+    def test_nonUniqueName(self):
+        cmds.file(f=1, new=1)
+        loc1 = cmds.spaceLocator(name='theLoc')
+        cmds.group(loc1, name='theGroup')
+        self.assertEqual(cmds.ls('*theLoc', long=True), ['|theGroup|theLoc'])
+        loc2 = pm.spaceLocator(name='theLoc')
+        self.assertEqual(type(loc2), pm.nt.Transform)
+        self.assertEqual(loc2.fullPath(), '|theLoc')
+
+    def test_position(self):
+        cmds.file(f=1, new=1)
+        locTrans = pm.spaceLocator(name='theLoc', position=(1,2,3))
+        locShape = locTrans.getShape()
+        self.assertEqual(type(locShape), pm.nt.Locator)
+        self.assertEqual(locTrans.getTranslation(), pm.dt.Vector(0,0,0))
+        self.assertEqual(locShape.attr('localPosition').get(),
+                         pm.dt.Vector(1,2,3))
+
+        # Ok, this is lame - in create mode, position set's the local position
+        # (on the shape) - but in edit mode, it sets the translation (on the
+        # transform).  I'm not going to bother testing what seems like a bug
+        # / mistake...
+        # pm.spaceLocator(locShape, e=1, position=(4,5,6))
+        # self.assertEqual(locTrans.getTranslation(), pm.dt.Vector(0,0,0))
+        # self.assertEqual(locShape.attr('localPosition').get(),
+        #                  pm.dt.Vector(4,5,6))
 
 class test_lazyDocs(unittest.TestCase):
     # Test can't be reliably run if pymel.all is imported... re-stubbing
@@ -1388,8 +1707,51 @@ class test_addAttr(unittest.TestCase):
                          enumName={'giraffe':1, 'gazelle':5, 'lion':3})
         self.assertEqual(self.loc.attr('testEnumAttr').getEnums(), newEnums)
 
+    def test_type_double(self):
+        self.loc.addAttr('autoDouble', type='double')
+        self.assertEqual(pm.addAttr(self.loc + '.autoDouble', query=1,
+                                    attributeType=1),
+                         'double')
+        self.assertEqual(pm.addAttr(self.loc + '.autoDouble', query=1,
+                                    dataType=1),
+                         'TdataNumeric')
+
+    def test_type_mesh(self):
+        self.loc.addAttr('autoMesh', type='mesh')
+        self.assertEqual(pm.addAttr(self.loc + '.autoMesh', query=1,
+                                    attributeType=1),
+                         'typed')
+        self.assertEqual(pm.addAttr(self.loc + '.autoMesh', query=1,
+                                    dataType=1),
+                         'mesh')
+
+    def test_type_vector(self):
+        self.loc.addAttr('autoVec', type=pm.dt.Vector)
+        self.assertEqual([x.attrName() for x in self.loc.listAttr()
+                         if 'autoVec' in x.attrName()],
+                         [u'autoVec', u'autoVecX',
+                          u'autoVecY', u'autoVecZ'])
+
+    def test_type_float3Color(self):
+        self.loc.addAttr('autoFloat3Col', type='float3', usedAsColor=1)
+        self.assertEqual([x.attrName() for x in self.loc.listAttr()
+                         if 'autoFloat3Col' in x.attrName()],
+                         [u'autoFloat3Col', u'autoFloat3ColR',
+                          u'autoFloat3ColG', u'autoFloat3ColB'])
+
+    def test_type_long2(self):
+        self.loc.addAttr('autoLong2', type='long2',
+                         childSuffixes=['_first', '_second'])
+        self.assertEqual([x.attrName() for x in self.loc.listAttr()
+                         if 'autoLong2' in x.attrName()],
+                         [u'autoLong2', u'autoLong2_first',
+                          u'autoLong2_second'])
+
 
 class test_Attribute_iterDescendants(unittest.TestCase):
+    # FIXME: to prevent this test from changing over time it might be a good idea to create
+    # custom MPxNode type with known attributes
+    # See also: test_nodetypes.testCase_listAttr
     def setUp(self):
         pm.newFile(f=1)
         self.cube1 = pm.polyCube(ch=0)[0]
@@ -1437,9 +1799,10 @@ class test_Attribute_iterDescendants(unittest.TestCase):
 
 
     def test_multiCompound(self):
-        results = sorted(x.name() for x in
-                         self.blend.attr('inputTarget').iterDescendants())
-        expected = [u'blendShape1.inputTarget[0]',
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants())
+        expected = {
+            u'blendShape1.inputTarget[0]',
             u'blendShape1.inputTarget[0].baseWeights',
             u'blendShape1.inputTarget[0].inputTargetGroup',
             u'blendShape1.inputTarget[0].inputTargetGroup[0]',
@@ -1461,24 +1824,32 @@ class test_Attribute_iterDescendants(unittest.TestCase):
             u'blendShape1.inputTarget[0].normalizationGroup',
             u'blendShape1.inputTarget[0].paintTargetIndex',
             u'blendShape1.inputTarget[0].paintTargetWeights',
-        ]
-        self.assertEqual(results, expected)
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
 
         results = sorted(x.name() for x in
                          self.blend.attr('inputTarget').iterDescendants(levels=1))
         expected = [u'blendShape1.inputTarget[0]']
         self.assertEqual(results, expected)
 
-        results = sorted(x.name() for x in
-                         self.blend.attr('inputTarget').iterDescendants(levels=2))
-        expected = [u'blendShape1.inputTarget[0]',
+        results = set(x.name() for x in
+                      self.blend.attr('inputTarget').iterDescendants(levels=2))
+        expected = {
+            u'blendShape1.inputTarget[0]',
             u'blendShape1.inputTarget[0].baseWeights',
             u'blendShape1.inputTarget[0].inputTargetGroup',
             u'blendShape1.inputTarget[0].normalizationGroup',
             u'blendShape1.inputTarget[0].paintTargetIndex',
             u'blendShape1.inputTarget[0].paintTargetWeights',
-        ]
-        self.assertEqual(results, expected)
+        }
+        self.assertTrue(results.issuperset(expected))
+        self.assertNotIn(u'blendShape1.inputTarget[-1].baseWeights', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1].inputTargetItem[-1].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputComponentsTarget', results)
+        self.assertNotIn(u'blendShape1.inputTarget[-1].inputTargetGroup[-1]', results)
+        self.assertNotIn(u'blendShape1.inputTarget[0].inputTargetGroup[0]', results)
 
         results = sorted(x.name() for x in
                          self.blend.attr('inputTarget').iterDescendants(levels=0))
@@ -1555,6 +1926,198 @@ class test_Attribute_minMax(unittest.TestCase):
     def test_getBounds_unboundedElem(self):
         self.getNoBoundsTest(self.unboundedElem)
 
+class test_Attribute_getSetAttrCmds(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.loc = pm.spaceLocator()
+
+    def test_float(self):
+        attr = self.loc.attr('translateX')
+        attr.set(5.5)
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, ['setAttr ".tx" 5.5;'])
+
+    def test_string(self):
+        self.loc.addAttr('myString', dataType='string')
+        attr = self.loc.attr('myString')
+        attr.set('foo')
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, ['setAttr ".myString" -type "string" "foo";'])
+
+    def test_float3(self):
+        attr = self.loc.attr('rotate')
+        attr.set((1.0, 2.0, 33.3))
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, [
+            'setAttr ".r" -type "double3" 1 2 33.3 ;',
+        ])
+
+    def test_intMulti(self):
+        self.loc.addAttr('myIntMulti', attributeType='long', multi=True)
+        attr = self.loc.attr('myIntMulti')
+        attr[0].set(1)
+        attr[1].set(5)
+        attr[5].set(7)
+        attrCmds = [x.strip() for x in attr.getSetAttrCmds()]
+        self.assertEqual(attrCmds, [
+            'setAttr -s 3 ".myIntMulti";',
+            'setAttr ".myIntMulti[0]" 1;',
+            'setAttr ".myIntMulti[1]" 5;',
+            'setAttr ".myIntMulti[5]" 7;',
+        ])
+
+class test_exists(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, force=1)
+
+    def test_depend_node(self):
+        node = pm.createNode('time')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_dag_node(self):
+        node = pm.createNode('transform')
+        self.assertTrue(node.exists())
+        cmds.delete(node.name())
+        self.assertFalse(node.exists())
+
+    def test_attribute(self):
+        node = pm.createNode('transform')
+        attr = node.attr('tx')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+    def test_dyn_attribute(self):
+        # test node deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test attr deletion
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        self.assertFalse(attr.exists())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+        # test deletion of both
+        node = pm.createNode('transform')
+        cmds.addAttr(node.name(), longName='foobar')
+        attr = node.attr('foobar')
+        self.assertTrue(attr.exists())
+        cmds.deleteAttr(attr.name())
+        cmds.delete(node.name())
+        self.assertFalse(attr.exists())
+
+
+class CapturingHandler(logging.Handler):
+    '''Log handler that just records emitted messages'''
+    def __init__(self, *args, **kwargs):
+        super(CapturingHandler, self).__init__(*args, **kwargs)
+        self.capturedMessagesByLevel = {}
+
+    def emit(self, record):
+        messages = self.capturedMessagesByLevel.setdefault(record.levelno, [])
+        messages.append(record.msg)
+
+
+class test_deletedNameAccess(unittest.TestCase):
+
+    class SetOptionAndCatchWarnings(object):
+        '''Temporarily set deleted_pynode_name_access, and catch warnings
+        emitted using the given logger'''
+        def __init__(self, newOption, logger=pymel.core.general._logger):
+            self.oldOption = None
+            self.newOption = newOption
+            self.logger = logger
+            self.capturingHandler = CapturingHandler(logging.DEBUG)
+            self.capturedWarnings = self.capturingHandler.capturedMessagesByLevel.setdefault(logging.WARN, [])
+            self.emittedWarnings = []
+
+        def __enter__(self):
+            from pymel.internal.startup import pymel_options
+            self.oldOption = pymel_options['deleted_pynode_name_access']
+            pymel_options['deleted_pynode_name_access'] = self.newOption
+            self.logger.addHandler(self.capturingHandler)
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            from pymel.internal.startup import pymel_options
+            pymel_options['deleted_pynode_name_access'] = self.oldOption
+            self.logger.removeHandler(self.capturingHandler)
+
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.name = 'test_obj'
+        self.deleted_node = pm.createNode('transform', name=self.name)
+        pm.delete(self.deleted_node)
+        self.assertFalse(self.deleted_node.exists())
+
+    def test_ignore(self):
+        capturer = self.SetOptionAndCatchWarnings('ignore')
+        with capturer:
+            self.assertEqual(self.deleted_node.name(), self.name)
+            self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            pm.delete(self.deleted_node)
+            self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # check that the joint was deleted
+        self.assertFalse(joint.exists())
+
+    def test_warn(self):
+        capturer = self.SetOptionAndCatchWarnings('warn')
+        with capturer:
+            self.assertEqual(self.deleted_node.name(), self.name)
+        self.assertEqual(len(capturer.capturedWarnings), 1)
+        self.assertIn('no longer exists', capturer.capturedWarnings[0])
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            pm.delete(self.deleted_node)
+        self.assertEqual(len(capturer.capturedWarnings), 2)
+        self.assertIn('no longer exists', capturer.capturedWarnings[1])
+
+        # check that the joint was deleted
+        self.assertFalse(joint.exists())
+
+    def test_error(self):
+        capturer = self.SetOptionAndCatchWarnings('error')
+        with capturer:
+            self.assertRaises(pymel.core.DeletedMayaNodeError,
+                              self.deleted_node.name)
+        self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # make a joint with the same name
+        joint = pm.createNode('joint', name='test_obj')
+        self.assertTrue(joint.exists())
+
+        with capturer:
+            # delete the original, already-deleted, node
+            self.assertRaises(pymel.core.DeletedMayaNodeError,
+                              pm.delete, self.deleted_node)
+        self.assertEqual(len(capturer.capturedWarnings), 0)
+
+        # check that the joint was NOT deleted
+        self.assertTrue(joint.exists())
 
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))

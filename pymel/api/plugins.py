@@ -396,19 +396,6 @@ class BasePluginMixin(object):
     # The name of the command or the node type
     _name = None
 
-    # You can manually set this, or just leave it at None to let pymel
-    # automatically determine it from the base classes
-    _mpxType = None
-
-    @classmethod
-    def getMpxType(cls):
-        if cls._mpxType is None:
-            for pClass in inspect.getmro(cls):
-                if pClass in mpxClassesToMpxEnums:
-                    cls._mpxType = pClass
-                    break
-        return cls._mpxType
-
     @classmethod
     def mayaName(cls):
         if cls._name is None:
@@ -563,6 +550,72 @@ class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
     def deregister(cls, plugin=None):
         pass
 
+class FileTranslator(BasePluginMixin, mpx.MPxFileTranslator):
+    # the pathname of the icon used in file selection dialogs
+    _pixmapName = None
+
+    # the name of a MEL script that will be used to display the contents of
+    # the options dialog during file open/save/import/etc
+    _optionsScriptName = None
+
+    # the default value of the options string that will be passed to the
+    # options script.
+    _defaultOptionsString = None
+
+    # this should be set to true if the reader method in the derived class
+    # intends to issue MEL commands via the MGlobal::executeCommand method.
+    # Setting this to true will slow down the creation of new objects,
+    # but allows MEL commands other than those that are part of the Maya
+    # Ascii file format to function correctly. This parameter defaults to
+    # false.
+    _requiresFullMel = False
+
+    # the default location where this translator will store its data relative
+    #  to the current project. This defaults to
+    # MFnPlugin::kDefaultDataLocation The translator command parameter
+    # -defaultFileRule will return this value.
+    _dataStorageLocation = mpx.MFnPlugin.kDefaultDataLocation
+
+    # The default extension for this translator
+    _extension = None
+
+    @classmethod
+    def _registerOverride(cls, mplugin, useThisPlugin):
+        try:
+            mplugin.registerFileTranslator(cls.mayaName(),
+                                           cls._pixmapName,
+                                           cls.create,
+                                           cls._optionsScriptName,
+                                           cls._defaultOptionsString,
+                                           cls._requiresFullMel,
+                                           cls._dataStorageLocation)
+        except Exception:
+            sys.stderr.write(
+                "Failed to register translator: %s" % cls.mayaName())
+            raise
+
+    @classmethod
+    def _deregisterOverride(cls, mplugin, useThisPlugin):
+        try:
+            mplugin.deregisterFileTranslator(cls.mayaName())
+        except Exception:
+            sys.stderr.write(
+                "Failed to deregister translator: %s" % cls.mayaName())
+            raise
+
+    def filter(self):
+        return "*.%s" % (self._extension,)
+
+    def defaultExtension(self):
+        return self._extension
+
+    def identifyFile(self, mfile, buffer, size):
+        fileName = mfile.fullName()
+        if fileName.endswith("." + self.defaultExtension()):
+            return mpx.MPxFileTranslator.kIsMyFileType
+        return mpx.MPxFileTranslator.kNotMyFileType
+
+
 class DependNode(BasePluginMixin, mpx.MPxNode):
     # You can manually set this, or just leave it at None to let pymel
     # automatically determine it from the MPxType
@@ -572,6 +625,19 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
     # hash of the node name in the user range... to ensure no name clashes,
     # though, you should get a node id from Autodesk!
     _typeId = None
+
+    # You can manually set this, or just leave it at None to let pymel
+    # automatically determine it from the base classes
+    _mpxType = None
+
+    @classmethod
+    def getMpxType(cls):
+        if cls._mpxType is None:
+            for pClass in inspect.getmro(cls):
+                if pClass in mpxClassesToMpxEnums:
+                    cls._mpxType = pClass
+                    break
+        return cls._mpxType
 
     @classmethod
     def getTypeEnum(cls):

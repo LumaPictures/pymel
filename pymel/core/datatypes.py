@@ -1645,7 +1645,7 @@ class Matrix(MatrixN):
 
     def _getRotate(self):
         t = TransformationMatrix(self)
-        return Quaternion(t.rotation())
+        return Quaternion(t.apicls.rotation(t))
 
     def _setRotate(self, value):
         t = TransformationMatrix(self)
@@ -1657,23 +1657,12 @@ class Matrix(MatrixN):
     rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Matrix, in transform space")
 
     def _getScale(self):
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
         t = TransformationMatrix(self)
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(1.0, 1.0, 1.0)
-        p = ms.asDoublePtr()
-        t.getScale(p, _api.MSpace.kTransform)
-        return Vector([ms.getDoubleArrayItem(p, i) for i in range(3)])
+        return Vector(t.getScale(_api.MSpace.kTransform))
 
     def _setScale(self, value):
         t = TransformationMatrix(self)
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(*Vector(value))
-        p = ms.asDoublePtr()
-        t.setScale(p, _api.MSpace.kTransform)
+        t.setScale(value, _api.MSpace.kTransform)
         self.assign(t.asMatrix())
     scale = property(_getScale, _setScale, None, "The scale expressed in this Matrix, in transform space")
 
@@ -2218,21 +2207,10 @@ class TransformationMatrix(Matrix):
         self.rotateTo(EulerRotation(*args))
 
     def _getScale(self):
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(1.0, 1.0, 1.0)
-        p = ms.asDoublePtr()
-        self.getScale(p, _api.MSpace.kTransform)
-        return Vector([ms.getDoubleArrayItem(p, i) for i in range(3)])
+        return Vector(self.getScale(_api.MSpace.kTransform))
 
     def _setScale(self, value):
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        ms = _api.MScriptUtil()
-        ms.createFromDouble(*Vector(value))
-        p = ms.asDoublePtr()
-        self.setScale(p, _api.MSpace.kTransform)
+        self.setScale(value, _api.MSpace.kTransform)
     scale = property(_getScale, _setScale, None, "The scale expressed in this TransformationMatrix, in transform space")
 
 
@@ -2702,6 +2680,10 @@ class Time(Unit):
     apicls = _api.MTime
     Unit = _factories.apiClassInfo['MTime']['pymelEnums']['Unit']
 
+    @classmethod
+    def _inCast(cls, x):
+        return cls(x)._data
+
 
 class Distance(Unit):
 
@@ -2801,6 +2783,10 @@ class Distance(Unit):
     def asMiles(self):
         return self.asUnit('miles')
 
+    @classmethod
+    def _outCast(cls, instance, result):
+        return cls(result, 'centimeters').asUIUnit()
+
 
 class Angle(Unit):
     apicls = _api.MAngle
@@ -2817,6 +2803,10 @@ class Angle(Unit):
 
     def asAngSeconds(self):
         return self.asUnit('angSeconds')
+
+    @classmethod
+    def _outCast(cls, instance, result):
+        return cls(result, 'radians').asUIUnit()
 
 
 class BoundingBox(_api.MBoundingBox):
@@ -2860,9 +2850,9 @@ class BoundingBox(_api.MBoundingBox):
 #_factories.ApiTypeRegister.register( 'MColor', Color )
 #_factories.ApiTypeRegister.register( 'MQuaternion', Quaternion )
 #_factories.ApiTypeRegister.register( 'MEulerRotation', EulerRotation )
-_factories.ApiTypeRegister.register('MTime', Time, inCast=lambda x: Time(x)._data)
-_factories.ApiTypeRegister.register('MDistance', Distance, outCast=lambda instance, result: Distance(result, 'centimeters').asUIUnit())
-_factories.ApiTypeRegister.register('MAngle', Angle, outCast=lambda instance, result: Angle(result, 'radians').asUIUnit())
+_factories.ApiTypeRegister.register('MTime', Time, inCast=Time._inCast)
+_factories.ApiTypeRegister.register('MDistance', Distance, outCast=Distance._outCast)
+_factories.ApiTypeRegister.register('MAngle', Angle, outCast=Angle._outCast)
 
 
 #_floatUpConvertDict = {_api.MFloatArray:_api.MDoubleArray,

@@ -841,7 +841,9 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
                 # if funcName == 'lsThroughFilter': #_logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
 
-        if not inFunc:
+        # inFunc may be a custom class object, like fileInfo, which may have it's own boolean testing...
+        # so be sure to check if it's None, not "if not inFunc"!
+        if inFunc is None:
             try:
                 inFunc = getattr(pmcmds, funcName)
                 customFunc = False
@@ -1234,6 +1236,9 @@ class ApiTypeRegister(object):
     """
     types = {}
     inCast = {}
+    # outcast functions have signature:
+    #     func(pynodeInstance, value)
+    # ...but as far as I can tell, only MPlug actually uses self
     outCast = {}
     refInit = {}
     refCast = {}
@@ -1338,7 +1343,10 @@ class ApiTypeRegister(object):
         elif apiArrayItemType is not None:
             pass
         else:
-            cls.outCast[apiTypeName] = lambda self, x: pymelType(x)
+            # could be a lambda, but explicit function is better for debbuging
+            def pymelTypeOutCast(self, x):
+                return pymelType(x)
+            cls.outCast[apiTypeName] = pymelTypeOutCast
 
         # register argument casting
         if inCast:
@@ -1378,7 +1386,12 @@ class ApiTypeRegister(object):
             except AttributeError:
                 if apiArrayItemType:
                     cls.refInit[apiTypeName] = list
-                    cls.inCast[apiTypeName] = lambda x: [apiArrayItemType(y) for y in x]
+
+                    # could be a lambda, but explicit function is better for debbuging
+                    def apiArrayInCast(x):
+                        return [apiArrayItemType(y) for y in x]
+
+                    cls.inCast[apiTypeName] = apiArrayInCast
                     cls.refCast[apiTypeName] = None
                     cls.outCast[apiTypeName] = None
 
@@ -1390,11 +1403,24 @@ class ApiTypeRegister(object):
                     cls.inCast[apiTypeName] = cls._makeApiArraySetter(apiType, apiArrayItemType)
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
                     if apiType == api.MDagPathArray:
-                        cls.refCast[apiTypeName] = lambda x: [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
-                        cls.outCast[apiTypeName] = lambda self, x: [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+                        # could be a lambdas, but explicit functions are better for debbuging
+                        def pymelDagArrayRefCast(x):
+                            return [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+
+                        def pymelDagArrayOutCast(self, x):
+                            return [pymelType(apiArrayItemType(x[i])) for i in range(x.length())]
+
+                        cls.refCast[apiTypeName] = pymelDagArrayRefCast
+                        cls.outCast[apiTypeName] = pymelDagArrayOutCast
                     else:
-                        cls.refCast[apiTypeName] = lambda x: [pymelType(x[i]) for i in range(x.length())]
-                        cls.outCast[apiTypeName] = lambda self, x: [pymelType(x[i]) for i in range(x.length())]
+                        def pymelArrayRefCast(x):
+                            return [pymelType(x[i]) for i in range(x.length())]
+
+                        def pymelArrayOutCast(self, x):
+                            return [pymelType(x[i]) for i in range(x.length())]
+
+                        cls.refCast[apiTypeName] = pymelArrayRefCast
+                        cls.outCast[apiTypeName] = pymelArrayOutCast
 
                 #-- Api types
                 else:
@@ -1672,34 +1698,21 @@ class ApiArgUtil(object):
         except ValueError:
             raise ValueError, "expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input)
 
-    def fromInternalUnits(self, result, instance=None):
-        # units
-        unit = self.methodInfo['returnInfo'].get('unitType', None)
-        returnType = self.methodInfo['returnInfo']['type']
+    def fromInternalUnits(self, result, returnType, unit=None):
         #_logger.debug(unit)
-        # returnType in ['MPoint'] or
-        if unit == 'linear' or returnType == 'MPoint':
+        if unit == 'linear' or returnType in ('MPoint', 'MFloatPoint'):
             unitCast = ApiTypeRegister.outCast['MDistance']
             if util.isIterable(result):
-                result = [unitCast(instance, val) for val in result]
+                result = [unitCast(None, val) for val in result]
             else:
-                result = unitCast(instance, result)
-
-        # maybe this should not be hardwired here
-        # the main reason it is hardwired is because we don't want to convert the w component, which we
-        # would do if we iterated normally
-        elif returnType == 'MPoint':
-            #_logger.debug("linear")
-            unitCast = ApiTypeRegister.outCast['MDistance']
-            result = [unitCast(instance, result[0]), unitCast(instance, result[1]), unitCast(instance, result[2])]
-
+                result = unitCast(None, result)
         elif unit == 'angular':
             #_logger.debug("angular")
             unitCast = ApiTypeRegister.outCast['MAngle']
             if util.isIterable(result):
-                result = [unitCast(instance, val) for val in result]
+                result = [unitCast(None, val) for val in result]
             else:
-                result = unitCast(instance, result)
+                result = unitCast(None, result)
         return result
 
     def toInternalUnits(self, arg, input):
@@ -1724,7 +1737,7 @@ class ApiArgUtil(object):
 
         return input
 
-    def castResult(self, instance, result):
+    def castResult(self, pynodeInstance, result):
         returnType = self.methodInfo['returnType']
         if returnType:
             # special case check - some functions return an MObject, but return
@@ -1752,9 +1765,15 @@ class ApiArgUtil(object):
                 if f is None:
                     return result
 
-                result = self.fromInternalUnits(result, instance)
+                # I believe methodInfo['returnInfo']['type'] is always the
+                # same as returnType = self.methodInfo['returnType'], but the
+                # old logic would use methodInfo['returnInfo']['type'], and I'm
+                # paranoid...
+                result = self.fromInternalUnits(result,
+                                                returnType=self.methodInfo['returnInfo']['type'],
+                                                unit=self.methodInfo['returnInfo'].get('unitType', None))
 
-                return f(instance, result)
+                return f(pynodeInstance, result)
 #                except:
 #                    cls = instance.__class__
 #                    if returnType != cls.__name__:
@@ -1778,7 +1797,7 @@ class ApiArgUtil(object):
         if f is None:
             return outArg
 
-        result = self.fromInternalUnits(outArg)
+        result = self.fromInternalUnits(outArg, argtype)
         return f(result)
 
     def getDefaults(self):
@@ -1872,7 +1891,12 @@ class ApiUndo(object):
         }
         ''', False, False)
         cmds.condition('UndoOrRedoAvailable', initialize=True,
-                       d=['UndoAvailable', 'RedoAvailable'],
+                       d=['UndoAvailable', 'RedoAvailable',
+                          # strictly speaking, we shouldn't need these three
+                          # dependencies, but there's a bug with setting of
+                          # UndoOrRedoAvailable + opening a new file... see
+                          # test_mayaBugs::TestUndoRedoConditionNewFile
+                          'newing', 'readingFile', 'opening'],
                        s='_pymel_undoOrRedoAvailable')
 
         # Now, we install our callback...
@@ -1923,22 +1947,6 @@ class ApiUndo(object):
                 finally:
                     # cmds.undoInfo(state=1)
                     self.cb_enabled = True
-
-    def _attrChanged_85(self):
-        print "attr changed", self.cb_enabled, api.MGlobal.isUndoing()
-        if self.cb_enabled:
-
-            if api.MGlobal.isUndoing():
-                cmdObj = self.undo_queue.pop()
-                print "calling undoIt"
-                cmdObj.undoIt()
-                self.redo_queue.append(cmdObj)
-
-            elif api.MGlobal.isRedoing():
-                cmdObj = self.redo_queue.pop()
-                print "calling redoIt"
-                cmdObj.redoIt()
-                self.undo_queue.append(cmdObj)
 
     def _createNode(self):
         """
@@ -2150,7 +2158,6 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         inArgs = argHelper.inArgs()
         outArgs = argHelper.outArgs()
         argList = argHelper.argList()
-        argInfo = argHelper.argInfo()
 
         getterArgHelper = argHelper.getGetterInfo()
 
@@ -2312,14 +2319,24 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
             wrappedApiFunc = classmethod(wrappedApiFunc)
 
         if argHelper.isDeprecated():
+            argDescriptions = []
+            for arg in argList:
+                argName = arg[0]
+                argType = arg[1]
+                if isinstance(argType, apicache.ApiEnum):
+                    argType = argType[0]
+                elif inspect.isclass(argType):
+                    argType = argType.__name__
+                argDescriptions.append('{} {}'.format(argType, argName))
+            argStr = ', '.join(argDescriptions)
+            methodDesc = "{}.{}({})".format(apiClassName, methodName, argStr)
             beforeDeprecationWrapper = wrappedApiFunc
 
             def wrappedApiFunc(*args, **kwargs):
                 import warnings
-                warnings.warn("%s.%s is deprecated" % (apiClassName,
-                                                       methodName),
+                warnings.warn("{} is deprecated".format(methodDesc),
                               DeprecationWarning, stacklevel=2)
-                beforeDeprecationWrapper(*args, **kwargs)
+                return beforeDeprecationWrapper(*args, **kwargs)
         return wrappedApiFunc
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
@@ -2491,24 +2508,48 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
                                 herited[attr] = base
 
                 ##_logger.debug("Methods info: %(methods)s" % classInfo)
+
                 # Class Methods
-                for methodName, info in classInfo['methods'].items():
-                    # don't rewrap if already herited from a base class that is not the apicls
-                    #_logger.debug("Checking method %s" % (methodName))
 
-                    try:
-                        pymelName = info[0]['pymelName']
-                        removeAttrs.append(methodName)
-                    except KeyError:
-                        pymelName = methodName
+                # iterate over the methods so that we get all non-deprecated
+                # methods first
+                # This is because, if two api methods map to the same pymel
+                # method name, then the first one "wins" - and we want to prefer
+                # non-deprecated.
+                def non_deprecated_methods_first():
+                    deprecated = []
+                    for methodName, info in classInfo['methods'].iteritems():
+                        # don't rewrap if already herited from a base class that is not the apicls
+                        # _logger.debug("Checking method %s" % (methodName))
 
-#                    if classname == 'DependNode' and pymelName in ('setName','getName'):
-#                        raise Exception('debug')
+                        try:
+                            pymelName = info[0]['pymelName']
+                            removeAttrs.append(methodName)
+                        except KeyError:
+                            pymelName = methodName
+                        pymelName, overrideData = _getApiOverrideNameAndData(
+                            classname, pymelName)
 
-                    pymelName, data = _getApiOverrideNameAndData(classname, pymelName)
+                        # if classname == 'DependNode' and pymelName in ('setName','getName'):
+                        #                        raise Exception('debug')
+                        overloadIndex = overrideData.get('overloadIndex', None)
+                        if overloadIndex is None:
+                            #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                            continue
+                        if not overrideData.get('enabled', True):
+                            #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
+                            continue
+                        yieldTuple = (methodName, info, classname, pymelName,
+                                      overloadIndex)
+                        if info[overloadIndex].get('deprecated', False):
+                            deprecated.append(yieldTuple)
+                        else:
+                            yield yieldTuple
+                    for yieldTuple in deprecated:
+                        yield yieldTuple
 
-                    overloadIndex = data.get('overloadIndex', None)
-
+                for (methodName, info, classname, pymelName, overloadIndex) \
+                        in non_deprecated_methods_first():
                     assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
 
                     # TODO: some methods are being wrapped for the base class,
@@ -2517,18 +2558,14 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
                     # HikGroundPlane, etc...
                     # Figure out why this happens, and stop it!
                     if pymelName not in herited:
-                        if overloadIndex is not None:
-                            if data.get('enabled', True):
-                                if pymelName not in classdict:
-                                    #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
-                                    method = wrapApiMethod(apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex)
-                                    if method:
-                                        #_logger.debug("%s.%s successfully created" % (classname, pymelName ))
-                                        classdict[pymelName] = method
-                                    # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-                                # else: #_logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
-                            # else: #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                        # else: #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                        if pymelName not in classdict:
+                            #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
+                            method = wrapApiMethod(apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex)
+                            if method:
+                                #_logger.debug("%s.%s successfully created" % (classname, pymelName ))
+                                classdict[pymelName] = method
+                            # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
+                        # else: #_logger.debug("%s.%s: already defined, skipping" % (apicls.__name__, methodName ))
                     # else: #_logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
 
                 if 'pymelEnums' in classInfo:
@@ -2666,7 +2703,27 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
         # instead of calling the super's __setattr__, which would
         # use the property, inserts it into the object's __dict__
         # manually
-        return bool(foo2.bar != 7)
+        if foo2.bar != 7:
+            return True
+
+        # Starting in Maya2018 (at least on windows?), many wrapped datatypes
+        # define a __setattr__ which will work in the "general" case tested
+        # above, but will still take precedence if a "_swig_property" is
+        # defined - ie, MEulerRotation.order.  Check to see if the apicls has
+        # any properties, and ensure that our property still overrides theirs...
+        for name, member in inspect.getmembers(apiClass,
+                                               lambda x: isinstance(x, property)):
+            setattr(MyClass1, name, MyClass1.__dict__['bar'])
+            try:
+                setattr(foo2, name, 1.23456)
+            except Exception:
+                return True
+            if getattr(foo2, name) != 1.23456:
+                return True
+            # only check for one property - we assume that all apicls properties
+            # will behave the same way...
+            break
+        return False
 
 class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
@@ -2835,10 +2892,11 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
         nodeType = classdict.get('__melnode__')
 
+        isVirtual = '_isVirtual' in classdict or any(hasattr(b, '_isVirtual')
+                                                     for b in bases)
         if nodeType is None:
             # check for a virtual class...
-            if '_isVirtual' in classdict or any(hasattr(b, '_isVirtual')
-                                                for b in bases):
+            if isVirtual:
                 for b in bases:
                     if hasattr(b, '__melnode__'):
                         nodeType = b.__melnode__
@@ -2849,6 +2907,33 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
                 # not a virtual class, just use the classname
                 nodeType = util.uncapitalize(classname)
             classdict['__melnode__'] = nodeType
+
+        from pymel.core.nodetypes import mayaTypeNameToPymelTypeName, \
+            pymelTypeNameToMayaTypeName
+
+        # mapping from pymel type to maya type should always be made...
+        oldMayaType = pymelTypeNameToMayaTypeName.get(classname)
+        if oldMayaType is None:
+            pymelTypeNameToMayaTypeName[classname] = nodeType
+        elif oldMayaType != nodeType:
+            _logger.raiseLog(_logger.WARNING,
+                             'creating new pymel node class %r for maya node '
+                             'type %r, but a pymel class with the same name '
+                             'already existed for maya node type %r' % (
+                                 classname, nodeType, oldMayaType))
+
+        # mapping from maya type to pymel type only happens if it's NOT a
+        # virtual class...
+        if not isVirtual:
+            oldPymelType = mayaTypeNameToPymelTypeName.get(nodeType)
+            if oldPymelType is None:
+                mayaTypeNameToPymelTypeName[nodeType] = classname
+            elif oldPymelType != classname:
+                _logger.raiseLog(_logger.WARNING,
+                                 'creating new pymel node class %r for maya node '
+                                 'type %r, but there already existed a pymel'
+                                 'class %r for the same maya node type' % (
+                                     classname, nodeType, oldPymelType))
 
         addMayaType(nodeType)
         apicls = toApiFunctionSet(nodeType)
@@ -2959,7 +3044,7 @@ def addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName,
     setattr(dynModule, pyNodeTypeName, PyNodeType)
     return PyNodeType
 
-def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
+def addCustomPyNode(dynModule, mayaType, extraAttrs=None, immediate=False):
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
 
@@ -2986,27 +3071,56 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None):
         # some nodes in the hierarchy for this node might not exist, so we cycle through all
         parent = 'dependNode'
 
+        pynodeName = None
         for node in inheritance:
-            nodeName = addPyNode(dynModule, node, parent, extraAttrs=extraAttrs)
+            pynodeName = addPyNode(dynModule, node, parent,
+                                   extraAttrs=extraAttrs, immediate=immediate)
             parent = node
             if 'pymel.all' in sys.modules:
                 # getattr forces loading of Lazy object
-                setattr(sys.modules['pymel.all'], nodeName, getattr(dynModule, nodeName))
+                setattr(sys.modules['pymel.all'], pynodeName,
+                        getattr(dynModule, pynodeName))
+        return pynodeName
 
-def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
+def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
+              immediate=False):
     """
     create a PyNode type for a maya node.
     """
+    # dynModule is generally pymel.core.nodetypes, but don't want to rely on
+    # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
+    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\
+        pymelTypeNameToMayaTypeName
+
+    def getPymelTypeName(mayaTypeName):
+        pymelTypeName = mayaTypeNameToPymelTypeName.get(mayaTypeName)
+        if pymelTypeName is None:
+            pymelTypeName = str(util.capitalize(mayaTypeName))
+            pymelTypeNameBase = pymelTypeName
+            num = 1
+            while pymelTypeName in pymelTypeNameToMayaTypeName:
+                num += 1
+                pymelTypeName = pymelTypeNameBase + str(num)
+            mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
+            pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
+        return pymelTypeName
+
 
     #_logger.debug("addPyNode adding %s->%s on dynModule %s" % (mayaType, parentMayaType, dynModule))
     # unicode is not liked by metaNode
-    pyNodeTypeName = str(util.capitalize(mayaType))
-    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    parentPyNodeTypeName = mayaTypeNameToPymelTypeName.get(parentMayaType)
+    if parentPyNodeTypeName is None:
+        _logger.raiseLog(_logger.WARNING,
+                         'trying to create PyNode for maya type %r, but could'
+                         ' not find a registered PyNode for parent type %r' % (
+                             mayaType, parentMayaType))
+        parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    pyNodeTypeName = getPymelTypeName(mayaType)
 
     # If pymel.all is loaded, we will need to get the actual node in order to
     # store it on pymel.all, so in that case don't bother with the lazy-loading
     # behavior...
-    if 'pymel.all' in sys.modules:
+    if immediate or 'pymel.all' in sys.modules:
         newType = addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs)
         setattr(sys.modules['pymel.all'], pyNodeTypeName, newType)
     # otherwise, do the lazy-loading thing
@@ -3020,7 +3134,13 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None):
     return pyNodeTypeName
 
 def removePyNode(dynModule, mayaType):
-    pyNodeTypeName = str(util.capitalize(mayaType))
+    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName
+    pyNodeTypeName = mayaTypeNameToPymelTypeName.get(mayaType)
+    if not pyNodeTypeName:
+        _logger.raiseLog(_logger.WARNING,
+                         'trying to remove PyNode for maya type %r, but could '
+                         'not find an associated PyNode registered' % mayaType)
+        pyNodeTypeName = str(util.capitalize(mayaType))
     removePyNodeType(pyNodeTypeName)
 
     _logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
@@ -3378,9 +3498,19 @@ def mayaTypeToApiType(mayaType):
 def isMayaType(mayaType):
     '''Whether the given type is a currently-defined maya node name
     '''
-    # using objectType instead of MNodeClass or nodeType(isTypeName) because
-    # it's available < 2012
-    return bool(cmds.objectType(tagFromType=mayaType))
+    if versions.current() >= versions.v2012:
+        # use nodeType(isTypeName) preferentially, because it returns results
+        # for some objects that objectType(tagFromType) returns 0 for
+        # (like TadskAssetInstanceNode_TdependNode, which is a parent of
+        # adskMaterial
+        try:
+            cmds.nodeType(mayaType, isTypeName=True)
+        except RuntimeError:
+            return False
+        else:
+            return True
+    else:
+        return bool(cmds.objectType(tagFromType=mayaType))
 
 # Keep around for debugging/info gathering...
 def getComponentTypes():

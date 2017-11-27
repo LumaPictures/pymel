@@ -132,10 +132,10 @@ if _versions.current() >= _versions.v2011:
             return
 
         try:
-          import PySide2.QtCore as qtcore
-          import PySide2.QtGui as qtgui
-          import PySide2.QtWidgets as qtwidgets
-          from shiboken2 import wrapInstance
+            import PySide2.QtCore as qtcore
+            import PySide2.QtGui as qtgui
+            import PySide2.QtWidgets as qtwidgets
+            from shiboken2 import wrapInstance
         except ImportError:
             import shiboken
             import PySide.QtCore as qtcore
@@ -175,9 +175,9 @@ if _versions.current() >= _versions.v2011:
         import maya.OpenMayaUI as mui
 
         try:
-          import PySide2.QtCore as qtcore
+            import PySide2.QtCore as qtcore
         except ImportError:
-          import PySide.QtCore as qtcore
+            import PySide.QtCore as qtcore
 
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is None:
@@ -197,13 +197,13 @@ if _versions.current() >= _versions.v2011:
         import maya.OpenMayaUI as mui
 
         try:
-          import shiboken2
-          import PySide2.QtCore as qtcore
-          import PySide2.QtWidgets as qtwidgets
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
         except ImportError:
-          import shiboken
-          import PySide.QtCore as qtcore
-          import PySide.QtGui as qtwidgets
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
 
         ptr = mui.MQtUtil.findControl(mayaName)
         if ptr is not None:
@@ -219,13 +219,13 @@ if _versions.current() >= _versions.v2011:
         import maya.OpenMayaUI as mui
 
         try:
-          import shiboken2
-          import PySide2.QtCore as qtcore
-          import PySide2.QtWidgets as qtwidgets
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
         except ImportError:
-          import shiboken
-          import PySide.QtCore as qtcore
-          import PySide.QtGui as qtwidgets
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
 
         ptr = mui.MQtUtil.findLayout(mayaName)
         if ptr is not None:
@@ -241,13 +241,13 @@ if _versions.current() >= _versions.v2011:
         import maya.OpenMayaUI as mui
    
         try:
-          import shiboken2
-          import PySide2.QtCore as qtcore
-          import PySide2.QtWidgets as qtwidgets
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
         except ImportError:
-          import shiboken
-          import PySide.QtCore as qtcore
-          import PySide.QtGui as qtwidgets
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
         ptr = mui.MQtUtil.findWindow(mayaName)
         if ptr is not None:
             return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
@@ -263,13 +263,13 @@ if _versions.current() >= _versions.v2011:
         """
         import maya.OpenMayaUI as mui
         try:
-          import shiboken2
-          import PySide2.QtCore as qtcore
-          import PySide2.QtWidgets as qtwidgets
+            import shiboken2
+            import PySide2.QtCore as qtcore
+            import PySide2.QtWidgets as qtwidgets
         except ImportError:
-          import shiboken
-          import PySide.QtCore as qtcore
-          import PySide.QtGui as qtwidgets
+            import shiboken
+            import PySide.QtCore as qtcore
+            import PySide.QtGui as qtwidgets
            
         ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
@@ -290,11 +290,11 @@ if _versions.current() >= _versions.v2011:
     except ImportError:
         pySideAvailable = False
         try:
-          import shiboken2
-          import PySide2
-          pySideAvailable = True
+            import shiboken2
+            import PySide2
+            pySideAvailable = True
         except ImportError:
-          pySideAvailable = False
+            pySideAvailable = False
 
     if pyQtAvailable and not pySideAvailable:
         qtBinding = 'pyqt'
@@ -796,11 +796,7 @@ class Menu(PyUI):
 
     def getItemArray(self):
         """ Modified to return pymel instances """
-        children = cmds.menu(self, query=True, itemArray=True)
-        if children:
-            return [MenuItem(item) for item in cmds.menu(self, query=True, itemArray=True)]
-        else:
-            return []
+        return [MenuItem(self + '|' + item) for item in cmds.menu(self, query=True, itemArray=True) or []]
 
     def makeDefault(self):
         """
@@ -1291,7 +1287,10 @@ _uiTypesToCommands = {
     'rowGroupLayout': 'rowLayout',
     'TcolorIndexSlider': 'rowLayout',
     'TcolorSlider': 'rowLayout',
-    'floatingWindow': 'window'
+    'floatingWindow': 'window',
+    'field': 'textField',
+    'staticText': 'text'
 }
 
 dynModule._lazyModule_update()
+

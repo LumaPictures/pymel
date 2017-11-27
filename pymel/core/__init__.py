@@ -79,14 +79,15 @@ def _addPluginCommand(pluginName, funcName):
     except Exception, msg:
         _logger.warning("exception: %s" % str(msg))
 
-def _addPluginNode(pluginName, mayaType):
+def _addPluginNode(pluginName, mayaType, immediate=False):
     global _pluginData
 
     if mayaType not in _pluginData[pluginName].setdefault('dependNodes', []):
         _pluginData[pluginName]['dependNodes'].append(mayaType)
     _logger.debug("Adding node: %s" % mayaType)
     extraAttrs = _plugins.pyNodeMethods.get(pluginName, {}).get(mayaType, {})
-    _factories.addCustomPyNode(nodetypes, mayaType, extraAttrs=extraAttrs)
+    return _factories.addCustomPyNode(nodetypes, mayaType, extraAttrs=extraAttrs,
+                                      immediate=immediate)
 
 
 def _removePluginCommand(pluginName, command):
