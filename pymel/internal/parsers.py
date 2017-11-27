@@ -910,9 +910,12 @@ class ApiDocParser(object):
                         tmpDocs.append(doc.encode('ascii', 'ignore'))
             else:
                 for extraInfo in extraInfos:
-                    for tr in extraInfo.findAll('tr'):
+                    table = extraInfo.find('table')
+                    if not table:
+                        continue
+                    for tr in table.findAll('tr', recursive=False):
                         assert tr, "could not find name tr"
-                        tds = tr.findAll('td')
+                        tds = tr.findAll('td', recursive=False)
                         assert tds, "could not find name td"
                         assert len(tds) == 3, "td list is unexpected length: %d" % len(tds)
 

@@ -14,5 +14,11 @@
 *.tmproj
 *~
 /maintenance/release
+/maintenance/CHANGELOG.temp
+get-pip.py
 /docs/build
+/docs/stubs
+/docs/theme-examples
 /docs/source/generated
+/docs/source/whats_new.rst
+pymelTestOut.txt

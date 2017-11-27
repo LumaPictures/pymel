@@ -21,7 +21,7 @@ some of the new commands were changed slightly from their flag name to avoid nam
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
-    FileReference(u'.../test.ma', refnode=u'testRN')
+    FileReference(u'...test.ma', refnode=u'testRN')
 
 Notice that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 
@@ -31,13 +31,15 @@ the results::
     >>> expFile.exists()
     True
     >>> expFile.remove() # doctest: +ELLIPSIS
-    Path('.../test.ma')
+    Path('...test.ma')
 
 """
 
 import sys
 import os
 import warnings
+import collections
+import abc
 
 import maya.mel as _mel
 import maya.OpenMaya as _OpenMaya
@@ -130,10 +132,11 @@ def sceneName():
     # because it was sometimes returning an empty string,
     # even when there was a valid file
     name = Path(_OpenMaya.MFileIO.currentFile())
-    if name.basename() == untitledFileName() and \
+    if name.basename().startswith(untitledFileName()) and \
             cmds.file(q=1, sceneName=1) == '':
         return Path()
-    return name
+    else:
+        return name
 
 def untitledFileName():
     """
@@ -251,7 +254,10 @@ class Namespace(unicode):
 
         self.setCurrent()
         try:
-            namespaces = map(self.__class__, cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+            # workaround: namespaceInfo sometimes returns duplicates
+            seen = set()
+            namespaces = map(self.__class__, [ns for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+                                              if not (ns in seen or seen.add(ns))])
 
             if not internal:
                 for i in [":UI", ":shared"]:
@@ -541,7 +547,7 @@ class WorkspaceEntryDict(object):
         return '%s(%r)' % (self.__class__.__name__, self.entryType)
 
     def __getitem__(self, item):
-        res = cmds.workspace(item, **{'q': 1, self.entryType + 'Entry': 1})
+        res = cmds.workspace(**{self.entryType + 'Entry': item})
         if not res:
             raise KeyError, item
         return res
@@ -695,8 +701,7 @@ workspace = Workspace()
 #  FileInfo Class
 #-----------------------------------------------
 
-class FileInfo(object):
-
+class FileInfo(collections.MutableMapping):
     """
     store and get custom data specific to this file:
 
@@ -715,11 +720,17 @@ class FileInfo(object):
 
         >>> fileInfo( 'myKey', 'myData' )
 
-    """
-    __metaclass__ = _util.Singleton
+    Updated to have a fully functional dictiony interface.
 
-    def __contains__(self, item):
-        return item in self.keys()
+
+    """
+
+    class __metaclass__(_util.Singleton, abc.ABCMeta):
+        '''
+        Simple subclass of the abstract base metaclass, and the Pymel Singleton.
+        Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
+        '''
+        pass
 
     def __getitem__(self, item):
         result = cmds.fileInfo(item, q=1)
@@ -728,7 +739,10 @@ class FileInfo(object):
         elif len(result) > 1:
             raise RuntimeError("error getting fileInfo for key %r - more than one value returned" % item)
         else:
-            return result[0]
+            if isinstance(result[0], str):
+                return result[0].decode('string_escape')
+            else:
+                return result[0].decode('unicode_escape')
 
     def __setitem__(self, item, value):
         cmds.fileInfo(item, value)
@@ -738,57 +752,28 @@ class FileInfo(object):
 
     def __call__(self, *args, **kwargs):
         if kwargs.get('query', kwargs.get('q', False)):
-            return self.items()
+            if not args:
+                return self.items()
+            else:
+                return self[args[0]]
         else:
             cmds.fileInfo(*args, **kwargs)
 
     def items(self):
-        res = cmds.fileInfo(query=1)
-        newRes = []
-        for i in range(0, len(res), 2):
-            newRes.append((res[i], res[i + 1]))
-        return newRes
+        return zip(self.keys(), self.values())
 
     def keys(self):
-        res = cmds.fileInfo(query=1)
-        newRes = []
-        for i in range(0, len(res), 2):
-            newRes.append(res[i])
-        return newRes
-
-    def values(self):
-        res = cmds.fileInfo(query=1)
-        newRes = []
-        for i in range(0, len(res), 2):
-            newRes.append(res[i + 1])
-        return newRes
-
-    def pop(self, *args):
-        if len(args) > 2:
-            raise TypeError, 'pop expected at most 2 arguments, got %d' % len(args)
-        elif len(args) < 1:
-            raise TypeError, 'pop expected at least 1 arguments, got %d' % len(args)
-
-        if args[0] not in self.keys():
-            try:
-                return args[1]
-            except IndexError:
-                raise KeyError, args[0]
-
-        cmds.fileInfo(rm=args[0])
+        return cmds.fileInfo(q=True)[::2]
 
     def __iter__(self):
         return iter(self.keys())
-    has_key = __contains__
 
-    def get(self, key, default=None):
-        if key in self:
-            return self[key]
-        else:
-            return default
+    def __len__(self):
+        return len(self.keys())
+
+    has_key = collections.MutableMapping.__contains__
 
 fileInfo = FileInfo()
-
 
 #-----------------------------------------------
 #  File Classes
@@ -1434,8 +1419,8 @@ class FileReference(object):
 #        return cmds.file( self.withCopyNumber(), **kwargs )
 
     @_factories.addMelDocs('file', 'removeReference')
-    def remove(self):
-        return cmds.file(rfn=self.refNode, removeReference=1)
+    def remove(self, **kwargs):
+        return cmds.file(rfn=self.refNode, removeReference=1, **kwargs)
 
 #    @_factories.addMelDocs('file', 'unloadReference')
 #    def unload(self):
@@ -1482,12 +1467,17 @@ class FileReference(object):
         return not cmds.file(rfn=self.refNode, q=1, deferReference=1)
 
     @_factories.addMelDocs('referenceQuery', 'nodes')
-    def nodes(self):
+    def nodes(self, recursive=False):
         import general
         nodes = cmds.referenceQuery(str(self.refNode), nodes=1, dagPath=1)
         if not nodes:
             nodes = []
-        return [general.PyNode(x) for x in nodes]
+        nodes = [general.PyNode(x) for x in nodes]
+        if not recursive:
+            return nodes
+        for ref in iterReferences(parentReference=self, recursive=True):
+            nodes.extend(ref.nodes(recursive=False))
+        return nodes
 
     @_factories.addMelDocs('file', 'copyNumberList')
     def copyNumberList(self):
@@ -1891,6 +1881,7 @@ Modifications:
     - returns empty string, for consistency with sceneName()
       ...if you wish to know the untitled scene name, use untitledFileName()
     """
+    kwargs.pop('type', kwargs.pop('typ', None))
     cmds.file(**kwargs)
     return ''
 
@@ -1958,6 +1949,9 @@ def saveAs(newname, **kwargs):
     cmds.file(**kwargs)
     return Path(newname)
 
+def isModified():
+    return cmds.file(q=True, modified=True)
+
 # ReferenceCache.setupFileReferenceCallbacks()
 
 #createReference = _factories.make_factories.createflagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
@@ -1971,4 +1965,6 @@ def saveAs(newname, **kwargs):
 #openFile = _factories.make_factories.createflagCmd( 'openFile', cmds.file, 'open',  __name__, returnFunc=Path )
 #renameFile = _factories.make_factories.createflagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
+
 _factories.createFunctions(__name__)
+

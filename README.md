@@ -185,7 +185,8 @@ for ($x in $objs) {
     // make and break some connections
     connectAttr( $x + ".sx") ($x + ".sy");
     connectAttr( $x + ".sx") ($x + ".sz");
-    disconnectAttr( $x + ".sx") ($x + ".sy");
+
+    // disconnect all connections to .sx
     string $conn[] = `listConnections -s 0 -d 1 -p 1 ($x + ".sx")`;
     for ($inputPlug in $conn)
         disconnectAttr ($x + ".sx") $inputPlug;
@@ -210,7 +211,7 @@ for ($x in $objs) {
     $trans[2] *= $scale[2];
     setAttr ($x + ".scale") $trans[0] $trans[1] $trans[2];
 
-    // call some other scripts
+    // call a mel procedure
     myMelScript( `nodeType $x`, $trans );
 }
 ```
@@ -228,8 +229,8 @@ if objs is not None:
         # make and break some connections
         cmds.connectAttr('%s.sx' % x,  '%s.sy' % x)
         cmds.connectAttr('%s.sx' % x,  '%s.sz' % x)
-        cmds.disconnectAttr('%s.sx' % x,  '%s.sy' % x)
 
+        # disconnect all connections to .sx
         conn = cmds.listConnections(x + ".sx", s=0, d=1, p=1)
         # returns None when it finds no match:
         if conn is not None:
@@ -248,16 +249,17 @@ if objs is not None:
         cmds.setAttr(*args,  type='stringArray' )
 
         # get and set some attributes
-        cmds.setAttr ('%s.rotate' % x, 1, 1, 1)
-        scale = cmds.getAttr ('%s.scale' % x)
+        cmds.setAttr('%s.rotate' % x, 1, 1, 1)
+        scale = cmds.getAttr('%s.scale' % x)
         # maya packs the previous result in a list for no apparent reason:
         scale = scale[0]
         # the tuple must be converted to a list for item assignment:
-        trans = list( cmds.getAttr ('%s.translate' % x )[0])  
+        trans = list(cmds.getAttr('%s.translate' % x )[0])  
         trans[0] *= scale[0]
         trans[1] *= scale[1]
         trans[2] *= scale[2]
         cmds.setAttr('%s.scale' % x, trans[0], trans[1], trans[2])
+        # call a mel procedure
         mm.eval('myMelScript("%s",{%s,%s,%s})' % (cmds.nodeType(x), trans[0], trans[1], trans[2]))
 ```
 
@@ -273,7 +275,7 @@ for x in ls( type='transform'):
     # make and break some connections
     x.sx.connect(x.sy)
     x.sx.connect(x.sz)
-    # automatically disconnects all inputs and outputs when no arg is passed
+    # disconnect all connections to .sx
     x.sx.disconnect()
 
     # add and set a string array attribute with the history of this transform's shape
@@ -286,7 +288,7 @@ for x in ls( type='transform'):
     trans *= x.scale.get()
     # ability to pass list/vector args
     x.translate.set(trans)
-    # automatic handling of mel procedures
+    # call a mel procedure
     mel.myMelScript(x.type(), trans)
 ```
 

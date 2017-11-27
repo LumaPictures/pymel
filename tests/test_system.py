@@ -6,16 +6,14 @@ import itertools
 from pprint import pprint
 
 import pymel.core as pm
+import pymel.versions
 import maya.cmds as cmds
 
 class testCase_references(unittest.TestCase):
 
     def setUp(self):
-        self.temp = os.path.join(tempfile.gettempdir(), 'referencesTest')
-        if not os.path.isdir(self.temp):
-            os.makedirs(self.temp)
+        self.temp = tempfile.mkdtemp(prefix='referencesTest')
         print "created temp dir: %s" % self.temp
-
 
         # Refs:
         #  sphere.ma
@@ -168,6 +166,72 @@ class testCase_references(unittest.TestCase):
             self.assertEqual(ref, pm.FileReference(str(ref.withCopyNumber())))
             self.assertEqual(ref, pm.FileReference(namespace=ref.fullNamespace))
 
+    def test_file_reference_remove_merge_namespace_parent(self):
+        pm.openFile(self.masterFile, f=1)
+        self.sphereRef1 = pm.FileReference(namespace='sphere1')
+        pm.system.Namespace('sphere1').setCurrent()
+        pm.system.Namespace.create('foobar')
+        pm.system.Namespace('sphere1:foobar').setCurrent()
+        pm.modeling.polyCube(n='testCube')
+        self.tempRef1 = pm.system.createReference(self.sphereFile, namespace='foobar')
+        pm.modeling.polyCube(n=':sphere1:foobar:foobar:bob')
+        self.assertTrue(cmds.objExists(':sphere1:foobar:testCube'))
+        self.assertTrue(cmds.objExists(':sphere1:foobar:foobar:bob'))
+        self.assertFalse(cmds.objExists(':testCube'))
+        self.assertFalse(cmds.objExists(':sphere1:testCube'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar1:testCube'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:testCube'))
+        self.assertFalse(cmds.objExists(':bob'))
+        self.assertFalse(cmds.objExists(':sphere1:bob'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar:bob'))
+        self.assertFalse(cmds.objExists(':sphere1:foobar1:bob'))
+        pm.system.FileReference(self.tempRef1).remove(mergeNamespaceWithParent=1)
+        # Before maya 2018, there was a bug where removing the ref, which lives
+        # in "sphere1:foobar:foobar", would also delete "sphere1:foobar" -
+        # leaving just "sphere1:", where everything was moved into...
+        if pymel.versions.current() < pymel.versions.v2018:
+            # when it deletes sphere1:foobar, it tries to move sphere1:foobar:foobar
+            # to sphere1:foobar... but apparently that causes a name conflict,
+            # so it makes sphere1:foobar1 instead
+            self.assertTrue(cmds.objExists(':sphere1:testCube'))
+            self.assertTrue(cmds.objExists(':sphere1:foobar1:bob'))
+            self.assertFalse(cmds.objExists(':testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar1:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:testCube'))
+            self.assertFalse(cmds.objExists(':bob'))
+            self.assertFalse(cmds.objExists(':sphere1:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:bob'))
+        else:
+            self.assertTrue(cmds.objExists(':sphere1:foobar:testCube'))
+            self.assertTrue(cmds.objExists(':sphere1:foobar:bob'))
+            self.assertFalse(cmds.objExists(':testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar1:testCube'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:testCube'))
+            self.assertFalse(cmds.objExists(':bob'))
+            self.assertFalse(cmds.objExists(':sphere1:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar1:bob'))
+            self.assertFalse(cmds.objExists(':sphere1:foobar:foobar:bob'))
+
+
+    def test_file_reference_remove_merge_namespace_root(self):
+        pm.openFile(self.masterFile, f=1)
+        self.sphereRef1 = pm.FileReference(namespace='sphere1')
+        pm.system.Namespace('sphere1').setCurrent()
+        pm.modeling.polyCube(n='testCube')
+        pm.system.FileReference(self.sphereRef1).remove(mergeNamespaceWithRoot=1)
+        self.assertIn('testCube', pm.system.namespaceInfo(':', ls=1))
+
+    def test_file_reference_remove_force(self):
+        pm.openFile(self.masterFile, f=1)
+        self.sphereRef1 = pm.FileReference(namespace='sphere1')
+        pm.system.Namespace('sphere1').setCurrent()
+        pm.modeling.polyCube(n='testCube')
+        pm.system.FileReference(self.sphereRef1).remove(force=True)
+        self.assertFalse(pm.general.objExists('testCube'))
+
     def test_failed_ref_edits(self):
         self.createFailedEdits()
 
@@ -260,7 +324,7 @@ class testCase_references(unittest.TestCase):
             getKwargs['failedEdits'] = True
             self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)), 3)
 
-            kwargs = {'removeEdits':True}
+            kwargs = {}
             if successfulEdits is not None:
                 kwargs['successfulEdits'] = successfulEdits
             if failedEdits is not None:
@@ -268,26 +332,34 @@ class testCase_references(unittest.TestCase):
 
             if force:
                 kwargs['force'] = True
-            else:
-                self.sphereRef1.unload()
 
             self.sphereRef1.removeReferenceEdits(**kwargs)
 
             self.assertEqual(len(cmds.referenceQuery(refNode, **getKwargs)),
                              expectedNum)
 
-        for force in (True, False):
-            doTest(None, None, force, 0)    # should remove all
-            doTest(None, True, force, 2)    # should remove failed
-            doTest(None, False, force, 1)   # should remove successful
+        # force=True - possible to remove successful edits
+        doTest(None, None, True, 0)    # should remove all
+        doTest(None, True, True, 2)    # should remove failed
+        doTest(None, False, True, 1)   # should remove successful
+        doTest(True, None, True, 1)    # should remove successful
+        doTest(True, True, True, 0)    # should remove all
+        doTest(True, False, True, 1)   # should remove successful
+        doTest(False, None, True, 2)   # should remove failed
+        doTest(False, True, True, 2)   # should remove failed
+        doTest(False, False, True, 3)  # should remove none
 
-            doTest(True, None, force, 1)    # should remove successful
-            doTest(True, True, force, 0)    # should remove all
-            doTest(True, False, force, 1)   # should remove successful
+        # force=False - not possible to remove successful edits
+        doTest(None, None, False, 2)    # should remove failed (tries: all)
+        doTest(None, True, False, 2)    # should remove failed (tries: failed)
+        doTest(None, False, False, 3)   # should remove none (tries: successful)
+        doTest(True, None, False, 3)    # should remove none (tries: successful)
+        doTest(True, True, False, 2)    # should remove failed (tries: all)
+        doTest(True, False, False, 3)   # should remove none (tries: successful)
+        doTest(False, None, False, 2)   # should remove failed (tries: failed)
+        doTest(False, True, False, 2)   # should remove failed (tries: failed)
+        doTest(False, False, False, 3)  # should remove none (tries: none)
 
-            doTest(False, None, force, 2)   # should remove failed
-            doTest(False, True, force, 2)   # should remove failed
-            doTest(False, False, force, 3)  # should remove none
 
     def test_parent(self):
         self.assertEqual(pm.FileReference(namespace='sphere1').parent(), None)
@@ -569,19 +641,42 @@ class testCase_references(unittest.TestCase):
         self.assertEqual(edits, [])
 
 class testCase_fileInfo(unittest.TestCase):
+    # Only need to test these methods, because we've based the fileInfo on
+    # collections.MutableMapping, and this is these are the required methods to implement that interface.
+    # __delitem__, __getitem__, __iter__, __len__, __setitem__
+
+
+
     def setUp(self):
         pm.newFile(f=1)
-        cmds.fileInfo('testKey', 'testValue')
+        self.rawDict = {'testKey': 'testValue'}
+        for key, val in self.rawDict.iteritems():
+            cmds.fileInfo(key, val)
 
     def test_get(self):
         default = "the default value!"
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist', default), default)
         self.assertEqual(pm.fileInfo.get('NoWayDoIExist'), None)
         self.assertEqual(pm.fileInfo.get('testKey'), cmds.fileInfo('testKey', q=1)[0])
+        self.assertEqual(pm.fileInfo.get('testKey'), self.rawDict['testKey'])
 
     def test_getitem(self):
         self.assertRaises(KeyError, lambda: pm.fileInfo['NoWayDoIExist'])
         self.assertEqual(pm.fileInfo['testKey'], cmds.fileInfo('testKey', q=1)[0])
+        self.assertEqual(pm.fileInfo['testKey'], self.rawDict['testKey'])
+
+    def test_delitem(self):
+        _dict = {}
+        self.assertNotEqual(_dict.items(), pm.fileInfo.items())
+        del pm.fileInfo['testKey']
+        self.assertEqual(_dict.items(), pm.fileInfo.items())
+
+    def test_iter(self):
+        self.assertEqual(sorted(pm.fileInfo), sorted(self.rawDict))
+
+    def test_len(self):
+        self.assertEqual(len(pm.fileInfo), len(self.rawDict))
+
 
 class testCase_namespaces(unittest.TestCase):
     recurseAvailable= ( pm.versions.current() >= pm.versions.v2011 )

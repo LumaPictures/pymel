@@ -344,7 +344,6 @@ First, using ``maya.cmds``::
 
 Now, with PyMEL::
 
-    from __future__ import with_statement # this line is only needed for 2008 and 2009
     from pymel.core import *
 
     template = uiTemplate('ExampleTemplate', force=True)

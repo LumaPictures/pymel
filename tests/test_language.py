@@ -416,3 +416,63 @@ class testCase_env(unittest.TestCase):
         self.assertEqual((1, 4, 10, 24), lang.env.getPlaybackTimes())
         lang.env.setPlaybackTimes((3, 6, 12, 23))
         self.assertEqual((3, 6, 12, 23), lang.env.getPlaybackTimes())
+
+
+class testCase_Mel(unittest.TestCase):
+    def setUp(self):
+        meval('''global proc int Mel_test_int_getter(int $inValue)
+                {
+                    return $inValue;
+                }''')
+
+        meval('''global proc string Mel_test_str_getter(string $inValue)
+                {
+                    return $inValue;
+                }''')
+
+        meval('''global proc int[] Mel_test_int_arr_getter(int $inValue[])
+                {
+                    return $inValue;
+                }''')
+
+        meval('''global proc string[] Mel_test_str_arr_getter(string $inValue[])
+                {
+                    return $inValue;
+                }''')
+
+        meval('''global proc int Mel_test(int $inValue)
+                {
+                    return $inValue;
+                }''')
+
+        meval('''global proc float Mel_test.NumUtils.add(float $inValue1, float $inValue2)
+                {
+                    return $inValue1 + $inValue2;
+                }''')
+
+        meval('''global proc float Mel_test.NumUtils.sub(float $inValue1, float $inValue2)
+                {
+                    return $inValue1 - $inValue2;
+                }''')
+
+        meval('''global proc float Mel_test.NumUtils.Constants.getPi()
+                {
+                    return 3.141;
+                }''')
+
+    def test_MelProcCalls(self):
+        self.assertEqual(lang.mel.Mel_test_int_getter(12), 12)
+        self.assertEqual(lang.mel.Mel_test_str_getter("Test!"), "Test!")
+        self.assertEqual(lang.mel.Mel_test_int_arr_getter([1, 2, 3]), [1, 2, 3])
+        self.assertEqual(lang.mel.Mel_test_str_arr_getter(['A', 'B', 'C']), ['A', 'B', 'C'])
+        self.assertRaises(lang.MelConversionError, lang.mel.Mel_test_int_getter, ["A", "B"])
+        self.assertRaises(lang.MelArgumentError, lang.mel.Mel_test_int_getter, 12, 13)
+
+    def test_MelNamespacedProcCalls(self):
+        self.assertEqual(lang.mel.Mel_test(32), 32)
+        self.assertEqual(lang.mel.Mel_test.NumUtils.add(1.5, 2.2), 3.7)
+        self.assertEqual(lang.mel.Mel_test.NumUtils.sub(2.5, 1.2), 1.3)
+        self.assertEqual(lang.mel.Mel_test.NumUtils.Constants.getPi(), 3.141)
+        self.assertRaises(lang.MelConversionError, lang.mel.Mel_test.NumUtils.add, ["A"], ["B"])
+        self.assertRaises(lang.MelArgumentError, lang.mel.Mel_test.NumUtils.add, 12, 13, 14)
+        self.assertRaises(lang.MelUnknownProcedureError, lang.mel.Mel_test.poop)

@@ -43,8 +43,6 @@ We do NOT recommend using it in external code...
 """
 # Python implementation inspired from Gonzalo Rodrigues "Trees and more trees" in ASPN cookbook
 
-# Import generators.
-from __future__ import generators
 # removed as it's 2.5 only
 # import functools as ftools
 from collections import *
@@ -1457,22 +1455,21 @@ class IndexedTree(object):
     mutable = True
     indexed = True
 
-def treeFromDict(arg):
+def treeFromDict(childToParentDict):
     """
     This function will build a tree from the provided dictionnary of child:parent relations :
         where each key represent an element and each key value represent the parent of that element, allows to build Trees form
         cmp(a,b): returns True if a is a direct child of b, False else.
         All elements must be present in the dictionnary keys, with root elements having None as value/parent
     """
-    if isinstance(arg, dict):
-        def isChildFn(a, b):
-            return arg.get(a, None) == b
-        s = set(arg.keys())
-        for v in arg.values():
-            s.add(v)
+    if isinstance(childToParentDict, dict):
+        def isChildFn(c, p):
+            return childToParentDict.get(c, None) == p
+        s = set(childToParentDict)
+        s.update(childToParentDict.itervalues())
         return treeFromChildLink(isChildFn, *s)
     else:
-        raise ValueError("%r is not a dictionnary" % arg)
+        raise ValueError("%r is not a dictionnary" % childToParentDict)
 
 def treeFromChildLink(isExactChildFn, *args):
     """
@@ -1505,7 +1502,7 @@ def treeFromChildLink(isExactChildFn, *args):
         >>> failedTree = treeFromChildLink (isChild, *lst)
         Traceback (most recent call last):
             ...
-        ValueError: A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: 'isChild'
+        ValueError: A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: 'isChild' - child: aab - new parents: ['a'] - oldparent: aa
     """
     deq = deque()
     for arg in args:
@@ -1525,8 +1522,17 @@ def treeFromChildLink(isExactChildFn, *args):
                     pr.graft(c, pr)
                     hasParent = True
                 else:
+                    print pars
                     # should only be one parent, break on first encountered
-                    raise ValueError, "A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: '%s'" % isExactChildFn.__name__
+
+                    err = "A child in Tree cannot have multiple " \
+                          "parents, check the provided isChild(c, p) " \
+                          "function: '%s' - child: %s - new parents: %s - old" \
+                          "parent: %s"  % (isExactChildFn.__name__,
+                                           c.value,
+                                           [x.value for x in pars],
+                                           c.parent.value)
+                    raise ValueError(err)
         # If it's a root we move it to final list
         if not hasParent:
             # print "%s has not parent, it goes to the list as root" % str(c)

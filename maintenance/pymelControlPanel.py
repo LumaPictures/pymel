@@ -11,7 +11,6 @@ It controls:
 
 
 """
-from __future__ import with_statement
 import inspect, re, os
 import pymel.core as pm
 import pymel.internal.factories as factories

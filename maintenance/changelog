@@ -1,9 +1,61 @@
-#!/bin/bash
-# get path to script (posix compliant)
-pushd `dirname $0` > /dev/null
-scriptdir=`pwd`
-popd > /dev/null
-echo $scriptdir
+#!/usr/bin/env python
+import os
+import sys
+import subprocess
+import re
 
-echo "adding changes from $1 to $2 to CHANGELOG.temp"
-git log --reverse --pretty=format:'- %s' --no-merges $1..$2 >> $scriptdir/CHANGELOG.temp
+outdir = os.path.dirname(os.path.abspath(sys.argv[0]))
+outfile = os.path.join(outdir, 'CHANGELOG.temp')
+
+rev1, rev2 = sys.argv[1:]
+print locals().keys()
+cmd = ["git", "log", "--reverse", "--pretty=format:%s", "--no-merges",
+      "{0}..{1}".format(rev1, rev2)]
+
+print cmd
+results = subprocess.check_output(cmd)
+
+categories = {
+    'fix': [],
+    'add': [],
+    'change': [],
+    'other': []
+}
+
+modreg = re.compile("([a-z.]+):(.*)")
+typereg = re.compile(r"\b(fix|add)(ed)?\b")
+
+for line in results.split('\n'):
+    m = modreg.match(line)
+    if m:
+        module, msg = m.groups()
+        if module.endswith('.py'):
+            module = module[:-3]
+        if module.startswith('pymel.'):
+            module = module[6:]
+        print module, msg
+        m = typereg.search(msg.lower())
+        msg = msg.strip()
+        msg = msg[0].lower() + msg[1:]
+        line = '%s: %s' % (module, msg)
+        if m:
+            category = m.groups()[0]
+            categories[category].append(line)
+            continue
+    categories['other'].append(line)
+
+with open(outfile, 'w') as f:
+
+    def writesection(title, key):
+        f.write(('-' * 34) + '\n')
+        f.write(title + '\n')
+        f.write(('-' * 34) + '\n')
+
+        for line in sorted(categories[key]):
+            f.write('- '+ line + '\n')
+        f.write('\n')
+
+    writesection('Changes', 'change')
+    writesection('Additions', 'add')
+    writesection('Bug Fixes', 'fix')
+    writesection('Uncategorized', 'other')
