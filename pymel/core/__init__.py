@@ -125,7 +125,17 @@ def _pluginLoaded(*args):
     # Check to see if plugin is really loaded
     if not (cmds.pluginInfo(pluginName, query=1, loaded=1)): 
         return
-        
+    
+    # Make sure there are no registered callbacks for this plug-in. It has been
+    # reported that some 3rd party plug-ins will enter here twice, causing a 
+    # "callback id leak" which potentially leads to a crash. The reported 
+    # scenario was: 
+    # - Launching mayapy.exe
+    # - Opening a Maya scene having a requires statement (to the plug-in)
+    # - The plug-in imports pymel, causing initialization and entering here.
+    if (pluginName in _pluginData) and 'callbackId' in _pluginData[pluginName] and _pluginData[pluginName]['callbackId'] != None:
+        _api.MEventMessage.removeCallback(_pluginData[pluginName]['callbackId'])
+    
     _logger.debug("Plugin loaded: %s", pluginName)
     _pluginData[pluginName] = {}
 
