@@ -4757,7 +4757,7 @@ class DimensionedComponent(Component):
         if isinstance(item, collections.Iterator):
             item = tuple(item)
         self._validateGetItemIndice(item)
-        self._getitem_overrideable(item)
+        return self._getitem_overrideable(item)
 
     def _getitem_overrideable(self, item):
         return self.__class__(self._node,
