@@ -4382,8 +4382,8 @@ class Component(PyNode):
     def _makeComponentHandle(self):
         component = None
         # try making from MFnComponent.create, if _mfncompclass has it defined
-        if ('create' in dir(self._mfncompclass) and
-                self._apienum__ not in self._componentEnums + [None]):
+        if (hasattr(self._mfncompclass, 'create') 
+            and self._apienum__ not in self._componentEnums + [None]):
             try:
                 component = self._mfncompclass().create(self._apienum__)
             # Note - there's a bug with kSurfaceFaceComponent - can't use create
