@@ -3785,8 +3785,11 @@ class Attribute(PyNode):
             except TypeError:
                 return False
 
-    def listDefault(self):
-        return cmds.attributeQuery(self.attrName(), node=self.node(), listDefault=True)
+    def getDefault(self):
+        result = cmds.attributeQuery(self.attrName(), node=self.node(), listDefault=True)
+        if isinstance(result, list) and len(result) == 1 and not self.isCompound():
+            return result[0]
+        return result
 #}
 #--------------------------
 # xxx{ Ranges
