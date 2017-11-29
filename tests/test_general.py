@@ -1966,6 +1966,39 @@ class test_Attribute_getSetAttrCmds(unittest.TestCase):
             'setAttr ".myIntMulti[5]" 7;',
         ])
 
+class test_Attribute_getDefault(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+
+    def test_float(self):
+        tx = pm.Attribute('persp.translateX')
+        self.assertEqual(tx.getDefault(), 0.0)
+        sz = pm.Attribute('persp.scaleZ')
+        self.assertEqual(sz.getDefault(), 1.0)
+
+    def test_compound_float(self):
+        t = pm.Attribute('persp.translate')
+        self.assertEqual(t.getDefault(), [0.0, 0.0, 0.0])
+        s = pm.Attribute('persp.scale')
+        self.assertEqual(s.getDefault(), [1.0, 1.0, 1.0])
+
+    def test_bool(self):
+        attr = pm.Attribute('persp.maxRotLimitEnable')
+        self.assertEqual(attr.getDefault(), [0.0, 0.0, 0.0])
+        attr = pm.Attribute('persp.maxRotXLimitEnable')
+        self.assertEqual(attr.getDefault(), 0.0)
+
+    def test_enum(self):
+        attr = pm.Attribute('persp.rotateOrder')
+        self.assertEqual(attr.getDefault(), 0.0)
+
+    def test_nonNumeric(self):
+        attr = pm.Attribute('persp.xformMatrix')
+        self.assertIs(attr.getDefault(), None)
+        attr = pm.Attribute('persp.specifiedManipLocation')
+        self.assertIs(attr.getDefault(), None)
+
+
 class test_exists(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, force=1)
