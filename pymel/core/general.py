@@ -1378,7 +1378,7 @@ Modifications:
             children = nodes
         else:
             parent = PyNode(nodes[-1])
-            children = nodes[:-1]
+            children = nodes[0]
 
         # if you try to parent to the current parent, maya errors...
         # check for this and return if that's the case
