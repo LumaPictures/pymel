@@ -505,7 +505,7 @@ class OptionVarList(tuple):
 
         if isinstance(val, basestring):
             return cmds.optionVar(stringValueAppend=[self.key, val])
-        if isinstance(val, int):
+        if isinstance(val, (int, long)):
             return cmds.optionVar(intValueAppend=[self.key, val])
         if isinstance(val, float):
             return cmds.optionVar(floatValueAppend=[self.key, val])
@@ -556,7 +556,7 @@ class OptionVarDict(collections.MutableMapping):
     def __setitem__(self, key, val):
         if isinstance(val, basestring):
             return cmds.optionVar(stringValue=[key, val])
-        if isinstance(val, (int, bool)):
+        if isinstance(val, (int, bool, long)):
             return cmds.optionVar(intValue=[key, int(val)])
         if isinstance(val, float):
             return cmds.optionVar(floatValue=[key, val])
@@ -566,7 +566,7 @@ class OptionVarDict(collections.MutableMapping):
             listType = type(val[0])
             if issubclass(listType, basestring):
                 flag = 'stringValue'
-            elif issubclass(listType, int):
+            elif issubclass(listType, (int, long)):
                 flag = 'intValue'
             elif issubclass(listType, float):
                 flag = 'floatValue'
@@ -749,7 +749,7 @@ class Mel(object):
 
     """Acts as a namespace from which MEL procedures can be called as if they
     were python functions.
-    
+
     Automatically formats python arguments into a command string which is
     executed via ``maya.mel.eval``.  An instance of this class is created for
     you as `pymel.core.mel`.
