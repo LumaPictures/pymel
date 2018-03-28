@@ -1351,6 +1351,47 @@ class test_parent(unittest.TestCase):
         with self.assertRaises(pm.MayaNodeError):
             pm.parent(self.sphere, 'does_not_exist')
 
+    def test_parent_with_iterables(self):
+        """Make sure that parent works with any grouping of args"""
+        def makeCubesAndGrp():
+            cmds.file(new=1, f=1)
+            cubes = []
+            for x in range(10):
+                cubes.append(pm.polyCube()[0])
+            group = pm.group(empty=True)
+            return cubes, group
+
+        cubes, group = makeCubesAndGrp()
+        res1 = pm.parent(cubes[:4], group)
+        self.assertEqual(cubes[:4], res1)
+        res2 = pm.parent(cubes, group)
+        self.assertEqual(cubes[4:], res2)
+
+        cubes, group = makeCubesAndGrp()
+        res1 = pm.parent(cubes[:4] + [group])
+        self.assertEqual(cubes[:4], res1)
+        res2 = pm.parent(cubes, group)
+        self.assertEqual(cubes[4:], res2)
+
+        cubes, group = makeCubesAndGrp()
+        res1 = pm.parent(cubes[0], cubes[1], cubes[2], cubes[3], group)
+        self.assertEqual(cubes[:4], res1)
+        res2 = pm.parent(cubes, group)
+        self.assertEqual(cubes[4:], res2)
+
+        cubes, group = makeCubesAndGrp()
+        res1 = pm.parent(cubes[0], cubes[1], [cubes[2], cubes[3], group])
+        self.assertEqual(cubes[:4], res1)
+        res2 = pm.parent(cubes, group)
+        self.assertEqual(cubes[4:], res2)
+
+        cubes, group = makeCubesAndGrp()
+        res1 = pm.parent([cubes[0], cubes[1]], cubes[2], [cubes[3], group])
+        self.assertEqual(cubes[:4], res1)
+        res2 = pm.parent(cubes, group)
+        self.assertEqual(cubes[4:], res2)
+
+
 # TODO: make test cases for all combinations of
 #  origNode - not instanced, direct-instanced, indirect-instanced
 #  newParentNode - not instanced, direct-instanced, indirect-instanced

@@ -1335,6 +1335,18 @@ Modifications:
     - if parent is `None`, world=True is automatically set
     - if the given parent is the current parent, don't error (similar to mel)
     """
+
+    # args may have unknown grouping, so flatten first... even commands
+    # list this will work (and parent under 'group'):
+    #   cmds.parent(['pCube1', 'pCube2'], 'pCube3', ['pCube4', 'group'])
+    flat_args = []
+    for arg in args:
+        if _util.isIterable(arg):
+            flat_args.extend(arg)
+        else:
+            flat_args.append(arg)
+    args = flat_args
+
     if args and args[-1] is None:
         if not kwargs.get('w', kwargs.get('world', True)):
             raise ValueError('No parent given, but parent to world explicitly set to False')
@@ -1354,7 +1366,6 @@ Modifications:
 
     if args:
         nodes = args
-        origPyNodes
         if 'w' in kwargs or removeObj:
             origPyNodes = nodes
         else:
