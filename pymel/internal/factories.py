@@ -431,7 +431,9 @@ def loadCmdDocCache():
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
 
-def _addCmdDocs(func, cmdName):
+def _addCmdDocs(func, cmdName=None):
+    if cmdName is None:
+        cmdName = func.__name__
     # runtime functions have no docs
     if cmdlist[cmdName]['type'] == 'runtime':
         return func
@@ -723,6 +725,32 @@ class CallbackWithArgs(Callback):
         finally:
             cmds.undoInfo(closeChunk=1)
 
+def makeUICallback(origCallback, args, doPassSelf):
+    """this function is used to make the callback, so that we can ensure the origCallback gets
+    "pinned" down"""
+    # print "fixing callback", key
+    creationTraceback = ''.join(traceback.format_stack())
+
+    def callback(*cb_args):
+        newargs = list(cb_args)
+
+        if doPassSelf:
+            newargs = [args[0]] + newargs
+        newargs = tuple(newargs)
+        try:
+            res = origCallback(*newargs)
+        except Exception, e:
+            # if origCallback was ITSELF a Callback obj, it will have
+            # already logged the error..
+            if not isinstance(origCallback, Callback):
+                Callback.logCallbackError(origCallback,
+                                          creationTrace=creationTraceback)
+            raise
+        if isinstance(res, util.ProxyUnicode):
+            res = unicode(res)
+        return res
+    return callback
+
 def fixCallbacks(inFunc, commandFlags, funcName=None):
     """
     Prior to maya 2011, when a user provides a custom callback functions for a
@@ -745,50 +773,10 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
         #commandFlags = []
         return inFunc
 
-    argCorrector = None
-    if versions.current() < versions.v2011:
-        # wrap ui callback commands to ensure that the correct types are returned.
-        # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
-        if funcName.startswith('float'):
-            argCorrector = float
-        elif funcName.startswith('int'):
-            argCorrector = int
-        elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
-            argCorrector = lambda x: x == 'true'
-
     # need to define a seperate var here to hold
     # the old value of newFunc, b/c 'return newFunc'
     # would be recursive
     beforeUiFunc = inFunc
-
-    def _makeCallback(origCallback, args, doPassSelf):
-        """this function is used to make the callback, so that we can ensure the origCallback gets
-        "pinned" down"""
-        # print "fixing callback", key
-        creationTraceback = ''.join(traceback.format_stack())
-
-        def callback(*cb_args):
-            if argCorrector:
-                newargs = [argCorrector(arg) for arg in cb_args]
-            else:
-                newargs = list(cb_args)
-
-            if doPassSelf:
-                newargs = [args[0]] + newargs
-            newargs = tuple(newargs)
-            try:
-                res = origCallback(*newargs)
-            except Exception, e:
-                # if origCallback was ITSELF a Callback obj, it will have
-                # already logged the error..
-                if not isinstance(origCallback, Callback):
-                    Callback.logCallbackError(origCallback,
-                                              creationTrace=creationTraceback)
-                raise
-            if isinstance(res, util.ProxyUnicode):
-                res = unicode(res)
-            return res
-        return callback
 
     def newUiFunc(*args, **kwargs):
 
@@ -801,7 +789,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
             try:
                 cb = kwargs[key]
                 if callable(cb):
-                    kwargs[key] = _makeCallback(cb, args, doPassSelf)
+                    kwargs[key] = makeUICallback(cb, args, doPassSelf)
             except KeyError:
                 pass
 
@@ -813,16 +801,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
 
     return newUiFunc
 
-def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None, uiWidget=False):
-    """
-    create a new function, apply the given returnFunc to the results (if any)
-    Use pre-parsed command documentation to add to __doc__ strings for the
-    command.
-    """
-
-    # if module is None:
-    #   module = _thisModule
-
+def _getSourceFunction(funcNameOrObject, module=None):
     inFunc = None
     if isinstance(funcNameOrObject, basestring):
         funcName = funcNameOrObject
@@ -833,19 +812,17 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
                 inFunc = getattr(module, funcName)
                 customFunc = True
             except AttributeError:
-                # if funcName == 'lsThroughFilter': #_logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
 
-        # inFunc may be a custom class object, like fileInfo, which may have it's own boolean testing...
-        # so be sure to check if it's None, not "if not inFunc"!
+        # inFunc may be a custom class object, like fileInfo, which may have
+        # its own boolean testing... so be sure to check if it's None, not
+        # "if not inFunc"!
         if inFunc is None:
             try:
                 inFunc = getattr(pmcmds, funcName)
                 customFunc = False
-                # if funcName == 'lsThroughFilter': #_logger.debug("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
             except AttributeError:
-                #_logger.debug('Cannot find function %s' % funcNameOrObject)
-                return
+                return None, None, None
     else:
         funcName = pmcmds.getCmdName(funcNameOrObject)
         inFunc = funcNameOrObject
@@ -854,18 +831,93 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
     # Do some sanity checks...
     if not callable(inFunc):
         _logger.warn('%s not callable' % funcNameOrObject)
+        return None, None, None
+    # python doesn't like unicode function names
+    funcName = str(funcName)
+    return inFunc, funcName, customFunc
+
+def convertTimeValues(rawVal):
+    # in mel, you would do:
+    #   keyframe -time "1:10"
+    # in order to get the same behavior in python, you would
+    # have to do:
+    #   cmds.keyframe(time=("1:10",))
+    # ...which is lame. So, standardize everything by throwing
+    # it inside of a tuple...
+
+    # we only DON'T put it in a tuple, if it already IS a tuple/
+    # list, AND it doesn't look like a simple range - ie,
+    #   cmds.keyframe(time=(1,10))
+    # will get converted to
+    #   cmds.keyframe(time=((1,10),))
+    # but
+    #   cmds.keyframe(time=('1:3', [1,5]))
+    # will be left alone...
+    if (isinstance(rawVal, (list, tuple))
+            and 1 <= len(rawVal) <= 2
+            and all(isinstance(x, (basestring, int, long, float))
+                    for x in rawVal)):
+        values = list(rawVal)
+    else:
+        values = [rawVal]
+
+    for i, val in enumerate(values):
+        if isinstance(val, slice):
+            val = [val.start, val.stop]
+        elif isinstance(val, tuple):
+            val = list(val)
+
+        if isinstance(val, list):
+            if len(val) == 1:
+                val.append(None)
+            if len(val) == 2 and None in val:
+                # easiest way to get accurate min/max bounds
+                # is to convert to the string form...
+                val = ':'.join('' if x is None else str(x)
+                               for x in val)
+            else:
+                val = tuple(val)
+        values[i] = val
+    return values
+
+def maybeConvert(val, castFunc):
+    if isinstance(val, list):
+        try:
+            return map(castFunc, val)
+        except:
+            return val
+    elif val:
+        try:
+            res = castFunc(val)
+        except Exception:
+            return val
+
+def functionFactory(funcNameOrObject, returnFunc=None, module=None,
+                    rename=None, uiWidget=False):
+    """
+    create a new function, apply the given returnFunc to the results (if any)
+    Use pre-parsed command documentation to add to __doc__ strings for the
+    command.
+    """
+
+    # if module is None:
+    #   module = _thisModule
+    inFunc, funcName, customFunc = _getSourceFunction(funcNameOrObject, module)
+    if inFunc is None:
         return
 
     cmdInfo = cmdlist[funcName]
     funcType = type(inFunc)
-    # python doesn't like unicode function names
-    funcName = str(funcName)
 
     if funcType == types.BuiltinFunctionType:
         try:
             newFuncName = inFunc.__name__
             if funcName != newFuncName:
-                _logger.warn("Function found in module %s has different name than desired: %s != %s. simple fix? %s" % (inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None))
+                _logger.warn("Function found in module %s has different name "
+                             "than desired: %s != %s. simple fix? %s" %
+                             (inFunc.__module__, funcName, newFuncName,
+                              funcType == types.FunctionType and
+                              returnFunc is None))
         except AttributeError:
             _logger.warn("%s had no '__name__' attribute" % inFunc)
 
@@ -897,62 +949,23 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
                 except KeyError:
                     continue
                 else:
-                    # in mel, you would do:
-                    #   keyframe -time "1:10"
-                    # in order to get the same behavior in python, you would
-                    # have to do:
-                    #   cmds.keyframe(time=("1:10",))
-                    # ...which is lame. So, standardize everything by throwing
-                    # it inside of a tuple...
-
-                    # we only DON'T put it in a tuple, if it already IS a tuple/
-                    # list, AND it doesn't look like a simple range - ie,
-                    #   cmds.keyframe(time=(1,10))
-                    # will get converted to
-                    #   cmds.keyframe(time=((1,10),))
-                    # but
-                    #   cmds.keyframe(time=('1:3', [1,5]))
-                    # will be left alone...
-                    if (isinstance(rawVal, (list, tuple))
-                        and 1 <= len(rawVal) <= 2
-                        and all(isinstance(x, (basestring, int, long, float))
-                                for x in rawVal)):
-                        values = list(rawVal)
-                    else:
-                        values = [rawVal]
-
-                    for i, val in enumerate(values):
-                        if isinstance(val, slice):
-                            val = [val.start, val.stop]
-                        elif isinstance(val, tuple):
-                            val = list(val)
-
-                        if isinstance(val, list):
-                            if len(val) == 1:
-                                val.append(None)
-                            if len(val) == 2 and None in val:
-                                # easiest way to get accurate min/max bounds
-                                # is to convert to the string form...
-                                val = ':'.join('' if x is None else str(x)
-                                               for x in val)
-                            else:
-                                val = tuple(val)
-                        values[i] = val
-                    kwargs[flag] = values
+                    kwargs[flag] = convertTimeValues(rawVal)
             return beforeTimeRangeFunc(*args, **kwargs)
         newFunc = newFuncWithTimeRangeFlags
 
     if returnFunc:
-        # need to define a seperate var here to hold
+        # need to define a separate var here to hold
         # the old value of newFunc, b/c 'return newFunc'
         # would be recursive
         beforeReturnFunc = newFunc
 
         def newFuncWithReturnFunc(*args, **kwargs):
             res = beforeReturnFunc(*args, **kwargs)
-            if not kwargs.get('query', kwargs.get('q', False)):  # and 'edit' not in kwargs and 'e' not in kwargs:
+            # and 'edit' not in kwargs and 'e' not in kwargs:
+            if not kwargs.get('query', kwargs.get('q', False)):
                 if isinstance(res, list):
-                    # some node commands unnecessarily return a list with a single object
+                    # some node commands unnecessarily return a list with a
+                    # single object
                     if cmdInfo.get('resultNeedsUnpacking', False):
                         res = returnFunc(res[0])
                     else:
@@ -1054,6 +1067,212 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None, rename=None,
         newFunc.__name__ = funcName
 
     return newFunc
+
+def importableName(func, module=None):
+    try:
+        name = func.__name__
+    except AttributeError:
+        name = func.__class__.__name__
+
+    if func.__module__ == '__builtin__':
+        path = name
+    else:
+        path = "{}.{}".format(
+            module or func.__module__,
+            name
+        )
+    return path
+
+def _setRepr(s):
+    return '{' + ', '.join([repr(s) for s in sorted(s)]) + '}'
+
+def _listRepr(s):
+    return '[' + ', '.join([repr(s) for s in sorted(s)]) + ']'
+
+def functionTemplateFactory(funcNameOrObject, returnFunc=None, module=None,
+                    rename=None, uiWidget=False):
+    """
+    create a new function, apply the given returnFunc to the results (if any)
+    Use pre-parsed command documentation to add to __doc__ strings for the
+    command.
+    """
+
+    # if module is None:
+    #   module = _thisModule
+    inFunc, funcName, customFunc = _getSourceFunction(funcNameOrObject, module)
+    if inFunc is None:
+        return ''
+
+    cmdInfo = cmdlist[funcName]
+    funcType = type(inFunc)
+
+    if funcType == types.BuiltinFunctionType:
+        try:
+            newFuncName = inFunc.__name__
+            if funcName != newFuncName:
+                _logger.warn("Function found in module %s has different name "
+                             "than desired: %s != %s. simple fix? %s" %
+                             (inFunc.__module__, funcName, newFuncName,
+                              funcType == types.FunctionType and
+                              returnFunc is None))
+        except AttributeError:
+            _logger.warn("%s had no '__name__' attribute" % inFunc)
+
+    timeRangeFlags = _getTimeRangeFlags(funcName)
+    if timeRangeFlags:
+        timeRangeFlags = _listRepr(timeRangeFlags)
+    # some refactoring done here - to avoid code duplication (and make things clearer),
+    # we now ALWAYS do things in the following order:
+    # 1. Perform operations which modify the execution of the function (ie, adding return funcs)
+    # 2. Modify the function descriptors - ie, __doc__, __name__, etc
+
+    # FIXME: merge the unpack case with maybeConvert case: both test for 'not query'
+    templateStr = """
+
+
+@_factories._addCmdDocs
+def {{ funcName }}(*args, **kwargs):
+    {% if uiWidget %}
+    import uitypes
+    {% endif %}
+    {% if timeRangeFlags %}
+    for flag in {{ timeRangeFlags }}:
+        try:
+            rawVal = kwargs[flag]
+        except KeyError:
+            continue
+        else:
+            kwargs[flag] = _factories.convertTimeValues(rawVal)
+    {% endif %}
+    {% if callbackFlags %}
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in {{ callbackFlags }}:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    {% endif %}
+    res = {{ sourceFuncName }}(*args, **kwargs)
+    {% if returnFunc %}
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, {{ returnFunc }})
+    {% endif %}
+    {% if resultNeedsUnpacking and unpackFlags %}
+    if isinstance(res, list) and len(res) == 1:
+        if kwargs.get('query', kwargs.get('q', False)):
+            # unpack for specific query flags
+            unpackFlags = {{ unpackFlags }}
+            if not unpackFlags.isdisjoint(kwargs):
+                res = res[0]
+        else:
+            # unpack create/edit result
+            res = res[0]
+    {% elif unpackFlags %}    
+    if isinstance(res, list) and len(res) == 1:
+        # unpack for specific query flags
+        unpackFlags = {{ unpackFlags }}
+        if kwargs.get('query', kwargs.get('q', False)) and not unpackFlags.isdisjoint(kwargs):
+            res = res[0]
+    {% elif resultNeedsUnpacking %}
+    # unpack create/edit list result
+    if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
+        res = res[0]
+    {% endif %}
+    {% if simpleWraps %}
+    wraps = _factories.simpleCommandWraps['{{ commandName }}']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    {% endif %}
+    return res
+"""
+    # create a repr for a set of flags (but make it ordered so it's stable)
+    # unpackFlags = []
+    # flags = cmdInfo.get('flags', {})
+    # for flag in sorted(flags):
+    #     flagInfo = flags[flag]
+    #     if flagInfo.get('resultNeedsUnpacking', False):
+    #         unpackFlags.append(repr(flagInfo.get('longname', flag)))
+    #         unpackFlags.append(repr(flagInfo.get('shortname', flag)))
+
+    unpackFlags = set()
+    for flag, flagInfo in cmdInfo.get('flags', {}).iteritems():
+        if flagInfo.get('resultNeedsUnpacking', False):
+            unpackFlags.add(flagInfo.get('longname', flag))
+            unpackFlags.add(flagInfo.get('shortname', flag))
+
+    if unpackFlags:
+        unpackFlags = _setRepr(unpackFlags)
+
+    if funcName in simpleCommandWraps:
+        # simple wraps: we only do these for functions which have not been
+        # manually customized
+        wraps = simpleCommandWraps[funcName]
+        doc = 'Modifications:\n'
+        for func, wrapCondition in wraps:
+            if wrapCondition != Always:
+                # use only the long flag name
+                flags = ' for flags: ' + str(wrapCondition)
+            elif len(wraps) > 1:
+                flags = ' for all other flags'
+            else:
+                flags = ''
+            if func.__doc__:
+                funcString = func.__doc__.strip()
+            else:
+                funcString = pmcmds.getCmdName(func) + '(result)'
+            doc += '  - ' + funcString + flags + '\n'
+
+    resultNeedsUnpacking = cmdInfo.get('resultNeedsUnpacking', False)
+    callbackFlags = cmdInfo.get('callbackFlags', None)
+    if callbackFlags:
+        callbackFlags = _listRepr(callbackFlags)
+    wrapped = funcName in simpleCommandWraps
+    if any([timeRangeFlags, returnFunc, resultNeedsUnpacking, unpackFlags, wrapped, callbackFlags]):
+        from jinja2 import Template
+        if inFunc is not None:
+            sourceFuncName = importableName(inFunc)
+            sourceFuncName = sourceFuncName.replace('pymel.internal.pmcmds.', 'cmds.')
+        else:
+            sourceFuncName = None
+        template = Template(templateStr, trim_blocks=True, lstrip_blocks=True)
+        return template.render(
+            funcName=rename or funcName,
+            commandName=funcName, timeRangeFlags=timeRangeFlags,
+            sourceFuncName=sourceFuncName,
+            returnFunc=returnFunc,
+            resultNeedsUnpacking=resultNeedsUnpacking,
+            unpackFlags=unpackFlags,
+            simpleWraps=wrapped,
+            callbackFlags=callbackFlags, uiWidget=uiWidget).encode()
+
+    return ''
+
+    # FIXME: handle these!
+    # Check if we have not been wrapped yet. if we haven't and our input function is a builtin or we're renaming
+    # then we need a wrap. otherwise we can just change the __doc__ and __name__ and move on
+    if newFunc == inFunc and (type(newFunc) == types.BuiltinFunctionType or rename):
+        # we'll need a new function: we don't want to touch built-ins, or
+        # rename an existing function, as that can screw things up... just modifying docs
+        # of non-builtin should be fine, though
+        def newFunc(*args, **kwargs):
+            return inFunc(*args, **kwargs)
+
+    # 2. Modify the function descriptors - ie, __doc__, __name__, etc
+    if customFunc:
+        # copy over the exisitng docs
+        if not newFunc.__doc__:
+            newFunc.__doc__ = inFunc.__doc__
+        elif inFunc.__doc__:
+            newFunc.__doc__ = inFunc.__doc__
+    _addCmdDocs(newFunc, funcName)
+
 
 def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None):
     #name = 'set' + flag[0].upper() + flag[1:]
@@ -1198,17 +1417,83 @@ def listForNoneQuery(res, kwargs, flags):
     return res
 
 
-def createFunctions(moduleName, returnFunc=None):
+def _writeToModule(new, module):
+    if new:
+        source = module.__file__.rsplit('.', 1)[0] + '.py'
+
+        with open(source, 'r') as f:
+            text = f.read()
+
+        marker = '# ------ Do not edit below this line --------'
+
+        pos = text.find(marker)
+        if pos != -1:
+            text = text[:pos]
+
+        text += marker + new
+
+        print "writing to", source
+        with open(source, 'w') as f:
+            f.write(text)
+
+
+def generateFunctions(moduleName, returnFunc=None):
+    """
+    Render templates for mel functions in `moduleName` into its module file.
+    """
     module = sys.modules[moduleName]
     moduleShortName = moduleName.split('.')[-1]
+
+    new = ''
     for funcName in moduleCmds[moduleShortName]:
         if funcName in nodeCommandList:
-            func = functionFactory(funcName, returnFunc=returnFunc, module=module)
+            new += functionTemplateFactory(funcName, returnFunc=returnFunc, module=module)
         else:
-            func = functionFactory(funcName, returnFunc=None, module=module)
-        if func:
-            func.__module__ = moduleName
-            setattr(module, funcName, func)
+            new += functionTemplateFactory(funcName, returnFunc=None, module=module)
+    _writeToModule(new, module)
+
+
+def generateUIFunctions():
+    new = ''
+    module = sys.modules['pymel.core.windows']
+    moduleShortName ='windows'
+
+    for funcName in uiClassList:
+        # Create Class
+        classname = util.capitalize(funcName)
+        new += functionTemplateFactory(funcName,
+                                       returnFunc='uitypes.' + classname,
+                                       module=module, uiWidget=True)
+
+    nonClassFuncs = set(moduleCmds[moduleShortName]).difference(uiClassList)
+    for funcName in nonClassFuncs:
+        new += functionTemplateFactory(funcName, returnFunc=None, module=module)
+
+    new += '''
+autoLayout.__doc__ = formLayout.__doc__
+# Now that we've actually created all the functions, it should be safe to import
+# uitypes... 
+from uitypes import objectTypeUI, toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+'''
+    _writeToModule(new, module)
+
+
+def generateAllFunctions():
+    """
+    Render templates for all mel functions into their respective module files.
+    """
+    generateFunctions('pymel.core.animation', '_general.PyNode')
+    generateFunctions('pymel.core.context')
+    generateFunctions('pymel.core.effects', '_general.PyNode')
+    generateFunctions('pymel.core.general', 'PyNode')
+    generateFunctions('pymel.core.language')
+    generateFunctions('pymel.core.modeling', '_general.PyNode')
+    generateFunctions('pymel.core.other')
+    generateFunctions('pymel.core.rendering', '_general.PyNode')
+    generateFunctions('pymel.core.runtime')
+    generateFunctions('pymel.core.system')
+    generateUIFunctions()
+
 
 
 #: overrideMethods specifies methods of base classes which should not be overridden by sub-classes

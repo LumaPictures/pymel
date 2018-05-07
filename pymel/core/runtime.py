@@ -3,4 +3,5 @@ Runtime commands. These are kept in their own namespace to prevent conflict with
 """
 
 import pymel.internal.factories as _factories
-_factories.createFunctions(__name__)
+
+# ------ Do not edit below this line --------

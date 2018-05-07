@@ -1965,6 +1965,4 @@ def isModified():
 #openFile = _factories.make_factories.createflagCmd( 'openFile', cmds.file, 'open',  __name__, returnFunc=Path )
 #renameFile = _factories.make_factories.createflagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
-
-_factories.createFunctions(__name__)
-
+# ------ Do not edit below this line --------

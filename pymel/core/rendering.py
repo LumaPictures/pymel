@@ -119,4 +119,4 @@ Maya Bug Fix:
 # def createDisplayLayer(*args, **kwargs):
 #    return _general.PyNode( cmds.createDisplayLayer(*args, **kwargs) )
 
-_factories.createFunctions(__name__, _general.PyNode)
+# ------ Do not edit below this line --------

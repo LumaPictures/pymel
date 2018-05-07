@@ -6345,5 +6345,4 @@ class Scene(object):
 
 SCENE = Scene()
 
-
-_factories.createFunctions(__name__, PyNode)
+# ------ Do not edit below this line --------

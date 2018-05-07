@@ -167,4 +167,4 @@ def ikHandle(*args, **kwargs):
                 % (handleName, effectorNode.shortName(), effectorName))
     return res
 
-_factories.createFunctions(__name__, _general.PyNode)
+# ------ Do not edit below this line --------

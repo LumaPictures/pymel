@@ -448,49 +448,9 @@ Modifications
         result = []
     return result
 
-def _createClassCommands():
-    def createCallback(classname):
-        """
-        create a callback that will trigger lazyLoading
-        """
-        def callback(*args, **kwargs):
-            import uitypes
-            res = getattr(uitypes, classname)(*args, **kwargs)
-            return res
-        return callback
-
-    for funcName in _factories.uiClassList:
-        # Create Class
-        classname = _util.capitalize(funcName)
-        #cls = _uitypes[classname]
-
-        # Create Function
-        func = _factories.functionFactory(funcName, createCallback(classname), _thisModule, uiWidget=True)
-        if func:
-            func.__module__ = __name__
-            setattr(_thisModule, funcName, func)
-
-
-def _createOtherCommands():
-    moduleShortName = __name__.split('.')[-1]
-    nonClassFuncs = set(_factories.moduleCmds[moduleShortName]).difference(_factories.uiClassList)
-    for funcName in nonClassFuncs:
-        func = _factories.functionFactory(funcName, returnFunc=None, module=_thisModule)
-        if func:
-            func.__module__ = __name__
-            setattr(_thisModule, funcName, func)
-            # want this call to work regardless of order we call _createClassCommandParis / _createCommands
-            if sys.modules[__name__] != _thisModule:
-                setattr(sys.modules[__name__], funcName, func)
-
-_createClassCommands()
-_createOtherCommands()
-
 def autoLayout(*args, **kwargs):
     import uitypes
     return uitypes.AutoLayout(*args, **kwargs)
-
-autoLayout.__doc__ = formLayout.__doc__
 
 def subMenuItem(*args, **kwargs):
     """
@@ -838,9 +798,5 @@ def getMainProgressBar():
     import uitypes
     return uitypes.ProgressBar(melGlobals['gMainProgressBar'])
 
-# Now that we've actually created all the functions, it should be safe to import
-# uitypes...
-if _versions.current() >= _versions.v2011:
-    from uitypes import toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+# ------ Do not edit below this line --------
 
-from uitypes import objectTypeUI

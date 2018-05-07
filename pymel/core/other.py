@@ -8,8 +8,6 @@ import inspect
 
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
-_factories.createFunctions(__name__)
-
 
 #--------------------------
 # Object Wrapper Classes
@@ -483,3 +481,5 @@ def _getParserClass(strObj):
         else:
             newcls = DependNodeName
     return newcls
+
+# ------ Do not edit below this line --------

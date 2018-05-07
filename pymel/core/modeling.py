@@ -31,4 +31,4 @@ Maya Bug Fix:
         res.getParent().rename(name)
     return res
 
-_factories.createFunctions(__name__, _general.PyNode)
+# ------ Do not edit below this line --------
