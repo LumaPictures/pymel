@@ -316,7 +316,9 @@ class Enum(object):
         return not self == other
 
     def __repr__(self):
-        return '%s(\n%s)' % (self.__class__.__name__, ',\n'.join([repr(v) for v in self.values()]))
+        return '%s(%r, {%s})' % (self.__class__.__name__, self.name,
+                                 ', '.join(['%r: %s' % (v.key, k)
+                                            for k, v in self._values.items()]))
 
     def __str__(self):
         return '%s%s' % (self.__class__.__name__, self.keys())

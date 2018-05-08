@@ -1,88 +1,79 @@
 
 class {{ classname }}({{ parents }}):
+{% if attrs %}
+  {% for attr in attrs %}
+    {{ attr.name }} = {{ attr.value }}
+  {% endfor %}
+{% endif %}
 {% if methods %}
+
   {% for method in methods %}
     {% if method.type == 'query' %}
-    @_factories.addMelDocs('{{ method.command }}', '{{ method.flag }}')
-    def {{ method.name }}(self, *args, **kwargs):
+    @_f.addMelDocs('{{ method.command }}', '{{ method.flag }}')
+    def {{ method.name }}(self, **kwargs):
       {% if method.returnFunc %}
-        kwargs['query'] = True
-        kwargs['{{ method.flag }}'] = True
-        return {{ method.returnFunc }}(cmds.{{ method.command }}(self, **kwargs))
+        return {{ method.returnFunc }}(_f.asQuery(self, cmds.{{ method.command }}, kwargs, '{{ method.flag }}'))
       {% else %}
-        kwargs['query'] = True
-        kwargs['{{ method.flag }}'] = True
-        return cmds.{{ method.command }}(self, **kwargs)
+        return _f.asQuery(self, cmds.{{ method.command }}, kwargs, '{{ method.flag }}')
       {% endif %}
     {% elif method.type == 'edit' %}
-    @_factories.addMelDocs('{{ method.command }}', '{{ method.flag }}')
+    @_f.addMelDocs('{{ method.command }}', '{{ method.flag }}')
     def {{ method.name }}(self, val=True, **kwargs):
         {% if callbackFlags %}
-        _factories.handleCallbacks(args, kwargs, {{ callbackFlags }})
+        _f.handleCallbacks(args, kwargs, {{ callbackFlags }})
         {% endif %}
-        return _factories.asEdit(cmds.{{ method.command }}, self, kwargs, '{{ method.flag }}', val)
+        return _f.asEdit(self, cmds.{{ method.command }}, kwargs, '{{ method.flag }}', val)
     {% elif method.type == 'api' %}
-    {% if method.isStatic %}
+    {% if method.classmethod %}
     @classmethod
     {% endif %}
-    def {{ method.name }}(self, *args, **kwargs):
-    {% if method.undoable %}
-        undoEnabled = cmds.undoInfo(q=1, state=1) and _factories.apiUndo.cb_enabled
+    {% if method.deprecated %}
+    @_f.deprecated
     {% endif %}
+    def {{ method.name }}({{ method.signature }}):
     {% if method.argList %}
-        argList = {{ method.argList }}
-        if len(args) != len(inArgs):
-            raise TypeError, "function takes exactly %s arguments (%s given)" % (len(inArgs), len(args))
-
-        argHelper = _factories.ApiArgUtil('{{ method.apiClass }}', '{{ method.apiName }}', {{ method.overloadIndex }})
       {% if method.undoable %}
-        if undoEnabled:
-            undo = _factories.getUndoArgs(args, argList, self.{{ method.getter }}, {{ method.getterInArgs }})
-      {% endif %}
-        do, final_do, outTypes = _factories.getDoArgs(self, args, argList, argHelper)
-      {% if method.undoable %}
-        if undoEnabled:
-            apiUndo.append(_factories.ApiUndoItem(self.{{ method.name }}, do, undo))
-      {% endif %}
-      {% if method.isStatic %}
-        result = _api.{{ method.apiClass }}.{{ method.apiName }}(*final_do)
-      {% elif method.proxy %}
-        mfn = self.__apimfn__()
-        if not isinstance(mfn, apiClass):
-            mfn = apiClass(self.__apiobject__())
-        result = _api.{{ method.apiClass }}.{{ method.apiName }}(mfn, *final_do)
+        do, final_do, outTypes = _f.processApiArgs([{{ method.inArgs }}], {{ method.argList }}, self.{{ method.getter }}, self.{{ method.name }}, {{ method.getterInArgs}})
       {% else %}
-        result = _api.{{ method.apiClass }}.{{ method.apiName }}(self, *final_do)
+        do, final_do, outTypes = _f.getDoArgs([{{ method.inArgs }}], {{ method.argList }})
       {% endif %}
-        return _factories.processApiResult(self, result, {{ method.outArgs }}, outTypes, do, argHelper)
+      {% if method.classmethod %}
+        res = _api.{{ method.apiClass }}.{{ method.apiName }}(*final_do)
+      {% elif method.proxy %}
+        res = _f.getProxyResult(self, _api.{{ method.apiClass }}, '{{ method.apiName }}', final_do)
+      {% else %}
+        res = _api.{{ method.apiClass }}.{{ method.apiName }}(self, *final_do)
+      {% endif %}
+      {% if method.returnType %}
+        res = _f.ApiArgUtil._castResult(self, res, '{{ method.returnType }}', {{ method.unitType }})
+      {% endif %}
+        return _f.processApiResult(res, {{ method.outArgs }}, outTypes, do)
     {% else %}
-        if len(args):
-            raise TypeError, "%s() takes no arguments (%s given)" % ('{{ method.name }}', len(args))
-
-        argHelper = factories.ApiArgUtil('{{ method.apiClass }}', '{{ method.apiName }}', {{ method.overloadIndex }})
       {% if method.undoable %}
+        undoEnabled = cmds.undoInfo(q=1, state=1) and _f.apiUndo.cb_enabled
         if undoEnabled:
-            undo = _factories.getUndoArgs(args, [], self.{{ method.getter }}, {{ method.getterInArgs }})
+            undo = _f.getUndoArgs([{{ method.inArgs }}], [], self.{{ method.getter }}, {{ method.getterInArgs }})
       {% endif %}
       {% if method.undoable %}
         if undoEnabled:
-            apiUndo.append(_factories.ApiUndoItem(self.{{ method.name }}, [], undo))
+            apiUndo.append(_f.ApiUndoItem(self.{{ method.name }}, [], undo))
       {% endif %}
-      {% if method.isStatic %}
-        result = _api.{{ method.apiClass }}.{{ method.apiName }}()
+      {% if method.classmethod %}
+        res = _api.{{ method.apiClass }}.{{ method.apiName }}()
       {% elif method.proxy %}
-        mfn = self.__apimfn__()
-        if not isinstance(mfn, apiClass):
-            mfn = apiClass(self.__apiobject__())
-        result = _api.{{ method.apiClass }}.{{ method.apiName }}(mfn)
+        res = _f.getProxyResult(self, _api.{{ method.apiClass }}, '{{ method.apiName }}')
       {% else %}
-        result = _api.{{ method.apiClass }}.{{ method.apiName }}(self)
+        res = _api.{{ method.apiClass }}.{{ method.apiName }}(self)
       {% endif %}
-        return argHelper.castResult(self, result)
+      {% if method.returnType %}
+        return _f.ApiArgUtil._castResult(self, res, '{{ method.returnType }}', {{ method.unitType }})
+      {% else %}
+        return res
+      {% endif %}
     {% endif %}
     {% endif %}
 
   {% endfor %}
 {% else %}
-    pass
+
 {% endif %}

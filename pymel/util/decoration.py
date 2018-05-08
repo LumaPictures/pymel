@@ -37,7 +37,35 @@ def decorator(func):
     return decoratorFunc
 
 
-def interface_wrapper(doer, args=[], varargs=None, varkw=None, defaults=None):
+def format_signature(args=(), varargs=None, varkw=None, defaults=None):
+    kwargs = []
+    if defaults is None:
+        ndefaults = 0
+    else:
+        ndefaults = len(defaults)
+    offset = len(args) - ndefaults
+
+    if offset < 0:
+        raise TypeError("The number of defaults cannot exceed the number of arguments")
+    for i, arg in enumerate(args):
+        # cannot be unicode
+        if i >= offset:
+            default = defaults[i - offset]
+            if not hasattr(default, '__repr__'):
+                raise ValueError("default values must have a __repr__ method")
+            defaultStr = repr(default)
+            kwargs.append('%s=%s' % (arg, defaultStr))
+        else:
+            kwargs.append(str(arg))
+
+    if varargs:
+        kwargs.append('*' + varargs)
+    elif varkw:
+        kwargs.append('**' + varkw)
+    return ', '.join(kwargs)
+
+
+def interface_wrapper(doer, args=(), varargs=None, varkw=None, defaults=None):
     """
     A wrapper which allows factories to programatically create functions with
     precise input arguments, instead of using the argument catch-all:
@@ -60,33 +88,11 @@ def interface_wrapper(doer, args=[], varargs=None, varkw=None, defaults=None):
     name = doer.__name__
     storageName = doer.__name__ + '_interfaced'
     g = {storageName: doer}
-    kwargs = []
-    if defaults is None:
-        ndefaults = 0
-    else:
-        ndefaults = len(defaults)
-    offset = len(args) - ndefaults
-
-    if offset < 0:
-        raise TypeError, "The number of defaults cannot exceed the number of arguments"
-    for i, arg in enumerate(args):
-        # cannot be unicode
-        if i >= offset:
-            default = defaults[i - offset]
-            if not hasattr(default, '__repr__'):
-                raise ValueError, "default values must have a __repr__ method"
-            defaultStr = repr(default)
-            kwargs.append('%s=%s' % (arg, defaultStr))
-        else:
-            kwargs.append(str(arg))
-
-    if varargs:
-        kwargs.append('*' + varargs)
-    elif varkw:
-        kwargs.append('**' + varkw)
-
-    defStr = """def %s( %s ):
-        return %s(%s)""" % (name, ','.join(kwargs), storageName, ','.join(args) )
+    signature = format_signature(args, varargs, varkw, defaults)
+    defStr = """def {name}( {signature} ):
+        return {origFunc}({args})""".format(
+        name=name, signature=signature, origFunc=storageName,
+        args=','.join(args))
 
     exec(defStr) in g
 

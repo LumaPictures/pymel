@@ -22,6 +22,7 @@ import pymel.api as api
 import pymel.util as util
 from pymel.util.conditions import Always, Condition
 import pymel.versions as versions
+from pymel.internal.pwarnings import deprecated
 
 # Module imports
 from . import apicache
@@ -2158,10 +2159,7 @@ def getUndoArgs(args, argList, getter, getterInArgs):
     return undo_args
 
 
-def getDoArgs(args, argList, numInputs):
-    if len(args) != numInputs:
-        raise TypeError("function takes exactly %s arguments (%s given)" % (numInputs, len(args)))
-
+def getDoArgs(args, argList):
     do_args = []
     final_do_args = []
     outTypeList = []
@@ -2184,14 +2182,14 @@ def getDoArgs(args, argList, numInputs):
     return do_args, final_do_args, outTypeList
 
 
-def processApiArgs(args, numInputs, argList, getter, setter, getterInArgs):
+def processApiArgs(args, argList, getter, setter, getterInArgs):
     undoEnabled = cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
 
     # get the value we are about to set
     if undoEnabled:
         undo_args = getUndoArgs(args, argList, getter, getterInArgs)
 
-    do_args, final_do_args, outTypeList = getDoArgs(args, argList, numInputs)
+    do_args, final_do_args, outTypeList = getDoArgs(args, argList)
 
     if undoEnabled:
         undoItem = ApiUndoItem(setter, do_args, undo_args)
@@ -2227,7 +2225,7 @@ def getStaticResult(self, method, apiClass, final_do):
     return processApiResult(self, result, outArgs, outTypeList, do_args, argHelper)
 
 
-def getProxyResult(self, apiClass, method, final_do):
+def getProxyResult(self, apiClass, method, final_do=()):
     mfn = self.__apimfn__()
     if not isinstance(mfn, apiClass):
         mfn = apiClass(self.__apiobject__())
