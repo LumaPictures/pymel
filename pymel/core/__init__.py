@@ -311,7 +311,7 @@ def _installCallbacks():
         for plugin in preLoadedPlugins:
             _pluginLoaded(plugin)
 
-_installCallbacks()
+# _installCallbacks()
 
 # run userSetup.py / initialize MEL...
 # ...userStartup.py / .mel may try to add plugins and then use their commands /

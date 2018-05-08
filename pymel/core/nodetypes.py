@@ -33,7 +33,7 @@ from animation import listAnimatable as _listAnimatable
 from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 
 _thisModule = sys.modules[__name__]
-
+_f = _factories
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
 # Mesh Components
@@ -48,7 +48,7 @@ pymelTypeNameToMayaTypeName = {}
 
 class DependNode(general.PyNode):
     __apicls__ = _api.MFnDependencyNode
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     #-------------------------------
     #    Name Info and Manipulation
     #-------------------------------
@@ -759,16 +759,16 @@ class DependNode(general.PyNode):
 
 if versions.current() >= versions.v2011:
     class ContainerBase(DependNode):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
         pass
 
     class Entity(ContainerBase):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
         pass
 
 else:
     class Entity(DependNode):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
         pass
 
 class DagNode(Entity):
@@ -778,7 +778,7 @@ class DagNode(Entity):
     """
 
     __apicls__ = _api.MFnDagNode
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self.__apimdagpath__() )
@@ -1859,7 +1859,7 @@ class DagNode(Entity):
 
 
 class Shape(DagNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
     def getTransform(self):
         return self.getParent(generations=1)
@@ -1873,7 +1873,7 @@ class Shape(DagNode):
 
 
 class Camera(Shape):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
     def applyBookmark(self, bookmark):
         kwargs = {}
@@ -1940,7 +1940,7 @@ class Camera(Shape):
 
 
 class Transform(DagNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'rotatePivot': (general.Pivot, 'rotatePivot'),
                             'scalePivot': (general.Pivot, 'scalePivot')}
 #    def __getattr__(self, attr):
@@ -2420,14 +2420,14 @@ class Transform(DagNode):
 
 
 class Joint(Transform):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     connect = _factories.functionFactory(cmds.connectJoint, rename='connect')
     disconnect = _factories.functionFactory(cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory(cmds.insertJoint, rename='insert')
 
 if versions.isUnlimited():
     class FluidEmitter(Transform):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
         fluidVoxelInfo = _factories.functionFactory(cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
         loadFluid = _factories.functionFactory(cmds.loadFluid, rename='loadFluid')
         resampleFluid = _factories.functionFactory(cmds.resampleFluid, rename='resampleFluid')
@@ -2565,7 +2565,7 @@ class ControlPoint(DeformableShape):
 class CurveShape(DeformableShape):
     pass
 class NurbsCurve(CurveShape):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'u': general.NurbsCurveParameter,
                             'cv': general.NurbsCurveCV,
                             'controlVerts': general.NurbsCurveCV,
@@ -2574,6 +2574,7 @@ class NurbsCurve(CurveShape):
                             'knot': general.NurbsCurveKnot,
                             'knots': general.NurbsCurveKnot}
 
+'''
 # apiToMelBridge maps MFnNurbsCurve.numCVs => NurbsCurve._numCVsApi
 NurbsCurve.numCVs = \
     NurbsCurve._numCVsFunc_generator(NurbsCurve.form,
@@ -2649,13 +2650,13 @@ NurbsCurve.numEPs = \
 
         :rtype: `int`
         """)
-
+'''
 
 class SurfaceShape(ControlPoint):
     pass
 
 class NurbsSurface(SurfaceShape):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'u': (general.NurbsSurfaceRange, 'u'),
                             'uIsoparm': (general.NurbsSurfaceRange, 'u'),
                             'v': (general.NurbsSurfaceRange, 'v'),
@@ -2670,6 +2671,7 @@ class NurbsSurface(SurfaceShape):
                             'sf': general.NurbsSurfaceFace,
                             'faces': general.NurbsSurfaceFace}
 
+'''
 # apiToMelBridge maps MFnNurbsCurve._numCVsInU => NurbsCurve._numCVsInUApi
 NurbsSurface.numCVsInU = \
     NurbsSurface._numCVsFunc_generator(NurbsSurface.formInU,
@@ -2821,7 +2823,7 @@ NurbsSurface.numEPsInV = \
 
         :rtype: `int`
         """)
-
+'''
 
 class Mesh(SurfaceShape):
 
@@ -2939,7 +2941,7 @@ class Mesh(SurfaceShape):
 
 
     """
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 #    def __init__(self, *args, **kwargs ):
 #        SurfaceShape.__init__(self, self._apiobject )
 #        self.vtx = MeshEdge(self.__apimobject__() )
@@ -3037,7 +3039,7 @@ def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
         return baseMethod(self, *args, **kwargs)
     methodWrapForEmptyMesh.__name__ = resultName
     return methodWrapForEmptyMesh
-
+"""
 for _apiMethodName in '''numColorSets
                     numFaceVertices
                     numNormals
@@ -3045,9 +3047,9 @@ for _apiMethodName in '''numColorSets
                     numUVs'''.split():
     _wrappedFunc = _makeApiMethodWrapForEmptyMesh(_apiMethodName)
     setattr(Mesh, _wrappedFunc.__name__, _wrappedFunc)
-
+"""
 class Subdiv(SurfaceShape):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
     _componentAttributes = {'smp': general.SubdVertex,
                             'verts': general.SubdVertex,
@@ -3074,13 +3076,13 @@ class Subdiv(SurfaceShape):
         cmds.subdCleanTopology(self)
 
 class Lattice(ControlPoint):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'pt': general.LatticePoint,
                             'points': general.LatticePoint}
 
 class Particle(DeformableShape):
     __apicls__ = _api.MFnParticleSystem
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'pt': general.ParticleComponent,
                             'points': general.ParticleComponent}
     # for backwards compatibility
@@ -3094,7 +3096,7 @@ class Particle(DeformableShape):
 
 class SelectionSet(_api.MSelectionList):
     apicls = _api.MSelectionList
-    __metaclass__ = _factories.MetaMayaTypeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaTypeWrapper
 
     def __init__(self, objs):
         """ can be initialized from a list of objects, another SelectionSet, an MSelectionList, or an ObjectSet"""
@@ -3410,7 +3412,7 @@ class ObjectSet(Entity):
 #    # Maya Methods
 #    #-----------------------
 
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
     #-----------------------
     # Python ObjectSet Methods
     #-----------------------
@@ -3694,7 +3696,7 @@ class ShadingEngine(ObjectSet):
             return super(ShadingEngine, cls)._getApiObjs(item, tryCast=tryCast)
 
 class AnimLayer(ObjectSet):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
     def getAttribute(self):
         '''Retrieve the attributes animated on this AnimLayer
@@ -3715,7 +3717,7 @@ class AnimLayer(ObjectSet):
     getAttributes = getAttribute
 
 class AnimCurve(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
     def addKeys(self, time, values, tangentInType='linear', tangentOutType='linear', unit=None):
         if not unit:
@@ -3737,7 +3739,7 @@ class AnimCurve(DependNode):
 class GeometryFilter(DependNode):
     pass
 class SkinCluster(GeometryFilter):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
     def getWeights(self, geometry, influenceIndex=None):
         if not isinstance(geometry, general.PyNode):
@@ -3825,24 +3827,24 @@ if _apicache.NUCLEUS_MFNDAG_BUG:
     # MFnDagNode for it... therefore, hardcode it's PyNode to inherit from
     # DependNode
     class Nucleus(DependNode):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
 if _apicache.SYMMETRY_CONSTRAINT_MFNDAG_BUG:
     class SymmetryConstraint(DependNode):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
 
 # TODO: if hikHandle bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
 #   - remove hard-code setting of HikHandle's parent to Transform
 class HikHandle(Transform):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
 class JointFfd(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
 class TransferAttributes(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass  # __metaclass__ = _factories.MetaMayaNodeWrapper
 
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
@@ -3961,7 +3963,7 @@ def _createPyNodes():
 
 # Initialize Pymel classes to API types lookup
 #_startTime = time.time()
-_createPyNodes()
+# _createPyNodes()
 #_logger.debug( "Initialized Pymel PyNodes types list in %.2f sec" % time.time() - _startTime )
 
 dynModule = sys.modules[__name__]

@@ -1150,6 +1150,34 @@ def queryflag(cmdName, flag):
     return query_decorator
 
 
+def handleCallbacks(args, kwargs, callbackFlags):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in callbackFlags:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+
+def asEdit(self, func, kwargs, flag, val):
+    kwargs['edit'] = True
+    kwargs[flag] = val
+    try:
+        return func(self, **kwargs)
+    except TypeError:
+        kwargs.pop('edit')
+        return func(self, **kwargs)
+
+def asQuery(self, func, kwargs, flag):
+    kwargs['query'] = True
+    kwargs[flag] = True
+    return func(self, **kwargs)
+
+
 def makeEditFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None):
     #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
@@ -1653,9 +1681,13 @@ class ApiArgUtil(object):
                 proto += ' --> (%s)' % ', '.join([str(x) for x in results])
         return proto
 
-    def castInput(self, argName, input, cls):
+    def castInput(self, argName, input):
         # enums
         argtype = self.methodInfo['types'][argName]
+        return self._castInput(argName, input, argtype)
+
+    @classmethod
+    def _castInput(cls, argName, input, argtype):
         if isinstance(argtype, tuple):
             # convert enum as a string or int to an int
 
@@ -1663,7 +1695,7 @@ class ApiArgUtil(object):
             #    return input
 
             apiClassName, enumName = argtype
-            return self.castInputEnum(apiClassName, enumName, input)
+            return cls.castInputEnum(apiClassName, enumName, input)
 
         elif input is not None:
             #            try:
@@ -1672,7 +1704,7 @@ class ApiArgUtil(object):
             if f is None:
                 return input
 
-            input = self.toInternalUnits(argName, input)
+            input = cls.toInternalUnits(argName, input)
             return f(input)
 #            except:
 #                if input is None:
@@ -1693,7 +1725,8 @@ class ApiArgUtil(object):
         except ValueError:
             raise ValueError, "expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input)
 
-    def fromInternalUnits(self, result, returnType, unit=None):
+    @staticmethod
+    def fromInternalUnits(result, returnType, unit=None):
         #_logger.debug(unit)
         if unit == 'linear' or returnType in ('MPoint', 'MFloatPoint'):
             unitCast = ApiTypeRegister.outCast['MDistance']
@@ -1735,6 +1768,12 @@ class ApiArgUtil(object):
     def castResult(self, pynodeInstance, result):
         returnType = self.methodInfo['returnType']
         if returnType:
+            return self._castResult(pynodeInstance, result, returnType,
+                                    self.methodInfo['returnInfo'].get('unitType', None))
+
+    @classmethod
+    def _castResult(cls, pynodeInstance, result, returnType, unitType):
+        if returnType:
             # special case check - some functions return an MObject, but return
             # an empty/null MObject if no node was found - ie, MFnCharacter.getClipScheduler
             # In these cases, return None...
@@ -1760,13 +1799,14 @@ class ApiArgUtil(object):
                 if f is None:
                     return result
 
+                # FIXME: confirm this!!!
                 # I believe methodInfo['returnInfo']['type'] is always the
                 # same as returnType = self.methodInfo['returnType'], but the
                 # old logic would use methodInfo['returnInfo']['type'], and I'm
                 # paranoid...
-                result = self.fromInternalUnits(result,
-                                                returnType=self.methodInfo['returnInfo']['type'],
-                                                unit=self.methodInfo['returnInfo'].get('unitType', None))
+                result = cls.fromInternalUnits(result,
+                                               returnType=returnType,
+                                               unit=unitType)
 
                 return f(pynodeInstance, result)
 #                except:
@@ -1775,10 +1815,12 @@ class ApiArgUtil(object):
 #                        raise TypeError, "Cannot cast a %s to %s" % ( type(result).__name__, returnType )
 #                    return cls(result)
 
-    def initReference(self, argtype):
+    @staticmethod
+    def initReference(argtype):
         return ApiTypeRegister.refInit[argtype]()
 
-    def castReferenceResult(self, argtype, outArg):
+    @classmethod
+    def castReferenceResult(cls, argtype, outArg):
         # special case check - some functions return an MObject, but return
         # an empty/null MObject if no node was found - ie, MFnContainer.getParentContainer
         # In these cases, return None...
@@ -1792,7 +1834,7 @@ class ApiArgUtil(object):
         if f is None:
             return outArg
 
-        result = self.fromInternalUnits(outArg, argtype)
+        result = cls.fromInternalUnits(outArg, argtype)
         return f(result)
 
     def getDefaults(self):
@@ -2079,6 +2121,119 @@ _DEBUG_API_WRAPS = False
 if _DEBUG_API_WRAPS:
     _apiMethodWraps = {}
 
+
+def getUndoArgs(args, argList, getter, getterInArgs):
+    getterArgs = []  # args required to get the current state before setting it
+    undo_args = []  # args required to reset back to the original (starting) state  ( aka "undo" )
+    missingUndoIndices = []  # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
+    inCount = 0
+    for name, argtype, direction in argList:
+        if direction == 'in':
+            arg = args[inCount]
+            undo_args.append(arg)
+            if name in getterInArgs:
+                # gather up args that are required to get the current value we are about to set.
+                # these args are shared between getter and setter pairs
+                getterArgs.append(arg)
+                # undo_args.append(arg)
+            else:
+                # store the indices for
+                missingUndoIndices.append(inCount)
+                # undo_args.append(None)
+            inCount += 1
+
+    try:
+        getterResult = getter(*getterArgs)
+    except RuntimeError:
+        _logger.error("the arguments at time of error were %r" % getterArgs)
+        raise
+
+    # when a command returns results normally and passes additional outputs by reference, the result is returned as a tuple
+    # otherwise, always as a list
+    if not isinstance(getterResult, tuple):
+        getterResult = (getterResult,)
+
+    for index, result in zip(missingUndoIndices, getterResult):
+        undo_args[index] = result
+    return undo_args
+
+
+def getDoArgs(args, argList, numInputs):
+    if len(args) != numInputs:
+        raise TypeError("function takes exactly %s arguments (%s given)" % (numInputs, len(args)))
+
+    do_args = []
+    final_do_args = []
+    outTypeList = []
+    inCount = totalCount = 0
+    for name, argtype, direction in argList:
+        if direction == 'in':
+            arg = ApiArgUtil._castInput(name, args[inCount], argtype)
+            inCount += 1
+        else:
+            arg = ApiArgUtil.initReference(argtype)
+            outTypeList.append((argtype, totalCount))
+            # outTypeIndex.append( totalCount )
+        do_args.append(arg)
+        # Do final SafeApiPtr => 'true' ptr conversion
+        if isinstance(arg, api.SafeApiPtr):
+            final_do_args.append(arg())
+        else:
+            final_do_args.append(arg)
+        totalCount += 1
+    return do_args, final_do_args, outTypeList
+
+
+def processApiArgs(args, numInputs, argList, getter, setter, getterInArgs):
+    undoEnabled = cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
+
+    # get the value we are about to set
+    if undoEnabled:
+        undo_args = getUndoArgs(args, argList, getter, getterInArgs)
+
+    do_args, final_do_args, outTypeList = getDoArgs(args, argList, numInputs)
+
+    if undoEnabled:
+        undoItem = ApiUndoItem(setter, do_args, undo_args)
+        apiUndo.append(undoItem)
+    return do_args, final_do_args, outTypeList
+
+
+def processApiResult(self, result, outArgs, outTypeList, do_args, argHelper):
+    result = argHelper.castResult(self, result)
+    if len(outArgs):
+        if result is not None:
+            result = [result]
+        else:
+            result = []
+
+        for outType, index in outTypeList:
+            outArgVal = do_args[index]
+            res = ApiArgUtil.castReferenceResult(outType, outArgVal)
+            result.append(res)
+
+        if len(result) == 1:
+            result = result[0]
+        else:
+            result = tuple(result)
+    return result
+
+
+def getStaticResult(self, method, apiClass, final_do):
+    mfn = self.__apimfn__()
+    if not isinstance(mfn, apiClass):
+        mfn = apiClass(self.__apiobject__())
+    result = method(mfn, *final_do)
+    return processApiResult(self, result, outArgs, outTypeList, do_args, argHelper)
+
+
+def getProxyResult(self, apiClass, method, final_do):
+    mfn = self.__apimfn__()
+    if not isinstance(mfn, apiClass):
+        mfn = apiClass(self.__apiobject__())
+    return getattr(apiClass, method)(mfn, *final_do)
+
+
 def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=None):
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
@@ -2146,193 +2301,124 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
     else:
         pymelName = newName
 
-    if argHelper.canBeWrapped():
+    if not argHelper.canBeWrapped():
+        return
 
-        if argHelper.isDeprecated():
-            _logger.debug("%s.%s is deprecated" % (apiClassName, methodName))
-        inArgs = argHelper.inArgs()
-        outArgs = argHelper.outArgs()
-        argList = argHelper.argList()
+    if argHelper.isDeprecated():
+        _logger.debug("%s.%s is deprecated" % (apiClassName, methodName))
+    inArgs = argHelper.inArgs()
+    outArgs = argHelper.outArgs()
+    argList = argHelper.argList()
 
-        getterArgHelper = argHelper.getGetterInfo()
+    getterArgHelper = argHelper.getGetterInfo()
 
-        if argHelper.hasOutput():
-            getterInArgs = []
-            # query method ( getter )
-            # if argHelper.getGetterInfo() is not None:
+    if argHelper.hasOutput():
+        getterInArgs = []
+        # query method ( getter )
+        # if argHelper.getGetterInfo() is not None:
 
-            # temporarily supress this warning, until we get a deeper level
+        # temporarily supress this warning, until we get a deeper level
 #            if getterArgHelper is not None:
 #                _logger.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
 #                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
 
+    else:
+        # edit method ( setter )
+        if getterArgHelper is None:
+            #_logger.debug( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
+            getterInArgs = []
+            undoable = False
         else:
-            # edit method ( setter )
-            if getterArgHelper is None:
-                #_logger.debug( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
-                getterInArgs = []
-                undoable = False
-            else:
-                getterInArgs = getterArgHelper.inArgs()
+            getterInArgs = getterArgHelper.inArgs()
 
-        # create the function
-        def wrappedApiFunc(self, *args):
-            do_args = []
-            outTypeList = []
+    # create the function
+    def wrappedApiFunc(self, *args):
 
-            undoEnabled = getterArgHelper is not None and cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
-            #outTypeIndex = []
+        if len(args) != len(inArgs):
+            raise TypeError, "%s() takes exactly %s arguments (%s given)" % (methodName, len(inArgs), len(args))
 
-            if len(args) != len(inArgs):
-                raise TypeError, "%s() takes exactly %s arguments (%s given)" % (methodName, len(inArgs), len(args))
+        undoEnabled = getterArgHelper is not None and cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
 
-            # get the value we are about to set
-            if undoEnabled:
-                getterArgs = []  # args required to get the current state before setting it
-                undo_args = []  # args required to reset back to the original (starting) state  ( aka "undo" )
-                missingUndoIndices = []  # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
-                inCount = 0
-                for name, argtype, direction in argList:
-                    if direction == 'in':
-                        arg = args[inCount]
-                        undo_args.append(arg)
-                        if name in getterInArgs:
-                            # gather up args that are required to get the current value we are about to set.
-                            # these args are shared between getter and setter pairs
-                            getterArgs.append(arg)
-                            # undo_args.append(arg)
-                        else:
-                            # store the indices for
-                            missingUndoIndices.append(inCount)
-                            # undo_args.append(None)
-                        inCount += 1
+        # get the value we are about to set
+        if undoEnabled:
+            getter = getattr(self, getterArgHelper.getPymelName())
+            undo_args = getUndoArgs(args, argList, getter, getterInArgs)
 
-                getter = getattr(self, getterArgHelper.getPymelName())
-                setter = getattr(self, pymelName)
+        do_args, final_do_args, outTypeList = getDoArgs(args, argList, len(inArgs))
 
-                try:
-                    getterResult = getter(*getterArgs)
-                except RuntimeError:
-                    _logger.error("the arguments at time of error were %r" % getterArgs)
-                    raise
+        if undoEnabled:
+            setter = getattr(self, pymelName)
+            undoItem = ApiUndoItem(setter, do_args, undo_args)
+            apiUndo.append(undoItem)
 
-                # when a command returns results normally and passes additional outputs by reference, the result is returned as a tuple
-                # otherwise, always as a list
-                if not isinstance(getterResult, tuple):
-                    getterResult = (getterResult,)
-
-                for index, result in zip(missingUndoIndices, getterResult):
-                    undo_args[index] = result
-
-            inCount = totalCount = 0
-            for name, argtype, direction in argList:
-                if direction == 'in':
-                    arg = args[inCount]
-                    do_args.append(argHelper.castInput(name, arg, self.__class__))
-                    inCount += 1
-                else:
-                    val = argHelper.initReference(argtype)
-                    do_args.append(val)
-                    outTypeList.append((argtype, totalCount))
-                    #outTypeIndex.append( totalCount )
-                totalCount += 1
-
-            if undoEnabled:
-                undoItem = ApiUndoItem(setter, do_args, undo_args)
-                apiUndo.append(undoItem)
-
-            # Do final SafeApiPtr => 'true' ptr conversion
-            final_do_args = []
-            for arg in do_args:
-                if isinstance(arg, api.SafeApiPtr):
-                    final_do_args.append(arg())
-                else:
-                    final_do_args.append(arg)
-            if argHelper.isStatic():
-                result = method(*final_do_args)
-            else:
-                if proxy:
-                    # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a
-                    # subclass of the api class being wrapped, however, the api object can still be used with this mfn explicitly.
-                    mfn = self.__apimfn__()
-                    if not isinstance(mfn, apiClass):
-                        mfn = apiClass(self.__apiobject__())
-                    result = method(mfn, *final_do_args)
-                else:
-                    result = method(self, *final_do_args)
-            result = argHelper.castResult(self, result)
-
-            if len(outArgs):
-                if result is not None:
-                    result = [result]
-                else:
-                    result = []
-
-                for outType, index in outTypeList:
-                    outArgVal = do_args[index]
-                    res = argHelper.castReferenceResult(outType, outArgVal)
-                    result.append(res)
-
-                if len(result) == 1:
-                    result = result[0]
-                else:
-                    result = tuple(result)
-            return result
-
-        wrappedApiFunc.__name__ = pymelName
-
-        _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex, undoable)
-
-        # format EnumValue defaults
-        defaults = []
-        for default in argHelper.getDefaults():
-            if isinstance(default, util.EnumValue):
-                defaults.append(str(default))
-            else:
-                defaults.append(default)
-
-        if defaults:
-            pass
-            #_logger.debug("defaults: %s" % defaults)
-
-        wrappedApiFunc = util.interface_wrapper(wrappedApiFunc, ['self'] + inArgs, defaults=defaults)
-        wrappedApiFunc._argHelper = argHelper
-
-        global _DEBUG_API_WRAPS
-        if _DEBUG_API_WRAPS:
-            import weakref
-            global _apiMethodWraps
-            classWraps = _apiMethodWraps.setdefault(apiClassName, {})
-            methodWraps = classWraps.setdefault(methodName, [])
-            methodWraps.append({'index': argHelper.methodIndex,
-                                'funcRef': weakref.ref(wrappedApiFunc),
-                                })
-
-        # do the debug stuff before turning into a classmethod, because you
-        # can't create weakrefs of classmethods (don't ask me why...)
         if argHelper.isStatic():
-            wrappedApiFunc = classmethod(wrappedApiFunc)
+            result = method(*final_do_args)
+        elif proxy:
+            # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a
+            # subclass of the api class being wrapped, however, the api object can still be used with this mfn explicitly.
+            mfn = self.__apimfn__()
+            if not isinstance(mfn, apiClass):
+                mfn = apiClass(self.__apiobject__())
+            result = method(mfn, *final_do_args)
+        else:
+            result = method(self, *final_do_args)
 
-        if argHelper.isDeprecated():
-            argDescriptions = []
-            for arg in argList:
-                argName = arg[0]
-                argType = arg[1]
-                if isinstance(argType, apicache.ApiEnum):
-                    argType = argType[0]
-                elif inspect.isclass(argType):
-                    argType = argType.__name__
-                argDescriptions.append('{} {}'.format(argType, argName))
-            argStr = ', '.join(argDescriptions)
-            methodDesc = "{}.{}({})".format(apiClassName, methodName, argStr)
-            beforeDeprecationWrapper = wrappedApiFunc
+        return processApiResult(self, result, outArgs, outTypeList, do_args, argHelper)
 
-            def wrappedApiFunc(*args, **kwargs):
-                import warnings
-                warnings.warn("{} is deprecated".format(methodDesc),
-                              DeprecationWarning, stacklevel=2)
-                return beforeDeprecationWrapper(*args, **kwargs)
-        return wrappedApiFunc
+    wrappedApiFunc.__name__ = pymelName
+
+    _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex, undoable)
+
+    # format EnumValue defaults
+    defaults = []
+    for default in argHelper.getDefaults():
+        if isinstance(default, util.EnumValue):
+            defaults.append(str(default))
+        else:
+            defaults.append(default)
+
+    if defaults:
+        pass
+        #_logger.debug("defaults: %s" % defaults)
+
+    wrappedApiFunc = util.interface_wrapper(wrappedApiFunc, ['self'] + inArgs, defaults=defaults)
+    wrappedApiFunc._argHelper = argHelper
+
+    global _DEBUG_API_WRAPS
+    if _DEBUG_API_WRAPS:
+        import weakref
+        global _apiMethodWraps
+        classWraps = _apiMethodWraps.setdefault(apiClassName, {})
+        methodWraps = classWraps.setdefault(methodName, [])
+        methodWraps.append({'index': argHelper.methodIndex,
+                            'funcRef': weakref.ref(wrappedApiFunc),
+                            })
+
+    # do the debug stuff before turning into a classmethod, because you
+    # can't create weakrefs of classmethods (don't ask me why...)
+    if argHelper.isStatic():
+        wrappedApiFunc = classmethod(wrappedApiFunc)
+
+    if argHelper.isDeprecated():
+        argDescriptions = []
+        for arg in argList:
+            argName = arg[0]
+            argType = arg[1]
+            if isinstance(argType, apicache.ApiEnum):
+                argType = argType[0]
+            elif inspect.isclass(argType):
+                argType = argType.__name__
+            argDescriptions.append('{} {}'.format(argType, argName))
+        argStr = ', '.join(argDescriptions)
+        methodDesc = "{}.{}({})".format(apiClassName, methodName, argStr)
+        beforeDeprecationWrapper = wrappedApiFunc
+
+        def wrappedApiFunc(*args, **kwargs):
+            import warnings
+            warnings.warn("{} is deprecated".format(methodDesc),
+                          DeprecationWarning, stacklevel=2)
+            return beforeDeprecationWrapper(*args, **kwargs)
+    return wrappedApiFunc
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
     """decorator for adding API docs"""
