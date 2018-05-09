@@ -2197,8 +2197,7 @@ def processApiArgs(args, argList, getter, setter, getterInArgs):
     return do_args, final_do_args, outTypeList
 
 
-def processApiResult(self, result, outArgs, outTypeList, do_args, argHelper):
-    result = argHelper.castResult(self, result)
+def processApiResult(result, outArgs, outTypeList, do_args):
     if len(outArgs):
         if result is not None:
             result = [result]
@@ -2215,14 +2214,6 @@ def processApiResult(self, result, outArgs, outTypeList, do_args, argHelper):
         else:
             result = tuple(result)
     return result
-
-
-def getStaticResult(self, method, apiClass, final_do):
-    mfn = self.__apimfn__()
-    if not isinstance(mfn, apiClass):
-        mfn = apiClass(self.__apiobject__())
-    result = method(mfn, *final_do)
-    return processApiResult(self, result, outArgs, outTypeList, do_args, argHelper)
 
 
 def getProxyResult(self, apiClass, method, final_do=()):
@@ -2361,7 +2352,8 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         else:
             result = method(self, *final_do_args)
 
-        return processApiResult(self, result, outArgs, outTypeList, do_args, argHelper)
+        result = argHelper.castResult(self, result)
+        return processApiResult(result, outArgs, outTypeList, do_args)
 
     wrappedApiFunc.__name__ = pymelName
 
