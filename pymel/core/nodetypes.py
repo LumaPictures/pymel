@@ -34,6 +34,7 @@ from system import namespaceInfo as _namespaceInfo, FileReference as _FileRefere
 from pymel.util.enum import Enum, EnumValue
 
 _thisModule = sys.modules[__name__]
+
 _f = _factories
 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
@@ -756,18 +757,14 @@ class DependNode(general.PyNode):
         """
         _factories.registerVirtualClass(cls, nameRequired)
 
-#}
 
-if versions.current() >= versions.v2011:
-    class ContainerBase(DependNode):
-        pass
+class ContainerBase(DependNode):
+    pass
 
-    class Entity(ContainerBase):
-        pass
 
-else:
-    class Entity(DependNode):
-        pass
+class Entity(ContainerBase):
+    pass
+
 
 class DagNode(Entity):
 
@@ -1864,6 +1861,8 @@ class Shape(DagNode):
         if 'shape' not in kwargs and 's' not in kwargs:
             kwargs['s'] = True
         super(Shape, self).setParent(*args, **kwargs)
+
+
 # class Joint(Transform):
 #    pass
 
@@ -2418,6 +2417,7 @@ class Joint(Transform):
     disconnect = _factories.functionFactory(cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory(cmds.insertJoint, rename='insert')
 
+
 if versions.isUnlimited():
     class FluidEmitter(Transform):
         fluidVoxelInfo = _factories.functionFactory(cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
@@ -2426,6 +2426,7 @@ if versions.isUnlimited():
         saveFluid = _factories.functionFactory(cmds.saveFluid, rename='saveFluid')
         setFluidAttr = _factories.functionFactory(cmds.setFluidAttr, rename='setFluidAttr')
         getFluidAttr = _factories.functionFactory(cmds.getFluidAttr, rename='getFluidAttr')
+
 
 class RenderLayer(DependNode):
 
@@ -2453,6 +2454,7 @@ class RenderLayer(DependNode):
     def setCurrent(self):
         cmds.editRenderLayerGlobals(currentRenderLayer=self)
 
+
 class DisplayLayer(DependNode):
 
     def listMembers(self, fullNames=True):
@@ -2469,6 +2471,7 @@ class DisplayLayer(DependNode):
 
     def setCurrent(self):
         cmds.editDisplayLayerMembers(currentDisplayLayer=self)
+
 
 class Constraint(Transform):
 
@@ -2490,6 +2493,7 @@ class Constraint(Transform):
         args = list(targetObjects) + [constraintObj]
         return inFunc(*args, **{'query': True, 'weight': True})
 
+
 class GeometryShape(Shape):
 
     def __getattr__(self, attr):
@@ -2499,6 +2503,7 @@ class GeometryShape(Shape):
         except general.MayaComponentError:
             # print "getting super", attr
             return super(GeometryShape, self).__getattr__(attr)
+
 
 class DeformableShape(GeometryShape):
 
@@ -2552,10 +2557,15 @@ class DeformableShape(GeometryShape):
             _numEPs_generatedFunc.__doc__ = doc
         return _numEPs_generatedFunc
 
+
 class ControlPoint(DeformableShape):
     pass
+
+
 class CurveShape(DeformableShape):
     pass
+
+
 class NurbsCurve(CurveShape):
     _componentAttributes = {'u': general.NurbsCurveParameter,
                             'cv': general.NurbsCurveCV,
@@ -2645,6 +2655,7 @@ NurbsCurve.numEPs = \
 
 class SurfaceShape(ControlPoint):
     pass
+
 
 class NurbsSurface(SurfaceShape):
     _componentAttributes = {'u': (general.NurbsSurfaceRange, 'u'),
@@ -3028,6 +3039,7 @@ def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
         return baseMethod(self, *args, **kwargs)
     methodWrapForEmptyMesh.__name__ = resultName
     return methodWrapForEmptyMesh
+
 """
 for _apiMethodName in '''numColorSets
                     numFaceVertices
@@ -3037,6 +3049,7 @@ for _apiMethodName in '''numColorSets
     _wrappedFunc = _makeApiMethodWrapForEmptyMesh(_apiMethodName)
     setattr(Mesh, _wrappedFunc.__name__, _wrappedFunc)
 """
+
 class Subdiv(SurfaceShape):
 
     _componentAttributes = {'smp': general.SubdVertex,
@@ -3063,9 +3076,11 @@ class Subdiv(SurfaceShape):
     def cleanTopology(self):
         cmds.subdCleanTopology(self)
 
+
 class Lattice(ControlPoint):
     _componentAttributes = {'pt': general.LatticePoint,
                             'points': general.LatticePoint}
+
 
 class Particle(DeformableShape):
     __apicls__ = _api.MFnParticleSystem
@@ -3080,9 +3095,9 @@ class Particle(DeformableShape):
         return cmds.particle(self, q=1, count=1)
     num = pointCount
 
+
 class SelectionSet(_api.MSelectionList):
     apicls = _api.MSelectionList
-    pass  # __metaclass__ = _factories.MetaMayaTypeWrapper
 
     def __init__(self, objs):
         """ can be initialized from a list of objects, another SelectionSet, an MSelectionList, or an ObjectSet"""
@@ -3661,6 +3676,7 @@ class ObjectSet(Entity):
         '''
         return bool(cmds.sets(self, q=True, r=True))
 
+
 class ShadingEngine(ObjectSet):
 
     @classmethod
@@ -3679,6 +3695,7 @@ class ShadingEngine(ObjectSet):
                 raise TypeError("%s has no shape, and %s objects cannot contain Transforms" % (itemStr, cls.__name__))
         else:
             return super(ShadingEngine, cls)._getApiObjs(item, tryCast=tryCast)
+
 
 class AnimLayer(ObjectSet):
 
@@ -3700,6 +3717,7 @@ class AnimLayer(ObjectSet):
 
     getAttributes = getAttribute
 
+
 class AnimCurve(DependNode):
 
     def addKeys(self, time, values, tangentInType='linear', tangentOutType='linear', unit=None):
@@ -3719,8 +3737,11 @@ class AnimCurve(DependNode):
         # just because MFnAnimCurve.numKeyframes is deprecated...
         return self.numKeys()
 
+
 class GeometryFilter(DependNode):
     pass
+
+
 class SkinCluster(GeometryFilter):
 
     def getWeights(self, geometry, influenceIndex=None):
@@ -3797,6 +3818,7 @@ class SkinCluster(GeometryFilter):
     def numInfluenceObjects(self):
         return self._influenceObjects()[0]
 
+
 # TODO: if nucleus/symmetryConstraint bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
 #   - remove hard-code setting of Nucleus's parent to DependNode
@@ -3815,14 +3837,17 @@ if _apicache.SYMMETRY_CONSTRAINT_MFNDAG_BUG:
     class SymmetryConstraint(DependNode):
         pass
 
+
 # TODO: if hikHandle bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
 #   - remove hard-code setting of HikHandle's parent to Transform
 class HikHandle(Transform):
     pass
 
+
 class JointFfd(DependNode):
     pass
+
 
 class TransferAttributes(DependNode):
     pass
