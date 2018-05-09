@@ -165,32 +165,71 @@ def functionTemplateFactory(funcNameOrObject, returnFunc=None, module=None,
     _addCmdDocs(newFunc, funcName)
 
 
+def _getModulePath(module):
+    if isinstance(module, basestring):
+        this = sys.modules[__name__]
+        root = os.path.dirname(os.path.dirname(this.__file__))
+        return os.path.join(root, *module.split('.')) + '.py'
+    else:
+        return module.__file__.rsplit('.', 1)[0] + '.py'
+
+
+START_MARKER = '# ------ Do not edit below this line --------'
+END_MARKER =   '# ------ Do not edit above this line --------'
+
+
+def _resetModule(module):
+    source = _getModulePath(module)
+    with open(source, 'r') as f:
+        text = f.read()
+
+    lines = text.split('\n')
+
+    def trim(begin):
+        start = None
+        for i, line in enumerate(lines[begin:]):
+            i = begin + i
+            if start is None and line == START_MARKER:
+                start = i
+
+            elif line == END_MARKER:
+                assert start is not None
+                print "removing", start, i
+                import pprint
+                pprint.pprint(lines[start:i + 1])
+                lines[start:i + 1] = []
+                return start
+
+        # end of lines
+        if start is not None:
+            lines[start:] = []
+        return None
+
+    begin = 0
+    while begin is not None:
+        begin = trim(begin)
+
+    print "writing to", source
+    with open(source, 'w') as f:
+        f.write('\n'.join(lines))
+    return lines
+
+
 def _writeToModule(new, module):
-    if new:
-        if isinstance(module, basestring):
-            this = sys.modules[__name__]
-            root = os.path.dirname(os.path.dirname(this.__file__))
-            source = os.path.join(root, *module.split('.')) + '.py'
-        else:
-            source = module.__file__.rsplit('.', 1)[0] + '.py'
+    source = _getModulePath(module)
+    with open(source, 'r') as f:
+        text = f.read()
 
-        if os.path.exists(source):
-            with open(source, 'r') as f:
-                text = f.read()
-        else:
-            text = ''
+    pos = text.find(START_MARKER)
+    if pos != -1:
+        text = text[:pos]
 
-        marker = '# ------ Do not edit below this line --------'
+    text += START_MARKER + new
 
-        pos = text.find(marker)
-        if pos != -1:
-            text = text[:pos]
-
-        text += marker + new
-
-        print "writing to", source
-        with open(source, 'w') as f:
-            f.write(text)
+    print "writing to", source
+    with open(source, 'w') as f:
+        f.write(text)
+    return text
 
 
 def generateFunctions(moduleName, returnFunc=None):
@@ -251,7 +290,8 @@ def generateAllFunctions():
     generateUIFunctions()
 
 
-def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True, overloadIndex=None, deprecated=False):
+def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
+                  overloadIndex=None, deprecated=False):
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
     no special API classes required.  Inputs go in the front door, and outputs come out the back door.
@@ -347,6 +387,8 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True, overloadInd
         else:
             return str(t)
 
+    unitType = argHelper.methodInfo['returnInfo'].get('unitType', None)
+
     return {
         'type': 'api',
         'name': newName,
@@ -362,7 +404,7 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True, overloadInd
         'proxy': proxy,
         'undoable': getterArgHelper is not None,
         'returnType': argHelper.methodInfo['returnType'],
-        'unitType': argHelper.methodInfo['returnInfo'].get('unitType', None),
+        'unitType': repr(str(unitType)) if unitType else None,
         'deprecated': deprecated,
         'signature': signature
     }
@@ -449,11 +491,13 @@ class MetaMayaTypeWrapper(object):
         def __delete__(self, instance):
             raise AttributeError, "class constant cannot be deleted"
 
-    def __init__(self, classname, parentClassname, parentMethods, parentApicls):
+    def __init__(self, classname, existingClass, parentClasses, parentMethods, parentApicls):
         self.classname = classname
-        self.parentClassname = parentClassname
+        self.parentClassname = parentClasses[0]
         self.herited = parentMethods
         self.parentApicls = parentApicls
+        self.parentClasses = parentClasses
+        self.existingClass = existingClass
 
     def getTemplateData(self, attrs, methods):
         """ Create a new class of metaClassConstants type """
@@ -481,6 +525,9 @@ class MetaMayaTypeWrapper(object):
                 factories.apiClassNamesToPyNodeNames[apicls.__name__] = self.classname
 
             if apicls is self.parentApicls:
+                # If this class's api class is the same as the parent, the methods
+                # are already handled.
+                # FIXME: should this be extended to check all parent classes?
                 # FIXME: assert that there is nothing explicit in the mel-api bridge
                 return attrs, methods
 
@@ -568,7 +615,7 @@ class MetaMayaTypeWrapper(object):
                     # gets wrapped for Transform, Place3dTexture,
                     # HikGroundPlane, etc...
                     # Figure out why this happens, and stop it!
-                    if pymelName not in self.herited:
+                    if pymelName not in self.herited and not hasattr(self.existingClass, pymelName):
                         if pymelName not in methods:
                             #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                             doc = wrapApiMethod(apicls, methodName, newName=pymelName,
@@ -766,9 +813,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             attrs['__melcmd_isinfo__'] = infoCmd
 
             filterAttrs = {'name', 'getName', 'setName'}.union(attrs.keys())
+            filterAttrs.update(methods.keys())
             filterAttrs.update(factories.overrideMethods.get(self.parentClassname, []))
 
-            # parentClasses = [x.__name__ for x in inspect.getmro(newcls)[1:]]
             for flag, flagInfo in cmdInfo['flags'].items():
                 # don't create methods for query or edit, or for flags which only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
@@ -785,8 +832,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         methodName = 'get' + util.capitalize(flag)
                         factories.classToMelMap[self.classname].append(methodName)
 
-                        if methodName not in filterAttrs: # and \
-                                #(not hasattr(newcls, methodName) or self.isMelMethod(methodName, parentClasses)):
+                        if methodName not in filterAttrs and \
+                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
 
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here.
@@ -831,8 +878,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
                         factories.classToMelMap[self.classname].append(methodName)
 
-                        if methodName not in filterAttrs: # and \
-                                #(not hasattr(newcls, methodName) or self.isMelMethod(methodName, parentClasses)):
+                        if methodName not in filterAttrs and \
+                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
                             if not factories.apiToMelData.has_key((self.classname, methodName)) \
                                     or factories.apiToMelData[(self.classname, methodName)].get('melEnabled', False) \
                                     or not factories.apiToMelData[(self.classname, methodName)].get('enabled', True):
@@ -861,11 +908,11 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         """
         return util.uncapitalize(self.classname), False
 
-    def isMelMethod(self, methodName, parentClassList):
+    def isMelMethod(self, methodName):
         """
         Deteremine if the passed method name exists on a parent class as a mel method
         """
-        for classname in parentClassList:
+        for classname in self.parentClasses:
             if methodName in factories.classToMelMap[classname]:
                 return True
         return False
@@ -964,7 +1011,8 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
         template = env.get_template('nodeclass.py')
         text = template.render(methods=methods, attrs=attrs,
                                classname=self.classname,
-                               parents=self.parentClassname)
+                               parents=self.parentClassname,
+                               existing=self.existingClass is not None)
         return text, methodNames, apicls
         # FIXME:
         # PyNodeType = super(MetaMayaNodeWrapper, self).render()
@@ -1014,66 +1062,75 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
         return attrs['__melui__'], False
 
 
-def generatePyNode(dynModule, mayaType, parentMayaType, parentMethods, parentApicls, extraAttrs=None):
+def generatePyNode(mayaType, parentMayaTypes, parentMethods, parentApicls, extraAttrs=None):
     """
     create a PyNode type for a maya node.
 
     Parameters
     ----------
     mayaType : str
-    parentMayaType : str
+    parentMayaTypes : List[str]
     """
-    # dynModule is generally pymel.core.nodetypes, but don't want to rely on
-    # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
-    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\
-        pymelTypeNameToMayaTypeName
+    import pymel.core.nodetypes as nt
 
     def getPymelTypeName(mayaTypeName):
-        pymelTypeName = mayaTypeNameToPymelTypeName.get(mayaTypeName)
+        pymelTypeName = nt.mayaTypeNameToPymelTypeName.get(mayaTypeName)
         if pymelTypeName is None:
             pymelTypeName = str(util.capitalize(mayaTypeName))
             pymelTypeNameBase = pymelTypeName
             num = 1
-            while pymelTypeName in pymelTypeNameToMayaTypeName:
+            while pymelTypeName in nt.pymelTypeNameToMayaTypeName:
                 num += 1
                 pymelTypeName = pymelTypeNameBase + str(num)
-            mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
-            pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
+            nt.mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
+            nt.pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
         return pymelTypeName
 
-    if parentMayaType == 'general.PyNode':
-        parentPyNodeTypeName = 'general.PyNode'
-    else:
-        # unicode is not liked by metaNode
-        parentPyNodeTypeName = mayaTypeNameToPymelTypeName.get(parentMayaType)
-        if parentPyNodeTypeName is None:
-            # FIXME:
-            # _logger.raiseLog(_logger.WARNING,
-            #                  'trying to create PyNode for maya type %r, but could'
-            #                  ' not find a registered PyNode for parent type %r' % (
-            #                      mayaType, parentMayaType))
-            parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    def getCachedPymelType(nodeType):
+        if nodeType == 'general.PyNode':
+            assert mayaType == 'dependNode'
+            return 'general.PyNode'
+        else:
+            result = nt.mayaTypeNameToPymelTypeName.get(nodeType)
+            if result is None:
+                # FIXME:
+                # _logger.raiseLog(_logger.WARNING,
+                #                  'trying to create PyNode for maya type %r, but could'
+                #                  ' not find a registered PyNode for parent type %r' % (
+                #                      mayaType, parentMayaType))
+                # unicode is not liked by metaNode
+                return str(util.capitalize(nodeType))
+            else:
+                return result
+
+    parentPymelTypes = [getCachedPymelType(p) for p in parentMayaTypes]
     pyNodeTypeName = getPymelTypeName(mayaType)
+    pyNodeClass = getattr(nt, pyNodeTypeName, None)
 
     classDict = {'__melnode__': mayaType}
     if extraAttrs:
         classDict.update(extraAttrs)
 
-    template = MetaMayaNodeWrapper(pyNodeTypeName, parentPyNodeTypeName, parentMethods, parentApicls)
-    return template.render(classDict)
+    template = MetaMayaNodeWrapper(pyNodeTypeName, pyNodeClass, parentPymelTypes, parentMethods, parentApicls)
+    return template.render(classDict) + (pyNodeClass,)
 
 
 def generatePyNodes():
-    #submodules = ('transform', 'shadingDependNode', 'shape', 'abstractBaseCreate', 'polyBase', 'dependNode')
-
-    code = ''
-
     heritedMethods = {
         'general.PyNode': set()
     }
     apiClasses = {
         'general.PyNode': None
     }
+
+    # tally of additions made in middle of codde
+    offset = 0
+
+    if 'pymel.core.nodetypes' in sys.modules:
+        print "Warning: nodetypes already imported"
+
+    # reset the modle
+    lines = _resetModule('pymel.core.nodetypes')
 
     for mayaType, parents, children in factories.nodeHierarchy:
 
@@ -1096,9 +1153,24 @@ def generatePyNodes():
         if factories.isMayaType(mayaType) or mayaType == 'dependNode':
             parentMethods = heritedMethods[parentMayaType]
             parentApicls = apiClasses[parentMayaType]
-            text, methods, apicls = generatePyNode(None, mayaType, parentMayaType, parentMethods, parentApicls)
-            code += text
+            text, methods, apicls, existingCls = generatePyNode(mayaType, parents, parentMethods, parentApicls)
+            newlines = text.split('\n')
+            if existingCls:
+                print existingCls
+                # if there is an existing class, slot the new lines after the class
+                srclines, line = inspect.getsourcelines(existingCls)
+                endline = line + len(srclines) - 1
+                endline += offset
+                newlines = [START_MARKER] + newlines + [END_MARKER]
+                # lines[endline:endline] = newlines
+                offset += len(newlines)
+            else:
+                lines += newlines
             heritedMethods[mayaType] = parentMethods.union(methods)
             apiClasses[mayaType] = apicls
 
-    _writeToModule(code, 'pymel.core.nodetypes')
+    source = _getModulePath('pymel.core.nodetypes')
+
+    print "writing to", source
+    with open(source, 'w') as f:
+        f.write('\n'.join(lines))

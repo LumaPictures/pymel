@@ -1,5 +1,6 @@
-
+{% if not existing %}
 class {{ classname }}({{ parents }}):
+{% endif %}
 {% if attrs %}
   {% for attr in attrs %}
     {{ attr.name }} = {{ attr.value }}
@@ -29,6 +30,8 @@ class {{ classname }}({{ parents }}):
     {% endif %}
     {% if method.deprecated %}
     @_f.deprecated
+    {% else %}
+    @_f.addApiDocs(_api.{{ method.apiClass }}, '{{ method.apiName }}')
     {% endif %}
     def {{ method.name }}({{ method.signature }}):
     {% if method.argList %}
