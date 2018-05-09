@@ -141,10 +141,16 @@ class SafeApiPtr(object):
         # asFloatPtr() result to feed into getFloatArrayValue.
         # Also, note that asFloatPtr() must be called BEFORE asFloat2Ptr() -
         # if it is called after, the float2 ptr seems to get reset!
+        self._sizedIndexGetter = None
+        self._sizedIndexSetter = None
         if asTypeNPtr:
             self._nPtr = getattr(self.scriptUtil, 'as' + capValue +
                                  str(size) + 'Ptr')()
             self._ptr = self._nPtr
+            self._sizedIndexGetter = getattr(
+                MScriptUtil, 'get' + capValue + str(size) + 'ArrayItem', None)
+            self._sizedIndexSetter = getattr(
+                MScriptUtil, 'set' + capValue + str(size) + 'ArrayItem', None)
         else:
             self._ptr = self._normPtr
         self._getter = getattr(MScriptUtil, 'get' + capValue, None)
@@ -172,12 +178,23 @@ class SafeApiPtr(object):
     def __getitem__(self, index):
         if index < 0 or index > (self.size - 1):
             raise IndexError(index)
-        return self._indexGetter(self._normPtr, index)
+        if self._sizedIndexGetter is not None:
+            # as of 2018, MSCriptUtil won't return the right result if we don't
+            # use, ie, getFloat2ArrayItem(nPtr, 0, 1) - just doing, ie,
+            # getFloatArrayItem(normPtr, 1) won't work
+            return self._sizedIndexGetter(self._nPtr, index // self.size,
+                                          index % self.size)
+        else:
+            return self._indexGetter(self._normPtr, index)
 
     def __setitem__(self, index, value):
         if index < 0 or index > (self.size - 1):
             raise IndexError(index)
-        return self._indexSetter(self._normPtr, index, value)
+        if self._sizedIndexSetter is not None:
+            return self._sizedIndexSetter(self._nPtr, index // self.size,
+                                          index % self.size, value)
+        else:
+            return self._indexSetter(self._normPtr, index, value)
 
     def __len__(self):
         return self.size

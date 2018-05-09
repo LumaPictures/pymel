@@ -6,13 +6,12 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 
 
 """
-from __future__ import with_statement
-
 import sys
 import os
 import re
 import itertools
 import inspect
+import collections
 
 import pymel.internal.pmcmds as cmds
 import pymel.util as _util
@@ -1366,6 +1365,18 @@ def parent(*args, **kwargs):
     -------
     List[nodetypes.DagNode]
     """
+
+    # args may have unknown grouping, so flatten first... even commands
+    # list this will work (and parent under 'group'):
+    #   cmds.parent(['pCube1', 'pCube2'], 'pCube3', ['pCube4', 'group'])
+    flat_args = []
+    for arg in args:
+        if _util.isIterable(arg):
+            flat_args.extend(arg)
+        else:
+            flat_args.append(arg)
+    args = flat_args
+
     if args and args[-1] is None:
         if not kwargs.get('w', kwargs.get('world', True)):
             raise ValueError('No parent given, but parent to world explicitly set to False')
@@ -1385,7 +1396,6 @@ def parent(*args, **kwargs):
 
     if args:
         nodes = args
-        origPyNodes
         if 'w' in kwargs or removeObj:
             origPyNodes = nodes
         else:
@@ -2124,6 +2134,48 @@ class MayaInstanceError(MayaNodeError):
             msg += ": %r" % (self.node)
         return msg
 
+class DeletedMayaNodeError(MayaNodeError):
+    def __init__(self, node=None):
+        if hasattr(node, '_name'):
+            # Since the object has been deleted, normal name lookup for
+            # DependNode may not work
+            node = node._name
+        super(DeletedMayaNodeError, self).__init__(node=node)
+
+    def __str__(self):
+        if self.node:
+            # using this formatting for backwards compatibility
+            msg = "object %s no longer exists" % self.node
+        else:
+            msg = "object no longer exists"
+        return msg
+
+    @classmethod
+    def handle(cls, pynode):
+        option  = _startup.pymel_options['deleted_pynode_name_access']
+        if option == 'ignore':
+            return
+        errorInst = cls(pynode)
+
+        if option == 'warn_deprecated':
+            import warnings
+            # Don't use DeprecationWarning, as this is ignored as of python-2.7
+            warnings.warn(FutureWarning(
+                "The default value for 'deleted_pynode_name_access' as "
+                "'warn' is deprecated, and will soon be changed to "
+                "'error'.  To remove this warning, update your personal"
+                "pymel.conf and change it to 'error' to get the new behavior "
+                "(preferred) or 'warn' to keep the old behavior."))
+            option = 'warn'
+        if option == 'warn':
+            _logger.warn(str(errorInst))
+        elif option == 'error':
+            raise errorInst
+        else:
+            raise ValueError(
+                "unrecognized value for 'deleted_pynode_name_access': {}"
+                .format(option))
+
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
 
@@ -2616,7 +2668,10 @@ class PyNode(_util.ProxyUnicode):
     def exists(self, **kwargs):
         "objExists"
         try:
-            if self.__apiobject__():
+            # use __apimobject__, not __apiobject__, because that's the one
+            # that calls _api.isValidMObjectHandle (ie, we don't want to get
+            # an MDagPath, which won't do that validation)
+            if self.__apimobject__():
                 return True
         except MayaObjectError:
             pass
@@ -3841,6 +3896,11 @@ class Attribute(PyNode):
             except TypeError:
                 return False
 
+    def getDefault(self):
+        result = cmds.attributeQuery(self.attrName(), node=self.node(), listDefault=True)
+        if isinstance(result, list) and len(result) == 1 and not self.isCompound():
+            return result[0]
+        return result
 #}
 #--------------------------
 # xxx{ Ranges
@@ -4458,8 +4518,8 @@ class Component(PyNode):
     def _makeComponentHandle(self):
         component = None
         # try making from MFnComponent.create, if _mfncompclass has it defined
-        if ('create' in dir(self._mfncompclass) and
-                self._apienum__ not in self._componentEnums + [None]):
+        if (hasattr(self._mfncompclass, 'create') 
+            and self._apienum__ not in self._componentEnums + [None]):
             try:
                 component = self._mfncompclass().create(self._apienum__)
             # Note - there's a bug with kSurfaceFaceComponent - can't use create
@@ -4798,37 +4858,48 @@ class DimensionedComponent(Component):
             index = ComponentIndex(index + (HashableSlice(None),))
 
         indices = [ComponentIndex(label=index.label)]
-        for dimIndex in index:
-            if isinstance(dimIndex, (slice, HashableSlice)):
-                newIndices = []
-                for oldPartial in indices:
-                    newIndices.extend(self._sliceToIndices(dimIndex,
-                                                           partialIndex=oldPartial))
-                indices = newIndices
-            elif _util.isIterable(dimIndex):
+        def flattenDimIndex(dimIndex, partialIndex):
+            if _util.isIterable(dimIndex):
                 if allowIterable:
-                    newIndices = []
-                    for oldPartial in indices:
-                        for indice in dimIndex:
-                            newIndices.append(oldPartial + (indice,))
-                    indices = newIndices
+                    for dimPiece in dimIndex:
+                        for indice in flattenDimIndex(dimPiece, partialIndex):
+                            yield indice
                 else:
                     raise IndexError(index)
+            elif isinstance(dimIndex, (slice, HashableSlice)):
+                for indice in self._sliceToIndices(dimIndex,
+                                                   partialIndex=oldPartial):
+                    yield indice
             elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
-                indices = [x + (self._translateNegativeIndice(dimIndex, x),)
-                           for x in indices]
+                yield partialIndex + (self._translateNegativeIndice(dimIndex, partialIndex),)
             else:
-                indices = [x + (dimIndex,) for x in indices]
+                yield partialIndex + (dimIndex,)
+
+        for dimIndex in index:
+            newIndices = []
+            for oldPartial in indices:
+                newIndices.extend(flattenDimIndex(dimIndex, oldPartial))
+            indices = newIndices
         return indices
 
     def _translateNegativeIndice(self, negIndex, partialIndex):
         raise NotImplementedError
 
+    # subclasses should not override this - override _getitem_overrideable
+    # instead
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
                              "specified component (ie, 'cube.vtx')")
+        # if this is an iteraTOR, not just an iterABLE, then
+        # _validateGetItemIndice will "use it up" while iterating. first,
+        # store it in a more "permanent" form
+        if isinstance(item, collections.Iterator):
+            item = tuple(item)
         self._validateGetItemIndice(item)
+        return self._getitem_overrideable(item)
+
+    def _getitem_overrideable(self, item):
         return self.__class__(self._node,
                               ComponentIndex(self._partialIndex + (item,)))
 
@@ -4903,6 +4974,16 @@ class DimensionedComponent(Component):
             else:
                 self._currentDimension = None
         return self._currentDimension
+
+    # Used by __add__ in subclasses
+    def _validate_add(self, other):
+        if not isinstance(other, type(self)):
+            raise TypeError("cannot add a {} and {} object".format(type(other),
+                                                                   type(self)))
+        if self.node() != other.node():
+            raise ValueError("cannot add {} objects for different nodes:"
+                             " {} and {}".format(type(self), self.node(),
+                                                 other.node()))
 
 class ComponentIndex(tuple):
 
@@ -5393,6 +5474,29 @@ class Component1D(DiscreteComponent):
         """
         for compIndex in self._compIndexObjIter():
             yield compIndex[0]
+
+    # TODO: also add __add__ / __iadd__ for 2D / 3D components
+    def __add__(self, other):
+        self._validate_add(other)
+        newMfnComp = self._mfncompclass()
+        newMObj = newMfnComp.create(self._apienum__)
+        indices = _api.MIntArray()
+        for compObj in (self, other):
+            otherMfnComp = compObj.__apicomponent__()
+            otherMfnComp.getElements(indices)
+            newMfnComp.addElements(indices)
+        return type(self)(self.__apimdagpath__(), newMObj)
+
+    def __iadd__(self, other):
+        self._validate_add(other)
+        indices = _api.MIntArray()
+        otherMfnComp = other.__apicomponent__()
+        otherMfnComp.getElements(indices)
+        self.__apicomponent__().addElements(indices)
+        # clean up possibly out-of-date cached items
+        self.__apiobjects__.pop('ComponentIndex', None)
+        self._indices = None
+        return self
 
 class Component2D(DiscreteComponent):
     _mfncompclass = _api.MFnDoubleIndexedComponent
@@ -6101,11 +6205,7 @@ class NurbsSurfaceRange(NurbsSurfaceIsoparm):
     _ComponentLabel__ = ("u", "v", "uv")
     _apienum__ = _api.MFn.kSurfaceRangeComponent
 
-    def __getitem__(self, item):
-        if self.currentDimension() is None:
-            raise IndexError("Indexing only allowed on an incompletely "
-                             "specified component")
-        self._validateGetItemIndice(item)
+    def _getitem_overrideable(self, item):
         # You only get a NurbsSurfaceRange if BOTH indices are slices - if
         # either is a single value, you get an isoparm
         if (not isinstance(item, (slice, HashableSlice)) or
@@ -6113,7 +6213,7 @@ class NurbsSurfaceRange(NurbsSurfaceIsoparm):
              not isinstance(self._partialIndex[0], (slice, HashableSlice)))):
             return NurbsSurfaceIsoparm(self._node, self._partialIndex + (item,))
         else:
-            return super(NurbsSurfaceRange, self).__getitem__(item)
+            return super(NurbsSurfaceRange, self)._getitem_overrideable(item)
 
 class NurbsSurfaceCV(Component2D):
     _ComponentLabel__ = "cv"

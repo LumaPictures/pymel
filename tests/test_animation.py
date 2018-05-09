@@ -299,3 +299,34 @@ class TestJoint(testing.TestCaseExtended):
         pm.joint(joint, e=1, stz=20.2)
         self.assertEqual(pm.joint(joint, q=1, stz=1), 20.2)
         pm.delete(joint)
+
+
+class test_ikHandle(unittest.TestCase):
+    def test_nonUniqueName(self):
+        cmds.file(f=1, new=1)
+
+        j1 = cmds.createNode('joint', name='j1')
+        j2 = cmds.createNode('joint', name='j2', parent=j1)
+        j3 = cmds.createNode('joint', name='j3', parent=j2)
+        j4 = cmds.createNode('joint', name='j4', parent=j3)
+        cmds.select(j1, j4)
+        ikh1 = pm.ikHandle(name='ikh')
+        self.assertEqual(len(ikh1), 2)
+        self.assertTrue(isinstance(ikh1[0], pm.nt.IkHandle))
+        self.assertTrue(isinstance(ikh1[1], pm.nt.IkEffector))
+        self.assertEqual(ikh1[0].nodeName(), 'ikh')
+
+        pm.group(ikh1, name='theGroup')
+
+        self.assertEqual(cmds.ls('*ikh', long=True), ['|theGroup|ikh'])
+
+        j3 = cmds.createNode('joint', name='j3')
+        j4 = cmds.createNode('joint', name='j4', parent=j3)
+        cmds.select(j3, j4)
+        ikh2 = pm.ikHandle(name='ikh')
+
+        self.assertEqual(len(ikh2), 2)
+        self.assertTrue(isinstance(ikh2[0], pm.nt.IkHandle))
+        self.assertTrue(isinstance(ikh2[1], pm.nt.IkEffector))
+        self.assertEqual(ikh2[0].nodeName(), 'ikh')
+

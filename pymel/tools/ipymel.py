@@ -41,9 +41,7 @@ import IPython
 ipy_ver = IPython.__version__.split('.')
 ipy_ver = [int(x) if x.isdigit() else x for x in ipy_ver]
 
-ver11 = ipy_ver >= [0, 11]
-
-if not ver11:
+if ipy_ver < [0, 11]:
     def get_ipython():
         import IPython.ipapi
         return IPython.ipapi.get()
@@ -56,13 +54,28 @@ if not ver11:
 
     def get_colors(obj):
         return color_table[obj.rc.colors].colors
-else:
+else:  # >= [0, 11]
     import IPython.utils.coloransi as coloransi
     from IPython.core.page import page
     from IPython.core.error import UsageError
 
     def get_colors(obj):
         return color_table[ip.colors].colors
+
+if ipy_ver >= [0, 13]:
+    def define_magic(interpreter, function):
+        def get_ipython():
+            return interpreter
+        from IPython.core.magic import register_line_magic
+        register_line_magic(function)
+else:
+    def define_magic(interpreter, function):
+        interpreter.define_magic(function.__name__, function)
+
+try:
+    from IPython.core.error import TryNext
+except ImportError:
+    from IPython.ipapi import TryNext
 
 
 Colors = coloransi.TermColors
@@ -96,9 +109,11 @@ import sys
 #   ip.ex("from pymel.core import *")
 # from pymel import core
 
-# ...maya.cmds is ok to import before maya is started up, though - it just
-# won't be populated yet...
-import maya.cmds as cmds
+# we also can't even use maya.cmds, because it doesn't work in anything other
+# than the main thread... and most of the tab-completion stuff runs in a
+# subthread... so api it is!
+# Use api2 because it's faster...
+import maya.api.OpenMaya as om
 
 _scheme_default = 'Linux'
 
@@ -145,18 +160,7 @@ LightBGColors = ColorScheme(
 # Build table of color schemes (needed by the dag_parser)
 color_table = ColorSchemeTable([NoColor, LinuxColors, LightBGColors],
                                _scheme_default)
-
-
-def finalPipe(obj):
-    """
-    DAG nodes with children should end in a pipe (|), so that each successive pressing
-    of TAB will take you further down the DAG hierarchy.  this is analagous to TAB
-    completion of directories, which always places a final slash (/) after a directory.
-    """
-
-    if cmds.listRelatives(obj):
-        return obj + "|"
-    return obj
+color_table['Neutral'] = LightBGColors
 
 def splitDag(obj):
     buf = obj.split('|')
@@ -176,22 +180,88 @@ def expand(obj):
     """
     return (obj + '*', obj + '*:*', obj + '*:*:*')
 
-def complete_node_with_no_path(node):
-    tmpres = cmds.ls(expand(node))
-    # print "node_with_no_path", tmpres, node, expand(node)
-    res = []
-    for x in tmpres:
-        x = finalPipe(x.split('|')[-1])
-        #x = finalPipe(x)
-        if x not in res:
-            res.append(x)
-    # print res
-    return res
+def api_ls(args, dagOnly, long=False):
+    '''Because the tab completer runs in a subthread, and cmds.ls doesn't
+    seem to work very well from a subthread, use maya.api.OpenMaya'''
+    sel = om.MSelectionList()
+
+    if isinstance(args, basestring):
+        args = [args]
+
+    for arg in args:
+        # if it doesn't exist, MSelectionList.add will raise an error -
+        # ignore that
+        try:
+            sel.add(arg)
+        except Exception:
+            pass
+    if not long and not dagOnly:
+        return list(sel.getSelectionStrings())
+
+    # long is only used when getting nodes, not plugs, so ignore that case
+    # for now...
+    results = []
+    mfnDep = om.MFnDependencyNode()
+    for i in xrange(sel.length()):
+        try:
+            dagPath = sel.getDagPath(i)
+        except TypeError:
+            if dagOnly:
+                continue
+            mobj = sel.getDependNode(i)
+            mfnDep.setObject(mobj)
+            results.append(mfnDep.name())
+        else:
+            if long:
+                results.append(dagPath.fullPathName())
+            else:
+                results.append(dagPath.partialPathName())
+    return results
+
+def api_children(path):
+    sel = om.MSelectionList()
+    try:
+        sel.add(path)
+    except RuntimeError:
+        return []
+    if not sel.length():
+        return []
+    try:
+        dagPath = sel.getDagPath(0)
+    except TypeError:
+        return []
+    return [om.MFnDagNode(dagPath.child(i)).fullPathName()
+            for i in xrange(dagPath.childCount())]
+
+def api_listAttr(path, shortNames=False):
+    sel = om.MSelectionList()
+    try:
+        sel.add(path)
+    except RuntimeError:
+        return []
+    if not sel.length():
+        return []
+    try:
+        plug = sel.getPlug(0)
+    except TypeError:
+        try:
+            node = om.MFnDependencyNode(sel.getDependNode(0))
+        except RuntimeWarning:
+            return []
+        attrs = [om.MFnAttribute(node.attribute(i))
+                 for i in xrange(node.attributeCount())]
+        if shortNames:
+            return [x.shortName for x in attrs]
+        else:
+            return [x.name for x in attrs]
+    else:
+        return [plug.child(i).partialName(useLongNames=not shortNames)
+                for i in xrange(plug.numChildren())]
 
 def complete_node_with_attr(node, attr):
     # print "noe_with_attr", node, attr
-    long_attrs = cmds.listAttr(node)
-    short_attrs = cmds.listAttr(node, shortNames=1)
+    long_attrs = api_listAttr(node)
+    short_attrs = api_listAttr(node, shortNames=1)
     # if node is a plug  ( 'persp.t' ), the first result will be the passed plug
     if '.' in node:
         attrs = long_attrs[1:] + short_attrs[1:]
@@ -199,43 +269,56 @@ def complete_node_with_attr(node, attr):
         attrs = long_attrs + short_attrs
     return [u'%s.%s' % (node, a) for a in attrs if a.startswith(attr)]
 
-def pymel_name_completer(self, event):
+def pymel_dag_completer(self, event):
+    return pymel_name_completer(self, event, dagOnly=True)
 
-    def get_children(obj):
+def pymel_name_completer(self, event, dagOnly=False):
+    def get_children(obj, dagOnly):
         path, partialObj = splitDag(obj)
         # print "getting children", repr(path), repr(partialObj)
 
-        try:
-            fullpath = cmds.ls(path, l=1)[0]
-            if not fullpath:
+        #try:
+        if True:
+            fullpaths = api_ls(path, dagOnly, long=True)
+            if not fullpaths or not fullpaths[0]:
                 return []
-            children = cmds.listRelatives(fullpath, f=1, c=1)
+            fullpath = fullpaths[0]
+            children = api_children(fullpath)
             if not children:
                 return []
-        except:
-            return []
+        # except Exception:
+        #     return []
 
         matchStr = fullpath + '|' + partialObj
-        # print "children", children
-        # print matchStr, fullpath, path
         matches = [x.replace(fullpath, path, 1) for x in children if x.startswith(matchStr)]
-        # print matches
         return matches
 
     # print "\nnode", repr(event.symbol), repr(event.line)
     # print "\nbegin"
-    line = event.symbol
+
+    # note that the NAME_COMPLETER_RE also works for DAG_MAGIC_COMPLETER_RE
+    # and DAG_COMPLETER_RE, since those are simply more restrictive versions,
+    # which set "dagOnly"
+    # print "text_until_cursor: {}".format(event.text_until_cursor)
+    # print "symbol: {}".format(event.symbol)
+    linematch = NAME_COMPLETER_RE.match(event.text_until_cursor)
+    # print "linematch: {}".format(linematch.group(0))
+    nametext = linematch.group('namematch')
+    # print "nametext: {}".format(nametext)
 
     matches = None
 
     #--------------
     # Attributes
     #--------------
-    m = re.match( r"""([a-zA-Z_0-9|:.]+)\.(\w*)$""", line)
-    if m:
-        node, attr = m.groups()
+    if not dagOnly:
+        attr_match = ATTR_RE.match(nametext)
+    else:
+        attr_match = None
+    if attr_match:
+        node, attr = attr_match.groups()
         if node == 'SCENE':
-            res = cmds.ls(attr + '*')
+            res = api_ls(attr + '*', dagOnly)
             if res:
                 matches = ['SCENE.' + x for x in res if '|' not in x]
         elif node.startswith('SCENE.'):
@@ -247,30 +330,57 @@ def pymel_name_completer(self, event):
     #--------------
     # Nodes
     #--------------
-
     else:
         # we don't yet have a full node
-        if '|' not in line or (line.startswith('|') and line.count('|') == 1):
+        if '|' not in nametext or (nametext.startswith('|') and nametext.count('|') == 1):
             # print "partial node"
             kwargs = {}
-            if line.startswith('|'):
-                kwargs['l'] = True
-            matches = cmds.ls(expand(line), **kwargs)
+            if nametext.startswith('|'):
+                kwargs['long'] = True
+            matches = api_ls(expand(nametext), dagOnly, **kwargs)
 
         # we have a full node, get it's children
         else:
-            matches = get_children(line)
+            matches = get_children(nametext, dagOnly)
 
     if not matches:
-        raise IPython.ipapi.TryNext
+        raise TryNext
 
     # if we have only one match, get the children as well
-    if len(matches) == 1:
-        res = get_children(matches[0] + '|')
+    if len(matches) == 1 and not attr_match:
+        res = get_children(matches[0] + '|', dagOnly)
         matches += res
+
+    if event.symbol != nametext:
+        # in some situations, the event.symbol will only have incomplete
+        # information - ie, if we are completing "persp|p", then the symbol will
+        # be "p" - nametext will give us the full "persp|p", which we need so we
+        # know we're checking for children of "persp". In these situations, we
+        # need to STRIP the leading non-symbol portion, so we don't end up with
+        # "persp|persp|perspShape" after completion.
+        if nametext.endswith(event.symbol):
+            if not event.symbol:
+                preSymbol = nametext
+            else:
+                preSymbol = nametext[:-len(event.symbol)]
+            matches = [x[len(preSymbol):] if x.startswith(preSymbol) else x
+                       for x in matches]
+        # HOWEVER - in other situations, the symbol will contain too much
+        # information - ie, stuff that isn't strictly speaking a node name - such
+        # as when we complete "SCENE.p".  In this case, the symbol is "SCENE.p",
+        # whereas nametext is simply "p". In such cases, we need to PREPEND the
+        # extra "SCENE." to the result, or else ipython will think our matches
+        # are not actually matches...
+        elif event.symbol.endswith(nametext):
+            if not nametext:
+                symbolPrefix = event.symbol
+            else:
+                symbolPrefix = event.symbol[:-len(nametext)]
+            matches = [symbolPrefix + x for x in matches]
     return matches
 
 
+PYTHON_TOKEN_RE = re.compile(r"(\S+(\.\w+)*)\.(\w*)$")
 def pymel_python_completer(self, event):
     """Match attributes or global python names"""
     import pymel.core as pm
@@ -279,10 +389,10 @@ def pymel_python_completer(self, event):
     text = event.symbol
     # print repr(text)
     # Another option, seems to work great. Catches things like ''.<tab>
-    m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
+    m = PYTHON_TOKEN_RE.match(text)
 
     if not m:
-        raise IPython.ipapi.TryNext
+        raise TryNext
 
     expr, attr = m.group(1, 3)
     # print type(self.Completer), dir(self.Completer)
@@ -291,18 +401,18 @@ def pymel_python_completer(self, event):
     try:
         # print "first"
         obj = eval(expr, self.Completer.namespace)
-    except:
+    except Exception:
         try:
             # print "second"
             obj = eval(expr, self.Completer.global_namespace)
-        except:
-            raise IPython.ipapi.TryNext
+        except Exception:
+            raise TryNext
     # print "complete"
     if isinstance(obj, (pm.nt.DependNode, pm.Attribute)):
         # print "isinstance"
         node = unicode(obj)
-        long_attrs = cmds.listAttr(node)
-        short_attrs = cmds.listAttr(node, shortNames=1)
+        long_attrs = api_listAttr(node)
+        short_attrs = api_listAttr(node, shortNames=1)
 
         matches = []
         matches = self.Completer.python_matches(text)
@@ -318,7 +428,7 @@ def pymel_python_completer(self, event):
         #matches = [ colorize.colorize(x,'magenta') for x in matches ]
         return matches
 
-    raise IPython.ipapi.TryNext
+    raise TryNext
 
 def buildRecentFileMenu():
     import pymel.core as pm
@@ -366,9 +476,7 @@ def open_completer(self, event):
         return bkms.keys()
 
     if event.symbol == '-':
-        print "completer"
         width_dh = str(len(str(len(ip.user_ns['_sh']) + 1)))
-        print width_dh
         # jump in directory history by number
         fmt = '-%0' + width_dh + 'd [%s]'
         ents = [fmt % (i, s) for i, s in enumerate(ip.user_ns['_sh'])]
@@ -376,7 +484,7 @@ def open_completer(self, event):
             return ents
         return []
 
-    raise IPython.ipapi.TryNext
+    raise TryNext
 
 class TreePager(object):
 
@@ -469,14 +577,12 @@ class DagTree(TreePager):
 
         return name
 
+# formerly: magic_dag
 dag_parser = OptionParser()
 dag_parser.add_option("-d", type="int", dest="maxdepth")
 dag_parser.add_option("-t", action="store_false", dest="shapes", default=True)
 dag_parser.add_option("-s", action="store_true", dest="shapes")
-def magic_dag(self, parameter_s=''):
-    """
-
-    """
+def dag(self, parameter_s=''):
     import pymel.core as pm
 
     options, args = dag_parser.parse_args(parameter_s.split())
@@ -504,11 +610,12 @@ class DGHistoryTree(TreePager):
         roots = pm.listConnections(root, plugs=True, connections=True, source=True, destination=False, sourceFirst=True)
         return TreePager.make_tree(self, roots)
 
+# formerly: magic_dghist
 dg_parser = OptionParser()
 dg_parser.add_option("-d", type="int", dest="maxdepth")
 dg_parser.add_option("-t", action="store_false", dest="shapes", default=True)
 dg_parser.add_option("-s", action="store_true", dest="shapes")
-def magic_dghist(self, parameter_s=''):
+def dghist(self, parameter_s=''):
     """
 
     """
@@ -526,7 +633,8 @@ def magic_dghist(self, parameter_s=''):
 
     page(dgtree.make_tree(roots))
 
-def magic_open(self, parameter_s=''):
+# formerly: magic_open
+def openf(self, parameter_s=''):
     """Change the current working directory.
 
     This command automatically maintains an internal list of directories
@@ -673,6 +781,11 @@ def sigint_plugin_loaded_callback(*args):
 
 sigint_plugin_loaded_callback_id = None
 
+DAG_MAGIC_COMPLETER_RE = re.compile(r"(?P<preamble>%dag\s+)(?P<namematch>(?P<previous_parts>([a-zA-Z0-9:_]*\|)*)(?P<current_part>[a-zA-Z0-9:_]*))$")
+DAG_COMPLETER_RE = re.compile(r"(?P<preamble>((.+(\s+|\())|(SCENE\.))[^\w|:._]*)(?P<namematch>(?P<previous_parts>([a-zA-Z0-9:_]*\|)+)(?P<current_part>[a-zA-Z0-9:_]*))$")
+NAME_COMPLETER_RE = re.compile(r"(?P<preamble>((.+(\s+|\())|(SCENE\.))[^\w|:._]*)(?P<namematch>(?P<previous_parts>([a-zA-Z0-9:_.]*(\.|\|))*)(?P<current_part>[a-zA-Z0-9:_]*))$")
+ATTR_RE = re.compile(r"""(?P<prefix>[a-zA-Z_0-9|:.]+)\.(?P<partial_attr>\w*)$""")
+
 def setup(shell):
     global ip
     if hasattr(shell, 'get_ipython'):
@@ -680,9 +793,12 @@ def setup(shell):
     else:
         ip = get_ipython()
 
-    ip.set_hook('complete_command', pymel_python_completer, re_key=".*")
-    ip.set_hook('complete_command', pymel_name_completer, re_key="(.+(\s+|\())|(SCENE\.)")
+    ip.set_hook('complete_command', pymel_python_completer, re_key="(?!{})".format(NAME_COMPLETER_RE.pattern))
+    ip.set_hook('complete_command', pymel_dag_completer, re_key=DAG_MAGIC_COMPLETER_RE.pattern)
+    ip.set_hook('complete_command', pymel_dag_completer, re_key=DAG_COMPLETER_RE.pattern)
+    ip.set_hook('complete_command', pymel_name_completer, re_key=NAME_COMPLETER_RE.pattern)
     ip.set_hook('complete_command', open_completer, str_key="openf")
+
 
     ip.ex("from pymel.core import *")
     # stuff in __main__ is not necessarily in ipython's 'main' namespace... so
@@ -692,9 +808,9 @@ def setup(shell):
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
 
-    ip.define_magic('openf', magic_open)
-    ip.define_magic('dag', magic_dag)
-    ip.define_magic('dghist', magic_dghist)
+    define_magic(ip, openf)
+    define_magic(ip, dag)
+    define_magic(ip, dghist)
 
     # add projects
     ip.ex("""

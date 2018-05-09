@@ -1,18 +1,33 @@
 import sys
+import os
 import unittest
 import itertools
 import re
 import platform
 import inspect
 import math
+import inspect
 
 import maya.cmds as cmds
 import pymel.core as pm
 import pymel.api as api
-from maintenance.pymelControlPanel import getClassHierarchy
+
+THIS_FILE = os.path.abspath(inspect.getsourcefile(lambda: None))
+THIS_DIR = os.path.dirname(THIS_FILE)
+PARENT_DIR = os.path.dirname(THIS_DIR)
+try:
+    from maintenance.pymelControlPanel import getClassHierarchy
+except ImportError:
+    if PARENT_DIR not in sys.path:
+        sys.path.append(PARENT_DIR)
+        from maintenance.pymelControlPanel import getClassHierarchy
+    else:
+        raise
+
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
 import pymel.util.arrays as arrays
+import pymel.versions as versions
 
 from pymel.util.testing import TestCaseExtended, setCompare
 
@@ -429,6 +444,8 @@ class testCase_invertibles(unittest.TestCase):
 
                     elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
                         args = [ 6, 4.5 ]
+                    elif setMethod == 'setIcon':
+                        args = [ 'polyCylinder.png' ]
                     else:
                         args = [ self.getTypedArg(typ) for typ in setArgTypes ]
                     #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
@@ -1405,6 +1422,12 @@ class testCase_components(unittest.TestCase):
 
     # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
     def _failIfWillMakeMayaCrash(self, comp):
+        # As of Maya 2018 (and possibly before??), the tests in
+        # test_nodetypes seem to no longer make maya crash... even though
+        # test_mayaBugs.TestSubdivSelectCrash still DOES crash maya...
+        # In any case, we no longer auto-fail these tests... though leaving the
+        # code here in case it starts crashing things again
+        return
         try:
             if isinstance(comp, basestring):
 #                if versions.current() >= versions.v2011:
@@ -1802,6 +1825,79 @@ class testCase_components(unittest.TestCase):
             assertListCompForNodeClass(trans, pm.nt.Transform)
             shape = trans.getShape()
             assertListCompForNodeClass(shape, nodeClass)
+
+    def test_list_and_slice_getitem(self):
+        cube = self.nodes['cube']
+        faces = pm.PyNode(cube).f[0:2, 4]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
+
+    def test_tuple_getitem(self):
+        cube = self.nodes['cube']
+        faces = pm.PyNode(cube).f[0, 1, 2, 4]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
+
+    def test_list_getitem(self):
+        cube = self.nodes['cube']
+        indices = [0, 1, 2, 4]
+        faces = pm.PyNode(cube).f[indices]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
+
+    def test_iterable_getitem(self):
+        cube = self.nodes['cube']
+        indices = iter([0, 1, 2, 4])
+        faces = pm.PyNode(cube).f[indices]
+        self.assertEqual(faces.indices(), [0, 1, 2, 4])
+        pm.select(faces)
+        selStrs = [
+            '{cube}.f[0:2]',
+            '{cube}.f[4]'
+        ]
+        selStrs = list(x.format(cube=cube) for x in selStrs)
+        self.assertEqual(cmds.ls(sl=1), selStrs)
+
+    def test_add(self):
+        cube = self.nodes['cube']
+        verts0str = '{cube}.vtx[0:2]'.format(cube=cube)
+        verts1str = '{cube}.vtx[6:7]'.format(cube=cube)
+        verts0 = pm.PyNode(verts0str)
+        verts1 = pm.PyNode(verts1str)
+        pm.select(verts0)
+        self.assertEqual(cmds.ls(sl=1), [verts0str])
+        pm.select(verts1)
+        self.assertEqual(cmds.ls(sl=1), [verts1str])
+        verts01 = verts0 + verts1
+        pm.select(verts0)
+        self.assertEqual(cmds.ls(sl=1), [verts0str])
+        pm.select(verts1)
+        self.assertEqual(cmds.ls(sl=1), [verts1str])
+        pm.select(verts01)
+        self.assertEqual(cmds.ls(sl=1), [verts0str, verts1str])
+        verts0 += verts1
+        pm.select(verts0)
+        self.assertEqual(cmds.ls(sl=1), [verts0str, verts1str])
+        pm.select(verts1)
+        self.assertEqual(cmds.ls(sl=1), [verts1str])
 
 
 for propName, evalStringFunc in \
@@ -2590,34 +2686,36 @@ class testCase_renderLayers(TestCaseExtended):
         self.layer.removeMembers([self.sphere, self.cube])
         self.assertEqual(self.layer.listMembers(), [])
 
-    def test_setCurrent(self):
-        self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
-                         pm.nt.RenderLayer.currentLayer())
-        self.layer.setCurrent()
-        self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
+    # can't use unittest.skipIf, because nose doesn't seem to recognize it...
+    if versions.current() < versions.v2018:
+        def test_setCurrent(self):
+            self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
+                             pm.nt.RenderLayer.currentLayer())
+            self.layer.setCurrent()
+            self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
 
-    def test_adjustments(self):
-        widthAttr = pm.PyNode("defaultResolution.width")
-        self.assertEqual(self.layer.listAdjustments(), [])
-        self.layer.addAdjustments(widthAttr)
-        self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
+        def test_adjustments(self):
+            widthAttr = pm.PyNode("defaultResolution.width")
+            self.assertEqual(self.layer.listAdjustments(), [])
+            self.layer.addAdjustments(widthAttr)
+            self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
 
-        origVal = widthAttr.get()
-        adjVal = origVal + 5
+            origVal = widthAttr.get()
+            adjVal = origVal + 5
 
-        self.layer.setCurrent()
-        widthAttr.set(adjVal)
-        self.assertEqual(widthAttr.get(), adjVal)
-        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-        self.assertEqual(widthAttr.get(), origVal)
-        self.layer.setCurrent()
-        self.assertEqual(widthAttr.get(), adjVal)
+            self.layer.setCurrent()
+            widthAttr.set(adjVal)
+            self.assertEqual(widthAttr.get(), adjVal)
+            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+            self.assertEqual(widthAttr.get(), origVal)
+            self.layer.setCurrent()
+            self.assertEqual(widthAttr.get(), adjVal)
 
-        self.layer.removeAdjustments(widthAttr)
-        self.assertEqual(self.layer.listAdjustments(), [])
-        self.assertEqual(widthAttr.get(), origVal)
-        pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-        self.assertEqual(widthAttr.get(), origVal)
+            self.layer.removeAdjustments(widthAttr)
+            self.assertEqual(self.layer.listAdjustments(), [])
+            self.assertEqual(widthAttr.get(), origVal)
+            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
+            self.assertEqual(widthAttr.get(), origVal)
 
 class testCase_Character(unittest.TestCase):
     def setUp(self):
@@ -2923,3 +3021,96 @@ class testCase_classification(unittest.TestCase):
 
     def tearDown(self):
         pm.delete(self.tr)
+
+class testCase_parentTests(unittest.TestCase):
+    def setUp(self):
+        self.cam = pm.createNode('camera')
+        self.camTrans = self.cam.getParent()
+        self.ipTrans, self.ip = pm.imagePlane(camera=self.cam)
+
+    def tearDown(self):
+        pm.delete(self.camTrans)
+
+    def test_hasParent(self):
+        self.assertFalse(self.camTrans.hasParent(self.camTrans))
+        self.assertFalse(self.camTrans.hasParent(self.cam))
+        self.assertFalse(self.camTrans.hasParent(self.ipTrans))
+        self.assertFalse(self.camTrans.hasParent(self.ip))
+
+        self.assertTrue(self.cam.hasParent(self.camTrans))
+        self.assertFalse(self.cam.hasParent(self.cam))
+        self.assertFalse(self.cam.hasParent(self.ipTrans))
+        self.assertFalse(self.cam.hasParent(self.ip))
+
+        self.assertFalse(self.ipTrans.hasParent(self.camTrans))
+        self.assertTrue(self.ipTrans.hasParent(self.cam))
+        self.assertFalse(self.ipTrans.hasParent(self.ipTrans))
+        self.assertFalse(self.ipTrans.hasParent(self.ip))
+
+        self.assertFalse(self.ip.hasParent(self.camTrans))
+        self.assertFalse(self.ip.hasParent(self.cam))
+        self.assertTrue(self.ip.hasParent(self.ipTrans))
+        self.assertFalse(self.ip.hasParent(self.ip))
+
+    def test_hasChild(self):
+        self.assertFalse(self.camTrans.hasChild(self.camTrans))
+        self.assertTrue(self.camTrans.hasChild(self.cam))
+        self.assertFalse(self.camTrans.hasChild(self.ipTrans))
+        self.assertFalse(self.camTrans.hasChild(self.ip))
+
+        self.assertFalse(self.cam.hasChild(self.camTrans))
+        self.assertFalse(self.cam.hasChild(self.cam))
+        self.assertTrue(self.cam.hasChild(self.ipTrans))
+        self.assertFalse(self.cam.hasChild(self.ip))
+
+        self.assertFalse(self.ipTrans.hasChild(self.camTrans))
+        self.assertFalse(self.ipTrans.hasChild(self.cam))
+        self.assertFalse(self.ipTrans.hasChild(self.ipTrans))
+        self.assertTrue(self.ipTrans.hasChild(self.ip))
+
+        self.assertFalse(self.ip.hasChild(self.camTrans))
+        self.assertFalse(self.ip.hasChild(self.cam))
+        self.assertFalse(self.ip.hasChild(self.ipTrans))
+        self.assertFalse(self.ip.hasChild(self.ip))
+
+    def test_isParentOf(self):
+        self.assertFalse(self.camTrans.isParentOf(self.camTrans))
+        self.assertTrue(self.camTrans.isParentOf(self.cam))
+        self.assertTrue(self.camTrans.isParentOf(self.ipTrans))
+        self.assertTrue(self.camTrans.isParentOf(self.ip))
+
+        self.assertFalse(self.cam.isParentOf(self.camTrans))
+        self.assertFalse(self.cam.isParentOf(self.cam))
+        self.assertTrue(self.cam.isParentOf(self.ipTrans))
+        self.assertTrue(self.cam.isParentOf(self.ip))
+
+        self.assertFalse(self.ipTrans.isParentOf(self.camTrans))
+        self.assertFalse(self.ipTrans.isParentOf(self.cam))
+        self.assertFalse(self.ipTrans.isParentOf(self.ipTrans))
+        self.assertTrue(self.ipTrans.isParentOf(self.ip))
+
+        self.assertFalse(self.ip.isParentOf(self.camTrans))
+        self.assertFalse(self.ip.isParentOf(self.cam))
+        self.assertFalse(self.ip.isParentOf(self.ipTrans))
+        self.assertFalse(self.ip.isParentOf(self.ip))
+        
+    def test_isChildOf(self):
+        self.assertFalse(self.camTrans.isChildOf(self.camTrans))
+        self.assertFalse(self.camTrans.isChildOf(self.cam))
+        self.assertFalse(self.camTrans.isChildOf(self.ipTrans))
+        self.assertFalse(self.camTrans.isChildOf(self.ip))
+
+        self.assertTrue(self.cam.isChildOf(self.camTrans))
+        self.assertFalse(self.cam.isChildOf(self.cam))
+        self.assertFalse(self.cam.isChildOf(self.ipTrans))
+        self.assertFalse(self.cam.isChildOf(self.ip))
+
+        self.assertTrue(self.ipTrans.isChildOf(self.camTrans))
+        self.assertTrue(self.ipTrans.isChildOf(self.cam))
+        self.assertFalse(self.ipTrans.isChildOf(self.ipTrans))
+        self.assertFalse(self.ipTrans.isChildOf(self.ip))
+
+        self.assertTrue(self.ip.isChildOf(self.camTrans))
+        self.assertTrue(self.ip.isChildOf(self.cam))
+        self.assertTrue(self.ip.isChildOf(self.ipTrans))
+        self.assertFalse(self.ip.isChildOf(self.ip))

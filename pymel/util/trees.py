@@ -43,8 +43,6 @@ We do NOT recommend using it in external code...
 """
 # Python implementation inspired from Gonzalo Rodrigues "Trees and more trees" in ASPN cookbook
 
-# Import generators.
-from __future__ import generators
 # removed as it's 2.5 only
 # import functools as ftools
 from collections import *

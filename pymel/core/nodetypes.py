@@ -15,6 +15,7 @@ import pymel.api as _api  # @UnresolvedImport
 import pymel.internal.apicache as _apicache
 import pymel.internal.pwarnings as _warnings
 from pymel.internal import getLogger as _getLogger
+from pymel.internal.startup import pymel_options as _pymel_options
 import datatypes
 _logger = _getLogger(__name__)
 
@@ -155,7 +156,7 @@ class DependNode(general.PyNode):
             try:
                 self._updateName()
             except general.MayaObjectError:
-                _logger.warn("object %s no longer exists" % self._name)
+                general.DeletedMayaNodeError.handle(self)
         name = self._name
         if stripNamespace:
             if levels:
@@ -1002,20 +1003,36 @@ class DagNode(Entity):
         u'|imagePlane1|imagePlaneShape1'
         '''
         if update or long or self._name is None:
+            exists = True
+            if _pymel_options['deleted_pynode_name_access'] != 'ignore':
+                exists = self.exists()
             try:
                 name = self._updateName(long)
+                # _updateName for dag nodes won't actually check if the object
+                # still exists... so we do that check ourselves. Also, even
+                # though we may already know the object doesn't exist, we still
+                # try to update the name... because having an updated name may
+                # be nice for any potential error / warning messages
+                if not exists:
+                    raise general.MayaObjectError
             except general.MayaObjectError:
                 # if we have an error, but we're only looking for the nodeName,
                 # use the non-dag version
-                if long is None:
+                if long is None and exists:
                     # don't use DependNode._updateName, as that can still
                     # raise MayaInstanceError - want this to work, so people
                     # have a way to get the correct instance, assuming they know
                     # what the parent should be
                     name = _api.MFnDependencyNode(self.__apimobject__()).name()
                 else:
-                    _logger.warn("object %s no longer exists" % self._name)
+                    if not exists:
+                        general.DeletedMayaNodeError.handle(self)
                     name = self._name
+                    if name is None:
+                        # if we've never gotten a name, but we're set to ignore
+                        # deleted node errors, then just reraise the original
+                        # error
+                        raise
         else:
             name = self._name
 
@@ -1293,12 +1310,20 @@ class DagNode(Entity):
                 # and the MDagPath was invalidated; however, subsequently, other
                 # instances were removed, so it's no longer instanced. Check for
                 # this...
-                mfnDag = _api.MFnDagNode(self.__apiobjects__['MDagPath'].node())
-                if not mfnDag.isInstanced():
-                    # throw a KeyError, this will cause to regen from
-                    # first MDagPath
-                    raise KeyError
-                raise general.MayaInstanceError(mfnDag.name())
+
+                # in some cases, doing dag.node() will crash maya if the dag
+                # isn't valid... so try using MObjectHandle
+                handle = self.__apiobjects__.get('MObjectHandle')
+                if handle is not None and handle.isValid():
+                    mfnDag = _api.MFnDagNode(handle.object())
+                    if not mfnDag.isInstanced():
+                        # throw a KeyError, this will cause to regen from
+                        # first MDagPath
+                        raise KeyError
+                    raise general.MayaInstanceError(mfnDag.name())
+                else:
+                    name = getattr(self, '_name', '<unknown>')
+                    raise general.MayaInstanceError(name)
             return dag
         except KeyError:
             # class was instantiated from an MObject, but we can still retrieve the first MDagPath
@@ -1401,37 +1426,158 @@ class DagNode(Entity):
         """
         return DagNode('|' + self.longName()[1:].split('|')[0])
 
-#    def hasParent(self, parent ):
-#        try:
-#            return self.__apimfn__().hasParent( parent.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(parent)
-#            if obj:
-#               return self.__apimfn__().hasParent( obj )
-#
-#    def hasChild(self, child ):
-#        try:
-#            return self.__apimfn__().hasChild( child.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(child)
-#            if obj:
-#               return self.__apimfn__().hasChild( obj )
-#
-#    def isParentOf( self, parent ):
-#        try:
-#            return self.__apimfn__().isParentOf( parent.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(parent)
-#            if obj:
-#               return self.__apimfn__().isParentOf( obj )
-#
-#    def isChildOf( self, child ):
-#        try:
-#            return self.__apimfn__().isChildOf( child.__apiobject__() )
-#        except AttributeError:
-#            obj = _api.toMObject(child)
-#            if obj:
-#               return self.__apimfn__().isChildOf( obj )
+    # For some reason, this wasn't defined on Transform...?
+    # maya seems to have a bug right now (2016.53) that causes crashes when
+    # accessing MDagPaths after creating an instance, so not enabling this
+    # at the moment...
+    # def getAllPaths(self):
+    #     dagPaths = _api.MDagPathArray()
+    #     self.__apimfn__().getAllPaths(dagPaths)
+    #     return [DagNode(dagPaths[i]) for i in xrange(dagPaths.length())]
+
+    def hasParent(self, parent):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        parentMObj = toMObj(parent)
+        thisMFn = self.__apimfn__()
+        if thisMFn.hasParent(parentMObj):
+            return True
+
+        # quick out... MFnDagNode handles things right if all instances aren't
+        # underworld nodes
+
+        if not thisMFn.isInstanced() and not thisMFn.inUnderWorld():
+            return False
+
+        # See if it's underworld parent is the given parent...
+        # Note that MFnDagPath implementation considers all instances, so we
+        # should too...
+        allPaths = _api.MDagPathArray()
+        thisMFn.getAllPaths(allPaths)
+        for i in xrange(allPaths.length()):
+            path = allPaths[i]
+            pathCount = path.pathCount()
+            if pathCount <= 1:
+                continue
+            # if there's an underworld, there should be at least 3 nodes -
+            # the top parent, the underworld root, and the node in the
+            # underworld
+            assert path.length() >= 3
+            # if they are in the same underworld, MFnDagNode.hasParent would
+            # work - only care about the case where the "immediate" parent is
+            # outside of this node's underworld
+            # Unfortunately, MDagPath.pop() has some strange behavior   - ie, if
+            #     path = |camera1|cameraShape1->|imagePlane1
+            # Then popping it once gives:
+            #     path = |camera1|cameraShape1->|
+            # ...and again gives:
+            #     path = |camera1|cameraShape1
+            # So, we check that popping once has the same pathCount, but twice
+            # has a different path count
+            path.pop()
+            if path.pathCount() != pathCount:
+                continue
+            path.pop()
+            if path.pathCount() != pathCount -1:
+                continue
+            if path.node() == parentMObj:
+                return True
+        return False
+
+    def hasChild(self, child):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        childMObj = toMObj(child)
+        thisMFn = self.__apimfn__()
+        if self.__apimfn__().hasChild(childMObj):
+            return True
+
+        # because hasChild / hasParent consider all instances,
+        # self.hasChild(child) is equivalent to child.hasParent(self)...
+        if not isinstance(child, general.PyNode):
+            child = DagNode(childMObj)
+        return child.hasParent(self)
+
+    def isChildOf(self, parent):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        parentMObj = toMObj(parent)
+        thisMFn = self.__apimfn__()
+        if thisMFn.isChildOf(parentMObj):
+            return True
+
+        # quick out... MFnDagNode handles things right if all instances aren't
+        # underworld nodes
+        if not thisMFn.isInstanced() and not thisMFn.inUnderWorld():
+            return False
+
+        # For each instance path, if it's in the underworld, check to see
+        # if the parent at the same "underworld" level as the parent is the
+        # parent, or a child of it
+        dagArray = _api.MDagPathArray()
+        _api.MDagPath.getAllPathsTo(parentMObj, dagArray)
+        allParentLevels = set()
+        for i in xrange(dagArray.length()):
+            parentMDag = dagArray[i]
+            allParentLevels.add(parentMDag.pathCount())
+        # we only get one parentMFn, but this should be fine as (aside from
+        # not dealing with underworld correctly), MFnDagNode.isParentOf works
+        # correctly for all instances...
+        parentMFn = _api.MFnDagNode(parentMObj)
+
+        dagArray.clear()
+        thisMFn.getAllPaths(dagArray)
+        for i in xrange(dagArray.length()):
+            childMDag = dagArray[i]
+            childPathLevels = childMDag.pathCount()
+            if childPathLevels <= 1:
+                continue
+            for parentUnderworldLevel in allParentLevels:
+                if childMDag.pathCount() <= parentUnderworldLevel:
+                    # standard MFnDagNode.isChildOf would have handled this...
+                    continue
+                sameLevelMDag = _api.MDagPath()
+                childMDag.getPath(sameLevelMDag, parentUnderworldLevel - 1)
+                sameLevelMObj = sameLevelMDag.node()
+                if sameLevelMObj == parentMObj:
+                    return True
+                if parentMFn.isParentOf(sameLevelMObj):
+                    return True
+        return False
+
+    def isParentOf(self, child):
+        '''
+        Modifications:
+        - handles underworld nodes correctly
+        '''
+        toMObj = _factories.ApiTypeRegister.inCast['MObject']
+        # This will error if parent is not a dag, or not a node, like default
+        # wrapped implementation
+        childMObj = toMObj(child)
+        thisMFn = self.__apimfn__()
+        if thisMFn.isParentOf(childMObj):
+            return True
+
+        # because isChildOf / isParentOf consider all instances,
+        # self.isParentOf(child) is equivalent to child.isChildOf(self)...
+        if not isinstance(child, general.PyNode):
+            child = DagNode(childMObj)
+        return child.isChildOf(self)
 
     def isInstanceOf(self, other):
         """
@@ -3712,6 +3858,10 @@ class AnimCurve(DependNode):
                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent' + tangentInType.capitalize()),
                                          _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent' + tangentOutType.capitalize()))
 
+    def numKeyframes(self):
+        # just because MFnAnimCurve.numKeyframes is deprecated...
+        return self.numKeys()
+
 class GeometryFilter(DependNode):
     pass
 
@@ -3828,6 +3978,7 @@ _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 class NodetypesLazyLoadModule(_util.LazyLoadModule):
     '''Like a standard lazy load  module, but with dynamic PyNode class creation
     '''
+    _checkedForNewReservedTypes = False
     @classmethod
     def _unwrappedNodeTypes(cls):
         # get node types, but avoid checking inheritance for all nodes for
@@ -3838,8 +3989,29 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
         # an acceptable risk
         allNodes = _apicache._getAllMayaTypes(addAncestors=False,
                                               noManips='fast')
+        unknownNodes = allNodes - set(mayaTypeNameToPymelTypeName)
+        if unknownNodes:
+            # first, check for any new abstract node types - this can happen
+            # if, for instance, we have an "extension" release of maya,
+            # which introduces new nodes (and abstract nodes), but the caches
+            # were built with the "base" release
+            # we do these first because they can't be queried by creating nodes,
+            # and for derived nodes, we may be able to get by just using the
+            # type for the abstract node...
+            if not cls._checkedForNewReservedTypes:
+                cls._checkedForNewReservedTypes = True
+                # this should build mayaTypesToApiTypes and mayaTypesToApiEnums
+                # for all reserved types...
+                cache = _apicache.ApiCache()
+                cache._buildMayaToApiInfo(reservedOnly=True)
+                # and update the cache in use with these results...
+                # ...now update with any that were missing...
+                for mayaType, apiType in cache.mayaTypesToApiTypes.iteritems():
+                    if mayaType not in _factories._apiCacheInst.mayaTypesToApiTypes:
+                        _factories._apiCacheInst.mayaTypesToApiTypes[mayaType] = apiType
+                        _factories._apiCacheInst.mayaTypesToApiEnums[mayaType] = cache.mayaTypesToApiEnums[mayaType]
 
-        return allNodes - set(mayaTypeNameToPymelTypeName)
+        return unknownNodes - set(mayaTypeNameToPymelTypeName)
 
     def __getattr__(self, name):
         '''Check to see if the name corresponds to a PyNode that hasn't been

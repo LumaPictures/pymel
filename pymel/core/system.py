@@ -1543,12 +1543,17 @@ class FileReference(object):
         return not cmds.file(rfn=self.refNode, q=1, deferReference=1)
 
     @_factories.addMelDocs('referenceQuery', 'nodes')
-    def nodes(self):
+    def nodes(self, recursive=False):
         import general
         nodes = cmds.referenceQuery(str(self.refNode), nodes=1, dagPath=1)
         if not nodes:
             nodes = []
-        return [general.PyNode(x) for x in nodes]
+        nodes = [general.PyNode(x) for x in nodes]
+        if not recursive:
+            return nodes
+        for ref in iterReferences(parentReference=self, recursive=True):
+            nodes.extend(ref.nodes(recursive=False))
+        return nodes
 
     @_factories.addMelDocs('file', 'copyNumberList')
     def copyNumberList(self):
@@ -1952,6 +1957,7 @@ Modifications:
     - returns empty string, for consistency with sceneName()
       ...if you wish to know the untitled scene name, use untitledFileName()
     """
+    kwargs.pop('type', kwargs.pop('typ', None))
     cmds.file(**kwargs)
     return ''
 
@@ -2023,6 +2029,9 @@ def saveAs(newname, **kwargs):
     kwargs['save'] = True
     cmds.file(**kwargs)
     return Path(newname)
+
+def isModified():
+    return cmds.file(q=True, modified=True)
 
 # ReferenceCache.setupFileReferenceCallbacks()
 

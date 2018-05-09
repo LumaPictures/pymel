@@ -2,7 +2,6 @@
 Maya-related functions, which are useful to both `api` and `core`, including `mayaInit` which ensures
 that maya is initialized in standalone mode.
 """
-from __future__ import with_statement
 import os.path
 import sys
 import glob
@@ -757,6 +756,7 @@ def parsePymelConfig():
         # available
         'fix_mayapy_segfault': 'on' if _hasUninitialize else 'off',
         'fix_linux_mayapy_segfault': 'off' if _hasUninitialize else 'on',
+        'deleted_pynode_name_access': 'warn_deprecated',
     }
 
     config = ConfigParser.ConfigParser(defaults)
@@ -769,6 +769,7 @@ def parsePymelConfig():
 
     # just to standardize this setting to be lowercase
     d['preferred_python_qt_binding'] = d['preferred_python_qt_binding'].lower()
+
     return d
 
 pymel_options = parsePymelConfig()

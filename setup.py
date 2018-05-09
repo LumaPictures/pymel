@@ -176,7 +176,7 @@ def main():
     orig_script_args = setuptools.command.easy_install.get_script_args
     orig_nt_quote_arg = setuptools.command.easy_install.nt_quote_arg
 
-    requirements = ['ply==3.3', 'ipython']
+    requirements = ['ipython']
     if isdev():
         requirements.append('BeautifulSoup >3.0')
 
@@ -242,8 +242,8 @@ Operating System :: MacOS
               entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main' },
               package_data={'pymel': ['*.conf' ], 'pymel.cache' : ['*.zip'] },
               install_requires=requirements,
-              tests_require=['nose'],
-              test_suite = 'nose.collector',
+              tests_require=['pytest'],
+              setup_requires=['pytest-runner'],
               data_files = get_data_files()
              )
     finally:

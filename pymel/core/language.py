@@ -508,7 +508,7 @@ class OptionVarList(tuple):
 
         if isinstance(val, basestring):
             return cmds.optionVar(stringValueAppend=[self.key, val])
-        if isinstance(val, int):
+        if isinstance(val, (int, long)):
             return cmds.optionVar(intValueAppend=[self.key, val])
         if isinstance(val, float):
             return cmds.optionVar(floatValueAppend=[self.key, val])
@@ -559,7 +559,7 @@ class OptionVarDict(collections.MutableMapping):
     def __setitem__(self, key, val):
         if isinstance(val, basestring):
             return cmds.optionVar(stringValue=[key, val])
-        if isinstance(val, (int, bool)):
+        if isinstance(val, (int, bool, long)):
             return cmds.optionVar(intValue=[key, int(val)])
         if isinstance(val, float):
             return cmds.optionVar(floatValue=[key, val])
@@ -569,7 +569,7 @@ class OptionVarDict(collections.MutableMapping):
             listType = type(val[0])
             if issubclass(listType, basestring):
                 flag = 'stringValue'
-            elif issubclass(listType, int):
+            elif issubclass(listType, (int, long)):
                 flag = 'intValue'
             elif issubclass(listType, float):
                 flag = 'floatValue'
@@ -752,7 +752,7 @@ class Mel(object):
 
     """Acts as a namespace from which MEL procedures can be called as if they
     were python functions.
-    
+
     Automatically formats python arguments into a command string which is
     executed via ``maya.mel.eval``.  An instance of this class is created for
     you as `pymel.core.mel`.
@@ -961,13 +961,6 @@ class Mel(object):
             res = _api.MCommandResult()
             _api.MGlobal.executeCommand(cmd, res, False, undoState)
         except Exception:
-            # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            _api.MMessage.removeCallback(id)
-            _mc.commandEcho(lineNumbers=lineNumbers)
-            # 8.5 fix
-            if hasattr(id, 'disown'):
-                id.disown()
-
             msg = '\n'.join(errors)
 
             if 'Cannot find procedure' in msg:
@@ -997,12 +990,6 @@ class Mel(object):
                 message += '\nScript:\n%s' % fmtCmd
             raise e, message
         else:
-            # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            _api.MMessage.removeCallback(id)
-            _mc.commandEcho(lineNumbers=lineNumbers)
-            # 8.5 fix
-            if hasattr(id, 'disown'):
-                id.disown()
             resType = res.resultType()
 
             if resType == _api.MCommandResult.kInvalid:
@@ -1045,6 +1032,12 @@ class Mel(object):
                 result = _api.MMatrixArray()
                 res.getResult(result)
                 return [datatypes.Matrix(result[i]) for i in range(result.length())]
+        finally:
+            _api.MMessage.removeCallback(id)
+            _mc.commandEcho(lineNumbers=lineNumbers)
+            # 8.5 fix
+            if hasattr(id, 'disown'):
+                id.disown()
 
     @staticmethod
     def error(msg, showLineNumber=False):

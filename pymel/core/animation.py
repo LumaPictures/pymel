@@ -126,4 +126,44 @@ for contstraintCmdName in ('''aimConstraint geometryConstraint normalConstraint
     if cmd:
         globals()[contstraintCmdName] = _constraint(cmd)
 
+def ikHandle(*args, **kwargs):
+    """
+    Modifications:
+        - always converts to PyNodes in create mode, even though results are
+          non-unique short names
+    """
+    import nodetypes
+    from maya.OpenMaya import MGlobal
+
+    res = cmds.ikHandle(*args, **kwargs)
+
+    # unfortunately, ikHandle returns non-unique names... however, it
+    # doesn't support a parent option - so we can just throw a '|' in front
+    # of the first return result (the ikHandle itself) to get a unique name
+    # We then need to track through it's connections to find the endEffector...
+
+    if kwargs.get('query', kwargs.get('q', False)):
+        if kwargs.get('endEffector', kwargs.get('ee', False)):
+            res = _factories.toPyNode(res)
+        elif kwargs.get('jointList', kwargs.get('jl', False)):
+            res = _factories.toPyNodeList(res)
+    elif (not kwargs.get('edit', kwargs.get('e', False))
+            and isinstance(res, list) and len(res) == 2
+            and all(isinstance(x, basestring) for x in res)):
+        handleName, effectorName = res
+        # ikHandle doesn't support a parent kwarg, so result should always be
+        # grouped under the world...
+        handleNode = _factories.toPyNode('|' + handleName)
+        # unfortunately, effector location is a little harder to predict. but
+        # can find it by following connections...
+        effectorNode = handleNode.attr('endEffector').inputs()[0]
+        if effectorNode.nodeName() == effectorName:
+            res = [handleNode, effectorNode]
+        else:
+            MGlobal.displayWarning(
+                "Warning: returned ikHandle %r was connected to effector %r, "
+                "which did not match returned effector name %r"
+                % (handleName, effectorNode.shortName(), effectorName))
+    return res
+
 _factories.createFunctions(__name__, _general.PyNode)
