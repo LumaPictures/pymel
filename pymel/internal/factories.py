@@ -96,6 +96,12 @@ def _setApiCacheGlobals():
             globals()[name] = val
 
 def loadCmdCache():
+    # Note: the goal of templating is to remove the need to load this cache.
+    # no longer loaded needed at runtime:
+    # - nodeCommandList
+    # still needed at runtime:
+    # - cmdlist, nodeHierarchy, uiClassList, moduleCmds
+
     _logger.debug("Loading cmd cache...")
     _start = time.time()
 
@@ -435,10 +441,6 @@ def loadCmdDocCache():
 def _addCmdDocs(func, cmdName=None):
     if cmdName is None:
         cmdName = func.__name__
-    # runtime functions have no docs
-    if cmdlist[cmdName]['type'] == 'runtime':
-        return func
-
     if func.__doc__:
         docstring = func.__doc__ + '\n\n'
     else:
@@ -1060,7 +1062,10 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
             newFunc.__doc__ = inFunc.__doc__
         elif inFunc.__doc__:
             newFunc.__doc__ = inFunc.__doc__
-    _addCmdDocs(newFunc, funcName)
+
+    if cmdlist[funcName]['type'] != 'runtime':
+        # runtime functions have no docs
+        _addCmdDocs(newFunc, funcName)
 
     if rename:
         newFunc.__name__ = rename
@@ -1220,6 +1225,7 @@ def addMelDocs(cmdName, flag=None):
             wrappedMelFunc.__module__ = method.__module__
             return wrappedMelFunc
     else:
+        # NOTE: runtime functions have no docs. Do not use this with runtime functions
         # A command
         def doc_decorator(func):
             try:
