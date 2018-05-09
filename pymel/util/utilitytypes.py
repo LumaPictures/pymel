@@ -573,10 +573,10 @@ class LazyLoadModule(types.ModuleType):
     :param name: name of the module
     :param contents: dictionary of initial module globals
 
-    This function returns a special module type with one method `_addattr`.  The signature
+    This function returns a special module type with one method `_lazyModule_addAttr`.  The signature
     of this method is:
 
-        _addattr(name, creator, *creatorArgs, **creatorKwargs)
+        _lazyModule_addAttr(name, creator, *creatorArgs, **creatorKwargs)
 
     Attributes added with this method will not be created until the first time that
     they are accessed, at which point a callback function will be called to generate
@@ -589,7 +589,7 @@ class LazyLoadModule(types.ModuleType):
 
         import sys
         mod = LazyLoadModule(__name__, globals())
-        mod._addattr( 'foo', str, 'bar' )
+        mod._lazyModule_addAttr( 'foo', str, 'bar' )
         sys.modules[__name__] = mod
 
     One caveat of this technique is that if a user imports everything from your
@@ -676,6 +676,15 @@ class LazyLoadModule(types.ModuleType):
 
     @classmethod
     def _lazyModule_addAttr(cls, name, creator, *creatorArgs, **creatorKwargs):
+        """
+        Add a lazily loaded attribute to this module
+
+        :param name: name of attribute
+        :param creator: callback function to load the object
+        :param creatorArgs: args passed to callback
+        :param creatorKwargs: kwargs passed to callback
+        :return: LazyLoader
+        """
         lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
         setattr(cls, name, lazyObj)
         return lazyObj
