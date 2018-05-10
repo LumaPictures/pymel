@@ -13,6 +13,19 @@ from pymel.internal import pmcmds
 
 _logger = plogging.getLogger(__name__)
 
+CORE_CMD_MODULES = [
+    ('pymel.core.animation', '_general.PyNode'),
+    ('pymel.core.context', None),
+    ('pymel.core.effects', '_general.PyNode'),
+    ('pymel.core.general', 'PyNode'),
+    ('pymel.core.language', None),
+    ('pymel.core.modeling', '_general.PyNode'),
+    ('pymel.core.other', None),
+    ('pymel.core.rendering', '_general.PyNode'),
+    ('pymel.core.runtime', None),
+    ('pymel.core.system', None),
+]
+
 env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
 
@@ -493,16 +506,20 @@ class MetaMayaTypeGenerator(object):
         def __delete__(self, instance):
             raise AttributeError, "class constant cannot be deleted"
 
-    def __init__(self, classname, existingClass, parentClasses, parentMethods, parentApicls):
+    def __init__(self, classname, existingClass, mayaType, parentClasses, parentMethods, parentApicls):
         self.classname = classname
+        self.mayaType = mayaType
         self.parentClassname = parentClasses[0]
         self.herited = parentMethods
         self.parentApicls = parentApicls
         self.parentClasses = parentClasses
         self.existingClass = existingClass
+        self.apicls = factories.toApiFunctionSet(self.mayaType)
 
-    def getTemplateData(self, attrs, methods):
-        """ Create a new class of metaClassConstants type """
+    def getAPIData(self, attrs, methods):
+        """
+        Add methods from API functions
+        """
 
         removeAttrs = []
         # define __slots__ if not defined
@@ -586,11 +603,6 @@ class MetaMayaTypeGenerator(object):
 
                         yieldTuple = (methodName, info, self.classname, pymelName,
                                       overloadIndex)
-
-                        import pprint
-                        if pymelName == 'getName':
-                            pprint.pprint(yieldTuple)
-                            pprint.pprint(overrideData)
 
                         if overloadIndex is None:
                             #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
@@ -783,18 +795,13 @@ class MetaMayaTypeGenerator(object):
 
 class _MetaMayaCommandGenerator(MetaMayaTypeGenerator):
 
-    """
-    A metaclass for creating classes based on a maya command.
-
-    Not intended to be used directly; instead, use the descendants: MetaMayaNodeGenerator, MetaMayaUIGenerator
-    """
-
     _classDictKeyForMelCmd = None
 
-    def getTemplateData(self, attrs, methods):
+    def getMELData(self, attrs, methods):
+        """
+        Add methods from MEL functions
+        """
         #_logger.debug( '_MetaMayaCommandGenerator: %s' % classname )
-
-        attrs, methods = super(_MetaMayaCommandGenerator, self).getTemplateData(attrs, methods)
 
         #-------------------------
         #   MEL Methods
@@ -845,6 +852,9 @@ class _MetaMayaCommandGenerator(MetaMayaTypeGenerator):
                     # query command
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
+
+                        if self.classname == 'Joint':
+                            print self.classname, methodName
                         factories.classToMelMap[self.classname].append(methodName)
 
                         if methodName not in filterAttrs and \
@@ -852,9 +862,10 @@ class _MetaMayaCommandGenerator(MetaMayaTypeGenerator):
 
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here.
-                            if (not factories.apiToMelData.has_key((self.classname, methodName))
-                                    or factories.apiToMelData[(self.classname, methodName)].get('melEnabled', False)
-                                    or not factories.apiToMelData[(self.classname, methodName)].get('enabled', True)):
+                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
+                            if (not bridgeInfo
+                                    or bridgeInfo.get('melEnabled', False)
+                                    or not bridgeInfo.get('enabled', True)):
                                 returnFunc = None
 
                                 if flagInfo.get('resultNeedsCasting', False):
@@ -880,13 +891,17 @@ class _MetaMayaCommandGenerator(MetaMayaTypeGenerator):
                         else:
                             methodName = flag
 
+                        if self.classname == 'Joint':
+                            print self.classname, methodName
+
                         factories.classToMelMap[self.classname].append(methodName)
 
                         if methodName not in filterAttrs and \
                                 (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
-                            if not factories.apiToMelData.has_key((self.classname, methodName)) \
-                                    or factories.apiToMelData[(self.classname, methodName)].get('melEnabled', False) \
-                                    or not factories.apiToMelData[(self.classname, methodName)].get('enabled', True):
+                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
+                            if (not bridgeInfo
+                                    or bridgeInfo.get('melEnabled', False)
+                                    or not bridgeInfo.get('enabled', True)):
 
                                 # FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
                                 # FIXME: the 2nd argument is wrong, so I think this is broken
@@ -918,7 +933,7 @@ class _MetaMayaCommandGenerator(MetaMayaTypeGenerator):
         Deteremine if the passed method name exists on a parent class as a mel method
         """
         for classname in self.parentClasses:
-            if methodName in factories.classToMelMap[classname]:
+            if methodName in factories.classToMelMap.get(classname, ()):
                 return True
         return False
 
@@ -946,10 +961,7 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         if methods is None:
             methods = {}
 
-        # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
-        # the name of the PyNode, uncapitalized
-        #_logger.debug( 'MetaMayaNodeGenerator: %s' % classname )
-        nodeType = attrs.get('__melnode__')
+        attrs['__melnode__'] = self.mayaType
 
         # FIXME:
         isVirtual = False
@@ -975,33 +987,37 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         # mapping from pymel type to maya type should always be made...
         oldMayaType = pymelTypeNameToMayaTypeName.get(self.classname)
         if oldMayaType is None:
-            pymelTypeNameToMayaTypeName[self.classname] = nodeType
-        elif oldMayaType != nodeType:
+            pymelTypeNameToMayaTypeName[self.classname] = self.mayaType
+        elif oldMayaType != self.mayaType:
             _logger.raiseLog(_logger.WARNING,
                              'creating new pymel node class %r for maya node '
                              'type %r, but a pymel class with the same name '
                              'already existed for maya node type %r' % (
-                                 self.classname, nodeType, oldMayaType))
+                                 self.classname, self.mayaType, oldMayaType))
 
         # mapping from maya type to pymel type only happens if it's NOT a
         # virtual class...
         if not isVirtual:
-            oldPymelType = mayaTypeNameToPymelTypeName.get(nodeType)
+            oldPymelType = mayaTypeNameToPymelTypeName.get(self.mayaType)
             if oldPymelType is None:
-                mayaTypeNameToPymelTypeName[nodeType] = self.classname
+                mayaTypeNameToPymelTypeName[self.mayaType] = self.classname
             elif oldPymelType != self.classname:
                 _logger.raiseLog(_logger.WARNING,
                                  'creating new pymel node class %r for maya node '
                                  'type %r, but there already existed a pymel'
                                  'class %r for the same maya node type' % (
-                                     self.classname, nodeType, oldPymelType))
+                                     self.classname, self.mayaType, oldPymelType))
 
-        factories.addMayaType(nodeType)
-        apicls = factories.toApiFunctionSet(nodeType)
-        if apicls is not None:
-            attrs['__apicls__'] = apicls
+        factories.addMayaType(self.mayaType)
 
-        attrs, methods = self.getTemplateData(attrs, methods)
+        if self.apicls is not None:
+            attrs['__apicls__'] = self.apicls
+
+        # first populate API methods.  they take precedence.
+        attrs, methods = self.getAPIData(attrs, methods)
+        # next, populate MEL methods
+        attrs, methods = self.getMELData(attrs, methods)
+
         methodNames = set(methods)
 
         def toStr(k, v):
@@ -1020,7 +1036,7 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
                                classname=self.classname,
                                parents=self.parentClassname,
                                existing=self.existingClass is not None)
-        return text, methodNames, apicls
+        return text, methodNames
         # FIXME:
         # PyNodeType = super(MetaMayaNodeGenerator, self).render()
         # ParentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
@@ -1036,16 +1052,15 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         Derives the command name from the mel node name - so '__melnode__' must already be set
         in classdict.
         """
-        nodeType = attrs['__melnode__']
         infoCmd = False
         try:
-            nodeCmd = factories.cmdcache.nodeTypeToNodeCommand[nodeType]
+            nodeCmd = factories.cmdcache.nodeTypeToNodeCommand[self.mayaType]
         except KeyError:
             try:
-                nodeCmd = factories.nodeTypeToInfoCommand[nodeType]
+                nodeCmd = factories.nodeTypeToInfoCommand[self.mayaType]
                 infoCmd = True
             except KeyError:
-                nodeCmd = nodeType
+                nodeCmd = self.mayaType
         return nodeCmd, infoCmd
 
 
@@ -1069,7 +1084,7 @@ class MetaMayaUIGenerator(_MetaMayaCommandGenerator):
         return attrs['__melui__'], False
 
 
-def generatePyNode(mayaType, parentMayaTypes, parentMethods, parentApicls, extraAttrs=None):
+def getPyNodeGenerator(mayaType, parentMayaTypes, parentMethods, parentApicls):
     """
     create a PyNode type for a maya node.
 
@@ -1114,43 +1129,10 @@ def generatePyNode(mayaType, parentMayaTypes, parentMethods, parentApicls, extra
     pyNodeTypeName = getPymelTypeName(mayaType)
     pyNodeClass = getattr(nt, pyNodeTypeName, None)
 
-    classDict = {'__melnode__': mayaType}
-    if extraAttrs:
-        classDict.update(extraAttrs)
-
-    template = MetaMayaNodeGenerator(pyNodeTypeName, pyNodeClass, parentPymelTypes, parentMethods, parentApicls)
-    return template.render(classDict) + (pyNodeClass,)
+    return MetaMayaNodeGenerator(pyNodeTypeName, pyNodeClass, mayaType, parentPymelTypes, parentMethods, parentApicls)
 
 
-def generateAll():
-
-    modules = [
-        ('pymel.core.animation', '_general.PyNode'),
-        ('pymel.core.context', None),
-        ('pymel.core.effects', '_general.PyNode'),
-        ('pymel.core.general', 'PyNode'),
-        ('pymel.core.language', None),
-        ('pymel.core.modeling', '_general.PyNode'),
-        ('pymel.core.other', None),
-        ('pymel.core.rendering', '_general.PyNode'),
-        ('pymel.core.runtime', None),
-        ('pymel.core.system', None),
-    ]
-    # Reset
-    for module, _ in modules:
-        _resetModule(module)
-
-    _resetModule('pymel.core.windows')
-
-    lines = _resetModule('pymel.core.nodetypes')
-
-    import pymel.core
-
-    # Generate Functions
-    for module, returnFunc in modules:
-        generateFunctions(module, returnFunc)
-
-    generateUIFunctions()
+def iterPyNodeText():
 
     # Generate Classes
     heritedMethods = {
@@ -1159,9 +1141,6 @@ def generateAll():
     apiClasses = {
         'general.PyNode': None
     }
-
-    # tally of additions made in middle of codde
-    offset = 0
 
     for mayaType, parents, children in factories.nodeHierarchy:
 
@@ -1184,24 +1163,51 @@ def generateAll():
         if factories.isMayaType(mayaType) or mayaType == 'dependNode':
             parentMethods = heritedMethods[parentMayaType]
             parentApicls = apiClasses[parentMayaType]
-            text, methods, apicls, existingCls = generatePyNode(mayaType, parents, parentMethods, parentApicls)
-            newlines = text.split('\n')
-            if existingCls:
-                # trailing newlines
-                if newlines[-2:] == ['', '']:
-                    newlines = newlines[:-2]
+            template = getPyNodeGenerator(mayaType, parents, parentMethods, parentApicls)
 
-                # if there is an existing class, slot the new lines after the class
-                srclines, line = inspect.getsourcelines(existingCls)
-                endline = line + len(srclines) - 1
-                endline += offset
-                newlines = [START_MARKER] + newlines + [END_MARKER]
-                lines[endline:endline] = newlines
-                offset += len(newlines)
-            else:
-                lines += newlines
+            text, methods = template.render()
+            yield text, template
             heritedMethods[mayaType] = parentMethods.union(methods)
-            apiClasses[mayaType] = apicls
+            apiClasses[mayaType] = template.apicls
+
+
+def generateAll():
+    # Reset modules, before import
+    for module, _ in CORE_CMD_MODULES:
+        _resetModule(module)
+
+    _resetModule('pymel.core.windows')
+
+    lines = _resetModule('pymel.core.nodetypes')
+
+    # Import to populate existing objects
+    import pymel.core
+
+    # Generate Functions
+    for module, returnFunc in CORE_CMD_MODULES:
+        generateFunctions(module, returnFunc)
+
+    generateUIFunctions()
+
+    # tally of additions made in middle of codde
+    offset = 0
+
+    for text, template in iterPyNodeText():
+        newlines = text.split('\n')
+        if template.existingClass:
+            # trailing newlines
+            if newlines[-2:] == ['', '']:
+                newlines = newlines[:-2]
+
+            # if there is an existing class, slot the new lines after the class
+            srclines, line = inspect.getsourcelines(template.existingClass)
+            endline = line + len(srclines) - 1
+            endline += offset
+            newlines = [START_MARKER] + newlines + [END_MARKER]
+            lines[endline:endline] = newlines
+            offset += len(newlines)
+        else:
+            lines += newlines
 
     source = _getModulePath('pymel.core.nodetypes')
 
