@@ -115,6 +115,7 @@ def loadCmdCache():
 
     _elapsed = time.time() - _start
     _logger.debug("Initialized Cmd Cache in in %.2f sec" % _elapsed)
+    # cmdlist = None
 
 def _setCmdCacheGlobals():
     global _cmdCacheInst
@@ -439,8 +440,17 @@ def loadCmdDocCache():
     docCacheLoaded = True
 
 def _addCmdDocs(func, cmdName=None):
+    if isinstance(func, basestring):
+        func = getattr(pmcmds, func, None)
+        if func is None:
+            # assume UI command
+            return None
+
     if cmdName is None:
-        cmdName = func.__name__
+        try:
+            cmdName = func.__name__
+        except AttributeError:
+            cmdName = func.__class__.__name__
     if func.__doc__:
         docstring = func.__doc__ + '\n\n'
     else:
@@ -891,7 +901,7 @@ def maybeConvert(val, castFunc):
             return val
     elif val:
         try:
-            res = castFunc(val)
+            return castFunc(val)
         except Exception:
             return val
 
@@ -1691,10 +1701,12 @@ class ApiArgUtil(object):
     def castInput(self, argName, input):
         # enums
         argtype = self.methodInfo['types'][argName]
-        return self._castInput(argName, input, argtype)
+        info = self.methodInfo['argInfo'][argName]
+        unit = info.get('unitType', None)
+        return self._castInput(input, argtype, unit)
 
     @classmethod
-    def _castInput(cls, argName, input, argtype):
+    def _castInput(cls, input, argtype, unit=None):
         if isinstance(argtype, tuple):
             # convert enum as a string or int to an int
 
@@ -1711,7 +1723,7 @@ class ApiArgUtil(object):
             if f is None:
                 return input
 
-            input = cls.toInternalUnits(argName, input)
+            input = cls.toInternalUnits(input, unit)
             return f(input)
 #            except:
 #                if input is None:
@@ -1750,10 +1762,9 @@ class ApiArgUtil(object):
                 result = unitCast(None, result)
         return result
 
-    def toInternalUnits(self, arg, input):
+    @staticmethod
+    def toInternalUnits(input, unit):
         # units
-        info = self.methodInfo['argInfo'][arg]
-        unit = info.get('unitType', None)
         if unit == 'linear':
             #_logger.debug("setting linear")
             unitCast = ApiTypeRegister.inCast['MDistance']
@@ -2134,7 +2145,7 @@ def getUndoArgs(args, argList, getter, getterInArgs):
     undo_args = []  # args required to reset back to the original (starting) state  ( aka "undo" )
     missingUndoIndices = []  # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
     inCount = 0
-    for name, argtype, direction in argList:
+    for name, argtype, direction, unit in argList:
         if direction == 'in':
             arg = args[inCount]
             undo_args.append(arg)
@@ -2170,9 +2181,9 @@ def getDoArgs(args, argList):
     final_do_args = []
     outTypeList = []
     inCount = totalCount = 0
-    for name, argtype, direction in argList:
+    for name, argtype, direction, unit in argList:
         if direction == 'in':
-            arg = ApiArgUtil._castInput(name, args[inCount], argtype)
+            arg = ApiArgUtil._castInput(args[inCount], argtype, unit)
             inCount += 1
         else:
             arg = ApiArgUtil.initReference(argtype)
@@ -2301,9 +2312,16 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
 
     if argHelper.isDeprecated():
         _logger.debug("%s.%s is deprecated" % (apiClassName, methodName))
+
+    argInfo = argHelper.methodInfo['argInfo']
+
+    def getUnit(n):
+        return argInfo[n].get('unitType', None)
+
     inArgs = argHelper.inArgs()
     outArgs = argHelper.outArgs()
-    argList = argHelper.argList()
+    argList = [(name, typ, dir, getUnit(name))
+               for name, typ, dir in argHelper.argList()]
 
     getterArgHelper = argHelper.getGetterInfo()
 
@@ -2339,7 +2357,7 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
             getter = getattr(self, getterArgHelper.getPymelName())
             undo_args = getUndoArgs(args, argList, getter, getterInArgs)
 
-        do_args, final_do_args, outTypeList = getDoArgs(args, argList, len(inArgs))
+        do_args, final_do_args, outTypeList = getDoArgs(args, argList)
 
         if undoEnabled:
             setter = getattr(self, pymelName)
@@ -2469,13 +2487,13 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
         docstring += '\n\n:Parameters:\n'
         for name in inArgs:
             info = argInfo[name]
-            type = info['type']
-            typeStr = formatDocstring(type)
+            typ = info['type']
+            typeStr = formatDocstring(typ)
 
             docstring += S + '%s : %s\n' % (name, typeStr)
             docstring += S * 2 + '%s\n' % (info['doc'])
-            if isinstance(type, apicache.ApiEnum):
-                apiClassName, enumName = type
+            if isinstance(typ, apicache.ApiEnum):
+                apiClassName, enumName = typ
                 enumValues = apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
                 docstring += '\n' + S * 2 + 'values: %s\n' % ', '.join(['%r' % x for x in enumValues if x not in ['invalid', 'last']])
 
@@ -3164,6 +3182,7 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
     """
     create a PyNode type for a maya node.
     """
+    raise
     # dynModule is generally pymel.core.nodetypes, but don't want to rely on
     # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
     from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\

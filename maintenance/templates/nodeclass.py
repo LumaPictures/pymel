@@ -12,18 +12,18 @@ class {{ classname }}({{ parents }}):
     {% if method.type == 'query' %}
     @_f.addMelDocs('{{ method.command }}', '{{ method.flag }}')
     def {{ method.name }}(self, **kwargs):
+        res = _f.asQuery(self, {{ method.func }}, kwargs, '{{ method.flag }}')
       {% if method.returnFunc %}
-        return {{ method.returnFunc }}(_f.asQuery(self, cmds.{{ method.command }}, kwargs, '{{ method.flag }}'))
-      {% else %}
-        return _f.asQuery(self, cmds.{{ method.command }}, kwargs, '{{ method.flag }}')
+        res = {{ method.returnFunc }}(res)
       {% endif %}
+        return res
     {% elif method.type == 'edit' %}
     @_f.addMelDocs('{{ method.command }}', '{{ method.flag }}')
     def {{ method.name }}(self, val=True, **kwargs):
         {% if callbackFlags %}
         _f.handleCallbacks(args, kwargs, {{ callbackFlags }})
         {% endif %}
-        return _f.asEdit(self, cmds.{{ method.command }}, kwargs, '{{ method.flag }}', val)
+        return _f.asEdit(self, {{ method.func }}, kwargs, '{{ method.flag }}', val)
     {% elif method.type == 'api' %}
     {% if method.classmethod %}
     @classmethod
@@ -48,7 +48,7 @@ class {{ classname }}({{ parents }}):
         res = _api.{{ method.apiClass }}.{{ method.apiName }}(self, *final_do)
       {% endif %}
       {% if method.returnType %}
-        res = _f.ApiArgUtil._castResult(self, res, '{{ method.returnType }}', {{ method.unitType }})
+        res = _f.ApiArgUtil._castResult(self, res, {{ method.returnType }}, {{ method.unitType }})
       {% endif %}
         return _f.processApiResult(res, {{ method.outArgs }}, outTypes, do)
     {% else %}
@@ -69,7 +69,7 @@ class {{ classname }}({{ parents }}):
         res = _api.{{ method.apiClass }}.{{ method.apiName }}(self)
       {% endif %}
       {% if method.returnType %}
-        return _f.ApiArgUtil._castResult(self, res, '{{ method.returnType }}', {{ method.unitType }})
+        return _f.ApiArgUtil._castResult(self, res, {{ method.returnType }}, {{ method.unitType }})
       {% else %}
         return res
       {% endif %}

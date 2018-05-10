@@ -17,19 +17,28 @@ env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
 
 
-def importableName(func, module=None):
+def importableName(func, module=None, moduleMap=None):
     try:
         name = func.__name__
     except AttributeError:
         name = func.__class__.__name__
 
+    if name == '<lambda>':
+        raise ValueError("received lambda function")
+
     if func.__module__ == '__builtin__':
         path = name
     else:
-        path = "{}.{}".format(
-            module or func.__module__,
-            name
-        )
+        if module:
+            moduleName = module
+        elif moduleMap:
+            moduleName = moduleMap.get(func.__module__, func.__module__)
+        else:
+            moduleName = func.__module__
+        if moduleName:
+            path = "{}.{}".format(moduleName, name)
+        else:
+            path = name
     return path
 
 
@@ -41,17 +50,9 @@ def _listRepr(s):
     return '[' + ', '.join([repr(s) for s in sorted(s)]) + ']'
 
 
-def functionTemplateFactory(funcNameOrObject, returnFunc=None, module=None,
+def functionTemplateFactory(funcName, returnFunc=None, module=None,
                             rename=None, uiWidget=False):
-    """
-    create a new function, apply the given returnFunc to the results (if any)
-    Use pre-parsed command documentation to add to __doc__ strings for the
-    command.
-    """
-
-    # if module is None:
-    #   module = _thisModule
-    inFunc, funcName, customFunc = factories._getSourceFunction(funcNameOrObject, module)
+    inFunc, funcName, customFunc = factories._getSourceFunction(funcName, module)
     if inFunc is None:
         return ''
 
@@ -117,20 +118,24 @@ def functionTemplateFactory(funcNameOrObject, returnFunc=None, module=None,
                 funcString = pmcmds.getCmdName(func) + '(result)'
             doc += '  - ' + funcString + flags + '\n'
 
+    existing = inFunc.__module__ == module.__name__
     resultNeedsUnpacking = cmdInfo.get('resultNeedsUnpacking', False)
     callbackFlags = cmdInfo.get('callbackFlags', None)
     if callbackFlags:
         callbackFlags = _listRepr(callbackFlags)
     wrapped = funcName in factories.simpleCommandWraps
     if any([timeRangeFlags, returnFunc, resultNeedsUnpacking, unpackFlags, wrapped, callbackFlags]):
-        if inFunc is not None:
-            sourceFuncName = importableName(inFunc)
-            sourceFuncName = sourceFuncName.replace('pymel.internal.pmcmds.', 'cmds.')
-        else:
-            sourceFuncName = None
+        sourceFuncName = importableName(inFunc,
+                                        moduleMap={'pymel.internal.pmcmds': 'cmds'})
+
+        result = ''
+        if existing:
+            sourceFuncName = sourceFuncName.rsplit('.', 1)[1]
+            result += '\n_{func} = {func}\n'.format(func=sourceFuncName)
+            sourceFuncName = '_' + sourceFuncName
 
         template = env.get_template('commandfunc.py')
-        return template.render(
+        return result + template.render(
             funcName=rename or funcName,
             commandName=funcName, timeRangeFlags=timeRangeFlags,
             sourceFuncName=sourceFuncName,
@@ -140,10 +145,20 @@ def functionTemplateFactory(funcNameOrObject, returnFunc=None, module=None,
             simpleWraps=wrapped,
             callbackFlags=callbackFlags, uiWidget=uiWidget).encode()
     else:
-        # bind the
-        return '\n{newName} = _factories._addCmdDocs(cmds.{origName})\n'.format(
-            newName=rename or funcName,
-            origName=funcName)
+        if existing:
+            return "\n{newName} = _factories._addCmdDocs({origName})\n".format(
+                newName=rename or funcName,
+                origName=funcName)
+        # no doc in runtime module
+        if module.__name__ == 'pymel.core.runtime':
+            return "\n{newName} = getattr(cmds, '{origName}', None)\n".format(
+                newName=rename or funcName,
+                origName=funcName)
+        else:
+            return "\n{newName} = _factories._addCmdDocs('{origName}')\n".format(
+                newName=rename or funcName,
+                origName=funcName)
+
 
     # FIXME: handle these!
     # Check if we have not been wrapped yet. if we haven't and our input function is a builtin or we're renaming
@@ -194,9 +209,6 @@ def _resetModule(module):
 
             elif line == END_MARKER:
                 assert start is not None
-                print "removing", start, i
-                import pprint
-                pprint.pprint(lines[start:i + 1])
                 lines[start:i + 1] = []
                 return start
 
@@ -208,6 +220,8 @@ def _resetModule(module):
     begin = 0
     while begin is not None:
         begin = trim(begin)
+
+    lines.append(START_MARKER)
 
     print "writing to", source
     with open(source, 'w') as f:
@@ -271,23 +285,6 @@ autoLayout.__doc__ = formLayout.__doc__
 from uitypes import objectTypeUI, toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
 '''
     _writeToModule(new, module)
-
-
-def generateAllFunctions():
-    """
-    Render templates for all mel functions into their respective module files.
-    """
-    generateFunctions('pymel.core.animation', '_general.PyNode')
-    generateFunctions('pymel.core.context')
-    generateFunctions('pymel.core.effects', '_general.PyNode')
-    generateFunctions('pymel.core.general', 'PyNode')
-    generateFunctions('pymel.core.language')
-    generateFunctions('pymel.core.modeling', '_general.PyNode')
-    generateFunctions('pymel.core.other')
-    generateFunctions('pymel.core.rendering', '_general.PyNode')
-    generateFunctions('pymel.core.runtime')
-    generateFunctions('pymel.core.system')
-    generateUIFunctions()
 
 
 def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
@@ -381,29 +378,34 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
 
     signature = util.format_signature(['self'] + inArgs, defaults=defaults)
 
-    def convert(t):
+    def convertTypeArg(t):
         if isinstance(t, tuple):  # apiEnum
             return tuple(t)
-        else:
+        elif t is not None:
             return str(t)
 
     unitType = argHelper.methodInfo['returnInfo'].get('unitType', None)
+    returnType = argHelper.methodInfo['returnType']
+    argInfo = argHelper.methodInfo['argInfo']
+
+    def getUnit(n):
+        return argInfo[n].get('unitType', None)
 
     return {
         'type': 'api',
         'name': newName,
         'apiName': apiMethodName,
         'apiClass': apiClassName,
-        'getter': pymelName,
+        'getter': getterArgHelper.getPymelName() if getterArgHelper else None,
         'overloadIndex': overloadIndex,
         'inArgs': ', '.join(inArgs),
         'outArgs': outArgs,
-        'argList': [(name, convert(typ), dir) for name, typ, dir in argList],
+        'argList': [(name, convertTypeArg(typ), dir, getUnit(name)) for name, typ, dir in argList],
         'classmethod': argHelper.isStatic(),
         'getterInArgs': getterInArgs,
         'proxy': proxy,
         'undoable': getterArgHelper is not None,
-        'returnType': argHelper.methodInfo['returnType'],
+        'returnType': repr(convertTypeArg(returnType)) if returnType else None,
         'unitType': repr(str(unitType)) if unitType else None,
         'deprecated': deprecated,
         'signature': signature
@@ -447,17 +449,17 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
             argDescriptions.append('{} {}'.format(argType, argName))
         argStr = ', '.join(argDescriptions)
         methodDesc = "{}.{}({})".format(apiClassName, apiMethodName, argStr)
-        beforeDeprecationWrapper = wrappedApiFunc
+        beforeDeprecationGenerator = wrappedApiFunc
 
         def wrappedApiFunc(*args, **kwargs):
             import warnings
             warnings.warn("{} is deprecated".format(methodDesc),
                           DeprecationWarning, stacklevel=2)
-            return beforeDeprecationWrapper(*args, **kwargs)
+            return beforeDeprecationGenerator(*args, **kwargs)
     return wrappedApiFunc
 
 
-class MetaMayaTypeWrapper(object):
+class MetaMayaTypeGenerator(object):
 
     """ A metaclass to wrap Maya api types, with support for class constants """
 
@@ -517,7 +519,7 @@ class MetaMayaTypeWrapper(object):
             except KeyError:
                 apicls = None
 
-        _logger.debug('MetaMayaTypeWrapper: %s: %s (proxy=%s)' % (self.classname, apicls.__name__, proxy))
+        _logger.debug('MetaMayaTypeGenerator: %s: %s (proxy=%s)' % (self.classname, apicls.__name__, proxy))
 
         if apicls is not None:
             if apicls.__name__ not in factories.apiClassNamesToPyNodeNames:
@@ -585,6 +587,11 @@ class MetaMayaTypeWrapper(object):
                         yieldTuple = (methodName, info, self.classname, pymelName,
                                       overloadIndex)
 
+                        import pprint
+                        if pymelName == 'getName':
+                            pprint.pprint(yieldTuple)
+                            pprint.pprint(overrideData)
+
                         if overloadIndex is None:
                             #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
                             # FIXME: previous versions of pymel erroneously included
@@ -596,9 +603,11 @@ class MetaMayaTypeWrapper(object):
                             # FIXME: previous versions of pymel erroneously included
                             # disabled methods on child classes which possessed the same apicls as their parent.
                             # We will deprecate them in order to allow users to transition.
-                            # FIXME: determine if methods in factories.EXCLUDE_METHODS were ever added
                             # FIXME: add unique depcrecation message
-                            deprecated.append(yieldTuple)
+                            if methodName in factories.EXCLUDE_METHODS:
+                                continue
+                            else:
+                                deprecated.append(yieldTuple)
                         elif info[overloadIndex].get('deprecated', False):
                             deprecated.append(yieldTuple)
                         else:
@@ -668,8 +677,8 @@ class MetaMayaTypeWrapper(object):
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
             try:
-                # return MetaMayaTypeWrapper.ClassConstant(newcls(attr))
-                return MetaMayaTypeWrapper.ClassConstant(attr)
+                # return MetaMayaTypeGenerator.ClassConstant(newcls(attr))
+                return MetaMayaTypeGenerator.ClassConstant(attr)
             except Exception, e:
                 _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
         #------------------------
@@ -702,9 +711,9 @@ class MetaMayaTypeWrapper(object):
         #         # update the constant dict with herited constants
         #         mro = inspect.getmro(newcls)
         #         for parentCls in mro:
-        #             if isinstance(parentCls, MetaMayaTypeWrapper):
+        #             if isinstance(parentCls, MetaMayaTypeGenerator):
         #                 for name, attr in parentCls.__dict__.iteritems():
-        #                     if isinstance(attr, MetaMayaTypeWrapper.ClassConstant):
+        #                     if isinstance(attr, MetaMayaTypeGenerator.ClassConstant):
         #                         if not name in constant:
         #                             constant[name] = makeClassConstant(attr.value)
         #
@@ -772,20 +781,20 @@ class MetaMayaTypeWrapper(object):
         return False
 
 
-class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
+class _MetaMayaCommandGenerator(MetaMayaTypeGenerator):
 
     """
     A metaclass for creating classes based on a maya command.
 
-    Not intended to be used directly; instead, use the descendants: MetaMayaNodeWrapper, MetaMayaUIWrapper
+    Not intended to be used directly; instead, use the descendants: MetaMayaNodeGenerator, MetaMayaUIGenerator
     """
 
     _classDictKeyForMelCmd = None
 
     def getTemplateData(self, attrs, methods):
-        #_logger.debug( '_MetaMayaCommandWrapper: %s' % classname )
+        #_logger.debug( '_MetaMayaCommandGenerator: %s' % classname )
 
-        attrs, methods = super(_MetaMayaCommandWrapper, self).getTemplateData(attrs, methods)
+        attrs, methods = super(_MetaMayaCommandGenerator, self).getTemplateData(attrs, methods)
 
         #-------------------------
         #   MEL Methods
@@ -798,17 +807,23 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             pass
             #_logger.debug("No MEL command info available for %s" % melCmdName)
         else:
-            pmSourceFunc = False
-            try:
-                cmdModule = __import__('pymel.core.' + cmdInfo['type'], globals(), locals(), [''])
-                func = getattr(cmdModule, melCmdName)
-                pmSourceFunc = True
-            except (AttributeError, TypeError):
-                func = getattr(pmcmds, melCmdName)
+            # FIXME: this old behavior implies that sometimes we used unwrapped commands,
+            # but it's unclear how this would happen.  Was it a load order thing? Confirm on old version.
+            # pmSourceFunc = False
+            # try:
+            #     cmdModule = __import__('pymel.core.' + cmdInfo['type'], globals(), locals(), [''])
+            #     func = getattr(cmdModule, melCmdName)
+            #     pmSourceFunc = True
+            # except (AttributeError, TypeError):
+            #     func = getattr(pmcmds, melCmdName)
 
-            # add documentation
+            pmSourceFunc = True
+            cmdPath = '%s.%s' % (cmdInfo['type'], melCmdName)
+
+            # FIXME: add documentation
             # classdict['__doc__'] = util.LazyDocString((newcls, self.docstring, (melCmdName,), {}))
-            # classdict['__melcmd__'] = staticmethod(func)
+
+            attrs['__melcmd__'] = cmdPath
             attrs['__melcmdname__'] = melCmdName
             attrs['__melcmd_isinfo__'] = infoCmd
 
@@ -845,25 +860,14 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 if flagInfo.get('resultNeedsCasting', False):
                                     returnFunc = flagInfo['args']
 
-                                # don't unpack if the source i
-                                if (flagInfo.get('resultNeedsUnpacking', False)
-                                        and not pmSourceFunc):
-                                    if returnFunc:
-                                        # can't do:
-                                        #   returnFunc = lambda x: returnFunc(x[0])
-                                        # ... as this would create a recursive function!
-                                        origReturnFunc = returnFunc
-                                        returnFunc = lambda x: origReturnFunc(x[0])
-                                    else:
-                                        returnFunc = lambda x: x[0]
-
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 methods[methodName] = {
                                     'name': methodName,
-                                    'command': pmcmds.getCmdName(func),
+                                    'command': melCmdName,
                                     'type': 'query',
                                     'flag': flag,
-                                    'returnFunc': importableName(returnFunc) if returnFunc else None
+                                    'returnFunc': importableName(returnFunc) if returnFunc else None,
+                                    'func': cmdPath,
                                 }
                             # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
                         # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
@@ -891,9 +895,10 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 methods[methodName] = {
                                     'name': methodName,
-                                    'command': pmcmds.getCmdName(func),
+                                    'command': melCmdName,
                                     'type': 'edit',
                                     'flag': flag,
+                                    'func': cmdPath,
                                 }
                             # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
                         # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
@@ -929,7 +934,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         return classdoc
 
 
-class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
+class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
 
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes
@@ -943,7 +948,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
 
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
+        #_logger.debug( 'MetaMayaNodeGenerator: %s' % classname )
         nodeType = attrs.get('__melnode__')
 
         # FIXME:
@@ -1002,6 +1007,8 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
         def toStr(k, v):
             if k == '__apicls__':
                 return '_api.' + v.__name__
+            elif k == '__melcmd__':
+                return 'staticmethod(%s)' % v
             else:
                 return repr(v)
 
@@ -1015,7 +1022,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
                                existing=self.existingClass is not None)
         return text, methodNames, apicls
         # FIXME:
-        # PyNodeType = super(MetaMayaNodeWrapper, self).render()
+        # PyNodeType = super(MetaMayaNodeGenerator, self).render()
         # ParentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
         # assert len(ParentPyNode), "%s did not have exactly one parent PyNode: %s (%s)" % (self.classname, ParentPyNode, self.bases)
         # factories.addPyNodeType(PyNodeType, ParentPyNode)
@@ -1042,7 +1049,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
         return nodeCmd, infoCmd
 
 
-class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
+class MetaMayaUIGenerator(_MetaMayaCommandGenerator):
 
     """
     A metaclass for creating classes based on on a maya UI type/command.
@@ -1056,7 +1063,7 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
         # TODO: implement a option at the cmdlist level that triggers listForNone
         # TODO: create labelArray for *Grp ui elements, which passes to the correct arg ( labelArray3, labelArray4, etc ) based on length of passed array
 
-        return super(MetaMayaUIWrapper, self).getTemplateData(attrs, methods)
+        return super(MetaMayaUIGenerator, self).getTemplateData(attrs, methods)
 
     def getMelCmd(self, attrs):
         return attrs['__melui__'], False
@@ -1111,11 +1118,41 @@ def generatePyNode(mayaType, parentMayaTypes, parentMethods, parentApicls, extra
     if extraAttrs:
         classDict.update(extraAttrs)
 
-    template = MetaMayaNodeWrapper(pyNodeTypeName, pyNodeClass, parentPymelTypes, parentMethods, parentApicls)
+    template = MetaMayaNodeGenerator(pyNodeTypeName, pyNodeClass, parentPymelTypes, parentMethods, parentApicls)
     return template.render(classDict) + (pyNodeClass,)
 
 
-def generatePyNodes():
+def generateAll():
+
+    modules = [
+        ('pymel.core.animation', '_general.PyNode'),
+        ('pymel.core.context', None),
+        ('pymel.core.effects', '_general.PyNode'),
+        ('pymel.core.general', 'PyNode'),
+        ('pymel.core.language', None),
+        ('pymel.core.modeling', '_general.PyNode'),
+        ('pymel.core.other', None),
+        ('pymel.core.rendering', '_general.PyNode'),
+        ('pymel.core.runtime', None),
+        ('pymel.core.system', None),
+    ]
+    # Reset
+    for module, _ in modules:
+        _resetModule(module)
+
+    _resetModule('pymel.core.windows')
+
+    lines = _resetModule('pymel.core.nodetypes')
+
+    import pymel.core
+
+    # Generate Functions
+    for module, returnFunc in modules:
+        generateFunctions(module, returnFunc)
+
+    generateUIFunctions()
+
+    # Generate Classes
     heritedMethods = {
         'general.PyNode': set()
     }
@@ -1125,12 +1162,6 @@ def generatePyNodes():
 
     # tally of additions made in middle of codde
     offset = 0
-
-    if 'pymel.core.nodetypes' in sys.modules:
-        print "Warning: nodetypes already imported"
-
-    # reset the modle
-    lines = _resetModule('pymel.core.nodetypes')
 
     for mayaType, parents, children in factories.nodeHierarchy:
 
@@ -1156,13 +1187,16 @@ def generatePyNodes():
             text, methods, apicls, existingCls = generatePyNode(mayaType, parents, parentMethods, parentApicls)
             newlines = text.split('\n')
             if existingCls:
-                print existingCls
+                # trailing newlines
+                if newlines[-2:] == ['', '']:
+                    newlines = newlines[:-2]
+
                 # if there is an existing class, slot the new lines after the class
                 srclines, line = inspect.getsourcelines(existingCls)
                 endline = line + len(srclines) - 1
                 endline += offset
                 newlines = [START_MARKER] + newlines + [END_MARKER]
-                # lines[endline:endline] = newlines
+                lines[endline:endline] = newlines
                 offset += len(newlines)
             else:
                 lines += newlines
@@ -1171,6 +1205,11 @@ def generatePyNodes():
 
     source = _getModulePath('pymel.core.nodetypes')
 
+    text = '\n'.join(lines)
+
+    text += '''
+_addTypeNames()
+'''
     print "writing to", source
     with open(source, 'w') as f:
-        f.write('\n'.join(lines))
+        f.write(text)

@@ -27,11 +27,18 @@ from maya.cmds import about as _about
 import maya.mel as mm
 
 #from general import *
+import animation
+import effects
 import general
+import modeling
 import other
+import rendering
+import system
+import windows
+
 from animation import listAnimatable as _listAnimatable
 from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
-from pymel.util.enum import Enum, EnumValue
+from pymel.util.enum import Enum
 
 _thisModule = sys.modules[__name__]
 
@@ -48,6 +55,13 @@ _factories.clearPyNodeTypes()
 # class names, in this module - ie, SurfaceShape
 mayaTypeNameToPymelTypeName = {}
 pymelTypeNameToMayaTypeName = {}
+
+def _addTypeNames():
+    for name, obj in globals().items():
+        if isinstance(obj, type) and issubclass(obj, DependNode):
+            mayaTypeNameToPymelTypeName[obj.__melnode__] = name
+            pymelTypeNameToMayaTypeName[name] = obj.__melnode__
+
 
 class DependNode(general.PyNode):
     __apicls__ = _api.MFnDependencyNode
@@ -82,7 +96,9 @@ class DependNode(general.PyNode):
 
     def __repr__(self):
         """
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return u"nt.%s(%r)" % (self.__class__.__name__, self.name())
 
@@ -199,7 +215,9 @@ class DependNode(general.PyNode):
         This produces the same results as `DependNode.name` and is included to simplify looping over lists
         of nodes that include both Dag and Depend nodes.
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return self.name(**kwargs)
 
@@ -208,14 +226,18 @@ class DependNode(general.PyNode):
         This produces the same results as `DependNode.name` and is included to simplify looping over lists
         of nodes that include both Dag and Depend nodes.
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return self.name(**kwargs)
 
     #rename = rename
     def rename(self, name, **kwargs):
         """
-        :rtype: `DependNode`
+        Returns
+        -------
+        DependNode
         """
         # self.setName( name ) # no undo support
 
@@ -257,8 +279,9 @@ class DependNode(general.PyNode):
     def node(self):
         """for compatibility with Attribute class
 
-        :rtype: `DependNode`
-
+        Returns
+        -------
+        DependNode
         """
         return self
 
@@ -322,13 +345,14 @@ class DependNode(general.PyNode):
         """referenceQuery -file
         Return the reference file to which this object belongs.  None if object is not referenced
 
-        :rtype: `FileReference`
-
+        Returns
+        -------
+        Optional[_FileReference]
         """
         try:
             return _FileReference(cmds.referenceQuery(self, f=1))
         except RuntimeError:
-            None
+            return None
 
     isReadOnly = _factories.wrapApiMethod(_api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly')
 
@@ -345,7 +369,9 @@ class DependNode(general.PyNode):
     def inputs(self, **kwargs):
         """listConnections -source 1 -destination 0
 
-        :rtype: `PyNode` list
+        Returns
+        -------
+        List[general.PyNode]
         """
         kwargs['source'] = True
         kwargs.pop('s', None)
@@ -356,7 +382,9 @@ class DependNode(general.PyNode):
     def outputs(self, **kwargs):
         """listConnections -source 0 -destination 1
 
-        :rtype: `PyNode` list
+        Returns
+        -------
+        List[general.PyNode]
         """
         kwargs['source'] = False
         kwargs.pop('s', None)
@@ -368,7 +396,9 @@ class DependNode(general.PyNode):
     def sources(self, **kwargs):
         """listConnections -source 1 -destination 0
 
-        :rtype: `PyNode` list
+        Returns
+        -------
+        List[general.PyNode]
         """
         kwargs['source'] = True
         kwargs.pop('s', None)
@@ -379,7 +409,9 @@ class DependNode(general.PyNode):
     def destinations(self, **kwargs):
         """listConnections -source 0 -destination 1
 
-        :rtype: `PyNode` list
+        Returns
+        -------
+        List[general.PyNode]
         """
         kwargs['source'] = False
         kwargs.pop('s', None)
@@ -397,7 +429,9 @@ class DependNode(general.PyNode):
         shading groups), whereas this method searches the object's future for
         any nodes of type 'shadingEngine'.
 
-        :rtype: `DependNode` list
+        Returns
+        -------
+        List[DependNode]
         """
         return self.future(type='shadingEngine')
 
@@ -483,7 +517,9 @@ class DependNode(general.PyNode):
         access to attribute plug of a node. returns an instance of the Attribute class for the
         given attribute name.
 
-        :rtype: `Attribute`
+        Returns
+        -------
+        general.Attribute
         """
         return self._attr(attr, False)
 
@@ -627,8 +663,10 @@ class DependNode(general.PyNode):
             version would only return childAttr if an index exists for
             parentAttr, ie "node.parentAttr[0].childAttr"; may not be used in
             combination with 'topLevel'
-        :rtype: `Attribute` list
 
+        Returns
+        -------
+        List[general.Attribute]
         """
         topLevel = kwargs.pop('topLevel', False)
         descendants = kwargs.pop('descendants', False)
@@ -667,8 +705,9 @@ class DependNode(general.PyNode):
           - returns an empty list when the result is None
           - when queried, returns a list of (alias, `Attribute`) pairs.
 
-        :rtype: (`str`, `Attribute`) list
-
+        Returns
+        -------
+        List[Tuple[str, general.Attribute]]
         """
 
         #tmp = _util.listForNone(cmds.aliasAttr(self.name(),query=True))
@@ -682,7 +721,9 @@ class DependNode(general.PyNode):
     def attrInfo(self, **kwargs):
         """attributeInfo
 
-        :rtype: `Attribute` list
+        Returns
+        -------
+        List[general.Attribute]
         """
         # stringify fix
         return map(lambda x: self.attr(x), _util.listForNone(cmds.attributeInfo(self.name(), **kwargs)))
@@ -703,7 +744,9 @@ class DependNode(general.PyNode):
         >>> SCENE.lambert1.stripNum()
         u'lambert'
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return other.NameParser(self).stripNum()
 
@@ -715,7 +758,9 @@ class DependNode(general.PyNode):
         >>> SCENE.lambert1.extractNum()
         u'1'
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return other.NameParser(self).extractNum()
 
@@ -724,7 +769,9 @@ class DependNode(general.PyNode):
 
         If there is no trailing number, appends '1' to the name.
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return other.NameParser(self).nextUniqueName()
 
@@ -737,7 +784,9 @@ class DependNode(general.PyNode):
         >>> SCENE.lambert1.nextName()
         DependNodeName(u'lambert2')
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return other.NameParser(self).nextName()
 
@@ -746,7 +795,9 @@ class DependNode(general.PyNode):
 
         Raises an error if the name has no trailing number.
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return other.NameParser(self).prevName()
 
@@ -783,7 +834,9 @@ class DagNode(Entity):
         Will retrieve a Component object for this node; similar to
         DependNode.attr(), but for components.
 
-        :rtype: `Component`
+        Returns
+        -------
+        general.Component
         """
         if compName in self._componentAttributes:
             compClass = self._componentAttributes[compName]
@@ -1374,7 +1427,9 @@ class DagNode(Entity):
     def root(self):
         """rootOf
 
-        :rtype: `unicode`
+        Returns
+        -------
+        unicode
         """
         return DagNode('|' + self.longName()[1:].split('|')[0])
 
@@ -1533,7 +1588,9 @@ class DagNode(Entity):
 
     def isInstanceOf(self, other):
         """
-        :rtype: `bool`
+        Returns
+        -------
+        bool
         """
         if isinstance(other, general.PyNode):
             return self.__apimobject__() == other.__apimobject__()
@@ -1548,13 +1605,17 @@ class DagNode(Entity):
         returns the instance number that this path represents in the DAG. The instance number can be used to determine which
         element of the world space array attributes of a DAG node to connect to get information regarding this instance.
 
-        :rtype: `int`
+        Returns
+        -------
+        int
         """
         return self.__apimdagpath__().instanceNumber()
 
     def getInstances(self, includeSelf=True):
         """
-        :rtype: `DagNode` list
+        Returns
+        -------
+        List[DagNode]
 
         >>> from pymel.core import *
         >>> f=newFile(f=1) #start clean
@@ -1581,14 +1642,18 @@ class DagNode(Entity):
         """
         same as `DagNode.getInstances` with includeSelf=False.
 
-        :rtype: `DagNode` list
+        Returns
+        -------
+        List[DagNode]
         """
         return self.getInstances(includeSelf=False)
 
     def firstParent(self):
         """firstParentOf
 
-        :rtype: `DagNode`
+        Returns
+        -------
+        DagNode
         """
         try:
             return DagNode('|'.join(self.longName().split('|')[:-1]))
@@ -1701,7 +1766,9 @@ class DagNode(Entity):
               Since the original command returned None if there is no parent, to sync with this behavior, None will
               be returned if generations is out of bounds (no IndexError will be thrown).
 
-        :rtype: `DagNode`
+        Returns
+        -------
+        Union[DagNode, List[DagNode]]
         """
 
         # Get the parent through the api - listRelatives doesn't handle instances correctly,
@@ -1722,7 +1789,9 @@ class DagNode(Entity):
 
         Starts from the parent immediately above, going up.
 
-        :rtype: `DagNode` list
+        Returns
+        -------
+        List[DagNode]
         """
         return self.getParent(generations=None)
 
@@ -1732,7 +1801,9 @@ class DagNode(Entity):
 
         for flags, see pymel.core.general.listRelatives
 
-        :rtype: `DagNode` list
+        Returns
+        -------
+        List[DagNode]
         """
         kwargs['children'] = True
         kwargs.pop('c', None)
@@ -1743,7 +1814,9 @@ class DagNode(Entity):
         """
         for flags, see pymel.core.general.listRelatives
 
-        :rtype: `DagNode` list
+        Returns
+        -------
+        List[DagNode]
         """
         # pass
         try:
@@ -1755,7 +1828,9 @@ class DagNode(Entity):
         """
         for flags, see pymel.core.general.listRelatives
 
-        :rtype: `PyNode` list
+        Returns
+        -------
+        List[DagNode]
         """
         return general.listRelatives(self, **kwargs)
 
@@ -1776,7 +1851,9 @@ class DagNode(Entity):
     def addChild(self, child, **kwargs):
         """parent (reversed)
 
-        :rtype: `DagNode`
+        Returns
+        -------
+        DagNode
         """
         cmds.parent(child, self, **kwargs)
         if not isinstance(child, general.PyNode):
@@ -1797,7 +1874,9 @@ class DagNode(Entity):
             >>> print t.fullPath()
             |sphere|cube|torus
 
-        :rtype: `DagNode`
+        Returns
+        -------
+        DagNode
         """
         return self.addChild(child, **kwargs)
 
@@ -1811,7 +1890,9 @@ class DagNode(Entity):
     def isDisplaced(self):
         """Returns whether any of this object's shading groups have a displacement shader input
 
-        :rtype: `bool`
+        Returns
+        -------
+        bool
         """
         for sg in self.shadingGroups():
             if len(sg.attr('displacementShader').inputs()):
@@ -1868,6 +1949,10 @@ class Shape(DagNode):
 
 
 class Camera(Shape):
+    # FIXME: the functionFactory is causing these methods to have their docs doubled-up,  in both pymel.track, and pymel.Camera.track
+    orbit = _factories._addCmdDocs(cmds.orbit)
+    track = _factories._addCmdDocs(cmds.track)
+    tumble = _factories._addCmdDocs(cmds.tumble)
 
     def applyBookmark(self, bookmark):
         kwargs = {}
@@ -1924,13 +2009,6 @@ class Camera(Shape):
         else:
             kwargs['absolute'] = True
         cmds.roll(self, **kwargs)
-
-    # TODO: the functionFactory is causing these methods to have their docs doubled-up,  in both pymel.track, and pymel.Camera.track
-    #dolly = _factories.functionFactory( cmds.dolly  )
-    #roll = _factories.functionFactory( cmds.roll  )
-    orbit = _factories.functionFactory(cmds.orbit)
-    track = _factories.functionFactory(cmds.track)
-    tumble = _factories.functionFactory(cmds.tumble)
 
 
 class Transform(DagNode):
@@ -2413,19 +2491,19 @@ class Transform(DagNode):
 
 
 class Joint(Transform):
-    connect = _factories.functionFactory(cmds.connectJoint, rename='connect')
-    disconnect = _factories.functionFactory(cmds.disconnectJoint, rename='disconnect')
-    insert = _factories.functionFactory(cmds.insertJoint, rename='insert')
+    connect = _factories._addCmdDocs(cmds.connectJoint)
+    disconnect = _factories._addCmdDocs(cmds.disconnectJoint)
+    insert = _factories._addCmdDocs(cmds.insertJoint)
 
 
 if versions.isUnlimited():
     class FluidEmitter(Transform):
-        fluidVoxelInfo = _factories.functionFactory(cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
-        loadFluid = _factories.functionFactory(cmds.loadFluid, rename='loadFluid')
-        resampleFluid = _factories.functionFactory(cmds.resampleFluid, rename='resampleFluid')
-        saveFluid = _factories.functionFactory(cmds.saveFluid, rename='saveFluid')
-        setFluidAttr = _factories.functionFactory(cmds.setFluidAttr, rename='setFluidAttr')
-        getFluidAttr = _factories.functionFactory(cmds.getFluidAttr, rename='getFluidAttr')
+        fluidVoxelInfo = _factories._addCmdDocs(cmds.fluidVoxelInfo)
+        loadFluid = _factories._addCmdDocs(cmds.loadFluid)
+        resampleFluid = _factories._addCmdDocs(cmds.resampleFluid)
+        saveFluid = _factories._addCmdDocs(cmds.saveFluid)
+        setFluidAttr = _factories._addCmdDocs(cmds.setFluidAttr)
+        getFluidAttr = _factories._addCmdDocs(cmds.getFluidAttr)
 
 
 class RenderLayer(DependNode):
@@ -2575,83 +2653,86 @@ class NurbsCurve(CurveShape):
                             'knot': general.NurbsCurveKnot,
                             'knots': general.NurbsCurveKnot}
 
-'''
-# apiToMelBridge maps MFnNurbsCurve.numCVs => NurbsCurve._numCVsApi
-NurbsCurve.numCVs = \
-    NurbsCurve._numCVsFunc_generator(NurbsCurve.form,
-                                     NurbsCurve._numCVsApi,
-                                     NurbsCurve.numSpans,
-                                     name='numCVs',
-                                     doc="""
-        Returns the number of CVs.
 
-        :Parameters:
-        editableOnly : `bool`
-            If editableOnly evaluates to True (default), then this will return
-            the number of cvs that can be actually edited (and also the highest
-            index that may be used for cv's - ie, if
-                myCurve.numCVs(editableOnly=True) == 4
-            then allowable cv indices go from
-                myCurve.cv[0] to mySurf.cv[3]
+if '__apicls__' in NurbsCurve.__dict__:
+    # keep this safe to load if the templates have not been built yet
 
-            If editablyOnly is False, then this will return the underlying
-            number of cvs used to define the mathematical curve -
-            degree + numSpans.
+    # apiToMelBridge maps MFnNurbsCurve.numCVs => NurbsCurve._numCVsApi
+    NurbsCurve.numCVs = \
+        NurbsCurve._numCVsFunc_generator(NurbsCurve.form,
+                                         NurbsCurve._numCVsApi,
+                                         NurbsCurve.numSpans,
+                                         name='numCVs',
+                                         doc="""
+            Returns the number of CVs.
+    
+            :Parameters:
+            editableOnly : `bool`
+                If editableOnly evaluates to True (default), then this will return
+                the number of cvs that can be actually edited (and also the highest
+                index that may be used for cv's - ie, if
+                    myCurve.numCVs(editableOnly=True) == 4
+                then allowable cv indices go from
+                    myCurve.cv[0] to mySurf.cv[3]
+    
+                If editablyOnly is False, then this will return the underlying
+                number of cvs used to define the mathematical curve -
+                degree + numSpans.
+    
+                These will only differ if the form is 'periodic', in which
+                case the editable number will be numSpans (as the last 'degree'
+                cv's are 'locked' to be the same as the first 'degree' cvs).
+                In all other cases, the number of cvs will be degree + numSpans.
+    
+            :Examples:
+                >>> from pymel.core import *
+                >>> # a periodic curve
+                >>> myCurve = curve(name='periodicCurve1', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
+                >>> myCurve.cv
+                NurbsCurveCV(u'periodicCurveShape1.cv[0:7]')
+                >>> myCurve.numCVs()
+                8
+                >>> myCurve.numCVs(editableOnly=False)
+                11
+                >>>
+                >>> # an open curve
+                >>> myCurve = curve(name='openCurve1', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
+                >>> myCurve.cv
+                NurbsCurveCV(u'openCurveShape1.cv[0:10]')
+                >>> myCurve.numCVs()
+                11
+                >>> myCurve.numCVs(editableOnly=False)
+                11
+    
+            :rtype: `int`
+            """)
 
-            These will only differ if the form is 'periodic', in which
-            case the editable number will be numSpans (as the last 'degree'
-            cv's are 'locked' to be the same as the first 'degree' cvs).
-            In all other cases, the number of cvs will be degree + numSpans.
+    NurbsCurve.numEPs = \
+        NurbsCurve._numEPsFunc_generator(NurbsCurve.form,
+                                         NurbsCurve.numSpans,
+                                         name='numEPs',
+                                         doc="""
+            Returns the number of EPs.
+    
+            :Examples:
+                >>> from pymel.core import *
+                >>> # a periodic curve
+                >>> myCurve = curve(name='periodicCurve2', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
+                >>> myCurve.ep
+                NurbsCurveEP(u'periodicCurveShape2.ep[0:7]')
+                >>> myCurve.numEPs()
+                8
+                >>>
+                >>> # an open curve
+                >>> myCurve = curve(name='openCurve2', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
+                >>> myCurve.ep
+                NurbsCurveEP(u'openCurveShape2.ep[0:8]')
+                >>> myCurve.numEPs()
+                9
+    
+            :rtype: `int`
+            """)
 
-        :Examples:
-            >>> from pymel.core import *
-            >>> # a periodic curve
-            >>> myCurve = curve(name='periodicCurve1', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
-            >>> myCurve.cv
-            NurbsCurveCV(u'periodicCurveShape1.cv[0:7]')
-            >>> myCurve.numCVs()
-            8
-            >>> myCurve.numCVs(editableOnly=False)
-            11
-            >>>
-            >>> # an open curve
-            >>> myCurve = curve(name='openCurve1', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
-            >>> myCurve.cv
-            NurbsCurveCV(u'openCurveShape1.cv[0:10]')
-            >>> myCurve.numCVs()
-            11
-            >>> myCurve.numCVs(editableOnly=False)
-            11
-
-        :rtype: `int`
-        """)
-
-NurbsCurve.numEPs = \
-    NurbsCurve._numEPsFunc_generator(NurbsCurve.form,
-                                     NurbsCurve.numSpans,
-                                     name='numEPs',
-                                     doc="""
-        Returns the number of EPs.
-
-        :Examples:
-            >>> from pymel.core import *
-            >>> # a periodic curve
-            >>> myCurve = curve(name='periodicCurve2', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
-            >>> myCurve.ep
-            NurbsCurveEP(u'periodicCurveShape2.ep[0:7]')
-            >>> myCurve.numEPs()
-            8
-            >>>
-            >>> # an open curve
-            >>> myCurve = curve(name='openCurve2', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
-            >>> myCurve.ep
-            NurbsCurveEP(u'openCurveShape2.ep[0:8]')
-            >>> myCurve.numEPs()
-            9
-
-        :rtype: `int`
-        """)
-'''
 
 class SurfaceShape(ControlPoint):
     pass
@@ -2672,159 +2753,162 @@ class NurbsSurface(SurfaceShape):
                             'sf': general.NurbsSurfaceFace,
                             'faces': general.NurbsSurfaceFace}
 
-'''
-# apiToMelBridge maps MFnNurbsCurve._numCVsInU => NurbsCurve._numCVsInUApi
-NurbsSurface.numCVsInU = \
-    NurbsSurface._numCVsFunc_generator(NurbsSurface.formInU,
-                                       NurbsSurface._numCVsInUApi,
-                                       NurbsSurface.numSpansInU,
-                                       name='numCVsInU',
-                                       doc="""
-        Returns the number of CVs in the U direction.
 
-        :Parameters:
-        editableOnly : `bool`
-            If editableOnly evaluates to True (default), then this will return
-            the number of cvs that can be actually edited (and also the highest
-            index that may be used for u - ie, if
-                mySurf.numCVsInU(editableOnly=True) == 4
-            then allowable u indices go from
-                mySurf.cv[0][*] to mySurf.cv[3][*]
+if '__apicls__' in NurbsSurface.__dict__:
+    # keep this safe to load if the templates have not been built yet
 
-            If editablyOnly is False, then this will return the underlying
-            number of cvs used to define the mathematical curve in u -
-            degreeU + numSpansInU.
+    # apiToMelBridge maps MFnNurbsCurve._numCVsInU => NurbsCurve._numCVsInUApi
+    NurbsSurface.numCVsInU = \
+        NurbsSurface._numCVsFunc_generator(NurbsSurface.formInU,
+                                           NurbsSurface._numCVsInUApi,
+                                           NurbsSurface.numSpansInU,
+                                           name='numCVsInU',
+                                           doc="""
+            Returns the number of CVs in the U direction.
+    
+            :Parameters:
+            editableOnly : `bool`
+                If editableOnly evaluates to True (default), then this will return
+                the number of cvs that can be actually edited (and also the highest
+                index that may be used for u - ie, if
+                    mySurf.numCVsInU(editableOnly=True) == 4
+                then allowable u indices go from
+                    mySurf.cv[0][*] to mySurf.cv[3][*]
+    
+                If editablyOnly is False, then this will return the underlying
+                number of cvs used to define the mathematical curve in u -
+                degreeU + numSpansInU.
+    
+                These will only differ if the form in u is 'periodic', in which
+                case the editable number will be numSpansInU (as the last 'degree'
+                cv's are 'locked' to be the same as the first 'degree' cvs).
+                In all other cases, the number of cvs will be degreeU + numSpansInU.
+    
+            :Examples:
+                >>> from pymel.core import *
+                >>> # a periodic surface
+                >>> mySurf = surface(name='periodicSurf1', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
+                >>> sorted(mySurf.cv[:][0].indices())        # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((7, 0), label=None)]
+                >>> mySurf.numCVsInU()
+                8
+                >>> mySurf.numCVsInU(editableOnly=False)
+                11
+                >>>
+                >>> # an open surface
+                >>> mySurf = surface(name='openSurf1', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=((4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)) )
+                >>> sorted(mySurf.cv[:][0].indices())        # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((10, 0), label=None)]
+                >>> mySurf.numCVsInU()
+                11
+                >>> mySurf.numCVsInU(editableOnly=False)
+                11
+    
+            :rtype: `int`
+            """)
 
-            These will only differ if the form in u is 'periodic', in which
-            case the editable number will be numSpansInU (as the last 'degree'
-            cv's are 'locked' to be the same as the first 'degree' cvs).
-            In all other cases, the number of cvs will be degreeU + numSpansInU.
+    # apiToMelBridge maps MFnNurbsCurve._numCVsInV => NurbsCurve._numCVsInVApi
+    NurbsSurface.numCVsInV = \
+        NurbsSurface._numCVsFunc_generator(NurbsSurface.formInV,
+                                           NurbsSurface._numCVsInVApi,
+                                           NurbsSurface.numSpansInV,
+                                           name='numCVsInV',
+                                           doc="""
+            Returns the number of CVs in the V direction.
+    
+            :Parameters:
+            editableOnly : `bool`
+                If editableOnly evaluates to True (default), then this will return
+                the number of cvs that can be actually edited (and also the highest
+                index that may be used for v - ie, if
+                    mySurf.numCVsInV(editableOnly=True) == 4
+                then allowable v indices go from
+                    mySurf.cv[*][0] to mySurf.cv[*][3]
+    
+                If editablyOnly is False, then this will return the underlying
+                number of cvs used to define the mathematical curve in v -
+                degreeV + numSpansInV.
+    
+                These will only differ if the form in v is 'periodic', in which
+                case the editable number will be numSpansInV (as the last 'degree'
+                cv's are 'locked' to be the same as the first 'degree' cvs).
+                In all other cases, the number of cvs will be degreeV + numSpansInV.
+    
+            :Examples:
+                >>> from pymel.core import *
+                >>> # a periodic surface
+                >>> mySurf = surface(name='periodicSurf2', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
+                >>> sorted(mySurf.cv[0].indices())         # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((0, 7), label='cv')]
+                >>> mySurf.numCVsInV()
+                8
+                >>> mySurf.numCVsInV(editableOnly=False)
+                11
+                >>>
+                >>> # an open surface
+                >>> mySurf = surface(name='openSurf2', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
+                >>> sorted(mySurf.cv[0].indices())          # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((0, 10), label='cv')]
+                >>> mySurf.numCVsInV()
+                11
+                >>> mySurf.numCVsInV(editableOnly=False)
+                11
+    
+            :rtype: `int`
+            """)
 
-        :Examples:
-            >>> from pymel.core import *
-            >>> # a periodic surface
-            >>> mySurf = surface(name='periodicSurf1', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
-            >>> sorted(mySurf.cv[:][0].indices())        # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((7, 0), label=None)]
-            >>> mySurf.numCVsInU()
-            8
-            >>> mySurf.numCVsInU(editableOnly=False)
-            11
-            >>>
-            >>> # an open surface
-            >>> mySurf = surface(name='openSurf1', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=((4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)) )
-            >>> sorted(mySurf.cv[:][0].indices())        # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((10, 0), label=None)]
-            >>> mySurf.numCVsInU()
-            11
-            >>> mySurf.numCVsInU(editableOnly=False)
-            11
+    NurbsSurface.numEPsInU = \
+        NurbsSurface._numEPsFunc_generator(NurbsSurface.formInU,
+                                           NurbsSurface.numSpansInU,
+                                           name='numEPsInU',
+                                           doc="""
+            Returns the number of EPs in the U direction.
+    
+            :Examples:
+                >>> from pymel.core import *
+                >>> # a periodic surface
+                >>> mySurf = surface(name='periodicSurf3', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
+                >>> sorted(mySurf.ep[:][0].indices())      # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((7, 0), label=None)]
+                >>> mySurf.numEPsInU()
+                8
+                >>>
+                >>> # an open surface
+                >>> mySurf = surface(name='openSurf3', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
+                >>> sorted(mySurf.ep[:][0].indices())      # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((8, 0), label=None)]
+                >>> mySurf.numEPsInU()
+                9
+    
+            :rtype: `int`
+            """)
 
-        :rtype: `int`
-        """)
+    NurbsSurface.numEPsInV = \
+        NurbsSurface._numEPsFunc_generator(NurbsSurface.formInV,
+                                           NurbsSurface.numSpansInV,
+                                           name='numEPsInV',
+                                           doc="""
+            Returns the number of EPs in the V direction.
+    
+            :Examples:
+                >>> from pymel.core import *
+                >>> # a periodic surface
+                >>> mySurf = surface(name='periodicSurf4', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
+                >>> sorted(mySurf.ep[0][:].indices())      # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((0, 7), label=None)]
+                >>> mySurf.numEPsInV()
+                8
+                >>>
+                >>> # an open surface
+                >>> mySurf = surface(name='openSurf4', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
+                >>> sorted(mySurf.ep[0][:].indices())      # doctest: +ELLIPSIS
+                [ComponentIndex((0, 0), ... ComponentIndex((0, 8), label=None)]
+                >>> mySurf.numEPsInV()
+                9
+    
+            :rtype: `int`
+            """)
 
-# apiToMelBridge maps MFnNurbsCurve._numCVsInV => NurbsCurve._numCVsInVApi
-NurbsSurface.numCVsInV = \
-    NurbsSurface._numCVsFunc_generator(NurbsSurface.formInV,
-                                       NurbsSurface._numCVsInVApi,
-                                       NurbsSurface.numSpansInV,
-                                       name='numCVsInV',
-                                       doc="""
-        Returns the number of CVs in the V direction.
-
-        :Parameters:
-        editableOnly : `bool`
-            If editableOnly evaluates to True (default), then this will return
-            the number of cvs that can be actually edited (and also the highest
-            index that may be used for v - ie, if
-                mySurf.numCVsInV(editableOnly=True) == 4
-            then allowable v indices go from
-                mySurf.cv[*][0] to mySurf.cv[*][3]
-
-            If editablyOnly is False, then this will return the underlying
-            number of cvs used to define the mathematical curve in v -
-            degreeV + numSpansInV.
-
-            These will only differ if the form in v is 'periodic', in which
-            case the editable number will be numSpansInV (as the last 'degree'
-            cv's are 'locked' to be the same as the first 'degree' cvs).
-            In all other cases, the number of cvs will be degreeV + numSpansInV.
-
-        :Examples:
-            >>> from pymel.core import *
-            >>> # a periodic surface
-            >>> mySurf = surface(name='periodicSurf2', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> sorted(mySurf.cv[0].indices())         # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((0, 7), label='cv')]
-            >>> mySurf.numCVsInV()
-            8
-            >>> mySurf.numCVsInV(editableOnly=False)
-            11
-            >>>
-            >>> # an open surface
-            >>> mySurf = surface(name='openSurf2', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> sorted(mySurf.cv[0].indices())          # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((0, 10), label='cv')]
-            >>> mySurf.numCVsInV()
-            11
-            >>> mySurf.numCVsInV(editableOnly=False)
-            11
-
-        :rtype: `int`
-        """)
-
-NurbsSurface.numEPsInU = \
-    NurbsSurface._numEPsFunc_generator(NurbsSurface.formInU,
-                                       NurbsSurface.numSpansInU,
-                                       name='numEPsInU',
-                                       doc="""
-        Returns the number of EPs in the U direction.
-
-        :Examples:
-            >>> from pymel.core import *
-            >>> # a periodic surface
-            >>> mySurf = surface(name='periodicSurf3', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
-            >>> sorted(mySurf.ep[:][0].indices())      # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((7, 0), label=None)]
-            >>> mySurf.numEPsInU()
-            8
-            >>>
-            >>> # an open surface
-            >>> mySurf = surface(name='openSurf3', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
-            >>> sorted(mySurf.ep[:][0].indices())      # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((8, 0), label=None)]
-            >>> mySurf.numEPsInU()
-            9
-
-        :rtype: `int`
-        """)
-
-NurbsSurface.numEPsInV = \
-    NurbsSurface._numEPsFunc_generator(NurbsSurface.formInV,
-                                       NurbsSurface.numSpansInV,
-                                       name='numEPsInV',
-                                       doc="""
-        Returns the number of EPs in the V direction.
-
-        :Examples:
-            >>> from pymel.core import *
-            >>> # a periodic surface
-            >>> mySurf = surface(name='periodicSurf4', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> sorted(mySurf.ep[0][:].indices())      # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((0, 7), label=None)]
-            >>> mySurf.numEPsInV()
-            8
-            >>>
-            >>> # an open surface
-            >>> mySurf = surface(name='openSurf4', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> sorted(mySurf.ep[0][:].indices())      # doctest: +ELLIPSIS
-            [ComponentIndex((0, 0), ... ComponentIndex((0, 8), label=None)]
-            >>> mySurf.numEPsInV()
-            9
-
-        :rtype: `int`
-        """)
-'''
 
 class Mesh(SurfaceShape):
 
@@ -3013,6 +3097,7 @@ class Mesh(SurfaceShape):
             args.append(colorSet)
         return mfn.numColors(*args)
 
+
 # Unfortunately, objects that don't yet have any mesh data - ie, if you do
 # createNode('mesh') - can't be fed into MFnMesh (even though it is a mesh
 # node).  This means that all the methods wrapped from MFnMesh won't be
@@ -3040,15 +3125,17 @@ def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
     methodWrapForEmptyMesh.__name__ = resultName
     return methodWrapForEmptyMesh
 
-"""
-for _apiMethodName in '''numColorSets
-                    numFaceVertices
-                    numNormals
-                    numUVSets
-                    numUVs'''.split():
-    _wrappedFunc = _makeApiMethodWrapForEmptyMesh(_apiMethodName)
-    setattr(Mesh, _wrappedFunc.__name__, _wrappedFunc)
-"""
+
+if '__apicls__' in Mesh.__dict__:
+    # keep this safe to load if the templates have not been built yet
+    for _apiMethodName in '''numColorSets
+                        numFaceVertices
+                        numNormals
+                        numUVSets
+                        numUVs'''.split():
+        _wrappedFunc = _makeApiMethodWrapForEmptyMesh(_apiMethodName)
+        setattr(Mesh, _wrappedFunc.__name__, _wrappedFunc)
+
 
 class Subdiv(SurfaceShape):
 
@@ -3134,11 +3221,19 @@ class SelectionSet(_api.MSelectionList):
         return melList
 
     def __len__(self):
-        """:rtype: `int` """
+        """
+        Returns
+        -------
+        int
+        """
         return self.apicls.length(self)
 
     def __contains__(self, item):
-        """:rtype: `bool` """
+        """
+        Returns
+        -------
+        bool
+        """
         if isinstance(item, (DependNode, DagNode, general.Attribute)):
             return self.apicls.hasItem(self, item.__apiobject__())
         elif isinstance(item, general.Component):
@@ -3147,13 +3242,21 @@ class SelectionSet(_api.MSelectionList):
             return self.apicls.hasItem(self, general.PyNode(item).__apiobject__())
 
     def __repr__(self):
-        """:rtype: `str` """
+        """
+        Returns
+        -------
+        str
+        """
         names = []
         self.apicls.getSelectionStrings(self, names)
         return 'nt.%s(%s)' % (self.__class__.__name__, names)
 
     def __getitem__(self, index):
-        """:rtype: `PyNode` """
+        """
+        Returns
+        -------
+        general.PyNode
+        """
         if index >= len(self):
             raise IndexError, "index out of range"
 
@@ -3242,25 +3345,45 @@ class SelectionSet(_api.MSelectionList):
             return self.apicls.add(self, general.PyNode(item).__apiobject__())
 
     def pop(self, index):
-        """:rtype: `PyNode` """
+        """
+        Parameters
+        ----------
+        index : int
+
+        Returns
+        -------
+        general.PyNode
+        """
         if index >= len(self):
             raise IndexError, "index out of range"
         return self.apicls.remove(self, index)
 
     def isSubSet(self, other):
-        """:rtype: `bool`"""
+        """
+        Returns
+        -------
+        bool
+        """
         if isinstance(other, ObjectSet):
             other = other.asSelectionSet()
         return set(self).issubset(other)
 
     def isSuperSet(self, other, flatten=True):
-        """:rtype: `bool`"""
+        """
+        Returns
+        -------
+        bool
+        """
         if isinstance(other, ObjectSet):
             other = other.asSelectionSet()
         return set(self).issuperset(other)
 
     def getIntersection(self, other):
-        """:rtype: `SelectionSet`"""
+        """
+        Returns
+        -------
+        SelectionSet
+        """
         # diff = self-other
         # intersect = self-diff
         diff = self.getDifference(other)
@@ -3271,7 +3394,11 @@ class SelectionSet(_api.MSelectionList):
         self.difference(diff)
 
     def getDifference(self, other):
-        """:rtype: `SelectionSet`"""
+        """
+        Returns
+        -------
+        SelectionSet
+        """
         # create a new SelectionSet so that we don't modify our current one
         newSet = SelectionSet(self)
         newSet.difference(other)
@@ -3283,7 +3410,11 @@ class SelectionSet(_api.MSelectionList):
         self.apicls.merge(self, other, _api.MSelectionList.kRemoveFromList)
 
     def getUnion(self, other):
-        """:rtype: `SelectionSet`"""
+        """
+        Returns
+        -------
+        SelectionSet
+        """
         newSet = SelectionSet(self)
         newSet.union(other)
         return newSet
@@ -3297,7 +3428,9 @@ class SelectionSet(_api.MSelectionList):
         """
         Also known as XOR
 
-        :rtype: `SelectionSet`
+        Returns
+        -------
+        SelectionSet
         """
         # create a new SelectionSet so that we don't modify our current one
         newSet = SelectionSet(self)
@@ -3435,14 +3568,22 @@ class ObjectSet(Entity):
             raise TypeError(item)
 
     def __contains__(self, item):
-        """:rtype: `bool` """
+        """
+        Returns
+        -------
+        bool
+        """
         return self.__apimfn__().isMember(*self._getApiObjs(item))
 
     def __getitem__(self, index):
         return self.asSelectionSet()[index]
 
     def __len__(self):
-        """:rtype: `int`"""
+        """
+        Returns
+        -------
+        int
+        """
         return cmds.sets(self, q=1, size=1)
 
     # def __eq__(self, s):
