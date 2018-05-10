@@ -2357,7 +2357,6 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
         if isinstance(pymelType, apicache.ApiEnum):
             pymelType = pymelType.pymelName()
 
-        print "TYPE", pymelType, type(pymelType)
         pymelType = repr(pymelType) #.replace("'", "`")
         if typ in ApiTypeRegister.arrayItemTypes.keys():
             pymelType = 'List[%s]' % pymelType

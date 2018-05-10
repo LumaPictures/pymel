@@ -295,7 +295,8 @@ def generateUIFunctions():
 autoLayout.__doc__ = formLayout.__doc__
 # Now that we've actually created all the functions, it should be safe to import
 # uitypes... 
-from uitypes import objectTypeUI, toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
+# FIXME: !!!!
+# from uitypes import objectTypeUI, toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
 '''
     _writeToModule(new, module)
 
@@ -472,7 +473,193 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
     return wrappedApiFunc
 
 
-class MetaMayaTypeGenerator(object):
+class _MetaMayaCommandGenerator(object):
+    _classDictKeyForMelCmd = None
+
+    def __init__(self, classname, existingClass, parentClasses, parentMethods):
+        self.classname = classname
+        self.parentClassname = parentClasses[0]
+        self.herited = parentMethods
+        self.parentClasses = parentClasses
+        self.existingClass = existingClass
+
+    def render(self):
+        attrs, methods = self.getTemplateData()
+
+        methodNames = set(methods)
+
+        def toStr(k, v):
+            if k == '__apicls__':
+                return '_api.' + v.__name__
+            elif k == '__melcmd__':
+                return 'staticmethod(%s)' % v
+            else:
+                return repr(v)
+
+        attrs = [{'name': k, 'value': toStr(k, attrs[k])} for k in sorted(attrs)]
+        methods = [methods[methodName] for methodName in sorted(methods)]
+
+        template = env.get_template('nodeclass.py')
+        text = template.render(methods=methods, attrs=attrs,
+                               classname=self.classname,
+                               parents=self.parentClassname,
+                               existing=self.existingClass is not None)
+        return text, methodNames
+
+    def getMELData(self, attrs, methods):
+        """
+        Add methods from MEL functions
+        """
+        #_logger.debug( '_MetaMayaCommandGenerator: %s' % classname )
+
+        #-------------------------
+        #   MEL Methods
+        #-------------------------
+        melCmdName, infoCmd = self.getMelCmd(attrs)
+
+        try:
+            cmdInfo = factories.cmdlist[melCmdName]
+        except KeyError:
+            pass
+            #_logger.debug("No MEL command info available for %s" % melCmdName)
+        else:
+            # FIXME: this old behavior implies that sometimes we used unwrapped commands,
+            # but it's unclear how this would happen.  Was it a load order thing? Confirm on old version.
+            # pmSourceFunc = False
+            # try:
+            #     cmdModule = __import__('pymel.core.' + cmdInfo['type'], globals(), locals(), [''])
+            #     func = getattr(cmdModule, melCmdName)
+            #     pmSourceFunc = True
+            # except (AttributeError, TypeError):
+            #     func = getattr(pmcmds, melCmdName)
+
+            pmSourceFunc = True
+            cmdPath = '%s.%s' % (cmdInfo['type'], melCmdName)
+
+            # FIXME: add documentation
+            # classdict['__doc__'] = util.LazyDocString((newcls, self.docstring, (melCmdName,), {}))
+
+            attrs['__melcmd__'] = cmdPath
+            attrs['__melcmdname__'] = melCmdName
+            attrs['__melcmd_isinfo__'] = infoCmd
+
+            filterAttrs = {'name', 'getName', 'setName'}.union(attrs.keys())
+            filterAttrs.update(methods.keys())
+            filterAttrs.update(factories.overrideMethods.get(self.parentClassname, []))
+
+            for flag, flagInfo in cmdInfo['flags'].items():
+                # don't create methods for query or edit, or for flags which only serve to modify other flags
+                if flag in ['query', 'edit'] or 'modified' in flagInfo:
+                    continue
+
+                if flagInfo.has_key('modes'):
+                    # flags which are not in maya docs will have not have a modes list unless they
+                    # have passed through testNodeCmds
+                    # continue
+                    modes = flagInfo['modes']
+
+                    # query command
+                    if 'query' in modes:
+                        methodName = 'get' + util.capitalize(flag)
+
+                        if self.classname == 'Joint':
+                            print self.classname, methodName
+                        factories.classToMelMap[self.classname].append(methodName)
+
+                        if methodName not in filterAttrs and \
+                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
+
+                            # 'enabled' refers to whether the API version of this method will be used.
+                            # if the method is enabled that means we skip it here.
+                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
+                            if (not bridgeInfo
+                                    or bridgeInfo.get('melEnabled', False)
+                                    or not bridgeInfo.get('enabled', True)):
+                                returnFunc = None
+
+                                if flagInfo.get('resultNeedsCasting', False):
+                                    returnFunc = flagInfo['args']
+
+                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
+                                methods[methodName] = {
+                                    'name': methodName,
+                                    'command': melCmdName,
+                                    'type': 'query',
+                                    'flag': flag,
+                                    'returnFunc': importableName(returnFunc) if returnFunc else None,
+                                    'func': cmdPath,
+                                }
+                            # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
+                        # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                    # edit command:
+                    if 'edit' in modes or (infoCmd and 'create' in modes):
+                        # if there is a corresponding query we use the 'set' prefix.
+                        if 'query' in modes:
+                            methodName = 'set' + util.capitalize(flag)
+                        # if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+                        else:
+                            methodName = flag
+
+                        if self.classname == 'Joint':
+                            print self.classname, methodName
+
+                        factories.classToMelMap[self.classname].append(methodName)
+
+                        if methodName not in filterAttrs and \
+                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
+                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
+                            if (not bridgeInfo
+                                    or bridgeInfo.get('melEnabled', False)
+                                    or not bridgeInfo.get('enabled', True)):
+
+                                # FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
+                                # FIXME: the 2nd argument is wrong, so I think this is broken
+                                # fixedFunc = fixCallbacks(func, melCmdName)
+
+                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
+                                methods[methodName] = {
+                                    'name': methodName,
+                                    'command': melCmdName,
+                                    'type': 'edit',
+                                    'flag': flag,
+                                    'func': cmdPath,
+                                }
+                            # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
+                        # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+
+        return attrs, methods
+
+    def getMelCmd(self, attrs):
+        """
+        Retrieves the name of the mel command the generated class wraps, and whether it is an info command.
+
+        Intended to be overridden in derived metaclasses.
+        """
+        raise NotImplementedError
+        # return util.uncapitalize(self.classname), False
+
+    def isMelMethod(self, methodName):
+        """
+        Deteremine if the passed method name exists on a parent class as a mel method
+        """
+        for classname in self.parentClasses:
+            if methodName in factories.classToMelMap.get(classname, ()):
+                return True
+        return False
+
+    def docstring(self, melCmdName):
+        try:
+            cmdInfo = factories.cmdlist[melCmdName]
+        except KeyError:
+            #_logger.debug("No MEL command info available for %s" % melCmdName)
+            classdoc = ''
+        else:
+            factories.loadCmdDocCache()
+            classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
+        return classdoc
+
+
+class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
 
     """ A metaclass to wrap Maya api types, with support for class constants """
 
@@ -507,12 +694,9 @@ class MetaMayaTypeGenerator(object):
             raise AttributeError, "class constant cannot be deleted"
 
     def __init__(self, classname, existingClass, mayaType, parentClasses, parentMethods, parentApicls):
-        self.classname = classname
+        super(MetaMayaNodeGenerator, self).__init__(classname, existingClass, parentClasses, parentMethods)
         self.mayaType = mayaType
-        self.parentClassname = parentClasses[0]
-        self.herited = parentMethods
         self.parentApicls = parentApicls
-        self.parentClasses = parentClasses
         self.existingClass = existingClass
         self.apicls = factories.toApiFunctionSet(self.mayaType)
 
@@ -690,7 +874,7 @@ class MetaMayaTypeGenerator(object):
         def makeClassConstant(attr):
             try:
                 # return MetaMayaTypeGenerator.ClassConstant(newcls(attr))
-                return MetaMayaTypeGenerator.ClassConstant(attr)
+                return MetaMayaNodeGenerator.ClassConstant(attr)
             except Exception, e:
                 _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
         #------------------------
@@ -792,170 +976,7 @@ class MetaMayaTypeGenerator(object):
             break
         return False
 
-
-class _MetaMayaCommandGenerator(MetaMayaTypeGenerator):
-
-    _classDictKeyForMelCmd = None
-
-    def getMELData(self, attrs, methods):
-        """
-        Add methods from MEL functions
-        """
-        #_logger.debug( '_MetaMayaCommandGenerator: %s' % classname )
-
-        #-------------------------
-        #   MEL Methods
-        #-------------------------
-        melCmdName, infoCmd = self.getMelCmd(attrs)
-
-        try:
-            cmdInfo = factories.cmdlist[melCmdName]
-        except KeyError:
-            pass
-            #_logger.debug("No MEL command info available for %s" % melCmdName)
-        else:
-            # FIXME: this old behavior implies that sometimes we used unwrapped commands,
-            # but it's unclear how this would happen.  Was it a load order thing? Confirm on old version.
-            # pmSourceFunc = False
-            # try:
-            #     cmdModule = __import__('pymel.core.' + cmdInfo['type'], globals(), locals(), [''])
-            #     func = getattr(cmdModule, melCmdName)
-            #     pmSourceFunc = True
-            # except (AttributeError, TypeError):
-            #     func = getattr(pmcmds, melCmdName)
-
-            pmSourceFunc = True
-            cmdPath = '%s.%s' % (cmdInfo['type'], melCmdName)
-
-            # FIXME: add documentation
-            # classdict['__doc__'] = util.LazyDocString((newcls, self.docstring, (melCmdName,), {}))
-
-            attrs['__melcmd__'] = cmdPath
-            attrs['__melcmdname__'] = melCmdName
-            attrs['__melcmd_isinfo__'] = infoCmd
-
-            filterAttrs = {'name', 'getName', 'setName'}.union(attrs.keys())
-            filterAttrs.update(methods.keys())
-            filterAttrs.update(factories.overrideMethods.get(self.parentClassname, []))
-
-            for flag, flagInfo in cmdInfo['flags'].items():
-                # don't create methods for query or edit, or for flags which only serve to modify other flags
-                if flag in ['query', 'edit'] or 'modified' in flagInfo:
-                    continue
-
-                if flagInfo.has_key('modes'):
-                    # flags which are not in maya docs will have not have a modes list unless they
-                    # have passed through testNodeCmds
-                    # continue
-                    modes = flagInfo['modes']
-
-                    # query command
-                    if 'query' in modes:
-                        methodName = 'get' + util.capitalize(flag)
-
-                        if self.classname == 'Joint':
-                            print self.classname, methodName
-                        factories.classToMelMap[self.classname].append(methodName)
-
-                        if methodName not in filterAttrs and \
-                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
-
-                            # 'enabled' refers to whether the API version of this method will be used.
-                            # if the method is enabled that means we skip it here.
-                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
-                            if (not bridgeInfo
-                                    or bridgeInfo.get('melEnabled', False)
-                                    or not bridgeInfo.get('enabled', True)):
-                                returnFunc = None
-
-                                if flagInfo.get('resultNeedsCasting', False):
-                                    returnFunc = flagInfo['args']
-
-                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                methods[methodName] = {
-                                    'name': methodName,
-                                    'command': melCmdName,
-                                    'type': 'query',
-                                    'flag': flag,
-                                    'returnFunc': importableName(returnFunc) if returnFunc else None,
-                                    'func': cmdPath,
-                                }
-                            # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
-                        # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
-                    # edit command:
-                    if 'edit' in modes or (infoCmd and 'create' in modes):
-                        # if there is a corresponding query we use the 'set' prefix.
-                        if 'query' in modes:
-                            methodName = 'set' + util.capitalize(flag)
-                        # if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
-                        else:
-                            methodName = flag
-
-                        if self.classname == 'Joint':
-                            print self.classname, methodName
-
-                        factories.classToMelMap[self.classname].append(methodName)
-
-                        if methodName not in filterAttrs and \
-                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
-                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
-                            if (not bridgeInfo
-                                    or bridgeInfo.get('melEnabled', False)
-                                    or not bridgeInfo.get('enabled', True)):
-
-                                # FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
-                                # FIXME: the 2nd argument is wrong, so I think this is broken
-                                # fixedFunc = fixCallbacks(func, melCmdName)
-
-                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                methods[methodName] = {
-                                    'name': methodName,
-                                    'command': melCmdName,
-                                    'type': 'edit',
-                                    'flag': flag,
-                                    'func': cmdPath,
-                                }
-                            # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-                        # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
-
-        return attrs, methods
-
-    def getMelCmd(self, attrs):
-        """
-        Retrieves the name of the mel command the generated class wraps, and whether it is an info command.
-
-        Intended to be overridden in derived metaclasses.
-        """
-        return util.uncapitalize(self.classname), False
-
-    def isMelMethod(self, methodName):
-        """
-        Deteremine if the passed method name exists on a parent class as a mel method
-        """
-        for classname in self.parentClasses:
-            if methodName in factories.classToMelMap.get(classname, ()):
-                return True
-        return False
-
-    def docstring(self, melCmdName):
-        try:
-            cmdInfo = factories.cmdlist[melCmdName]
-        except KeyError:
-            #_logger.debug("No MEL command info available for %s" % melCmdName)
-            classdoc = ''
-        else:
-            factories.loadCmdDocCache()
-            classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
-        return classdoc
-
-
-class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
-
-    """
-    A metaclass for creating classes based on node type.  Methods will be added to the new classes
-    based on info parsed from the docs on their command counterparts.
-    """
-    def render(self, attrs=None, methods=None):
+    def getTemplateData(self, attrs=None, methods=None):
         if attrs is None:
             attrs = {}
         if methods is None:
@@ -1017,26 +1038,8 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         attrs, methods = self.getAPIData(attrs, methods)
         # next, populate MEL methods
         attrs, methods = self.getMELData(attrs, methods)
+        return attrs, methods
 
-        methodNames = set(methods)
-
-        def toStr(k, v):
-            if k == '__apicls__':
-                return '_api.' + v.__name__
-            elif k == '__melcmd__':
-                return 'staticmethod(%s)' % v
-            else:
-                return repr(v)
-
-        attrs = [{'name': k, 'value': toStr(k, attrs[k])} for k in sorted(attrs)]
-        methods = [methods[methodName] for methodName in sorted(methods)]
-
-        template = env.get_template('nodeclass.py')
-        text = template.render(methods=methods, attrs=attrs,
-                               classname=self.classname,
-                               parents=self.parentClassname,
-                               existing=self.existingClass is not None)
-        return text, methodNames
         # FIXME:
         # PyNodeType = super(MetaMayaNodeGenerator, self).render()
         # ParentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
@@ -1070,15 +1073,20 @@ class MetaMayaUIGenerator(_MetaMayaCommandGenerator):
     A metaclass for creating classes based on on a maya UI type/command.
     """
 
-    def getTemplateData(self, attrs, methods):
+    def getTemplateData(self, attrs=None, methods=None):
+        if attrs is None:
+            attrs = {}
+        if methods is None:
+            methods = {}
+
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         attrs.setdefault('__melui__', util.uncapitalize(self.classname))
 
         # TODO: implement a option at the cmdlist level that triggers listForNone
         # TODO: create labelArray for *Grp ui elements, which passes to the correct arg ( labelArray3, labelArray4, etc ) based on length of passed array
-
-        return super(MetaMayaUIGenerator, self).getTemplateData(attrs, methods)
+        attrs, methods = self.getMELData(attrs, methods)
+        return attrs, methods
 
     def getMelCmd(self, attrs):
         return attrs['__melui__'], False
@@ -1127,9 +1135,10 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, parentMethods, parentApicls):
 
     parentPymelTypes = [getCachedPymelType(p) for p in parentMayaTypes]
     pyNodeTypeName = getPymelTypeName(mayaType)
-    pyNodeClass = getattr(nt, pyNodeTypeName, None)
+    existingClass = getattr(nt, pyNodeTypeName, None)
 
-    return MetaMayaNodeGenerator(pyNodeTypeName, pyNodeClass, mayaType, parentPymelTypes, parentMethods, parentApicls)
+    return MetaMayaNodeGenerator(pyNodeTypeName, existingClass, mayaType,
+                                 parentPymelTypes, parentMethods, parentApicls)
 
 
 def iterPyNodeText():
@@ -1171,14 +1180,85 @@ def iterPyNodeText():
             apiClasses[mayaType] = template.apicls
 
 
+def iterUIText():
+    import pymel.core.uitypes
+
+    heritedMethods = {}
+
+    for funcName in factories.uiClassList:
+        # Create Class
+        classname = util.capitalize(funcName)
+        if classname == 'MenuItem':
+            # FIXME: !!!
+            continue
+
+        existingClass = getattr(pymel.core.uitypes, classname, None)
+
+        if classname.endswith(('Layout', 'Grp')):
+            base = 'Layout'
+        elif classname.endswith('Panel'):
+            base = 'Panel'
+        else:
+            base = 'PyUI'
+
+        template = MetaMayaUIGenerator(classname, existingClass, [base], set())
+        text, methods = template.render()
+        yield text, template
+        # heritedMethods[mayaType] = parentMethods.union(methods)
+
+
+def generateTypes(lines, iterator, module):
+    # tally of additions made in middle of codde
+    offsets = {}
+
+    def computeOffset(start):
+        result = 0
+        for st, off in offsets.items():
+            if st < start:
+                result += off
+        return result
+
+    for text, template in iterator:
+        newlines = text.split('\n')
+        if template.existingClass:
+            # if there is an existing class, slot the new lines after the class
+
+            # trailing newlines
+            if newlines[-2:] == ['', '']:
+                newlines = newlines[:-2]
+
+            srclines, startline = inspect.getsourcelines(template.existingClass)
+            endline = startline + len(srclines) - 1
+
+            endline += computeOffset(startline)
+            newlines = [START_MARKER] + newlines + [END_MARKER]
+            lines[endline:endline] = newlines
+            offsets[startline] = len(newlines)
+        else:
+            lines += newlines
+
+    source = _getModulePath(module)
+
+    text = '\n'.join(lines)
+
+    text += '''
+_addTypeNames()
+    '''
+    print "writing to", source
+    with open(source, 'w') as f:
+        f.write(text)
+
+
 def generateAll():
     # Reset modules, before import
     for module, _ in CORE_CMD_MODULES:
         _resetModule(module)
 
+    _resetModule('pymel.core.uitypes')
     _resetModule('pymel.core.windows')
 
-    lines = _resetModule('pymel.core.nodetypes')
+    nodeLines = _resetModule('pymel.core.nodetypes')
+    uiLines = _resetModule('pymel.core.uitypes')
 
     # Import to populate existing objects
     import pymel.core
@@ -1189,33 +1269,5 @@ def generateAll():
 
     generateUIFunctions()
 
-    # tally of additions made in middle of codde
-    offset = 0
-
-    for text, template in iterPyNodeText():
-        newlines = text.split('\n')
-        if template.existingClass:
-            # trailing newlines
-            if newlines[-2:] == ['', '']:
-                newlines = newlines[:-2]
-
-            # if there is an existing class, slot the new lines after the class
-            srclines, line = inspect.getsourcelines(template.existingClass)
-            endline = line + len(srclines) - 1
-            endline += offset
-            newlines = [START_MARKER] + newlines + [END_MARKER]
-            lines[endline:endline] = newlines
-            offset += len(newlines)
-        else:
-            lines += newlines
-
-    source = _getModulePath('pymel.core.nodetypes')
-
-    text = '\n'.join(lines)
-
-    text += '''
-_addTypeNames()
-'''
-    print "writing to", source
-    with open(source, 'w') as f:
-        f.write(text)
+    generateTypes(nodeLines, iterPyNodeText(), 'pymel.core.nodetypes')
+    generateTypes(uiLines, iterUIText(), 'pymel.core.uitypes')

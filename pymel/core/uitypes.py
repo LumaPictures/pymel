@@ -7,7 +7,31 @@ import pymel.internal.startup as _startup
 import pymel.internal as _internal
 import pymel.versions as _versions
 import maya.mel as _mm
+
+import animation
+import effects
+import general
+import modeling
+import other
+import rendering
+import system
+import windows
+
+_f = _factories
+
 _logger = _internal.getLogger(__name__)
+
+# Dictionary mapping from maya node type names (ie, surfaceShape) to pymel
+# class names, in this module - ie, SurfaceShape
+mayaTypeNameToPymelTypeName = {}
+pymelTypeNameToMayaTypeName = {}
+
+def _addTypeNames():
+    for name, obj in globals().items():
+        if isinstance(obj, type) and issubclass(obj, PyUI):
+            mayaTypeNameToPymelTypeName[obj.__melui__] = name
+            pymelTypeNameToMayaTypeName[name] = obj.__melui__
+
 
 def _resolveUIFunc(name):
     if isinstance(name, basestring):
@@ -16,7 +40,7 @@ def _resolveUIFunc(name):
             return getattr(windows, name)
         except AttributeError:
             try:
-                cls = getattr(dynModule, name)
+                cls = globals()[name]
                 return cls.__melcmd__()
             except (KeyError, AttributeError):
                 pass
@@ -27,7 +51,8 @@ def _resolveUIFunc(name):
         elif inspect.isclass(name) and issubclass(name, PyUI):
             name.__melcmd__()
 
-    raise ValueError, "%r is not a known ui type" % name
+    raise ValueError("%r is not a known ui type" % name)
+
 
 if _versions.current() >= _versions.v2011:
 
@@ -239,7 +264,7 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-   
+
         try:
             import shiboken2
             import PySide2.QtCore as qtcore
@@ -270,7 +295,7 @@ if _versions.current() >= _versions.v2011:
             import shiboken
             import PySide.QtCore as qtcore
             import PySide.QtGui as qtwidgets
-           
+
         ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
             return pysideWrapInstance(long(ptr), qtwidgets.QAction)
@@ -349,7 +374,9 @@ def objectTypeUI(name, **kwargs):
                 return uiType
             raise topError
 
+
 class PyUI(unicode):
+    __melui__ = None
 
     def __new__(cls, name=None, create=False, **kwargs):
         """
@@ -360,7 +387,6 @@ class PyUI(unicode):
             n.__repr__()
             # Result: Window('myWindow')
         """
-
         if cls is PyUI:
             try:
                 uiType = objectTypeUI(name)
@@ -369,8 +395,8 @@ class PyUI(unicode):
             uiType = _uiTypesToCommands.get(uiType, uiType)
 
             try:
-                newcls = getattr(dynModule, _util.capitalize(uiType))
-            except AttributeError:
+                newcls = globals()[_util.capitalize(uiType)]
+            except KeyError:
                 newcls = PyUI
                 # objectTypeUI for panels seems to return weird results -
                 # ie, TmodelPane ... check for them this way.
@@ -378,8 +404,7 @@ class PyUI(unicode):
                 # but this just provides a failsafe...
                 for testType in 'panel scriptedPanel window control layout menu'.split():
                     if getattr(cmds, testType)(name, ex=1, q=1):
-                        newcls = getattr(dynModule, _util.capitalize(testType),
-                                         PyUI)
+                        newcls =globals().get(_util.capitalize(testType), PyUI)
                         if newcls != PyUI:
                             break
         else:
@@ -394,9 +419,9 @@ class PyUI(unicode):
                 if '|' not in name and not issubclass(newcls,
                                                       (Window,
                                                        Panel,
-                                                       dynModule.ScriptedPanel,
-                                                       dynModule.RadioCollection,
-                                                       dynModule.ToolCollection)):
+                                                       ScriptedPanel,
+                                                       RadioCollection,
+                                                       ToolCollection)):
                     import windows
                     try:
                         if issubclass(newcls, Layout):
@@ -461,19 +486,16 @@ class PyUI(unicode):
     def exists(cls, name):
         return cls.__melcmd__(name, exists=True)
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtControl
+    asQtObject = toQtControl
+
 
 class Panel(PyUI):
-
     """pymel panel class"""
-    __metaclass__ = _factories.MetaMayaUIWrapper
-    # note that we're not actually customizing anything, but
-    # we're declaring it here because other classes will have this
-    # as their base class, so we need to make sure it exists first
+
 
 _withParentStack = []
 _withParentMenuStack = []
+
 
 class Layout(PyUI):
 
@@ -526,7 +548,7 @@ class Layout(PyUI):
 
     def addChild(self, uiType, name=None, **kwargs):
         if isinstance(uiType, basestring):
-            uiType = getattr(dynModule, uiType)
+            uiType = globals()[uiType]
         assert hasattr(uiType, '__call__'), 'argument uiType must be the name of a known ui type, a UI subclass, or a callable object'
         args = []
         if name:
@@ -562,14 +584,13 @@ class Layout(PyUI):
             for child in self.getChildArray():
                 cmds.deleteUI(child)
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtLayout
+    asQtObject = toQtLayout
+
 
 # customized ui classes
 class Window(Layout):
 
     """pymel window class"""
-    __metaclass__ = _factories.MetaMayaUIWrapper
 
 #    if _versions.current() < _versions.v2011:
 #        # don't set
@@ -612,11 +633,10 @@ class Window(Layout):
         return None
     getParent = parent
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtWindow
+    asQtObject = toQtWindow
+
 
 class FormLayout(Layout):
-    __metaclass__ = _factories.MetaMayaUIWrapper
 
     def __new__(cls, name=None, **kwargs):
         if kwargs:
@@ -726,6 +746,7 @@ class FormLayout(Layout):
         self._orientation = int(self.Orientation.horizontal)
         self.redistribute(*ratios)
 
+
 class AutoLayout(FormLayout):
 
     """
@@ -737,11 +758,12 @@ class AutoLayout(FormLayout):
         self.redistribute()
         super(AutoLayout, self).__exit__(type, value, traceback)
 
+
 class RowLayout(Layout):
-    __metaclass__ = _factories.MetaMayaUIWrapper
+    pass
+
 
 class TextScrollList(PyUI):
-    __metaclass__ = _factories.MetaMayaUIWrapper
 
     def extend(self, appendList):
         """ append a list of strings"""
@@ -764,8 +786,8 @@ class TextScrollList(PyUI):
         numberOfItems = self.getNumberOfItems()
         self.selectIndexedItems(range(1, numberOfItems + 1))
 
+
 class Menu(PyUI):
-    __metaclass__ = _factories.MetaMayaUIWrapper
 
     def __enter__(self):
         global _withParentMenuStack
@@ -804,11 +826,12 @@ class Menu(PyUI):
         """
         cmds.setParent(self, menu=True)
 
+
 class PopupMenu(Menu):
-    __metaclass__ = _factories.MetaMayaUIWrapper
+    pass
+
 
 class OptionMenu(PopupMenu):
-    __metaclass__ = _factories.MetaMayaUIWrapper
 
     def addMenuItems(self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """
@@ -823,8 +846,8 @@ class OptionMenu(PopupMenu):
             cmds.deleteUI(t)
     addItems = addMenuItems
 
+
 class OptionMenuGrp(RowLayout):
-    __metaclass__ = _factories.MetaMayaUIWrapper
 
     def menu(self):
         for child in self.children():
@@ -841,6 +864,7 @@ class OptionMenuGrp(RowLayout):
         self.menu().__exit__(type, value, traceback)
         return super(OptionMenuGrp, self).__exit__(type, value, traceback)
 
+
 class SubMenuItem(Menu):
 
     def getBoldFont(self):
@@ -849,11 +873,10 @@ class SubMenuItem(Menu):
     def getItalicized(self):
         return cmds.menuItem(self, query=True, italicized=True)
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtMenuItem
+    asQtObject = toQtMenuItem
+
 
 class CommandMenuItem(PyUI):
-    __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = 'menuItem'
 
     def __enter__(self):
@@ -862,6 +885,7 @@ class CommandMenuItem(PyUI):
 
     def __exit__(self, type, value, traceback):
         return SubMenuItem(self).__exit__(type, value, traceback)
+
 
 def MenuItem(name=None, create=False, **kwargs):
     if PyUI._isBeingCreated(name, create, kwargs):
@@ -877,6 +901,7 @@ def MenuItem(name=None, create=False, **kwargs):
             else:
                 cls = CommandMenuItem
     return cls(name, create, **kwargs)
+
 
 class UITemplate(object):
 
@@ -955,6 +980,7 @@ class UITemplate(object):
     def exists(name):
         return cmds.uiTemplate(name, exists=True)
 
+
 class AELoader(type):
 
     """
@@ -1008,6 +1034,7 @@ class AELoader(type):
     def loadedTemplates(cls):
         "Return the names of the loaded templates"
         return cls._loaded
+
 
 class AETemplate(object):
 
@@ -1154,26 +1181,40 @@ class AETemplate(object):
     # TODO: listExtraAttributes
 
 
-dynModule = _util.LazyLoadModule(__name__, globals())
+# dynModule = _util.LazyLoadModule(__name__, globals())
+#
+# def _createUIClasses():
+#     for funcName in _factories.uiClassList:
+#         # Create Class
+#         classname = _util.capitalize(funcName)
+#         try:
+#             cls = dynModule[classname]
+#         except KeyError:
+#             if classname.endswith(('Layout', 'Grp')):
+#                 bases = (Layout,)
+#             elif classname.endswith('Panel'):
+#                 bases = (Panel,)
+#             else:
+#                 bases = (PyUI,)
+#             dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}))
+#
+# _createUIClasses()
 
-def _createUIClasses():
-    for funcName in _factories.uiClassList:
-        # Create Class
-        classname = _util.capitalize(funcName)
-        try:
-            cls = dynModule[classname]
-        except KeyError:
-            if classname.endswith(('Layout', 'Grp')):
-                bases = (Layout,)
-            elif classname.endswith('Panel'):
-                bases = (Panel,)
-            else:
-                bases = (PyUI,)
-            dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}))
 
-_createUIClasses()
 
-class MainProgressBar(dynModule.ProgressBar):
+class FloatFieldGrp(PyUI):
+    pass
+
+
+class TextFieldButtonGrp(PyUI):
+    pass
+
+
+class ProgressBar(PyUI):
+    pass
+
+
+class MainProgressBar(ProgressBar):
 
     '''Context manager for main progress bar
 
@@ -1209,7 +1250,7 @@ class MainProgressBar(dynModule.ProgressBar):
             the operation.
         """
         from language import melGlobals
-        bar = dynModule.ProgressBar.__new__(
+        bar = ProgressBar.__new__(
             cls, melGlobals['gMainProgressBar'], create=False)
         bar.setMinValue(minValue)
         bar.setMaxValue(maxValue)
@@ -1223,7 +1264,8 @@ class MainProgressBar(dynModule.ProgressBar):
     def __exit__(self, *args):
         self.endProgress()
 
-class VectorFieldGrp(dynModule.FloatFieldGrp):
+
+class VectorFieldGrp(FloatFieldGrp):
 
     def __new__(cls, name=None, create=False, *args, **kwargs):
         if create:
@@ -1231,7 +1273,7 @@ class VectorFieldGrp(dynModule.FloatFieldGrp):
             kwargs['numberOfFields'] = 3
             name = cmds.floatFieldGrp(name, *args, **kwargs)
 
-        return dynModule.FloatFieldGrp.__new__(cls, name, create=False, *args, **kwargs)
+        return FloatFieldGrp.__new__(cls, name, create=False, *args, **kwargs)
 
     def getVector(self):
         import datatypes
@@ -1243,7 +1285,8 @@ class VectorFieldGrp(dynModule.FloatFieldGrp):
     def setVector(self, vec):
         cmds.floatFieldGrp(self, e=1, v1=vec[0], v2=vec[1], v3=vec[2])
 
-class PathButtonGrp(dynModule.TextFieldButtonGrp):
+
+class PathButtonGrp(TextFieldButtonGrp):
     PROMPT_FUNCTION = 'promptForPath'
 
     def __new__(cls, name=None, create=False, *args, **kwargs):
@@ -1279,8 +1322,10 @@ class PathButtonGrp(dynModule.TextFieldButtonGrp):
         import system
         return system.Path(self.getText())
 
+
 class FolderButtonGrp(PathButtonGrp):
     PROMPT_FUNCTION = 'promptForFolder'
+
 
 # most of the keys here are names that are only used in certain circumstances
 _uiTypesToCommands = {
@@ -1293,5 +1338,7 @@ _uiTypesToCommands = {
     'staticText': 'text'
 }
 
-dynModule._lazyModule_update()
+# dynModule._lazyModule_update()
 
+
+# ------ Do not edit below this line --------
