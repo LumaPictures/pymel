@@ -350,12 +350,12 @@ def melInfo(input):
 
     Parameters
     ----------
-    input
+    input : str
         can be a mel file or a sourced mel procedure
 
     Returns
     -------
-    allProcs : list of str
+    allProcs : Iterable[str]
         The list of procedures in the order the are defined
     globalProcs : dict
         A dictionary of global procedures, with the following entries:

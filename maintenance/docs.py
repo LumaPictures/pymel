@@ -4,12 +4,12 @@ import glob
 import shutil
 import datetime
 
-assert 'pymel' not in sys.modules or 'PYMEL_INCLUDE_EXAMPLES' in os.environ, "to generate docs PYMEL_INCLUDE_EXAMPLES env var must be set before pymel is imported"
+assert 'pymel' not in sys.modules or 'PYMEL_DOCSTRINGS_MODE' in os.environ, "to generate docs PYMEL_DOCSTRINGS_MODE=html env var must be set before pymel is imported"
 
 # remember, the processed command examples are not version specific. you must
 # run cmdcache.fixCodeExamples() to bring processed examples in from the raw
 # version-specific example caches
-os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
+os.environ['PYMEL_DOCSTRINGS_MODE'] = 'html'
 
 pymel_root = os.path.dirname(os.path.dirname(sys.modules[__name__].__file__))
 docsdir = os.path.join(pymel_root, 'docs')

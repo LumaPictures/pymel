@@ -29,7 +29,9 @@ MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector',
 def isValidMelType(typStr):
     """Returns whether ``typeStr`` is a valid MEL type identifier
 
-    :rtype: bool
+    Returns
+    -------
+    bool
     """
     return typStr in MELTYPES
 
@@ -178,24 +180,25 @@ def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
         >>> getMelType( MyClass, exactOnly=False )
         'MyClass'
 
-    :Parameters:
-        pyObj
-            can be either a class or an instance.
-        exactOnly : bool
-            If True and no suitable MEL analog can be found, the function will
-            return None.
-            If False, types which do not have an exact mel analog will return
-            the python type name as a string
-        allowBool : bool
-            if True and a bool type is passed, 'bool' will be returned.
-            otherwise 'int'.
-        allowMatrix : bool
-            if True and a `Matrix` type is passed, 'matrix' will be returned.
-            otherwise 'int[]'.
+    Parameters
+    ----------
+    pyObj
+        can be either a class or an instance.
+    exactOnly : bool
+        If True and no suitable MEL analog can be found, the function will
+        return None.
+        If False, types which do not have an exact mel analog will return
+        the python type name as a string
+    allowBool : bool
+        if True and a bool type is passed, 'bool' will be returned.
+        otherwise 'int'.
+    allowMatrix : bool
+        if True and a `Matrix` type is passed, 'matrix' will be returned.
+        otherwise 'int[]'.
 
-    :rtype: `str`
-
-
+    Returns
+    -------
+    str
     """
 
     if inspect.isclass(pyObj):
@@ -316,7 +319,7 @@ class MelGlobals(collections.MutableMapping, dict):
 
         def __setitem__(self, index, value):
             _mm.eval(self._setItemCmd % (index, pythonToMel(value)))
-            super(MelGlobalArray, self).__setitem__(index, value)
+            super(MelGlobals.MelGlobalArray, self).__setitem__(index, value)
         setItem = __setitem__
 
         # prevent these from
@@ -880,14 +883,17 @@ class Mel(object):
     def source(cls, script, language='mel'):
         """use this to source mel or python scripts.
 
-        :Parameters:
-            language : {'mel', 'python'}
-                When set to 'python', the source command will look for the
-                python equivalent of this mel file, if it exists, and attempt
-                to import it. This is particularly useful when transitioning
-                from mel to python via `pymel.tools.mel2py`, with this simple
-                switch you can change back and forth from sourcing mel to
-                importing python.
+        Parameters
+        ----------
+        script : str
+        language : str
+            {'mel', 'python'}
+            When set to 'python', the source command will look for the
+            python equivalent of this mel file, if it exists, and attempt
+            to import it. This is particularly useful when transitioning
+            from mel to python via `pymel.tools.mel2py`, with this simple
+            switch you can change back and forth from sourcing mel to
+            importing python.
 
         """
 

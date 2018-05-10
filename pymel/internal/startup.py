@@ -153,8 +153,10 @@ def _mayaInit(forversion=None):
     The solution lies in `refreshEnviron`, which copies the environment from the shell to os.environ after maya.standalone
     initializes.
 
-    :rtype: bool
-    :return: returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
+    Returns
+    -------
+    bool
+        returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
 
     """
     _logger.debug("startup.mayaInit: called")

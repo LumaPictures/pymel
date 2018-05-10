@@ -263,30 +263,31 @@ class PopupError(Exception):
 
     """Raise this exception in your scripts to cause a confirmDialog to be opened displaying the error message.
     After the user presses 'OK', the exception will be raised as normal. In batch mode the promptDialog is not opened.
-
-    Parameters
-    ----------
-    msgOrException : str or Exception instance
-        If a string, then the actual exception object returned / raised will
-        be a PopupError instance, and the message displayed will be this arg;
-        if an Exception instance, then the expection object returned / raised
-        will be the given instance
-    title : str
-        title of the dialog
-    button : str
-        text on the confirm button of the dialog
-    msg : str Or None
-        If msgOrException was not an exception instance, this is ignored; if it
-        is, then this controls what the displayed message is. If it is None,
-        then the displayed message is the first arg of the exception instance,
-        or the empty string if it has no args. If it is a string, then that will
-        be the displayed message.
-    icon : str
-        icon to use for the confirm dialog (see confirmDialog docs for available
-        icons)
     """
     def __new__(cls, msgOrException, title='Error', button='Ok', msg=None,
                 icon='critical'):
+        """
+        Parameters
+        ----------
+        msgOrException : Union[str, Exception]
+            If a string, then the actual exception object returned / raised will
+            be a PopupError instance, and the message displayed will be this arg;
+            if an Exception instance, then the expection object returned / raised
+            will be the given instance
+        title : str
+            title of the dialog
+        button : str
+            text on the confirm button of the dialog
+        msg : Optional[str]
+            If msgOrException was not an exception instance, this is ignored; if it
+            is, then this controls what the displayed message is. If it is None,
+            then the displayed message is the first arg of the exception instance,
+            or the empty string if it has no args. If it is a string, then that will
+            be the displayed message.
+        icon : str
+            icon to use for the confirm dialog (see confirmDialog docs for available
+            icons)
+        """
         if not isinstance(msgOrException, (basestring, Exception)):
             raise TypeError(msgOrException)
 
@@ -420,8 +421,8 @@ def currentMenuParent():
 # fix a bug it becomes impossible to create a menu after setParent has been called
 def menu(*args, **kwargs):
     """
-Modifications
-  - added ability to query parent
+    Modifications
+      - added ability to query parent
     """
     if _versions.current() < _versions.v2011:
         # on create only
@@ -545,23 +546,24 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     to the element being created will will be ignore.  For example, 'precision' will be ignored by all non-float UI and
     'sliderSteps' will be ignore by all non-slider UIs.
 
-    :Parameters:
-        dataType : string or class type
-            The dataType that the UI should control.  It can be a type object or the string name of the type.
-            For example for a boolean, you can specify 'bool' or pass in the bool class. Also, if the UI is meant to
-            control an array, you can pass the type name as a stirng with a integer suffix representing the array length. ex. 'bool3'
+    Parameters
+    ----------
+    dataType : Union[str, type]
+        The dataType that the UI should control.  It can be a type object or the string name of the type.
+        For example for a boolean, you can specify 'bool' or pass in the bool class. Also, if the UI is meant to
+        control an array, you can pass the type name as a stirng with a integer suffix representing the array length. ex. 'bool3'
 
-        numberOfControls : int
-            A parameter for specifying the number of controls per control group.  For example, for a checkBoxGrp, numberOfControls
-            will map to the 'numberOfCheckBoxes' keyword.
+    numberOfControls : int
+        A parameter for specifying the number of controls per control group.  For example, for a checkBoxGrp, numberOfControls
+        will map to the 'numberOfCheckBoxes' keyword.
 
-        slider : bool
-            Specify whether or not sliders should be used for int and float controls. Ignored for other
-            types, as well as for int and float arrays
+    slider : bool
+        Specify whether or not sliders should be used for int and float controls. Ignored for other
+        types, as well as for int and float arrays
 
-        value : int, int list, bool, bool list, float, float list, string, unicode, Path, Vector,
-            The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate
-            number of elements.
+    value : Union[int, bool, float, str, Path, Vector, List[Union[int, bool, float]]]
+        The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate
+        number of elements.
 
     A straightforward example::
 

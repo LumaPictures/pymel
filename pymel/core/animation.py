@@ -9,10 +9,9 @@ import pymel.internal.pmcmds as cmds
 
 def currentTime(*args, **kwargs):
     """
-Modifications:
-    - if no args are provided, the command returns the current time
+    Modifications:
+        - if no args are provided, the command returns the current time
     """
-
     if not args and not kwargs:
         return cmds.currentTime(q=1)
     else:
@@ -28,17 +27,17 @@ def setCurrentTime(time):
 
 def listAnimatable(*args, **kwargs):
     """
-Modifications:
-    - returns an empty list when the result is None
-    - returns wrapped classes
+    Modifications:
+        - returns an empty list when the result is None
+        - returns wrapped classes
     """
     return map(_general.PyNode, _util.listForNone(cmds.listAnimatable(*args, **kwargs)))
 
 def keyframe(*args, **kwargs):
     """
-Modifications:
-    - returns an empty list when the result is None
-    - if both valueChange and timeChange are queried, the result will be a list of (time,value) pairs
+    Modifications:
+        - returns an empty list when the result is None
+        - if both valueChange and timeChange are queried, the result will be a list of (time,value) pairs
     """
     res = _util.listForNone(cmds.keyframe(*args, **kwargs))
     if kwargs.get('query', kwargs.get('q', False) ) and \
@@ -52,15 +51,15 @@ def deformer(*args, **kwargs):
 def _constraint(func):
     def constraintWithWeightSyntax(*args, **kwargs):
         """
-Maya Bug Fix:
-  - when queried, angle offsets would be returned in radians, not current angle unit
+        Maya Bug Fix:
+          - when queried, angle offsets would be returned in radians, not current angle unit
 
-Modifications:
-  - added new syntax for querying the weight of a target object, by passing the constraint first::
+        Modifications:
+          - added new syntax for querying the weight of a target object, by passing the constraint first::
 
-        aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
-        aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
-        aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
+                aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
+                aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
+                aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
         """
         if kwargs.get('query', kwargs.get('q', False) and len(args) == 1):
             # Fix the big with angle offset query always being in radians

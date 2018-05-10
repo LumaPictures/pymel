@@ -861,6 +861,9 @@ class StubDoc(Doc):
                         self.contents.append(import_text)
             self.contents.extend(['', ''])
 
+        # typing module for type-checking in e.g. PyCharm
+        result += 'if False:\n    from typing import Dict, List, Tuple, Union, Optional\n'
+
         if classes:
             # sort in order of resolution
             def nonconflicting(classlist):

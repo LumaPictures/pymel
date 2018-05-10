@@ -9,8 +9,8 @@ def pointPosition(*args, **kwargs):
 
 def curve(*args, **kwargs):
     """
-Maya Bug Fix:
-  - name parameter only applied to transform. now applies to shape as well
+    Maya Bug Fix:
+      - name parameter only applied to transform. now applies to shape as well
     """
     # curve returns a transform
     name = kwargs.pop('name', kwargs.pop('n', None))
@@ -21,8 +21,8 @@ Maya Bug Fix:
 
 def surface(*args, **kwargs):
     """
-Maya Bug Fix:
-  - name parameter only applied to transform. now applies to shape as well
+    Maya Bug Fix:
+      - name parameter only applied to transform. now applies to shape as well
     """
     # surface returns a shape
     name = kwargs.pop('name', kwargs.pop('n', None))

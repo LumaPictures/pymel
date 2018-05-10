@@ -17,9 +17,11 @@ def parseVersionStr(versionStr, extension=False):
     Parse a verbose version string (like the one displayed in the Maya title
     bar) and return the base version.
 
-    :Parameters:
-        extension : `bool`
-            if True, leave the -x64 tag
+    Parameters
+    ----------
+    versionStr : str
+    extension : `bool`
+        if True, leave the -x64 tag
 
     >>> from pymel.all import *
     >>> versions.parseVersionStr('2008 Service Pack1 x64')
@@ -138,7 +140,9 @@ v2018_1 = 20180100
 def current():
     """Get the current version of Maya
 
-    :rtype: int
+    Returns
+    -------
+    int
     """
     return _current
 
@@ -154,7 +158,9 @@ def shortName():
 def is64bit():
     """Whether this instance of Maya is 64-bit
 
-    :rtype: bool
+    Returns
+    -------
+    bool
     """
     return _is64
 
@@ -163,7 +169,9 @@ def flavor():
 
     Requires ``maya.cmds``.
 
-    :rtype: str
+    Returns
+    -------
+    unicode
     """
     import maya.cmds
     try:
@@ -174,18 +182,27 @@ def flavor():
 def isUnlimited():
     """Whether this instance of Maya is 'Unlimited' (deprecated)
 
-    :rtype: bool
+    Returns
+    -------
+    bool
     """
     return flavor() == 'Unlimited'
 
 def isComplete():
     """Whether this instance of Maya is 'Unlimited' (deprecated)
 
-    :rtype: bool
+    Returns
+    -------
+    bool
     """
     return flavor() == 'Complete'
 
 def isRenderNode():
+    """
+    Returns
+    -------
+    bool
+    """
     return flavor() == 'Render'
 
 def isEval():
@@ -193,7 +210,9 @@ def isEval():
 
     Requires ``maya.cmds``.
 
-    :rtype: bool
+    Returns
+    -------
+    bool
     """
     import maya.cmds
     try:

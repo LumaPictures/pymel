@@ -384,7 +384,7 @@ class DagNodeName(DependNodeName):
     #    DagNodeName Path Info
     #--------------------------
     def root(self):
-        'rootOf'
+        """rootOf"""
         return DagNodeName('|' + self.longName()[1:].split('|')[0])
 
     def getRoot(self):
@@ -401,7 +401,7 @@ class DagNodeName(DependNodeName):
         return cur
 
     def firstParent(self):
-        'firstParentOf'
+        """firstParentOf"""
 
         return DagNodeName('|'.join(self.split('|')[:-1]))
 
@@ -446,7 +446,7 @@ class DagNodeName(DependNodeName):
 #            return self
 
     def nodeName(self):
-        'basename'
+        """basename"""
         return self.split('|')[-1]
 
 
