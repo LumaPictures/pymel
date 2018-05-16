@@ -1,3 +1,4 @@
+import compileall
 import inspect
 import os.path
 import sys
@@ -295,7 +296,7 @@ def generateUIFunctions():
 autoLayout.__doc__ = formLayout.__doc__
 # Now that we've actually created all the functions, it should be safe to import
 # uitypes... 
-# FIXME: !!!!
+# FIXME: commented out to avoid cyclic import!!!!
 # from uitypes import objectTypeUI, toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
 '''
     _writeToModule(new, module)
@@ -390,6 +391,7 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         else:
             defaults.append(default)
 
+    # FIXME: replace with inspect.formatargspec
     signature = util.format_signature(['self'] + inArgs, defaults=defaults)
 
     def convertTypeArg(t):
@@ -487,6 +489,10 @@ class _MetaMayaCommandGenerator(object):
         attrs, methods = self.getTemplateData()
 
         methodNames = set(methods)
+        if self.existingClass:
+            methodNames.union(
+                name for name, obj in self.existingClass.__dict__.items()
+                if inspect.ismethod(obj))
 
         def toStr(k, v):
             if k == '__apicls__':
@@ -543,8 +549,14 @@ class _MetaMayaCommandGenerator(object):
             attrs['__melcmdname__'] = melCmdName
             attrs['__melcmd_isinfo__'] = infoCmd
 
-            filterAttrs = {'name', 'getName', 'setName'}.union(attrs.keys())
+            # base set of disallowed methods (for MEL)
+            filterAttrs = {'name', 'getName', 'setName'}
+            # already created attributes for this class:
+            filterAttrs.update(attrs.keys())
+            # already created methods for this class:
             filterAttrs.update(methods.keys())
+            # methods on parent classes:
+            filterAttrs.update(self.herited)
             filterAttrs.update(factories.overrideMethods.get(self.parentClassname, []))
 
             for flag, flagInfo in cmdInfo['flags'].items():
@@ -562,8 +574,6 @@ class _MetaMayaCommandGenerator(object):
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
 
-                        if self.classname == 'Joint':
-                            print self.classname, methodName
                         factories.classToMelMap[self.classname].append(methodName)
 
                         if methodName not in filterAttrs and \
@@ -599,9 +609,6 @@ class _MetaMayaCommandGenerator(object):
                         # if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
                         else:
                             methodName = flag
-
-                        if self.classname == 'Joint':
-                            print self.classname, methodName
 
                         factories.classToMelMap[self.classname].append(methodName)
 
@@ -709,16 +716,24 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         # define __slots__ if not defined
         if '__slots__' not in attrs:
             attrs['__slots__'] = ()
-        try:
-            apicls = attrs['apicls']
-            proxy = False
-            raise ValueError("This doesn't seem to be supported any more")
-        except KeyError:
+
+        if self.existingClass is not None:
             try:
-                apicls = attrs['__apicls__']
-                proxy = True
+                apicls = self.existingClass.__dict__['apicls']
+                proxy = False
             except KeyError:
-                apicls = None
+                try:
+                    apicls = self.existingClass.__dict__['__apicls__']
+                    proxy = True
+                except KeyError:
+                    apicls = self.apicls
+                    proxy = True
+
+                    if self.apicls is not None:
+                        attrs['__apicls__'] = self.apicls
+        else:
+            apicls = self.apicls
+            proxy = True
 
         _logger.debug('MetaMayaTypeGenerator: %s: %s (proxy=%s)' % (self.classname, apicls.__name__, proxy))
 
@@ -773,15 +788,13 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
                         # _logger.debug("Checking method %s" % (methodName))
 
                         try:
-                            pymelName = info[0]['pymelName']
+                            basePymelName = info[0]['pymelName']
                             removeAttrs.append(methodName)
                         except KeyError:
-                            pymelName = methodName
-                        pymelName, overrideData = factories._getApiOverrideNameAndData(
-                            self.classname, pymelName)
+                            basePymelName = methodName
+                        pymelName, overrideData, renamed = factories._getApiOverrideNameAndData(
+                            self.classname, basePymelName)
 
-                        # if classname == 'DependNode' and pymelName in ('setName','getName'):
-                        #                        raise Exception('debug')
 
                         overloadIndex = overrideData.get('overloadIndex', None)
 
@@ -790,9 +803,6 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
 
                         if overloadIndex is None:
                             #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
-                            # FIXME: previous versions of pymel erroneously included
-                            # renamed/remapped methods on child classes which possessed the same apicls as their parent.
-                            # We should include them as deprecated.
                             continue
                         if not overrideData.get('enabled', True):
                             #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
@@ -808,6 +818,15 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
                             deprecated.append(yieldTuple)
                         else:
                             yield yieldTuple + (False,)
+
+                        if renamed:
+                            # FIXME: previous versions of pymel erroneously included
+                            # renamed/remapped methods on child classes which possessed the same apicls as their parent.
+                            # We should include them as deprecated.
+                            deprecated.append(
+                                (methodName, info, self.classname,
+                                 basePymelName, overloadIndex))
+
                     for yieldTuple in deprecated:
                         yield yieldTuple + (True,)
 
@@ -1031,9 +1050,6 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
 
         factories.addMayaType(self.mayaType)
 
-        if self.apicls is not None:
-            attrs['__apicls__'] = self.apicls
-
         # first populate API methods.  they take precedence.
         attrs, methods = self.getAPIData(attrs, methods)
         # next, populate MEL methods
@@ -1136,6 +1152,8 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, parentMethods, parentApicls):
     parentPymelTypes = [getCachedPymelType(p) for p in parentMayaTypes]
     pyNodeTypeName = getPymelTypeName(mayaType)
     existingClass = getattr(nt, pyNodeTypeName, None)
+    if existingClass and hasattr(existingClass, '__metaclass__'):
+        return None
 
     return MetaMayaNodeGenerator(pyNodeTypeName, existingClass, mayaType,
                                  parentPymelTypes, parentMethods, parentApicls)
@@ -1173,11 +1191,11 @@ def iterPyNodeText():
             parentMethods = heritedMethods[parentMayaType]
             parentApicls = apiClasses[parentMayaType]
             template = getPyNodeGenerator(mayaType, parents, parentMethods, parentApicls)
-
-            text, methods = template.render()
-            yield text, template
-            heritedMethods[mayaType] = parentMethods.union(methods)
-            apiClasses[mayaType] = template.apicls
+            if template:
+                text, methods = template.render()
+                yield text, template
+                heritedMethods[mayaType] = parentMethods.union(methods)
+                apiClasses[mayaType] = template.apicls
 
 
 def iterUIText():
@@ -1227,7 +1245,12 @@ def generateTypes(lines, iterator, module):
             if newlines[-2:] == ['', '']:
                 newlines = newlines[:-2]
 
-            srclines, startline = inspect.getsourcelines(template.existingClass)
+            try:
+                srclines, startline = inspect.getsourcelines(template.existingClass)
+            except IOError:
+                print template.existingClass, dir(template.existingClass)
+                raise
+
             endline = startline + len(srclines) - 1
 
             endline += computeOffset(startline)
@@ -1250,24 +1273,33 @@ _addTypeNames()
 
 
 def generateAll():
-    # Reset modules, before import
-    for module, _ in CORE_CMD_MODULES:
-        _resetModule(module)
+    factories.building = True
+    try:
+        # Reset modules, before import
+        for module, _ in CORE_CMD_MODULES:
+            _resetModule(module)
 
-    _resetModule('pymel.core.uitypes')
-    _resetModule('pymel.core.windows')
+        _resetModule('pymel.core.uitypes')
+        _resetModule('pymel.core.windows')
 
-    nodeLines = _resetModule('pymel.core.nodetypes')
-    uiLines = _resetModule('pymel.core.uitypes')
+        nodeLines = _resetModule('pymel.core.nodetypes')
+        uiLines = _resetModule('pymel.core.uitypes')
 
-    # Import to populate existing objects
-    import pymel.core
+        # Import to populate existing objects
+        import pymel.core
 
-    # Generate Functions
-    for module, returnFunc in CORE_CMD_MODULES:
-        generateFunctions(module, returnFunc)
+        # these are populated by core.general and can be blanked when reloading factory module
+        assert {'MObject', 'MDagPath', 'MPlug'}.issubset(factories.ApiTypeRegister.inCast.keys())
 
-    generateUIFunctions()
+        # Generate Functions
+        for module, returnFunc in CORE_CMD_MODULES:
+            generateFunctions(module, returnFunc)
 
-    generateTypes(nodeLines, iterPyNodeText(), 'pymel.core.nodetypes')
-    generateTypes(uiLines, iterUIText(), 'pymel.core.uitypes')
+        generateUIFunctions()
+
+        generateTypes(nodeLines, iterPyNodeText(), 'pymel.core.nodetypes')
+        generateTypes(uiLines, iterUIText(), 'pymel.core.uitypes')
+
+        compileall.compile_dir(os.path.dirname(pymel.core.__file__))
+    finally:
+        factories.building = False

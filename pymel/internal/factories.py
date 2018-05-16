@@ -59,6 +59,8 @@ uiClassList = None
 nodeCommandList = None
 moduleCmds = None
 
+# global variable that indicates if we're building templates
+building = False
 
 # Though the global variables and the attributes on _apiCacheInst SHOULD
 # always point to the same objects - ie,
@@ -396,6 +398,7 @@ if docstringMode == 'html':
 classToMelMap = util.defaultdict(list)
 
 def _getApiOverrideNameAndData(classname, pymelName):
+    explicitRename = False
     if apiToMelData.has_key((classname, pymelName)):
 
         data = apiToMelData[(classname, pymelName)]
@@ -412,6 +415,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
             pymelName = data['melName']
         else:
             pymelName = nameType
+            explicitRename = True
     else:
         # set defaults
         #_logger.debug( "creating default api-to-MEL data for %s.%s" % ( classname, pymelName ) )
@@ -419,7 +423,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
         apiToMelData[(classname, pymelName)] = data
 
     #overloadIndex = data.get( 'overloadIndex', None )
-    return pymelName, data
+    return pymelName, data, explicitRename
 
 
 def getUncachedCmds():
@@ -1541,7 +1545,7 @@ class ApiArgUtil(object):
         pymelName = self.methodInfo.get('pymelName', self.methodName)
         try:
             pymelClassName = apiClassNamesToPyNodeNames[self.apiClassName]
-            pymelName, data = _getApiOverrideNameAndData(pymelClassName, pymelName)
+            pymelName, data, _ = _getApiOverrideNameAndData(pymelClassName, pymelName)
         except KeyError:
             pass
         return pymelName
@@ -2472,85 +2476,92 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
             if not proxy and apicls not in bases:
                 #_logger.debug("ADDING BASE %s" % classdict['apicls'])
                 bases = bases + (classdict['apicls'],)
+
             try:
                 classInfo = apiClassInfo[apicls.__name__]
             except KeyError:
                 _logger.info("No api information for api class %s" % (apicls.__name__))
             else:
-                #------------------------
-                # API Wrap
-                #------------------------
+                parentApiClass = getattr(bases[0], '__apicls__', None)
+                if apicls is parentApiClass:
+                    # If this class's api class is the same as the parent, the methods
+                    # are already handled.
+                    pass
+                else:
+                    #------------------------
+                    # API Wrap
+                    #------------------------
 
-                # Find out methods herited from other bases than apicls to avoid
-                # unwanted overloading
-                herited = {}
-                for base in bases:
-                    if base is not apicls:
-                        # basemro = inspect.getmro(base)
-                        for attr in dir(base):
-                            if attr not in herited:
-                                herited[attr] = base
+                    # Find out methods herited from other bases than apicls to avoid
+                    # unwanted overloading
+                    herited = {}
+                    for base in bases:
+                        if base is not apicls:
+                            # basemro = inspect.getmro(base)
+                            for attr in dir(base):
+                                if attr not in herited:
+                                    herited[attr] = base
 
-                ##_logger.debug("Methods info: %(methods)s" % classInfo)
+                    ##_logger.debug("Methods info: %(methods)s" % classInfo)
 
-                # Class Methods
+                    # Class Methods
 
-                # iterate over the methods so that we get all non-deprecated
-                # methods first
-                # This is because, if two api methods map to the same pymel
-                # method name, then the first one "wins" - and we want to prefer
-                # non-deprecated.
-                def non_deprecated_methods_first():
-                    deprecated = []
-                    for methodName, info in classInfo['methods'].iteritems():
-                        # don't rewrap if already herited from a base class that is not the apicls
-                        # _logger.debug("Checking method %s" % (methodName))
+                    # iterate over the methods so that we get all non-deprecated
+                    # methods first
+                    # This is because, if two api methods map to the same pymel
+                    # method name, then the first one "wins" - and we want to prefer
+                    # non-deprecated.
+                    def non_deprecated_methods_first():
+                        deprecated = []
+                        for methodName, info in classInfo['methods'].iteritems():
+                            # don't rewrap if already herited from a base class that is not the apicls
+                            # _logger.debug("Checking method %s" % (methodName))
 
-                        try:
-                            pymelName = info[0]['pymelName']
-                            removeAttrs.append(methodName)
-                        except KeyError:
-                            pymelName = methodName
-                        pymelName, overrideData = _getApiOverrideNameAndData(
-                            classname, pymelName)
+                            try:
+                                pymelName = info[0]['pymelName']
+                                removeAttrs.append(methodName)
+                            except KeyError:
+                                pymelName = methodName
+                            pymelName, overrideData, _ = _getApiOverrideNameAndData(
+                                classname, pymelName)
 
-                        # if classname == 'DependNode' and pymelName in ('setName','getName'):
-                        #                        raise Exception('debug')
-                        overloadIndex = overrideData.get('overloadIndex', None)
-                        if overloadIndex is None:
-                            #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
-                            continue
-                        if not overrideData.get('enabled', True):
-                            #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                            continue
-                        yieldTuple = (methodName, info, classname, pymelName,
-                                      overloadIndex)
-                        if info[overloadIndex].get('deprecated', False):
-                            deprecated.append(yieldTuple)
-                        else:
+                            # if classname == 'DependNode' and pymelName in ('setName','getName'):
+                            #                        raise Exception('debug')
+                            overloadIndex = overrideData.get('overloadIndex', None)
+                            if overloadIndex is None:
+                                #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                                continue
+                            if not overrideData.get('enabled', True):
+                                #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
+                                continue
+                            yieldTuple = (methodName, info, classname, pymelName,
+                                          overloadIndex)
+                            if info[overloadIndex].get('deprecated', False):
+                                deprecated.append(yieldTuple)
+                            else:
+                                yield yieldTuple
+                        for yieldTuple in deprecated:
                             yield yieldTuple
-                    for yieldTuple in deprecated:
-                        yield yieldTuple
 
-                for (methodName, info, classname, pymelName, overloadIndex) \
-                        in non_deprecated_methods_first():
-                    assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
+                    for (methodName, info, classname, pymelName, overloadIndex) \
+                            in non_deprecated_methods_first():
+                        assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
 
-                    # TODO: some methods are being wrapped for the base class,
-                    # and all their children - ie, MFnTransform.transformation()
-                    # gets wrapped for Transform, Place3dTexture,
-                    # HikGroundPlane, etc...
-                    # Figure out why this happens, and stop it!
-                    if pymelName not in herited:
-                        if pymelName not in classdict:
-                            #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
-                            method = wrapApiMethod(apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex)
-                            if method:
-                                #_logger.debug("%s.%s successfully created" % (classname, pymelName ))
-                                classdict[pymelName] = method
-                            # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-                        # else: #_logger.debug("%s.%s: already defined, skipping" % (apicls.__name__, methodName ))
-                    # else: #_logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
+                        # TODO: some methods are being wrapped for the base class,
+                        # and all their children - ie, MFnTransform.transformation()
+                        # gets wrapped for Transform, Place3dTexture,
+                        # HikGroundPlane, etc...
+                        # Figure out why this happens, and stop it!
+                        if pymelName not in herited:
+                            if pymelName not in classdict:
+                                #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
+                                method = wrapApiMethod(apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex)
+                                if method:
+                                    #_logger.debug("%s.%s successfully created" % (classname, pymelName ))
+                                    classdict[pymelName] = method
+                                # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
+                            # else: #_logger.debug("%s.%s: already defined, skipping" % (apicls.__name__, methodName ))
+                        # else: #_logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
 
                 if 'pymelEnums' in classInfo:
                     # Enumerators
@@ -3071,7 +3082,6 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
     """
     create a PyNode type for a maya node.
     """
-    raise
     # dynModule is generally pymel.core.nodetypes, but don't want to rely on
     # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
     from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\
@@ -3111,11 +3121,10 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
     # otherwise, do the lazy-loading thing
     else:
         try:
-            dynModule[pyNodeTypeName]
-        except KeyError:
+            getattr(dynModule, pyNodeTypeName)
+        except AttributeError:
             #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
-            dynModule[pyNodeTypeName] = (addPyNodeCallback,
-                                         (dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs))
+            addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs)
     return pyNodeTypeName
 
 def removePyNode(dynModule, mayaType):

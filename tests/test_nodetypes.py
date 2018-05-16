@@ -328,7 +328,7 @@ class testCase_invertibles(unittest.TestCase):
         except KeyError:
             pass
 
-        methodName, data = factories._getApiOverrideNameAndData( pyClassName, methodName )
+        methodName, data, _ = factories._getApiOverrideNameAndData( pyClassName, methodName )
         try:
             overloadIndex = data['overloadIndex']
             info = info[overloadIndex]
