@@ -1304,6 +1304,7 @@ def generateAll():
         generateTypes(nodeLines, iterPyNodeText(), 'pymel.core.nodetypes')
         generateTypes(uiLines, iterUIText(), 'pymel.core.uitypes')
 
-        compileall.compile_dir(os.path.dirname(pymel.core.__file__))
+        compileall.compile_dir(os.path.dirname(pymel.core.__file__),
+                               force=True)
     finally:
         factories.building = False
