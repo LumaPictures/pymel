@@ -7,6 +7,7 @@ import platform
 import inspect
 import math
 import inspect
+import pytest
 
 import maya.cmds as cmds
 import pymel.core as pm
@@ -243,7 +244,16 @@ class testCase_attribs(unittest.TestCase):
         circleMaker = pm.circle()[1]
         self.assertEqual(circleMaker.attr('outputCurve').type(), 'nurbsCurve')
 
-class testCase_invertibles(unittest.TestCase):
+
+def pytest_generate_tests(metafunc):
+    if hasattr(metafunc.cls, 'ARGS'):
+        argnames = metafunc.cls.ARGS.split(', ')
+        ids, argvalues = zip(*list(metafunc.cls.getParameters()))
+        metafunc.parametrize(argnames, argvalues, ids=ids)
+
+
+class TestInvertibles(object):
+    ARGS = "pynode, apiClassName, setMethod, setter, getter, setArgTypes"
     EXCEPTIONS = [
                   'MotionPath',   # setUEnd causes maya to crash
                   'OldBlindDataBase',
@@ -306,17 +316,6 @@ class testCase_invertibles(unittest.TestCase):
                 raise cls.GetTypedArgError(type)
 
     @classmethod
-    def setattrUnique(cls, name, obj):
-        uniqueName = name
-        i = 1
-        while hasattr(cls, uniqueName):
-            i += 1
-            uniqueName = '%s%s' % (name, i)
-        #print "%s.%s = %r" % (cls.__name__, uniqueName, obj)
-        setattr(cls, uniqueName, obj)
-        return uniqueName
-
-    @classmethod
     def _getMethodAndArgTypes(cls, basePyClass, pyClassName, apiClassName,
                        classInfo, methodName):
         try:
@@ -346,7 +345,7 @@ class testCase_invertibles(unittest.TestCase):
         return method, argTypes
 
     @classmethod
-    def addTests(cls):
+    def getParameters(cls):
         pyNodes = inspect.getmembers(pm.nodetypes,
                                      lambda x: inspect.isclass(x) and issubclass(x, pm.PyNode))
 
@@ -399,91 +398,81 @@ class testCase_invertibles(unittest.TestCase):
                                 # it
                                 getter = None
 
-                    newTestMethod = cls.makeInvertTest(pynode, apiClassName,
-                                                       setMethod, setter,
-                                                       getter, setArgTypes)
-                    cls.setattrUnique(newTestMethod.__name__, newTestMethod)
+                    name = '%s_%s' % (pynode.__name__, setMethod)
+                    yield name, (pynode, apiClassName, setMethod, setter,
+                                 getter, setArgTypes)
 
-    @classmethod
-    def makeInvertTest(cls, pynode, apiClassName, setMethod, setter, getter,
-                       setArgTypes):
-        def testInvert(self):
-            print "testing %s.%s" % (pynode.__name__, setMethod)
-            sys.stdout.flush()
-            sys.stdout.flush()
-            melnodeName = pynode.__melnode__
-            if issubclass(pynode, pm.nt.GeometryShape):
-                if pynode == pm.nt.Mesh :
-                    obj = pm.polyCube()[0].getShape()
-                    obj.createColorSet( 'thingie' )
-                elif pynode == pm.nt.Subdiv:
-                    obj = pm.polyToSubdiv( pm.polyCube()[0].getShape())[0].getShape()
-                elif pynode == pm.nt.NurbsSurface:
-                    obj = pm.sphere()[0].getShape()
-                elif pynode == pm.nt.NurbsCurve:
-                    obj = pm.circle()[0].getShape()
-                else:
-                    print "skipping shape", pynode
-                    return
+    def testInvert(self, pynode, apiClassName, setMethod, setter, getter, setArgTypes):
+        print "testing %s.%s" % (pynode.__name__, setMethod)
+        sys.stdout.flush()
+        sys.stdout.flush()
+        melnodeName = pynode.__melnode__
+        if issubclass(pynode, pm.nt.GeometryShape):
+            if pynode is pm.nt.Mesh :
+                obj = pm.polyCube()[0].getShape()
+                obj.createColorSet( 'thingie' )
+            elif pynode is pm.nt.Subdiv:
+                obj = pm.polyToSubdiv( pm.polyCube()[0].getShape())[0].getShape()
+            elif pynode is pm.nt.NurbsSurface:
+                obj = pm.sphere()[0].getShape()
+            elif pynode is pm.nt.NurbsCurve:
+                obj = pm.circle()[0].getShape()
             else:
-                #print "creating: %s" % melnodeName
-                obj = pm.createNode( melnodeName )
+                pytest.skip("incompatible node type")
+        else:
+            #print "creating: %s" % melnodeName
+            obj = pm.createNode( melnodeName )
 
+        try:
             try:
-                try:
-                    if apiClassName == 'MFnMesh' and setMethod == 'setUVs':
-                        args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
-                    elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
-                        args = [ [ [.5,.5,.5] ]*obj.numColors() ]
-                    elif apiClassName == 'MFnMesh' and setMethod == 'setColor':
-                        obj.setColors( [ [.5,.5,.5] ]*obj.numVertices() )
-                        args = [ 1, [1,0,0] ]
-                    elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
-                        obj.createColorSet(setMethod + '_ColorSet' )
-                        args = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
+                if apiClassName == 'MFnMesh' and setMethod == 'setUVs':
+                    args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
+                elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
+                    args = [ [ [.5,.5,.5] ]*obj.numColors() ]
+                elif apiClassName == 'MFnMesh' and setMethod == 'setColor':
+                    obj.setColors( [ [.5,.5,.5] ]*obj.numVertices() )
+                    args = [ 1, [1,0,0] ]
+                elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
+                    obj.createColorSet(setMethod + '_ColorSet' )
+                    args = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
 
-                    elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
-                        args = [ 6, 4.5 ]
-                    elif setMethod == 'setIcon':
-                        args = [ 'polyCylinder.png' ]
+                elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
+                    args = [ 6, 4.5 ]
+                elif setMethod == 'setIcon':
+                    args = [ 'polyCylinder.png' ]
+                else:
+                    args = [ self.getTypedArg(typ) for typ in setArgTypes ]
+                #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
+                args = [obj] + args
+
+                if getter:
+                    oldVal = getter(obj)
+                setter( *args )
+                cmds.undo()
+                if getter:
+                    newVal = getter(obj)
+
+                    if isinstance(newVal, float):
+                        assert oldVal == pytest.approx(newVal, abs=1e-12)
+                    elif isinstance(newVal, (tuple, list, arrays.Array)):
+                        assert len(newVal) == len(oldVal)
+                        # self.fail('oldVal %r != to newVal %r - unequal lengths' % (oldVal, newVal))
+                        for i in xrange(len(newVal)):
+                            # msg = 'index %d of oldVal %r not equal to newVal %r' % (i, oldVal, newVal)
+                            if isinstance(newVal[i], float):
+                                assert oldVal[i] == pytest.approx(newVal[i], abs=1e-12)
+                            else:
+                                assert oldVal[i] == newVal[i]
                     else:
-                        args = [ self.getTypedArg(typ) for typ in setArgTypes ]
-                    #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
-                    args = [obj] + args
+                        assert oldVal == newVal
+            except self.GetTypedArgError:
+                pass
+        finally:
+            try:
+                pm.delete( obj )
+            except:
+                pass
 
-                    if getter:
-                        oldVal = getter(obj)
-                    setter( *args )
-                    cmds.undo()
-                    if getter:
-                        newVal = getter(obj)
-
-                        if isinstance(newVal, float):
-                            self.assertAlmostEqual(oldVal, newVal, 12)
-                        elif isinstance(newVal, (tuple, list, arrays.Array)):
-                            if len(newVal) != len(oldVal):
-                                self.fail('oldVal %r != to newVal %r - unequal lengths' % (oldVal, newVal))
-                            for i in xrange(len(newVal)):
-                                msg = 'index %d of oldVal %r not equal to newVal %r' % (i, oldVal, newVal)
-                                if isinstance(newVal[i], float):
-                                    self.assertAlmostEqual(oldVal[i], newVal[i],
-                                                           places=12, msg=msg)
-                                else:
-                                    self.assertEqual(oldVal[i], newVal[i],
-                                                     msg=msg)
-                        else:
-                            self.assertEqual(oldVal, newVal)
-                except cls.GetTypedArgError:
-                    pass
-            finally:
-                try:
-                    pm.delete( obj )
-                except:
-                    pass
-        testInvert.__name__ = 'test_%s_%s' % (pynode.__name__, setMethod)
-        return testInvert
-
-testCase_invertibles.addTests()
 
 # TODO: add tests for slices
 # test tricky / extended slices: ie, [:3], [:-1], [-3:-1], [5:1:-2], etc
@@ -2380,7 +2369,7 @@ class testCase_MeshVert(unittest.TestCase, MeshComponentTesterMixin):
         result = sorted(x.index() for x in self.cube.vtx[0].connectedVertices())
         expected = [1, 2, 6]
         self.assertEqual(result, expected)
-        
+
     def test_connectedVertices_degenerate(self):
         self.makeDegenerate()
         result = sorted(x.index() for x in self.degen.vtx[3].connectedVertices())
@@ -2404,7 +2393,7 @@ class testCase_MeshVert(unittest.TestCase, MeshComponentTesterMixin):
         result = sorted(x.index() for x in self.cube.vtx[0].connectedFaces())
         expected = [0, 3, 5]
         self.assertEqual(result, expected)
-        
+
     def test_connectedFaces_degenerate(self):
         self.makeDegenerate()
         result = sorted(x.index() for x in self.degen.vtx[3].connectedFaces())
@@ -3093,7 +3082,7 @@ class testCase_parentTests(unittest.TestCase):
         self.assertFalse(self.ip.isParentOf(self.cam))
         self.assertFalse(self.ip.isParentOf(self.ipTrans))
         self.assertFalse(self.ip.isParentOf(self.ip))
-        
+
     def test_isChildOf(self):
         self.assertFalse(self.camTrans.isChildOf(self.camTrans))
         self.assertFalse(self.camTrans.isChildOf(self.cam))
