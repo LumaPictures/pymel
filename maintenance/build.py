@@ -490,6 +490,7 @@ class _MetaMayaCommandGenerator(object):
 
         methodNames = set(methods)
         if self.existingClass:
+            # add methods that exist *directly* on the existing class
             methodNames.union(
                 name for name, obj in self.existingClass.__dict__.items()
                 if inspect.ismethod(obj))
@@ -1160,10 +1161,13 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, parentMethods, parentApicls):
 
 
 def iterPyNodeText():
+    import pymel.core.general
 
     # Generate Classes
     heritedMethods = {
-        'general.PyNode': set()
+        'general.PyNode': set(
+            name for name, obj in inspect.getmembers(pymel.core.general.PyNode)
+            if inspect.ismethod(obj))
     }
     apiClasses = {
         'general.PyNode': None
