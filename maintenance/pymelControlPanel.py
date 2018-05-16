@@ -156,9 +156,14 @@ class PymelControlPanel(object):
     @staticmethod
     def getMelMethods(className):
         """get all mel-derived methods for this class"""
+        import maintenance.build
+        if not factories.classToMelMap.keys():
+            # force factories.classToMelMap to be populated
+            list(maintenance.build.iterPyNodeText())
+            assert factories.classToMelMap
         reg = re.compile('(.*[a-z])([XYZ])$')
         newlist = []
-        origlist = factories.classToMelMap[className]
+        origlist = factories.classToMelMap.get(className, [])
         for method in origlist:
             m = reg.search(method)
             if m:
