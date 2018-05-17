@@ -1027,10 +1027,10 @@ class ApiMethodGenerator(MelMethodGenerator):
         return False
 
 
-class NodeGenerator(ApiMethodGenerator):
+class NodeTypeGenerator(ApiMethodGenerator):
     def __init__(self, classname, existingClass, parentClasses,
                  parentMethods, parentApicls, childClasses=(), mayaType=None):
-        super(NodeGenerator, self).__init__(
+        super(NodeTypeGenerator, self).__init__(
             classname, existingClass, parentClasses, parentMethods,
             parentApicls, childClasses)
         self.mayaType = mayaType
@@ -1127,7 +1127,7 @@ class NodeGenerator(ApiMethodGenerator):
         return nodeCmd, infoCmd
 
 
-class ComponentGenerator(ApiMethodGenerator):
+class ApiTypeGenerator(ApiMethodGenerator):
 
     def getTemplateData(self, attrs=None, methods=None):
         if attrs is None:
@@ -1140,7 +1140,7 @@ class ComponentGenerator(ApiMethodGenerator):
         return attrs, methods
 
 
-class MetaMayaUIGenerator(MelMethodGenerator):
+class UITypeGenerator(MelMethodGenerator):
 
     """
     A metaclass for creating classes based on on a maya UI type/command.
@@ -1212,24 +1212,27 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods,
     if existingClass and hasattr(existingClass, '__metaclass__'):
         return None
 
-    return NodeGenerator(pyNodeTypeName, existingClass,
+    return NodeTypeGenerator(pyNodeTypeName, existingClass,
                          parentPymelTypes, parentMethods, parentApicls,
                          childMayaTypes, mayaType)
 
 
-def iterComponentText():
+def iterApiTypeText():
     import pymel.core.general
-    components = [
+    # FIXME: handle herited methods
+    types = [
+        pymel.core.general.Attribute,
+        pymel.core.general.AttributeDefaults,
         pymel.core.general.MeshVertex,
         pymel.core.general.MeshEdge,
         pymel.core.general.MeshFace,
         pymel.core.general.NurbsCurveCV,
     ]
-    for cls in components:
+    for cls in types:
         parentMethods = set(methodNames(cls))
         parentApicls = None
         parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
-        template = ComponentGenerator(
+        template = ApiTypeGenerator(
             cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
 
         text, methods = template.render()
@@ -1297,7 +1300,7 @@ def iterUIText():
         else:
             base = 'PyUI'
 
-        template = MetaMayaUIGenerator(classname, existingClass, [base], set())
+        template = UITypeGenerator(classname, existingClass, [base], set())
         text, methods = template.render()
         yield text, template
         # heritedMethods[mayaType] = parentMethods.union(methods)
@@ -1370,7 +1373,9 @@ def generateAll():
         # Import to populate existing objects
         import pymel.core
 
-        # these are populated by core.general and can be blanked when reloading factory module
+        # these are populated when core.general is imported, but they can be
+        # blanked out if the factory module has been reloaded. make sure
+        # they are still present
         assert {'MObject', 'MDagPath', 'MPlug'}.issubset(factories.ApiTypeRegister.inCast.keys())
 
         # Generate Functions
@@ -1381,7 +1386,7 @@ def generateAll():
 
         generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', nodeLines, suffix='\n_addTypeNames()\n')
         generateTypes(iterUIText(), 'pymel.core.uitypes', uiLines, suffix='\n_addTypeNames()\n')
-        generateTypes(iterComponentText(), 'pymel.core.general')
+        generateTypes(iterApiTypeText(), 'pymel.core.general')
 
         compileall.compile_dir(os.path.dirname(pymel.core.__file__),
                                force=True)

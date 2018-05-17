@@ -24,6 +24,8 @@ import pymel.core.system as system
 import datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
+from pymel.util.enum import Enum
+
 _logger = _getLogger(__name__)
 
 _f = _factories
@@ -2957,7 +2959,6 @@ class Attribute(PyNode):
 
 
     """
-    __metaclass__ = _factories.MetaMayaTypeWrapper
     __apicls__ = _api.MPlug
     attrItemReg = re.compile('\[(\d+)\]$')
 
@@ -4260,6 +4261,218 @@ class Attribute(PyNode):
         return self.getParent(generations=None, arrays=arrays)
 
     parent = getParent
+# ------ Do not edit below this line --------
+    FreeToChangeState = Enum('FreeToChangeState', {'freeToChange': 0, 'notFreeToChange': 1, 'childrenNotFreeToChange': 2})
+    MValueSelector = Enum('MValueSelector', {'all': 0, 'nonDefault': 1, 'changed': 2, 'lastAttrSelector': 3})
+    __slots__ = ()
+
+    @_f.addApiDocs(_api.MPlug, 'getExistingArrayAttributeIndices')
+    def _getArrayIndices(self):
+        do, final_do, outTypes = _f.getDoArgs([], [(u'indices', 'MIntArray', u'out', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'getExistingArrayAttributeIndices', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.processApiResult(res, [u'indices'], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'setLocked')
+    def _setLocked(self, locked):
+        do, final_do, outTypes = _f.processApiArgs([locked], [('locked', 'bool', 'in', None)], self.isLocked, self._setLocked, [])
+        res = _f.getProxyResult(self, _api.MPlug, 'setLocked', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'elementByLogicalIndex')
+    def elementByLogicalIndex(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'elementByLogicalIndex', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'elementByPhysicalIndex')
+    def elementByPhysicalIndex(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'elementByPhysicalIndex', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'evaluateNumElements')
+    def evaluateNumElements(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'evaluateNumElements')
+        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+
+    @_f.deprecated
+    def getExistingArrayAttributeIndices(self):
+        do, final_do, outTypes = _f.getDoArgs([], [(u'indices', 'MIntArray', u'out', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'getExistingArrayAttributeIndices', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.processApiResult(res, [u'indices'], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'numElements')
+    def getNumElements(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'numElements')
+        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+
+    @_f.addApiDocs(_api.MPlug, 'getSetAttrCmds')
+    def getSetAttrCmds(self, valueSelector='all', useLongNames=False):
+        do, final_do, outTypes = _f.getDoArgs([valueSelector, useLongNames], [('cmds', 'MStringArray', 'out', None), ('valueSelector', ('MPlug', 'MValueSelector'), 'in', None), ('useLongNames', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'getSetAttrCmds', final_do)
+        return _f.processApiResult(res, ['cmds'], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'info')
+    def info(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'info')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isArray')
+    def isArray(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isArray')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isCachingFlagSet')
+    def isCaching(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isCachingFlagSet')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.deprecated
+    def isCachingFlagSet(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isCachingFlagSet')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.deprecated
+    def isChannelBoxFlagSet(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isChannelBoxFlagSet')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isChild')
+    def isChild(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isChild')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isCompound')
+    def isCompound(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isCompound')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isConnected')
+    def isConnected(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isConnected')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isDestination')
+    def isDestination(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isDestination')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isDynamic')
+    def isDynamic(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isDynamic')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isElement')
+    def isElement(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isElement')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isFreeToChange')
+    def isFreeToChange(self, checkParents=True, checkChildren=True):
+        do, final_do, outTypes = _f.getDoArgs([checkParents, checkChildren], [('checkParents', 'bool', 'in', None), ('checkChildren', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'isFreeToChange', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, ('MPlug', 'FreeToChangeState'), None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'isFromReferencedFile')
+    def isFromReferencedFile(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isFromReferencedFile')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isIgnoredWhenRendering')
+    def isIgnoredWhenRendering(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isIgnoredWhenRendering')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isChannelBoxFlagSet')
+    def isInChannelBox(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isChannelBoxFlagSet')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isKeyable')
+    def isKeyable(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isKeyable')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isLocked')
+    def isLocked(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isLocked')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isNetworked')
+    def isNetworked(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isNetworked')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isNull')
+    def isNull(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isNull')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isProcedural')
+    def isProcedural(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isProcedural')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isSource')
+    def isSource(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'isSource')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'logicalIndex')
+    def logicalIndex(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'logicalIndex')
+        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+
+    @_f.addApiDocs(_api.MPlug, 'numChildren')
+    def numChildren(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'numChildren')
+        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+
+    @_f.addApiDocs(_api.MPlug, 'numConnectedChildren')
+    def numConnectedChildren(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'numConnectedChildren')
+        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+
+    @_f.addApiDocs(_api.MPlug, 'numConnectedElements')
+    def numConnectedElements(self):
+        res = _f.getProxyResult(self, _api.MPlug, 'numConnectedElements')
+        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+
+    @_f.addApiDocs(_api.MPlug, 'setCaching')
+    def setCaching(self, isCaching):
+        do, final_do, outTypes = _f.processApiArgs([isCaching], [('isCaching', 'bool', 'in', None)], self.isCaching, self.setCaching, [])
+        res = _f.getProxyResult(self, _api.MPlug, 'setCaching', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def setChannelBox(self, inChannelBox):
+        do, final_do, outTypes = _f.processApiArgs([inChannelBox], [('inChannelBox', 'bool', 'in', None)], self.isInChannelBox, self.setChannelBox, [])
+        res = _f.getProxyResult(self, _api.MPlug, 'setChannelBox', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'setKeyable')
+    def setKeyable(self, keyable):
+        do, final_do, outTypes = _f.processApiArgs([keyable], [('keyable', 'bool', 'in', None)], self.isKeyable, self.setKeyable, [])
+        res = _f.getProxyResult(self, _api.MPlug, 'setKeyable', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'setNumElements')
+    def setNumElements(self, elements):
+        do, final_do, outTypes = _f.processApiArgs([elements], [('elements', 'uint', 'in', None)], self.getNumElements, self.setNumElements, [])
+        res = _f.getProxyResult(self, _api.MPlug, 'setNumElements', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MPlug, 'setChannelBox')
+    def showInChannelBox(self, inChannelBox):
+        do, final_do, outTypes = _f.processApiArgs([inChannelBox], [('inChannelBox', 'bool', 'in', None)], self.isInChannelBox, self.showInChannelBox, [])
+        res = _f.getProxyResult(self, _api.MPlug, 'setChannelBox', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+# ------ Do not edit above this line --------
 
 
 def _MObjectIn(x):
@@ -4366,7 +4579,7 @@ class Component(PyNode):
     """
     Abstract base class for pymel components.
     """
-
+    # this metaclass records apienuns in apiEnumsToPyComponents:
     __metaclass__ = _factories.MetaMayaComponentWrapper
     _mfncompclass = _api.MFnComponent
     _apienum__ = _api.MFn.kComponent
@@ -7036,7 +7249,6 @@ class ParticleComponent(Component1D):
 #        return rotate( self, *args, **kwargs )
 
 class AttributeDefaults(PyNode):
-    __metaclass__ = _factories.MetaMayaTypeWrapper
     __apicls__ = _api.MFnAttribute
 
     def __apiobject__(self):
@@ -7070,6 +7282,295 @@ class AttributeDefaults(PyNode):
 
     def name(self):
         return self.__apimfn__().name()
+# ------ Do not edit below this line --------
+    DisconnectBehavior = Enum('DisconnectBehavior', {'delete': 0, 'reset': 1, 'nothing': 2})
+    __slots__ = ()
+
+    @_f.addApiDocs(_api.MFnAttribute, 'accepts')
+    def accepts(self, type):
+        do, final_do, outTypes = _f.getDoArgs([type], [('type', ('MFnData', 'Type'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'accepts', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'addToCategory')
+    def addToCategory(self, category):
+        do, final_do, outTypes = _f.getDoArgs([category], [('category', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'addToCategory', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'getAddAttrCmd')
+    def getAddAttrCmd(self, useLongName=False):
+        do, final_do, outTypes = _f.getDoArgs([useLongName], [('useLongName', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'getAddAttrCmd', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'affectsAppearance')
+    def getAffectsAppearance(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'affectsAppearance')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'getCategories')
+    def getCategories(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('categories', 'MStringArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'getCategories', final_do)
+        return _f.processApiResult(res, ['categories'], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'disconnectBehavior')
+    def getDisconnectBehavior(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'disconnectBehavior')
+        return _f.ApiArgUtil._castResult(self, res, ('MFnAttribute', 'DisconnectBehavior'), None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'indexMatters')
+    def getIndexMatters(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'indexMatters')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'internal')
+    def getInternal(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'internal')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'usesArrayDataBuilder')
+    def getUsesArrayDataBuilder(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'usesArrayDataBuilder')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'hasCategory')
+    def hasCategory(self, category):
+        do, final_do, outTypes = _f.getDoArgs([category], [('category', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'hasCategory', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isAffectsWorldSpace')
+    def isAffectsWorldSpace(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isAffectsWorldSpace')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isArray')
+    def isArray(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isArray')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isCached')
+    def isCached(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isCached')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isChannelBoxFlagSet')
+    def isChannelBoxFlagSet(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isChannelBoxFlagSet')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isConnectable')
+    def isConnectable(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isConnectable')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isDynamic')
+    def isDynamic(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isDynamic')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isExtension')
+    def isExtension(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isExtension')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isHidden')
+    def isHidden(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isHidden')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isIndeterminant')
+    def isIndeterminant(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isIndeterminant')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isKeyable')
+    def isKeyable(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isKeyable')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isReadable')
+    def isReadable(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isReadable')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isRenderSource')
+    def isRenderSource(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isRenderSource')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isStorable')
+    def isStorable(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isStorable')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isUsedAsColor')
+    def isUsedAsColor(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isUsedAsColor')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isUsedAsFilename')
+    def isUsedAsFilename(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isUsedAsFilename')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isWorldSpace')
+    def isWorldSpace(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isWorldSpace')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'isWritable')
+    def isWritable(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isWritable')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'parent')
+    def parent(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'parent')
+        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'removeFromCategory')
+    def removeFromCategory(self, category):
+        do, final_do, outTypes = _f.getDoArgs([category], [('category', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'removeFromCategory', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setAffectsAppearance')
+    def setAffectsAppearance(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getAffectsAppearance, self.setAffectsAppearance, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setAffectsAppearance', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setAffectsWorldSpace')
+    def setAffectsWorldSpace(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isAffectsWorldSpace, self.setAffectsWorldSpace, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setAffectsWorldSpace', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setArray')
+    def setArray(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isArray, self.setArray, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setArray', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setCached')
+    def setCached(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isCached, self.setCached, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setCached', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setChannelBox')
+    def setChannelBox(self, state):
+        do, final_do, outTypes = _f.getDoArgs([state], [('state', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setChannelBox', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setConnectable')
+    def setConnectable(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isConnectable, self.setConnectable, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setConnectable', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setDisconnectBehavior')
+    def setDisconnectBehavior(self, behavior):
+        do, final_do, outTypes = _f.processApiArgs([behavior], [('behavior', ('MFnAttribute', 'DisconnectBehavior'), 'in', None)], self.getDisconnectBehavior, self.setDisconnectBehavior, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setDisconnectBehavior', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setHidden')
+    def setHidden(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isHidden, self.setHidden, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setHidden', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setIndeterminant')
+    def setIndeterminant(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isIndeterminant, self.setIndeterminant, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setIndeterminant', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setIndexMatters')
+    def setIndexMatters(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getIndexMatters, self.setIndexMatters, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setIndexMatters', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setInternal')
+    def setInternal(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getInternal, self.setInternal, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setInternal', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setKeyable')
+    def setKeyable(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isKeyable, self.setKeyable, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setKeyable', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setNiceNameOverride')
+    def setNiceNameOverride(self, localizedName):
+        do, final_do, outTypes = _f.getDoArgs([localizedName], [('localizedName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setNiceNameOverride', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setReadable')
+    def setReadable(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isReadable, self.setReadable, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setReadable', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setRenderSource')
+    def setRenderSource(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isRenderSource, self.setRenderSource, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setRenderSource', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setStorable')
+    def setStorable(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isStorable, self.setStorable, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setStorable', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setUsedAsColor')
+    def setUsedAsColor(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isUsedAsColor, self.setUsedAsColor, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setUsedAsColor', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setUsedAsFilename')
+    def setUsedAsFilename(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isUsedAsFilename, self.setUsedAsFilename, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setUsedAsFilename', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setUsesArrayDataBuilder')
+    def setUsesArrayDataBuilder(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getUsesArrayDataBuilder, self.setUsesArrayDataBuilder, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setUsesArrayDataBuilder', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setWorldSpace')
+    def setWorldSpace(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isWorldSpace, self.setWorldSpace, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setWorldSpace', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setWritable')
+    def setWritable(self, state):
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isWritable, self.setWritable, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setWritable', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MFnAttribute, 'shortName')
+    def shortName(self):
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'shortName')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
+# ------ Do not edit above this line --------
 
 
 #-----------------------------------------------
