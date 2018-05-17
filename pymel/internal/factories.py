@@ -2983,7 +2983,7 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
     def getMelCmd(cls, classdict):
         return classdict['__melui__'], False
 
-class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
+class MetaMayaComponentWrapper(type):
 
     """
     A metaclass for creating components.

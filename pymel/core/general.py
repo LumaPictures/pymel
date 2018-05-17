@@ -26,6 +26,7 @@ from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
 _logger = _getLogger(__name__)
 
+_f = _factories
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?

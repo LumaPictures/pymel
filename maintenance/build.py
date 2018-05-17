@@ -31,6 +31,11 @@ env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
 
 
+def methodNames(cls):
+    return [name for name, obj in inspect.getmembers(cls)
+            if inspect.ismethod(obj)]
+
+
 def importableName(func, module=None, moduleMap=None):
     try:
         name = func.__name__
@@ -475,7 +480,7 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
     return wrappedApiFunc
 
 
-class _MetaMayaCommandGenerator(object):
+class MelMethodGenerator(object):
     _classDictKeyForMelCmd = None
 
     def __init__(self, classname, existingClass, parentClasses, parentMethods):
@@ -667,7 +672,8 @@ class _MetaMayaCommandGenerator(object):
         return classdoc
 
 
-class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
+# FIXME: don't inherit here, treat as a Mixin
+class ApiMethodGenerator(MelMethodGenerator):
 
     """ A metaclass to wrap Maya api types, with support for class constants """
 
@@ -701,12 +707,30 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         def __delete__(self, instance):
             raise AttributeError, "class constant cannot be deleted"
 
-    def __init__(self, classname, existingClass, mayaType, parentClasses, parentMethods, parentApicls):
-        super(MetaMayaNodeGenerator, self).__init__(classname, existingClass, parentClasses, parentMethods)
-        self.mayaType = mayaType
+    def __init__(self, classname, existingClass, parentClasses,
+                 parentMethods, parentApicls, childClasses=()):
+        super(ApiMethodGenerator, self).__init__(classname, existingClass, parentClasses, parentMethods)
         self.parentApicls = parentApicls
         self.existingClass = existingClass
-        self.apicls = factories.toApiFunctionSet(self.mayaType)
+        self.childClasses = childClasses
+        self.apicls = None
+
+    def methodIsEnabledOnChildren(self, pymelName):
+        """
+        previous versions of pymel erroneously included
+        disabled methods on child classes which possessed the same apicls as their parent.
+        We will deprecate them in order to allow users to transition.
+        """
+        for childClassName in self.childClasses:
+            _, overrides, _ = factories._getApiOverrideNameAndData(
+                childClassName, pymelName)
+            if overrides.get('overloadIndex', None) is None:
+                continue
+            elif not overrides.get('enabled', True):
+                continue
+            # enabled!
+            return True
+        return False
 
     def getAPIData(self, attrs, methods):
         """
@@ -714,11 +738,12 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         """
 
         removeAttrs = []
-        # define __slots__ if not defined
-        if '__slots__' not in attrs:
-            attrs['__slots__'] = ()
 
         if self.existingClass is not None:
+            # define __slots__ if not defined
+            if '__slots__' not in self.existingClass.__dict__:
+                attrs['__slots__'] = ()
+
             try:
                 apicls = self.existingClass.__dict__['apicls']
                 proxy = False
@@ -735,6 +760,7 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         else:
             apicls = self.apicls
             proxy = True
+            attrs['__slots__'] = ()
 
         _logger.debug('MetaMayaTypeGenerator: %s: %s (proxy=%s)' % (self.classname, apicls.__name__, proxy))
 
@@ -783,6 +809,7 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
                 # method name, then the first one "wins" - and we want to prefer
                 # non-deprecated.
                 def non_deprecated_methods_first():
+
                     deprecated = []
                     for methodName, info in classInfo['methods'].iteritems():
                         # don't rewrap if already herited from a base class that is not the apicls
@@ -796,6 +823,8 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
                         pymelName, overrideData, renamed = factories._getApiOverrideNameAndData(
                             self.classname, basePymelName)
 
+                        # if 'addAttribute' in (pymelName, basePymelName, methodName):
+                        #     print self.classname, pymelName, basePymelName, methodName, renamed, overrideData
 
                         overloadIndex = overrideData.get('overloadIndex', None)
 
@@ -807,11 +836,11 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
                             continue
                         if not overrideData.get('enabled', True):
                             #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                            # FIXME: previous versions of pymel erroneously included
-                            # disabled methods on child classes which possessed the same apicls as their parent.
-                            # We will deprecate them in order to allow users to transition.
-                            # FIXME: add unique depcrecation message
+                            # FIXME: add unique deprecation message
                             if methodName in factories.EXCLUDE_METHODS:
+                                continue
+                            elif not self.methodIsEnabledOnChildren(pymelName):
+                                print self.classname, pymelName, "not on any children"
                                 continue
                             else:
                                 deprecated.append(yieldTuple)
@@ -894,9 +923,10 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         def makeClassConstant(attr):
             try:
                 # return MetaMayaTypeGenerator.ClassConstant(newcls(attr))
-                return MetaMayaNodeGenerator.ClassConstant(attr)
+                return ApiMethodGenerator.ClassConstant(attr)
             except Exception, e:
                 _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
+
         #------------------------
         # Class Constants
         #------------------------
@@ -996,6 +1026,19 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
             break
         return False
 
+
+class NodeGenerator(ApiMethodGenerator):
+    def __init__(self, classname, existingClass, parentClasses,
+                 parentMethods, parentApicls, childClasses=(), mayaType=None):
+        super(NodeGenerator, self).__init__(
+            classname, existingClass, parentClasses, parentMethods,
+            parentApicls, childClasses)
+        self.mayaType = mayaType
+        if self.mayaType is not None:
+            self.apicls = factories.toApiFunctionSet(self.mayaType)
+        else:
+            self.apicls = None
+
     def getTemplateData(self, attrs=None, methods=None):
         if attrs is None:
             attrs = {}
@@ -1058,7 +1101,7 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         return attrs, methods
 
         # FIXME:
-        # PyNodeType = super(MetaMayaNodeGenerator, self).render()
+        # PyNodeType = super(ApiMethodGenerator, self).render()
         # ParentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
         # assert len(ParentPyNode), "%s did not have exactly one parent PyNode: %s (%s)" % (self.classname, ParentPyNode, self.bases)
         # factories.addPyNodeType(PyNodeType, ParentPyNode)
@@ -1084,7 +1127,20 @@ class MetaMayaNodeGenerator(_MetaMayaCommandGenerator):
         return nodeCmd, infoCmd
 
 
-class MetaMayaUIGenerator(_MetaMayaCommandGenerator):
+class ComponentGenerator(ApiMethodGenerator):
+
+    def getTemplateData(self, attrs=None, methods=None):
+        if attrs is None:
+            attrs = {}
+        if methods is None:
+            methods = {}
+
+        # first populate API methods.  they take precedence.
+        attrs, methods = self.getAPIData(attrs, methods)
+        return attrs, methods
+
+
+class MetaMayaUIGenerator(MelMethodGenerator):
 
     """
     A metaclass for creating classes based on on a maya UI type/command.
@@ -1109,7 +1165,7 @@ class MetaMayaUIGenerator(_MetaMayaCommandGenerator):
         return attrs['__melui__'], False
 
 
-def getPyNodeGenerator(mayaType, parentMayaTypes, parentMethods, parentApicls):
+def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods, parentApicls):
     """
     create a PyNode type for a maya node.
 
@@ -1156,8 +1212,28 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, parentMethods, parentApicls):
     if existingClass and hasattr(existingClass, '__metaclass__'):
         return None
 
-    return MetaMayaNodeGenerator(pyNodeTypeName, existingClass, mayaType,
-                                 parentPymelTypes, parentMethods, parentApicls)
+    return NodeGenerator(pyNodeTypeName, existingClass,
+                         parentPymelTypes, parentMethods, parentApicls,
+                         childMayaTypes, mayaType)
+
+
+def iterComponentText():
+    import pymel.core.general
+    components = [
+        pymel.core.general.MeshVertex,
+        pymel.core.general.MeshEdge,
+        pymel.core.general.MeshFace,
+        pymel.core.general.NurbsCurveCV,
+    ]
+    for cls in components:
+        parentMethods = set(methodNames(cls))
+        parentApicls = None
+        parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
+        template = ComponentGenerator(
+            cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+
+        text, methods = template.render()
+        yield text, template
 
 
 def iterPyNodeText():
@@ -1165,9 +1241,7 @@ def iterPyNodeText():
 
     # Generate Classes
     heritedMethods = {
-        'general.PyNode': set(
-            name for name, obj in inspect.getmembers(pymel.core.general.PyNode)
-            if inspect.ismethod(obj))
+        'general.PyNode': set(methodNames(pymel.core.general.PyNode))
     }
     apiClasses = {
         'general.PyNode': None
@@ -1194,7 +1268,7 @@ def iterPyNodeText():
         if factories.isMayaType(mayaType) or mayaType == 'dependNode':
             parentMethods = heritedMethods[parentMayaType]
             parentApicls = apiClasses[parentMayaType]
-            template = getPyNodeGenerator(mayaType, parents, parentMethods, parentApicls)
+            template = getPyNodeGenerator(mayaType, parents, children, parentMethods, parentApicls)
             if template:
                 text, methods = template.render()
                 yield text, template
@@ -1229,7 +1303,13 @@ def iterUIText():
         # heritedMethods[mayaType] = parentMethods.union(methods)
 
 
-def generateTypes(lines, iterator, module):
+def generateTypes(iterator, module, lines=None, suffix=None):
+    source = _getModulePath(module)
+
+    if lines is None:
+        with open(source) as f:
+            lines = f.read().split('\n')
+
     # tally of additions made in middle of codde
     offsets = {}
 
@@ -1264,13 +1344,11 @@ def generateTypes(lines, iterator, module):
         else:
             lines += newlines
 
-    source = _getModulePath(module)
-
     text = '\n'.join(lines)
 
-    text += '''
-_addTypeNames()
-    '''
+    if suffix:
+        text += suffix
+
     print "writing to", source
     with open(source, 'w') as f:
         f.write(text)
@@ -1301,8 +1379,9 @@ def generateAll():
 
         generateUIFunctions()
 
-        generateTypes(nodeLines, iterPyNodeText(), 'pymel.core.nodetypes')
-        generateTypes(uiLines, iterUIText(), 'pymel.core.uitypes')
+        generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', nodeLines, suffix='\n_addTypeNames()\n')
+        generateTypes(iterUIText(), 'pymel.core.uitypes', uiLines, suffix='\n_addTypeNames()\n')
+        generateTypes(iterComponentText(), 'pymel.core.general')
 
         compileall.compile_dir(os.path.dirname(pymel.core.__file__),
                                force=True)
