@@ -1698,7 +1698,7 @@ class ApiArgUtil(object):
                     # TODO: return EnumValue type
 
                     # convert int result into pymel string name.
-                    return apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
+                    return getattr(pynodeInstance, enumName)[result]
                 except KeyError:
                     raise ValueError, "expected an enum of type %s.%s" % (apiClassName, enumName)
 
