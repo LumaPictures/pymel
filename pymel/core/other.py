@@ -483,3 +483,242 @@ def _getParserClass(strObj):
     return newcls
 
 # ------ Do not edit below this line --------
+TanimLayer = _factories._addCmdDocs('TanimLayer')
+
+adskAsset = _factories._addCmdDocs('adskAsset')
+
+adskAssetLibrary = _factories._addCmdDocs('adskAssetLibrary')
+
+adskAssetList = _factories._addCmdDocs('adskAssetList')
+
+@_factories._addCmdDocs
+def adskAssetListUI(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cms', 'commandSuffix', 'uiC', 'uiCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.adskAssetListUI(*args, **kwargs)
+    return res
+
+agFormatIn = _factories._addCmdDocs('agFormatIn')
+
+agFormatOut = _factories._addCmdDocs('agFormatOut')
+
+artAttr = _factories._addCmdDocs('artAttr')
+
+artAttrSkinPaint = _factories._addCmdDocs('artAttrSkinPaint')
+
+artAttrSkinPaintCmd = _factories._addCmdDocs('artAttrSkinPaintCmd')
+
+artFluidAttr = _factories._addCmdDocs('artFluidAttr')
+
+artSelect = _factories._addCmdDocs('artSelect')
+
+artSetPaint = _factories._addCmdDocs('artSetPaint')
+
+blend = _factories._addCmdDocs('blend')
+
+caddyManip = _factories._addCmdDocs('caddyManip')
+
+clearShear = _factories._addCmdDocs('clearShear')
+
+copyNode = _factories._addCmdDocs('copyNode')
+
+crashInfoCmd = _factories._addCmdDocs('crashInfoCmd')
+
+customerInvolvementProgram = _factories._addCmdDocs('customerInvolvementProgram')
+
+dagCommandWrapper = _factories._addCmdDocs('dagCommandWrapper')
+
+dagObjectHit = _factories._addCmdDocs('dagObjectHit')
+
+debug = _factories._addCmdDocs('debug')
+
+debugNamespace = _factories._addCmdDocs('debugNamespace')
+
+debugVar = _factories._addCmdDocs('debugVar')
+
+dgControl = _factories._addCmdDocs('dgControl')
+
+dgPerformance = _factories._addCmdDocs('dgPerformance')
+
+dgcontrol = _factories._addCmdDocs('dgcontrol')
+
+dgdebug = _factories._addCmdDocs('dgdebug')
+
+dgstats = _factories._addCmdDocs('dgstats')
+
+directConnectPath = _factories._addCmdDocs('directConnectPath')
+
+dispatchGenericCommand = _factories._addCmdDocs('dispatchGenericCommand')
+
+dynTestData = _factories._addCmdDocs('dynTestData')
+
+evalContinue = _factories._addCmdDocs('evalContinue')
+
+extendFluid = _factories._addCmdDocs('extendFluid')
+
+@_factories._addCmdDocs
+def flagTest(*args, **kwargs):
+    for flag in ['timeRange', 'tr']:
+        try:
+            rawVal = kwargs[flag]
+        except KeyError:
+            continue
+        else:
+            kwargs[flag] = _factories.convertTimeValues(rawVal)
+    res = cmds.flagTest(*args, **kwargs)
+    return res
+
+flushIdleQueue = _factories._addCmdDocs('flushIdleQueue')
+
+flushThumbnailCache = _factories._addCmdDocs('flushThumbnailCache')
+
+fontAttributes = _factories._addCmdDocs('fontAttributes')
+
+greasePencil = _factories._addCmdDocs('greasePencil')
+
+greasePencilHelper = _factories._addCmdDocs('greasePencilHelper')
+
+greaseRenderPlane = _factories._addCmdDocs('greaseRenderPlane')
+
+groupParts = _factories._addCmdDocs('groupParts')
+
+hotkeyEditor = _factories._addCmdDocs('hotkeyEditor')
+
+hotkeyMapSet = _factories._addCmdDocs('hotkeyMapSet')
+
+@_factories._addCmdDocs
+def imageWindowEditor(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cc', 'changeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.imageWindowEditor(*args, **kwargs)
+    return res
+
+interactionStyle = _factories._addCmdDocs('interactionStyle')
+
+iterOnNurbs = _factories._addCmdDocs('iterOnNurbs')
+
+journal = _factories._addCmdDocs('journal')
+
+licenseCheck = _factories._addCmdDocs('licenseCheck')
+
+manipComponentPivot = _factories._addCmdDocs('manipComponentPivot')
+
+memoryDiag = _factories._addCmdDocs('memoryDiag')
+
+meshIntersectTest = _factories._addCmdDocs('meshIntersectTest')
+
+mouldMesh = _factories._addCmdDocs('mouldMesh')
+
+mouldSrf = _factories._addCmdDocs('mouldSrf')
+
+mouldSubdiv = _factories._addCmdDocs('mouldSubdiv')
+
+movieCompressor = _factories._addCmdDocs('movieCompressor')
+
+myTestCmd = _factories._addCmdDocs('myTestCmd')
+
+nodeGrapher = _factories._addCmdDocs('nodeGrapher')
+
+nop = _factories._addCmdDocs('nop')
+
+nurbsCurveRebuildPref = _factories._addCmdDocs('nurbsCurveRebuildPref')
+
+ogsdebug = _factories._addCmdDocs('ogsdebug')
+
+paint3d = _factories._addCmdDocs('paint3d')
+
+polyColorSetCmdWrapper = _factories._addCmdDocs('polyColorSetCmdWrapper')
+
+polyIterOnPoly = _factories._addCmdDocs('polyIterOnPoly')
+
+polyPrimitiveMisc = _factories._addCmdDocs('polyPrimitiveMisc')
+
+polySelectEditCtxDataCmd = _factories._addCmdDocs('polySelectEditCtxDataCmd')
+
+polySelectSp = _factories._addCmdDocs('polySelectSp')
+
+polySetVertices = _factories._addCmdDocs('polySetVertices')
+
+polySpinEdge = _factories._addCmdDocs('polySpinEdge')
+
+polyTestPop = _factories._addCmdDocs('polyTestPop')
+
+polyToCurve = _factories._addCmdDocs('polyToCurve')
+
+polyUVStackSimilarShellsCmd = _factories._addCmdDocs('polyUVStackSimilarShellsCmd')
+
+polyWarpImage = _factories._addCmdDocs('polyWarpImage')
+
+printStudio = _factories._addCmdDocs('printStudio')
+
+psdConvSolidTxOptions = _factories._addCmdDocs('psdConvSolidTxOptions')
+
+rampWidget = _factories._addCmdDocs('rampWidget')
+
+rampWidgetAttrless = _factories._addCmdDocs('rampWidgetAttrless')
+
+readPDC = _factories._addCmdDocs('readPDC')
+
+@_factories._addCmdDocs
+def repeatLast(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ac', 'acl', 'addCommand', 'addCommandLabel', 'cl', 'cnl', 'commandList', 'commandNameList']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.repeatLast(*args, **kwargs)
+    return res
+
+retimeHelper = _factories._addCmdDocs('retimeHelper')
+
+@_factories._addCmdDocs
+def selectKeyframe(*args, **kwargs):
+    for flag in ['t', 'time']:
+        try:
+            rawVal = kwargs[flag]
+        except KeyError:
+            continue
+        else:
+            kwargs[flag] = _factories.convertTimeValues(rawVal)
+    res = cmds.selectKeyframe(*args, **kwargs)
+    return res
+
+subdDisplayMode = _factories._addCmdDocs('subdDisplayMode')
+
+subdToNurbs = _factories._addCmdDocs('subdToNurbs')
+
+subgraph = _factories._addCmdDocs('subgraph')
+
+syncSculptCache = _factories._addCmdDocs('syncSculptCache')
+
+testPa = _factories._addCmdDocs('testPa')
+
+testPassContribution = _factories._addCmdDocs('testPassContribution')
+
+texSculptCacheSync = _factories._addCmdDocs('texSculptCacheSync')
+
+webViewCmd = _factories._addCmdDocs('webViewCmd')

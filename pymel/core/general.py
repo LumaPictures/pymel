@@ -64,6 +64,7 @@ def _getPymelTypeFromObject(obj, name):
 
     return pymelType
 
+
 def _getPymelType(arg, name):
     """
     Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
@@ -119,6 +120,7 @@ def _getPymelType(arg, name):
         pymelType = _getPymelTypeFromObject(obj, name)
 
     return pymelType, results
+
 #-----------------------------------------------
 #  Enhanced Commands
 #-----------------------------------------------
@@ -175,6 +177,7 @@ def move(*args, **kwargs):
         args = args + (obj,)
     return cmds.move(*args, **kwargs)
 
+
 def scale(obj, *args, **kwargs):
     """
     Modifications:
@@ -188,6 +191,7 @@ def scale(obj, *args, **kwargs):
         args = tuple(args[0])
     args = args + (obj,)
     return cmds.scale(*args, **kwargs)
+
 
 def rotate(obj, *args, **kwargs):
     """
@@ -222,6 +226,7 @@ def connectAttr(source, destination, **kwargs):
                 raise e
     else:
         cmds.connectAttr(source, destination, **kwargs)
+
 
 def disconnectAttr(source, destination=None, inputs=None, outputs=None,
                    **kwargs):
@@ -265,6 +270,7 @@ def disconnectAttr(source, destination=None, inputs=None, outputs=None,
 
             for src, dest in _util.pairIter(connections):
                 cmds.disconnectAttr(src, dest, **kwargs)
+
 
 def getAttr(attr, default=None, **kwargs):
     """
@@ -354,6 +360,7 @@ def getAttr(attr, default=None, **kwargs):
 
 class AmbiguityWarning(Warning):
     pass
+
 
 # getting and setting
 def setAttr(attr, *args, **kwargs):
@@ -591,6 +598,7 @@ def setAttr(attr, *args, **kwargs):
             # re-raise
             raise
 
+
 def addAttr(*args, **kwargs):
     """
     Modifications:
@@ -794,6 +802,7 @@ def addAttr(*args, **kwargs):
 
     return res
 
+
 def hasAttr(pyObj, attr, checkShape=True):
     """convenience function for determining if an object has an attribute.
     If checkShape is enabled, the shape node of a transform will also be checked for the attribute.
@@ -824,6 +833,7 @@ def hasAttr(pyObj, attr, checkShape=True):
     except AttributeError:
         return False
 
+
 #-----------------------
 #  Attr Enums
 #-----------------------
@@ -844,11 +854,13 @@ def _toEnumStr(enums):
         enumStr = ":".join(enums)
     return enumStr
 
+
 def setEnums(attr, enums):
     """
     Set the enumerators for an enum attribute.
     """
     cmds.addAttr(attr, e=1, en=_toEnumStr(enums))
+
 
 def getEnums(attr):
     """
@@ -892,6 +904,7 @@ def getEnums(attr):
         index += 1
 
     return _util.enum.EnumDict(enum_dict)
+
 
 #-----------------------
 #  List Functions
@@ -990,6 +1003,7 @@ def listConnections(*args, **kwargs):
         return res
     else:
         return doIt(**kwargs)
+
 
 def listHistory(*args, **kwargs):
     """
@@ -1276,6 +1290,7 @@ def listSets(*args, **kwargs):
     return [PyNode(x) for x in _util.listForNone(cmds.listSets(*args, **kwargs))
             if not x == 'defaultCreaseDataSet']
 
+
 #-----------------------
 #  Objects
 #-----------------------
@@ -1328,6 +1343,7 @@ def nodeType(node, **kwargs):
     except RuntimeError:
         pass
 
+
 def group(*args, **kwargs):
     """
 Modifications
@@ -1339,22 +1355,8 @@ Maya Bug Fix:
         kwargs['empty'] = True
 
     newGroup = cmds.group(*args, **kwargs)
+    return PyNode(newGroup)
 
-    if cmds.versions.current() >= cmds.versions.v2014:
-        # bug was fixed in 2014, so we can just cast to a PyNode and return...
-        return PyNode(newGroup)
-    else:
-        # found an interesting bug. group does not return a unique path, so the following line
-        # will error if the passed name is in another group somewhere:
-        # Transform( cmds.group( name='foo') )
-        # luckily the group command always selects the last created node, so we can just use selected()[0]
-        return selected()[0]
-
-    # except RuntimeError, msg:
-    #    print msg
-    #    if msg == 'Not enough objects or values.':
-    #        kwargs['empty'] = True
-    #        return Transform( cmds.group(**kwargs) )
 
 def parent(*args, **kwargs):
     """
@@ -1486,6 +1488,7 @@ def parent(*args, **kwargs):
 
     return result
 
+
 # Because cmds.duplicate only ever returns node names (ie, NON-UNIQUE, and
 # therefore, nearly useless names - yes, the function that is MOST LIKELY to
 # create non-unique node names only ever returns node names - we need to use
@@ -1509,6 +1512,7 @@ def _pathFromMObj(mObj, fullPath=False):
     else:
         raise TypeError("mObj must be either DagNode or DependencyNode - got a %s" % mObj.apiTypeStr())
     return result
+
 
 # Node Callbacks --
 
@@ -1861,6 +1865,7 @@ Modifications:
 
     return PyNode(cmds.rename(obj, newname, **kwargs))
 
+
 def createNode(*args, **kwargs):
     res = cmds.createNode(*args, **kwargs)
     # createNode can sometimes return None, if the shared=True and name= an object that already exists
@@ -2042,6 +2047,7 @@ def uniqueObjExists(name):
     # in case result is None...
     return all and len(all) == 1
 
+
 def selected(**kwargs):
     """ls -sl"""
     kwargs['sl'] = 1
@@ -2091,6 +2097,7 @@ Maya Bug Fix:
         cmds.instancer(*args, **kwargs)
         return PyNode(list(set(cmds.ls(type='instancer')).difference(instancers))[0], 'instancer')
 
+
 #--------------------------
 # PyNode Exceptions
 #--------------------------
@@ -2106,11 +2113,14 @@ class MayaObjectError(TypeError):
             msg += ": %r" % (self.node)
         return msg
 
+
 class MayaNodeError(MayaObjectError):
     _objectDescription = 'Node'
 
+
 class MayaAttributeError(MayaObjectError, AttributeError):
     _objectDescription = 'Attribute'
+
 
 class MayaAttributeEnumError(MayaAttributeError):
     _objectDescription = 'Attribute Enum'
@@ -2125,8 +2135,10 @@ class MayaAttributeEnumError(MayaAttributeError):
             msg += " - %r" % (self.enum)
         return msg
 
+
 class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
+
 
 class MayaInstanceError(MayaNodeError):
     def __str__(self):
@@ -2134,6 +2146,7 @@ class MayaInstanceError(MayaNodeError):
         if self.node:
             msg += ": %r" % (self.node)
         return msg
+
 
 class DeletedMayaNodeError(MayaNodeError):
     def __init__(self, node=None):
@@ -2177,14 +2190,17 @@ class DeletedMayaNodeError(MayaNodeError):
                 "unrecognized value for 'deleted_pynode_name_access': {}"
                 .format(option))
 
+
 class MayaParticleAttributeError(MayaComponentError):
     _objectDescription = 'Per-Particle Attribute'
+
 
 def _objectError(objectName):
     # TODO: better name parsing
     if '.' in objectName:
         return MayaAttributeError(objectName)
     return MayaNodeError(objectName)
+
 
 #--------------------------
 # Object Wrapper Classes
@@ -2721,6 +2737,7 @@ class PyNode(_util.ProxyUnicode):
 deprecated_str_methods = ['__getitem__']
 strDeprecateDecorator = _warnings.deprecated('Convert to string first using str() or PyNode.name()', 'PyNode')
 
+
 def _deprecatePyNode():
     def makeDeprecatedMethod(method):
         def f(self, *args):
@@ -2795,6 +2812,7 @@ def _getParent(getter, obj, generations):
             return None
         else:
             return allParents[generations]
+
 
 class Attribute(PyNode):
 
@@ -4248,14 +4266,20 @@ def _MObjectIn(x):
     if isinstance(x, PyNode):
         return x.__apimobject__()
     return PyNode(x).__apimobject__()
+
+
 def _MDagPathIn(x):
     if isinstance(x, PyNode):
         return x.__apimdagpath__()
     return PyNode(x).__apimdagpath__()
+
+
 def _MPlugIn(x):
     if isinstance(x, PyNode):
         return x.__apimplug__()
     return PyNode(x).__apimplug__()
+
+
 def _MPlugOut(self, x):
     return PyNode(self.node(), x)
     # try: return PyNode(self.node(), x)
@@ -4335,6 +4359,7 @@ class HashableSlice(ProxySlice):
     @property
     def step(self):
         return self._slice.step
+
 
 class Component(PyNode):
 
@@ -4519,7 +4544,7 @@ class Component(PyNode):
     def _makeComponentHandle(self):
         component = None
         # try making from MFnComponent.create, if _mfncompclass has it defined
-        if (hasattr(self._mfncompclass, 'create') 
+        if (hasattr(self._mfncompclass, 'create')
             and self._apienum__ not in self._componentEnums + [None]):
             try:
                 component = self._mfncompclass().create(self._apienum__)
@@ -4617,6 +4642,7 @@ class Component(PyNode):
                         newComps *= int(indexSplit[1]) - int(indexSplit[0]) + 1
             numComps += newComps
         return numComps
+
 
 class DimensionedComponent(Component):
     """
@@ -4986,6 +5012,7 @@ class DimensionedComponent(Component):
                              " {} and {}".format(type(self), self.node(),
                                                  other.node()))
 
+
 class ComponentIndex(tuple):
 
     """
@@ -5029,6 +5056,7 @@ class ComponentIndex(tuple):
                                      super(ComponentIndex, self).__repr__(),
                                      self.label)
 
+
 def validComponentIndexType(argObj, allowDicts=True, componentIndexTypes=None):
     """
     True if argObj is of a suitable type for specifying a component's index.
@@ -5069,6 +5097,7 @@ def validComponentIndexType(argObj, allowDicts=True, componentIndexTypes=None):
             else:
                 return True
     return False
+
 
 class DiscreteComponent(DimensionedComponent):
 
@@ -5407,14 +5436,17 @@ class ContinuousComponent(DimensionedComponent):
     def _translateNegativeIndice(self, negIndex, partialIndex):
         return negIndex
 
+
 class Component1DFloat(ContinuousComponent):
     dimensions = 1
 
     def index(self):
         return self.indices()[0]
 
+
 class Component2DFloat(ContinuousComponent):
     dimensions = 2
+
 
 class Component1D(DiscreteComponent):
     _mfncompclass = _api.MFnSingleIndexedComponent
@@ -5499,15 +5531,18 @@ class Component1D(DiscreteComponent):
         self._indices = None
         return self
 
+
 class Component2D(DiscreteComponent):
     _mfncompclass = _api.MFnDoubleIndexedComponent
     _apienum__ = _api.MFn.kDoubleIndexedComponent
     dimensions = 2
 
+
 class Component3D(DiscreteComponent):
     _mfncompclass = _api.MFnTripleIndexedComponent
     _apienum__ = _api.MFn.kTripleIndexedComponent
     dimensions = 3
+
 
 # Mixin class for components which use MIt* objects for some functionality
 class MItComponent(Component):
@@ -5539,8 +5574,10 @@ class MItComponent(Component):
     def __apimfn__(self):
         return self.__apimit__()
 
+
 class MItComponent1D(MItComponent, Component1D):
     pass
+
 
 class Component1D64(DiscreteComponent):
     _ALLOW_COMPLETE_SHORTCUT = False
@@ -5709,6 +5746,160 @@ class MeshVertex(MItComponent1D):
         color = _api.MColor()
         self.__apimfn__().getColor(color, *args, **kwargs)
         return datatypes.Color(color)
+# ------ Do not edit below this line --------
+    __slots__ = ()
+
+    @_f.deprecated
+    def connectedToEdge(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'connectedToEdge', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def connectedToFace(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'connectedToFace', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'geomChanged')
+    def geomChanged(self):
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'geomChanged')
+        return res
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getColorIndices')
+    def getColorIndices(self, colorSetName=None):
+        do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorIndices', 'MIntArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getColorIndices', final_do)
+        return _f.processApiResult(res, ['colorIndices'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getColors')
+    def getColors(self, colorSetName=None):
+        do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colors', 'MColorArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getColors', final_do)
+        return _f.processApiResult(res, ['colors'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getNormal')
+    def getNormal(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('vector', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getNormal', final_do)
+        return _f.processApiResult(res, ['vector'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getNormalIndices')
+    def getNormalIndices(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('normalIndices', 'MIntArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getNormalIndices', final_do)
+        return _f.processApiResult(res, ['normalIndices'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getNormals')
+    def getNormals(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('normalArray', 'MVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getNormals', final_do)
+        return _f.processApiResult(res, ['normalArray'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'position')
+    def getPosition(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'position', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getUV')
+    def getUV(self, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvPoint', 'float2', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getUV', final_do)
+        return _f.processApiResult(res, ['uvPoint'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getUVIndices')
+    def getUVIndices(self, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvIndices', 'MIntArray', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getUVIndices', final_do)
+        return _f.processApiResult(res, ['uvIndices'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'getUVs')
+    def getUVs(self, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('uArray', 'MFloatArray', 'out', None), ('vArray', 'MFloatArray', 'out', None), ('faceIds', 'MIntArray', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'getUVs', final_do)
+        return _f.processApiResult(res, ['uArray', 'vArray', 'faceIds'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'hasColor')
+    def hasColor(self):
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'hasColor')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'connectedToEdge')
+    def isConnectedToEdge(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'connectedToEdge', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'connectedToFace')
+    def isConnectedToFace(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'connectedToFace', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'onBoundary')
+    def isOnBoundary(self):
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'onBoundary')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'numConnectedEdges')
+    def numConnectedEdges(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('edgeCount', 'int', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'numConnectedEdges', final_do)
+        return _f.processApiResult(res, ['edgeCount'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'numConnectedFaces')
+    def numConnectedFaces(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('faceCount', 'int', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'numConnectedFaces', final_do)
+        return _f.processApiResult(res, ['faceCount'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'numUVs')
+    def numUVs(self, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvCount', 'int', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'numUVs', final_do)
+        return _f.processApiResult(res, ['uvCount'], outTypes, do)
+
+    @_f.deprecated
+    def onBoundary(self):
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'onBoundary')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'setPosition')
+    def setPosition(self, point, space='preTransform'):
+        do, final_do, outTypes = _f.processApiArgs([point, space], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'setPosition', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'setUV')
+    def setUV(self, uvPoint, uvSet=None):
+        do, final_do, outTypes = _f.processApiArgs([uvPoint, uvSet], [('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['uvSet'])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'setUV', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'setUVs')
+    def setUVs(self, uArray, vArray, faceIds, uvSet=None):
+        do, final_do, outTypes = _f.processApiArgs([uArray, vArray, faceIds, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('faceIds', 'MIntArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'setUVs', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'translateBy')
+    def translateBy(self, vector, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'translateBy', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshVertex, 'updateSurface')
+    def updateSurface(self):
+        res = _f.getProxyResult(self, _api.MItMeshVertex, 'updateSurface')
+        return res
+# ------ Do not edit above this line --------
+
 
 class MeshEdge(MItComponent1D):
     __apicls__ = _api.MItMeshEdge
@@ -5765,6 +5956,95 @@ class MeshEdge(MItComponent1D):
             return component.currentItemIndex() in [index0, index1]
 
         raise TypeError, 'type %s is not supported' % type(component)
+# ------ Do not edit below this line --------
+    __slots__ = ()
+
+    @_f.deprecated
+    def connectedToEdge(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'connectedToEdge', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def connectedToFace(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'connectedToFace', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'getLength')
+    def getLength(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('length', 'double', 'out', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'getLength', final_do)
+        return _f.processApiResult(res, ['length'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'point')
+    def getPoint(self, index, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([index, space], [('index', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'point', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'connectedToEdge')
+    def isConnectedToEdge(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'connectedToEdge', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'connectedToFace')
+    def isConnectedToFace(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'connectedToFace', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'onBoundary')
+    def isOnBoundary(self):
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'onBoundary')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'isSmooth')
+    def isSmooth(self):
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'isSmooth')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'numConnectedEdges')
+    def numConnectedEdges(self):
+        do, final_do, outTypes = _f.getDoArgs([], [(u'edgeCount', 'int', u'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'numConnectedEdges', final_do)
+        return _f.processApiResult(res, [u'edgeCount'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'numConnectedFaces')
+    def numConnectedFaces(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('faceCount', 'int', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'numConnectedFaces', final_do)
+        return _f.processApiResult(res, ['faceCount'], outTypes, do)
+
+    @_f.deprecated
+    def onBoundary(self):
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'onBoundary')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'setPoint')
+    def setPoint(self, point, index, space='preTransform'):
+        do, final_do, outTypes = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'setPoint', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'setSmoothing')
+    def setSmoothing(self, smooth=True):
+        do, final_do, outTypes = _f.getDoArgs([smooth], [('smooth', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'setSmoothing', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshEdge, 'updateSurface')
+    def updateSurface(self):
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'updateSurface')
+        return res
+# ------ Do not edit above this line --------
+
 
 class MeshFace(MItComponent1D):
     __apicls__ = _api.MItMeshPolygon
@@ -5818,7 +6098,289 @@ class MeshFace(MItComponent1D):
             return self.isConnectedToVertex(component.currentItemIndex())
 
         raise TypeError, 'type %s is not supported' % type(component)
-MeshFace.numVertices = MeshFace.polygonVertexCount
+# ------ Do not edit below this line --------
+    __slots__ = ()
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'geomChanged')
+    def geomChanged(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'geomChanged')
+        return res
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getArea')
+    def getArea(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('area', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getArea', final_do)
+        return _f.processApiResult(res, ['area'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getAxisAtUV')
+    def getAxisAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
+        do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('normal', 'MVector', 'out', None), ('uTangent', 'MVector', 'out', None), ('vTangent', 'MVector', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getAxisAtUV', final_do)
+        return _f.processApiResult(res, ['normal', 'uTangent', 'vTangent'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getColor')
+    def getColor(self, colorSetName=None):
+        do, final_do, outTypes = _f.getDoArgs([colorSetName], [('color', 'MColor', 'out', None), ('colorSetName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColor', final_do)
+        return _f.processApiResult(res, ['color'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getColorIndex')
+    def getColorIndex(self, vertexIndex, colorSetName=None):
+        do, final_do, outTypes = _f.getDoArgs([vertexIndex, colorSetName], [('vertexIndex', 'int', 'in', None), ('colorIndex', 'int', 'out', None), ('colorSetName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColorIndex', final_do)
+        return _f.processApiResult(res, ['colorIndex'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getColorIndices')
+    def getColorIndices(self, colorSetName=None):
+        do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorIndices', 'MIntArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColorIndices', final_do)
+        return _f.processApiResult(res, ['colorIndices'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getColors')
+    def getColors(self, colorSetName=None):
+        do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colors', 'MColorArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColors', final_do)
+        return _f.processApiResult(res, ['colors'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getEdges')
+    def getEdges(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('edges', 'MIntArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getEdges', final_do)
+        return _f.processApiResult(res, ['edges'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getNormal')
+    def getNormal(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('normal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getNormal', final_do)
+        return _f.processApiResult(res, ['normal'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getNormals')
+    def getNormals(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('normalArray', 'MVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getNormals', final_do)
+        return _f.processApiResult(res, ['normalArray'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'point')
+    def getPoint(self, index, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([index, space], [('index', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'point', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getPointAtUV')
+    def getPointAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
+        do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('pt', 'MPoint', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getPointAtUV', final_do)
+        return _f.processApiResult(res, ['pt'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getPoints')
+    def getPoints(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('pointArray', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getPoints', final_do)
+        return _f.processApiResult(res, ['pointArray'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getUV')
+    def getUV(self, vertex, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([vertex, uvSet], [('vertex', 'int', 'in', None), ('uvPoint', 'float2', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUV', final_do)
+        return _f.processApiResult(res, ['uvPoint'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getUVArea')
+    def getUVArea(self, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('area', 'double', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVArea', final_do)
+        return _f.processApiResult(res, ['area'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getUVAtPoint')
+    def getUVAtPoint(self, pt, space='preTransform', uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([pt, space, uvSet], [('pt', 'MPoint', 'in', None), ('uvPoint', 'float2', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVAtPoint', final_do)
+        return _f.processApiResult(res, ['uvPoint'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getUVIndex')
+    def getUVIndex(self, vertex, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([vertex, uvSet], [('vertex', 'int', 'in', None), ('index', 'int', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVIndex', final_do)
+        return _f.processApiResult(res, ['index'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getUVSetNames')
+    def getUVSetNames(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('setNames', 'MStringArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVSetNames', final_do)
+        return _f.processApiResult(res, ['setNames'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getUVs')
+    def getUVs(self, uvSet=None):
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('uArray', 'MFloatArray', 'out', None), ('vArray', 'MFloatArray', 'out', None), ('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVs', final_do)
+        return _f.processApiResult(res, ['uArray', 'vArray'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'getVertices')
+    def getVertices(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('vertices', 'MIntArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getVertices', final_do)
+        return _f.processApiResult(res, ['vertices'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'hasColor')
+    def hasColor(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'hasColor')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'hasUVs')
+    def hasUVs(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'hasUVs')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'hasValidTriangulation')
+    def hasValidTriangulation(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'hasValidTriangulation')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isConnectedToEdge')
+    def isConnectedToEdge(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isConnectedToEdge', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isConnectedToFace')
+    def isConnectedToFace(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isConnectedToFace', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isConnectedToVertex')
+    def isConnectedToVertex(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isConnectedToVertex', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isConvex')
+    def isConvex(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isConvex')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isHoled')
+    def isHoled(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isHoled')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isLamina')
+    def isLamina(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isLamina')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'onBoundary')
+    def isOnBoundary(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'onBoundary')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isPlanar')
+    def isPlanar(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isPlanar')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isStarlike')
+    def isStarlike(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isStarlike')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'zeroArea')
+    def isZeroArea(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'zeroArea')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'zeroUVArea')
+    def isZeroUVArea(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'zeroUVArea')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'normalIndex')
+    def normalIndex(self, localVertexIndex):
+        do, final_do, outTypes = _f.getDoArgs([localVertexIndex], [('localVertexIndex', 'int', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'normalIndex', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'numColors')
+    def numColors(self, colorSetName=None):
+        do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorCount', 'int', 'out', None), ('colorSetName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'numColors', final_do)
+        return _f.processApiResult(res, ['colorCount'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'numConnectedEdges')
+    def numConnectedEdges(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('edgeCount', 'int', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'numConnectedEdges', final_do)
+        return _f.processApiResult(res, ['edgeCount'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'numConnectedFaces')
+    def numConnectedFaces(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('faceCount', 'int', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'numConnectedFaces', final_do)
+        return _f.processApiResult(res, ['faceCount'], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'numTriangles')
+    def numTriangles(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('triCount', 'int', 'out', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'numTriangles', final_do)
+        return _f.processApiResult(res, ['triCount'], outTypes, do)
+
+    @_f.deprecated
+    def onBoundary(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'onBoundary')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'polygonVertexCount')
+    def polygonVertexCount(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'polygonVertexCount')
+        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'setPoint')
+    def setPoint(self, point, index, space='preTransform'):
+        do, final_do, outTypes = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setPoint', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'setPoints')
+    def setPoints(self, pointArray, space='preTransform'):
+        do, final_do, outTypes = _f.processApiArgs([pointArray, space], [('pointArray', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setPoints', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'setUV')
+    def setUV(self, vertexId, uvPoint, uvSet=None):
+        do, final_do, outTypes = _f.processApiArgs([vertexId, uvPoint, uvSet], [('vertexId', 'int', 'in', None), ('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['vertex', 'uvSet'])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setUV', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'setUVs')
+    def setUVs(self, uArray, vArray, uvSet=None):
+        do, final_do, outTypes = _f.processApiArgs([uArray, vArray, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setUVs', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItMeshPolygon, 'updateSurface')
+    def updateSurface(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'updateSurface')
+        return res
+
+    @_f.deprecated
+    def zeroArea(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'zeroArea')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.deprecated
+    def zeroUVArea(self):
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'zeroUVArea')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+# ------ Do not edit above this line --------
+
+if not _factories.building:
+    MeshFace.numVertices = MeshFace.polygonVertexCount
+
 
 class MeshUV(Component1D):
     _ComponentLabel__ = "map"
@@ -5826,6 +6388,7 @@ class MeshUV(Component1D):
 
     def _dimLength(self, partialIndex):
         return self._node.numUVs()
+
 
 class MeshVertexFace(Component2D):
     _ComponentLabel__ = "vtxFace"
@@ -5909,11 +6472,13 @@ class MeshVertexFace(Component2D):
         raise IndexError("vertex-face %s-%s does not exist" %
                          (self._partialIndex[0], item))
 
+
 # Subd Components
 
 class SubdVertex(Component1D64):
     _ComponentLabel__ = "smp"
     _apienum__ = _api.MFn.kSubdivCVComponent
+
 
 class SubdEdge(Component1D64):
     _ComponentLabel__ = "sme"
@@ -5932,9 +6497,11 @@ class SubdEdge(Component1D64):
     def _completeNameString(self):
         return Component._completeNameString(self) + '[0][0]'
 
+
 class SubdFace(Component1D64):
     _ComponentLabel__ = "smf"
     _apienum__ = _api.MFn.kSubdivFaceComponent
+
 
 class SubdUV(Component1D):
     # ...because you can't select subduv comps with '*' - ie, this doesn't work:
@@ -6085,6 +6652,7 @@ class SubdUV(Component1D):
         return (super(DimensionedComponent, self)._completeNameString() +
                 ('[:%d]' % self._dimLength(None)))
 
+
 # Nurbs Curve Components
 
 class NurbsCurveParameter(Component1DFloat):
@@ -6094,6 +6662,7 @@ class NurbsCurveParameter(Component1DFloat):
     def _dimRange(self, partialIndex):
         return self._node.getKnotDomain()
 
+
 class NurbsCurveCV(MItComponent1D):
     __apicls__ = _api.MItCurveCV
     _ComponentLabel__ = "cv"
@@ -6101,6 +6670,44 @@ class NurbsCurveCV(MItComponent1D):
 
     def _dimLength(self, partialIndex):
         return self.node().numCVs()
+# ------ Do not edit below this line --------
+    __slots__ = ()
+
+    @_f.addApiDocs(_api.MItCurveCV, 'position')
+    def getPosition(self, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItCurveCV, 'position', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItCurveCV, 'hasHistoryOnCreate')
+    def hasHistoryOnCreate(self):
+        res = _f.getProxyResult(self, _api.MItCurveCV, 'hasHistoryOnCreate')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItCurveCV, 'isDone')
+    def isDone(self):
+        res = _f.getProxyResult(self, _api.MItCurveCV, 'isDone')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItCurveCV, 'setPosition')
+    def setPosition(self, pt, space='preTransform'):
+        do, final_do, outTypes = _f.processApiArgs([pt, space], [('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
+        res = _f.getProxyResult(self, _api.MItCurveCV, 'setPosition', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItCurveCV, 'translateBy')
+    def translateBy(self, vec, space='preTransform'):
+        do, final_do, outTypes = _f.getDoArgs([vec, space], [('vec', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MItCurveCV, 'translateBy', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MItCurveCV, 'updateCurve')
+    def updateCurve(self):
+        res = _f.getProxyResult(self, _api.MItCurveCV, 'updateCurve')
+        return res
+# ------ Do not edit above this line --------
+
 
 class NurbsCurveEP(Component1D):
     _ComponentLabel__ = "ep"
@@ -6109,12 +6716,14 @@ class NurbsCurveEP(Component1D):
     def _dimLength(self, partialIndex):
         return self.node().numEPs()
 
+
 class NurbsCurveKnot(Component1D):
     _ComponentLabel__ = "knot"
     _apienum__ = _api.MFn.kCurveKnotComponent
 
     def _dimLength(self, partialIndex):
         return self.node().numKnots()
+
 
 # NurbsSurface Components
 
@@ -6202,6 +6811,7 @@ class NurbsSurfaceIsoparm(Component2DFloat):
         else:
             return minV, maxV
 
+
 class NurbsSurfaceRange(NurbsSurfaceIsoparm):
     _ComponentLabel__ = ("u", "v", "uv")
     _apienum__ = _api.MFn.kSurfaceRangeComponent
@@ -6216,6 +6826,7 @@ class NurbsSurfaceRange(NurbsSurfaceIsoparm):
         else:
             return super(NurbsSurfaceRange, self)._getitem_overrideable(item)
 
+
 class NurbsSurfaceCV(Component2D):
     _ComponentLabel__ = "cv"
     _apienum__ = _api.MFn.kSurfaceCVComponent
@@ -6228,6 +6839,7 @@ class NurbsSurfaceCV(Component2D):
         else:
             raise ValueError('partialIndex %r too long for %s._dimLength' %
                              (partialIndex, self.__class__.__name__))
+
 
 class NurbsSurfaceEP(Component2D):
     _ComponentLabel__ = "ep"
@@ -6242,6 +6854,7 @@ class NurbsSurfaceEP(Component2D):
             raise ValueError('partialIndex %r too long for %s._dimLength' %
                              (partialIndex, self.__class__.__name__))
 
+
 class NurbsSurfaceKnot(Component2D):
     _ComponentLabel__ = "knot"
     _apienum__ = _api.MFn.kSurfaceKnotComponent
@@ -6255,6 +6868,7 @@ class NurbsSurfaceKnot(Component2D):
             raise ValueError('partialIndex %r too long for %s._dimLength' %
                              (partialIndex, self.__class__.__name__))
 
+
 class NurbsSurfaceFace(Component2D):
     _ComponentLabel__ = "sf"
     _apienum__ = _api.MFn.kSurfaceFaceComponent
@@ -6267,6 +6881,7 @@ class NurbsSurfaceFace(Component2D):
         else:
             raise IndexError("partialIndex %r for %s must have length <= 1" %
                              (partialIndex, self.__class__.__name__))
+
 
 # Lattice Components
 
@@ -6287,6 +6902,7 @@ class LatticePoint(Component3D):
         # ...and so you must do
         #    ffd1LatticeShape.pt[*]
         return Component._completeNameString(self) + '[*]'
+
 
 # Pivot Components
 
@@ -6493,3 +7109,490 @@ class Scene(object):
 SCENE = Scene()
 
 # ------ Do not edit below this line --------
+about = _factories._addCmdDocs('about')
+
+addAttr = _factories._addCmdDocs(addAttr)
+
+addExtension = _factories._addCmdDocs('addExtension')
+
+affectedNet = _factories._addCmdDocs('affectedNet')
+
+affects = _factories._addCmdDocs('affects')
+
+aliasAttr = _factories._addCmdDocs('aliasAttr')
+
+align = _factories._addCmdDocs('align')
+
+applyAttrPattern = _factories._addCmdDocs('applyAttrPattern')
+
+artAttrTool = _factories._addCmdDocs('artAttrTool')
+
+@_factories._addCmdDocs
+def assembly(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['aoc', 'cob', 'createOptionBoxProc', 'listRepTypesProc', 'lrp', 'postCreateUIProc', 'prc', 'proc', 'repTypeLabelProc', 'rtp']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.assembly(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, PyNode)
+    return res
+
+attributeInfo = _factories._addCmdDocs('attributeInfo')
+
+attributeName = _factories._addCmdDocs('attributeName')
+
+attributeQuery = _factories._addCmdDocs('attributeQuery')
+
+bakePartialHistory = _factories._addCmdDocs('bakePartialHistory')
+
+baseTemplate = _factories._addCmdDocs('baseTemplate')
+
+baseView = _factories._addCmdDocs('baseView')
+
+color = _factories._addCmdDocs('color')
+
+colorIndex = _factories._addCmdDocs('colorIndex')
+
+colorManagementCatalog = _factories._addCmdDocs('colorManagementCatalog')
+
+colorManagementConvert = _factories._addCmdDocs('colorManagementConvert')
+
+colorManagementFileRules = _factories._addCmdDocs('colorManagementFileRules')
+
+colorManagementPrefs = _factories._addCmdDocs('colorManagementPrefs')
+
+@_factories._addCmdDocs
+def commandLogging(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['lc', 'logCommands', 'rc', 'recordCommands']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.commandLogging(*args, **kwargs)
+    return res
+
+@_factories._addCmdDocs
+def commandPort(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['returnNumCommands', 'rnc']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.commandPort(*args, **kwargs)
+    return res
+
+connectAttr = _factories._addCmdDocs(connectAttr)
+
+connectionInfo = _factories._addCmdDocs('connectionInfo')
+
+@_factories._addCmdDocs
+def container(*args, **kwargs):
+    res = cmds.container(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, PyNode)
+    wraps = _factories.simpleCommandWraps['container']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    return res
+
+containerBind = _factories._addCmdDocs('containerBind')
+
+containerProxy = _factories._addCmdDocs('containerProxy')
+
+containerPublish = _factories._addCmdDocs('containerPublish')
+
+containerTemplate = _factories._addCmdDocs('containerTemplate')
+
+containerView = _factories._addCmdDocs('containerView')
+
+contextInfo = _factories._addCmdDocs('contextInfo')
+
+copyAttr = _factories._addCmdDocs('copyAttr')
+
+createAttrPatterns = _factories._addCmdDocs('createAttrPatterns')
+
+@_factories._addCmdDocs
+def createDisplayLayer(*args, **kwargs):
+    res = cmds.createDisplayLayer(*args, **kwargs)
+    wraps = _factories.simpleCommandWraps['createDisplayLayer']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    return res
+
+createNode = _factories._addCmdDocs(createNode)
+
+currentUnit = _factories._addCmdDocs('currentUnit')
+
+curveRGBColor = _factories._addCmdDocs('curveRGBColor')
+
+cycleCheck = _factories._addCmdDocs('cycleCheck')
+
+delete = _factories._addCmdDocs(delete)
+
+deleteAttr = _factories._addCmdDocs('deleteAttr')
+
+deleteAttrPattern = _factories._addCmdDocs('deleteAttrPattern')
+
+deleteExtension = _factories._addCmdDocs('deleteExtension')
+
+disconnectAttr = _factories._addCmdDocs(disconnectAttr)
+
+displayAffected = _factories._addCmdDocs('displayAffected')
+
+displayColor = _factories._addCmdDocs('displayColor')
+
+displayCull = _factories._addCmdDocs('displayCull')
+
+displayLevelOfDetail = _factories._addCmdDocs('displayLevelOfDetail')
+
+displayPref = _factories._addCmdDocs('displayPref')
+
+displayRGBColor = _factories._addCmdDocs('displayRGBColor')
+
+displaySmoothness = _factories._addCmdDocs('displaySmoothness')
+
+displayStats = _factories._addCmdDocs('displayStats')
+
+displaySurface = _factories._addCmdDocs('displaySurface')
+
+@_factories._addCmdDocs
+def distanceDimension(*args, **kwargs):
+    res = cmds.distanceDimension(*args, **kwargs)
+    wraps = _factories.simpleCommandWraps['distanceDimension']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    return res
+
+duplicate = _factories._addCmdDocs(duplicate)
+
+editDisplayLayerGlobals = _factories._addCmdDocs('editDisplayLayerGlobals')
+
+editDisplayLayerMembers = _factories._addCmdDocs('editDisplayLayerMembers')
+
+exactWorldBoundingBox = _factories._addCmdDocs('exactWorldBoundingBox')
+
+getAttr = _factories._addCmdDocs(getAttr)
+
+getClassification = _factories._addCmdDocs(getClassification)
+
+group = _factories._addCmdDocs(group)
+
+hide = _factories._addCmdDocs('hide')
+
+hilite = _factories._addCmdDocs('hilite')
+
+inheritTransform = _factories._addCmdDocs('inheritTransform')
+
+@_factories._addCmdDocs
+def instance(*args, **kwargs):
+    res = cmds.instance(*args, **kwargs)
+    wraps = _factories.simpleCommandWraps['instance']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    return res
+
+instanceable = _factories._addCmdDocs('instanceable')
+
+_instancer = instancer
+
+@_factories._addCmdDocs
+def instancer(*args, **kwargs):
+    res = _instancer(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, PyNode)
+    return res
+
+isConnected = _factories._addCmdDocs('isConnected')
+
+isDirty = _factories._addCmdDocs('isDirty')
+
+isolateSelect = _factories._addCmdDocs('isolateSelect')
+
+license = _factories._addCmdDocs('license')
+
+@_factories._addCmdDocs
+def listAttr(*args, **kwargs):
+    res = cmds.listAttr(*args, **kwargs)
+    wraps = _factories.simpleCommandWraps['listAttr']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    return res
+
+listAttrPatterns = _factories._addCmdDocs('listAttrPatterns')
+
+listConnections = _factories._addCmdDocs(listConnections)
+
+listHistory = _factories._addCmdDocs(listHistory)
+
+listNodeTypes = _factories._addCmdDocs('listNodeTypes')
+
+listNodesWithIncorrectNames = _factories._addCmdDocs('listNodesWithIncorrectNames')
+
+listRelatives = _factories._addCmdDocs(listRelatives)
+
+listSets = _factories._addCmdDocs(listSets)
+
+lockNode = _factories._addCmdDocs('lockNode')
+
+ls = _factories._addCmdDocs(ls)
+
+makeIdentity = _factories._addCmdDocs('makeIdentity')
+
+makeLive = _factories._addCmdDocs('makeLive')
+
+makePaintable = _factories._addCmdDocs('makePaintable')
+
+matchTransform = _factories._addCmdDocs('matchTransform')
+
+move = _factories._addCmdDocs(move)
+
+nodeCast = _factories._addCmdDocs('nodeCast')
+
+nodeType = _factories._addCmdDocs(nodeType)
+
+objExists = _factories._addCmdDocs('objExists')
+
+objectCenter = _factories._addCmdDocs('objectCenter')
+
+objectType = _factories._addCmdDocs('objectType')
+
+@_factories._addCmdDocs
+def paramDimension(*args, **kwargs):
+    res = cmds.paramDimension(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, PyNode)
+    return res
+
+paramLocator = _factories._addCmdDocs('paramLocator')
+
+parent = _factories._addCmdDocs(parent)
+
+@_factories._addCmdDocs
+def partition(*args, **kwargs):
+    res = cmds.partition(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, PyNode)
+    return res
+
+performanceOptions = _factories._addCmdDocs('performanceOptions')
+
+pickWalk = _factories._addCmdDocs('pickWalk')
+
+pixelMove = _factories._addCmdDocs('pixelMove')
+
+polySplitCtx2 = _factories._addCmdDocs('polySplitCtx2')
+
+relationship = _factories._addCmdDocs('relationship')
+
+removeMultiInstance = _factories._addCmdDocs('removeMultiInstance')
+
+rename = _factories._addCmdDocs(rename)
+
+renameAttr = _factories._addCmdDocs('renameAttr')
+
+reorder = _factories._addCmdDocs('reorder')
+
+reorderContainer = _factories._addCmdDocs('reorderContainer')
+
+resetTool = _factories._addCmdDocs('resetTool')
+
+rotate = _factories._addCmdDocs(rotate)
+
+saveToolSettings = _factories._addCmdDocs('saveToolSettings')
+
+scale = _factories._addCmdDocs(scale)
+
+scaleComponents = _factories._addCmdDocs('scaleComponents')
+
+sculptMeshCacheChangeCloneSource = _factories._addCmdDocs('sculptMeshCacheChangeCloneSource')
+
+select = _factories._addCmdDocs(select)
+
+@_factories._addCmdDocs
+def selectKey(*args, **kwargs):
+    for flag in ['t', 'time']:
+        try:
+            rawVal = kwargs[flag]
+        except KeyError:
+            continue
+        else:
+            kwargs[flag] = _factories.convertTimeValues(rawVal)
+    res = cmds.selectKey(*args, **kwargs)
+    return res
+
+selectMode = _factories._addCmdDocs('selectMode')
+
+selectPref = _factories._addCmdDocs('selectPref')
+
+selectPriority = _factories._addCmdDocs('selectPriority')
+
+selectType = _factories._addCmdDocs('selectType')
+
+selectedNodes = _factories._addCmdDocs('selectedNodes')
+
+setAttr = _factories._addCmdDocs(setAttr)
+
+setToolTo = _factories._addCmdDocs('setToolTo')
+
+sets = _factories._addCmdDocs(sets)
+
+shapeCompare = _factories._addCmdDocs('shapeCompare')
+
+showHidden = _factories._addCmdDocs('showHidden')
+
+snapMode = _factories._addCmdDocs('snapMode')
+
+softSelect = _factories._addCmdDocs('softSelect')
+
+_spaceLocator = spaceLocator
+
+@_factories._addCmdDocs
+def spaceLocator(*args, **kwargs):
+    res = _spaceLocator(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, PyNode)
+    # unpack create/edit list result
+    if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
+        res = res[0]
+    return res
+
+suitePrefs = _factories._addCmdDocs('suitePrefs')
+
+symmetricModelling = _factories._addCmdDocs('symmetricModelling')
+
+threadCount = _factories._addCmdDocs('threadCount')
+
+timeCode = _factories._addCmdDocs('timeCode')
+
+toggle = _factories._addCmdDocs('toggle')
+
+toggleAxis = _factories._addCmdDocs('toggleAxis')
+
+toggleDisplacement = _factories._addCmdDocs('toggleDisplacement')
+
+toolDropped = _factories._addCmdDocs('toolDropped')
+
+toolHasOptions = _factories._addCmdDocs('toolHasOptions')
+
+@_factories._addCmdDocs
+def toolPropertyWindow(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['sel', 'selectCommand', 'showCommand', 'shw']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.toolPropertyWindow(*args, **kwargs)
+    return res
+
+transformCompare = _factories._addCmdDocs('transformCompare')
+
+transformLimits = _factories._addCmdDocs('transformLimits')
+
+ungroup = _factories._addCmdDocs('ungroup')
+
+upAxis = _factories._addCmdDocs('upAxis')
+
+webView = _factories._addCmdDocs('webView')
+
+xform = _factories._addCmdDocs('xform')
+
+xformConstraint = _factories._addCmdDocs('xformConstraint')
+
+encodeString = _factories._addCmdDocs('encodeString')
+
+format = _factories._addCmdDocs('format')
+
+@_factories._addCmdDocs
+def assignCommand(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['c', 'cmd', 'command', 'commandModifier', 'ecr', 'enableCommandRepeat', 'sourceUserCommands', 'suc']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.assignCommand(*args, **kwargs)
+    return res
+
+commandEcho = _factories._addCmdDocs('commandEcho')
+
+@_factories._addCmdDocs
+def condition(*args, **kwargs):
+    res = cmds.condition(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, PyNode)
+    return res
+
+evalDeferred = _factories._addCmdDocs('evalDeferred')
+
+isTrue = _factories._addCmdDocs('isTrue')
+
+itemFilter = _factories._addCmdDocs('itemFilter')
+
+itemFilterAttr = _factories._addCmdDocs('itemFilterAttr')
+
+itemFilterRender = _factories._addCmdDocs('itemFilterRender')
+
+itemFilterType = _factories._addCmdDocs('itemFilterType')
+
+pause = _factories._addCmdDocs('pause')
+
+refresh = _factories._addCmdDocs('refresh')
+
+stringArrayIntersector = _factories._addCmdDocs('stringArrayIntersector')
+
+@_factories._addCmdDocs
+def selectionConnection(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['addScript', 'addScript', 'removeScript', 'rs']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.selectionConnection(*args, **kwargs)
+    return res

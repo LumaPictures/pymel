@@ -2047,3 +2047,396 @@ def isModified():
 #renameFile = _factories.make_factories.createflagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
 # ------ Do not edit below this line --------
+aaf2fcp = _factories._addCmdDocs('aaf2fcp')
+
+allNodeTypes = _factories._addCmdDocs('allNodeTypes')
+
+assignInputDevice = _factories._addCmdDocs('assignInputDevice')
+
+attachDeviceAttr = _factories._addCmdDocs('attachDeviceAttr')
+
+attrCompatibility = _factories._addCmdDocs('attrCompatibility')
+
+audioTrack = _factories._addCmdDocs('audioTrack')
+
+autoSave = _factories._addCmdDocs('autoSave')
+
+cacheFile = _factories._addCmdDocs('cacheFile')
+
+cacheFileCombine = _factories._addCmdDocs('cacheFileCombine')
+
+cacheFileMerge = _factories._addCmdDocs('cacheFileMerge')
+
+cacheFileTrack = _factories._addCmdDocs('cacheFileTrack')
+
+clearCache = _factories._addCmdDocs('clearCache')
+
+cmdFileOutput = _factories._addCmdDocs('cmdFileOutput')
+
+convertUnit = _factories._addCmdDocs('convertUnit')
+
+crashInfo = _factories._addCmdDocs('crashInfo')
+
+dagObjectCompare = _factories._addCmdDocs('dagObjectCompare')
+
+date = _factories._addCmdDocs('date')
+
+dbcount = _factories._addCmdDocs('dbcount')
+
+dbfootprint = _factories._addCmdDocs('dbfootprint')
+
+dbmessage = _factories._addCmdDocs('dbmessage')
+
+dbpeek = _factories._addCmdDocs('dbpeek')
+
+dbtrace = _factories._addCmdDocs('dbtrace')
+
+detachDeviceAttr = _factories._addCmdDocs('detachDeviceAttr')
+
+deviceEditor = _factories._addCmdDocs('deviceEditor')
+
+@_factories._addCmdDocs
+def devicePanel(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['pmp', 'popupMenuProcedure']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.devicePanel(*args, **kwargs)
+    return res
+
+dgInfo = _factories._addCmdDocs('dgInfo')
+
+dgdirty = _factories._addCmdDocs('dgdirty')
+
+dgeval = _factories._addCmdDocs('dgeval')
+
+dgfilter = _factories._addCmdDocs('dgfilter')
+
+dgmodified = _factories._addCmdDocs('dgmodified')
+
+dgtimer = _factories._addCmdDocs('dgtimer')
+
+dirmap = _factories._addCmdDocs('dirmap')
+
+diskCache = _factories._addCmdDocs('diskCache')
+
+displayString = _factories._addCmdDocs('displayString')
+
+dynamicLoad = _factories._addCmdDocs('dynamicLoad')
+
+error = _factories._addCmdDocs('error')
+
+@_factories._addCmdDocs
+def exportEdits(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ec', 'editCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.exportEdits(*args, **kwargs)
+    return res
+
+fcheck = _factories._addCmdDocs('fcheck')
+
+@_factories._addCmdDocs
+def fileBrowserDialog(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['fc', 'fileCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.fileBrowserDialog(*args, **kwargs)
+    return res
+
+fileDialog = _factories._addCmdDocs('fileDialog')
+
+@_factories._addCmdDocs
+def fileDialog2(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['fileTypeChanged', 'ftc', 'oc2', 'oca', 'ocm', 'ocr', 'oin', 'optionsUICancel', 'optionsUICommit', 'optionsUICommit2', 'optionsUICreate', 'optionsUIInit', 'sc', 'selectionChanged']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.fileDialog2(*args, **kwargs)
+    return res
+
+fileInfo = _factories._addCmdDocs(fileInfo)
+
+filePathEditor = _factories._addCmdDocs('filePathEditor')
+
+findType = _factories._addCmdDocs('findType')
+
+flushUndo = _factories._addCmdDocs('flushUndo')
+
+getFileList = _factories._addCmdDocs('getFileList')
+
+getInputDeviceRange = _factories._addCmdDocs('getInputDeviceRange')
+
+getModifiers = _factories._addCmdDocs('getModifiers')
+
+getModulePath = _factories._addCmdDocs('getModulePath')
+
+hardware = _factories._addCmdDocs('hardware')
+
+hitTest = _factories._addCmdDocs('hitTest')
+
+imfPlugins = _factories._addCmdDocs('imfPlugins')
+
+internalVar = _factories._addCmdDocs('internalVar')
+
+launch = _factories._addCmdDocs('launch')
+
+launchImageEditor = _factories._addCmdDocs('launchImageEditor')
+
+listDeviceAttachments = _factories._addCmdDocs('listDeviceAttachments')
+
+listInputDeviceAxes = _factories._addCmdDocs('listInputDeviceAxes')
+
+listInputDeviceButtons = _factories._addCmdDocs('listInputDeviceButtons')
+
+listInputDevices = _factories._addCmdDocs('listInputDevices')
+
+loadModule = _factories._addCmdDocs('loadModule')
+
+@_factories._addCmdDocs
+def loadPlugin(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.loadPlugin(*args, **kwargs)
+    return res
+
+melInfo = _factories._addCmdDocs('melInfo')
+
+memory = _factories._addCmdDocs('memory')
+
+moduleInfo = _factories._addCmdDocs('moduleInfo')
+
+mouse = _factories._addCmdDocs('mouse')
+
+namespace = _factories._addCmdDocs('namespace')
+
+namespaceInfo = _factories._addCmdDocs(namespaceInfo)
+
+ogs = _factories._addCmdDocs('ogs')
+
+openGLExtension = _factories._addCmdDocs('openGLExtension')
+
+openMayaPref = _factories._addCmdDocs('openMayaPref')
+
+pluginDisplayFilter = _factories._addCmdDocs('pluginDisplayFilter')
+
+@_factories._addCmdDocs
+def pluginInfo(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['c', 'cc', 'changedCommand', 'cnc', 'command', 'constraintCommand', 'controlCommand', 'ctc', 'mec', 'modelEditorCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.pluginInfo(*args, **kwargs)
+    return res
+
+@_factories._addCmdDocs
+def preloadRefEd(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['sc', 'selectCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.preloadRefEd(*args, **kwargs)
+    return res
+
+profiler = _factories._addCmdDocs('profiler')
+
+profilerTool = _factories._addCmdDocs('profilerTool')
+
+recordAttr = _factories._addCmdDocs('recordAttr')
+
+redo = _factories._addCmdDocs('redo')
+
+@_factories._addCmdDocs
+def reference(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ec', 'editCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.reference(*args, **kwargs)
+    return res
+
+@_factories._addCmdDocs
+def referenceEdit(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ec', 'editCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.referenceEdit(*args, **kwargs)
+    return res
+
+_referenceQuery = referenceQuery
+
+@_factories._addCmdDocs
+def referenceQuery(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ec', 'editCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = _referenceQuery(*args, **kwargs)
+    return res
+
+rehash = _factories._addCmdDocs('rehash')
+
+reloadImage = _factories._addCmdDocs('reloadImage')
+
+requires = _factories._addCmdDocs('requires')
+
+@_factories._addCmdDocs
+def saveImage(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.saveImage(*args, **kwargs)
+    return res
+
+@_factories._addCmdDocs
+def sceneEditor(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['sc', 'selectCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.sceneEditor(*args, **kwargs)
+    return res
+
+sceneUIReplacement = _factories._addCmdDocs('sceneUIReplacement')
+
+scriptNode = _factories._addCmdDocs('scriptNode')
+
+selLoadSettings = _factories._addCmdDocs('selLoadSettings')
+
+setAttrMapping = _factories._addCmdDocs('setAttrMapping')
+
+setInputDeviceMapping = _factories._addCmdDocs('setInputDeviceMapping')
+
+shotTrack = _factories._addCmdDocs('shotTrack')
+
+showHelp = _factories._addCmdDocs('showHelp')
+
+sysFile = _factories._addCmdDocs('sysFile')
+
+timer = _factories._addCmdDocs('timer')
+
+timerX = _factories._addCmdDocs('timerX')
+
+translator = _factories._addCmdDocs('translator')
+
+unassignInputDevice = _factories._addCmdDocs('unassignInputDevice')
+
+undo = _factories._addCmdDocs('undo')
+
+undoInfo = _factories._addCmdDocs('undoInfo')
+
+unknownNode = _factories._addCmdDocs('unknownNode')
+
+unknownPlugin = _factories._addCmdDocs('unknownPlugin')
+
+@_factories._addCmdDocs
+def unloadPlugin(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.unloadPlugin(*args, **kwargs)
+    return res
+
+warning = _factories._addCmdDocs('warning')
+
+whatsNewHighlight = _factories._addCmdDocs('whatsNewHighlight')
+
+workspace = _factories._addCmdDocs(workspace)

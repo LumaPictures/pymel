@@ -1164,3 +1164,56 @@ def conditionExists(conditionName):
 #env = Env()
 
 # ------ Do not edit below this line --------
+@_factories._addCmdDocs
+def callbacks(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.callbacks(*args, **kwargs)
+    return res
+
+evalEcho = _factories._addCmdDocs('evalEcho')
+
+evalNoSelectNotify = _factories._addCmdDocs('evalNoSelectNotify')
+
+getLastError = _factories._addCmdDocs('getLastError')
+
+getProcArguments = _factories._addCmdDocs('getProcArguments')
+
+melOptions = _factories._addCmdDocs('melOptions')
+
+optionVar = _factories._addCmdDocs(optionVar)
+
+python = _factories._addCmdDocs('python')
+
+resourceManager = _factories._addCmdDocs('resourceManager')
+
+@_factories._addCmdDocs
+def scriptJob(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['idleEvent', 'ie', 'tc', 'timeChange']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.scriptJob(*args, **kwargs)
+    return res
+
+sortCaseInsensitive = _factories._addCmdDocs('sortCaseInsensitive')
+
+stackTrace = _factories._addCmdDocs('stackTrace')
+
+waitCursor = _factories._addCmdDocs('waitCursor')
