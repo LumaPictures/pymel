@@ -679,34 +679,6 @@ class ApiMethodGenerator(MelMethodGenerator):
 
     _originalApiSetAttrs = {}
 
-    class ClassConstant(object):
-
-        """Class constant"""
-
-        def __init__(self, value):
-            self.value = value
-
-        def __repr__(self):
-            return '%s.%s(%s)' % (self.__class__.__module__, self.__class__.__name__, repr(self.value))
-
-        def __str__(self):
-            return self.__repr__()
-
-        def __get__(self, instance, owner):
-            # purposedly authorize notation MColor.blue but not MColor().blue,
-            # the constants are a class property and are not defined on instances
-            if instance is None:
-                # note that conversion to the correct type is done here
-                return owner(self.value)
-            else:
-                raise AttributeError, "Class constants on %s are only defined on the class" % (owner.__name__)
-
-        def __set__(self, instance, value):
-            raise AttributeError, "class constant cannot be set"
-
-        def __delete__(self, instance):
-            raise AttributeError, "class constant cannot be deleted"
-
     def __init__(self, classname, existingClass, parentClasses,
                  parentMethods, parentApicls, childClasses=()):
         super(ApiMethodGenerator, self).__init__(classname, existingClass, parentClasses, parentMethods)

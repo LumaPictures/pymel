@@ -118,7 +118,7 @@ def loadCmdCache():
 
     _elapsed = time.time() - _start
     _logger.debug("Initialized Cmd Cache in in %.2f sec" % _elapsed)
-    # cmdlist = None
+
 
 def _setCmdCacheGlobals():
     global _cmdCacheInst
@@ -160,8 +160,10 @@ docstringMode = os.environ.get('PYMEL_DOCSTRINGS_MODE', 'pydoc')
 # Lookup from PyNode type name as a string to PyNode type as a class
 pyNodeNamesToPyNodes = {}
 
-# Lookup from MFn to PyNode name
+# Lookup from MFn name to PyNode name
 apiClassNamesToPyNodeNames = {}
+# Lookup from MFn name to PyNode class
+apiClassNamesToPyNodeTypes = {}
 
 # Lookup from Api Enums to Pymel Component Classes
 #
@@ -391,7 +393,6 @@ if docstringMode == 'html':
             print "found an example for an unknown command:", cmd
             pass
 
-#cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
 
 # FIXME
 #: stores a dictionary of pymel classnames to mel method names
@@ -2416,6 +2417,37 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
 
     return docstring
 
+
+class ClassConstant(object):
+    """Class constant descriptor"""
+
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return '%s.%s(%s)' % (self.__class__.__module__,
+                              self.__class__.__name__, repr(self.value))
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __get__(self, instance, owner):
+        # purposedly authorize notation MColor.blue but not MColor().blue,
+        # the constants are a class property and are not defined on instances
+        if instance is None:
+            # note that conversion to the correct type is done here
+            return owner(self.value)
+        else:
+            raise AttributeError("Class constants on %s are only "
+                                 "defined on the class" % (owner.__name__))
+
+    def __set__(self, instance, value):
+        raise AttributeError("class constant cannot be set")
+
+    def __delete__(self, instance):
+        raise AttributeError("class constant cannot be deleted")
+
+
 class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
 
     """ A metaclass to wrap Maya api types, with support for class constants """
@@ -2983,15 +3015,33 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
     def getMelCmd(cls, classdict):
         return classdict['__melui__'], False
 
-class MetaMayaComponentWrapper(type):
+
+class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
 
     """
-    A metaclass for creating components.
+    A metaclass for tracking pymel types.
     """
     def __new__(cls, classname, bases, classdict):
-        newcls = super(MetaMayaComponentWrapper, cls).__new__(cls, classname, bases, classdict)
+        try:
+            apicls = classdict['apicls']
+        except KeyError:
+            try:
+                apicls = classdict['__apicls__']
+            except KeyError:
+                apicls = None
+
+        newcls = super(MetaMayaTypeRegistry, cls).__new__(cls, classname, bases, classdict)
+
+        if apicls is not None and apicls.__name__ not in apiClassNamesToPyNodeNames:
+            #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
+            apiClassNamesToPyNodeNames[apicls.__name__] = classname
+            apiClassNamesToPyNodeTypes[apicls.__name__] = newcls
+
+        if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
+            ApiTypeRegister.register(newcls.apicls.__name__, newcls)
+
         apienum = getattr(newcls, '_apienum__', None)
-#        print "addng new component %s - '%s' (%r):" % (newcls, classname, classdict),
+
         if apienum:
             if apienum not in apiEnumsToPyComponents:
                 apiEnumsToPyComponents[apienum] = [newcls]

@@ -14,6 +14,9 @@ import pymel.api as _api
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import pymel.internal.factories as _factories
+from pymel.util.enum import Enum
+
+_f = _factories
 
 # in python2.6/maya2010 'as' becomes a keyword.
 # TODO:  add a version check:
@@ -21,6 +24,7 @@ if sys.version_info >= (2, 6):
     AS_UNITS = 'asUnits'
 else:
     AS_UNITS = 'as'
+
 
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector():
@@ -35,6 +39,7 @@ def _patchMVector():
             yield _api.MVector.__getitem__(self, i)
     type.__setattr__(_api.MVector, '__iter__', __iter__)
 
+
 def _patchMFloatVector():
     def __len__(self):
         """ Number of components in the Maya api FloatVector, ie 3 """
@@ -46,6 +51,7 @@ def _patchMFloatVector():
         for i in xrange(len(self)):
             yield _api.MFloatVector.__getitem__(self, i)
     type.__setattr__(_api.MFloatVector, '__iter__', __iter__)
+
 
 def _patchMPoint():
     def __len__(self):
@@ -59,6 +65,7 @@ def _patchMPoint():
             yield _api.MPoint.__getitem__(self, i)
     type.__setattr__(_api.MPoint, '__iter__', __iter__)
 
+
 def _patchMFloatPoint():
     def __len__(self):
         """ Number of components in the Maya api FloatPoint, ie 4 """
@@ -71,6 +78,7 @@ def _patchMFloatPoint():
             yield _api.MFloatPoint.__getitem__(self, i)
     type.__setattr__(_api.MFloatPoint, '__iter__', __iter__)
 
+
 def _patchMColor():
     def __len__(self):
         """ Number of components in the Maya api Color, ie 4 """
@@ -82,6 +90,7 @@ def _patchMColor():
         for i in xrange(len(self)):
             yield _api.MColor.__getitem__(self, i)
     type.__setattr__(_api.MColor, '__iter__', __iter__)
+
 
 def _patchMMatrix():
     def __len__(self):
@@ -96,6 +105,7 @@ def _patchMMatrix():
             yield Array([_api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(self, r), c) for c in xrange(4)])
     type.__setattr__(_api.MMatrix, '__iter__', __iter__)
 
+
 def _patchMFloatMatrix():
     def __len__(self):
         """ Number of rows in the Maya api FloatMatrix, ie 4.
@@ -109,6 +119,7 @@ def _patchMFloatMatrix():
             yield Array([_api.MScriptUtil.getFloatArrayItem(_api.MFloatMatrix.__getitem__(self, r), c) for c in xrange(4)])
     type.__setattr__(_api.MFloatMatrix, '__iter__', __iter__)
 
+
 def _patchMTransformationMatrix():
     def __len__(self):
         """ Number of rows in the Maya api Matrix, ie 4.
@@ -120,6 +131,7 @@ def _patchMTransformationMatrix():
         """ Iterates on all 4 rows of a Maya api TransformationMatrix """
         return self.asMatrix().__iter__()
     type.__setattr__(_api.MTransformationMatrix, '__iter__', __iter__)
+
 
 def _patchMQuaternion():
     def __len__(self):
@@ -133,6 +145,7 @@ def _patchMQuaternion():
             yield _api.MQuaternion.__getitem__(self, i)
     type.__setattr__(_api.MQuaternion, '__iter__', __iter__)
 
+
 def _patchMEulerRotation():
     def __len__(self):
         """ Number of components in the Maya api EulerRotation, ie 3 """
@@ -145,6 +158,7 @@ def _patchMEulerRotation():
             yield _api.MEulerRotation.__getitem__(self, i)
     type.__setattr__(_api.MEulerRotation, '__iter__', __iter__)
 
+
 _patchMVector()
 _patchMFloatVector()
 _patchMPoint()
@@ -156,8 +170,9 @@ _patchMTransformationMatrix()
 _patchMQuaternion()
 _patchMEulerRotation()
 
+
 # the meta class of metaMayaWrapper
-class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper):
+class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeRegistry):
 
     """ A metaclass to wrap Maya array type classes such as Vector, Matrix """
 
@@ -790,6 +805,7 @@ class FloatVector(Vector):
         """
     apicls = _api.MFloatVector
 
+
 # Point specific functions
 
 def planar(p, *args, **kwargs):
@@ -801,6 +817,8 @@ def planar(p, *args, **kwargs):
         except:
             raise TypeError, "%s is not convertible to type Point, planar is only defined for n MPoints" % (util.clsname(p))
     return p.planar(*args, **kwargs)
+
+
 def center(p, *args):
     """ center(p[, q, r, s (...)]) --> Point
         Returns the Point that is the center of p, q, r, s (...) """
@@ -810,6 +828,8 @@ def center(p, *args):
         except:
             raise TypeError, "%s is not convertible to type Point, center is only defined for n MPoints" % (util.clsname(p))
     return p.center(*args)
+
+
 def bWeights(p, *args):
     """ bWeights(p[, p0, p1, (...), pn]) --> tuple
         Returns a tuple of (n0, n1, ...) normalized barycentric weights so that n0*p0 + n1*p1 + ... = p  """
@@ -1429,7 +1449,9 @@ class Space(_api.MSpace):
     __metaclass__ = _factories.MetaMayaTypeWrapper
     pass
 
+
 Spaces = Space.Space
+
 
 def equivalentSpace(space1, space2, rotationOnly=False):
     '''Compare the two given space values to see if they are equal
@@ -1979,6 +2001,7 @@ class Matrix(MatrixN):
             self = TransformationMatrix(self)
         return self.__class__._convert(self.asMatrix(weight))
 
+
 class FloatMatrix(Matrix):
     """
     A 4x4 matrix class that wraps Maya's api FloatMatrix class,
@@ -1986,6 +2009,7 @@ class FloatMatrix(Matrix):
     to keep api methods happy
     """
     apicls = _api.MFloatMatrix
+
 
 class Quaternion(Matrix):
     apicls = _api.MQuaternion
@@ -2152,6 +2176,7 @@ class Quaternion(Matrix):
     def __contains__(self, value):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()
+
 
 class TransformationMatrix(Matrix):
     apicls = _api.MTransformationMatrix
@@ -2573,8 +2598,6 @@ class EulerRotation(Array):
 #            return NotImplemented
 
 
-
-
 class Unit(float):
     __slots__ = ['unit', 'data', 'value', '_unit']
 
@@ -2675,6 +2698,7 @@ class Unit(float):
 
     def asInternalUnit(self):
         return self.asUnit(self.__class__.getInternalUnit())
+
 
 class Time(Unit):
     apicls = _api.MTime
@@ -3101,6 +3125,7 @@ def getPlugValue(plug):
 
     raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), _factories.apiEnumsToApiTypes.get(apiType, apiType))
 
+
 def _testMVector():
 
     print "Vector class:", dir(Vector)
@@ -3384,6 +3409,7 @@ def _testMVector():
     # Vector([0.8535, 0.0, -0.3535])
 
     print "end tests Vector"
+
 
 def _testMPoint():
 
@@ -3706,6 +3732,7 @@ def _testMPoint():
 
     print "end tests Point"
 
+
 def _testMColor():
 
     print "Color class", dir(Color)
@@ -3879,6 +3906,7 @@ def _testMColor():
     # Color([1.75, 0.5, -0.5, 0.25])
 
     print "end tests Color"
+
 
 def _testMMatrix():
 
@@ -4230,6 +4258,7 @@ def _testMMatrix():
 
     print "end tests Matrix"
 
+
 def _testMTransformationMatrix():
 
     q = Quaternion()
@@ -4309,6 +4338,7 @@ def _testMTransformationMatrix():
     print o.formated()
 
     print "end tests TransformationMatrix"
+
 
 if __name__ == '__main__':
     print Distance.getInternalUnit()
