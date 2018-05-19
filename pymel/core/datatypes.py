@@ -18,12 +18,6 @@ from pymel.util.enum import Enum
 
 _f = _factories
 
-# in python2.6/maya2010 'as' becomes a keyword.
-# TODO:  add a version check:
-if sys.version_info >= (2, 6):
-    AS_UNITS = 'asUnits'
-else:
-    AS_UNITS = 'as'
 
 
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
@@ -2665,7 +2659,7 @@ class Unit(float):
     def __new__(cls, value, unit=None):
         unit = cls.kUnit(unit)
         if isinstance(value, cls.apicls):
-            value = getattr(value, AS_UNITS)(unit)
+            value = value.asUnits(unit)
         elif isinstance(value, cls):
             value = value.asUnit(unit)
         #data = cls.apicls(value, unit)
@@ -2688,7 +2682,7 @@ class Unit(float):
 
     def asUnit(self, unit):
         # in python2.6/maya2010 'as' becomes a keyword.
-        return getattr(self._data, AS_UNITS)(self.__class__.kUnit(unit))
+        return self._data.asUnits(self.__class__.kUnit(unit))
 
 #    def asUnit(self) :
 #        return self.asUnit(self.unit)
@@ -2949,21 +2943,21 @@ def getPlugValue(plug):
         val = plug.asMDistance()
         unit = _api.MDistance.uiUnit()
         # as becomes a keyword in python 2.6
-        return Distance(getattr(val, AS_UNITS)(unit), unit)
+        return Distance(val.asUnits(unit), unit)
 
     # Angle
     elif apiType in [_api.MFn.kDoubleAngleAttribute, _api.MFn.kFloatAngleAttribute]:
         val = plug.asMAngle()
         unit = _api.MAngle.uiUnit()
         # as becomes a keyword in python 2.6
-        return Angle(getattr(val, AS_UNITS), unit)
+        return Angle(val.asUnits, unit)
 
     # Time
     elif apiType == _api.MFn.kTimeAttribute:
         val = plug.asMTime()
         unit = _api.MTime.uiUnit()
         # as becomes a keyword in python 2.6
-        return Time(getattr(val, AS_UNITS), unit)
+        return Time(val.asUnits, unit)
 
     elif apiType == _api.MFn.kNumericAttribute:
         nAttr = _api.MFnNumericAttribute(obj)
