@@ -19,7 +19,6 @@ from pymel.util.enum import Enum
 _f = _factories
 
 
-
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector():
     def __len__(self):
@@ -1440,8 +1439,7 @@ class Color(Vector):
 
 class Space(_api.MSpace):
     apicls = _api.MSpace
-    __metaclass__ = _factories.MetaMayaTypeWrapper
-    pass
+    __metaclass__ = _factories.MetaMayaTypeRegistry
 
 
 Spaces = Space.Space
@@ -2829,7 +2827,7 @@ class Angle(Unit):
 
 class BoundingBox(_api.MBoundingBox):
     apicls = _api.MBoundingBox
-    __metaclass__ = _factories.MetaMayaTypeWrapper
+    __metaclass__ = _factories.MetaMayaTypeRegistry
 
     def __init__(self, *args):
         if len(args) == 2:
