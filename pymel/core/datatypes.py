@@ -1442,7 +1442,8 @@ class Space(_api.MSpace):
     __metaclass__ = _factories.MetaMayaTypeRegistry
 
 
-Spaces = Space.Space
+if not _factories.building:
+    Spaces = Space.Space
 
 
 def equivalentSpace(space1, space2, rotationOnly=False):

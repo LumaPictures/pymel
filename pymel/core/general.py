@@ -4579,8 +4579,7 @@ class Component(PyNode):
     """
     Abstract base class for pymel components.
     """
-    # this metaclass records apienuns in apiEnumsToPyComponents:
-    __metaclass__ = _factories.MetaMayaComponentWrapper
+    __metaclass__ = _factories.MetaMayaTypeRegistry
     _mfncompclass = _api.MFnComponent
     _apienum__ = _api.MFn.kComponent
     _ComponentLabel__ = None

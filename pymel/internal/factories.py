@@ -160,10 +160,10 @@ docstringMode = os.environ.get('PYMEL_DOCSTRINGS_MODE', 'pydoc')
 # Lookup from PyNode type name as a string to PyNode type as a class
 pyNodeNamesToPyNodes = {}
 
-# Lookup from MFn name to PyNode name
+# Lookup from MFn name to Pymel name
 apiClassNamesToPyNodeNames = {}
-# Lookup from MFn name to PyNode class
-apiClassNamesToPyNodeTypes = {}
+# Lookup from MFn name to Pymel class
+apiClassNamesToPymelTypes = {}
 
 # Lookup from Api Enums to Pymel Component Classes
 #
@@ -1697,9 +1697,8 @@ class ApiArgUtil(object):
                 apiClassName, enumName = returnType
                 try:
                     # TODO: return EnumValue type
-
                     # convert int result into pymel string name.
-                    return getattr(pynodeInstance, enumName)[result]
+                    return getattr(apiClassNamesToPymelTypes[apiClassName], enumName)[result]
                 except KeyError:
                     raise ValueError, "expected an enum of type %s.%s" % (apiClassName, enumName)
 
@@ -3024,25 +3023,35 @@ class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
     def __new__(cls, classname, bases, classdict):
         try:
             apicls = classdict['apicls']
+            proxy = False
         except KeyError:
             try:
                 apicls = classdict['__apicls__']
+                proxy = True
             except KeyError:
                 apicls = None
+                proxy = True
+
+        if not building:
+            # dataclasses multiply inherit their API class (but don't include
+            # then when we're building because the inherited methods will
+            # prevent overrides from being generated)
+            if not proxy and apicls is not None and apicls not in bases:
+                bases = bases + (apicls,)
 
         newcls = super(MetaMayaTypeRegistry, cls).__new__(cls, classname, bases, classdict)
 
         if apicls is not None and apicls.__name__ not in apiClassNamesToPyNodeNames:
             #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
             apiClassNamesToPyNodeNames[apicls.__name__] = classname
-            apiClassNamesToPyNodeTypes[apicls.__name__] = newcls
+            apiClassNamesToPymelTypes[apicls.__name__] = newcls
 
         if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
             ApiTypeRegister.register(newcls.apicls.__name__, newcls)
 
         apienum = getattr(newcls, '_apienum__', None)
 
-        if apienum:
+        if apienum is not None:
             if apienum not in apiEnumsToPyComponents:
                 apiEnumsToPyComponents[apienum] = [newcls]
             else:

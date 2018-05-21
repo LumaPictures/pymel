@@ -1,6 +1,8 @@
 import compileall
 import inspect
+import keyword
 import os.path
+import re
 import sys
 import types
 
@@ -29,6 +31,14 @@ CORE_CMD_MODULES = [
 
 env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
+
+
+class Literal(object):
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return str(self.value)
 
 
 def methodNames(cls):
@@ -421,7 +431,8 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         'overloadIndex': overloadIndex,
         'inArgs': ', '.join(inArgs),
         'outArgs': outArgs,
-        'argList': [(name, convertTypeArg(typ), dir, getUnit(name)) for name, typ, dir in argList],
+        'argList': [(name, convertTypeArg(typ), dir, getUnit(name))
+                    for name, typ, dir in argList],
         'classmethod': argHelper.isStatic(),
         'getterInArgs': getterInArgs,
         'proxy': proxy,
@@ -481,7 +492,6 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
 
 
 class MelMethodGenerator(object):
-    _classDictKeyForMelCmd = None
 
     def __init__(self, classname, existingClass, parentClasses, parentMethods):
         self.classname = classname
@@ -490,8 +500,18 @@ class MelMethodGenerator(object):
         self.parentClasses = parentClasses
         self.existingClass = existingClass
 
+    def setDefault(self, key, value, attrs, directParentOnly=True):
+        if directParentOnly:
+            if self.existingClass is None or key not in self.existingClass.__dict__:
+                attrs.setdefault(key, value)
+        else:
+            if self.existingClass is None or not hasattr(self.existingClass, key):
+                attrs.setdefault(key, value)
+
     def render(self):
-        attrs, methods = self.getTemplateData()
+        attrs, methods = self.getTemplateData({}, {})
+
+        self.setDefault('__metaclass__', Literal('_f.MetaMayaTypeRegistry'), attrs)
 
         methodNames = set(methods)
         if self.existingClass:
@@ -522,11 +542,11 @@ class MelMethodGenerator(object):
         """
         Add methods from MEL functions
         """
-        #_logger.debug( '_MetaMayaCommandGenerator: %s' % classname )
+        #_logger.debug( 'MelMethodGenerator: %s' % classname )
 
-        #-------------------------
+        # ------------------------
         #   MEL Methods
-        #-------------------------
+        # ------------------------
         melCmdName, infoCmd = self.getMelCmd(attrs)
 
         try:
@@ -675,7 +695,8 @@ class MelMethodGenerator(object):
 # FIXME: don't inherit here, treat as a Mixin
 class ApiMethodGenerator(MelMethodGenerator):
 
-    """ A metaclass to wrap Maya api types, with support for class constants """
+    VALID_NAME = re.compile('[a-zA-Z_][a-zA-Z0-9_]*$')
+    proxy = True
 
     _originalApiSetAttrs = {}
 
@@ -685,7 +706,7 @@ class ApiMethodGenerator(MelMethodGenerator):
         self.parentApicls = parentApicls
         self.existingClass = existingClass
         self.childClasses = childClasses
-        self.apicls = None
+        self.apicls = self.getApiCls()
 
     def methodIsEnabledOnChildren(self, pymelName):
         """
@@ -704,245 +725,252 @@ class ApiMethodGenerator(MelMethodGenerator):
             return True
         return False
 
+    def getApiCls(self):
+        if self.existingClass is not None:
+            try:
+                return self.existingClass.__dict__['__apicls__']
+            except KeyError:
+                pass
+
     def getAPIData(self, attrs, methods):
         """
         Add methods from API functions
         """
 
-        removeAttrs = []
+        self.removeAttrs = []
 
-        if self.existingClass is not None:
-            # define __slots__ if not defined
-            if '__slots__' not in self.existingClass.__dict__:
-                attrs['__slots__'] = ()
+        self.setDefault('__slots__', (), attrs)
 
-            try:
-                apicls = self.existingClass.__dict__['apicls']
-                proxy = False
-            except KeyError:
-                try:
-                    apicls = self.existingClass.__dict__['__apicls__']
-                    proxy = True
-                except KeyError:
-                    apicls = self.apicls
-                    proxy = True
+        _logger.info('%s: %s: %s' % (self.__class__, self.classname, self.apicls))
 
-                    if self.apicls is not None:
-                        attrs['__apicls__'] = self.apicls
+        if self.apicls is None:
+            return attrs, methods
+
+        if self.apicls.__name__ not in factories.apiClassNamesToPyNodeNames:
+            factories.apiClassNamesToPyNodeNames[self.apicls.__name__] = self.classname
+
+        if self.apicls is self.parentApicls:
+            # If this class's api class is the same as the parent, the methods
+            # are already handled.
+            # FIXME: should this be extended to check all parent classes?
+            # FIXME: assert that there is nothing explicit in the mel-api bridge
+            return attrs, methods
+
+        # if not proxy and apicls not in self.bases:
+        #     #_logger.debug("ADDING BASE %s" % attrs['apicls'])
+        #     bases = self.bases + (attrs['apicls'],)
+        try:
+            classInfo = factories.apiClassInfo[self.apicls.__name__]
+        except KeyError:
+            _logger.info("No api information for api class %s" % (self.apicls.__name__))
         else:
-            apicls = self.apicls
-            proxy = True
-            attrs['__slots__'] = ()
-
-        _logger.debug('MetaMayaTypeGenerator: %s: %s (proxy=%s)' % (self.classname, apicls.__name__, proxy))
-
-        if apicls is not None:
-            if apicls.__name__ not in factories.apiClassNamesToPyNodeNames:
-                #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
-                factories.apiClassNamesToPyNodeNames[apicls.__name__] = self.classname
-
-            if apicls is self.parentApicls:
-                # If this class's api class is the same as the parent, the methods
-                # are already handled.
-                # FIXME: should this be extended to check all parent classes?
-                # FIXME: assert that there is nothing explicit in the mel-api bridge
-                return attrs, methods
-
-            # if not proxy and apicls not in self.bases:
-            #     #_logger.debug("ADDING BASE %s" % attrs['apicls'])
-            #     bases = self.bases + (attrs['apicls'],)
-            try:
-                classInfo = factories.apiClassInfo[apicls.__name__]
-            except KeyError:
-                _logger.info("No api information for api class %s" % (apicls.__name__))
-            else:
-                #------------------------
-                # API Wrap
-                #------------------------
-
-                # FIXME:
-                # Find out methods herited from other bases than apicls to avoid
-                # unwanted overloading
-                # herited = {}
-                # for base in bases:
-                #     if base is not apicls:
-                #         # basemro = inspect.getmro(base)
-                #         for attr in dir(base):
-                #             if attr not in herited:
-                #                 herited[attr] = base
-
-                ##_logger.debug("Methods info: %(methods)s" % classInfo)
-
-                # Class Methods
-
-                # iterate over the methods so that we get all non-deprecated
-                # methods first
-                # This is because, if two api methods map to the same pymel
-                # method name, then the first one "wins" - and we want to prefer
-                # non-deprecated.
-                def non_deprecated_methods_first():
-
-                    deprecated = []
-                    for methodName, info in classInfo['methods'].iteritems():
-                        # don't rewrap if already herited from a base class that is not the apicls
-                        # _logger.debug("Checking method %s" % (methodName))
-
-                        try:
-                            basePymelName = info[0]['pymelName']
-                            removeAttrs.append(methodName)
-                        except KeyError:
-                            basePymelName = methodName
-                        pymelName, overrideData, renamed = factories._getApiOverrideNameAndData(
-                            self.classname, basePymelName)
-
-                        # if 'addAttribute' in (pymelName, basePymelName, methodName):
-                        #     print self.classname, pymelName, basePymelName, methodName, renamed, overrideData
-
-                        overloadIndex = overrideData.get('overloadIndex', None)
-
-                        yieldTuple = (methodName, info, self.classname, pymelName,
-                                      overloadIndex)
-
-                        if overloadIndex is None:
-                            #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
-                            continue
-                        if not overrideData.get('enabled', True):
-                            #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                            # FIXME: add unique deprecation message
-                            if methodName in factories.EXCLUDE_METHODS:
-                                continue
-                            elif not self.methodIsEnabledOnChildren(pymelName):
-                                print self.classname, pymelName, "not on any children"
-                                continue
-                            else:
-                                deprecated.append(yieldTuple)
-                        elif info[overloadIndex].get('deprecated', False):
-                            deprecated.append(yieldTuple)
-                        else:
-                            yield yieldTuple + (False,)
-
-                        if renamed:
-                            # FIXME: previous versions of pymel erroneously included
-                            # renamed/remapped methods on child classes which possessed the same apicls as their parent.
-                            # We should include them as deprecated.
-                            deprecated.append(
-                                (methodName, info, self.classname,
-                                 basePymelName, overloadIndex))
-
-                    for yieldTuple in deprecated:
-                        yield yieldTuple + (True,)
-
-                for (methodName, info, classname, pymelName, overloadIndex, deprecated) \
-                        in non_deprecated_methods_first():
-                    assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
-
-                    # TODO: some methods are being wrapped for the base class,
-                    # and all their children - ie, MFnTransform.transformation()
-                    # gets wrapped for Transform, Place3dTexture,
-                    # HikGroundPlane, etc...
-                    # Figure out why this happens, and stop it!
-                    if pymelName not in self.herited and not hasattr(self.existingClass, pymelName):
-                        if pymelName not in methods:
-                            #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
-                            doc = wrapApiMethod(apicls, methodName, newName=pymelName,
-                                                proxy=proxy, overloadIndex=overloadIndex,
-                                                deprecated=deprecated)
-                            if doc:
-                                methods[pymelName] = doc
-                            # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-                        # else: #_logger.debug("%s.%s: already defined, skipping" % (apicls.__name__, methodName ))
-                    # else: #_logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
-
-                if 'pymelEnums' in classInfo:
-                    # Enumerators
-
-                    for enumName, enum in classInfo['pymelEnums'].items():
-                        attrs[enumName] = enum
+            # -----------------------
+            # API Wrap
+            # -----------------------
 
             # FIXME:
-            # if not proxy:
-            #     # if removeAttrs:
-            #     #    #_logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
-            #     def __getattribute__(self, name):
-            #         #_logger.debug(name )
-            #         if name in removeAttrs and name not in factories.EXCLUDE_METHODS:  # tmp fix
-            #             #_logger.debug("raising error")
-            #             raise AttributeError, "'" + classname + "' object has no attribute '" + name + "'"
-            #         #_logger.debug("getting from %s" % bases[0])
-            #         # newcls will be defined by the time this is called...
-            #         return super(newcls, self).__getattribute__(name)
-            #
-            #     classdict['__getattribute__'] = __getattribute__
-            #
-            #     if self._hasApiSetAttrBug(apicls):
-            #         # correct the setAttr bug by wrapping the api's
-            #         # __setattr__ to handle data descriptors...
-            #         origSetAttr = apicls.__setattr__
-            #         # in case we need to restore the original setattr later...
-            #         # ... as we do in a test for this bug!
-            #         self._originalApiSetAttrs[apicls] = origSetAttr
-            #
-            #         def apiSetAttrWrap(self, name, value):
-            #             if hasattr(self.__class__, name):
-            #                 if hasattr(getattr(self.__class__, name), '__set__'):
-            #                     # we've got a data descriptor with a __set__...
-            #                     # don't use the apicls's __setattr__
-            #                     return super(apicls, self).__setattr__(name, value)
-            #             return origSetAttr(self, name, value)
-            #         apicls.__setattr__ = apiSetAttrWrap
+            # Find out methods herited from other bases than apicls to avoid
+            # unwanted overloading
+            # herited = {}
+            # for base in bases:
+            #     if base is not apicls:
+            #         # basemro = inspect.getmro(base)
+            #         for attr in dir(base):
+            #             if attr not in herited:
+            #                 herited[attr] = base
+
+            ##_logger.debug("Methods info: %(methods)s" % classInfo)
+
+            # Class Methods
+
+            # iterate over the methods so that we get all non-deprecated
+            # methods first
+            # This is because, if two api methods map to the same pymel
+            # method name, then the first one "wins" - and we want to prefer
+            # non-deprecated.
+            def non_deprecated_methods_first():
+
+                deprecated = []
+                for methodName, info in classInfo['methods'].iteritems():
+                    # don't rewrap if already herited from a base class that is not the apicls
+                    # _logger.debug("Checking method %s" % (methodName))
+
+                    try:
+                        basePymelName = info[0]['pymelName']
+                        self.removeAttrs.append(methodName)
+                    except KeyError:
+                        basePymelName = methodName
+                    pymelName, overrideData, renamed = factories._getApiOverrideNameAndData(
+                        self.classname, basePymelName)
+
+                    # if 'addAttribute' in (pymelName, basePymelName, methodName):
+                    #     print self.classname, pymelName, basePymelName, methodName, renamed, overrideData
+
+                    if not self.VALID_NAME.match(pymelName) or keyword.iskeyword(pymelName):
+                        print "Invalid name", self.classname, methodName, info
+                        continue
+
+                    overloadIndex = overrideData.get('overloadIndex', None)
+
+                    yieldTuple = (methodName, info, self.classname, pymelName,
+                                  overloadIndex)
+
+                    if overloadIndex is None:
+                        #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                        continue
+                    if not overrideData.get('enabled', True):
+                        #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
+                        # FIXME: add unique deprecation message
+                        if methodName in factories.EXCLUDE_METHODS:
+                            continue
+                        elif not self.methodIsEnabledOnChildren(pymelName):
+                            print self.classname, pymelName, "not on any children"
+                            continue
+                        else:
+                            print "Adding disabled as deprecated", self.classname, methodName, pymelName
+                            deprecated.append(yieldTuple)
+                    elif info[overloadIndex].get('deprecated', False):
+                        deprecated.append(yieldTuple)
+                    else:
+                        yield yieldTuple + (False,)
+
+                    if renamed:
+                        print "Adding renamed as deprecated", self.classname, methodName, pymelName
+                        # FIXME: previous versions of pymel erroneously included
+                        # renamed/remapped methods on child classes which possessed the same apicls as their parent.
+                        # We should include them as deprecated.
+                        deprecated.append(
+                            (methodName, info, self.classname,
+                             basePymelName, overloadIndex))
+
+                for yieldTuple in deprecated:
+                    yield yieldTuple + (True,)
+
+            for (methodName, info, classname, pymelName, overloadIndex, deprecated) \
+                    in non_deprecated_methods_first():
+                assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
+
+                # TODO: some methods are being wrapped for the base class,
+                # and all their children - ie, MFnTransform.transformation()
+                # gets wrapped for Transform, Place3dTexture,
+                # HikGroundPlane, etc...
+                # Figure out why this happens, and stop it!
+                if pymelName not in self.herited and not hasattr(self.existingClass, pymelName):
+                    if pymelName not in methods:
+                        #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
+                        doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
+                                            proxy=self.proxy, overloadIndex=overloadIndex,
+                                            deprecated=deprecated)
+                        if doc:
+                            methods[pymelName] = doc
+                        #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
+                    #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
+                #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
+
+            if 'pymelEnums' in classInfo:
+                # Enumerators
+
+                for enumName, enum in classInfo['pymelEnums'].items():
+                    attrs[enumName] = enum
+
+        return attrs, methods
+
+
+class ApiDataTypeGenerator(ApiMethodGenerator):
+    """
+    M* data classes
+    """
+
+    proxy = False
+
+    def getApiCls(self):
+        if self.existingClass is not None:
+            try:
+                return self.existingClass.__dict__['apicls']
+            except KeyError:
+                pass
+
+    def getTemplateData(self, attrs, methods):
+        # first populate API methods.  they take precedence.
+        attrs, methods = self.getAPIData(attrs, methods)
+        return attrs, methods
+
+    def getAPIData(self, attrs, methods):
+        """
+        Add methods from API functions
+        """
+        attrs, methods = super(ApiDataTypeGenerator, self).getAPIData(attrs, methods)
+
+        _logger.info("%s: removing attributes %s" % (self.classname, self.removeAttrs))
+
+        if self.apicls is None:
+            return attrs, methods
+
+        if self.removeAttrs:
+            # because datatype classes inherit from their API classes, if a
+            # method is renamed, we must also remove the inherited API method.
+            methods['__getattribute__'] = {
+                'type': 'getattribute',
+                'removeAttrs': _setRepr(self.removeAttrs),
+            }
+
+        if self._hasApiSetAttrBug(self.apicls):
+            # correct the setAttr bug by wrapping the api's
+            # __setattr__ to handle data descriptors...
+            origSetAttr = self.apicls.__setattr__
+            # in case we need to restore the original setattr later...
+            # ... as we do in a test for this bug!
+            self._originalApiSetAttrs[self.apicls] = origSetAttr
+
+            # FIXME:
+            raise RuntimeError(self.classname)
+
+            def apiSetAttrWrap(self, name, value):
+                if hasattr(self.__class__, name):
+                    if hasattr(getattr(self.__class__, name), '__set__'):
+                        # we've got a data descriptor with a __set__...
+                        # don't use the apicls's __setattr__
+                        return super(self.apicls, self).__setattr__(name, value)
+                return origSetAttr(self, name, value)
+            apicls.__setattr__ = apiSetAttrWrap
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
-            try:
-                # return MetaMayaTypeGenerator.ClassConstant(newcls(attr))
-                return ApiMethodGenerator.ClassConstant(attr)
-            except Exception, e:
-                _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
+            print "make constant", self.classname, self.existingClass, attr
+            return Literal('_f.ClassConstant(%r)' % list(attr))
 
-        #------------------------
+        # -----------------------
         # Class Constants
-        #------------------------
+        # -----------------------
+        # build some constants on the class
+        constant = {}
+        # constants in class definition will be converted from api class to created class
+        for name, attr in self.existingClass.__dict__.iteritems():
+            # to add the wrapped api class constants as attributes on the wrapping class,
+            # convert them to own class
+            if isinstance(attr, self.apicls):
+                if name not in constant:
+                    constant[name] = makeClassConstant(attr)
+        # we'll need the api class dict to automate some of the wrapping
+        # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping
+        # defining class properties on the created class
+        for name, attr in inspect.getmembers(self.apicls):
+            # to add the wrapped api class constants as attributes on the wrapping class,
+            # convert them to own class
+            if isinstance(attr, self.apicls):
+                if name not in constant:
+                    constant[name] = makeClassConstant(attr)
         # FIXME:
-        # if hasattr(newcls, 'apicls'):
-        #     # type (api type) used for the storage of data
-        #     apicls = newcls.apicls
-        #     if apicls is not None:
-        #         # build some constants on the class
-        #         constant = {}
-        #         # constants in class definition will be converted from api class to created class
-        #         for name, attr in newcls.__dict__.iteritems():
-        #             # to add the wrapped api class constants as attributes on the wrapping class,
-        #             # convert them to own class
-        #             if isinstance(attr, apicls):
-        #                 if name not in constant:
-        #                     constant[name] = makeClassConstant(attr)
-        #         # we'll need the api clas dict to automate some of the wrapping
-        #         # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping
-        #         apiDict = dict(inspect.getmembers(apicls))
-        #         # defining class properties on the created class
-        #         for name, attr in apiDict.iteritems():
-        #             # to add the wrapped api class constants as attributes on the wrapping class,
-        #             # convert them to own class
-        #             if isinstance(attr, apicls):
-        #                 if name not in constant:
-        #                     constant[name] = makeClassConstant(attr)
-        #         # update the constant dict with herited constants
-        #         mro = inspect.getmro(newcls)
-        #         for parentCls in mro:
-        #             if isinstance(parentCls, MetaMayaTypeGenerator):
-        #                 for name, attr in parentCls.__dict__.iteritems():
-        #                     if isinstance(attr, MetaMayaTypeGenerator.ClassConstant):
-        #                         if not name in constant:
-        #                             constant[name] = makeClassConstant(attr.value)
-        #
-        #         # store constants as class attributes
-        #         for name, attr in constant.iteritems():
-        #             type.__setattr__(newcls, name, attr)
-        #
-        #     # else :   raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
-        #
-        # if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
-        #     ApiTypeRegister.register(newcls.apicls.__name__, newcls)
+        # update the constant dict with herited constants
+        # mro = inspect.getmro(self.existingClass)
+        # for parentCls in mro:
+        #     if isinstance(parentCls, MetaMayaTypeGenerator):
+        #         for name, attr in parentCls.__dict__.iteritems():
+        #             if isinstance(attr, MetaMayaTypeGenerator.ClassConstant):
+        #                 if not name in constant:
+        #                     constant[name] = makeClassConstant(attr.value)
+
+        attrs.update(constant)
 
         return attrs, methods
 
@@ -1000,24 +1028,29 @@ class ApiMethodGenerator(MelMethodGenerator):
 
 
 class NodeTypeGenerator(ApiMethodGenerator):
+    """
+    MFn* classes which correspond to a node type
+    """
+
     def __init__(self, classname, existingClass, parentClasses,
                  parentMethods, parentApicls, childClasses=(), mayaType=None):
+        # mayaType must be set first
+        self.mayaType = mayaType
         super(NodeTypeGenerator, self).__init__(
             classname, existingClass, parentClasses, parentMethods,
             parentApicls, childClasses)
-        self.mayaType = mayaType
+
+    def getApiCls(self):
         if self.mayaType is not None:
-            self.apicls = factories.toApiFunctionSet(self.mayaType)
-        else:
-            self.apicls = None
+            return factories.toApiFunctionSet(self.mayaType)
 
-    def getTemplateData(self, attrs=None, methods=None):
-        if attrs is None:
-            attrs = {}
-        if methods is None:
-            methods = {}
+        return super(NodeTypeGenerator, self).getApiCls()
 
+    def getTemplateData(self, attrs, methods):
         attrs['__melnode__'] = self.mayaType
+
+        if self.apicls is not None and self.existingClass is not None:
+            self.setDefault('__apicls__', self.apicls, attrs)
 
         # FIXME:
         isVirtual = False
@@ -1100,12 +1133,12 @@ class NodeTypeGenerator(ApiMethodGenerator):
 
 
 class ApiTypeGenerator(ApiMethodGenerator):
-
-    def getTemplateData(self, attrs=None, methods=None):
-        if attrs is None:
-            attrs = {}
-        if methods is None:
-            methods = {}
+    """
+    MFn* classes which do not correspond to a node type
+    """
+    def getTemplateData(self, attrs, methods):
+        if self.apicls is not None and self.existingClass is not None:
+            self.setDefault('__apicls__', self.apicls, attrs)
 
         # first populate API methods.  they take precedence.
         attrs, methods = self.getAPIData(attrs, methods)
@@ -1118,12 +1151,7 @@ class UITypeGenerator(MelMethodGenerator):
     A metaclass for creating classes based on on a maya UI type/command.
     """
 
-    def getTemplateData(self, attrs=None, methods=None):
-        if attrs is None:
-            attrs = {}
-        if methods is None:
-            methods = {}
-
+    def getTemplateData(self, attrs, methods):
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         attrs.setdefault('__melui__', util.uncapitalize(self.classname))
@@ -1211,6 +1239,26 @@ def iterApiTypeText():
         yield text, template
 
 
+def iterApiDataTypeText():
+    import pymel.core.datatypes
+    # FIXME: handle herited methods
+    for name, obj in inspect.getmembers(pymel.core.datatypes):
+        # we check for type registry metaclass because some datatypes (Time, Distance)
+        # don't have a metaclass (and never did).  I'm not sure if that was a
+        # mistake, but adding the metaclass causes errors.
+        if (hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes'
+                and issubclass(getattr(obj, '__metaclass__', None), factories.MetaMayaTypeRegistry)):
+            cls = obj
+            parentMethods = set(methodNames(cls))
+            parentApicls = None
+            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
+            template = ApiDataTypeGenerator(
+                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+
+            text, methods = template.render()
+            yield text, template
+
+
 def iterPyNodeText():
     import pymel.core.general
 
@@ -1285,7 +1333,7 @@ def generateTypes(iterator, module, lines=None, suffix=None):
         with open(source) as f:
             lines = f.read().split('\n')
 
-    # tally of additions made in middle of codde
+    # tally of additions made in middle of code
     offsets = {}
 
     def computeOffset(start):
@@ -1339,8 +1387,9 @@ def generateAll():
         _resetModule('pymel.core.uitypes')
         _resetModule('pymel.core.windows')
 
-        nodeLines = _resetModule('pymel.core.nodetypes')
+        ntLines = _resetModule('pymel.core.nodetypes')
         uiLines = _resetModule('pymel.core.uitypes')
+        dtLines = _resetModule('pymel.core.datatypes')
 
         # Import to populate existing objects
         import pymel.core
@@ -1356,9 +1405,10 @@ def generateAll():
 
         generateUIFunctions()
 
-        generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', nodeLines, suffix='\n_addTypeNames()\n')
+        generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', ntLines, suffix='\n_addTypeNames()\n')
         generateTypes(iterUIText(), 'pymel.core.uitypes', uiLines, suffix='\n_addTypeNames()\n')
         generateTypes(iterApiTypeText(), 'pymel.core.general')
+        generateTypes(iterApiDataTypeText(), 'pymel.core.datatypes', dtLines)
 
         compileall.compile_dir(os.path.dirname(pymel.core.__file__),
                                force=True)

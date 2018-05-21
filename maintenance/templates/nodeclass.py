@@ -24,6 +24,11 @@ class {{ classname }}({{ parents }}):
         _f.handleCallbacks(args, kwargs, {{ callbackFlags }})
         {% endif %}
         return _f.asEdit(self, {{ method.func }}, kwargs, '{{ method.flag }}', val)
+    {% elif method.type == 'getattribute' %}
+    def __getattribute__(self, name):
+        if name in {{ method.removeAttrs }} and name not in _f.EXCLUDE_METHODS:  # tmp fix
+            raise AttributeError("'{{ classname }}' object has no attribute '" + name + "'")
+        return super({{ classname }}, self).__getattribute__(name)
     {% elif method.type == 'api' %}
     {% if method.classmethod %}
     @classmethod
