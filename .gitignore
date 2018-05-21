@@ -1,6 +1,11 @@
 *.pi
 *.pyc
+*.txt
+*.diff
+*.sublime-project
+*.sublime-workspace
 /.idea
+/.cache
 /.settings
 /.project
 /.pydevproject
