@@ -318,7 +318,7 @@ autoLayout.__doc__ = formLayout.__doc__
 
 
 def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
-                  overloadIndex=None, deprecated=False):
+                  overloadIndex=None, deprecated=False, aliases=()):
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
     no special API classes required.  Inputs go in the front door, and outputs come out the back door.
@@ -440,7 +440,8 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         'returnType': repr(convertTypeArg(returnType)) if returnType else None,
         'unitType': repr(str(unitType)) if unitType else None,
         'deprecated': deprecated,
-        'signature': signature
+        'signature': signature,
+        'aliases': aliases,
     }
 
     wrappedApiFunc.__name__ = newName
@@ -812,8 +813,8 @@ class ApiMethodGenerator(MelMethodGenerator):
 
                     overloadIndex = overrideData.get('overloadIndex', None)
 
-                    yieldTuple = (methodName, info, self.classname, pymelName,
-                                  overloadIndex)
+                    yieldTuple = (methodName, self.classname, pymelName,
+                                  overloadIndex, overrideData.get('aliases', []))
 
                     if overloadIndex is None:
                         #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
@@ -840,13 +841,13 @@ class ApiMethodGenerator(MelMethodGenerator):
                         # renamed/remapped methods on child classes which possessed the same apicls as their parent.
                         # We should include them as deprecated.
                         deprecated.append(
-                            (methodName, info, self.classname,
-                             basePymelName, overloadIndex))
+                            (methodName, self.classname,
+                             basePymelName, overloadIndex, []))
 
                 for yieldTuple in deprecated:
                     yield yieldTuple + (True,)
 
-            for (methodName, info, classname, pymelName, overloadIndex, deprecated) \
+            for (methodName, classname, pymelName, overloadIndex, aliases, deprecated) \
                     in non_deprecated_methods_first():
                 assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
 
@@ -860,7 +861,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                         #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                         doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
                                             proxy=self.proxy, overloadIndex=overloadIndex,
-                                            deprecated=deprecated)
+                                            deprecated=deprecated, aliases=aliases)
                         if doc:
                             methods[pymelName] = doc
                         #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))

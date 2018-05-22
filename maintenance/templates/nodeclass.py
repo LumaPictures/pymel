@@ -8,8 +8,8 @@ class {{ classname }}({{ parents }}):
 {% endif %}
 {% if methods %}
 
-  {% for method in methods %}
-    {% if method.type == 'query' %}
+ {% for method in methods %}
+  {% if method.type == 'query' %}
     @_f.addMelDocs('{{ method.command }}', '{{ method.flag }}')
     def {{ method.name }}(self, **kwargs):
         res = _f.asQuery(self, {{ method.func }}, kwargs, '{{ method.flag }}')
@@ -29,17 +29,17 @@ class {{ classname }}({{ parents }}):
         if name in {{ method.removeAttrs }} and name not in _f.EXCLUDE_METHODS:  # tmp fix
             raise AttributeError("'{{ classname }}' object has no attribute '" + name + "'")
         return super({{ classname }}, self).__getattribute__(name)
-    {% elif method.type == 'api' %}
-    {% if method.classmethod %}
+  {% elif method.type == 'api' %}
+   {% if method.classmethod %}
     @classmethod
-    {% endif %}
-    {% if method.deprecated %}
+   {% endif %}
+   {% if method.deprecated %}
     @_f.deprecated
-    {% else %}
+   {% else %}
     @_f.addApiDocs(_api.{{ method.apiClass }}, '{{ method.apiName }}')
-    {% endif %}
+   {% endif %}
     def {{ method.name }}({{ method.signature }}):
-    {% if method.argList %}
+   {% if method.argList %}
       {% if method.undoable %}
         do, final_do, outTypes = _f.processApiArgs([{{ method.inArgs }}], {{ method.argList }}, self.{{ method.getter }}, self.{{ method.name }}, {{ method.getterInArgs}})
       {% else %}
@@ -56,7 +56,7 @@ class {{ classname }}({{ parents }}):
         res = _f.ApiArgUtil._castResult(self, res, {{ method.returnType }}, {{ method.unitType }})
       {% endif %}
         return _f.processApiResult(res, {{ method.outArgs }}, outTypes, do)
-    {% else %}
+   {% else %}
       {% if method.undoable %}
         undoEnabled = cmds.undoInfo(q=1, state=1) and _f.apiUndo.cb_enabled
         if undoEnabled:
@@ -78,10 +78,13 @@ class {{ classname }}({{ parents }}):
       {% else %}
         return res
       {% endif %}
-    {% endif %}
-    {% endif %}
+   {% endif %}
+   {% for alias in method.aliases %}
+    {{ alias }} = {{ method.name }}
+   {% endfor %}
+  {% endif %}
 
-  {% endfor %}
+ {% endfor %}
 {% else %}
 
 {% endif %}

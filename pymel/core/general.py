@@ -3014,7 +3014,6 @@ class Attribute(PyNode):
 #        self.__dict__['_multiattrIndex'] = 0
 #
 
-    __getitem__ = _factories.wrapApiMethod(_api.MPlug, 'elementByLogicalIndex', '__getitem__')
     #elementByPhysicalIndex = _factories.wrapApiMethod( _api.MPlug, 'elementByPhysicalIndex' )
 
     def removeMultiInstance(self, index=None, break_=False):
@@ -3470,9 +3469,6 @@ class Attribute(PyNode):
         except RuntimeError:
             raise TypeError, "%s is not an array (multi) attribute" % self
 
-    item = _factories.wrapApiMethod(_api.MPlug, 'logicalIndex', 'item')
-    index = _factories.wrapApiMethod(_api.MPlug, 'logicalIndex', 'index')
-
     # enums
     getEnums = getEnums
     setEnums = setEnums
@@ -3480,9 +3476,6 @@ class Attribute(PyNode):
     # getting and setting
     set = setAttr
     get = getAttr
-
-    setKey = _factories.functionFactory(cmds.setKeyframe, rename='setKey')
-
 
 #----------------------
 # xxx{ Connections
@@ -3881,8 +3874,6 @@ class Attribute(PyNode):
 
     def indexMatters(self):
         return self.__apimattr__().indexMatters()
-
-    isMulti = _factories.wrapApiMethod(_api.MPlug, 'isArray', 'isMulti')
 
     def exists(self):
         """
@@ -4285,6 +4276,7 @@ class Attribute(PyNode):
         res = _f.getProxyResult(self, _api.MPlug, 'elementByLogicalIndex', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
         return _f.processApiResult(res, [], outTypes, do)
+    __getitem__ = elementByLogicalIndex
 
     @_f.addApiDocs(_api.MPlug, 'elementByPhysicalIndex')
     def elementByPhysicalIndex(self, index):
@@ -4325,6 +4317,7 @@ class Attribute(PyNode):
     def isArray(self):
         res = _f.getProxyResult(self, _api.MPlug, 'isArray')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+    isMulti = isArray
 
     @_f.addApiDocs(_api.MPlug, 'isCachingFlagSet')
     def isCaching(self):
@@ -4427,6 +4420,8 @@ class Attribute(PyNode):
     def logicalIndex(self):
         res = _f.getProxyResult(self, _api.MPlug, 'logicalIndex')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
+    item = logicalIndex
+    index = logicalIndex
 
     @_f.addApiDocs(_api.MPlug, 'numChildren')
     def numChildren(self):
