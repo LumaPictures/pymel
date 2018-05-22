@@ -1248,7 +1248,7 @@ def iterApiDataTypeText():
         # don't have a metaclass (and never did).  I'm not sure if that was a
         # mistake, but adding the metaclass causes errors.
         if (hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes'
-                and issubclass(getattr(obj, '__metaclass__', None), factories.MetaMayaTypeRegistry)):
+                and issubclass(getattr(obj, '__metaclass__', type), factories.MetaMayaTypeRegistry)):
             cls = obj
             parentMethods = set(methodNames(cls))
             parentApicls = None
