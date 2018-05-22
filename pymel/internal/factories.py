@@ -2447,7 +2447,63 @@ class ClassConstant(object):
         raise AttributeError("class constant cannot be deleted")
 
 
-class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
+class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
+
+    """
+    A metaclass for tracking pymel types.
+    """
+    def __new__(cls, classname, bases, classdict):
+        try:
+            apicls = classdict['apicls']
+            proxy = False
+        except KeyError:
+            try:
+                apicls = classdict['__apicls__']
+                proxy = True
+            except KeyError:
+                apicls = None
+                proxy = True
+
+        if not building:
+            # dataclasses multiply inherit their API class (but don't include
+            # then when we're building because the inherited methods will
+            # prevent overrides from being generated)
+            if not proxy and apicls is not None and apicls not in bases:
+                bases = bases + (apicls,)
+
+        newcls = super(MetaMayaTypeRegistry, cls).__new__(cls, classname, bases, classdict)
+
+        if apicls is not None and apicls.__name__ not in apiClassNamesToPyNodeNames:
+            #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
+            apiClassNamesToPyNodeNames[apicls.__name__] = classname
+            apiClassNamesToPymelTypes[apicls.__name__] = newcls
+
+        if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
+            ApiTypeRegister.register(newcls.apicls.__name__, newcls)
+
+        apienum = getattr(newcls, '_apienum__', None)
+
+        if apienum is not None:
+            if apienum not in apiEnumsToPyComponents:
+                apiEnumsToPyComponents[apienum] = [newcls]
+            else:
+                oldEntries = apiEnumsToPyComponents[apienum]
+
+                # if the apienum is already present, check if this class is a
+                # subclass of an already present class
+                newEntries = []
+                for oldEntry in oldEntries:
+                    for base in bases:
+                        if issubclass(base, oldEntry):
+                            break
+                    else:
+                        newEntries.append(oldEntry)
+                newEntries.append(newcls)
+                apiEnumsToPyComponents[apienum] = newEntries
+        return newcls
+
+
+class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
 
     """ A metaclass to wrap Maya api types, with support for class constants """
 
@@ -2500,9 +2556,6 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
                 apicls = None
 
         if apicls is not None:
-            if apicls.__name__ not in apiClassNamesToPyNodeNames:
-                #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
-                apiClassNamesToPyNodeNames[apicls.__name__] = classname
 
             if not proxy and apicls not in bases:
                 #_logger.debug("ADDING BASE %s" % classdict['apicls'])
@@ -2693,9 +2746,6 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
 
             # else :   raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
 
-        if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
-            ApiTypeRegister.register(newcls.apicls.__name__, newcls)
-
         return newcls
 
     @classmethod
@@ -2750,6 +2800,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
             # will behave the same way...
             break
         return False
+
 
 class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
@@ -3013,62 +3064,6 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
     @classmethod
     def getMelCmd(cls, classdict):
         return classdict['__melui__'], False
-
-
-class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
-
-    """
-    A metaclass for tracking pymel types.
-    """
-    def __new__(cls, classname, bases, classdict):
-        try:
-            apicls = classdict['apicls']
-            proxy = False
-        except KeyError:
-            try:
-                apicls = classdict['__apicls__']
-                proxy = True
-            except KeyError:
-                apicls = None
-                proxy = True
-
-        if not building:
-            # dataclasses multiply inherit their API class (but don't include
-            # then when we're building because the inherited methods will
-            # prevent overrides from being generated)
-            if not proxy and apicls is not None and apicls not in bases:
-                bases = bases + (apicls,)
-
-        newcls = super(MetaMayaTypeRegistry, cls).__new__(cls, classname, bases, classdict)
-
-        if apicls is not None and apicls.__name__ not in apiClassNamesToPyNodeNames:
-            #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
-            apiClassNamesToPyNodeNames[apicls.__name__] = classname
-            apiClassNamesToPymelTypes[apicls.__name__] = newcls
-
-        if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
-            ApiTypeRegister.register(newcls.apicls.__name__, newcls)
-
-        apienum = getattr(newcls, '_apienum__', None)
-
-        if apienum is not None:
-            if apienum not in apiEnumsToPyComponents:
-                apiEnumsToPyComponents[apienum] = [newcls]
-            else:
-                oldEntries = apiEnumsToPyComponents[apienum]
-
-                # if the apienum is already present, check if this class is a
-                # subclass of an already present class
-                newEntries = []
-                for oldEntry in oldEntries:
-                    for base in bases:
-                        if issubclass(base, oldEntry):
-                            break
-                    else:
-                        newEntries.append(oldEntry)
-                newEntries.append(newcls)
-                apiEnumsToPyComponents[apienum] = newEntries
-        return newcls
 
 
 def addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs=None):
