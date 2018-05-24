@@ -1156,7 +1156,6 @@ class ContainerBase(DependNode):
 class Entity(ContainerBase):
     pass
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnContainerNode
     __melnode__ = u'entity'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -2555,7 +2554,6 @@ class Shape(DagNode):
             kwargs['s'] = True
         super(Shape, self).setParent(*args, **kwargs)
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDagNode
     __melnode__ = u'shape'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -4786,7 +4784,6 @@ class DisplayLayer(DependNode):
     def setCurrent(self):
         cmds.editDisplayLayerMembers(currentDisplayLayer=self)
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDependencyNode
     __melnode__ = u'displayLayer'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -4812,7 +4809,6 @@ class Constraint(Transform):
         args = list(targetObjects) + [constraintObj]
         return inFunc(*args, **{'query': True, 'weight': True})
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnTransform
     __melnode__ = u'constraint'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -4828,7 +4824,6 @@ class GeometryShape(Shape):
             # print "getting super", attr
             return super(GeometryShape, self).__getattr__(attr)
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDagNode
     __melnode__ = u'geometryShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -4886,7 +4881,6 @@ class DeformableShape(GeometryShape):
             _numEPs_generatedFunc.__doc__ = doc
         return _numEPs_generatedFunc
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDagNode
     __melnode__ = u'deformableShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -4895,7 +4889,6 @@ class DeformableShape(GeometryShape):
 class ControlPoint(DeformableShape):
     pass
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDagNode
     __melnode__ = u'controlPoint'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -4904,7 +4897,6 @@ class ControlPoint(DeformableShape):
 class CurveShape(DeformableShape):
     pass
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDagNode
     __melnode__ = u'curveShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -5233,7 +5225,6 @@ if not _factories.building:
 class SurfaceShape(ControlPoint):
     pass
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDagNode
     __melnode__ = u'surfaceShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -8381,7 +8372,6 @@ class ShadingEngine(ObjectSet):
         else:
             return super(ShadingEngine, cls)._getApiObjs(item, tryCast=tryCast)
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnSet
     __melnode__ = u'shadingEngine'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -8407,7 +8397,6 @@ class AnimLayer(ObjectSet):
 
     getAttributes = getAttribute
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnSet
     __melcmd__ = staticmethod(animation.animLayer)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'animLayer'
@@ -10538,11 +10527,13 @@ class THskinCluster(SkinCluster):
     HistoryLocation = Enum('HistoryLocation', {'frontOfChain': 0, 'normal': 1, 'post': 2, 'other': 3})
     Origin = Enum('Origin', {'localOrigin': 0, 'worldOrigin': 1})
     TargetType = Enum('TargetType', {'object': 0, 'tangent': 1})
+    __apicls__ = _api.MFnBlendShapeDeformer
     __melnode__ = u'THskinCluster'
     __slots__ = ()
 
 
 class WeightGeometryFilter(GeometryFilter):
+    __apicls__ = _api.MFnWeightGeometryFilter
     __melnode__ = u'weightGeometryFilter'
     __slots__ = ()
 
@@ -10988,6 +10979,7 @@ class Tension(WeightGeometryFilter):
 
 
 class Ffd(WeightGeometryFilter):
+    __apicls__ = _api.MFnLatticeDeformer
     __melnode__ = u'ffd'
     __slots__ = ()
 
@@ -11044,6 +11036,7 @@ class ShrinkWrap(WeightGeometryFilter):
 
 
 class Wire(WeightGeometryFilter):
+    __apicls__ = _api.MFnWireDeformer
     __melcmd__ = staticmethod(animation.wire)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'wire'
@@ -11410,6 +11403,7 @@ class BlendShape(GeometryFilter):
     HistoryLocation = Enum('HistoryLocation', {'frontOfChain': 0, 'normal': 1, 'post': 2, 'other': 3})
     Origin = Enum('Origin', {'localOrigin': 0, 'worldOrigin': 1})
     TargetType = Enum('TargetType', {'object': 0, 'tangent': 1})
+    __apicls__ = _api.MFnBlendShapeDeformer
     __melcmd__ = staticmethod(animation.blendShape)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'blendShape'
@@ -11933,6 +11927,7 @@ class AISEnvFacade(EnvFacade):
 
 
 class ImageSource(DependNode):
+    __apicls__ = _api.MFnImageSource
     __melnode__ = u'imageSource'
     __slots__ = ()
 
@@ -11948,6 +11943,7 @@ class RenderTarget(ImageSource):
 
 
 class RenderPass(ImageSource):
+    __apicls__ = _api.MFnRenderPass
     __melnode__ = u'renderPass'
     __slots__ = ()
 
@@ -18159,6 +18155,7 @@ class SamplerInfo(ShadingDependNode):
 
 
 class LayeredShader(ShadingDependNode):
+    __apicls__ = _api.MFnLayeredShader
     __melnode__ = u'layeredShader'
     __slots__ = ()
 
@@ -18251,6 +18248,7 @@ class Place2dTexture(ShadingDependNode):
 
 
 class Lambert(ShadingDependNode):
+    __apicls__ = _api.MFnLambertShader
     __melnode__ = u'lambert'
     __slots__ = ()
 
@@ -18377,6 +18375,7 @@ class Lambert(ShadingDependNode):
 
 
 class Reflect(Lambert):
+    __apicls__ = _api.MFnReflectShader
     __melnode__ = u'reflect'
     __slots__ = ()
 
@@ -18426,6 +18425,7 @@ class Reflect(Lambert):
 
 
 class Phong(Reflect):
+    __apicls__ = _api.MFnPhongShader
     __melnode__ = u'phong'
     __slots__ = ()
 
@@ -18442,6 +18442,7 @@ class Phong(Reflect):
 
 
 class Blinn(Reflect):
+    __apicls__ = _api.MFnBlinnShader
     __melnode__ = u'blinn'
     __slots__ = ()
 
@@ -18469,6 +18470,7 @@ class Blinn(Reflect):
 
 
 class Anisotropic(Reflect):
+    __apicls__ = _api.MFnAnisotropyShader
     __melnode__ = u'anisotropic'
     __slots__ = ()
 
@@ -18551,6 +18553,7 @@ class Anisotropic(Reflect):
 
 
 class PhongE(Reflect):
+    __apicls__ = _api.MFnPhongEShader
     __melnode__ = u'phongE'
     __slots__ = ()
 
@@ -19054,6 +19057,7 @@ class AttrHierarchyTest(DependNode):
 
 
 class CameraSet(DependNode):
+    __apicls__ = _api.MFnCameraSet
     __melcmd__ = staticmethod(rendering.cameraSet)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'cameraSet'
@@ -19395,6 +19399,7 @@ class BaseLattice(Shape):
 
 
 class Light(Shape):
+    __apicls__ = _api.MFnLight
     __melnode__ = u'light'
     __slots__ = ()
 
@@ -19525,6 +19530,7 @@ class RenderLight(Light):
 
 
 class NonAmbientLightShapeNode(RenderLight):
+    __apicls__ = _api.MFnNonAmbientLight
     __melnode__ = u'nonAmbientLightShapeNode'
     __slots__ = ()
 
@@ -19541,6 +19547,7 @@ class NonAmbientLightShapeNode(RenderLight):
 
 
 class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
+    __apicls__ = _api.MFnNonExtendedLight
     __melnode__ = u'nonExtendedLightShapeNode'
     __slots__ = ()
 
@@ -19645,11 +19652,13 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
 
 
 class AreaLight(NonExtendedLightShapeNode):
+    __apicls__ = _api.MFnAreaLight
     __melnode__ = u'areaLight'
     __slots__ = ()
 
 
 class PointLight(NonExtendedLightShapeNode):
+    __apicls__ = _api.MFnPointLight
     __melcmd__ = staticmethod(rendering.pointLight)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'pointLight'
@@ -19714,6 +19723,7 @@ class PointLight(NonExtendedLightShapeNode):
 class VolumeLight(PointLight):
     MLightDirection = Enum('MLightDirection', {'outward': 0, 'inward': 1, 'downAxis': 2})
     MLightShape = Enum('MLightShape', {'boxVolume': 0, 'sphereVolume': 1, 'cylinderVolume': 2, 'coneVolume': 3})
+    __apicls__ = _api.MFnVolumeLight
     __melnode__ = u'volumeLight'
     __slots__ = ()
 
@@ -19787,6 +19797,7 @@ class VolumeLight(PointLight):
 class SpotLight(NonExtendedLightShapeNode):
     MBarnDoor = Enum('MBarnDoor', {'left': 0, 'right': 1, 'top': 2, 'bottom': 3})
     MDecayRegion = Enum('MDecayRegion', {'first': 0, 'second': 1, 'third': 2})
+    __apicls__ = _api.MFnSpotLight
     __melcmd__ = staticmethod(rendering.spotLight)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'spotLight'
@@ -19955,6 +19966,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
 
 class DirectionalLight(NonExtendedLightShapeNode):
+    __apicls__ = _api.MFnDirectionalLight
     __melcmd__ = staticmethod(rendering.directionalLight)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'directionalLight'
@@ -20015,6 +20027,7 @@ class DirectionalLight(NonExtendedLightShapeNode):
 
 
 class AmbientLight(RenderLight):
+    __apicls__ = _api.MFnAmbientLight
     __melcmd__ = staticmethod(rendering.ambientLight)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'ambientLight'
@@ -20208,6 +20221,7 @@ class FluidShape(SurfaceShape):
     FalloffMethod = Enum('FalloffMethod', {'noFalloffGrid': 0, 'staticFalloffGrid': 1})
     FluidGradient = Enum('FluidGradient', {'constant': 0, 'XGradient': 1, 'YGradient': 2, 'ZGradient': 3, 'negXGradient': 4, 'negYGradient': 5, 'negZGradient': 6, 'centerGradient': 7})
     FluidMethod = Enum('FluidMethod', {'zero': 0, 'staticGrid': 1, 'dynamicGrid': 2, 'gradient': 3})
+    __apicls__ = _api.MFnFluid
     __melnode__ = u'fluidShape'
     __slots__ = ()
 
@@ -21056,6 +21070,7 @@ class DeformSquash(DeformFunc):
 
 
 class PfxGeometry(Shape):
+    __apicls__ = _api.MFnPfxGeometry
     __melnode__ = u'pfxGeometry'
     __slots__ = ()
 
@@ -21230,6 +21245,7 @@ class DagContainer(Transform):
 
 
 class Assembly(DagContainer):
+    __apicls__ = _api.MFnAssembly
     __melcmd__ = staticmethod(general.assembly)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'assembly'
@@ -21401,6 +21417,7 @@ class LodGroup(Transform):
 
 
 class Instancer(Transform):
+    __apicls__ = _api.MFnInstancer
     __melcmd__ = staticmethod(general.instancer)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'instancer'
@@ -21520,6 +21537,7 @@ class THcustomTransform(Transform):
 
 
 class IkEffector(Transform):
+    __apicls__ = _api.MFnIkEffector
     __melnode__ = u'ikEffector'
     __slots__ = ()
 
@@ -21733,6 +21751,7 @@ class THdynEmitter(PointEmitter):
 
 
 class Field(DynBase):
+    __apicls__ = _api.MFnField
     __melnode__ = u'field'
     __slots__ = ()
 
@@ -21811,6 +21830,7 @@ class Field(DynBase):
 
 
 class VortexField(Field):
+    __apicls__ = _api.MFnVortexField
     __melcmd__ = staticmethod(effects.vortex)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'vortex'
@@ -21902,6 +21922,7 @@ class VortexField(Field):
 
 
 class VolumeAxisField(Field):
+    __apicls__ = _api.MFnVolumeAxisField
     __melcmd__ = staticmethod(effects.volumeAxis)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'volumeAxis'
@@ -22171,6 +22192,7 @@ class VolumeAxisField(Field):
 
 
 class NewtonField(Field):
+    __apicls__ = _api.MFnNewtonField
     __melnode__ = u'newtonField'
     __slots__ = ()
 
@@ -22187,6 +22209,7 @@ class NewtonField(Field):
 
 
 class GravityField(Field):
+    __apicls__ = _api.MFnGravityField
     __melcmd__ = staticmethod(effects.gravity)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'gravity'
@@ -22278,6 +22301,7 @@ class GravityField(Field):
 
 
 class UniformField(Field):
+    __apicls__ = _api.MFnUniformField
     __melcmd__ = staticmethod(effects.uniform)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'uniform'
@@ -22369,6 +22393,7 @@ class UniformField(Field):
 
 
 class AirField(Field):
+    __apicls__ = _api.MFnAirField
     __melcmd__ = staticmethod(effects.air)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'air'
@@ -22556,6 +22581,7 @@ class AirField(Field):
 
 
 class TurbulenceField(Field):
+    __apicls__ = _api.MFnTurbulenceField
     __melcmd__ = staticmethod(effects.turbulence)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'turbulence'
@@ -22677,6 +22703,7 @@ class TurbulenceField(Field):
 
 
 class RadialField(Field):
+    __apicls__ = _api.MFnRadialField
     __melnode__ = u'radialField'
     __slots__ = ()
 
@@ -22704,6 +22731,7 @@ class RadialField(Field):
 
 
 class DragField(Field):
+    __apicls__ = _api.MFnDragField
     __melcmd__ = staticmethod(effects.drag)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'drag'
@@ -22812,6 +22840,7 @@ class THdynField(Field):
 
 class IkHandle(Transform):
     Stickiness = Enum('Stickiness', {'stickyOff': 0, 'stickyOn': 1, 'superSticky': 2})
+    __apicls__ = _api.MFnIkHandle
     __melcmd__ = staticmethod(animation.ikHandle)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'ikHandle'
@@ -23550,6 +23579,7 @@ class ClipGhostShape(Transform):
 
 
 class HikEffector(Transform):
+    __apicls__ = _api.MFnHikEffector
     __melnode__ = u'hikEffector'
     __slots__ = ()
 
@@ -23723,6 +23753,7 @@ class TextureBakeSet(BakeSet):
 
 
 class Character(ObjectSet):
+    __apicls__ = _api.MFnCharacter
     __melcmd__ = staticmethod(animation.character)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'character'
@@ -23916,6 +23947,7 @@ class CreaseSet(ObjectSet):
 
 
 class Partition(Entity):
+    __apicls__ = _api.MFnPartition
     __melcmd__ = staticmethod(general.partition)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'partition'
@@ -24919,6 +24951,7 @@ class ViewColorManager(DependNode):
 
 
 class Reference(DependNode):
+    __apicls__ = _api.MFnReference
     __melcmd__ = staticmethod(system.reference)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'reference'
@@ -25274,6 +25307,7 @@ class ClientDevice(ThreadedDevice):
 
 class Expression(DependNode):
     UnitConversion = Enum('UnitConversion', {'all': 0, 'none': 1, 'angularOnly': 2})
+    __apicls__ = _api.MFnExpression
     __melcmd__ = staticmethod(effects.expression)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'expression'
@@ -25634,6 +25668,7 @@ class ProxyManager(DependNode):
 
 class MotionPath(DependNode):
     Axis = Enum('Axis', {'xaxis': 0, 'yaxis': 1, 'zaxis': 2})
+    __apicls__ = _api.MFnMotionPath
     __melnode__ = u'motionPath'
     __slots__ = ()
 
@@ -26134,6 +26169,7 @@ class SequenceManager(DependNode):
 
 
 class IkSolver(DependNode):
+    __apicls__ = _api.MFnIkSolver
     __melcmd__ = staticmethod(animation.ikSolver)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'ikSolver'
@@ -26222,6 +26258,7 @@ class DefaultLightList(DependNode):
 
 
 class AnimClip(DependNode):
+    __apicls__ = _api.MFnClip
     __melnode__ = u'animClip'
     __slots__ = ()
 

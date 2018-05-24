@@ -523,9 +523,7 @@ class MelMethodGenerator(object):
                 if inspect.ismethod(obj))
 
         def toStr(k, v):
-            if k == '__apicls__':
-                return '_api.' + v.__name__
-            elif k == '__melcmd__':
+            if k == '__melcmd__':
                 return 'staticmethod(%s)' % v
             else:
                 return repr(v)
@@ -1054,8 +1052,9 @@ class NodeTypeGenerator(ApiMethodGenerator):
     def getTemplateData(self, attrs, methods):
         attrs['__melnode__'] = self.mayaType
 
-        if self.apicls is not None and self.existingClass is not None:
-            self.setDefault('__apicls__', self.apicls, attrs)
+        if self.apicls is not None and self.apicls is not self.parentApicls:
+            self.setDefault('__apicls__',
+                            Literal('_api.' + self.apicls.__name__), attrs)
 
         # FIXME:
         isVirtual = False
@@ -1142,8 +1141,9 @@ class ApiTypeGenerator(ApiMethodGenerator):
     MFn* classes which do not correspond to a node type
     """
     def getTemplateData(self, attrs, methods):
-        if self.apicls is not None and self.existingClass is not None:
-            self.setDefault('__apicls__', self.apicls, attrs)
+        if self.apicls is not None and self.apicls is not self.parentApicls:
+            self.setDefault('__apicls__',
+                            Literal('_api.' + self.apicls.__name__), attrs)
 
         # first populate API methods.  they take precedence.
         attrs, methods = self.getAPIData(attrs, methods)
