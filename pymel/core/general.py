@@ -2960,6 +2960,7 @@ class Attribute(PyNode):
 
     """
     __apicls__ = _api.MPlug
+    __metaclass__ = _factories.MetaMayaTypeRegistry
     attrItemReg = re.compile('\[(\d+)\]$')
 
 #    def __init__(self, *args, **kwargs ):
@@ -7244,6 +7245,7 @@ class ParticleComponent(Component1D):
 
 class AttributeDefaults(PyNode):
     __apicls__ = _api.MFnAttribute
+    __metaclass__ = _factories.MetaMayaTypeRegistry
 
     def __apiobject__(self):
         "Return the default API object for this attribute, if it is valid"

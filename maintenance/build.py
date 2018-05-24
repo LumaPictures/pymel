@@ -5,6 +5,7 @@ import os.path
 import re
 import sys
 import types
+from collections import defaultdict
 
 from jinja2 import Environment, PackageLoader
 
@@ -512,7 +513,7 @@ class MelMethodGenerator(object):
     def render(self):
         attrs, methods = self.getTemplateData({}, {})
 
-        self.setDefault('__metaclass__', Literal('_f.MetaMayaTypeRegistry'), attrs)
+        # self.setDefault('__metaclass__', Literal('_f.MetaMayaTypeRegistry'), attrs)
 
         methodNames = set(methods)
         if self.existingClass:
@@ -711,10 +712,12 @@ class ApiMethodGenerator(MelMethodGenerator):
 
     def methodIsEnabledOnChildren(self, pymelName):
         """
-        previous versions of pymel erroneously included
-        disabled methods on child classes which possessed the same apicls as their parent.
+        previous versions of pymel erroneously included disabled methods on
+        child classes which possessed the same apicls as their parent.
         We will deprecate them in order to allow users to transition.
         """
+        enabled = []
+        # cycle through child classes and test overrides for this method
         for childClassName in self.childClasses:
             _, overrides, _ = factories._getApiOverrideNameAndData(
                 childClassName, pymelName)
@@ -723,8 +726,8 @@ class ApiMethodGenerator(MelMethodGenerator):
             elif not overrides.get('enabled', True):
                 continue
             # enabled!
-            return True
-        return False
+            enabled.append(childClassName)
+        return enabled
 
     def getApiCls(self):
         if self.existingClass is not None:
@@ -824,7 +827,8 @@ class ApiMethodGenerator(MelMethodGenerator):
                         # FIXME: add unique deprecation message
                         if methodName in factories.EXCLUDE_METHODS:
                             continue
-                        elif not self.methodIsEnabledOnChildren(pymelName):
+                        usedByChildren = self.methodIsEnabledOnChildren(pymelName)
+                        if not usedByChildren:
                             print self.classname, pymelName, "not on any children"
                             continue
                         else:
@@ -1208,14 +1212,13 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods,
                 return result
 
     parentPymelTypes = [getCachedPymelType(p) for p in parentMayaTypes]
+    childPymelTypes = [getCachedPymelType(c) for c in childMayaTypes]
     pyNodeTypeName = getPymelTypeName(mayaType)
     existingClass = getattr(nt, pyNodeTypeName, None)
-    if existingClass and hasattr(existingClass, '__metaclass__'):
-        return None
 
     return NodeTypeGenerator(pyNodeTypeName, existingClass,
-                         parentPymelTypes, parentMethods, parentApicls,
-                         childMayaTypes, mayaType)
+                             parentPymelTypes, parentMethods, parentApicls,
+                             childPymelTypes, mayaType)
 
 
 def iterApiTypeText():
@@ -1271,17 +1274,17 @@ def iterPyNodeText():
         'general.PyNode': None
     }
 
+    # the children in factories.nodeHierarchy is not complete, but the parents
+    # are.
+    realChildren = defaultdict(set)
     for mayaType, parents, children in factories.nodeHierarchy:
+        for parent in parents:
+            realChildren[parent].add(mayaType)
+
+    for mayaType, parents, _ in factories.nodeHierarchy:
+        children = realChildren[mayaType]
 
         if mayaType == 'dependNode':
-            # This seems like the more 'correct' way of doing it - only node types
-            # that are currently available have PyNodes created for them - but
-            # changing it so some PyNodes are no longer available until their
-            # plugin is loaded may create backwards incompatibility issues...
-            #        if (mayaType == 'dependNode'
-            #                or mayaType not in _factories.mayaTypesToApiTypes):
-            # FIXME: temporarily enabling dependNode
-            #continue
             parents = ['general.PyNode']
 
         parentMayaType = parents[0]
@@ -1380,7 +1383,23 @@ def generateTypes(iterator, module, lines=None, suffix=None):
 
 def generateAll():
     factories.building = True
+
     try:
+        # FIXME: save this into the caches
+        factories.apiToMelData[('DependNode', 'setName')] = {'enabled': True, 'overloadIndex': 0, 'useName': 'API'}
+        factories.apiToMelData[('DependNode', 'getName')] = {'enabled': True, 'overloadIndex': 0, 'useName': 'API'}
+        # this prevents NurbsCurve from growing a deprecated `cv` method
+        factories.apiToMelData[('BezierCurve', 'cv')] = {'enabled': False, 'overloadIndex': 0, 'useName': 'API'}
+
+        doc = factories.apiToMelData[('Attribute', 'logicalIndex')]
+        doc['aliases'] = ['item', 'index']
+
+        doc = factories.apiToMelData[('Attribute', 'elementByLogicalIndex')]
+        doc['aliases'] = ['__getitem__']
+
+        doc = factories.apiToMelData[('Attribute', 'isArray')]
+        doc['aliases'] = ['isMulti']
+
         # Reset modules, before import
         for module, _ in CORE_CMD_MODULES:
             _resetModule(module)

@@ -65,6 +65,8 @@ def _addTypeNames():
 
 class DependNode(general.PyNode):
     __apicls__ = _api.MFnDependencyNode
+    __metaclass__ = _factories.MetaMayaTypeRegistry
+
     #-------------------------------
     #    Name Info and Manipulation
     #-------------------------------
@@ -2309,6 +2311,11 @@ class DagNode(Entity):
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
+    def dagPath(self):
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'dagPath')
+        return _f.ApiArgUtil._castResult(self, res, 'MDagPath', None)
+
+    @_f.deprecated
     def dagRoot(self):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'dagRoot')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -2340,6 +2347,17 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'drawOverrideIsTemplate')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.deprecated
+    def fullPathName(self):
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'fullPathName')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
+
+    @_f.deprecated
+    def getAllPaths(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'getAllPaths', final_do)
+        return _f.processApiResult(res, ['paths'], outTypes, do)
+
     @_f.addApiDocs(_api.MFnDagNode, 'getConnectedSetsAndMembers')
     def getConnectedSetsAndMembers(self, instanceNumber, renderableSetsOnly):
         do, final_do, outTypes = _f.getDoArgs([instanceNumber, renderableSetsOnly], [('instanceNumber', 'uint', 'in', None), ('sets', 'MObjectArray', 'out', None), ('comps', 'MObjectArray', 'out', None), ('renderableSetsOnly', 'bool', 'in', None)])
@@ -2355,6 +2373,12 @@ class DagNode(Entity):
     def getObjectColorType(self):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'objectColorType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnDagNode', 'MObjectColorType'), None)
+
+    @_f.deprecated
+    def getPath(self):
+        do, final_do, outTypes = _f.getDoArgs([], [('path', 'MDagPath', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'getPath', final_do)
+        return _f.processApiResult(res, ['path'], outTypes, do)
 
     @_f.addApiDocs(_api.MFnDagNode, 'hiliteColor')
     def hiliteColor(self):
@@ -2390,6 +2414,13 @@ class DagNode(Entity):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, [], outTypes, do)
 
+    @_f.deprecated
+    def isInstancedAttribute(self, attribute):
+        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'isInstancedAttribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
     @_f.addApiDocs(_api.MFnDagNode, 'isIntermediateObject')
     def isIntermediate(self):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'isIntermediateObject')
@@ -2404,6 +2435,11 @@ class DagNode(Entity):
     def isUsingObjectColor(self):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'usingObjectColor')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.deprecated
+    def model(self):
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'model')
+        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'childCount')
     def numChildren(self):
@@ -2439,6 +2475,29 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'parentCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
+    @_f.deprecated
+    def partialPathName(self):
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'partialPathName')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
+
+    @_f.deprecated
+    def removeChild(self, child):
+        do, final_do, outTypes = _f.getDoArgs([child], [('child', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChild', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def removeChildAt(self, index):
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChildAt', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def setInstanceable(self, how):
+        do, final_do, outTypes = _f.processApiArgs([how], [('how', 'bool', 'in', None)], self.isInstanceable, self.setInstanceable, [])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'setInstanceable', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
     @_f.addApiDocs(_api.MFnDagNode, 'setIntermediateObject')
     def setIntermediate(self, isIntermediate):
         do, final_do, outTypes = _f.processApiArgs([isIntermediate], [('isIntermediate', 'bool', 'in', None)], self.isIntermediate, self.setIntermediate, [])
@@ -2449,6 +2508,12 @@ class DagNode(Entity):
     def setIntermediateObject(self, isIntermediate):
         do, final_do, outTypes = _f.processApiArgs([isIntermediate], [('isIntermediate', 'bool', 'in', None)], self.isIntermediate, self.setIntermediateObject, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setIntermediateObject', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def setObject(self, objectPath):
+        do, final_do, outTypes = _f.getDoArgs([objectPath], [('objectPath', 'MDagPath', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'setObject', final_do)
         return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MFnDagNode, 'setObjectColorType')
@@ -3213,6 +3278,12 @@ class Camera(Shape):
     def setNearClipPlane(self, dNear):
         do, final_do, outTypes = _f.processApiArgs([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClipPlane, self.setNearClipPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearClippingPlane', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def setNearFarClippingPlanes(self, dNear, dFar):
+        do, final_do, outTypes = _f.getDoArgs([dNear, dFar], [('dNear', 'double', 'in', u'linear'), ('dFar', 'double', 'in', u'linear')])
+        res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFarClippingPlanes', final_do)
         return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'setNearFocusDistance')
@@ -4026,6 +4097,12 @@ class Transform(DagNode):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotationOrder')
         return _f.ApiArgUtil._castResult(self, res, ('MTransformationMatrix', 'RotationOrder'), None)
 
+    @_f.deprecated
+    def getRotationQuaternion(self, space='transform'):
+        do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
+        return _f.processApiResult(res, ['x', 'y', 'z', 'w'], outTypes, do)
+
     @_f.addApiDocs(_api.MFnTransform, 'getScale')
     def getScale(self):
         do, final_do, outTypes = _f.getDoArgs([], [('scale', 'double__array3', 'out', None)])
@@ -4095,6 +4172,12 @@ class Transform(DagNode):
         return res
 
     @_f.deprecated
+    def rotateByQuaternion(self, x, y, z, w, space='transform'):
+        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
     def set(self, transform):
         do, final_do, outTypes = _f.processApiArgs([transform], [('transform', 'MTransformationMatrix', 'in', None)], self.getTransformation, self.set, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'set', final_do)
@@ -4126,10 +4209,22 @@ class Transform(DagNode):
     def setRotateAxis(self, val=True, **kwargs):
         return _f.asEdit(self, general.xform, kwargs, 'rotateAxis', val)
 
+    @_f.deprecated
+    def setRotateOrientation(self, quat, space, balance=True):
+        do, final_do, outTypes = _f.processApiArgs([quat, space, balance], [('quat', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotateOrientation, self.setRotateOrientation, ['space'])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotateOrientation', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
     @_f.addApiDocs(_api.MFnTransform, 'setRotationOrder')
     def setRotationOrder(self, order, reorder):
         do, final_do, outTypes = _f.processApiArgs([order, reorder], [('order', ('MTransformationMatrix', 'RotationOrder'), 'in', None), ('reorder', 'bool', 'in', None)], self.getRotationOrder, self.setRotationOrder, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationOrder', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def setRotationQuaternion(self, x, y, z, w, space='transform'):
+        do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MFnTransform, 'set')
@@ -8195,6 +8290,12 @@ class ObjectSet(Entity):
         res = _f.getProxyResult(self, _api.MFnSet, 'getUnion', final_do)
         return _f.processApiResult(res, ['result'], outTypes, do)
 
+    @_f.deprecated
+    def addMember(self, obj):
+        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnSet, 'addMember', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
     @_f.addApiDocs(_api.MFnSet, 'addMembers')
     def addMembers(self, list):
         do, final_do, outTypes = _f.getDoArgs([list], [('list', 'MSelectionList', 'in', None)])
@@ -8227,6 +8328,19 @@ class ObjectSet(Entity):
         do, final_do, outTypes = _f.getDoArgs([otherSet], [('otherSet', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'intersectsWith', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def isMember(self, object):
+        do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnSet, 'isMember', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def removeMember(self, obj):
+        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnSet, 'removeMember', final_do)
         return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MFnSet, 'removeMembers')
@@ -8615,10 +8729,37 @@ class AnimCurve(DependNode):
     __melnode__ = u'animCurve'
     __slots__ = ()
 
+    @_f.deprecated
+    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
+        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def addKeyframe(self, time, value, change=None):
+        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
     @_f.addApiDocs(_api.MFnAnimCurve, 'animCurveType')
     def animCurveType(self):
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'animCurveType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
+
+    @_f.deprecated
+    def evaluate(self, atTime):
+        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def findClosest(self, time):
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'inTangentType')
     def getInTangentType(self, index):
@@ -8799,6 +8940,20 @@ class AnimCurve(DependNode):
     def setWeightsLocked(self, index, locked, change=None):
         do, final_do, outTypes = _f.processApiArgs([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getWeightsLocked, self.setWeightsLocked, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeightsLocked', final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def timedAnimCurveTypeForPlug(self, plug):
+        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.deprecated
+    def unitlessAnimCurveTypeForPlug(self, plug):
+        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
         return _f.processApiResult(res, [], outTypes, do)
 # ------ Do not edit above this line --------
 
@@ -9256,30 +9411,6 @@ class HikHandle(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateOrientation', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
-        return _f.processApiResult(res, [], outTypes, do)
-
-    @_f.addApiDocs(_api.MFnTransform, 'getRotationQuaternion')
-    def getRotationQuaternion(self, space='transform'):
-        do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
-        return _f.processApiResult(res, ['x', 'y', 'z', 'w'], outTypes, do)
-
-    @_f.addApiDocs(_api.MFnTransform, 'rotateByQuaternion')
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return _f.processApiResult(res, [], outTypes, do)
-
-    @_f.addApiDocs(_api.MFnTransform, 'setRotateOrientation')
-    def setRotateOrientation(self, quat, space, balance=True):
-        do, final_do, outTypes = _f.processApiArgs([quat, space, balance], [('quat', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotateOrientation, self.setRotateOrientation, ['space'])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotateOrientation', final_do)
-        return _f.processApiResult(res, [], outTypes, do)
-
-    @_f.addApiDocs(_api.MFnTransform, 'setRotationQuaternion')
-    def setRotationQuaternion(self, x, y, z, w, space='transform'):
-        do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         return _f.processApiResult(res, [], outTypes, do)
 # ------ Do not edit above this line --------
 
@@ -21377,10 +21508,6 @@ class Instancer(Transform):
     @_f.addMelDocs('instancer', 'levelOfDetail')
     def setLevelOfDetail(self, val=True, **kwargs):
         return _f.asEdit(self, general.instancer, kwargs, 'levelOfDetail', val)
-
-    @_f.addMelDocs('instancer', 'object')
-    def setObject(self, val=True, **kwargs):
-        return _f.asEdit(self, general.instancer, kwargs, 'object', val)
 
     @_f.addMelDocs('instancer', 'rotationUnits')
     def setRotationUnits(self, val=True, **kwargs):

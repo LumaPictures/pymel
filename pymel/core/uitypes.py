@@ -1375,6 +1375,11 @@ class FormLayout(Layout):
         res = _f.asQuery(self, windows.formLayout, kwargs, 'numberOfPopupMenus')
         return res
 
+    @_f.addMelDocs('formLayout', 'parent')
+    def getParent(self, **kwargs):
+        res = _f.asQuery(self, windows.formLayout, kwargs, 'parent')
+        return res
+
     @_f.addMelDocs('formLayout', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.formLayout, kwargs, 'popupMenuArray')
@@ -2685,6 +2690,11 @@ class OptionMenuGrp(RowLayout):
         res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'numberOfPopupMenus')
         return res
 
+    @_f.addMelDocs('optionMenuGrp', 'parent')
+    def getParent(self, **kwargs):
+        res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'parent')
+        return res
+
     @_f.addMelDocs('optionMenuGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'popupMenuArray')
@@ -3364,6 +3374,11 @@ class FloatFieldGrp(PyUI):
         res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'numberOfPopupMenus')
         return res
 
+    @_f.addMelDocs('floatFieldGrp', 'parent')
+    def getParent(self, **kwargs):
+        res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'parent')
+        return res
+
     @_f.addMelDocs('floatFieldGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'popupMenuArray')
@@ -3768,6 +3783,11 @@ class TextFieldButtonGrp(PyUI):
     @_f.addMelDocs('textFieldButtonGrp', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'numberOfPopupMenus')
+        return res
+
+    @_f.addMelDocs('textFieldButtonGrp', 'parent')
+    def getParent(self, **kwargs):
+        res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('textFieldButtonGrp', 'placeholderText')
