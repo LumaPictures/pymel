@@ -734,6 +734,12 @@ class ApiMethodGenerator(MelMethodGenerator):
             except KeyError:
                 pass
 
+    def addEnums(self, classInfo, attrs):
+        if 'pymelEnums' in classInfo:
+            # Enumerators
+            for enumName, enum in classInfo['pymelEnums'].items():
+                attrs[enumName] = enum
+
     def getAPIData(self, attrs, methods):
         """
         Add methods from API functions
@@ -870,11 +876,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                     #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
                 #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
 
-            if 'pymelEnums' in classInfo:
-                # Enumerators
-
-                for enumName, enum in classInfo['pymelEnums'].items():
-                    attrs[enumName] = enum
+            self.addEnums(classInfo, attrs)
 
         return attrs, methods
 
@@ -1136,6 +1138,14 @@ class NodeTypeGenerator(ApiMethodGenerator):
         return nodeCmd, infoCmd
 
 
+class ApiUnitsGenerator(ApiDataTypeGenerator):
+
+    def getTemplateData(self, attrs, methods):
+        classInfo = factories.apiClassInfo[self.apicls.__name__]
+        self.addEnums(classInfo, attrs)
+        return attrs, methods
+
+
 class ApiTypeGenerator(ApiMethodGenerator):
     """
     MFn* classes which do not correspond to a node type
@@ -1250,17 +1260,27 @@ def iterApiDataTypeText():
         # we check for type registry metaclass because some datatypes (Time, Distance)
         # don't have a metaclass (and never did).  I'm not sure if that was a
         # mistake, but adding the metaclass causes errors.
-        if (hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes'
-                and issubclass(getattr(obj, '__metaclass__', type), factories.MetaMayaTypeRegistry)):
-            cls = obj
-            parentMethods = set(methodNames(cls))
-            parentApicls = None
-            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
-            template = ApiDataTypeGenerator(
-                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+        if hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes':
+            if issubclass(getattr(obj, '__metaclass__', type), factories.MetaMayaTypeRegistry):
+                cls = obj
+                parentMethods = set(methodNames(cls))
+                parentApicls = None
+                parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
+                template = ApiDataTypeGenerator(
+                    cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
 
-            text, methods = template.render()
-            yield text, template
+                text, methods = template.render()
+                yield text, template
+            elif issubclass(obj, pymel.core.datatypes.Unit):
+                cls = obj
+                parentMethods = set()
+                parentApicls = None
+                parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
+                template = ApiUnitsGenerator(
+                    cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+
+                text, methods = template.render()
+                yield text, template
 
 
 def iterPyNodeText():

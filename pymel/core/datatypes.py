@@ -2649,8 +2649,6 @@ class EulerRotation(Array):
     shape = (3,)
     cnames = ('x', 'y', 'z')
 
-    RotationOrder = _factories.apiClassInfo['MEulerRotation']['pymelEnums']['RotationOrder']
-
     def _getorder(self):
         return self.RotationOrder[self.apicls.__dict__['order'].__get__(self, self.apicls)]
 
@@ -3208,11 +3206,13 @@ class Unit(float):
 
 class Time(Unit):
     apicls = _api.MTime
-    Unit = _factories.apiClassInfo['MTime']['pymelEnums']['Unit']
 
     @classmethod
     def _inCast(cls, x):
         return cls(x)._data
+# ------ Do not edit below this line --------
+    Unit = Enum('Unit', {'invalid': 0, 'hours': 1, 'minutes': 2, 'seconds': 3, 'milliseconds': 4, 'k15FPS': 5, 'film': 6, 'k25FPS': 7, 'NTSCFrame': 8, 'k48FPS': 9, 'k50FPS': 10, 'NTSCField': 11, 'k2FPS': 12, 'k3FPS': 13, 'k4FPS': 14, 'k5FPS': 15, 'k6FPS': 16, 'k8FPS': 17, 'k10FPS': 18, 'k12FPS': 19, 'k16FPS': 20, 'k20FPS': 21, 'k40FPS': 22, 'k75FPS': 23, 'k80FPS': 24, 'k100FPS': 25, 'k120FPS': 26, 'k125FPS': 27, 'k150FPS': 28, 'k200FPS': 29, 'k240FPS': 30, 'k250FPS': 31, 'k300FPS': 32, 'k375FPS': 33, 'k400FPS': 34, 'k500FPS': 35, 'k600FPS': 36, 'k750FPS': 37, 'k1200FPS': 38, 'k1500FPS': 39, 'k2000FPS': 40, 'k3000FPS': 41, 'k6000FPS': 42, 'k23_976FPS': 43, 'k29_97FPS': 44, 'k29_97DF': 45, 'k47_952FPS': 46, 'k59_94FPS': 47, 'k44100FPS': 48, 'k48000FPS': 49, 'userDef': 50, 'last': 51})
+# ------ Do not edit above this line --------
 
 
 class Distance(Unit):
@@ -3287,7 +3287,6 @@ class Distance(Unit):
         'centimeters'
     """
     apicls = _api.MDistance
-    Unit = _factories.apiClassInfo['MDistance']['pymelEnums']['Unit']
 
     def asMillimeter(self):
         return self.asUnit('millimeter')
@@ -3316,11 +3315,13 @@ class Distance(Unit):
     @classmethod
     def _outCast(cls, instance, result):
         return cls(result, 'centimeters').asUIUnit()
+# ------ Do not edit below this line --------
+    Unit = Enum('Unit', {'inches': 1, 'feet': 2, 'yards': 3, 'miles': 4, 'millimeters': 5, 'centimeters': 6, 'kilometers': 7, 'meters': 8})
+# ------ Do not edit above this line --------
 
 
 class Angle(Unit):
     apicls = _api.MAngle
-    Unit = _factories.apiClassInfo['MAngle']['pymelEnums']['Unit']
 
     def asRadians(self):
         return self.asUnit('radians')
@@ -3337,6 +3338,9 @@ class Angle(Unit):
     @classmethod
     def _outCast(cls, instance, result):
         return cls(result, 'radians').asUIUnit()
+# ------ Do not edit below this line --------
+    Unit = Enum('Unit', {'invalid': 0, 'radians': 1, 'degrees': 2, 'angMinutes': 3, 'angSeconds': 4, 'last': 5})
+# ------ Do not edit above this line --------
 
 
 class BoundingBox(_api.MBoundingBox):
