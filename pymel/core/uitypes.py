@@ -1,3 +1,4 @@
+import os
 import sys
 import re
 import pymel.util as _util
@@ -239,7 +240,7 @@ if _versions.current() >= _versions.v2011:
         .. note:: Requires PySide
         """
         import maya.OpenMayaUI as mui
-   
+
         try:
             import shiboken2
             import PySide2.QtCore as qtcore
@@ -270,7 +271,7 @@ if _versions.current() >= _versions.v2011:
             import shiboken
             import PySide.QtCore as qtcore
             import PySide.QtGui as qtwidgets
-           
+
         ptr = mui.MQtUtil.findMenuItem(mayaName)
         if ptr is not None:
             return pysideWrapInstance(long(ptr), qtwidgets.QAction)
@@ -1157,6 +1158,8 @@ class AETemplate(object):
 dynModule = _util.LazyLoadModule(__name__, globals())
 
 def _createUIClasses():
+    immediate = bool(os.environ.get('PYMEL_NO_LAZY_TYPES', False))
+
     for funcName in _factories.uiClassList:
         # Create Class
         classname = _util.capitalize(funcName)
@@ -1169,7 +1172,12 @@ def _createUIClasses():
                 bases = (Panel,)
             else:
                 bases = (PyUI,)
-            dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}))
+            if immediate:
+                setattr(dynModule, classname,
+                        _factories.MetaMayaUIWrapper(classname, bases, {}))
+            else:
+                dynModule[classname] = (_factories.MetaMayaUIWrapper,
+                                        (classname, bases, {}))
 
 _createUIClasses()
 
