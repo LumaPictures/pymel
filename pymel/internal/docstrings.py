@@ -15,6 +15,7 @@ class DocstringBuilder(object):
 
     def __init__(self, cmdName, indentation='    '):
         import pymel.internal.factories
+        pymel.internal.factories.loadCmdCache()
         pymel.internal.factories.loadCmdDocCache()
         self.cmdName = cmdName
         self.cmdInfo = pymel.internal.factories.cmdlist[cmdName]

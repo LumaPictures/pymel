@@ -1403,6 +1403,7 @@ def generateTypes(iterator, module, lines=None, suffix=None):
 
 def generateAll():
     factories.building = True
+    factories.loadCmdCache()
 
     try:
         # FIXME: save this into the caches
