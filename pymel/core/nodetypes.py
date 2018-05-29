@@ -356,8 +356,6 @@ class DependNode(general.PyNode):
         except RuntimeError:
             return None
 
-    isReadOnly = _factories.wrapApiMethod(_api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly')
-
     def classification(self, **kwargs):
         'getClassification'
         return general.getClassification(self.type(), **kwargs)
@@ -1010,6 +1008,7 @@ class DependNode(general.PyNode):
     def isReferenced(self):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isFromReferencedFile')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+    isReadOnly = isReferenced
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isShared')
     def isShared(self):

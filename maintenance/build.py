@@ -1400,6 +1400,9 @@ def generateAll():
         doc = factories.apiToMelData[('Attribute', 'isArray')]
         doc['aliases'] = ['isMulti']
 
+        doc = factories.apiToMelData[('DependNode', 'isFromReferencedFile')]
+        doc['aliases'] = ['isReadOnly']
+
         # Reset modules, before import
         for module, _ in CORE_CMD_MODULES:
             _resetModule(module)
