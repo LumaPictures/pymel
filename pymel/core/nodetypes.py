@@ -2565,9 +2565,10 @@ class Shape(DagNode):
 
 class Camera(Shape):
     # FIXME: the functionFactory is causing these methods to have their docs doubled-up,  in both pymel.track, and pymel.Camera.track
-    orbit = _factories._addCmdDocs(cmds.orbit)
-    track = _factories._addCmdDocs(cmds.track)
-    tumble = _factories._addCmdDocs(cmds.tumble)
+    if not _factories.building:
+        orbit = rendering.orbit
+        track = rendering.track
+        tumble = rendering.tumble
 
     def applyBookmark(self, bookmark):
         kwargs = {}
@@ -4254,9 +4255,10 @@ class Transform(DagNode):
 
 
 class Joint(Transform):
-    connect = _factories._addCmdDocs(cmds.connectJoint)
-    disconnect = _factories._addCmdDocs(cmds.disconnectJoint)
-    insert = _factories._addCmdDocs(cmds.insertJoint)
+    if not _factories.building:
+        connect = animation.connectJoint
+        disconnect = animation.disconnectJoint
+        insert = animation.insertJoint
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnIkJoint
     __melcmd__ = staticmethod(animation.joint)
@@ -4646,12 +4648,13 @@ class Joint(Transform):
 
 if versions.isUnlimited():
     class FluidEmitter(Transform):
-        fluidVoxelInfo = _factories._addCmdDocs(cmds.fluidVoxelInfo)
-        loadFluid = _factories._addCmdDocs(cmds.loadFluid)
-        resampleFluid = _factories._addCmdDocs(cmds.resampleFluid)
-        saveFluid = _factories._addCmdDocs(cmds.saveFluid)
-        setFluidAttr = _factories._addCmdDocs(cmds.setFluidAttr)
-        getFluidAttr = _factories._addCmdDocs(cmds.getFluidAttr)
+        if not _factories.building:
+            fluidVoxelInfo = effects.fluidVoxelInfo
+            loadFluid = effects.loadFluid
+            resampleFluid = effects.resampleFluid
+            saveFluid = effects.saveFluid
+            setFluidAttr = effects.setFluidAttr
+            getFluidAttr = effects.getFluidAttr
 
 
 class RenderLayer(DependNode):
