@@ -3145,7 +3145,7 @@ class AETemplate(object):
 
 
 
-class FloatFieldGrp(PyUI):
+class FloatFieldGrp(Layout):
     pass
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(windows.floatFieldGrp)
@@ -3552,7 +3552,7 @@ class FloatFieldGrp(PyUI):
 # ------ Do not edit above this line --------
 
 
-class TextFieldButtonGrp(PyUI):
+class TextFieldButtonGrp(Layout):
     pass
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(windows.textFieldButtonGrp)
