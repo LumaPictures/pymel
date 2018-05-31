@@ -80,7 +80,7 @@ def _listRepr(s):
     return '[' + ', '.join([repr(s) for s in sorted(s)]) + ']'
 
 
-def functionTemplateFactory(funcName, returnFunc=None, module=None,
+def functionTemplateFactory(funcName, module, returnFunc=None,
                             rename=None, uiWidget=False):
     inFunc, funcName, customFunc = factories._getSourceFunction(funcName, module)
     if inFunc is None:
@@ -286,9 +286,9 @@ def generateFunctions(moduleName, returnFunc=None):
     new = ''
     for funcName in factories.moduleCmds[moduleShortName]:
         if funcName in factories.nodeCommandList:
-            new += functionTemplateFactory(funcName, returnFunc=returnFunc, module=module)
+            new += functionTemplateFactory(funcName, module, returnFunc=returnFunc)
         else:
-            new += functionTemplateFactory(funcName, returnFunc=None, module=module)
+            new += functionTemplateFactory(funcName, module, returnFunc=None)
     _writeToModule(new, module)
 
 
@@ -300,13 +300,13 @@ def generateUIFunctions():
     for funcName in factories.uiClassList:
         # Create Class
         classname = util.capitalize(funcName)
-        new += functionTemplateFactory(funcName,
+        new += functionTemplateFactory(funcName, module,
                                        returnFunc='uitypes.' + classname,
-                                       module=module, uiWidget=True)
+                                       uiWidget=True)
 
     nonClassFuncs = set(factories.moduleCmds[moduleShortName]).difference(factories.uiClassList)
     for funcName in nonClassFuncs:
-        new += functionTemplateFactory(funcName, returnFunc=None, module=module)
+        new += functionTemplateFactory(funcName, module, returnFunc=None)
 
     new += '''
 autoLayout.__doc__ = formLayout.__doc__
@@ -747,8 +747,6 @@ class ApiMethodGenerator(MelMethodGenerator):
 
         self.removeAttrs = []
 
-        self.setDefault('__slots__', (), attrs)
-
         _logger.info('%s: %s: %s' % (self.__class__, self.classname, self.apicls))
 
         if self.apicls is None:
@@ -897,6 +895,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
 
     def getTemplateData(self, attrs, methods):
         # first populate API methods.  they take precedence.
+        self.setDefault('__slots__', (), attrs)
         attrs, methods = self.getAPIData(attrs, methods)
         return attrs, methods
 
@@ -1052,6 +1051,8 @@ class NodeTypeGenerator(ApiMethodGenerator):
         return super(NodeTypeGenerator, self).getApiCls()
 
     def getTemplateData(self, attrs, methods):
+        self.setDefault('__slots__', (), attrs)
+
         attrs['__melnode__'] = self.mayaType
 
         if self.apicls is not None and self.apicls is not self.parentApicls:
@@ -1151,6 +1152,8 @@ class ApiTypeGenerator(ApiMethodGenerator):
     MFn* classes which do not correspond to a node type
     """
     def getTemplateData(self, attrs, methods):
+        self.setDefault('__slots__', (), attrs)
+
         if self.apicls is not None and self.apicls is not self.parentApicls:
             self.setDefault('__apicls__',
                             Literal('_api.' + self.apicls.__name__), attrs)
@@ -1167,6 +1170,7 @@ class UITypeGenerator(MelMethodGenerator):
     """
 
     def getTemplateData(self, attrs, methods):
+        self.setDefault('__slots__', (), attrs)
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         attrs.setdefault('__melui__', util.uncapitalize(self.classname))
@@ -1326,7 +1330,11 @@ def iterPyNodeText():
 def iterUIText():
     import pymel.core.uitypes
 
-    heritedMethods = {}
+    heritedMethods = {
+        'PyUI': set(methodNames(pymel.core.uitypes.PyUI)),
+        'Layout': set(methodNames(pymel.core.uitypes.Layout)),
+        'Panel': set(methodNames(pymel.core.uitypes.Panel)),
+    }
 
     for funcName in factories.uiClassList:
         # Create Class
@@ -1338,19 +1346,31 @@ def iterUIText():
         existingClass = getattr(pymel.core.uitypes, classname, None)
 
         if classname.endswith(('Layout', 'Grp')):
-            base = 'Layout'
+            parentType = 'Layout'
         elif classname.endswith('Panel'):
-            base = 'Panel'
+            parentType = 'Panel'
         else:
-            base = 'PyUI'
+            parentType = 'PyUI'
 
-        template = UITypeGenerator(classname, existingClass, [base], set())
-        text, methods = template.render()
-        yield text, template
-        # heritedMethods[mayaType] = parentMethods.union(methods)
+        parentMethods = heritedMethods[parentType]
+        template = UITypeGenerator(classname, existingClass, [parentType], parentMethods)
+        if template:
+            text, methods = template.render()
+            yield text, template
+            heritedMethods[classname] = parentMethods.union(methods)
 
 
 def generateTypes(iterator, module, lines=None, suffix=None):
+    """
+    Utility for append type templates below their class within a given module.
+
+    Parameters
+    ----------
+    iterator
+    module
+    lines
+    suffix
+    """
     source = _getModulePath(module)
 
     if lines is None:

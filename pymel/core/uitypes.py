@@ -478,8 +478,11 @@ class PyUI(unicode):
     def window(self):
         return Window(self.name().split('|')[0])
 
-    delete = _factories.functionFactory('deleteUI', rename='delete')
-    rename = _factories.functionFactory('renameUI', rename='rename')
+    # delete = _factories.functionFactory('deleteUI', rename='delete')
+    # rename = _factories.functionFactory('renameUI', rename='rename')
+    delete = _factories._addCmdDocs('deleteUI')
+    rename = _factories._addCmdDocs('renameUI')
+
     type = objectTypeUI
 
     @classmethod
@@ -496,6 +499,7 @@ class Panel(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'panel'
     __melui__ = 'panel'
+    __slots__ = ()
 
     @_f.addMelDocs('panel', 'copy')
     def copy(self, val=True, **kwargs):
@@ -697,6 +701,7 @@ class Layout(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'layout'
     __melui__ = 'layout'
+    __slots__ = ()
 
     @_f.addMelDocs('layout', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -769,11 +774,6 @@ class Layout(PyUI):
     @_f.addMelDocs('layout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.layout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('layout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.layout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('layout', 'popupMenuArray')
@@ -911,6 +911,7 @@ class Window(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'window'
     __melui__ = 'window'
+    __slots__ = ()
 
     @_f.addMelDocs('window', 'backgroundColor')
     def backgroundColor(self, val=True, **kwargs):
@@ -1288,6 +1289,7 @@ class FormLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'formLayout'
     __melui__ = 'formLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('formLayout', 'attachOppositeControl')
     def attachOppositeControl(self, val=True, **kwargs):
@@ -1373,11 +1375,6 @@ class FormLayout(Layout):
     @_f.addMelDocs('formLayout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.formLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('formLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.formLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('formLayout', 'popupMenuArray')
@@ -1486,6 +1483,7 @@ class RowLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'rowLayout'
     __melui__ = 'rowLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('rowLayout', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -1503,173 +1501,14 @@ class RowLayout(Layout):
     def columnWidth(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowLayout, kwargs, 'columnWidth', val)
 
-    @_f.addMelDocs('rowLayout', 'dragCallback')
-    def dragCallback(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'dragCallback', val)
-
-    @_f.addMelDocs('rowLayout', 'dropCallback')
-    def dropCallback(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'dropCallback', val)
-
-    @_f.addMelDocs('rowLayout', 'annotation')
-    def getAnnotation(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'annotation')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'backgroundColor')
-    def getBackgroundColor(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'backgroundColor')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'childArray')
-    def getChildArray(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'childArray')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'enable')
-    def getEnable(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'enable')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'enableBackground')
-    def getEnableBackground(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'enableBackground')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'fullPathName')
-    def getFullPathName(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'fullPathName')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'height')
-    def getHeight(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'height')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'highlightColor')
-    def getHighlightColor(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'highlightColor')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'isObscured')
-    def getIsObscured(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'isObscured')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'manage')
-    def getManage(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'manage')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'numberOfChildren')
-    def getNumberOfChildren(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'numberOfChildren')
-        return res
-
     @_f.addMelDocs('rowLayout', 'numberOfColumns')
     def getNumberOfColumns(self, **kwargs):
         res = _f.asQuery(self, windows.rowLayout, kwargs, 'numberOfColumns')
         return res
 
-    @_f.addMelDocs('rowLayout', 'numberOfPopupMenus')
-    def getNumberOfPopupMenus(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'parent')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'popupMenuArray')
-    def getPopupMenuArray(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'popupMenuArray')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'preventOverride')
-    def getPreventOverride(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'preventOverride')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'visible')
-    def getVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'visible')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'visibleChangeCommand')
-    def getVisibleChangeCommand(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'visibleChangeCommand')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'width')
-    def getWidth(self, **kwargs):
-        res = _f.asQuery(self, windows.rowLayout, kwargs, 'width')
-        return res
-
-    @_f.addMelDocs('rowLayout', 'noBackground')
-    def noBackground(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'noBackground', val)
-
     @_f.addMelDocs('rowLayout', 'rowAttach')
     def rowAttach(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowLayout, kwargs, 'rowAttach', val)
-
-    @_f.addMelDocs('rowLayout', 'annotation')
-    def setAnnotation(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'annotation', val)
-
-    @_f.addMelDocs('rowLayout', 'backgroundColor')
-    def setBackgroundColor(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'backgroundColor', val)
-
-    @_f.addMelDocs('rowLayout', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('rowLayout', 'enable')
-    def setEnable(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'enable', val)
-
-    @_f.addMelDocs('rowLayout', 'enableBackground')
-    def setEnableBackground(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'enableBackground', val)
-
-    @_f.addMelDocs('rowLayout', 'height')
-    def setHeight(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'height', val)
-
-    @_f.addMelDocs('rowLayout', 'highlightColor')
-    def setHighlightColor(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'highlightColor', val)
-
-    @_f.addMelDocs('rowLayout', 'manage')
-    def setManage(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'manage', val)
-
-    @_f.addMelDocs('rowLayout', 'preventOverride')
-    def setPreventOverride(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'preventOverride', val)
-
-    @_f.addMelDocs('rowLayout', 'visible')
-    def setVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'visible', val)
-
-    @_f.addMelDocs('rowLayout', 'visibleChangeCommand')
-    def setVisibleChangeCommand(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'visibleChangeCommand', val)
-
-    @_f.addMelDocs('rowLayout', 'width')
-    def setWidth(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'width', val)
-
-    @_f.addMelDocs('rowLayout', 'statusBarMessage')
-    def statusBarMessage(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowLayout, kwargs, 'statusBarMessage', val)
 # ------ Do not edit above this line --------
 
 
@@ -1700,6 +1539,7 @@ class TextScrollList(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'textScrollList'
     __melui__ = 'textScrollList'
+    __slots__ = ()
 
     @_f.addMelDocs('textScrollList', 'append')
     def append(self, val=True, **kwargs):
@@ -2024,6 +1864,7 @@ class Menu(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'menu'
     __melui__ = 'menu'
+    __slots__ = ()
 
     @_f.addMelDocs('menu', 'deleteAllItems')
     def deleteAllItems(self, val=True, **kwargs):
@@ -2151,6 +1992,7 @@ class PopupMenu(Menu):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'popupMenu'
     __melui__ = 'popupMenu'
+    __slots__ = ()
 
     @_f.addMelDocs('popupMenu', 'deleteAllItems')
     def deleteAllItems(self, val=True, **kwargs):
@@ -2245,6 +2087,7 @@ class OptionMenu(PopupMenu):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'optionMenu'
     __melui__ = 'optionMenu'
+    __slots__ = ()
 
     @_f.addMelDocs('optionMenu', 'beforeShowPopup')
     def beforeShowPopup(self, val=True, **kwargs):
@@ -2477,6 +2320,7 @@ class OptionMenuGrp(RowLayout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'optionMenuGrp'
     __melui__ = 'optionMenuGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('optionMenuGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -2688,11 +2532,6 @@ class OptionMenuGrp(RowLayout):
     @_f.addMelDocs('optionMenuGrp', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('optionMenuGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('optionMenuGrp', 'popupMenuArray')
@@ -3152,6 +2991,7 @@ class FloatFieldGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'floatFieldGrp'
     __melui__ = 'floatFieldGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('floatFieldGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -3374,11 +3214,6 @@ class FloatFieldGrp(Layout):
         res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('floatFieldGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('floatFieldGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'popupMenuArray')
@@ -3559,6 +3394,7 @@ class TextFieldButtonGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'textFieldButtonGrp'
     __melui__ = 'textFieldButtonGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('textFieldButtonGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -3785,11 +3621,6 @@ class TextFieldButtonGrp(Layout):
         res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('textFieldButtonGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('textFieldButtonGrp', 'placeholderText')
     def getPlaceholderText(self, **kwargs):
         res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'placeholderText')
@@ -3934,6 +3765,7 @@ class ProgressBar(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'progressBar'
     __melui__ = 'progressBar'
+    __slots__ = ()
 
     @_f.addMelDocs('progressBar', 'beginProgress')
     def beginProgress(self, val=True, **kwargs):
@@ -4285,6 +4117,7 @@ class AttrColorSliderGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attrColorSliderGrp'
     __melui__ = 'attrColorSliderGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('attrColorSliderGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -4489,11 +4322,6 @@ class AttrColorSliderGrp(Layout):
         res = _f.asQuery(self, windows.attrColorSliderGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('attrColorSliderGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.attrColorSliderGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('attrColorSliderGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.attrColorSliderGrp, kwargs, 'popupMenuArray')
@@ -4619,6 +4447,7 @@ class AttrControlGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attrControlGrp'
     __melui__ = 'attrControlGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('attrControlGrp', 'annotation')
     def getAnnotation(self, **kwargs):
@@ -4698,6 +4527,7 @@ class AttrEnumOptionMenu(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attrEnumOptionMenu'
     __melui__ = 'attrEnumOptionMenu'
+    __slots__ = ()
 
     @_f.addMelDocs('attrEnumOptionMenu', 'attribute')
     def attribute(self, val=True, **kwargs):
@@ -4773,11 +4603,6 @@ class AttrEnumOptionMenu(PyUI):
     @_f.addMelDocs('attrEnumOptionMenu', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.attrEnumOptionMenu, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('attrEnumOptionMenu', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.attrEnumOptionMenu, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('attrEnumOptionMenu', 'popupMenuArray')
@@ -4871,6 +4696,7 @@ class AttrEnumOptionMenuGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attrEnumOptionMenuGrp'
     __melui__ = 'attrEnumOptionMenuGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('attrEnumOptionMenuGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -5064,11 +4890,6 @@ class AttrEnumOptionMenuGrp(Layout):
         res = _f.asQuery(self, windows.attrEnumOptionMenuGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('attrEnumOptionMenuGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.attrEnumOptionMenuGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('attrEnumOptionMenuGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.attrEnumOptionMenuGrp, kwargs, 'popupMenuArray')
@@ -5164,6 +4985,7 @@ class AttrFieldGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attrFieldGrp'
     __melui__ = 'attrFieldGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('attrFieldGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -5386,11 +5208,6 @@ class AttrFieldGrp(Layout):
         res = _f.asQuery(self, windows.attrFieldGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('attrFieldGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.attrFieldGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('attrFieldGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.attrFieldGrp, kwargs, 'popupMenuArray')
@@ -5519,6 +5336,7 @@ class AttrFieldSliderGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attrFieldSliderGrp'
     __melui__ = 'attrFieldSliderGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('attrFieldSliderGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -5751,11 +5569,6 @@ class AttrFieldSliderGrp(Layout):
         res = _f.asQuery(self, windows.attrFieldSliderGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('attrFieldSliderGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.attrFieldSliderGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('attrFieldSliderGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.attrFieldSliderGrp, kwargs, 'popupMenuArray')
@@ -5924,6 +5737,7 @@ class AttrNavigationControlGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attrNavigationControlGrp'
     __melui__ = 'attrNavigationControlGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('attrNavigationControlGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -6172,11 +5986,6 @@ class AttrNavigationControlGrp(Layout):
         res = _f.asQuery(self, windows.attrNavigationControlGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('attrNavigationControlGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.attrNavigationControlGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('attrNavigationControlGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.attrNavigationControlGrp, kwargs, 'popupMenuArray')
@@ -6342,6 +6151,7 @@ class AttributeMenu(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'attributeMenu'
     __melui__ = 'attributeMenu'
+    __slots__ = ()
 
 
 class ColorIndexSliderGrp(Layout):
@@ -6349,6 +6159,7 @@ class ColorIndexSliderGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'colorIndexSliderGrp'
     __melui__ = 'colorIndexSliderGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('colorIndexSliderGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -6571,11 +6382,6 @@ class ColorIndexSliderGrp(Layout):
         res = _f.asQuery(self, windows.colorIndexSliderGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('colorIndexSliderGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.colorIndexSliderGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('colorIndexSliderGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.colorIndexSliderGrp, kwargs, 'popupMenuArray')
@@ -6700,6 +6506,7 @@ class ColorSliderButtonGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'colorSliderButtonGrp'
     __melui__ = 'colorSliderButtonGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('colorSliderButtonGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -6921,11 +6728,6 @@ class ColorSliderButtonGrp(Layout):
         res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('colorSliderButtonGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('colorSliderButtonGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'popupMenuArray')
@@ -7059,6 +6861,7 @@ class ColorSliderGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'colorSliderGrp'
     __melui__ = 'colorSliderGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('colorSliderGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -7266,11 +7069,6 @@ class ColorSliderGrp(Layout):
         res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('colorSliderGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('colorSliderGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'popupMenuArray')
@@ -7383,6 +7181,7 @@ class ColumnLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'columnLayout'
     __melui__ = 'columnLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('columnLayout', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -7476,11 +7275,6 @@ class ColumnLayout(Layout):
     @_f.addMelDocs('columnLayout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.columnLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('columnLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.columnLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('columnLayout', 'popupMenuArray')
@@ -7583,6 +7377,7 @@ class ColorEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'colorEditor'
     __melui__ = 'colorEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('colorEditor', 'alpha')
     def getAlpha(self, **kwargs):
@@ -7610,6 +7405,7 @@ class FloatField(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'floatField'
     __melui__ = 'floatField'
+    __slots__ = ()
 
     @_f.addMelDocs('floatField', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -7699,11 +7495,6 @@ class FloatField(PyUI):
     @_f.addMelDocs('floatField', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.floatField, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('floatField', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.floatField, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('floatField', 'popupMenuArray')
@@ -7845,6 +7636,7 @@ class FloatScrollBar(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'floatScrollBar'
     __melui__ = 'floatScrollBar'
+    __slots__ = ()
 
     @_f.addMelDocs('floatScrollBar', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -7935,11 +7727,6 @@ class FloatScrollBar(PyUI):
     @_f.addMelDocs('floatScrollBar', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.floatScrollBar, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('floatScrollBar', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.floatScrollBar, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('floatScrollBar', 'popupMenuArray')
@@ -8059,6 +7846,7 @@ class FloatSlider(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'floatSlider'
     __melui__ = 'floatSlider'
+    __slots__ = ()
 
     @_f.addMelDocs('floatSlider', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -8144,11 +7932,6 @@ class FloatSlider(PyUI):
     @_f.addMelDocs('floatSlider', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.floatSlider, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('floatSlider', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.floatSlider, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('floatSlider', 'popupMenuArray')
@@ -8264,6 +8047,7 @@ class FloatSlider2(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'floatSlider2'
     __melui__ = 'floatSlider2'
+    __slots__ = ()
 
     @_f.addMelDocs('floatSlider2', 'changeCommand1')
     def changeCommand1(self, val=True, **kwargs):
@@ -8344,11 +8128,6 @@ class FloatSlider2(PyUI):
     @_f.addMelDocs('floatSlider2', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.floatSlider2, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('floatSlider2', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.floatSlider2, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('floatSlider2', 'polarity')
@@ -8485,6 +8264,7 @@ class FloatSliderButtonGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'floatSliderButtonGrp'
     __melui__ = 'floatSliderButtonGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('floatSliderButtonGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -8726,11 +8506,6 @@ class FloatSliderButtonGrp(Layout):
         res = _f.asQuery(self, windows.floatSliderButtonGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('floatSliderButtonGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.floatSliderButtonGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('floatSliderButtonGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.floatSliderButtonGrp, kwargs, 'popupMenuArray')
@@ -8902,6 +8677,7 @@ class FloatSliderGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'floatSliderGrp'
     __melui__ = 'floatSliderGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('floatSliderGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -9129,11 +8905,6 @@ class FloatSliderGrp(Layout):
         res = _f.asQuery(self, windows.floatSliderGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('floatSliderGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.floatSliderGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('floatSliderGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.floatSliderGrp, kwargs, 'popupMenuArray')
@@ -9284,6 +9055,7 @@ class FrameLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'frameLayout'
     __melui__ = 'frameLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('frameLayout', 'collapseCommand')
     def collapseCommand(self, val=True, **kwargs):
@@ -9429,11 +9201,6 @@ class FrameLayout(Layout):
     @_f.addMelDocs('frameLayout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.frameLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('frameLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.frameLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('frameLayout', 'popupMenuArray')
@@ -9583,6 +9350,7 @@ class IconTextButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'iconTextButton'
     __melui__ = 'iconTextButton'
+    __slots__ = ()
 
     @_f.addMelDocs('iconTextButton', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -9755,11 +9523,6 @@ class IconTextButton(PyUI):
     @_f.addMelDocs('iconTextButton', 'overlayLabelColor')
     def getOverlayLabelColor(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextButton, kwargs, 'overlayLabelColor')
-        return res
-
-    @_f.addMelDocs('iconTextButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.iconTextButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('iconTextButton', 'popupMenuArray')
@@ -10003,6 +9766,7 @@ class IconTextCheckBox(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'iconTextCheckBox'
     __melui__ = 'iconTextCheckBox'
+    __slots__ = ()
 
     @_f.addMelDocs('iconTextCheckBox', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -10175,11 +9939,6 @@ class IconTextCheckBox(PyUI):
     @_f.addMelDocs('iconTextCheckBox', 'overlayLabelColor')
     def getOverlayLabelColor(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextCheckBox, kwargs, 'overlayLabelColor')
-        return res
-
-    @_f.addMelDocs('iconTextCheckBox', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.iconTextCheckBox, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('iconTextCheckBox', 'popupMenuArray')
@@ -10420,6 +10179,7 @@ class IconTextRadioButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'iconTextRadioButton'
     __melui__ = 'iconTextRadioButton'
+    __slots__ = ()
 
     @_f.addMelDocs('iconTextRadioButton', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -10592,11 +10352,6 @@ class IconTextRadioButton(PyUI):
     @_f.addMelDocs('iconTextRadioButton', 'overlayLabelColor')
     def getOverlayLabelColor(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextRadioButton, kwargs, 'overlayLabelColor')
-        return res
-
-    @_f.addMelDocs('iconTextRadioButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.iconTextRadioButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('iconTextRadioButton', 'popupMenuArray')
@@ -10837,6 +10592,7 @@ class IconTextRadioCollection(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'iconTextRadioCollection'
     __melui__ = 'iconTextRadioCollection'
+    __slots__ = ()
 
     @_f.addMelDocs('iconTextRadioCollection', 'disableCommands')
     def disableCommands(self, val=True, **kwargs):
@@ -10872,6 +10628,7 @@ class IconTextScrollList(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'iconTextScrollList'
     __melui__ = 'iconTextScrollList'
+    __slots__ = ()
 
     @_f.addMelDocs('iconTextScrollList', 'append')
     def append(self, val=True, **kwargs):
@@ -10986,11 +10743,6 @@ class IconTextScrollList(PyUI):
     @_f.addMelDocs('iconTextScrollList', 'numberOfRows')
     def getNumberOfRows(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextScrollList, kwargs, 'numberOfRows')
-        return res
-
-    @_f.addMelDocs('iconTextScrollList', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.iconTextScrollList, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('iconTextScrollList', 'popupMenuArray')
@@ -11119,6 +10871,7 @@ class IconTextStaticLabel(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'iconTextStaticLabel'
     __melui__ = 'iconTextStaticLabel'
+    __slots__ = ()
 
     @_f.addMelDocs('iconTextStaticLabel', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -11266,11 +11019,6 @@ class IconTextStaticLabel(PyUI):
     @_f.addMelDocs('iconTextStaticLabel', 'overlayLabelColor')
     def getOverlayLabelColor(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextStaticLabel, kwargs, 'overlayLabelColor')
-        return res
-
-    @_f.addMelDocs('iconTextStaticLabel', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.iconTextStaticLabel, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('iconTextStaticLabel', 'popupMenuArray')
@@ -11464,6 +11212,7 @@ class IntField(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'intField'
     __melui__ = 'intField'
+    __slots__ = ()
 
     @_f.addMelDocs('intField', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -11553,11 +11302,6 @@ class IntField(PyUI):
     @_f.addMelDocs('intField', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.intField, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('intField', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.intField, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('intField', 'popupMenuArray')
@@ -11681,6 +11425,7 @@ class IntFieldGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'intFieldGrp'
     __melui__ = 'intFieldGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('intFieldGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -11903,11 +11648,6 @@ class IntFieldGrp(Layout):
         res = _f.asQuery(self, windows.intFieldGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('intFieldGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.intFieldGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('intFieldGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.intFieldGrp, kwargs, 'popupMenuArray')
@@ -12068,6 +11808,7 @@ class IntScrollBar(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'intScrollBar'
     __melui__ = 'intScrollBar'
+    __slots__ = ()
 
     @_f.addMelDocs('intScrollBar', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -12158,11 +11899,6 @@ class IntScrollBar(PyUI):
     @_f.addMelDocs('intScrollBar', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.intScrollBar, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('intScrollBar', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.intScrollBar, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('intScrollBar', 'popupMenuArray')
@@ -12282,6 +12018,7 @@ class IntSlider(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'intSlider'
     __melui__ = 'intSlider'
+    __slots__ = ()
 
     @_f.addMelDocs('intSlider', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -12367,11 +12104,6 @@ class IntSlider(PyUI):
     @_f.addMelDocs('intSlider', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.intSlider, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('intSlider', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.intSlider, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('intSlider', 'popupMenuArray')
@@ -12487,6 +12219,7 @@ class IntSliderGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'intSliderGrp'
     __melui__ = 'intSliderGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('intSliderGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -12714,11 +12447,6 @@ class IntSliderGrp(Layout):
         res = _f.asQuery(self, windows.intSliderGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('intSliderGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.intSliderGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('intSliderGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.intSliderGrp, kwargs, 'popupMenuArray')
@@ -12865,6 +12593,7 @@ class PaneLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'paneLayout'
     __melui__ = 'paneLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('paneLayout', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -12992,11 +12721,6 @@ class PaneLayout(Layout):
     @_f.addMelDocs('paneLayout', 'paneUnderPointer')
     def getPaneUnderPointer(self, **kwargs):
         res = _f.asQuery(self, windows.paneLayout, kwargs, 'paneUnderPointer')
-        return res
-
-    @_f.addMelDocs('paneLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.paneLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('paneLayout', 'popupMenuArray')
@@ -13131,6 +12855,7 @@ class RadioButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'radioButton'
     __melui__ = 'radioButton'
+    __slots__ = ()
 
     @_f.addMelDocs('radioButton', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -13217,11 +12942,6 @@ class RadioButton(PyUI):
     @_f.addMelDocs('radioButton', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.radioButton, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('radioButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.radioButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('radioButton', 'popupMenuArray')
@@ -13353,6 +13073,7 @@ class RadioButtonGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'radioButtonGrp'
     __melui__ = 'radioButtonGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('radioButtonGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -13667,11 +13388,6 @@ class RadioButtonGrp(Layout):
         res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('radioButtonGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('radioButtonGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'popupMenuArray')
@@ -13905,6 +13621,7 @@ class RadioCollection(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'radioCollection'
     __melui__ = 'radioCollection'
+    __slots__ = ()
 
     @_f.addMelDocs('radioCollection', 'collectionItemArray')
     def getCollectionItemArray(self, **kwargs):
@@ -13936,6 +13653,7 @@ class RadioMenuItemCollection(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'radioMenuItemCollection'
     __melui__ = 'radioMenuItemCollection'
+    __slots__ = ()
 
     @_f.addMelDocs('radioMenuItemCollection', 'gl')
     def getGl(self, **kwargs):
@@ -13948,6 +13666,7 @@ class SymbolButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'symbolButton'
     __melui__ = 'symbolButton'
+    __slots__ = ()
 
     @_f.addMelDocs('symbolButton', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -14020,11 +13739,6 @@ class SymbolButton(PyUI):
     @_f.addMelDocs('symbolButton', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.symbolButton, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('symbolButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.symbolButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('symbolButton', 'popupMenuArray')
@@ -14122,6 +13836,7 @@ class SymbolCheckBox(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'symbolCheckBox'
     __melui__ = 'symbolCheckBox'
+    __slots__ = ()
 
     @_f.addMelDocs('symbolCheckBox', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -14223,11 +13938,6 @@ class SymbolCheckBox(PyUI):
     @_f.addMelDocs('symbolCheckBox', 'onImage')
     def getOnImage(self, **kwargs):
         res = _f.asQuery(self, windows.symbolCheckBox, kwargs, 'onImage')
-        return res
-
-    @_f.addMelDocs('symbolCheckBox', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.symbolCheckBox, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('symbolCheckBox', 'popupMenuArray')
@@ -14371,6 +14081,7 @@ class TextCurves(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'textCurves'
     __melui__ = 'textCurves'
+    __slots__ = ()
 
 
 class TextField(PyUI):
@@ -14378,6 +14089,7 @@ class TextField(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'textField'
     __melui__ = 'textField'
+    __slots__ = ()
 
     @_f.addMelDocs('textField', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -14493,11 +14205,6 @@ class TextField(PyUI):
     @_f.addMelDocs('textField', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.textField, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('textField', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.textField, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('textField', 'placeholderText')
@@ -14653,6 +14360,7 @@ class TextFieldGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'textFieldGrp'
     __melui__ = 'textFieldGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('textFieldGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -14865,11 +14573,6 @@ class TextFieldGrp(Layout):
         res = _f.asQuery(self, windows.textFieldGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('textFieldGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.textFieldGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('textFieldGrp', 'placeholderText')
     def getPlaceholderText(self, **kwargs):
         res = _f.asQuery(self, windows.textFieldGrp, kwargs, 'placeholderText')
@@ -15003,6 +14706,7 @@ class Text(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'text'
     __melui__ = 'text'
+    __slots__ = ()
 
     @_f.addMelDocs('text', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -15089,11 +14793,6 @@ class Text(PyUI):
     @_f.addMelDocs('text', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.text, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('text', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.text, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('text', 'popupMenuArray')
@@ -15213,6 +14912,7 @@ class ToolButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'toolButton'
     __melui__ = 'toolButton'
+    __slots__ = ()
 
     @_f.addMelDocs('toolButton', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -15317,11 +15017,6 @@ class ToolButton(PyUI):
     @_f.addMelDocs('toolButton', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.toolButton, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('toolButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.toolButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('toolButton', 'popupIndicatorVisible')
@@ -15511,6 +15206,7 @@ class ToolCollection(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'toolCollection'
     __melui__ = 'toolCollection'
+    __slots__ = ()
 
     @_f.addMelDocs('toolCollection', 'collectionItemArray')
     def getCollectionItemArray(self, **kwargs):
@@ -15542,6 +15238,7 @@ class BlendShapeEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'blendShapeEditor'
     __melui__ = 'blendShapeEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('blendShapeEditor', 'control')
     def getControl(self, **kwargs):
@@ -15576,11 +15273,6 @@ class BlendShapeEditor(PyUI):
     @_f.addMelDocs('blendShapeEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, animation.blendShapeEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('blendShapeEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapeEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('blendShapeEditor', 'selectionConnection')
@@ -15662,112 +15354,12 @@ class BlendShapePanel(Panel):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'blendShapePanel'
     __melui__ = 'blendShapePanel'
-
-    @_f.addMelDocs('blendShapePanel', 'copy')
-    def copy(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'copy', val)
-
-    @_f.addMelDocs('blendShapePanel', 'createString')
-    def createString(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'createString', val)
-
-    @_f.addMelDocs('blendShapePanel', 'editString')
-    def editString(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'editString', val)
+    __slots__ = ()
 
     @_f.addMelDocs('blendShapePanel', 'blendShapeEditor')
     def getBlendShapeEditor(self, **kwargs):
         res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'blendShapeEditor')
         return res
-
-    @_f.addMelDocs('blendShapePanel', 'control')
-    def getControl(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'control')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'isUnique')
-    def getIsUnique(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'isUnique')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'label')
-    def getLabel(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'label')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'menuBarRepeatLast')
-    def getMenuBarRepeatLast(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'menuBarRepeatLast')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'menuBarVisible')
-    def getMenuBarVisible(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'menuBarVisible')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'needsInit')
-    def getNeedsInit(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'needsInit')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'popupMenuProcedure')
-    def getPopupMenuProcedure(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'popupMenuProcedure')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'tearOff')
-    def getTearOff(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'tearOff')
-        return res
-
-    @_f.addMelDocs('blendShapePanel', 'init')
-    def init(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'init', val)
-
-    @_f.addMelDocs('blendShapePanel', 'replacePanel')
-    def replacePanel(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'replacePanel', val)
-
-    @_f.addMelDocs('blendShapePanel', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('blendShapePanel', 'label')
-    def setLabel(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'label', val)
-
-    @_f.addMelDocs('blendShapePanel', 'menuBarRepeatLast')
-    def setMenuBarRepeatLast(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'menuBarRepeatLast', val)
-
-    @_f.addMelDocs('blendShapePanel', 'menuBarVisible')
-    def setMenuBarVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'menuBarVisible', val)
-
-    @_f.addMelDocs('blendShapePanel', 'needsInit')
-    def setNeedsInit(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'needsInit', val)
-
-    @_f.addMelDocs('blendShapePanel', 'popupMenuProcedure')
-    def setPopupMenuProcedure(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'popupMenuProcedure', val)
-
-    @_f.addMelDocs('blendShapePanel', 'tearOff')
-    def setTearOff(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'tearOff', val)
-
-    @_f.addMelDocs('blendShapePanel', 'tearOffRestore')
-    def tearOffRestore(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'tearOffRestore', val)
-
-    @_f.addMelDocs('blendShapePanel', 'unParent')
-    def unParent(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'unParent', val)
 
 
 class Button(PyUI):
@@ -15775,6 +15367,7 @@ class Button(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'button'
     __melui__ = 'button'
+    __slots__ = ()
 
     @_f.addMelDocs('button', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -15862,11 +15455,6 @@ class Button(PyUI):
     @_f.addMelDocs('button', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.button, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('button', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.button, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('button', 'popupMenuArray')
@@ -15985,6 +15573,7 @@ class CheckBox(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'checkBox'
     __melui__ = 'checkBox'
+    __slots__ = ()
 
     @_f.addMelDocs('checkBox', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -16077,11 +15666,6 @@ class CheckBox(PyUI):
     @_f.addMelDocs('checkBox', 'onCommand')
     def getOnCommand(self, **kwargs):
         res = _f.asQuery(self, windows.checkBox, kwargs, 'onCommand')
-        return res
-
-    @_f.addMelDocs('checkBox', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.checkBox, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('checkBox', 'popupMenuArray')
@@ -16213,6 +15797,7 @@ class CheckBoxGrp(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'checkBoxGrp'
     __melui__ = 'checkBoxGrp'
+    __slots__ = ()
 
     @_f.addMelDocs('checkBoxGrp', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -16482,11 +16067,6 @@ class CheckBoxGrp(Layout):
         res = _f.asQuery(self, windows.checkBoxGrp, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('checkBoxGrp', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.checkBoxGrp, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('checkBoxGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, windows.checkBoxGrp, kwargs, 'popupMenuArray')
@@ -16738,6 +16318,7 @@ class ConfirmDialog(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'confirmDialog'
     __melui__ = 'confirmDialog'
+    __slots__ = ()
 
 
 class FontDialog(PyUI):
@@ -16745,6 +16326,7 @@ class FontDialog(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'fontDialog'
     __melui__ = 'fontDialog'
+    __slots__ = ()
 
 
 class MenuBarLayout(Layout):
@@ -16752,6 +16334,7 @@ class MenuBarLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'menuBarLayout'
     __melui__ = 'menuBarLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('menuBarLayout', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -16839,11 +16422,6 @@ class MenuBarLayout(Layout):
     @_f.addMelDocs('menuBarLayout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.menuBarLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('menuBarLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.menuBarLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('menuBarLayout', 'popupMenuArray')
@@ -16941,14 +16519,11 @@ class MenuEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'menuEditor'
     __melui__ = 'menuEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('menuEditor', 'cellWidthHeight')
     def cellWidthHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuEditor, kwargs, 'cellWidthHeight', val)
-
-    @_f.addMelDocs('menuEditor', 'delete')
-    def delete(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.menuEditor, kwargs, 'delete', val)
 
     @_f.addMelDocs('menuEditor', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -17071,11 +16646,6 @@ class MenuEditor(PyUI):
     @_f.addMelDocs('menuEditor', 'optionBoxPresent')
     def getOptionBoxPresent(self, **kwargs):
         res = _f.asQuery(self, windows.menuEditor, kwargs, 'optionBoxPresent')
-        return res
-
-    @_f.addMelDocs('menuEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.menuEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('menuEditor', 'popupMenuArray')
@@ -17255,6 +16825,7 @@ class MenuSet(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'menuSet'
     __melui__ = 'menuSet'
+    __slots__ = ()
 
     @_f.addMelDocs('menuSet', 'allMenuSets')
     def getAllMenuSets(self, **kwargs):
@@ -17315,6 +16886,7 @@ class PromptDialog(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'promptDialog'
     __melui__ = 'promptDialog'
+    __slots__ = ()
 
     @_f.addMelDocs('promptDialog', 'text')
     def getText(self, **kwargs):
@@ -17327,6 +16899,7 @@ class ScrollField(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'scrollField'
     __melui__ = 'scrollField'
+    __slots__ = ()
 
     @_f.addMelDocs('scrollField', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -17430,11 +17003,6 @@ class ScrollField(PyUI):
     @_f.addMelDocs('scrollField', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.scrollField, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('scrollField', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.scrollField, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('scrollField', 'popupMenuArray')
@@ -17571,6 +17139,7 @@ class ScrollLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'scrollLayout'
     __melui__ = 'scrollLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('scrollLayout', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -17663,11 +17232,6 @@ class ScrollLayout(Layout):
     @_f.addMelDocs('scrollLayout', 'panEnabled')
     def getPanEnabled(self, **kwargs):
         res = _f.asQuery(self, windows.scrollLayout, kwargs, 'panEnabled')
-        return res
-
-    @_f.addMelDocs('scrollLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.scrollLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('scrollLayout', 'popupMenuArray')
@@ -17800,112 +17364,12 @@ class ScriptedPanel(Panel):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'scriptedPanel'
     __melui__ = 'scriptedPanel'
-
-    @_f.addMelDocs('scriptedPanel', 'copy')
-    def copy(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'copy', val)
-
-    @_f.addMelDocs('scriptedPanel', 'createString')
-    def createString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'createString', val)
-
-    @_f.addMelDocs('scriptedPanel', 'editString')
-    def editString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'editString', val)
-
-    @_f.addMelDocs('scriptedPanel', 'control')
-    def getControl(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'control')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'isUnique')
-    def getIsUnique(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'isUnique')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'label')
-    def getLabel(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'label')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'menuBarRepeatLast')
-    def getMenuBarRepeatLast(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'menuBarRepeatLast')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'menuBarVisible')
-    def getMenuBarVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'menuBarVisible')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'needsInit')
-    def getNeedsInit(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'needsInit')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'popupMenuProcedure')
-    def getPopupMenuProcedure(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'popupMenuProcedure')
-        return res
-
-    @_f.addMelDocs('scriptedPanel', 'tearOff')
-    def getTearOff(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'tearOff')
-        return res
+    __slots__ = ()
 
     @_f.addMelDocs('scriptedPanel', 'type')
     def getType(self, **kwargs):
         res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'type')
         return res
-
-    @_f.addMelDocs('scriptedPanel', 'init')
-    def init(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'init', val)
-
-    @_f.addMelDocs('scriptedPanel', 'replacePanel')
-    def replacePanel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'replacePanel', val)
-
-    @_f.addMelDocs('scriptedPanel', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('scriptedPanel', 'label')
-    def setLabel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'label', val)
-
-    @_f.addMelDocs('scriptedPanel', 'menuBarRepeatLast')
-    def setMenuBarRepeatLast(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'menuBarRepeatLast', val)
-
-    @_f.addMelDocs('scriptedPanel', 'menuBarVisible')
-    def setMenuBarVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'menuBarVisible', val)
-
-    @_f.addMelDocs('scriptedPanel', 'needsInit')
-    def setNeedsInit(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'needsInit', val)
-
-    @_f.addMelDocs('scriptedPanel', 'popupMenuProcedure')
-    def setPopupMenuProcedure(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'popupMenuProcedure', val)
-
-    @_f.addMelDocs('scriptedPanel', 'tearOff')
-    def setTearOff(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'tearOff', val)
-
-    @_f.addMelDocs('scriptedPanel', 'tearOffRestore')
-    def tearOffRestore(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'tearOffRestore', val)
-
-    @_f.addMelDocs('scriptedPanel', 'unParent')
-    def unParent(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'unParent', val)
 
 
 class ScriptedPanelType(PyUI):
@@ -17913,6 +17377,7 @@ class ScriptedPanelType(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'scriptedPanelType'
     __melui__ = 'scriptedPanelType'
+    __slots__ = ()
 
     @_f.addMelDocs('scriptedPanelType', 'addCallback')
     def getAddCallback(self, **kwargs):
@@ -18037,6 +17502,7 @@ class ShelfButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'shelfButton'
     __melui__ = 'shelfButton'
+    __slots__ = ()
 
     @_f.addMelDocs('shelfButton', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -18214,11 +17680,6 @@ class ShelfButton(PyUI):
     @_f.addMelDocs('shelfButton', 'overlayLabelColor')
     def getOverlayLabelColor(self, **kwargs):
         res = _f.asQuery(self, windows.shelfButton, kwargs, 'overlayLabelColor')
-        return res
-
-    @_f.addMelDocs('shelfButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.shelfButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('shelfButton', 'popupMenuArray')
@@ -18474,6 +17935,7 @@ class ShelfLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'shelfLayout'
     __melui__ = 'shelfLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('shelfLayout', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -18576,11 +18038,6 @@ class ShelfLayout(Layout):
     @_f.addMelDocs('shelfLayout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.shelfLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('shelfLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.shelfLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('shelfLayout', 'popupMenuArray')
@@ -18725,6 +18182,7 @@ class ShelfTabLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'shelfTabLayout'
     __melui__ = 'shelfTabLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('shelfTabLayout', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -18840,11 +18298,6 @@ class ShelfTabLayout(Layout):
     @_f.addMelDocs('shelfTabLayout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('shelfTabLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('shelfTabLayout', 'popupMenuArray')
@@ -19075,6 +18528,7 @@ class TabLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'tabLayout'
     __melui__ = 'tabLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('tabLayout', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -19190,11 +18644,6 @@ class TabLayout(Layout):
     @_f.addMelDocs('tabLayout', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.tabLayout, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('tabLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.tabLayout, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('tabLayout', 'popupMenuArray')
@@ -19425,6 +18874,7 @@ class OutlinerEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'outlinerEditor'
     __melui__ = 'outlinerEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('outlinerEditor', 'allowMultiSelection')
     def allowMultiSelection(self, val=True, **kwargs):
@@ -19638,11 +19088,6 @@ class OutlinerEditor(PyUI):
     @_f.addMelDocs('outlinerEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('outlinerEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('outlinerEditor', 'parentObject')
@@ -20154,112 +19599,12 @@ class OutlinerPanel(Panel):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'outlinerPanel'
     __melui__ = 'outlinerPanel'
-
-    @_f.addMelDocs('outlinerPanel', 'copy')
-    def copy(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'copy', val)
-
-    @_f.addMelDocs('outlinerPanel', 'createString')
-    def createString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'createString', val)
-
-    @_f.addMelDocs('outlinerPanel', 'editString')
-    def editString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'editString', val)
-
-    @_f.addMelDocs('outlinerPanel', 'control')
-    def getControl(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'control')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'isUnique')
-    def getIsUnique(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'isUnique')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'label')
-    def getLabel(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'label')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'menuBarRepeatLast')
-    def getMenuBarRepeatLast(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'menuBarRepeatLast')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'menuBarVisible')
-    def getMenuBarVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'menuBarVisible')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'needsInit')
-    def getNeedsInit(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'needsInit')
-        return res
+    __slots__ = ()
 
     @_f.addMelDocs('outlinerPanel', 'outlinerEditor')
     def getOutlinerEditor(self, **kwargs):
         res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'outlinerEditor')
         return res
-
-    @_f.addMelDocs('outlinerPanel', 'popupMenuProcedure')
-    def getPopupMenuProcedure(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'popupMenuProcedure')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'tearOff')
-    def getTearOff(self, **kwargs):
-        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'tearOff')
-        return res
-
-    @_f.addMelDocs('outlinerPanel', 'init')
-    def init(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'init', val)
-
-    @_f.addMelDocs('outlinerPanel', 'replacePanel')
-    def replacePanel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'replacePanel', val)
-
-    @_f.addMelDocs('outlinerPanel', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('outlinerPanel', 'label')
-    def setLabel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'label', val)
-
-    @_f.addMelDocs('outlinerPanel', 'menuBarRepeatLast')
-    def setMenuBarRepeatLast(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'menuBarRepeatLast', val)
-
-    @_f.addMelDocs('outlinerPanel', 'menuBarVisible')
-    def setMenuBarVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'menuBarVisible', val)
-
-    @_f.addMelDocs('outlinerPanel', 'needsInit')
-    def setNeedsInit(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'needsInit', val)
-
-    @_f.addMelDocs('outlinerPanel', 'popupMenuProcedure')
-    def setPopupMenuProcedure(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'popupMenuProcedure', val)
-
-    @_f.addMelDocs('outlinerPanel', 'tearOff')
-    def setTearOff(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'tearOff', val)
-
-    @_f.addMelDocs('outlinerPanel', 'tearOffRestore')
-    def tearOffRestore(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'tearOffRestore', val)
-
-    @_f.addMelDocs('outlinerPanel', 'unParent')
-    def unParent(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'unParent', val)
 
 
 class AnimCurveEditor(PyUI):
@@ -20267,6 +19612,7 @@ class AnimCurveEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'animCurveEditor'
     __melui__ = 'animCurveEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('animCurveEditor', 'denormalizeCurvesCommand')
     def denormalizeCurvesCommand(self, val=True, **kwargs):
@@ -20379,11 +19725,6 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('animCurveEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('animCurveEditor', 'preSelectionHighlight')
@@ -20630,6 +19971,7 @@ class AnimDisplay(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'animDisplay'
     __melui__ = 'animDisplay'
+    __slots__ = ()
 
     @_f.addMelDocs('animDisplay', 'modelUpdate')
     def getModelUpdate(self, **kwargs):
@@ -20673,6 +20015,7 @@ class Separator(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'separator'
     __melui__ = 'separator'
+    __slots__ = ()
 
     @_f.addMelDocs('separator', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -20740,11 +20083,6 @@ class Separator(PyUI):
     @_f.addMelDocs('separator', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.separator, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('separator', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.separator, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('separator', 'popupMenuArray')
@@ -20843,6 +20181,7 @@ class Visor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'visor'
     __melui__ = 'visor'
+    __slots__ = ()
 
     @_f.addMelDocs('visor', 'addFolder')
     def getAddFolder(self, **kwargs):
@@ -20907,11 +20246,6 @@ class Visor(PyUI):
     @_f.addMelDocs('visor', 'openFolder')
     def getOpenFolder(self, **kwargs):
         res = _f.asQuery(self, windows.visor, kwargs, 'openFolder')
-        return res
-
-    @_f.addMelDocs('visor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.visor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('visor', 'path')
@@ -21020,6 +20354,7 @@ class LayoutDialog(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'layoutDialog'
     __melui__ = 'layoutDialog'
+    __slots__ = ()
 
 
 class LayerButton(PyUI):
@@ -21027,6 +20362,7 @@ class LayerButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'layerButton'
     __melui__ = 'layerButton'
+    __slots__ = ()
 
     @_f.addMelDocs('layerButton', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -21139,11 +20475,6 @@ class LayerButton(PyUI):
     @_f.addMelDocs('layerButton', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.layerButton, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('layerButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.layerButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('layerButton', 'popupMenuArray')
@@ -21287,6 +20618,7 @@ class HyperGraph(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'hyperGraph'
     __melui__ = 'hyperGraph'
+    __slots__ = ()
 
     @_f.addMelDocs('hyperGraph', 'addBookmark')
     def addBookmark(self, val=True, **kwargs):
@@ -21590,11 +20922,6 @@ class HyperGraph(PyUI):
         res = _f.asQuery(self, windows.hyperGraph, kwargs, 'panel')
         return res
 
-    @_f.addMelDocs('hyperGraph', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperGraph, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('hyperGraph', 'range')
     def getRange(self, **kwargs):
         res = _f.asQuery(self, windows.hyperGraph, kwargs, 'range')
@@ -21781,10 +21108,6 @@ class HyperGraph(PyUI):
     @_f.addMelDocs('hyperGraph', 'removeNode')
     def removeNode(self, val=True, **kwargs):
         return _f.asEdit(self, windows.hyperGraph, kwargs, 'removeNode', val)
-
-    @_f.addMelDocs('hyperGraph', 'rename')
-    def rename(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperGraph, kwargs, 'rename', val)
 
     @_f.addMelDocs('hyperGraph', 'resetFreeform')
     def resetFreeform(self, val=True, **kwargs):
@@ -22012,112 +21335,12 @@ class HyperPanel(Panel):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'hyperPanel'
     __melui__ = 'hyperPanel'
-
-    @_f.addMelDocs('hyperPanel', 'copy')
-    def copy(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'copy', val)
-
-    @_f.addMelDocs('hyperPanel', 'createString')
-    def createString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'createString', val)
-
-    @_f.addMelDocs('hyperPanel', 'editString')
-    def editString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'editString', val)
-
-    @_f.addMelDocs('hyperPanel', 'control')
-    def getControl(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'control')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'docTag')
-        return res
+    __slots__ = ()
 
     @_f.addMelDocs('hyperPanel', 'hyperEditor')
     def getHyperEditor(self, **kwargs):
         res = _f.asQuery(self, windows.hyperPanel, kwargs, 'hyperEditor')
         return res
-
-    @_f.addMelDocs('hyperPanel', 'isUnique')
-    def getIsUnique(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'isUnique')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'label')
-    def getLabel(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'label')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'menuBarRepeatLast')
-    def getMenuBarRepeatLast(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'menuBarRepeatLast')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'menuBarVisible')
-    def getMenuBarVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'menuBarVisible')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'needsInit')
-    def getNeedsInit(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'needsInit')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'popupMenuProcedure')
-    def getPopupMenuProcedure(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'popupMenuProcedure')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'tearOff')
-    def getTearOff(self, **kwargs):
-        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'tearOff')
-        return res
-
-    @_f.addMelDocs('hyperPanel', 'init')
-    def init(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'init', val)
-
-    @_f.addMelDocs('hyperPanel', 'replacePanel')
-    def replacePanel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'replacePanel', val)
-
-    @_f.addMelDocs('hyperPanel', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('hyperPanel', 'label')
-    def setLabel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'label', val)
-
-    @_f.addMelDocs('hyperPanel', 'menuBarRepeatLast')
-    def setMenuBarRepeatLast(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'menuBarRepeatLast', val)
-
-    @_f.addMelDocs('hyperPanel', 'menuBarVisible')
-    def setMenuBarVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'menuBarVisible', val)
-
-    @_f.addMelDocs('hyperPanel', 'needsInit')
-    def setNeedsInit(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'needsInit', val)
-
-    @_f.addMelDocs('hyperPanel', 'popupMenuProcedure')
-    def setPopupMenuProcedure(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'popupMenuProcedure', val)
-
-    @_f.addMelDocs('hyperPanel', 'tearOff')
-    def setTearOff(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'tearOff', val)
-
-    @_f.addMelDocs('hyperPanel', 'tearOffRestore')
-    def tearOffRestore(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'tearOffRestore', val)
-
-    @_f.addMelDocs('hyperPanel', 'unParent')
-    def unParent(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hyperPanel, kwargs, 'unParent', val)
 
 
 class HyperShade(PyUI):
@@ -22125,6 +21348,7 @@ class HyperShade(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'hyperShade'
     __melui__ = 'hyperShade'
+    __slots__ = ()
 
 
 class RowColumnLayout(Layout):
@@ -22132,6 +21356,7 @@ class RowColumnLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'rowColumnLayout'
     __melui__ = 'rowColumnLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('rowColumnLayout', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -22157,122 +21382,15 @@ class RowColumnLayout(Layout):
     def columnWidth(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'columnWidth', val)
 
-    @_f.addMelDocs('rowColumnLayout', 'dragCallback')
-    def dragCallback(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'dragCallback', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'dropCallback')
-    def dropCallback(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'dropCallback', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'annotation')
-    def getAnnotation(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'annotation')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'backgroundColor')
-    def getBackgroundColor(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'backgroundColor')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'childArray')
-    def getChildArray(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'childArray')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'enable')
-    def getEnable(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'enable')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'enableBackground')
-    def getEnableBackground(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'enableBackground')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'fullPathName')
-    def getFullPathName(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'fullPathName')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'height')
-    def getHeight(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'height')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'highlightColor')
-    def getHighlightColor(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'highlightColor')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'isObscured')
-    def getIsObscured(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'isObscured')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'manage')
-    def getManage(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'manage')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'numberOfChildren')
-    def getNumberOfChildren(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfChildren')
-        return res
-
     @_f.addMelDocs('rowColumnLayout', 'numberOfColumns')
     def getNumberOfColumns(self, **kwargs):
         res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfColumns')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'numberOfPopupMenus')
-    def getNumberOfPopupMenus(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfPopupMenus')
         return res
 
     @_f.addMelDocs('rowColumnLayout', 'numberOfRows')
     def getNumberOfRows(self, **kwargs):
         res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfRows')
         return res
-
-    @_f.addMelDocs('rowColumnLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'parent')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'popupMenuArray')
-    def getPopupMenuArray(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'popupMenuArray')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'preventOverride')
-    def getPreventOverride(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'preventOverride')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'visible')
-    def getVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'visible')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'visibleChangeCommand')
-    def getVisibleChangeCommand(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'visibleChangeCommand')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'width')
-    def getWidth(self, **kwargs):
-        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'width')
-        return res
-
-    @_f.addMelDocs('rowColumnLayout', 'noBackground')
-    def noBackground(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'noBackground', val)
 
     @_f.addMelDocs('rowColumnLayout', 'rowAlign')
     def rowAlign(self, val=True, **kwargs):
@@ -22294,61 +21412,10 @@ class RowColumnLayout(Layout):
     def rowSpacing(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'rowSpacing', val)
 
-    @_f.addMelDocs('rowColumnLayout', 'annotation')
-    def setAnnotation(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'annotation', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'backgroundColor')
-    def setBackgroundColor(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'backgroundColor', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'enable')
-    def setEnable(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'enable', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'enableBackground')
-    def setEnableBackground(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'enableBackground', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'height')
-    def setHeight(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'height', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'highlightColor')
-    def setHighlightColor(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'highlightColor', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'manage')
-    def setManage(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'manage', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'preventOverride')
-    def setPreventOverride(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'preventOverride', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'visible')
-    def setVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'visible', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'visibleChangeCommand')
-    def setVisibleChangeCommand(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'visibleChangeCommand', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'width')
-    def setWidth(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'width', val)
-
-    @_f.addMelDocs('rowColumnLayout', 'statusBarMessage')
-    def statusBarMessage(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'statusBarMessage', val)
-
 
 class RenderLayerButton(PyUI):
     __melui__ = 'renderLayerButton'
+    __slots__ = ()
 
 
 class RenderWindowEditor(PyUI):
@@ -22356,6 +21423,7 @@ class RenderWindowEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'renderWindowEditor'
     __melui__ = 'renderWindowEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('renderWindowEditor', 'colorManage')
     def colorManage(self, val=True, **kwargs):
@@ -22504,11 +21572,6 @@ class RenderWindowEditor(PyUI):
     @_f.addMelDocs('renderWindowEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, rendering.renderWindowEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('renderWindowEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, rendering.renderWindowEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('renderWindowEditor', 'pcaption')
@@ -22827,6 +21890,7 @@ class GlRenderEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'glRenderEditor'
     __melui__ = 'glRenderEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('glRenderEditor', 'control')
     def getControl(self, **kwargs):
@@ -22866,11 +21930,6 @@ class GlRenderEditor(PyUI):
     @_f.addMelDocs('glRenderEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, rendering.glRenderEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('glRenderEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, rendering.glRenderEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('glRenderEditor', 'selectionConnection')
@@ -22942,6 +22001,7 @@ class ScriptTable(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'scriptTable'
     __melui__ = 'scriptTable'
+    __slots__ = ()
 
     @_f.addMelDocs('scriptTable', 'afterCellChangedCmd')
     def afterCellChangedCmd(self, val=True, **kwargs):
@@ -23074,11 +22134,6 @@ class ScriptTable(PyUI):
     @_f.addMelDocs('scriptTable', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.scriptTable, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('scriptTable', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.scriptTable, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('scriptTable', 'popupMenuArray')
@@ -23304,6 +22359,7 @@ class KeyframeStats(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'keyframeStats'
     __melui__ = 'keyframeStats'
+    __slots__ = ()
 
     @_f.addMelDocs('keyframeStats', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
@@ -23498,11 +22554,6 @@ class KeyframeStats(PyUI):
         res = _f.asQuery(self, animation.keyframeStats, kwargs, 'numberOfPopupMenus')
         return res
 
-    @_f.addMelDocs('keyframeStats', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, animation.keyframeStats, kwargs, 'parent')
-        return res
-
     @_f.addMelDocs('keyframeStats', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         res = _f.asQuery(self, animation.keyframeStats, kwargs, 'popupMenuArray')
@@ -23629,6 +22680,7 @@ class KeyframeOutliner(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'keyframeOutliner'
     __melui__ = 'keyframeOutliner'
+    __slots__ = ()
 
     @_f.addMelDocs('keyframeOutliner', 'animCurve')
     def animCurve(self, val=True, **kwargs):
@@ -23700,11 +22752,6 @@ class KeyframeOutliner(PyUI):
     @_f.addMelDocs('keyframeOutliner', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, animation.keyframeOutliner, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('keyframeOutliner', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, animation.keyframeOutliner, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('keyframeOutliner', 'popupMenuArray')
@@ -23798,6 +22845,7 @@ class Canvas(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'canvas'
     __melui__ = 'canvas'
+    __slots__ = ()
 
     @_f.addMelDocs('canvas', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -23865,11 +22913,6 @@ class Canvas(PyUI):
     @_f.addMelDocs('canvas', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.canvas, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('canvas', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.canvas, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('canvas', 'popupMenuArray')
@@ -23976,6 +23019,7 @@ class ChannelBox(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'channelBox'
     __melui__ = 'channelBox'
+    __slots__ = ()
 
     @_f.addMelDocs('channelBox', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -24152,11 +23196,6 @@ class ChannelBox(PyUI):
     @_f.addMelDocs('channelBox', 'outputs')
     def getOutputs(self, **kwargs):
         res = _f.asQuery(self, windows.channelBox, kwargs, 'outputs')
-        return res
-
-    @_f.addMelDocs('channelBox', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.channelBox, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('channelBox', 'popupMenuArray')
@@ -24401,6 +23440,7 @@ class GradientControl(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'gradientControl'
     __melui__ = 'gradientControl'
+    __slots__ = ()
 
     @_f.addMelDocs('gradientControl', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -24473,11 +23513,6 @@ class GradientControl(PyUI):
     @_f.addMelDocs('gradientControl', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.gradientControl, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('gradientControl', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.gradientControl, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('gradientControl', 'popupMenuArray')
@@ -24628,6 +23663,7 @@ class GradientControlNoAttr(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'gradientControlNoAttr'
     __melui__ = 'gradientControlNoAttr'
+    __slots__ = ()
 
     @_f.addMelDocs('gradientControlNoAttr', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -24732,11 +23768,6 @@ class GradientControlNoAttr(PyUI):
     @_f.addMelDocs('gradientControlNoAttr', 'optionVar')
     def getOptionVar(self, **kwargs):
         res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'optionVar')
-        return res
-
-    @_f.addMelDocs('gradientControlNoAttr', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('gradientControlNoAttr', 'popupMenuArray')
@@ -24864,37 +23895,20 @@ class GridLayout(Layout):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'gridLayout'
     __melui__ = 'gridLayout'
+    __slots__ = ()
 
     @_f.addMelDocs('gridLayout', 'cellWidthHeight')
     def cellWidthHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'cellWidthHeight', val)
-
-    @_f.addMelDocs('gridLayout', 'dragCallback')
-    def dragCallback(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'dragCallback', val)
-
-    @_f.addMelDocs('gridLayout', 'dropCallback')
-    def dropCallback(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'dropCallback', val)
 
     @_f.addMelDocs('gridLayout', 'allowEmptyCells')
     def getAllowEmptyCells(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'allowEmptyCells')
         return res
 
-    @_f.addMelDocs('gridLayout', 'annotation')
-    def getAnnotation(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'annotation')
-        return res
-
     @_f.addMelDocs('gridLayout', 'autoGrow')
     def getAutoGrow(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'autoGrow')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'backgroundColor')
-    def getBackgroundColor(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'backgroundColor')
         return res
 
     @_f.addMelDocs('gridLayout', 'cellHeight')
@@ -24907,34 +23921,9 @@ class GridLayout(Layout):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'cellWidth')
         return res
 
-    @_f.addMelDocs('gridLayout', 'childArray')
-    def getChildArray(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'childArray')
-        return res
-
     @_f.addMelDocs('gridLayout', 'columnsResizable')
     def getColumnsResizable(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'columnsResizable')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'enable')
-    def getEnable(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'enable')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'enableBackground')
-    def getEnableBackground(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'enableBackground')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'fullPathName')
-    def getFullPathName(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'fullPathName')
         return res
 
     @_f.addMelDocs('gridLayout', 'gridOrder')
@@ -24942,79 +23931,15 @@ class GridLayout(Layout):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'gridOrder')
         return res
 
-    @_f.addMelDocs('gridLayout', 'height')
-    def getHeight(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'height')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'highlightColor')
-    def getHighlightColor(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'highlightColor')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'isObscured')
-    def getIsObscured(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'isObscured')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'manage')
-    def getManage(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'manage')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'numberOfChildren')
-    def getNumberOfChildren(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfChildren')
-        return res
-
     @_f.addMelDocs('gridLayout', 'numberOfColumns')
     def getNumberOfColumns(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfColumns')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'numberOfPopupMenus')
-    def getNumberOfPopupMenus(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfPopupMenus')
         return res
 
     @_f.addMelDocs('gridLayout', 'numberOfRows')
     def getNumberOfRows(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfRows')
         return res
-
-    @_f.addMelDocs('gridLayout', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'parent')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'popupMenuArray')
-    def getPopupMenuArray(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'popupMenuArray')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'preventOverride')
-    def getPreventOverride(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'preventOverride')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'visible')
-    def getVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'visible')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'visibleChangeCommand')
-    def getVisibleChangeCommand(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'visibleChangeCommand')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'width')
-    def getWidth(self, **kwargs):
-        res = _f.asQuery(self, windows.gridLayout, kwargs, 'width')
-        return res
-
-    @_f.addMelDocs('gridLayout', 'noBackground')
-    def noBackground(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'noBackground', val)
 
     @_f.addMelDocs('gridLayout', 'numberOfRowsColumns')
     def numberOfRowsColumns(self, val=True, **kwargs):
@@ -25024,14 +23949,6 @@ class GridLayout(Layout):
     def position(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'position', val)
 
-    @_f.addMelDocs('gridLayout', 'annotation')
-    def setAnnotation(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'annotation', val)
-
-    @_f.addMelDocs('gridLayout', 'backgroundColor')
-    def setBackgroundColor(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'backgroundColor', val)
-
     @_f.addMelDocs('gridLayout', 'cellHeight')
     def setCellHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'cellHeight', val)
@@ -25039,30 +23956,6 @@ class GridLayout(Layout):
     @_f.addMelDocs('gridLayout', 'cellWidth')
     def setCellWidth(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'cellWidth', val)
-
-    @_f.addMelDocs('gridLayout', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('gridLayout', 'enable')
-    def setEnable(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'enable', val)
-
-    @_f.addMelDocs('gridLayout', 'enableBackground')
-    def setEnableBackground(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'enableBackground', val)
-
-    @_f.addMelDocs('gridLayout', 'height')
-    def setHeight(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'height', val)
-
-    @_f.addMelDocs('gridLayout', 'highlightColor')
-    def setHighlightColor(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'highlightColor', val)
-
-    @_f.addMelDocs('gridLayout', 'manage')
-    def setManage(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'manage', val)
 
     @_f.addMelDocs('gridLayout', 'numberOfColumns')
     def setNumberOfColumns(self, val=True, **kwargs):
@@ -25072,32 +23965,13 @@ class GridLayout(Layout):
     def setNumberOfRows(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'numberOfRows', val)
 
-    @_f.addMelDocs('gridLayout', 'preventOverride')
-    def setPreventOverride(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'preventOverride', val)
-
-    @_f.addMelDocs('gridLayout', 'visible')
-    def setVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'visible', val)
-
-    @_f.addMelDocs('gridLayout', 'visibleChangeCommand')
-    def setVisibleChangeCommand(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'visibleChangeCommand', val)
-
-    @_f.addMelDocs('gridLayout', 'width')
-    def setWidth(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'width', val)
-
-    @_f.addMelDocs('gridLayout', 'statusBarMessage')
-    def statusBarMessage(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.gridLayout, kwargs, 'statusBarMessage', val)
-
 
 class MessageLine(PyUI):
     __melcmd__ = staticmethod(windows.messageLine)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'messageLine'
     __melui__ = 'messageLine'
+    __slots__ = ()
 
     @_f.addMelDocs('messageLine', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -25160,11 +24034,6 @@ class MessageLine(PyUI):
     @_f.addMelDocs('messageLine', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.messageLine, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('messageLine', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.messageLine, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('messageLine', 'popupMenuArray')
@@ -25254,6 +24123,7 @@ class ModelEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'modelEditor'
     __melui__ = 'modelEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('modelEditor', 'activeCustomEnvironment')
     def activeCustomEnvironment(self, val=True, **kwargs):
@@ -25704,11 +24574,6 @@ class ModelEditor(PyUI):
     @_f.addMelDocs('modelEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, windows.modelEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('modelEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.modelEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('modelEditor', 'particleInstancers')
@@ -26505,22 +25370,11 @@ class ModelPanel(Panel):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'modelPanel'
     __melui__ = 'modelPanel'
+    __slots__ = ()
 
     @_f.addMelDocs('modelPanel', 'addTab')
     def addTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'addTab', val)
-
-    @_f.addMelDocs('modelPanel', 'copy')
-    def copy(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'copy', val)
-
-    @_f.addMelDocs('modelPanel', 'createString')
-    def createString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'createString', val)
-
-    @_f.addMelDocs('modelPanel', 'editString')
-    def editString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'editString', val)
 
     @_f.addMelDocs('modelPanel', 'barLayout')
     def getBarLayout(self, **kwargs):
@@ -26532,49 +25386,9 @@ class ModelPanel(Panel):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'camera')
         return res
 
-    @_f.addMelDocs('modelPanel', 'control')
-    def getControl(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'control')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'isUnique')
-    def getIsUnique(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'isUnique')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'label')
-    def getLabel(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'label')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'menuBarRepeatLast')
-    def getMenuBarRepeatLast(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'menuBarRepeatLast')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'menuBarVisible')
-    def getMenuBarVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'menuBarVisible')
-        return res
-
     @_f.addMelDocs('modelPanel', 'modelEditor')
     def getModelEditor(self, **kwargs):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'modelEditor')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'needsInit')
-    def getNeedsInit(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'needsInit')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'popupMenuProcedure')
-    def getPopupMenuProcedure(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'popupMenuProcedure')
         return res
 
     @_f.addMelDocs('modelPanel', 'selectTab')
@@ -26582,70 +25396,21 @@ class ModelPanel(Panel):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'selectTab')
         return res
 
-    @_f.addMelDocs('modelPanel', 'tearOff')
-    def getTearOff(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'tearOff')
-        return res
-
-    @_f.addMelDocs('modelPanel', 'init')
-    def init(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'init', val)
-
     @_f.addMelDocs('modelPanel', 'removeTab')
     def removeTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'removeTab', val)
-
-    @_f.addMelDocs('modelPanel', 'replacePanel')
-    def replacePanel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'replacePanel', val)
 
     @_f.addMelDocs('modelPanel', 'camera')
     def setCamera(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'camera', val)
 
-    @_f.addMelDocs('modelPanel', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('modelPanel', 'label')
-    def setLabel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'label', val)
-
-    @_f.addMelDocs('modelPanel', 'menuBarRepeatLast')
-    def setMenuBarRepeatLast(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'menuBarRepeatLast', val)
-
-    @_f.addMelDocs('modelPanel', 'menuBarVisible')
-    def setMenuBarVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'menuBarVisible', val)
-
-    @_f.addMelDocs('modelPanel', 'needsInit')
-    def setNeedsInit(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'needsInit', val)
-
-    @_f.addMelDocs('modelPanel', 'popupMenuProcedure')
-    def setPopupMenuProcedure(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'popupMenuProcedure', val)
-
     @_f.addMelDocs('modelPanel', 'selectTab')
     def setSelectTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'selectTab', val)
 
-    @_f.addMelDocs('modelPanel', 'tearOff')
-    def setTearOff(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'tearOff', val)
-
     @_f.addMelDocs('modelPanel', 'tabCommand')
     def tabCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'tabCommand', val)
-
-    @_f.addMelDocs('modelPanel', 'tearOffRestore')
-    def tearOffRestore(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'tearOffRestore', val)
-
-    @_f.addMelDocs('modelPanel', 'unParent')
-    def unParent(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'unParent', val)
 
 
 class HelpLine(PyUI):
@@ -26653,6 +25418,7 @@ class HelpLine(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'helpLine'
     __melui__ = 'helpLine'
+    __slots__ = ()
 
     @_f.addMelDocs('helpLine', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -26715,11 +25481,6 @@ class HelpLine(PyUI):
     @_f.addMelDocs('helpLine', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.helpLine, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('helpLine', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.helpLine, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('helpLine', 'popupMenuArray')
@@ -26809,32 +25570,11 @@ class HardwareRenderPanel(Panel):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'hardwareRenderPanel'
     __melui__ = 'hardwareRenderPanel'
-
-    @_f.addMelDocs('hardwareRenderPanel', 'copy')
-    def copy(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'copy', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'createString')
-    def createString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'createString', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'editString')
-    def editString(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'editString', val)
+    __slots__ = ()
 
     @_f.addMelDocs('hardwareRenderPanel', 'camera')
     def getCamera(self, **kwargs):
         res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'camera')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'control')
-    def getControl(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'control')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'docTag')
         return res
 
     @_f.addMelDocs('hardwareRenderPanel', 'glRenderEditor')
@@ -26842,88 +25582,9 @@ class HardwareRenderPanel(Panel):
         res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'glRenderEditor')
         return res
 
-    @_f.addMelDocs('hardwareRenderPanel', 'isUnique')
-    def getIsUnique(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'isUnique')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'label')
-    def getLabel(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'label')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'menuBarRepeatLast')
-    def getMenuBarRepeatLast(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'menuBarRepeatLast')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'menuBarVisible')
-    def getMenuBarVisible(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'menuBarVisible')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'needsInit')
-    def getNeedsInit(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'needsInit')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'popupMenuProcedure')
-    def getPopupMenuProcedure(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'popupMenuProcedure')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'tearOff')
-    def getTearOff(self, **kwargs):
-        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'tearOff')
-        return res
-
-    @_f.addMelDocs('hardwareRenderPanel', 'init')
-    def init(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'init', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'replacePanel')
-    def replacePanel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'replacePanel', val)
-
     @_f.addMelDocs('hardwareRenderPanel', 'camera')
     def setCamera(self, val=True, **kwargs):
         return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'camera', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'label')
-    def setLabel(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'label', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'menuBarRepeatLast')
-    def setMenuBarRepeatLast(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'menuBarRepeatLast', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'menuBarVisible')
-    def setMenuBarVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'menuBarVisible', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'needsInit')
-    def setNeedsInit(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'needsInit', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'popupMenuProcedure')
-    def setPopupMenuProcedure(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'popupMenuProcedure', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'tearOff')
-    def setTearOff(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'tearOff', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'tearOffRestore')
-    def tearOffRestore(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'tearOffRestore', val)
-
-    @_f.addMelDocs('hardwareRenderPanel', 'unParent')
-    def unParent(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'unParent', val)
 
 
 class Image(PyUI):
@@ -26931,6 +25592,7 @@ class Image(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'image'
     __melui__ = 'image'
+    __slots__ = ()
 
     @_f.addMelDocs('image', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -26998,11 +25660,6 @@ class Image(PyUI):
     @_f.addMelDocs('image', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.image, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('image', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.image, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('image', 'popupMenuArray')
@@ -27096,6 +25753,7 @@ class NodeIconButton(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'nodeIconButton'
     __melui__ = 'nodeIconButton'
+    __slots__ = ()
 
     @_f.addMelDocs('nodeIconButton', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -27248,11 +25906,6 @@ class NodeIconButton(PyUI):
     @_f.addMelDocs('nodeIconButton', 'overlayLabelColor')
     def getOverlayLabelColor(self, **kwargs):
         res = _f.asQuery(self, rendering.nodeIconButton, kwargs, 'overlayLabelColor')
-        return res
-
-    @_f.addMelDocs('nodeIconButton', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, rendering.nodeIconButton, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('nodeIconButton', 'popupMenuArray')
@@ -27450,6 +26103,7 @@ class CommandLine(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'commandLine'
     __melui__ = 'commandLine'
+    __slots__ = ()
 
     @_f.addMelDocs('commandLine', 'command')
     def command(self, val=True, **kwargs):
@@ -27540,11 +26194,6 @@ class CommandLine(PyUI):
     @_f.addMelDocs('commandLine', 'outputAnnotation')
     def getOutputAnnotation(self, **kwargs):
         res = _f.asQuery(self, windows.commandLine, kwargs, 'outputAnnotation')
-        return res
-
-    @_f.addMelDocs('commandLine', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.commandLine, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('commandLine', 'popupMenuArray')
@@ -27659,6 +26308,7 @@ class DefaultLightListCheckBox(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'defaultLightListCheckBox'
     __melui__ = 'defaultLightListCheckBox'
+    __slots__ = ()
 
     @_f.addMelDocs('defaultLightListCheckBox', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -27721,11 +26371,6 @@ class DefaultLightListCheckBox(PyUI):
     @_f.addMelDocs('defaultLightListCheckBox', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, rendering.defaultLightListCheckBox, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('defaultLightListCheckBox', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, rendering.defaultLightListCheckBox, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('defaultLightListCheckBox', 'popupMenuArray')
@@ -27823,6 +26468,7 @@ class ExclusiveLightCheckBox(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'exclusiveLightCheckBox'
     __melui__ = 'exclusiveLightCheckBox'
+    __slots__ = ()
 
     @_f.addMelDocs('exclusiveLightCheckBox', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -27885,11 +26531,6 @@ class ExclusiveLightCheckBox(PyUI):
     @_f.addMelDocs('exclusiveLightCheckBox', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, rendering.exclusiveLightCheckBox, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('exclusiveLightCheckBox', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, rendering.exclusiveLightCheckBox, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('exclusiveLightCheckBox', 'popupMenuArray')
@@ -27980,6 +26621,7 @@ class ExclusiveLightCheckBox(PyUI):
 
 class ShellField(PyUI):
     __melui__ = 'shellField'
+    __slots__ = ()
 
 
 class ClipSchedulerOutliner(PyUI):
@@ -27987,6 +26629,7 @@ class ClipSchedulerOutliner(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'clipSchedulerOutliner'
     __melui__ = 'clipSchedulerOutliner'
+    __slots__ = ()
 
     @_f.addMelDocs('clipSchedulerOutliner', 'clipScheduler')
     def clipScheduler(self, val=True, **kwargs):
@@ -28053,11 +26696,6 @@ class ClipSchedulerOutliner(PyUI):
     @_f.addMelDocs('clipSchedulerOutliner', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, animation.clipSchedulerOutliner, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('clipSchedulerOutliner', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, animation.clipSchedulerOutliner, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('clipSchedulerOutliner', 'popupMenuArray')
@@ -28147,6 +26785,7 @@ class ClipEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'clipEditor'
     __melui__ = 'clipEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('clipEditor', 'clipDropCmd')
     def clipDropCmd(self, val=True, **kwargs):
@@ -28261,11 +26900,6 @@ class ClipEditor(PyUI):
     @_f.addMelDocs('clipEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, animation.clipEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('clipEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, animation.clipEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('clipEditor', 'selectBlend')
@@ -28392,6 +27026,7 @@ class DeviceEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'deviceEditor'
     __melui__ = 'deviceEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('deviceEditor', 'control')
     def getControl(self, **kwargs):
@@ -28426,11 +27061,6 @@ class DeviceEditor(PyUI):
     @_f.addMelDocs('deviceEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, system.deviceEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('deviceEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, system.deviceEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('deviceEditor', 'selectionConnection')
@@ -28502,115 +27132,17 @@ class DevicePanel(Panel):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'devicePanel'
     __melui__ = 'devicePanel'
-
-    @_f.addMelDocs('devicePanel', 'copy')
-    def copy(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'copy', val)
-
-    @_f.addMelDocs('devicePanel', 'createString')
-    def createString(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'createString', val)
-
-    @_f.addMelDocs('devicePanel', 'editString')
-    def editString(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'editString', val)
-
-    @_f.addMelDocs('devicePanel', 'control')
-    def getControl(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'control')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'docTag')
-    def getDocTag(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'docTag')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'isUnique')
-    def getIsUnique(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'isUnique')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'label')
-    def getLabel(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'label')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'menuBarRepeatLast')
-    def getMenuBarRepeatLast(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'menuBarRepeatLast')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'menuBarVisible')
-    def getMenuBarVisible(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'menuBarVisible')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'needsInit')
-    def getNeedsInit(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'needsInit')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'popupMenuProcedure')
-    def getPopupMenuProcedure(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'popupMenuProcedure')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'tearOff')
-    def getTearOff(self, **kwargs):
-        res = _f.asQuery(self, system.devicePanel, kwargs, 'tearOff')
-        return res
-
-    @_f.addMelDocs('devicePanel', 'init')
-    def init(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'init', val)
-
-    @_f.addMelDocs('devicePanel', 'replacePanel')
-    def replacePanel(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'replacePanel', val)
-
-    @_f.addMelDocs('devicePanel', 'docTag')
-    def setDocTag(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'docTag', val)
-
-    @_f.addMelDocs('devicePanel', 'label')
-    def setLabel(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'label', val)
-
-    @_f.addMelDocs('devicePanel', 'menuBarRepeatLast')
-    def setMenuBarRepeatLast(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'menuBarRepeatLast', val)
-
-    @_f.addMelDocs('devicePanel', 'menuBarVisible')
-    def setMenuBarVisible(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'menuBarVisible', val)
-
-    @_f.addMelDocs('devicePanel', 'needsInit')
-    def setNeedsInit(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'needsInit', val)
-
-    @_f.addMelDocs('devicePanel', 'popupMenuProcedure')
-    def setPopupMenuProcedure(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'popupMenuProcedure', val)
-
-    @_f.addMelDocs('devicePanel', 'tearOff')
-    def setTearOff(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'tearOff', val)
-
-    @_f.addMelDocs('devicePanel', 'tearOffRestore')
-    def tearOffRestore(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'tearOffRestore', val)
-
-    @_f.addMelDocs('devicePanel', 'unParent')
-    def unParent(self, val=True, **kwargs):
-        return _f.asEdit(self, system.devicePanel, kwargs, 'unParent', val)
+    __slots__ = ()
 
 
 class DynRelEdPanel(Panel):
     __melui__ = 'dynRelEdPanel'
+    __slots__ = ()
 
 
 class DynRelEditor(PyUI):
     __melui__ = 'dynRelEditor'
+    __slots__ = ()
 
 
 class DynPaintEditor(PyUI):
@@ -28618,6 +27150,7 @@ class DynPaintEditor(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'dynPaintEditor'
     __melui__ = 'dynPaintEditor'
+    __slots__ = ()
 
     @_f.addMelDocs('dynPaintEditor', 'canvasUndo')
     def canvasUndo(self, val=True, **kwargs):
@@ -28750,11 +27283,6 @@ class DynPaintEditor(PyUI):
     @_f.addMelDocs('dynPaintEditor', 'panel')
     def getPanel(self, **kwargs):
         res = _f.asQuery(self, effects.dynPaintEditor, kwargs, 'panel')
-        return res
-
-    @_f.addMelDocs('dynPaintEditor', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, effects.dynPaintEditor, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('dynPaintEditor', 'refreshMode')
@@ -29010,6 +27538,7 @@ class NameField(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'nameField'
     __melui__ = 'nameField'
+    __slots__ = ()
 
     @_f.addMelDocs('nameField', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -29092,11 +27621,6 @@ class NameField(PyUI):
     @_f.addMelDocs('nameField', 'object')
     def getObject(self, **kwargs):
         res = _f.asQuery(self, windows.nameField, kwargs, 'object')
-        return res
-
-    @_f.addMelDocs('nameField', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.nameField, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('nameField', 'popupMenuArray')
@@ -29211,6 +27735,7 @@ class CmdScrollFieldExecuter(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'cmdScrollFieldExecuter'
     __melui__ = 'cmdScrollFieldExecuter'
+    __slots__ = ()
 
     @_f.addMelDocs('cmdScrollFieldExecuter', 'appendText')
     def appendText(self, val=True, **kwargs):
@@ -29351,11 +27876,6 @@ class CmdScrollFieldExecuter(PyUI):
     @_f.addMelDocs('cmdScrollFieldExecuter', 'objectPathCompletion')
     def getObjectPathCompletion(self, **kwargs):
         res = _f.asQuery(self, windows.cmdScrollFieldExecuter, kwargs, 'objectPathCompletion')
-        return res
-
-    @_f.addMelDocs('cmdScrollFieldExecuter', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.cmdScrollFieldExecuter, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('cmdScrollFieldExecuter', 'popupMenuArray')
@@ -29638,6 +28158,7 @@ class CmdScrollFieldReporter(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'cmdScrollFieldReporter'
     __melui__ = 'cmdScrollFieldReporter'
+    __slots__ = ()
 
     @_f.addMelDocs('cmdScrollFieldReporter', 'clear')
     def clear(self, val=True, **kwargs):
@@ -29732,11 +28253,6 @@ class CmdScrollFieldReporter(PyUI):
     @_f.addMelDocs('cmdScrollFieldReporter', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.cmdScrollFieldReporter, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('cmdScrollFieldReporter', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.cmdScrollFieldReporter, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('cmdScrollFieldReporter', 'popupMenuArray')
@@ -29930,6 +28446,7 @@ class CmdShell(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'cmdShell'
     __melui__ = 'cmdShell'
+    __slots__ = ()
 
     @_f.addMelDocs('cmdShell', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -30007,11 +28524,6 @@ class CmdShell(PyUI):
     @_f.addMelDocs('cmdShell', 'numberOfSavedLines')
     def getNumberOfSavedLines(self, **kwargs):
         res = _f.asQuery(self, windows.cmdShell, kwargs, 'numberOfSavedLines')
-        return res
-
-    @_f.addMelDocs('cmdShell', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.cmdShell, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('cmdShell', 'popupMenuArray')
@@ -30122,6 +28634,7 @@ class NameField(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'nameField'
     __melui__ = 'nameField'
+    __slots__ = ()
 
     @_f.addMelDocs('nameField', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
@@ -30204,11 +28717,6 @@ class NameField(PyUI):
     @_f.addMelDocs('nameField', 'object')
     def getObject(self, **kwargs):
         res = _f.asQuery(self, windows.nameField, kwargs, 'object')
-        return res
-
-    @_f.addMelDocs('nameField', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.nameField, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('nameField', 'popupMenuArray')
@@ -30323,6 +28831,7 @@ class PalettePort(PyUI):
     __melcmd_isinfo__ = False
     __melcmdname__ = 'palettePort'
     __melui__ = 'palettePort'
+    __slots__ = ()
 
     @_f.addMelDocs('palettePort', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -30418,11 +28927,6 @@ class PalettePort(PyUI):
     @_f.addMelDocs('palettePort', 'numberOfPopupMenus')
     def getNumberOfPopupMenus(self, **kwargs):
         res = _f.asQuery(self, windows.palettePort, kwargs, 'numberOfPopupMenus')
-        return res
-
-    @_f.addMelDocs('palettePort', 'parent')
-    def getParent(self, **kwargs):
-        res = _f.asQuery(self, windows.palettePort, kwargs, 'parent')
         return res
 
     @_f.addMelDocs('palettePort', 'popupMenuArray')
