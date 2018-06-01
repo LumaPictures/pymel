@@ -2959,6 +2959,7 @@ class Attribute(PyNode):
 
 
     """
+    __slots__ = ()
     __apicls__ = _api.MPlug
     __metaclass__ = _factories.MetaMayaTypeRegistry
     attrItemReg = re.compile('\[(\d+)\]$')
@@ -4256,7 +4257,6 @@ class Attribute(PyNode):
 # ------ Do not edit below this line --------
     FreeToChangeState = Enum('FreeToChangeState', {'freeToChange': 0, 'notFreeToChange': 1, 'childrenNotFreeToChange': 2})
     MValueSelector = Enum('MValueSelector', {'all': 0, 'nonDefault': 1, 'changed': 2, 'lastAttrSelector': 3})
-    __slots__ = ()
 
     @_f.addApiDocs(_api.MPlug, 'getExistingArrayAttributeIndices')
     def _getArrayIndices(self):
@@ -4575,6 +4575,7 @@ class Component(PyNode):
     """
     Abstract base class for pymel components.
     """
+    __slots__ = ()
     __metaclass__ = _factories.MetaMayaTypeRegistry
     _mfncompclass = _api.MFnComponent
     _apienum__ = _api.MFn.kComponent
@@ -4858,9 +4859,9 @@ class DimensionedComponent(Component):
 
     ie, myComponent[X] would be reasonable.
     """
+    __slots__ = ()
     # All components except for the pivot component and the unknown ones are
     # indexable in some manner
-
     dimensions = 0
 
     def __init__(self, *args, **kwargs):
@@ -5320,7 +5321,7 @@ class DiscreteComponent(DimensionedComponent):
     Derived classes should implement:
     _dimLength
     """
-
+    __slots__ = ()
     VALID_SINGLE_INDEX_TYPES = (int, long, slice, HashableSlice)
 
     def __init__(self, *args, **kwargs):
@@ -5599,6 +5600,7 @@ class ContinuousComponent(DimensionedComponent):
     Derived classes should implement:
     _dimRange
     """
+    __slots__ = ()
     VALID_SINGLE_INDEX_TYPES = (int, long, float, slice, HashableSlice)
 
     def _standardizeIndices(self, indexObjs, **kwargs):
@@ -5646,6 +5648,7 @@ class ContinuousComponent(DimensionedComponent):
 
 
 class Component1DFloat(ContinuousComponent):
+    __slots__ = ()
     dimensions = 1
 
     def index(self):
@@ -5653,10 +5656,12 @@ class Component1DFloat(ContinuousComponent):
 
 
 class Component2DFloat(ContinuousComponent):
+    __slots__ = ()
     dimensions = 2
 
 
 class Component1D(DiscreteComponent):
+    __slots__ = ()
     _mfncompclass = _api.MFnSingleIndexedComponent
     _apienum__ = _api.MFn.kSingleIndexedComponent
     dimensions = 1
@@ -5741,12 +5746,14 @@ class Component1D(DiscreteComponent):
 
 
 class Component2D(DiscreteComponent):
+    __slots__ = ()
     _mfncompclass = _api.MFnDoubleIndexedComponent
     _apienum__ = _api.MFn.kDoubleIndexedComponent
     dimensions = 2
 
 
 class Component3D(DiscreteComponent):
+    __slots__ = ()
     _mfncompclass = _api.MFnTripleIndexedComponent
     _apienum__ = _api.MFn.kTripleIndexedComponent
     dimensions = 3
@@ -5763,6 +5770,7 @@ class MItComponent(Component):
     If deriving from this class, you should set __apicls__ to an appropriate
     MIt* type - ie, for MeshEdge, you would set __apicls__ = _api.MItMeshEdge
     """
+    __slots__ = ()
 
     def __init__(self, *args, **kwargs):
         super(MItComponent, self).__init__(*args, **kwargs)
@@ -5784,10 +5792,11 @@ class MItComponent(Component):
 
 
 class MItComponent1D(MItComponent, Component1D):
-    pass
+    __slots__ = ()
 
 
 class Component1D64(DiscreteComponent):
+    __slots__ = ()
     _ALLOW_COMPLETE_SHORTCUT = False
 
     if Component._hasUint64:
@@ -5889,6 +5898,7 @@ class Component1D64(DiscreteComponent):
 
 
 class MeshVertex(MItComponent1D):
+    __slots__ = ()
     __apicls__ = _api.MItMeshVertex
     _ComponentLabel__ = "vtx"
     _apienum__ = _api.MFn.kMeshVertComponent
@@ -5955,7 +5965,6 @@ class MeshVertex(MItComponent1D):
         self.__apimfn__().getColor(color, *args, **kwargs)
         return datatypes.Color(color)
 # ------ Do not edit below this line --------
-    __slots__ = ()
 
     @_f.deprecated
     def connectedToEdge(self, index):
@@ -6110,6 +6119,7 @@ class MeshVertex(MItComponent1D):
 
 
 class MeshEdge(MItComponent1D):
+    __slots__ = ()
     __apicls__ = _api.MItMeshEdge
     _ComponentLabel__ = "e"
     _apienum__ = _api.MFn.kMeshEdgeComponent
@@ -6165,7 +6175,6 @@ class MeshEdge(MItComponent1D):
 
         raise TypeError, 'type %s is not supported' % type(component)
 # ------ Do not edit below this line --------
-    __slots__ = ()
 
     @_f.deprecated
     def connectedToEdge(self, index):
@@ -6255,6 +6264,7 @@ class MeshEdge(MItComponent1D):
 
 
 class MeshFace(MItComponent1D):
+    __slots__ = ()
     __apicls__ = _api.MItMeshPolygon
     _ComponentLabel__ = "f"
     _apienum__ = _api.MFn.kMeshPolygonComponent
@@ -6307,7 +6317,6 @@ class MeshFace(MItComponent1D):
 
         raise TypeError, 'type %s is not supported' % type(component)
 # ------ Do not edit below this line --------
-    __slots__ = ()
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'geomChanged')
     def geomChanged(self):
@@ -6591,6 +6600,7 @@ if not _factories.building:
 
 
 class MeshUV(Component1D):
+    __slots__ = ()
     _ComponentLabel__ = "map"
     _apienum__ = _api.MFn.kMeshMapComponent
 
@@ -6599,6 +6609,7 @@ class MeshUV(Component1D):
 
 
 class MeshVertexFace(Component2D):
+    __slots__ = ()
     _ComponentLabel__ = "vtxFace"
     _apienum__ = _api.MFn.kMeshVtxFaceComponent
 
@@ -6684,11 +6695,13 @@ class MeshVertexFace(Component2D):
 # Subd Components
 
 class SubdVertex(Component1D64):
+    __slots__ = ()
     _ComponentLabel__ = "smp"
     _apienum__ = _api.MFn.kSubdivCVComponent
 
 
 class SubdEdge(Component1D64):
+    __slots__ = ()
     _ComponentLabel__ = "sme"
     _apienum__ = _api.MFn.kSubdivEdgeComponent
 
@@ -6707,11 +6720,13 @@ class SubdEdge(Component1D64):
 
 
 class SubdFace(Component1D64):
+    __slots__ = ()
     _ComponentLabel__ = "smf"
     _apienum__ = _api.MFn.kSubdivFaceComponent
 
 
 class SubdUV(Component1D):
+    __slots__ = ()
     # ...because you can't select subduv comps with '*' - ie, this doesn't work:
     #    cmds.select('subdivCube1Shape.smm[*]')
     _ALLOW_COMPLETE_SHORTCUT = False
@@ -6864,6 +6879,7 @@ class SubdUV(Component1D):
 # Nurbs Curve Components
 
 class NurbsCurveParameter(Component1DFloat):
+    __slots__ = ()
     _ComponentLabel__ = "u"
     _apienum__ = _api.MFn.kCurveParamComponent
 
@@ -6872,6 +6888,7 @@ class NurbsCurveParameter(Component1DFloat):
 
 
 class NurbsCurveCV(MItComponent1D):
+    __slots__ = ()
     __apicls__ = _api.MItCurveCV
     _ComponentLabel__ = "cv"
     _apienum__ = _api.MFn.kCurveCVComponent
@@ -6879,7 +6896,6 @@ class NurbsCurveCV(MItComponent1D):
     def _dimLength(self, partialIndex):
         return self.node().numCVs()
 # ------ Do not edit below this line --------
-    __slots__ = ()
 
     @_f.addApiDocs(_api.MItCurveCV, 'position')
     def getPosition(self, space='preTransform'):
@@ -6918,6 +6934,7 @@ class NurbsCurveCV(MItComponent1D):
 
 
 class NurbsCurveEP(Component1D):
+    __slots__ = ()
     _ComponentLabel__ = "ep"
     _apienum__ = _api.MFn.kCurveEPComponent
 
@@ -6926,6 +6943,7 @@ class NurbsCurveEP(Component1D):
 
 
 class NurbsCurveKnot(Component1D):
+    __slots__ = ()
     _ComponentLabel__ = "knot"
     _apienum__ = _api.MFn.kCurveKnotComponent
 
@@ -6936,6 +6954,7 @@ class NurbsCurveKnot(Component1D):
 # NurbsSurface Components
 
 class NurbsSurfaceIsoparm(Component2DFloat):
+    __slots__ = ()
     _ComponentLabel__ = ("u", "v", "uv")
     _apienum__ = _api.MFn.kIsoparmComponent
 
@@ -7021,6 +7040,7 @@ class NurbsSurfaceIsoparm(Component2DFloat):
 
 
 class NurbsSurfaceRange(NurbsSurfaceIsoparm):
+    __slots__ = ()
     _ComponentLabel__ = ("u", "v", "uv")
     _apienum__ = _api.MFn.kSurfaceRangeComponent
 
@@ -7036,6 +7056,7 @@ class NurbsSurfaceRange(NurbsSurfaceIsoparm):
 
 
 class NurbsSurfaceCV(Component2D):
+    __slots__ = ()
     _ComponentLabel__ = "cv"
     _apienum__ = _api.MFn.kSurfaceCVComponent
 
@@ -7050,6 +7071,7 @@ class NurbsSurfaceCV(Component2D):
 
 
 class NurbsSurfaceEP(Component2D):
+    __slots__ = ()
     _ComponentLabel__ = "ep"
     _apienum__ = _api.MFn.kSurfaceEPComponent
 
@@ -7064,6 +7086,7 @@ class NurbsSurfaceEP(Component2D):
 
 
 class NurbsSurfaceKnot(Component2D):
+    __slots__ = ()
     _ComponentLabel__ = "knot"
     _apienum__ = _api.MFn.kSurfaceKnotComponent
 
@@ -7078,6 +7101,7 @@ class NurbsSurfaceKnot(Component2D):
 
 
 class NurbsSurfaceFace(Component2D):
+    __slots__ = ()
     _ComponentLabel__ = "sf"
     _apienum__ = _api.MFn.kSurfaceFaceComponent
 
@@ -7094,6 +7118,7 @@ class NurbsSurfaceFace(Component2D):
 # Lattice Components
 
 class LatticePoint(Component3D):
+    __slots__ = ()
     _ComponentLabel__ = "pt"
     _apienum__ = _api.MFn.kLatticeComponent
 
@@ -7115,6 +7140,7 @@ class LatticePoint(Component3D):
 # Pivot Components
 
 class Pivot(Component):
+    __slots__ = ()
     _ComponentLabel__ = ("rotatePivot", "scalePivot")
     _apienum__ = _api.MFn.kPivotComponent
 
@@ -7122,6 +7148,7 @@ class Pivot(Component):
 # Particle Components
 
 class ParticleComponent(Component1D):
+    __slots__ = ()
     _ComponentLabel__ = "pt"
     _apienum__ = _api.MFn.kDynParticleSetComponent
 
@@ -7244,6 +7271,7 @@ class ParticleComponent(Component1D):
 #        return rotate( self, *args, **kwargs )
 
 class AttributeDefaults(PyNode):
+    __slots__ = ()
     __apicls__ = _api.MFnAttribute
     __metaclass__ = _factories.MetaMayaTypeRegistry
 
@@ -7280,7 +7308,6 @@ class AttributeDefaults(PyNode):
         return self.__apimfn__().name()
 # ------ Do not edit below this line --------
     DisconnectBehavior = Enum('DisconnectBehavior', {'delete': 0, 'reset': 1, 'nothing': 2})
-    __slots__ = ()
 
     @_f.addApiDocs(_api.MFnAttribute, 'accepts')
     def accepts(self, type):
