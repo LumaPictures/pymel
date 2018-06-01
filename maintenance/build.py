@@ -1340,10 +1340,9 @@ def iterUIText():
         # Create Class
         classname = util.capitalize(funcName)
         if classname == 'MenuItem':
-            # FIXME: !!!
-            continue
-
-        existingClass = getattr(pymel.core.uitypes, classname, None)
+            existingClass = pymel.core.uitypes.CommandMenuItem
+        else:
+            existingClass = getattr(pymel.core.uitypes, classname, None)
 
         if classname.endswith(('Layout', 'Grp')):
             parentType = 'Layout'

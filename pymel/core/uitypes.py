@@ -2667,6 +2667,334 @@ class CommandMenuItem(PyUI):
 
     def __exit__(self, type, value, traceback):
         return SubMenuItem(self).__exit__(type, value, traceback)
+# ------ Do not edit below this line --------
+    __melcmd__ = staticmethod(windows.menuItem)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = 'menuItem'
+    __melui__ = 'menuItem'
+    __slots__ = ()
+
+    @_f.addMelDocs('menuItem', 'allowOptionBoxes')
+    def getAllowOptionBoxes(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'allowOptionBoxes')
+        return res
+
+    @_f.addMelDocs('menuItem', 'altModifier')
+    def getAltModifier(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'altModifier')
+        return res
+
+    @_f.addMelDocs('menuItem', 'annotation')
+    def getAnnotation(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'annotation')
+        return res
+
+    @_f.addMelDocs('menuItem', 'boldFont')
+    def getBoldFont(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'boldFont')
+        return res
+
+    @_f.addMelDocs('menuItem', 'checkBox')
+    def getCheckBox(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'checkBox')
+        return res
+
+    @_f.addMelDocs('menuItem', 'collection')
+    def getCollection(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'collection')
+        return res
+
+    @_f.addMelDocs('menuItem', 'command')
+    def getCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'command')
+        return res
+
+    @_f.addMelDocs('menuItem', 'commandModifier')
+    def getCommandModifier(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'commandModifier')
+        return res
+
+    @_f.addMelDocs('menuItem', 'ctrlModifier')
+    def getCtrlModifier(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'ctrlModifier')
+        return res
+
+    @_f.addMelDocs('menuItem', 'data')
+    def getData(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'data')
+        return res
+
+    @_f.addMelDocs('menuItem', 'divider')
+    def getDivider(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'divider')
+        return res
+
+    @_f.addMelDocs('menuItem', 'dividerLabel')
+    def getDividerLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'dividerLabel')
+        return res
+
+    @_f.addMelDocs('menuItem', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('menuItem', 'dragDoubleClickCommand')
+    def getDragDoubleClickCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'dragDoubleClickCommand')
+        return res
+
+    @_f.addMelDocs('menuItem', 'dragMenuCommand')
+    def getDragMenuCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'dragMenuCommand')
+        return res
+
+    @_f.addMelDocs('menuItem', 'echoCommand')
+    def getEchoCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'echoCommand')
+        return res
+
+    @_f.addMelDocs('menuItem', 'enable')
+    def getEnable(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'enable')
+        return res
+
+    @_f.addMelDocs('menuItem', 'enableCommandRepeat')
+    def getEnableCommandRepeat(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'enableCommandRepeat')
+        return res
+
+    @_f.addMelDocs('menuItem', 'familyImage')
+    def getFamilyImage(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'familyImage')
+        return res
+
+    @_f.addMelDocs('menuItem', 'image')
+    def getImage(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'image')
+        return res
+
+    @_f.addMelDocs('menuItem', 'imageOverlayLabel')
+    def getImageOverlayLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'imageOverlayLabel')
+        return res
+
+    @_f.addMelDocs('menuItem', 'isCheckBox')
+    def getIsCheckBox(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'isCheckBox')
+        return res
+
+    @_f.addMelDocs('menuItem', 'isOptionBox')
+    def getIsOptionBox(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'isOptionBox')
+        return res
+
+    @_f.addMelDocs('menuItem', 'isRadioButton')
+    def getIsRadioButton(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'isRadioButton')
+        return res
+
+    @_f.addMelDocs('menuItem', 'italicized')
+    def getItalicized(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'italicized')
+        return res
+
+    @_f.addMelDocs('menuItem', 'keyEquivalent')
+    def getKeyEquivalent(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'keyEquivalent')
+        return res
+
+    @_f.addMelDocs('menuItem', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('menuItem', 'longDivider')
+    def getLongDivider(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'longDivider')
+        return res
+
+    @_f.addMelDocs('menuItem', 'ltVersion')
+    def getLtVersion(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'ltVersion')
+        return res
+
+    @_f.addMelDocs('menuItem', 'optionBox')
+    def getOptionBox(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'optionBox')
+        return res
+
+    @_f.addMelDocs('menuItem', 'optionBoxIcon')
+    def getOptionBoxIcon(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'optionBoxIcon')
+        return res
+
+    @_f.addMelDocs('menuItem', 'optionModifier')
+    def getOptionModifier(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'optionModifier')
+        return res
+
+    @_f.addMelDocs('menuItem', 'postMenuCommand')
+    def getPostMenuCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'postMenuCommand')
+        return res
+
+    @_f.addMelDocs('menuItem', 'postMenuCommandOnce')
+    def getPostMenuCommandOnce(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'postMenuCommandOnce')
+        return res
+
+    @_f.addMelDocs('menuItem', 'radialPosition')
+    def getRadialPosition(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'radialPosition')
+        return res
+
+    @_f.addMelDocs('menuItem', 'radioButton')
+    def getRadioButton(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'radioButton')
+        return res
+
+    @_f.addMelDocs('menuItem', 'shiftModifier')
+    def getShiftModifier(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'shiftModifier')
+        return res
+
+    @_f.addMelDocs('menuItem', 'sourceType')
+    def getSourceType(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'sourceType')
+        return res
+
+    @_f.addMelDocs('menuItem', 'subMenu')
+    def getSubMenu(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'subMenu')
+        return res
+
+    @_f.addMelDocs('menuItem', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'tearOff')
+        return res
+
+    @_f.addMelDocs('menuItem', 'version')
+    def getVersion(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'version')
+        return res
+
+    @_f.addMelDocs('menuItem', 'altModifier')
+    def setAltModifier(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'altModifier', val)
+
+    @_f.addMelDocs('menuItem', 'annotation')
+    def setAnnotation(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'annotation', val)
+
+    @_f.addMelDocs('menuItem', 'checkBox')
+    def setCheckBox(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'checkBox', val)
+
+    @_f.addMelDocs('menuItem', 'command')
+    def setCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'command', val)
+
+    @_f.addMelDocs('menuItem', 'commandModifier')
+    def setCommandModifier(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'commandModifier', val)
+
+    @_f.addMelDocs('menuItem', 'ctrlModifier')
+    def setCtrlModifier(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'ctrlModifier', val)
+
+    @_f.addMelDocs('menuItem', 'data')
+    def setData(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'data', val)
+
+    @_f.addMelDocs('menuItem', 'dividerLabel')
+    def setDividerLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'dividerLabel', val)
+
+    @_f.addMelDocs('menuItem', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('menuItem', 'dragDoubleClickCommand')
+    def setDragDoubleClickCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'dragDoubleClickCommand', val)
+
+    @_f.addMelDocs('menuItem', 'dragMenuCommand')
+    def setDragMenuCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'dragMenuCommand', val)
+
+    @_f.addMelDocs('menuItem', 'echoCommand')
+    def setEchoCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'echoCommand', val)
+
+    @_f.addMelDocs('menuItem', 'enable')
+    def setEnable(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'enable', val)
+
+    @_f.addMelDocs('menuItem', 'enableCommandRepeat')
+    def setEnableCommandRepeat(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'enableCommandRepeat', val)
+
+    @_f.addMelDocs('menuItem', 'image')
+    def setImage(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'image', val)
+
+    @_f.addMelDocs('menuItem', 'imageOverlayLabel')
+    def setImageOverlayLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'imageOverlayLabel', val)
+
+    @_f.addMelDocs('menuItem', 'keyEquivalent')
+    def setKeyEquivalent(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'keyEquivalent', val)
+
+    @_f.addMelDocs('menuItem', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'label', val)
+
+    @_f.addMelDocs('menuItem', 'longDivider')
+    def setLongDivider(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'longDivider', val)
+
+    @_f.addMelDocs('menuItem', 'ltVersion')
+    def setLtVersion(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'ltVersion', val)
+
+    @_f.addMelDocs('menuItem', 'optionBoxIcon')
+    def setOptionBoxIcon(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'optionBoxIcon', val)
+
+    @_f.addMelDocs('menuItem', 'optionModifier')
+    def setOptionModifier(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'optionModifier', val)
+
+    @_f.addMelDocs('menuItem', 'postMenuCommand')
+    def setPostMenuCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'postMenuCommand', val)
+
+    @_f.addMelDocs('menuItem', 'postMenuCommandOnce')
+    def setPostMenuCommandOnce(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'postMenuCommandOnce', val)
+
+    @_f.addMelDocs('menuItem', 'radialPosition')
+    def setRadialPosition(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'radialPosition', val)
+
+    @_f.addMelDocs('menuItem', 'radioButton')
+    def setRadioButton(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'radioButton', val)
+
+    @_f.addMelDocs('menuItem', 'shiftModifier')
+    def setShiftModifier(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'shiftModifier', val)
+
+    @_f.addMelDocs('menuItem', 'sourceType')
+    def setSourceType(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'sourceType', val)
+
+    @_f.addMelDocs('menuItem', 'version')
+    def setVersion(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'version', val)
+# ------ Do not edit above this line --------
 
 
 def MenuItem(name=None, create=False, **kwargs):
