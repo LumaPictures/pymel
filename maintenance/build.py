@@ -42,9 +42,19 @@ class Literal(object):
         return str(self.value)
 
 
-def methodNames(cls):
-    return [name for name, obj in inspect.getmembers(cls)
-            if inspect.ismethod(obj)]
+def methodNames(cls, apicls=None):
+    if apicls:
+        herited = set()
+        for base in inspect.getmro(cls):
+            if base is apicls:
+                continue
+            for attr, obj in base.__dict__.items():
+                if inspect.ismethod(obj):
+                    herited.add(attr)
+        return herited
+    else:
+        return set([name for name, obj in inspect.getmembers(cls)
+                    if inspect.ismethod(obj)])
 
 
 def importableName(func, module=None, moduleMap=None):
@@ -497,7 +507,7 @@ class MelMethodGenerator(object):
 
     def __init__(self, classname, existingClass, parentClasses, parentMethods):
         self.classname = classname
-        self.parentClassname = parentClasses[0]
+        self.parentClassname = parentClasses[0] if parentClasses else None
         self.herited = parentMethods
         self.parentClasses = parentClasses
         self.existingClass = existingClass
@@ -518,9 +528,9 @@ class MelMethodGenerator(object):
         methodNames = set(methods)
         if self.existingClass:
             # add methods that exist *directly* on the existing class
-            methodNames.union(
+            methodNames.update(
                 name for name, obj in self.existingClass.__dict__.items()
-                if inspect.ismethod(obj))
+                if inspect.isfunction(obj))
 
         def toStr(k, v):
             if k == '__melcmd__':
@@ -862,7 +872,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                 # gets wrapped for Transform, Place3dTexture,
                 # HikGroundPlane, etc...
                 # Figure out why this happens, and stop it!
-                if pymelName not in self.herited and not hasattr(self.existingClass, pymelName):
+                if pymelName not in self.herited and (self.existingClass is None or pymelName not in self.existingClass.__dict__):
                     if pymelName not in methods:
                         #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                         doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
@@ -1247,7 +1257,7 @@ def iterApiTypeText():
         pymel.core.general.NurbsCurveCV,
     ]
     for cls in types:
-        parentMethods = set(methodNames(cls))
+        parentMethods = methodNames(cls)
         parentApicls = None
         parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
         template = ApiTypeGenerator(
@@ -1259,32 +1269,58 @@ def iterApiTypeText():
 
 def iterApiDataTypeText():
     import pymel.core.datatypes
-    # FIXME: handle herited methods
-    for name, obj in inspect.getmembers(pymel.core.datatypes):
+
+    heritedMethods = {
+        'VectorN': methodNames(pymel.core.datatypes.VectorN),
+        'MatrixN': methodNames(pymel.core.datatypes.MatrixN),
+        'Array': methodNames(pymel.core.datatypes.Array),
+    }
+
+    def dependentOrder(objects, seen):
+        for obj in objects:
+            if obj in seen:
+                continue
+
+            seen.add(obj)
+            for child in dependentOrder(obj.__bases__, seen):
+                yield child
+
+            if hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes':
+                yield obj
+
+    classes = [obj for name, obj in inspect.getmembers(pymel.core.datatypes)
+               if inspect.isclass(obj)]
+    for obj in dependentOrder(classes, set()):
         # we check for type registry metaclass because some datatypes (Time, Distance)
         # don't have a metaclass (and never did).  I'm not sure if that was a
         # mistake, but adding the metaclass causes errors.
-        if hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes':
-            if issubclass(getattr(obj, '__metaclass__', type), factories.MetaMayaTypeRegistry):
-                cls = obj
-                parentMethods = set(methodNames(cls))
-                parentApicls = None
-                parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
-                template = ApiDataTypeGenerator(
-                    cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
-
-                text, methods = template.render()
-                yield text, template
-            elif issubclass(obj, pymel.core.datatypes.Unit):
-                cls = obj
+        if issubclass(getattr(obj, '__metaclass__', type), factories.MetaMayaTypeRegistry):
+            cls = obj
+            # parentMethods = methodNames(cls, apicls=obj.apicls)
+            parentApicls = None
+            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]
+                                if x not in (obj.apicls, object)]
+            if parentPymelTypes:
+                parentMethods = heritedMethods[parentPymelTypes[0]]
+            else:
                 parentMethods = set()
-                parentApicls = None
-                parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
-                template = ApiUnitsGenerator(
-                    cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+            template = ApiDataTypeGenerator(
+                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
 
-                text, methods = template.render()
-                yield text, template
+            text, methods = template.render()
+            yield text, template
+            heritedMethods[cls.__name__] = parentMethods.union(methods)
+
+        elif issubclass(obj, pymel.core.datatypes.Unit):
+            cls = obj
+            parentMethods = set()
+            parentApicls = None
+            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
+            template = ApiUnitsGenerator(
+                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+
+            text, methods = template.render()
+            yield text, template
 
 
 def iterPyNodeText():
@@ -1292,7 +1328,7 @@ def iterPyNodeText():
 
     # Generate Classes
     heritedMethods = {
-        'general.PyNode': set(methodNames(pymel.core.general.PyNode))
+        'general.PyNode': methodNames(pymel.core.general.PyNode)
     }
     apiClasses = {
         'general.PyNode': None
@@ -1331,9 +1367,9 @@ def iterUIText():
     import pymel.core.uitypes
 
     heritedMethods = {
-        'PyUI': set(methodNames(pymel.core.uitypes.PyUI)),
-        'Layout': set(methodNames(pymel.core.uitypes.Layout)),
-        'Panel': set(methodNames(pymel.core.uitypes.Panel)),
+        'PyUI': methodNames(pymel.core.uitypes.PyUI),
+        'Layout': methodNames(pymel.core.uitypes.Layout),
+        'Panel': methodNames(pymel.core.uitypes.Panel),
     }
 
     for funcName in factories.uiClassList:

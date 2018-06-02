@@ -814,9 +814,9 @@ class FloatVector(Vector):
         It behaves identically to Vector, but it also derives from api's FloatVector
         to keep api methods happy
         """
+    __slots__ = ()
     apicls = _api.MFloatVector
 # ------ Do not edit below this line --------
-    __slots__ = ()
     one = _f.ClassConstant([1.0, 1.0, 1.0])
     xAxis = _f.ClassConstant([1.0, 0.0, 0.0])
     xNegAxis = _f.ClassConstant([-1.0, 0.0, 0.0])
@@ -825,13 +825,6 @@ class FloatVector(Vector):
     zAxis = _f.ClassConstant([0.0, 0.0, 1.0])
     zNegAxis = _f.ClassConstant([0.0, 0.0, -1.0])
     zero = _f.ClassConstant([0.0, 0.0, 0.0])
-
-    @_f.addApiDocs(_api.MFloatVector, '__rmult__')
-    def __rmult__(self, scalar):
-        do, final_do, outTypes = _f.getDoArgs([scalar], [('scalar', 'int', 'in', None)])
-        res = _api.MFloatVector.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MFloatVector', None)
-        return _f.processApiResult(res, [], outTypes, do)
 # ------ Do not edit above this line --------
 
 
@@ -874,6 +867,7 @@ class Point(Vector):
 
     """ A 4 dimensional vector class that wraps Maya's api Point class,
         """
+    __slots__ = ()
     apicls = _api.MPoint
     cnames = ('x', 'y', 'z', 'w')
     shape = (4,)
@@ -1087,15 +1081,7 @@ class Point(Vector):
         else:
             return ()
 # ------ Do not edit below this line --------
-    __slots__ = ()
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
-
-    @_f.addApiDocs(_api.MPoint, '__rmult__')
-    def __rmult__(self, right):
-        do, final_do, outTypes = _f.getDoArgs([right], [('right', 'MMatrix', 'in', None)])
-        res = _api.MPoint.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
-        return _f.processApiResult(res, [], outTypes, do)
 # ------ Do not edit above this line --------
 
 
@@ -1105,17 +1091,10 @@ class FloatPoint(Point):
         It behaves identically to Point, but it also derives from api's FloatPoint
         to keep api methods happy
         """
+    __slots__ = ()
     apicls = _api.MFloatPoint
 # ------ Do not edit below this line --------
-    __slots__ = ()
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
-
-    @_f.addApiDocs(_api.MFloatPoint, '__rmult__')
-    def __rmult__(self, right):
-        do, final_do, outTypes = _f.getDoArgs([right], [('right', 'MFloatMatrix', 'in', None)])
-        res = _api.MFloatPoint.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MFloatPoint', None)
-        return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MFloatPoint, 'setCast')
     def setCast(self, srcpt):
@@ -1130,6 +1109,7 @@ class Color(Vector):
     """ A 4 dimensional vector class that wraps Maya's api Color class,
         It stores the r, g, b, a components of the color, as normalized (Python) floats
         """
+    __slots__ = ()
     apicls = _api.MColor
     cnames = ('r', 'g', 'b', 'a')
     shape = (4,)
@@ -1499,7 +1479,6 @@ class Color(Vector):
         return self.__class__(c, mode='hsv')
 # ------ Do not edit below this line --------
     MColorType = Enum('MColorType', {'RGB': 0, 'HSV': 1, 'CMY': 2, 'CMYK': 3})
-    __slots__ = ()
     black = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
     blue = _f.ClassConstant([0.0, 0.0, 1.0, 1.0])
     clear = _f.ClassConstant([0.0, 0.0, 0.0, 0.0])
@@ -1508,13 +1487,6 @@ class Color(Vector):
     opaque = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
     red = _f.ClassConstant([1.0, 0.0, 0.0, 1.0])
     white = _f.ClassConstant([1.0, 1.0, 1.0, 1.0])
-
-    @_f.addApiDocs(_api.MColor, '__rmult__')
-    def __rmult__(self, scalar):
-        do, final_do, outTypes = _f.getDoArgs([scalar], [('scalar', 'float', 'in', None)])
-        res = _api.MColor.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MColor', None)
-        return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MColor, 'set')
     def set(self, colorModel, c1, c2, c3, alpha=1.0):
@@ -1528,11 +1500,11 @@ class Color(Vector):
 # to specify space of transforms
 
 class Space(_api.MSpace):
-    apicls = _api.MSpace
     __metaclass__ = _factories.MetaMayaTypeRegistry
+    __slots__ = ()
+    apicls = _api.MSpace
 # ------ Do not edit below this line --------
     Space = Enum('Space', {'invalid': 0, 'transform': 1, 'preTransform': 2, 'object': 3, 'world': 4, 'last': 5})
-    __slots__ = ()
 # ------ Do not edit above this line --------
 
 
@@ -1657,6 +1629,7 @@ class Matrix(MatrixN):
 
     """
     __metaclass__ = MetaMayaArrayTypeWrapper
+    __slots__ = ()
     apicls = _api.MMatrix
     shape = (4, 4)
     cnames = ('a00', 'a01', 'a02', 'a03',
@@ -2088,7 +2061,6 @@ class Matrix(MatrixN):
             self = TransformationMatrix(self)
         return self.__class__._convert(self.asMatrix(weight))
 # ------ Do not edit below this line --------
-    __slots__ = ()
     identity = _f.ClassConstant([Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])])
 
     @_f.addApiDocs(_api.MMatrix, '__rmult__')
@@ -2106,20 +2078,12 @@ class FloatMatrix(Matrix):
     It behaves identically to Matrix, but it also derives from api's FloatMatrix
     to keep api methods happy
     """
-    apicls = _api.MFloatMatrix
-# ------ Do not edit below this line --------
     __slots__ = ()
-
-    @_f.addApiDocs(_api.MFloatMatrix, '__rmult__')
-    def __rmult__(self, right):
-        do, final_do, outTypes = _f.getDoArgs([right], [('right', 'MFloatMatrix', 'in', None)])
-        res = _api.MFloatMatrix.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MFloatMatrix', None)
-        return _f.processApiResult(res, [], outTypes, do)
-# ------ Do not edit above this line --------
+    apicls = _api.MFloatMatrix
 
 
 class Quaternion(Matrix):
+    __slots__ = ()
     apicls = _api.MQuaternion
     shape = (4,)
     cnames = ('x', 'y', 'z', 'w')
@@ -2285,15 +2249,7 @@ class Quaternion(Matrix):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()
 # ------ Do not edit below this line --------
-    __slots__ = ()
     identity = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
-
-    @_f.addApiDocs(_api.MQuaternion, '__rmult__')
-    def __rmult__(self, other):
-        do, final_do, outTypes = _f.getDoArgs([other], [('other', 'MQuaternion', 'in', None)])
-        res = _api.MQuaternion.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
-        return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MQuaternion, 'asEulerRotation')
     def asEulerRotation(self):
@@ -2361,6 +2317,7 @@ class Quaternion(Matrix):
 
 
 class TransformationMatrix(Matrix):
+    __slots__ = ()
     apicls = _api.MTransformationMatrix
 
     def _getTranslate(self):
@@ -2421,7 +2378,6 @@ class TransformationMatrix(Matrix):
     scale = property(_getScale, _setScale, None, "The scale expressed in this TransformationMatrix, in transform space")
 # ------ Do not edit below this line --------
     RotationOrder = Enum('RotationOrder', {'invalid': 0, 'XYZ': 1, 'YZX': 2, 'ZXY': 3, 'XZY': 4, 'YXZ': 5, 'ZYX': 6, 'last': 7})
-    __slots__ = ()
     identity = _f.ClassConstant([Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])])
 
     def __getattribute__(self, name):
@@ -2645,6 +2601,7 @@ class EulerRotation(Array):
 
     """
     __metaclass__ = MetaMayaArrayTypeWrapper
+    __slots__ = ()
     apicls = _api.MEulerRotation
     shape = (3,)
     cnames = ('x', 'y', 'z')
@@ -2952,7 +2909,6 @@ class EulerRotation(Array):
             return NotImplemented
 # ------ Do not edit below this line --------
     RotationOrder = Enum('RotationOrder', {'XYZ': 0, 'YZX': 1, 'ZXY': 2, 'XZY': 3, 'YXZ': 4, 'ZYX': 5})
-    __slots__ = ()
     identity = _f.ClassConstant([0.0, 0.0, 0.0])
 
     @_f.addApiDocs(_api.MEulerRotation, '__rmult__')
@@ -3206,6 +3162,8 @@ class Unit(float):
 
 class Time(Unit):
     apicls = _api.MTime
+    # FIXME: this is probably safe, but not strictly the same as before templating
+    # __slots__ = ['_data']
 
     @classmethod
     def _inCast(cls, x):
@@ -3287,6 +3245,8 @@ class Distance(Unit):
         'centimeters'
     """
     apicls = _api.MDistance
+    # FIXME: this is probably safe, but not strictly the same as before templating
+    # __slots__ = ['_data']
 
     def asMillimeter(self):
         return self.asUnit('millimeter')
@@ -3322,6 +3282,8 @@ class Distance(Unit):
 
 class Angle(Unit):
     apicls = _api.MAngle
+    # FIXME: this is probably safe, but not strictly the same as before templating
+    # __slots__ = ['_data']
 
     def asRadians(self):
         return self.asUnit('radians')
@@ -3346,6 +3308,7 @@ class Angle(Unit):
 class BoundingBox(_api.MBoundingBox):
     apicls = _api.MBoundingBox
     __metaclass__ = _factories.MetaMayaTypeRegistry
+    __slots__ = ()
 
     def __init__(self, *args):
         if len(args) == 2:
@@ -3374,12 +3337,74 @@ class BoundingBox(_api.MBoundingBox):
         return list(self.min()) + list(self.max())
 
     repr = __str__
-    w = property(_factories.wrapApiMethod(_api.MBoundingBox, 'width'))
-    h = property(_factories.wrapApiMethod(_api.MBoundingBox, 'height'))
-    d = property(_factories.wrapApiMethod(_api.MBoundingBox, 'depth'))
 # ------ Do not edit below this line --------
-    __slots__ = ()
+
+    @_f.addApiDocs(_api.MBoundingBox, 'center')
+    def center(self):
+        res = _api.MBoundingBox.center(self)
+        return _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'clear')
+    def clear(self):
+        res = _api.MBoundingBox.clear(self)
+        return res
+
+    @_f.addApiDocs(_api.MBoundingBox, 'contains')
+    def contains(self, point):
+        do, final_do, outTypes = _f.getDoArgs([point], [('point', 'MPoint', 'in', None)])
+        res = _api.MBoundingBox.contains(self, *final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'depth')
+    def depth(self):
+        res = _api.MBoundingBox.depth(self)
+        return _f.ApiArgUtil._castResult(self, res, 'double', None)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'expand')
+    def expand(self, point):
+        do, final_do, outTypes = _f.getDoArgs([point], [('point', 'MPoint', 'in', None)])
+        res = _api.MBoundingBox.expand(self, *final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'height')
+    def height(self):
+        res = _api.MBoundingBox.height(self)
+        return _f.ApiArgUtil._castResult(self, res, 'double', None)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'intersects')
+    def intersects(self, box, tol=0.0):
+        do, final_do, outTypes = _f.getDoArgs([box, tol], [('box', 'MBoundingBox', 'in', None), ('tol', 'double', 'in', None)])
+        res = _api.MBoundingBox.intersects(self, *final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'max')
+    def max(self):
+        res = _api.MBoundingBox.max(self)
+        return _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'min')
+    def min(self):
+        res = _api.MBoundingBox.min(self)
+        return _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'transformUsing')
+    def transformUsing(self, matrix):
+        do, final_do, outTypes = _f.getDoArgs([matrix], [('matrix', 'MMatrix', 'in', None)])
+        res = _api.MBoundingBox.transformUsing(self, *final_do)
+        return _f.processApiResult(res, [], outTypes, do)
+
+    @_f.addApiDocs(_api.MBoundingBox, 'width')
+    def width(self):
+        res = _api.MBoundingBox.width(self)
+        return _f.ApiArgUtil._castResult(self, res, 'double', None)
 # ------ Do not edit above this line --------
+    if not _factories.building:
+        w = property(width)
+        h = property(height)
+        d = property(depth)
+
 
 #_factories.ApiTypeRegister.register( 'MVector', Vector )
 #_factories.ApiTypeRegister.register( 'MMatrix', Matrix )

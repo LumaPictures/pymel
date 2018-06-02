@@ -4593,10 +4593,6 @@ class Joint(Transform):
     def setRadius(self, val=True, **kwargs):
         return _f.asEdit(self, animation.joint, kwargs, 'radius', val)
 
-    @_f.addMelDocs('joint', 'scale')
-    def setScale(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.joint, kwargs, 'scale', val)
-
     @_f.addMelDocs('joint', 'scaleCompensate')
     def setScaleCompensate(self, val=True, **kwargs):
         return _f.asEdit(self, animation.joint, kwargs, 'scaleCompensate', val)
@@ -23115,15 +23111,6 @@ class PoleVectorConstraint(PointConstraint):
     __melnode__ = u'poleVectorConstraint'
     __slots__ = ()
 
-    @_f.addMelDocs('poleVectorConstraint', 'weight')
-    def getWeight(self, **kwargs):
-        res = _f.asQuery(self, animation.poleVectorConstraint, kwargs, 'weight')
-        return res
-
-    @_f.addMelDocs('poleVectorConstraint', 'weight')
-    def setWeight(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.poleVectorConstraint, kwargs, 'weight', val)
-
 
 class TangentConstraint(Constraint):
     __melcmd__ = staticmethod(animation.tangentConstraint)
@@ -23633,10 +23620,6 @@ class KeyingGroup(ObjectSet):
     def flatten(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyingGroup, kwargs, 'flatten', val)
 
-    @_f.addMelDocs('keyingGroup', 'forceElement')
-    def forceElement(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.keyingGroup, kwargs, 'forceElement', val)
-
     @_f.addMelDocs('keyingGroup', 'activator')
     def getActivator(self, **kwargs):
         res = _f.asQuery(self, animation.keyingGroup, kwargs, 'activator')
@@ -23706,10 +23689,6 @@ class KeyingGroup(ObjectSet):
     def include(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyingGroup, kwargs, 'include', val)
 
-    @_f.addMelDocs('keyingGroup', 'remove')
-    def remove(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.keyingGroup, kwargs, 'remove', val)
-
     @_f.addMelDocs('keyingGroup', 'removeActivator')
     def removeActivator(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyingGroup, kwargs, 'removeActivator', val)
@@ -23777,10 +23756,6 @@ class Character(ObjectSet):
     def flatten(self, val=True, **kwargs):
         return _f.asEdit(self, animation.character, kwargs, 'flatten', val)
 
-    @_f.addMelDocs('character', 'forceElement')
-    def forceElement(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.character, kwargs, 'forceElement', val)
-
     @_f.addMelDocs('character', 'addOffsetObject')
     def getAddOffsetObject(self, **kwargs):
         res = _f.asQuery(self, animation.character, kwargs, 'addOffsetObject')
@@ -23820,11 +23795,6 @@ class Character(ObjectSet):
     def getClipScheduler(self):
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getClipScheduler')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-
-    @_f.addMelDocs('character', 'intersection')
-    def getIntersection(self, **kwargs):
-        res = _f.asQuery(self, animation.character, kwargs, 'intersection')
-        return res
 
     @_f.addMelDocs('character', 'isIntersecting')
     def getIsIntersecting(self, **kwargs):
@@ -23907,11 +23877,6 @@ class Character(ObjectSet):
         res = _f.asQuery(self, animation.character, kwargs, 'text')
         return res
 
-    @_f.addMelDocs('character', 'union')
-    def getUnion(self, **kwargs):
-        res = _f.asQuery(self, animation.character, kwargs, 'union')
-        return res
-
     @_f.addMelDocs('character', 'userAlias')
     def getUserAlias(self, **kwargs):
         res = _f.asQuery(self, animation.character, kwargs, 'userAlias')
@@ -23920,10 +23885,6 @@ class Character(ObjectSet):
     @_f.addMelDocs('character', 'include')
     def include(self, val=True, **kwargs):
         return _f.asEdit(self, animation.character, kwargs, 'include', val)
-
-    @_f.addMelDocs('character', 'remove')
-    def remove(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.character, kwargs, 'remove', val)
 
     @_f.addMelDocs('character', 'removeOffsetObject')
     def removeOffsetObject(self, val=True, **kwargs):
