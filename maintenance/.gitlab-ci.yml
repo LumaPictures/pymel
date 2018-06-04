@@ -1,0 +1,23 @@
+
+stages:
+- release
+
+release_la:
+  stage: release
+  variables:
+    GIT_STRATEGY: fetch
+  tags: [internal, la]
+  only:
+  - master
+  script:
+    - /luma/pipe/shell/cron/gitlab_release.sh
+
+release_mel:
+  stage: release
+  variables:
+    GIT_STRATEGY: fetch
+  tags: [internal, mel]
+  only:
+  - master
+  script:
+    - /luma/pipe/shell/cron/gitlab_release.sh
