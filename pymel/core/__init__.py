@@ -28,7 +28,6 @@ from rendering import *
 from language import *
 from other import *
 
-# to allow lazy loading, we avoid import *
 import nodetypes
 import nodetypes as nt
 import datatypes
@@ -87,15 +86,14 @@ def _addPluginCommand(pluginName, funcName):
     except Exception, msg:
         _logger.warning("exception: %s" % str(msg))
 
-def _addPluginNode(pluginName, mayaType, immediate=False):
+def _addPluginNode(pluginName, mayaType):
     global _pluginData
 
     if mayaType not in _pluginData[pluginName].setdefault('dependNodes', []):
         _pluginData[pluginName]['dependNodes'].append(mayaType)
     _logger.debug("Adding node: %s" % mayaType)
     extraAttrs = _plugins.pyNodeMethods.get(pluginName, {}).get(mayaType, {})
-    return _factories.addCustomPyNode(nodetypes, mayaType, extraAttrs=extraAttrs,
-                                      immediate=immediate)
+    return _factories.addCustomPyNode(nodetypes, mayaType, extraAttrs=extraAttrs)
 
 
 def _removePluginCommand(pluginName, command):

@@ -9601,11 +9601,9 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
                 plugin = cmds.pluginInfo(pluginPath, q=1, name=1)
             except RuntimeError:
                 # if we can't find a plugin
-                pyNodeName =_factories.addCustomPyNode(self, mayaType,
-                                                       immediate=True)
+                pyNodeName = _factories.addCustomPyNode(self, mayaType)
             else:
-                pyNodeName = pymel.core._addPluginNode(plugin, mayaType,
-                                                       immediate=True)
+                pyNodeName = pymel.core._addPluginNode(plugin, mayaType)
             if pyNodeName != name:
                 _logger.raiseLog(_logger.WARNING,
                                  "dynamically added node when %r requested, but"
@@ -9614,43 +9612,6 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
             return self.__dict__[pyNodeName]
         raise AttributeError(name)
 
-
-def _createPyNodes():
-
-    dynModule = NodetypesLazyLoadModule(__name__, globals())
-
-    for mayaType, parents, children in _factories.nodeHierarchy:
-
-        if mayaType == 'dependNode':
-            # This seems like the more 'correct' way of doing it - only node types
-            # that are currently available have PyNodes created for them - but
-            # changing it so some PyNodes are no longer available until their
-            # plugin is loaded may create backwards incompatibility issues...
-            #        if (mayaType == 'dependNode'
-            #                or mayaType not in _factories.mayaTypesToApiTypes):
-            continue
-
-        parentMayaType = parents[0]
-        # print "superNodeType: ", superNodeType, type(superNodeType)
-        if parentMayaType is None:
-            _logger.warning("could not find parent node: %s", mayaType)
-            continue
-
-        #className = _util.capitalize(mayaType)
-        #if className not in __all__: __all__.append( className )
-
-        if _factories.isMayaType(mayaType):
-            _factories.addPyNode(dynModule, mayaType, parentMayaType)
-
-    sys.modules[__name__] = dynModule
-
-
-# Initialize Pymel classes to API types lookup
-#_startTime = time.time()
-# _createPyNodes()
-#_logger.debug( "Initialized Pymel PyNodes types list in %.2f sec" % time.time() - _startTime )
-
-dynModule = sys.modules[__name__]
 # def listToMSelection( objs ):
 #    sel = _api.MSelectionList()
 #    for obj in objs:

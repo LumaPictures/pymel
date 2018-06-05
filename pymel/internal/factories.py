@@ -2468,6 +2468,11 @@ class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
 
         newcls = super(MetaMayaTypeRegistry, cls).__new__(cls, classname, bases, classdict)
 
+        if proxy:
+            parentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
+            assert len(parentPyNode), "%s did not have exactly one parent PyNode: %s (%s)" % (classname, parentPyNode, bases)
+            addPyNodeType(newcls, parentPyNode)
+
         if apicls is not None and apicls.__name__ not in apiClassNamesToPyNodeNames:
             #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
             apiClassNamesToPyNodeNames[apicls.__name__] = classname
@@ -2562,7 +2567,12 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
                 _logger.info("No api information for api class %s" % (apicls.__name__))
             else:
                 parentApiClass = getattr(bases[0], '__apicls__', None)
-                assert apicls is parentApiClass
+                # we're not generating any methods, so this is just a sanity
+                # check.  the issubclass exception was added for a case
+                # demonstrated by aiStandIn, where the parent pynode class is
+                # THsurfaceShape with an parentApiClass of MFnDagNode, while
+                # apicls was MFnDependencyNode
+                assert (apicls is parentApiClass or issubclass(parentApiClass, apicls)), (classname, apicls, parentApiClass)
 
             #     if apicls is parentApiClass:
             #         # If this class's api class is the same as the parent, the methods
@@ -2953,8 +2963,8 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
     based on info parsed from the docs on their command counterparts.
     """
     def __new__(cls, classname, bases, classdict):
-        # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
-        # the name of the PyNode, uncapitalized
+        # If the class explicitly gives it's mel node name, use that -
+        # otherwise, assume it's the name of the PyNode, uncapitalized
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
         nodeType = classdict.get('__melnode__')
 
@@ -3007,9 +3017,6 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
             classdict['__apicls__'] = apicls
 
         PyNodeType = super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
-        ParentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
-        assert len(ParentPyNode), "%s did not have exactly one parent PyNode: %s (%s)" % (classname, ParentPyNode, bases)
-        addPyNodeType(PyNodeType, ParentPyNode)
         return PyNodeType
 
     @classmethod
@@ -3055,12 +3062,27 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
         return classdict['__melui__'], False
 
 
-def addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs=None):
+def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs=None):
+    """
+    Parameters
+    ----------
+    module
+    mayaType : str
+    pyNodeTypeName : str
+    parentPyNodeTypeName : str
+    extraAttrs
+
+    Returns
+    -------
+    Optional[type]
+    """
     #_logger.debug( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
     try:
-        ParentPyNode = getattr(dynModule, parentPyNodeTypeName)
+        ParentPyNode = getattr(module, parentPyNodeTypeName)
     except AttributeError:
-        _logger.debug("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
+        _logger.debug("error creating class %s: parent class %r not in "
+                      "module %s" % (pyNodeTypeName, parentPyNodeTypeName,
+                                     module.__name__))
         return
 
     classDict = {'__melnode__': mayaType}
@@ -3072,17 +3094,20 @@ def addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName,
         try:
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), classDict)
         except TypeError, msg:
-            # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-            _logger.error("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg))
+            # for the error: metaclass conflict: the metaclass of a derived
+            # class must be a (non-strict) subclass of the metaclasses of all
+            # its bases
+            _logger.error("Could not create new PyNode: %s(%s): %s" %
+                          (pyNodeTypeName, ParentPyNode.__name__, msg))
             import new
             PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
             #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentPyNodeTypeName)))
 
-        PyNodeType.__module__ = dynModule.__name__
-    setattr(dynModule, pyNodeTypeName, PyNodeType)
+        PyNodeType.__module__ = module.__name__
     return PyNodeType
 
-def addCustomPyNode(dynModule, mayaType, extraAttrs=None, immediate=False):
+
+def addCustomPyNode(module, mayaType, extraAttrs=None):
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
 
@@ -3090,6 +3115,9 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None, immediate=False):
     types not yet created by pymel.  also, this function ensures that the newly created node types are
     added to pymel.all, if that module has been imported.
 
+    Returns
+    -------
+    Optional[str]
     """
     try:
         inheritance = apicache.getInheritance(mayaType)
@@ -3111,21 +3139,23 @@ def addCustomPyNode(dynModule, mayaType, extraAttrs=None, immediate=False):
 
         pynodeName = None
         for node in inheritance:
-            pynodeName = addPyNode(dynModule, node, parent,
-                                   extraAttrs=extraAttrs, immediate=immediate)
+            pynodeName, pynodeClass = _addPyNode(module, node, parent)
             parent = node
             if 'pymel.all' in sys.modules:
-                # getattr forces loading of Lazy object
-                setattr(sys.modules['pymel.all'], pynodeName,
-                        getattr(dynModule, pynodeName))
+                setattr(sys.modules['pymel.all'], pynodeName, pynodeClass)
         return pynodeName
 
-def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
-              immediate=False):
+
+def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
     """
     create a PyNode type for a maya node.
+
+    Returns
+    -------
+    name : str
+    class : type
     """
-    # dynModule is generally pymel.core.nodetypes, but don't want to rely on
+    # module is generally pymel.core.nodetypes, but don't want to rely on
     # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
     from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\
         pymelTypeNameToMayaTypeName
@@ -3143,8 +3173,6 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
             pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
         return pymelTypeName
 
-
-    #_logger.debug("addPyNode adding %s->%s on dynModule %s" % (mayaType, parentMayaType, dynModule))
     # unicode is not liked by metaNode
     parentPyNodeTypeName = mayaTypeNameToPymelTypeName.get(parentMayaType)
     if parentPyNodeTypeName is None:
@@ -3155,22 +3183,18 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
         parentPyNodeTypeName = str(util.capitalize(parentMayaType))
     pyNodeTypeName = getPymelTypeName(mayaType)
 
-    # If pymel.all is loaded, we will need to get the actual node in order to
-    # store it on pymel.all, so in that case don't bother with the lazy-loading
-    # behavior...
-    if immediate or 'pymel.all' in sys.modules:
-        newType = addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs)
-        setattr(sys.modules['pymel.all'], pyNodeTypeName, newType)
-    # otherwise, do the lazy-loading thing
+    if hasattr(module, pyNodeTypeName):
+        return pyNodeTypeName, getattr(module, pyNodeTypeName)
     else:
-        try:
-            getattr(dynModule, pyNodeTypeName)
-        except AttributeError:
-            #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
-            addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs)
-    return pyNodeTypeName
+        _logger.debug("addPyNode adding %s->%s on module %s" %
+                      (mayaType, parentMayaType, module))
+        newType = _createPyNode(module, mayaType, pyNodeTypeName,
+                                parentPyNodeTypeName, extraAttrs)
+        setattr(module, pyNodeTypeName, newType)
+        return pyNodeTypeName, newType
 
-def removePyNode(dynModule, mayaType):
+
+def removePyNode(module, mayaType):
     from pymel.core.nodetypes import mayaTypeNameToPymelTypeName
     pyNodeTypeName = mayaTypeNameToPymelTypeName.get(mayaType)
     if not pyNodeTypeName:
@@ -3180,22 +3204,16 @@ def removePyNode(dynModule, mayaType):
         pyNodeTypeName = str(util.capitalize(mayaType))
     removePyNodeType(pyNodeTypeName)
 
-    _logger.debug('removing %s from %s' % (pyNodeTypeName, dynModule.__name__))
-    dynModule.__dict__.pop(pyNodeTypeName, None)
+    _logger.debug('removing %s from %s' % (pyNodeTypeName, module.__name__))
+    module.__dict__.pop(pyNodeTypeName, None)
 
-    # delete the lazy loader too, so it does not regenerate the object
-    # Note - even doing a 'hasattr' will trigger the lazy loader, so just
-    # delete blind!
-    try:
-        delattr(dynModule.__class__, pyNodeTypeName)
-    except Exception:
-        pass
     if 'pymel.all' in sys.modules:
         try:
             delattr(sys.modules['pymel.all'], pyNodeTypeName)
         except AttributeError:
             pass
     removeMayaType(mayaType)
+
 
 def addPyNodeType(pyNodeType, parentPyNode):
     pyNodeNamesToPyNodes[pyNodeType.__name__] = pyNodeType
