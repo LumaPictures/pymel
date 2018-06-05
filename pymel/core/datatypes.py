@@ -3323,6 +3323,10 @@ class BoundingBox(_api.MBoundingBox):
         return list(self.min()) + list(self.max())
 
     repr = __str__
+    if not _factories.building:
+        w = property(width)
+        h = property(height)
+        d = property(depth)
 # ------ Do not edit below this line --------
 
     @_f.addApiDocs(_api.MBoundingBox, 'center')
@@ -3386,10 +3390,6 @@ class BoundingBox(_api.MBoundingBox):
         res = _api.MBoundingBox.width(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 # ------ Do not edit above this line --------
-    if not _factories.building:
-        w = property(width)
-        h = property(height)
-        d = property(depth)
 
 
 #_factories.ApiTypeRegister.register( 'MVector', Vector )
