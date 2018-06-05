@@ -36,6 +36,14 @@ import datatypes as dt
 import uitypes
 import uitypes as ui
 
+# create some aliases for legacy reasons
+objectTypeUI = windows.objectTypeUI = ui.objectTypeUI
+toQtObject = windows.toQtObject = ui.toQtObject
+toQtLayout = windows.toQtLayout = ui.toQtLayout
+toQtControl = windows.toQtControl = ui.toQtControl
+toQtMenuItem = windows.toQtMenuItem = ui.toQtMenuItem
+toQtWindow = windows.toQtWindow = ui.toQtWindow
+
 import runtime
 
 import maya.cmds as cmds

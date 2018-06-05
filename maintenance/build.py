@@ -319,10 +319,6 @@ def generateUIFunctions():
 
     new += '''
 autoLayout.__doc__ = formLayout.__doc__
-# Now that we've actually created all the functions, it should be safe to import
-# uitypes... 
-# FIXME: commented out to avoid cyclic import!!!!
-# from uitypes import objectTypeUI, toQtObject, toQtLayout, toQtControl, toQtMenuItem, toQtWindow
 '''
     _writeToModule(new, module)
 
