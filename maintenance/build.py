@@ -17,6 +17,9 @@ from pymel.internal import pmcmds
 
 _logger = plogging.getLogger(__name__)
 
+START_MARKER = '# ------ Do not edit below this line --------'
+END_MARKER =   '# ------ Do not edit above this line --------'
+
 CORE_CMD_MODULES = [
     ('pymel.core.animation', '_general.PyNode'),
     ('pymel.core.context', None),
@@ -229,10 +232,6 @@ def _getModulePath(module):
         return module.__file__.rsplit('.', 1)[0] + '.py'
 
 
-START_MARKER = '# ------ Do not edit below this line --------'
-END_MARKER =   '# ------ Do not edit above this line --------'
-
-
 def _resetModule(module):
     source = _getModulePath(module)
     with open(source, 'r') as f:
@@ -329,7 +328,8 @@ autoLayout.__doc__ = formLayout.__doc__
 
 
 def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
-                  overloadIndex=None, deprecated=False, aliases=()):
+                  overloadIndex=None, deprecated=False, aliases=(),
+                  properties=()):
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
     no special API classes required.  Inputs go in the front door, and outputs come out the back door.
@@ -453,6 +453,7 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         'deprecated': deprecated,
         'signature': signature,
         'aliases': aliases,
+        'properties': properties,  # property aliases
     }
 
     wrappedApiFunc.__name__ = newName
@@ -546,6 +547,7 @@ class MelMethodGenerator(object):
                                classname=self.classname,
                                parents=self.parentClassname,
                                existing=self.existingClass is not None)
+
         return text, methodNames
 
     def getMELData(self, attrs, methods):
@@ -828,8 +830,10 @@ class ApiMethodGenerator(MelMethodGenerator):
 
                     overloadIndex = overrideData.get('overloadIndex', None)
 
+                    aliases = overrideData.get('aliases', [])
+                    properties = overrideData.get('properties', [])
                     yieldTuple = (methodName, self.classname, pymelName,
-                                  overloadIndex, overrideData.get('aliases', []))
+                                  overloadIndex, aliases, properties)
 
                     if overloadIndex is None:
                         #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
@@ -844,7 +848,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                             print self.classname, pymelName, "not on any children"
                             continue
                         else:
-                            print "Adding disabled as deprecated", self.classname, methodName, pymelName
+                            _logger.info("%s.%s: Adding disabled method as deprecated. Used by children %s" % (self.classname, pymelName, usedByChildren))
                             deprecated.append(yieldTuple)
                     elif info[overloadIndex].get('deprecated', False):
                         deprecated.append(yieldTuple)
@@ -858,12 +862,12 @@ class ApiMethodGenerator(MelMethodGenerator):
                         # We should include them as deprecated.
                         deprecated.append(
                             (methodName, self.classname,
-                             basePymelName, overloadIndex, []))
+                             basePymelName, overloadIndex, [], []))
 
                 for yieldTuple in deprecated:
                     yield yieldTuple + (True,)
 
-            for (methodName, classname, pymelName, overloadIndex, aliases, deprecated) \
+            for (methodName, classname, pymelName, overloadIndex, aliases, properties, deprecated) \
                     in non_deprecated_methods_first():
                 assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
 
@@ -877,7 +881,8 @@ class ApiMethodGenerator(MelMethodGenerator):
                         #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                         doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
                                             proxy=self.proxy, overloadIndex=overloadIndex,
-                                            deprecated=deprecated, aliases=aliases)
+                                            deprecated=deprecated, aliases=aliases,
+                                            properties=properties)
                         if doc:
                             methods[pymelName] = doc
                         #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
@@ -1431,6 +1436,9 @@ def generateTypes(iterator, module, lines=None, suffix=None):
             if newlines[-2:] == ['', '']:
                 newlines = newlines[:-2]
 
+            if not newlines:
+                continue
+
             try:
                 srclines, startline = inspect.getsourcelines(template.existingClass)
             except IOError:
@@ -1490,6 +1498,13 @@ def generateAll():
 
         doc = factories.apiToMelData[('DependNode', 'isFromReferencedFile')]
         doc['aliases'] = ['isReadOnly']
+
+        doc = factories.apiToMelData[('BoundingBox', 'width')]
+        doc['properties'] = ['w']
+        doc = factories.apiToMelData[('BoundingBox', 'height')]
+        doc['properties'] = ['h']
+        doc = factories.apiToMelData[('BoundingBox', 'depth')]
+        doc['properties'] = ['d']
 
         # Reset modules, before import
         for module, _ in CORE_CMD_MODULES:
