@@ -96,7 +96,7 @@ Building an Official PyMEL Release
 
       ```
       export PATH=$PATH:$MAYA_LOCATION/bin
-      ./pymel_test_output.bash
+      ./pymel_test_output.bash 2>&1 | tee pymelTestOut.txt
       ```
 
   - then run the tests in a gui session of maya...
@@ -113,7 +113,7 @@ Building an Official PyMEL Release
 
       ```
       export PATH=$PATH:$MAYA_LOCATION/bin
-      ./pymel_test_output.bash --gui
+      ./pymel_test_output.bash --gui  2>&1 | tee pymelTestOut.txt
       ```
 
 
