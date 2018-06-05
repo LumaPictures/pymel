@@ -1235,14 +1235,9 @@ class test_plugins(unittest.TestCase):
         sys.modules.pop('pymel.all', None)
 
     def test01_load(self):
-        self.assert_( 'FurGlobals' not in nt.__dict__ )
+        self.assertNotIn( 'FurGlobals', nt.__dict__ )
         loadPlugin('Fur')
-        self.assert_( 'FurGlobals' not in nt.__dict__ )
-        # lazy loader exists
-        self.assert_( 'FurGlobals' in nt.__class__.__dict__ )
-        # after accessing, the lazy loader should generate the class
-        nt.FurGlobals
-        self.assert_( 'FurGlobals' in nt.__dict__ )
+        self.assertIn( 'FurGlobals', nt.__dict__ )
 
     def test02_unload(self):
         loadPlugin('Fur')
