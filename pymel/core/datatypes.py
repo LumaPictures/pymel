@@ -797,13 +797,6 @@ class Vector(VectorN):
     zAxis = _f.ClassConstant([0.0, 0.0, 1.0])
     zNegAxis = _f.ClassConstant([0.0, 0.0, -1.0])
     zero = _f.ClassConstant([0.0, 0.0, 0.0])
-
-    @_f.addApiDocs(_api.MVector, '__rmult__')
-    def __rmult__(self, scalar):
-        do, final_do, outTypes = _f.getDoArgs([scalar], [('scalar', 'int', 'in', None)])
-        res = _api.MVector.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
-        return _f.processApiResult(res, [], outTypes, do)
 # ------ Do not edit above this line --------
 
     # rest derived from VectorN class
@@ -1095,6 +1088,13 @@ class FloatPoint(Point):
     apicls = _api.MFloatPoint
 # ------ Do not edit below this line --------
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
+
+    @_f.addApiDocs(_api.MFloatPoint, '__rmult__')
+    def __rmult__(self, right):
+        do, final_do, outTypes = _f.getDoArgs([right], [('right', 'MFloatMatrix', 'in', None)])
+        res = _api.MFloatPoint.__rmult__(self, *final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MFloatPoint', None)
+        return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MFloatPoint, 'setCast')
     def setCast(self, srcpt):
@@ -2062,13 +2062,6 @@ class Matrix(MatrixN):
         return self.__class__._convert(self.asMatrix(weight))
 # ------ Do not edit below this line --------
     identity = _f.ClassConstant([Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])])
-
-    @_f.addApiDocs(_api.MMatrix, '__rmult__')
-    def __rmult__(self, right):
-        do, final_do, outTypes = _f.getDoArgs([right], [('right', 'MMatrix', 'in', None)])
-        res = _api.MMatrix.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MMatrix', None)
-        return _f.processApiResult(res, [], outTypes, do)
 # ------ Do not edit above this line --------
 
 
@@ -2910,13 +2903,6 @@ class EulerRotation(Array):
 # ------ Do not edit below this line --------
     RotationOrder = Enum('RotationOrder', {'XYZ': 0, 'YZX': 1, 'ZXY': 2, 'XZY': 3, 'YXZ': 4, 'ZYX': 5})
     identity = _f.ClassConstant([0.0, 0.0, 0.0])
-
-    @_f.addApiDocs(_api.MEulerRotation, '__rmult__')
-    def __rmult__(self, other):
-        do, final_do, outTypes = _f.getDoArgs([other], [('other', 'MEulerRotation', 'in', None)])
-        res = _api.MEulerRotation.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
-        return _f.processApiResult(res, [], outTypes, do)
 
     @_f.addApiDocs(_api.MEulerRotation, 'alternateSolution')
     def alternateSolution(self):
