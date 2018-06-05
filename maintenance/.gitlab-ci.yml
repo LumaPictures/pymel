@@ -10,18 +10,9 @@ test_2018.1_batch:
   script:
   - export MAYA_LOCATION=/usr/autodesk/maya2018.1-x64
   - export PATH=$PATH:$MAYA_LOCATION/bin
+  - setpkg pyexternal
   - cd tests
   - ./pymel_test_output.bash
-
-test_2018.1_gui:
-  stage : test
-  script :
-  tags: [internal]
-  script:
-  - export MAYA_LOCATION=/usr/autodesk/maya2018.1-x64
-  - export PATH=$PATH:$MAYA_LOCATION/bin
-  - cd tests
-  - ./pymel_test_output.bash --gui
 
 release_la:
   stage: release
