@@ -3323,10 +3323,6 @@ class BoundingBox(_api.MBoundingBox):
         return list(self.min()) + list(self.max())
 
     repr = __str__
-    if not _factories.building:
-        w = property(width)
-        h = property(height)
-        d = property(depth)
 # ------ Do not edit below this line --------
 
     @_f.addApiDocs(_api.MBoundingBox, 'center')
