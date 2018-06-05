@@ -8,9 +8,9 @@ test_2018.1_batch:
   script :
   tags: [internal]
   script:
+  - setpkg pyexternal
   - export MAYA_LOCATION=/usr/autodesk/maya2018.1-x64
   - export PATH=$PATH:$MAYA_LOCATION/bin
-  - setpkg pyexternal
   - cd tests
   - ./pymel_test_output.bash
 
