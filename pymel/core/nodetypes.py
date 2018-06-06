@@ -3932,6 +3932,7 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
 def _createPyNodes():
 
     dynModule = NodetypesLazyLoadModule(__name__, globals())
+    immediate = bool(os.environ.get('PYMEL_NO_LAZY_TYPES', False))
 
     for mayaType, parents, children in _factories.nodeHierarchy:
 
@@ -3954,7 +3955,8 @@ def _createPyNodes():
         #if className not in __all__: __all__.append( className )
 
         if _factories.isMayaType(mayaType):
-            _factories.addPyNode(dynModule, mayaType, parentMayaType)
+            _factories.addPyNode(dynModule, mayaType, parentMayaType,
+                                 immediate=immediate)
 
     sys.modules[__name__] = dynModule
 

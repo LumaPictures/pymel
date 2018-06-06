@@ -3117,7 +3117,9 @@ def addPyNode(dynModule, mayaType, parentMayaType, extraAttrs=None,
     # behavior...
     if immediate or 'pymel.all' in sys.modules:
         newType = addPyNodeCallback(dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs)
-        setattr(sys.modules['pymel.all'], pyNodeTypeName, newType)
+
+        if 'pymel.all' in sys.modules:
+            setattr(sys.modules['pymel.all'], pyNodeTypeName, newType)
     # otherwise, do the lazy-loading thing
     else:
         try:
