@@ -21,6 +21,7 @@ release_la:
   tags: [internal, la]
   only:
   - master
+  - develop
   script:
   - /luma/pipe/shell/cron/gitlab_release.sh
 
@@ -31,5 +32,6 @@ release_mel:
   tags: [internal, mel]
   only:
   - master
+  - develop
   script:
   - /luma/pipe/shell/cron/gitlab_release.sh
