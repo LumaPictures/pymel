@@ -12,6 +12,7 @@ def shadingNode(*args, **kwargs):
     if res is not None:
         return _general.PyNode(res)
 
+
 def createSurfaceShader(shadertype, name=None):
     """
     create a shader and shading group
@@ -34,6 +35,7 @@ def createSurfaceShader(shadertype, name=None):
         sg = sg.rename(name + 'SG')
     return newShader, sg
 
+
 def lsThroughFilter(*args, **kwargs):
     """
     Modifications:
@@ -41,6 +43,7 @@ def lsThroughFilter(*args, **kwargs):
       - returns wrapped classes
     """
     return map(_general.PyNode, _util.listForNone(cmds.lsThroughFilter(*args, **kwargs)))
+
 
 def pointLight(*args, **kwargs):
     """
@@ -59,6 +62,7 @@ def pointLight(*args, **kwargs):
 
     return _general.PyNode(cmds.pointLight(*args, **kwargs))
 
+
 def spotLight(*args, **kwargs):
     """
     Maya Bug Fix:
@@ -75,6 +79,7 @@ def spotLight(*args, **kwargs):
             return _general.PyNode(cmds.listRelatives(tmp, shapes=1)[0])
 
     return _general.PyNode(cmds.spotLight(*args, **kwargs))
+
 
 def directionalLight(*args, **kwargs):
     """
@@ -93,6 +98,7 @@ def directionalLight(*args, **kwargs):
             return _general.PyNode(cmds.listRelatives(tmp, shapes=1)[0])
 
     return _general.PyNode(cmds.directionalLight(*args, **kwargs))
+
 
 def ambientLight(*args, **kwargs):
     """

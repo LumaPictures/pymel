@@ -9,16 +9,21 @@ import inspect
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 
-#--------------------------
+
+# -------------------------
 # Object Wrapper Classes
-#--------------------------
+# -------------------------
 
 class NameParser(unicode):
     PARENT_SEP = '|'
 
     def __new__(cls, strObj):
-        """Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
-        for your object."""
+        """
+        Casts a string to a pymel class.
+
+        Use this function if you are unsure which class is the right one to use
+        for your object.
+        """
         strObj = unicode(strObj)
         # the if statement was failing for some types (ex: pymel.node.Vertex),
         # so forcing into unicode string:
@@ -30,7 +35,8 @@ class NameParser(unicode):
         return self
 
     def __repr__(self):
-        return u"%s(%s)" % (self.__class__.__name__, super(NameParser, self).__repr__())
+        return u"%s(%s)" % (self.__class__.__name__,
+                            super(NameParser, self).__repr__())
 
     # def __unicode__(self):
     #    return u"%s" % self
@@ -105,18 +111,28 @@ class NameParser(unicode):
         return self.__class__('|'.join(nodes))
 
     def swapNamespace(self, prefix):
-        """Returns a new instance of the object with its current namespace replaced with the provided one.
-        The calling instance is unaffected."""
+        """
+        Returns a new instance of the object with its current namespace
+        replaced with the provided one.
+
+        The calling instance is unaffected.
+        """
         if not prefix.endswith(':'):
             prefix += ':'
         return self.__class__.addPrefix(self.stripNamespace(), prefix)
 
     def namespaceList(self):
-        """Useful for cascading references.  Returns all of the namespaces of the calling object as a list"""
+        """
+        Useful for cascading references.
+
+        Returns all of the namespaces of the calling object as a list
+        """
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
     def namespace(self):
-        """Returns the namespace of the object with trailing colon included"""
+        """
+        Returns the namespace of the object with trailing colon included
+        """
         nsList = self.namespaceList()
         if nsList:
             return ':'.join(nsList) + ':'
@@ -135,8 +151,8 @@ class NameParser(unicode):
         return self.__class__(name)
 
     def attr(self, attr):
-        """access to AttributeName of a node. returns an instance of the AttributeName class for the
-        given AttributeName.
+        """access to AttributeName of a node. returns an instance of the
+        AttributeName class for the given AttributeName.
 
             >>> NameParser('foo:bar').attr('spangle')
             AttributeName(u'foo:bar.spangle')
@@ -158,7 +174,9 @@ class AttributeName(NameParser):
     def __init__(self, attrName):
         attrName = unicode(attrName)
         if '.' not in attrName:
-            raise TypeError, "%s: AttributeNames must include the node and the AttributeName. e.g. 'nodeName.AttributeNameName' " % self
+            raise TypeError("%s: AttributeNames must include the node and the "
+                            "AttributeName. e.g. "
+                            "'nodeName.AttributeNameName' " % self)
         self.__dict__['_multiattrIndex'] = 0
 
     def __getitem__(self, item):
@@ -166,7 +184,8 @@ class AttributeName(NameParser):
 
     # Added the __call__ so to generate a more appropriate exception when a class method is not found
     def __call__(self, *args, **kwargs):
-        raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
+        raise TypeError("The object <%s> does not support the '%s' method" %
+                        (repr(self.node()), self.plugAttr()))
 
     def array(self):
         """
@@ -292,16 +311,20 @@ class AttributeName(NameParser):
 
 
 class DependNodeName(NameParser):
-    #-------------------------------
+    # ------------------------------
     #    Name Info and Manipulation
-    #-------------------------------
+    # ------------------------------
 
     def node(self):
-        """for compatibility with AttributeName class"""
+        """
+        for compatibility with AttributeName class
+        """
         return self
 
     def nodeName(self):
-        """for compatibility with DagNodeName class"""
+        """
+        for compatibility with DagNodeName class
+        """
         return self
 
     def exists(self, **kwargs):
@@ -311,21 +334,27 @@ class DependNodeName(NameParser):
     _numPartReg = re.compile('([0-9]+)$')
 
     def stripNum(self):
-        """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
-        the name will be returned unchanged."""
+        """
+        Return the name of the node with trailing numbers stripped off.
+
+        If no trailing numbers are found the name will be returned unchanged."""
         try:
             return DependNodeName._numPartReg.split(self)[0]
         except IndexError:
             return unicode(self)
 
     def extractNum(self):
-        """Return the trailing numbers of the node name. If no trailing numbers are found
-        an error will be raised."""
+        """
+        Return the trailing numbers of the node name.
+
+        If no trailing numbers are found an error will be raised.
+        """
 
         try:
             return DependNodeName._numPartReg.split(self)[1]
         except IndexError:
-            raise ValueError, "No trailing numbers to extract on object %s" % self
+            raise ValueError("No trailing numbers to extract on "
+                             "object %s" % self)
 
     def nextUniqueName(self):
         """
@@ -352,7 +381,8 @@ class DependNodeName(NameParser):
             formatStr = '%s%0' + unicode(len(num)) + 'd'
             return self.__class__(formatStr % (groups[0], (int(num) + 1)))
         else:
-            raise ValueError, "could not find trailing numbers to increment on object %s" % self
+            raise ValueError("could not find trailing numbers to increment on "
+                             "object %s" % self)
 
     def prevName(self):
         """Decrement the trailing number of the object by 1"""
@@ -362,7 +392,8 @@ class DependNodeName(NameParser):
             formatStr = '%s%0' + unicode(len(num)) + 'd'
             return self.__class__(formatStr % (groups[0], (int(num) - 1)))
         else:
-            raise ValueError, "could not find trailing numbers to decrement on object %s" % self
+            raise ValueError("could not find trailing numbers to decrement on "
+                             "object %s" % self)
 
 class DagNodeName(DependNodeName):
 
@@ -380,9 +411,9 @@ class DagNodeName(DependNodeName):
     #        except (TypeError,IndexError):
     #            return unicode(self) != unicode(other)
 
-    #--------------------------
+    # -------------------------
     #    DagNodeName Path Info
-    #--------------------------
+    # -------------------------
     def root(self):
         """rootOf"""
         return DagNodeName('|' + self.longName()[1:].split('|')[0])
@@ -467,14 +498,14 @@ def _getParserClass(strObj):
 
         if '.' in strObj:
             newcls = AttributeName
-            # Return Component Arrays ======================================================
+            # Return Component Arrays ==========================================
             #            attr = obj.array().plugAttr()
             #            if attr in ["f","vtx","e","map"]:
             #                comps = getattr(Mesh(obj.node()), attr)
             #                return comps.__getitem__(obj.item(asSlice=1))
             #            else:
             #                return obj
-            #===============================================================================
+            #===================================================================
 
         elif '|' in strObj:
             newcls = DagNodeName

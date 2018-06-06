@@ -4,8 +4,10 @@ import pymel.internal.factories as _factories
 import pymel.internal.pmcmds as cmds
 import general as _general
 
+
 def pointPosition(*args, **kwargs):
     return _general.datatypes.Point(cmds.pointPosition(*args, **kwargs))
+
 
 def curve(*args, **kwargs):
     """
@@ -18,6 +20,7 @@ def curve(*args, **kwargs):
     if name:
         res.rename(name)
     return res
+
 
 def surface(*args, **kwargs):
     """

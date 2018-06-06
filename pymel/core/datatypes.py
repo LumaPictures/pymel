@@ -19,7 +19,8 @@ from pymel.util.enum import Enum
 _f = _factories
 
 
-# patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
+# patch some Maya api classes that miss __iter__ to make them
+# iterable / convertible to list
 def _patchMVector():
     def __len__(self):
         """ Number of components in the Maya api Vector, ie 3 """
@@ -180,14 +181,19 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeRegistry):
             if 'ndim' not in classdict:
                 classdict['ndim'] = ndim
             elif classdict['ndim'] != ndim:
-                raise ValueError, "class %s shape definition %s and number of dimensions definition %s do not match" % (classname, shape, ndim)
+                raise ValueError("class %s shape definition %s and number of "
+                                 "dimensions definition %s do not match" %
+                                 (classname, shape, ndim))
             if 'size' not in classdict:
                 classdict['size'] = size
             elif classdict['size'] != size:
-                raise ValueError, "class %s shape definition %s and size definition %s do not match" % (classname, shape, size)
+                raise ValueError("class %s shape definition %s and size "
+                                 "definition %s do not match" %
+                                 (classname, shape, size))
 
         # create the new class
-        newcls = super(MetaMayaArrayTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        newcls = super(MetaMayaArrayTypeWrapper, mcl).__new__(mcl, classname,
+                                                              bases, classdict)
 
         try:
             apicls = newcls.apicls
@@ -210,7 +216,8 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeRegistry):
             if cnames:
                 # definition for component names
                 type.__setattr__(newcls, 'cnames', cnames)
-                subsizes = [reduce(operator.mul, shape[i + 1:], 1) for i in xrange(ndim)]
+                subsizes = [reduce(operator.mul, shape[i + 1:], 1)
+                            for i in xrange(ndim)]
                 for index, compname in enumerate(cnames):
                     coords = []
                     for i in xrange(ndim):
@@ -222,29 +229,18 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeRegistry):
                     else:
                         coords = tuple(coords)
 
-
-#                    def _get(self):
-#                        return self.__getitem__(coords)
-#                    _get.__name__ = '_get_' + compname
-#
-#                    # FIXME : the set property does not do anything in python 2.4 !!!  It doesn't even get called.
-#
-#                    def _set(self, val):
-#                        self.__setitem__(coords, val)
-#
-#                    _set.__name__ = '_set_' + compname
-#
-#                    p = property( _get, _set, None, 'set and get %s component' % compname )
-
                     cmd = "property( lambda self: self.__getitem__(%s) ,  lambda self, val: self.__setitem__(%s,val) )" % (coords, coords)
                     p = eval(cmd)
 
                     if compname not in classdict:
                         type.__setattr__(newcls, compname, p)
                     else:
-                        raise AttributeError, "component name %s clashes with class method %r" % (compname, classdict[compname])
+                        raise AttributeError("component name %s clashes with "
+                                             "class method %r" %
+                                             (compname, classdict[compname]))
         elif cnames:
-            raise ValueError, "can only define component names for classes with a fixed shape/size"
+            raise ValueError("can only define component names for classes with "
+                             "a fixed shape/size")
 
         # constants for shape, ndim, size
         if shape is not None:
@@ -357,7 +353,9 @@ class Vector(VectorN):
                     self.assign(l)
                 except:
                     msg = ", ".join(map(lambda x, y: x + "=<" + util.clsname(y) + ">", cls.cnames, l))
-                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
+                    raise TypeError("in %s(%s), at least one of the components "
+                                    "is of an invalid type, check help(%s) " %
+                                    (cls.__name__, msg, cls.__name__))
 
         # units handling
         self.unit = kwargs.get('unit', None)
@@ -366,13 +364,14 @@ class Vector(VectorN):
 
     def __repr__(self):
         if hasattr(self, 'unit') and self.unit:
-            return "dt.%s(%s, unit='%s')" % (self.__class__.__name__, str(self), self.unit)
+            return "dt.%s(%s, unit='%s')" % (self.__class__.__name__,
+                                             str(self), self.unit)
         else:
             return "dt.%s(%s)" % (self.__class__.__name__, str(self))
 
-    # for compatibility with base classes Array that actually hold a nested list in their _data attribute
-    # here, there is no _data attribute as we subclass _api.MVector directly, thus v.data is v
-    # for wraps
+    # for compatibility with base classes Array that actually hold a nested
+    # list in their _data attribute here, there is no _data attribute as we
+    # subclass _api.MVector directly, thus v.data is v for wraps
 
     def _getdata(self):
         return self.apicls(self)
@@ -384,12 +383,13 @@ class Vector(VectorN):
         if hasattr(self.apicls, 'clear'):
             self.apicls.clear(self)
         else:
-            raise TypeError, "cannot clear stored elements of %s" % (self.__class__.__name__)
+            raise TypeError("cannot clear stored elements of %s" %
+                            (self.__class__.__name__))
 
     data = property(_getdata, _setdata, _deldata, "The Vector/FloatVector/Point/FloatPoint/Color data")
 
-    # overloads for assign and get though standard way should be to use the data property
-    # to access stored values
+    # overloads for assign and get though standard way should be to use the
+    # data property to access stored values
 
     def assign(self, value):
         """ Wrap the Vector api assign method """
@@ -427,13 +427,17 @@ class Vector(VectorN):
             if len(i) == 1:
                 i = i[0]
             else:
-                raise IndexError, "class %s instance %s has only %s dimension(s), index %s is out of bounds" % (util.clsname(self), self, self.ndim, i)
+                raise IndexError("class %s instance %s has only %s "
+                                 "dimension(s), index %s is out of bounds" %
+                                 (util.clsname(self), self, self.ndim, i))
         if isinstance(i, slice):
             return _toCompOrArrayInstance(list(self)[i], VectorN)
             try:
                 return _toCompOrArrayInstance(list(self)[i], VectorN)
             except:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+                raise IndexError("class %s instance %s is of size %s, index "
+                                 "%s is out of bounds" %
+                                 (util.clsname(self), self, self.size, i))
         else:
             if i < 0:
                 i = self.size + i
@@ -443,7 +447,9 @@ class Vector(VectorN):
                 else:
                     return list(self)[i]
             else:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+                raise IndexError("class %s instance %s is of size %s, index "
+                                 "%s is out of bounds" %
+                                 (util.clsname(self), self, self.size, i))
 
     # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
     def __setitem__(self, i, a):
@@ -673,7 +679,8 @@ class Vector(VectorN):
         else:
             self.assign(self.normal())
 
-    # additional api methods that work on Vector only, and don't have an equivalent on VectorN
+    # additional api methods that work on Vector only, and don't have an
+    # equivalent on VectorN
 
     def rotateTo(self, other):
         """ u.rotateTo(v) --> Quaternion
@@ -830,7 +837,8 @@ def planar(p, *args, **kwargs):
         try:
             p = Point(p)
         except:
-            raise TypeError, "%s is not convertible to type Point, planar is only defined for n MPoints" % (util.clsname(p))
+            raise TypeError("%s is not convertible to type Point, planar is "
+                            "only defined for n MPoints" % (util.clsname(p)))
     return p.planar(*args, **kwargs)
 
 
@@ -841,7 +849,8 @@ def center(p, *args):
         try:
             p = Point(p)
         except:
-            raise TypeError, "%s is not convertible to type Point, center is only defined for n MPoints" % (util.clsname(p))
+            raise TypeError("%s is not convertible to type Point, center is "
+                            "only defined for n MPoints" % (util.clsname(p)))
     return p.center(*args)
 
 
@@ -852,7 +861,8 @@ def bWeights(p, *args):
         try:
             p = Point(p)
         except:
-            raise TypeError, "%s is not convertible to type Point, bWeights is only defined for n MPoints" % (util.clsname(p))
+            raise TypeError("%s is not convertible to type Point, bWeights is "
+                            "only defined for n MPoints" % (util.clsname(p)))
     return p.bWeights(*args)
 
 
@@ -1031,7 +1041,9 @@ class Point(Vector):
                     try:
                         q[i] = Point(q[i])
                     except:
-                        raise TypeError, "cannot convert %s to Point, bWeights is defined for n MPoints" % (util.clsname(q[i]))
+                        raise TypeError("cannot convert %s to Point, bWeights "
+                                        "is defined for n MPoints" %
+                                        (util.clsname(q[i])))
             # if p sits on an edge, it' a limit case and there is an easy solution,
             # all weights are 0 but for the 2 edge end points
             for i in xrange(np):
@@ -1041,15 +1053,18 @@ class Point(Vector):
                 l = (q[next] - q[i]).sqlength()
                 if e <= (tol * l):
                     if l < tol:
-                        # p is on a 0 length edge, point and next point are on top of each other, as is p then
+                        # p is on a 0 length edge, point and next point are on
+                        # top of each other, as is p then
                         w[i] = 0.5
                         w[next] = 0.5
                     else:
-                        # p is somewhere on that edge between point and next point
+                        # p is somewhere on that edge between point and next
+                        # point
                         di = (p - q[i]).length()
                         w[next] = float(di / sqrt(l))
                         w[i] = 1.0 - w[next]
-                    # in both case update the weights sum and mark p as being on an edge,
+                    # in both case update the weights sum and mark p as being
+                    # on an edge,
                     # problem is solved
                     weightSum += 1.0
                     pOnEdge = True
@@ -1068,7 +1083,10 @@ class Point(Vector):
             if abs(weightSum):
                 w /= weightSum
             else:
-                raise ValueError, "failed to compute bWeights for %s and %s.\nThe point bWeights are computed for must be inside the planar face delimited by the n argument points" % (self, args)
+                raise ValueError("failed to compute bWeights for %s and %s.\n"
+                                 "The point bWeights are computed for must be "
+                                 "inside the planar face delimited by the "
+                                 "n argument points" % (self, args))
 
             return tuple(w)
         else:
@@ -1229,7 +1247,8 @@ class Color(Vector):
                 rgbflag[a] = kwargs[a]
         # can't mix them
         if hsvflag and rgbflag:
-            raise ValueError, "can not mix r,g,b and h,s,v keyword arguments in a %s declaration" % util.clsname(self)
+            raise ValueError("can not mix r,g,b and h,s,v keyword arguments "
+                             "in a %s declaration" % util.clsname(self))
         # if no mode specified, guess from what keyword arguments where used, else use 'rgb' as default
         if mode is None:
             if hsvflag:
@@ -1238,9 +1257,13 @@ class Color(Vector):
                 mode = 'rgb'
         # can't specify a mode and use keywords of other modes
         if mode is not 'hsv' and hsvflag:
-            raise ValueError, "Can not use h,s,v keyword arguments while specifying %s mode in %s" % (mode, util.clsname(self))
+            raise ValueError("Can not use h,s,v keyword arguments while "
+                             "specifying %s mode in %s" %
+                             (mode, util.clsname(self)))
         elif mode is not 'rgb' and rgbflag:
-            raise ValueError, "Can not use r,g,b keyword arguments while specifying %s mode in %s" % (mode, util.clsname(self))
+            raise ValueError("Can not use r,g,b keyword arguments while "
+                             "specifying %s mode in %s" %
+                             (mode, util.clsname(self)))
         # NOTE: do not try to use mode with _api.Color, it seems bugged as of 2008
             #import colorsys
             #colorsys.rgb_to_hsv(0.0, 0.0, 1.0)
@@ -1263,7 +1286,8 @@ class Color(Vector):
             try:
                 quantize = float(quantize)
             except:
-                raise ValueError, "quantize must be a numeric value, not %s" % (util.clsname(quantize))
+                raise ValueError("quantize must be a numeric value, "
+                                 "not %s" % (util.clsname(quantize)))
         # can be initilized with a single argument (other Color, Vector, VectorN)
         if len(args) == 1:
             args = args[0]
@@ -1271,7 +1295,9 @@ class Color(Vector):
         if isinstance(args, self.__class__) or isinstance(args, self.apicls):
             # alternatively could be just ignored / output as warning
             if quantize:
-                raise ValueError, "Can not quantize a Color argument, a Color is always stored internally as float color" % (mode, util.clsname(self))
+                raise ValueError("Can not quantize a Color argument, "
+                                 "a Color is always stored internally "
+                                 "as float color" % (mode, util.clsname(self)))
             if mode == 'rgb':
                 args = VectorN(args)
             elif mode == 'hsv':
@@ -1322,7 +1348,9 @@ class Color(Vector):
             self.assign(args)
         except:
             msg = ", ".join(map(lambda x, y: x + "=<" + util.clsname(y) + ">", mode, args))
-            raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (util.clsname(self), msg, util.clsname(self))
+            raise TypeError("in %s(%s), at least one of the components is of "
+                            "an invalid type, check help(%s) " %
+                            (util.clsname(self), msg, util.clsname(self)))
 
     def __melobject__(self):
         """Special method for returning a mel-friendly representation. In this case, a 3-component color (RGB) """
@@ -1436,7 +1464,9 @@ class Color(Vector):
         if isinstance(res, self.__class__):
             return self.__class__(res)
         else:
-            raise TypeError, "result of in place multiplication of %s by %s is not a %s" % (clsname(self), clsname(other), clsname(self))
+            raise TypeError("result of in place multiplication of %s by %s "
+                            "is not a %s" %
+                            (clsname(self), clsname(other), clsname(self)))
 
     # additionnal methods, to be extended
     def over(self, other):
@@ -1445,7 +1475,8 @@ class Color(Vector):
             a = self.a
             return Color(Vector(other).blend(Vector(self), self.a), a=other.a)
         else:
-            raise TypeError, "over is defined for Color instances, not %s" % (util.clsname(other))
+            raise TypeError("over is defined for Color instances, "
+                            "not %s" % (util.clsname(other)))
     # return Vector instead ? Keeping alpha doesn't make much sense
 
     def premult(self):
@@ -1691,7 +1722,9 @@ class Matrix(MatrixN):
                     self.assign(l)
                 except:
                     msg = ", ".join(map(lambda x, y: x + "=<" + util.clsname(y) + ">", cls.cnames, l))
-                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
+                    raise TypeError("in %s(%s), at least one of the components "
+                                    "is of an invalid type, check help(%s) " %
+                                    (cls.__name__, msg, cls.__name__))
 
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
     # here, there is no _data attribute as we subclass _api.Vector directly, thus v.data is v
@@ -1707,9 +1740,11 @@ class Matrix(MatrixN):
         if hasattr(self.apicls, 'clear'):
             self.apicls.clear(self)
         else:
-            raise TypeError, "cannot clear stored elements of %s" % (self.__class__.__name__)
+            raise TypeError("cannot clear stored elements of %s" %
+                            (self.__class__.__name__))
 
-    data = property(_getdata, _setdata, _deldata, "The Matrix/FloatMatrix/TransformationMatrix/Quaternion/EulerRotation data")
+    data = property(_getdata, _setdata, _deldata,
+                    "The Matrix/FloatMatrix/TransformationMatrix/Quaternion/EulerRotation data")
 
     # set properties for easy acces to translation / rotation / scale of a Matrix or derived class
     # some of these will only yield dependable results if Matrix is a TransformationMatrix and some
@@ -1723,7 +1758,8 @@ class Matrix(MatrixN):
         t = TransformationMatrix(self)
         t.setTranslation(Vector(value), _api.MSpace.kTransform)
         self.assign(t.asMatrix())
-    translate = property(_getTranslate, _setTranslate, None, "The translation expressed in this Matrix, in transform space")
+    translate = property(_getTranslate, _setTranslate, None,
+                         "The translation expressed in this Matrix, in transform space")
 
     def _getRotate(self):
         t = TransformationMatrix(self)
@@ -1736,7 +1772,8 @@ class Matrix(MatrixN):
         # values = (q.x, q.y, q.z, q.w)
         # t.setRotationQuaternion(q.x, q.y, q.z, q.w)
         self.assign(t.asMatrix())
-    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Matrix, in transform space")
+    rotate = property(_getRotate, _setRotate, None,
+                      "The rotation expressed in this Matrix, in transform space")
 
     def _getScale(self):
         t = TransformationMatrix(self)
@@ -1746,7 +1783,8 @@ class Matrix(MatrixN):
         t = TransformationMatrix(self)
         t.setScale(value, _api.MSpace.kTransform)
         self.assign(t.asMatrix())
-    scale = property(_getScale, _setScale, None, "The scale expressed in this Matrix, in transform space")
+    scale = property(_getScale, _setScale, None,
+                     "The scale expressed in this Matrix, in transform space")
 
     def __melobject__(self):
         """Special method for returning a mel-friendly representation. In this case, a flat list of 16 values """
@@ -1767,7 +1805,8 @@ class Matrix(MatrixN):
             else:
                 return Matrix(self.apicls.asMatrix(self))
 
-    matrix = property(asMatrix, None, None, "The Matrix representation for this Matrix/TransformationMatrix/Quaternion/EulerRotation instance")
+    matrix = property(asMatrix, None, None,
+                      "The Matrix representation for this Matrix/TransformationMatrix/Quaternion/EulerRotation instance")
 
     # overloads for assign and get though standard way should be to use the data property
     # to access stored values
@@ -1800,7 +1839,9 @@ class Matrix(MatrixN):
     def get(self):
         """ Wrap the Matrix api get method """
         mat = self.matrix
-        return tuple(tuple(_api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(mat, r), c) for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
+        return tuple(tuple(
+            _api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(mat, r), c)
+            for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
         # ptr = _api.Matrix(self.matrix).matrix
         # return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
 
@@ -1846,7 +1887,9 @@ class Matrix(MatrixN):
 
     def __delitem__(self, index):
         """ Cannot delete from a class with a fixed shape """
-        raise TypeError, "deleting %s from an instance of class %s will make it incompatible with class shape" % (index, clsname(self))
+        raise TypeError("deleting %s from an instance of class %s will make "
+                        "it incompatible with class shape" %
+                        (index, clsname(self)))
 
     def __delslice__(self, start, end):
         self.__delitem__(slice(start, end))
@@ -2140,7 +2183,9 @@ class Quaternion(Matrix):
                     self.assign(l)
                 except:
                     msg = ", ".join(map(lambda x, y: x + "=<" + util.clsname(y) + ">", cls.cnames, l))
-                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
+                    raise TypeError("in %s(%s), at least one of the components "
+                                    "is of an invalid type, check help(%s) " %
+                                    (cls.__name__, msg, cls.__name__))
 
     # set properties for easy acces to translation / rotation / scale of a MMatrix or derived class
     # some of these will only yield dependable results if MMatrix is a MTransformationMatrix and some
@@ -2148,18 +2193,21 @@ class Quaternion(Matrix):
 
     def _getTranslate(self):
         return Vector(0.0, 0.0, 0.0)
-    translate = property(_getTranslate, None, None, "The translation expressed in this MMQuaternion, which is always (0.0, 0.0, 0.0)")
+    translate = property(_getTranslate, None, None,
+                         "The translation expressed in this MMQuaternion, which is always (0.0, 0.0, 0.0)")
 
     def _getRotate(self):
         return self
 
     def _setRotate(self, value):
         self.assign(Quaternion(value))
-    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Quaternion, in transform space")
+    rotate = property(_getRotate, _setRotate, None,
+                      "The rotation expressed in this Quaternion, in transform space")
 
     def _getScale(self):
         return Vector(1.0, 1.0, 1.0)
-    scale = property(_getScale, None, None, "The scale expressed in this Quaternion, which is always (1.0, 1.0, 1.0)")
+    scale = property(_getScale, None, None,
+                     "The scale expressed in this Quaternion, which is always (1.0, 1.0, 1.0)")
 
     # overloads for assign and get though standard way should be to use the data property
     # to access stored values
@@ -2191,7 +2239,8 @@ class Quaternion(Matrix):
     def __getitem__(self, i):
         return self._getitem(i)
 
-    # faster to override __getitem__ cause we know Quaternion only has one dimension
+    # faster to override __getitem__ cause we know Quaternion only has
+    # one dimension
     def _getitem(self, i):
         """Get component i value from self """
         if hasattr(i, '__iter__'):
@@ -2199,12 +2248,16 @@ class Quaternion(Matrix):
             if len(i) == 1:
                 i = i[0]
             else:
-                raise IndexError, "class %s instance %s has only %s dimension(s), index %s is out of bounds" % (util.clsname(self), self, self.ndim, i)
+                raise IndexError("class %s instance %s has only %s "
+                                 "dimension(s), index %s is out of bounds" %
+                                 (util.clsname(self), self, self.ndim, i))
         if isinstance(i, slice):
             try:
                 return list(self)[i]
             except:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+                raise IndexError("class %s instance %s is of size %s, index "
+                                 "%s is out of bounds" %
+                                 (util.clsname(self), self, self.size, i))
         else:
             if i < 0:
                 i = self.size + i
@@ -2215,7 +2268,9 @@ class Quaternion(Matrix):
                     res = list(self)[i]
                 return res
             else:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+                raise IndexError("class %s instance %s is of size %s, index "
+                                 "%s is out of bounds" %
+                                 (util.clsname(self), self, self.size, i))
 
     # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
     def __setitem__(self, i, a):
@@ -2318,14 +2373,16 @@ class TransformationMatrix(Matrix):
 
     def _setTranslate(self, value):
         self.setTranslation(Vector(value), _api.MSpace.kTransform)
-    translate = property(_getTranslate, _setTranslate, None, "The translation expressed in this TransformationMatrix, in transform space")
+    translate = property(_getTranslate, _setTranslate, None,
+                         "The translation expressed in this TransformationMatrix, in transform space")
 
     def _getRotate(self):
         return Quaternion(self.apicls.rotation(self))
 
     def _setRotate(self, value):
         self.rotateTo(Quaternion(value))
-    rotate = property(_getRotate, _setRotate, None, "The quaternion rotation expressed in this TransformationMatrix, in transform space")
+    rotate = property(_getRotate, _setRotate, None,
+                      "The quaternion rotation expressed in this TransformationMatrix, in transform space")
 
     def rotateTo(self, value):
         '''Set to the given rotation (and result self)
@@ -2341,7 +2398,8 @@ class TransformationMatrix(Matrix):
             elif len(value) == 4:
                 value = Quaternion(value)
             else:
-                raise ValueError('arg to rotateTo must be a Quaternion, EulerRotation, or an iterable of 3 or 4 floats')
+                raise ValueError('arg to rotateTo must be a Quaternion, '
+                                 'EulerRotation, or an iterable of 3 or 4 floats')
         return self.__class__(self.apicls.rotateTo(self, value))
 
     def eulerRotation(self):
@@ -2352,7 +2410,8 @@ class TransformationMatrix(Matrix):
 
     def _setEuler(self, value):
         self.rotateTo(EulerRotation(value))
-    euler = property(_getEuler, _getEuler, None, "The euler rotation expressed in this TransformationMatrix, in transform space")
+    euler = property(_getEuler, _getEuler, None,
+                     "The euler rotation expressed in this TransformationMatrix, in transform space")
 
     # The apicls getRotation needs a "RotationOrder &" object, which is
     # impossible to make in python...
@@ -2368,7 +2427,8 @@ class TransformationMatrix(Matrix):
 
     def _setScale(self, value):
         self.setScale(value, _api.MSpace.kTransform)
-    scale = property(_getScale, _setScale, None, "The scale expressed in this TransformationMatrix, in transform space")
+    scale = property(_getScale, _setScale, None,
+                     "The scale expressed in this TransformationMatrix, in transform space")
 # ------ Do not edit below this line --------
     RotationOrder = Enum('RotationOrder', {'invalid': 0, 'XYZ': 1, 'YZX': 2, 'ZXY': 3, 'XZY': 4, 'YXZ': 5, 'ZYX': 6, 'last': 7})
     identity = _f.ClassConstant([Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])])
@@ -2622,7 +2682,8 @@ class EulerRotation(Array):
 
     def setDisplayUnit(self, unit):
         if unit not in Angle.Unit:
-            raise TypeError, "%s is not a valid angular unit.  See Angle.Unit for the list of valid units"
+            raise TypeError("%s is not a valid angular unit.  "
+                            "See Angle.Unit for the list of valid units")
         self.unit = unit
 
     def __repr__(self):
@@ -2656,13 +2717,17 @@ class EulerRotation(Array):
             if len(i) == 1:
                 i = i[0]
             else:
-                raise IndexError, "class %s instance %s has only %s dimension(s), index %s is out of bounds" % (util.clsname(self), self, self.ndim, i)
+                raise IndexError("class %s instance %s has only %s "
+                                 "dimension(s), index %s is out of bounds" %
+                                 (util.clsname(self), self, self.ndim, i))
         if isinstance(i, slice):
             return _toCompOrArrayInstance(list(self)[i], VectorN)
             try:
                 return _toCompOrArrayInstance(list(self)[i], VectorN)
             except:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+                raise IndexError("class %s instance %s is of size %s, index "
+                                 "%s is out of bounds" %
+                                 (util.clsname(self), self, self.size, i))
         else:
             if i < 0:
                 i = self.size + i
@@ -2672,7 +2737,9 @@ class EulerRotation(Array):
                 else:
                     return list(self)[i]
             else:
-                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+                raise IndexError("class %s instance %s is of size %s, index "
+                                 "%s is out of bounds" %
+                                 (util.clsname(self), self, self.size, i))
 
     def assign(self, *args, **kwargs):
         """ Wrap the Quaternion api assign method """
@@ -2738,7 +2805,9 @@ class EulerRotation(Array):
                     self.assign(l)
                 except:
                     msg = ", ".join(map(lambda x, y: x + "=<" + util.clsname(y) + ">", cls.cnames, l))
-                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)
+                    raise TypeError("in %s(%s), at least one of the components "
+                                    "is of an invalid type, check help(%s) " %
+                                    (cls.__name__, msg, cls.__name__))
 
         return self
 
@@ -3442,14 +3511,17 @@ def getPlugValue(plug):
         return res
 
     # Integer Groups
-    elif apiType in [_api.MFn.kAttribute2Short, _api.MFn.kAttribute2Int, _api.MFn.kAttribute3Short, _api.MFn.kAttribute3Int]:
+    elif apiType in [_api.MFn.kAttribute2Short, _api.MFn.kAttribute2Int,
+                     _api.MFn.kAttribute3Short, _api.MFn.kAttribute3Int]:
         res = []
         for i in range(plug.numChildren()):
             res.append(getPlugValue(plug.child(i)))
         return res
 
     # Float Groups
-    elif apiType in [_api.MFn.kAttribute3Double, _api.MFn.kAttribute3Float, _api.MFn.kAttribute4Double]:
+    elif apiType in [_api.MFn.kAttribute3Double,
+                     _api.MFn.kAttribute3Float,
+                     _api.MFn.kAttribute4Double]:
         res = []
         for i in range(plug.numChildren()):
             res.append(getPlugValue(plug.child(i)))
@@ -3468,14 +3540,16 @@ def getPlugValue(plug):
         return tuple(res)
 
     # Distance
-    elif apiType in [_api.MFn.kDoubleLinearAttribute, _api.MFn.kFloatLinearAttribute]:
+    elif apiType in [_api.MFn.kDoubleLinearAttribute,
+                     _api.MFn.kFloatLinearAttribute]:
         val = plug.asMDistance()
         unit = _api.MDistance.uiUnit()
         # as becomes a keyword in python 2.6
         return Distance(val.asUnits(unit), unit)
 
     # Angle
-    elif apiType in [_api.MFn.kDoubleAngleAttribute, _api.MFn.kFloatAngleAttribute]:
+    elif apiType in [_api.MFn.kDoubleAngleAttribute,
+                     _api.MFn.kFloatAngleAttribute]:
         val = plug.asMAngle()
         unit = _api.MAngle.uiUnit()
         # as becomes a keyword in python 2.6
@@ -3494,10 +3568,13 @@ def getPlugValue(plug):
         if dataType == _api.MFnNumericData.kBoolean:
             return plug.asBool()
 
-        elif dataType in [_api.MFnNumericData.kShort, _api.MFnNumericData.kInt, _api.MFnNumericData.kLong, _api.MFnNumericData.kByte]:
+        elif dataType in [_api.MFnNumericData.kShort, _api.MFnNumericData.kInt,
+                          _api.MFnNumericData.kLong, _api.MFnNumericData.kByte]:
             return plug.asInt()
 
-        elif dataType in [_api.MFnNumericData.kFloat, _api.MFnNumericData.kDouble, _api.MFnNumericData.kAddr]:
+        elif dataType in [_api.MFnNumericData.kFloat,
+                          _api.MFnNumericData.kDouble,
+                          _api.MFnNumericData.kAddr]:
             return plug.asDouble()
         raise "%s: unknown numeric attribute type: %s" % (plug.partialName(True, True, True, False, True, True), dataType)
 
@@ -3525,18 +3602,28 @@ def getPlugValue(plug):
                 numFn = _api.MFnNumericData(dataObj)
             except RuntimeError:
                 if plug.isArray():
-                    raise TypeError, "%s: numeric arrays are not supported" % plug.partialName(True, True, True, False, True, True)
+                    raise TypeError("%s: numeric arrays are not supported" %
+                                    plug.partialName(True, True, True, False,
+                                                     True, True))
                 else:
-                    raise TypeError, "%s: attribute type is numeric, but its data cannot be interpreted numerically" % plug.partialName(True, True, True, False, True, True)
+                    raise TypeError("%s: attribute type is numeric, but its "
+                                    "data cannot be interpreted numerically" %
+                                    plug.partialName(True, True, True, False,
+                                                     True, True))
             dataType = numFn.numericType()
 
             if dataType == _api.MFnNumericData.kBoolean:
                 return plug.asBool()
 
-            elif dataType in [_api.MFnNumericData.kShort, _api.MFnNumericData.kInt, _api.MFnNumericData.kLong, _api.MFnNumericData.kByte]:
+            elif dataType in [_api.MFnNumericData.kShort,
+                              _api.MFnNumericData.kInt,
+                              _api.MFnNumericData.kLong,
+                              _api.MFnNumericData.kByte]:
                 return plug.asInt()
 
-            elif dataType in [_api.MFnNumericData.kFloat, _api.MFnNumericData.kDouble, _api.MFnNumericData.kAddr]:
+            elif dataType in [_api.MFnNumericData.kFloat,
+                              _api.MFnNumericData.kDouble,
+                              _api.MFnNumericData.kAddr]:
                 return plug.asDouble()
 
             elif dataType == _api.MFnNumericData.k2Short:
@@ -3546,7 +3633,8 @@ def getPlugValue(plug):
                 numFn.getData2Short(ptr1(), ptr2())
                 return (ptr1.get(), ptr2.get())
 
-            elif dataType in [_api.MFnNumericData.k2Int, _api.MFnNumericData.k2Long]:
+            elif dataType in [_api.MFnNumericData.k2Int,
+                              _api.MFnNumericData.k2Long]:
                 ptr1 = _api.SafeApiPtr('int')
                 ptr2 = _api.SafeApiPtr('int')
 
@@ -3586,7 +3674,9 @@ def getPlugValue(plug):
             elif dataType == _api.MFnNumericData.kChar:
                 return plug.asChar()
 
-            raise TypeError, "%s: Unsupported numeric attribute: %s" % (plug.partialName(True, True, True, False, True, True), dataType)
+            raise TypeError("%s: Unsupported numeric attribute: %s" %
+                            (plug.partialName(True, True, True, False, True, True),
+                             dataType)
 
         elif dataType == _api.MFnData.kString:  # 4
             return plug.asString()
@@ -3644,9 +3734,13 @@ def getPlugValue(plug):
 #            return array
 #            #return [ Vector(array[i]) for i in range(array.length()) ]
 
-        raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True), dataType)
+        raise TypeError("%s: Unsupported typed attribute: %s" %
+                        (plug.partialName(True, True, True, False, True, True),
+                         dataType))
 
-    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), _factories.apiEnumsToApiTypes.get(apiType, apiType))
+    raise TypeError("%s: Unsupported Type: %s" %
+                    (plug.partialName(True, True, True, False, True, True),
+                     _factories.apiEnumsToApiTypes.get(apiType, apiType)))
 
 
 def _testMVector():

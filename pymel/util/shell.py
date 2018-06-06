@@ -2,12 +2,23 @@ import os
 import subprocess
 from arguments import isIterable as _isIterable
 
-__all__ = ['appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv', 'refreshEnviron', 'executableOutput', 'shellOutput']
+__all__ = ['appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv',
+           'refreshEnviron', 'executableOutput', 'shellOutput']
+
 
 # TODO : expand environment variables when testing if it already exists in the list
 def appendEnv(env, value):
-    """append the value to the environment variable list ( separated by ':' on osx and linux and ';' on windows).
-    skips if it already exists in the list"""
+    # type: (str, str) -> None
+    """append the value to the environment variable list
+
+    ( separated by ':' on osx and linux and ';' on windows). skips if it
+    already exists in the list
+
+    Parameters
+    ----------
+    env : str
+    value : str
+    """
     sep = os.path.pathsep
     if env not in os.environ:
         # print "adding", env, value
@@ -22,9 +33,19 @@ def appendEnv(env, value):
     # if put :
     #    os.putenv(env, os.environ[env])
 
+
 def prependEnv(env, value):
-    """prepend the value to the environment variable list (separated by ':' on osx and linux and ';' on windows).
-    skips if it already exists in the list"""
+    # type: (str, str) -> None
+    """prepend the value to the environment variable list
+
+    (separated by ':' on osx and linux and ';' on windows). skips if it already
+    exists in the list
+
+    Parameters
+    ----------
+    env : str
+    value : str
+    """
     sep = os.path.pathsep
     if env not in os.environ:
         # print "adding", env, value
@@ -36,15 +57,34 @@ def prependEnv(env, value):
             # print "adding", env, value
             os.environ[env] = sep.join(splitEnv)
 
+
 def getEnv(env, default=None):
-    "get the value of an environment variable.  returns default (None) if the variable has not been previously set."
+    # type: (str, Any) -> None
+    """get the value of an environment variable.
+
+    returns default (None) if the variable has not been previously set.
+
+    Parameters
+    ----------
+    env : str
+    """
     return os.environ.get(env, default)
 
-def getEnvs(env, default=None):
-    """
-    get the value of an environment variable split into a list.  returns default ([]) if the variable has not been previously set.
 
-    :rtype: list
+def getEnvs(env, default=None):
+    # type: (str, Any) -> List[str]
+    """
+    get the value of an environment variable split into a list.
+
+    returns default ([]) if the variable has not been previously set.
+
+    Parameters
+    ----------
+    env : str
+
+    Returns
+    -------
+    List[str]
     """
     try:
         return os.environ[env].split(os.path.pathsep)
@@ -56,11 +96,22 @@ def getEnvs(env, default=None):
 
 
 def putEnv(env, value):
-    """set the value of an environment variable.  overwrites any pre-existing value for this variable. If value is a non-string
-    iterable (aka a list or tuple), it will be joined into a string with the separator appropriate for the current system."""
+    # type: (str, str) -> None
+    """set the value of an environment variable.
+
+    overwrites any pre-existing value for this variable. If value is a
+    non-string iterable (aka a list or tuple), it will be joined into a string
+    with the separator appropriate for the current system.
+
+    Parameters
+    ----------
+    env : str
+    value : str
+    """
     if _isIterable(value):
         value = os.path.pathsep.join(value)
     os.environ[env] = value
+
 
 def refreshEnviron():
     """
@@ -84,8 +135,10 @@ def refreshEnviron():
             if not var.startswith('_') and var not in exclude:
                 os.environ[var] = val
 
+
 def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
                      returnCode=False, input=None, **kwargs):
+    # type: (Any, bool, bool, bool, str, **Any) -> None
     """Will return the text output of running the given executable with the given arguments.
 
     This is just a convenience wrapper for subprocess.Popen, so the exeAndArgs argment
@@ -93,21 +146,19 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
     giving the executable, or a list where the first element is the executable and the rest
     are arguments.
 
-    :Parameters:
-        convertNewlines : bool
-            if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
-            the standard \\n newline
-
-        stripTrailingNewline : bool
-            if True, and the output from the executable contains a final newline,
-            it is removed from the return value
-            Note: the newline that is stripped is the one given by os.linesep, not \\n
-
-        returnCode : bool
-            if True, the return will be a tuple, (output, returnCode)
-
-        input : string
-            if non-none, a string that will be sent to the stdin of the executable
+    Parameters
+    ----------
+    convertNewlines : bool
+        if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
+        the standard \\n newline
+    stripTrailingNewline : bool
+        if True, and the output from the executable contains a final newline,
+        it is removed from the return value
+        Note: the newline that is stripped is the one given by os.linesep, not \\n
+    returnCode : bool
+        if True, the return will be a tuple, (output, returnCode)
+    input : str
+        if non-none, a string that will be sent to the stdin of the executable
 
     kwargs are passed onto subprocess.Popen
 
@@ -118,7 +169,8 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
     the combined output of stdout and stderr.
 
     Finally, since maya's python build doesn't support universal_newlines, this is always set to False -
-    however, set convertNewlines to True for an equivalent result."""
+    however, set convertNewlines to True for an equivalent result.
+    """
 
     kwargs.setdefault('stdout', subprocess.PIPE)
     kwargs.setdefault('stderr', subprocess.STDOUT)
@@ -138,25 +190,25 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
         return cmdOutput, cmdProcess.returncode
     return cmdOutput
 
+
 def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
                 returnCode=False, input=None, **kwargs):
+    # type: (Any, bool, bool, bool, str, **Any) -> None
     """Will return the text output of running a given shell command.
 
-    :Parameters:
-        convertNewlines : bool
-            if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
-            the standard \\n newline
-
-        stripTrailingNewline : bool
-            if True, and the output from the executable contains a final newline,
-            it is removed from the return value
-            Note: the newline that is stripped is the one given by os.linesep, not \\n
-
-        returnCode: bool
-            if True, the return will be a tuple, (output, returnCode)
-
-        input : string
-            if non-none, a string that will be sent to the stdin of the executable
+    Parameters
+    ----------
+    convertNewlines : bool
+        if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
+        the standard \\n newline
+    stripTrailingNewline : bool
+        if True, and the output from the executable contains a final newline,
+        it is removed from the return value
+        Note: the newline that is stripped is the one given by os.linesep, not \\n
+    returnCode: bool
+        if True, the return will be a tuple, (output, returnCode)
+    input : str
+        if non-none, a string that will be sent to the stdin of the executable
 
     With default arguments, behaves like commands.getoutput(shellCommand),
     except it works on windows as well.
@@ -170,7 +222,8 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
     the combined output of stdout and stderr.
 
     Finally, since maya's python build doesn't support universal_newlines, this is always set to False -
-    however, set convertNewlines to True for an equivalent result."""
+    however, set convertNewlines to True for an equivalent result.
+    """
 
     # commands module not supported on windows... use subprocess
     kwargs['shell'] = True

@@ -12,7 +12,12 @@ import re
 import struct
 from maya.OpenMaya import MGlobal as _MGlobal
 
+if False:
+    from typing import *
+
+
 def parseVersionStr(versionStr, extension=False):
+    # type: (str, bool) -> str
     """
     Parse a verbose version string (like the one displayed in the Maya title
     bar) and return the base version.
@@ -20,9 +25,15 @@ def parseVersionStr(versionStr, extension=False):
     Parameters
     ----------
     versionStr : str
-    extension : `bool`
+    extension : bool
         if True, leave the -x64 tag
 
+    Returns
+    -------
+    str
+
+    Examples
+    --------
     >>> from pymel.all import *
     >>> versions.parseVersionStr('2008 Service Pack1 x64')
     '2008'
@@ -63,14 +74,21 @@ def parseVersionStr(versionStr, extension=False):
             version += "-" + ma.group('ext')
     return version
 
+
 def bitness():
+    # type: () -> int
     """
     The bitness of python running inside Maya as an int.
+
+    Returns
+    -------
+    int
     """
     # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
     # even when Maya is running in 32-bit mode. The struct technique
     # is more reliable.
     return struct.calcsize("P") * 8
+
 
 _is64 = bitness() == 64
 _current = _MGlobal.apiVersion()
@@ -138,6 +156,7 @@ v2018_1 = 20180100
 
 
 def current():
+    # type: () -> int
     """Get the current version of Maya
 
     Returns
@@ -146,16 +165,21 @@ def current():
     """
     return _current
 
+
 def fullName():
     return _fullName
+
 
 def installName():
     return _installName
 
+
 def shortName():
     return _shortName
 
+
 def is64bit():
+    # type: () -> bool
     """Whether this instance of Maya is 64-bit
 
     Returns
@@ -164,7 +188,9 @@ def is64bit():
     """
     return _is64
 
+
 def flavor():
+    # type: () -> unicode
     """The 'flavor' of this instance of Maya
 
     Requires ``maya.cmds``.
@@ -179,7 +205,9 @@ def flavor():
     except AttributeError:
         raise RuntimeError, "This method cannot be used until maya is fully initialized"
 
+
 def isUnlimited():
+    # type: () -> bool
     """Whether this instance of Maya is 'Unlimited' (deprecated)
 
     Returns
@@ -188,7 +216,9 @@ def isUnlimited():
     """
     return flavor() == 'Unlimited'
 
+
 def isComplete():
+    # type: () -> bool
     """Whether this instance of Maya is 'Unlimited' (deprecated)
 
     Returns
@@ -197,7 +227,9 @@ def isComplete():
     """
     return flavor() == 'Complete'
 
+
 def isRenderNode():
+    # type: () -> bool
     """
     Returns
     -------
@@ -205,7 +237,9 @@ def isRenderNode():
     """
     return flavor() == 'Render'
 
+
 def isEval():
+    # type: () -> bool
     """Whether this instance of Maya is an evaluation edition
 
     Requires ``maya.cmds``.

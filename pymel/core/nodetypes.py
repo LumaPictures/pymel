@@ -40,6 +40,9 @@ from animation import listAnimatable as _listAnimatable
 from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 from pymel.util.enum import Enum
 
+if False:
+    from typing import *
+
 _thisModule = sys.modules[__name__]
 
 _f = _factories
@@ -67,9 +70,9 @@ class DependNode(general.PyNode):
     __apicls__ = _api.MFnDependencyNode
     __metaclass__ = _factories.MetaMayaTypeRegistry
 
-    #-------------------------------
+    # ------------------------------
     #    Name Info and Manipulation
-    #-------------------------------
+    # ------------------------------
 #    def __new__(cls,name,create=False):
 #        """
 #        Provides the ability to create the object when creating a class
@@ -97,6 +100,7 @@ class DependNode(general.PyNode):
             return self.__melnode__
 
     def __repr__(self):
+        # type: () -> unicode
         """
         Returns
         -------
@@ -114,6 +118,7 @@ class DependNode(general.PyNode):
     # classes?
     def name(self, update=True, stripNamespace=False, levels=0, long=False,
              stripUnderWorld=False):
+        # type: (bool, bool, int, bool, bool) -> unicode
         '''The name of the node
 
         Returns
@@ -184,6 +189,7 @@ class DependNode(general.PyNode):
         return name
 
     def namespace(self, root=False):
+        # type: (Any) -> unicode
         """Returns the namespace of the object with trailing colon included.
 
         See `DependNode.parentNamespace` for a variant which does not include
@@ -202,9 +208,11 @@ class DependNode(general.PyNode):
         return ns
 
     def shortName(self, **kwargs):
+        # type: (**Any) -> unicode
         """
-        This produces the same results as `DependNode.name` and is included to simplify looping over lists
-        of nodes that include both Dag and Depend nodes.
+        This produces the same results as `DependNode.name` and is included to
+        simplify looping over lists of nodes that include both Dag and Depend
+        nodes.
 
         Returns
         -------
@@ -213,9 +221,11 @@ class DependNode(general.PyNode):
         return self.name(**kwargs)
 
     def longName(self, **kwargs):
+        # type: (**Any) -> unicode
         """
-        This produces the same results as `DependNode.name` and is included to simplify looping over lists
-        of nodes that include both Dag and Depend nodes.
+        This produces the same results as `DependNode.name` and is included to
+        simplify looping over lists of nodes that include both Dag and Depend
+        nodes.
 
         Returns
         -------
@@ -224,6 +234,7 @@ class DependNode(general.PyNode):
         return self.name(**kwargs)
 
     def nodeName(self, **kwargs):
+        # type: (**Any) -> unicode
         """
         This produces the same results as `DependNode.name` and is included to simplify looping over lists
         of nodes that include both Dag and Depend nodes.
@@ -236,6 +247,7 @@ class DependNode(general.PyNode):
 
     #rename = rename
     def rename(self, name, **kwargs):
+        # type: (Any, **Any) -> DependNode
         """
         Returns
         -------
@@ -279,6 +291,7 @@ class DependNode(general.PyNode):
             return self.__apihandle__().hashCode()
 
     def node(self):
+        # type: () -> DependNode
         """for compatibility with Attribute class
 
         Returns
@@ -287,9 +300,9 @@ class DependNode(general.PyNode):
         """
         return self
 
-    #--------------------------
+    # -------------------------
     #    Modification
-    #--------------------------
+    # -------------------------
 
     def lock(self, **kwargs):
         'lockNode -lock 1'
@@ -311,9 +324,9 @@ class DependNode(general.PyNode):
 
     duplicate = general.duplicate
 
-#--------------------------
+# -------------------------
 # xxx{    Presets
-#--------------------------
+# -------------------------
 
     def savePreset(self, presetName, custom=None, attributes=[]):
 
@@ -338,12 +351,13 @@ class DependNode(general.PyNode):
         return cmds.nodePreset(**kwargs)
 #}
 
-#--------------------------
+# -------------------------
 # xxx{    Info
-#--------------------------
+# -------------------------
     type = general.nodeType
 
     def referenceFile(self):
+        # type: () -> Optional[_FileReference]
         """referenceQuery -file
         Return the reference file to which this object belongs.  None if object is not referenced
 
@@ -362,11 +376,12 @@ class DependNode(general.PyNode):
         # return self.__apimfn__().classification( self.type() )
 
 #}
-#--------------------------
+# -------------------------
 # xxx{   Connections
-#--------------------------
+# -------------------------
 
     def inputs(self, **kwargs):
+        # type: (**Any) -> List[general.PyNode]
         """listConnections -source 1 -destination 0
 
         Returns
@@ -380,6 +395,7 @@ class DependNode(general.PyNode):
         return general.listConnections(self, **kwargs)
 
     def outputs(self, **kwargs):
+        # type: (**Any) -> List[general.PyNode]
         """listConnections -source 0 -destination 1
 
         Returns
@@ -394,6 +410,7 @@ class DependNode(general.PyNode):
         return general.listConnections(self, **kwargs)
 
     def sources(self, **kwargs):
+        # type: (**Any) -> List[general.PyNode]
         """listConnections -source 1 -destination 0
 
         Returns
@@ -407,6 +424,7 @@ class DependNode(general.PyNode):
         return general.listConnections(self, **kwargs)
 
     def destinations(self, **kwargs):
+        # type: (**Any) -> List[general.PyNode]
         """listConnections -source 0 -destination 1
 
         Returns
@@ -421,6 +439,7 @@ class DependNode(general.PyNode):
         return general.listConnections(self, **kwargs)
 
     def shadingGroups(self):
+        # type: () -> List[DependNode]
         """list any shading groups in the future of this object - works for
         shading nodes, transforms, and shapes
 
@@ -436,9 +455,9 @@ class DependNode(general.PyNode):
         return self.future(type='shadingEngine')
 
 #}
-#--------------------------
+# -------------------------
 # xxx{    Attributes
-#--------------------------
+# -------------------------
     def __getattr__(self, attr):
         try:
             return getattr(super(general.PyNode, self), attr)
@@ -513,6 +532,7 @@ class DependNode(general.PyNode):
         return general.AttributeDefaults(attrObj)
 
     def attr(self, attr):
+        # type: (Any) -> general.Attribute
         """
         access to attribute plug of a node. returns an instance of the Attribute class for the
         given attribute name.
@@ -646,6 +666,7 @@ class DependNode(general.PyNode):
     listAnimatable = _listAnimatable
 
     def listAttr(self, **kwargs):
+        # type: (**Any) -> List[general.Attribute]
         """
         listAttr
 
@@ -698,6 +719,7 @@ class DependNode(general.PyNode):
         return res
 
     def listAliases(self):
+        # type: () -> List[Tuple[str, general.Attribute]]
         """
         aliasAttr
 
@@ -719,6 +741,7 @@ class DependNode(general.PyNode):
         return res
 
     def attrInfo(self, **kwargs):
+        # type: (**Any) -> List[general.Attribute]
         """attributeInfo
 
         Returns
@@ -730,13 +753,14 @@ class DependNode(general.PyNode):
 
 
 #}
-#-----------------------------------------
+# ----------------------------------------
 # xxx{ Name Info and Manipulation
-#-----------------------------------------
+# ----------------------------------------
 
 # Now just wraps NameParser functions
 
     def stripNum(self):
+        # type: () -> unicode
         """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
         the name will be returned unchanged.
 
@@ -751,6 +775,7 @@ class DependNode(general.PyNode):
         return other.NameParser(self).stripNum()
 
     def extractNum(self):
+        # type: () -> unicode
         """Return the trailing numbers of the node name. If no trailing numbers are found
         an error will be raised.
 
@@ -765,6 +790,7 @@ class DependNode(general.PyNode):
         return other.NameParser(self).extractNum()
 
     def nextUniqueName(self):
+        # type: () -> unicode
         """Increment the trailing number of the object until a unique name is found
 
         If there is no trailing number, appends '1' to the name.
@@ -776,6 +802,7 @@ class DependNode(general.PyNode):
         return other.NameParser(self).nextUniqueName()
 
     def nextName(self):
+        # type: () -> unicode
         """Increment the trailing number of the object by 1
 
         Raises an error if the name has no trailing number.
@@ -791,6 +818,7 @@ class DependNode(general.PyNode):
         return other.NameParser(self).nextName()
 
     def prevName(self):
+        # type: () -> unicode
         """Decrement the trailing number of the object by 1
 
         Raises an error if the name has no trailing number.
@@ -1173,6 +1201,7 @@ class DagNode(Entity):
     _componentAttributes = {}
 
     def comp(self, compName):
+        # type: (Any) -> general.Component
         """
         Will retrieve a Component object for this node; similar to
         DependNode.attr(), but for components.
@@ -1208,6 +1237,7 @@ class DagNode(Entity):
                 return shape.comp(compName)
 
     def listComp(self, names=False):
+        # type: (bool) -> None
         """Will return a list of all component objects for this object
 
         Is to .comp() what .listAttr() is to .attr(); will NOT check the shape
@@ -1258,6 +1288,7 @@ class DagNode(Entity):
     # TODO: support for underworld nodes
     def name(self, update=True, long=False, stripNamespace=False, levels=0,
              stripUnderWorld=False):
+        # type: (bool, {True, False, None}, bool, int, bool) -> unicode
         '''The name of the node
 
         Parameters
@@ -1418,6 +1449,7 @@ class DagNode(Entity):
         return name
 
     def longName(self, **kwargs):
+        # type: (**Any) -> unicode
         """
         The full dag path to the object, including leading pipe ( | )
 
@@ -1483,6 +1515,7 @@ class DagNode(Entity):
     fullPath = longName
 
     def shortName(self, **kwargs):
+        # type: (**Any) -> unicode
         """
         The shortest unique name.
 
@@ -1551,6 +1584,7 @@ class DagNode(Entity):
     # TODO: better support for underworld nodes (ie, in conjunction with
     # stripNamespace)
     def nodeName(self, stripUnderWorld=True, **kwargs):
+        # type: (Any, **Any) -> unicode
         """
         Just the name of the node, without any dag path
 
@@ -1764,10 +1798,11 @@ class DagNode(Entity):
 #                raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(arg), arg)
 
 
-#--------------------------------
+# -------------------------------
 # xxx{  Path Info and Modification
-#--------------------------------
+# -------------------------------
     def root(self):
+        # type: () -> unicode
         """rootOf
 
         Returns
@@ -1930,6 +1965,7 @@ class DagNode(Entity):
         return child.isChildOf(self)
 
     def isInstanceOf(self, other):
+        # type: (Any) -> bool
         """
         Returns
         -------
@@ -1944,6 +1980,7 @@ class DagNode(Entity):
                 return False
 
     def instanceNumber(self):
+        # type: () -> int
         """
         returns the instance number that this path represents in the DAG. The instance number can be used to determine which
         element of the world space array attributes of a DAG node to connect to get information regarding this instance.
@@ -1982,6 +2019,7 @@ class DagNode(Entity):
         return result
 
     def getOtherInstances(self):
+        # type: () -> List[DagNode]
         """
         same as `DagNode.getInstances` with includeSelf=False.
 
@@ -1992,6 +2030,7 @@ class DagNode(Entity):
         return self.getInstances(includeSelf=False)
 
     def firstParent(self):
+        # type: () -> DagNode
         """firstParentOf
 
         Returns
@@ -2077,6 +2116,7 @@ class DagNode(Entity):
         return parentDag
 
     def getParent(self, generations=1):
+        # type: (Any) -> Union[DagNode, List[DagNode]]
         """
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
@@ -2127,6 +2167,7 @@ class DagNode(Entity):
             return general.PyNode(res)
 
     def getAllParents(self):
+        # type: () -> List[DagNode]
         """
         Return a list of all parents above this.
 
@@ -2139,6 +2180,7 @@ class DagNode(Entity):
         return self.getParent(generations=None)
 
     def getChildren(self, **kwargs):
+        # type: (**Any) -> List[DagNode]
         """
         see also `childAtIndex`
 
@@ -2154,6 +2196,7 @@ class DagNode(Entity):
         return general.listRelatives(self, **kwargs)
 
     def getSiblings(self, **kwargs):
+        # type: (**Any) -> List[DagNode]
         """
         for flags, see pymel.core.general.listRelatives
 
@@ -2168,6 +2211,7 @@ class DagNode(Entity):
             return []
 
     def listRelatives(self, **kwargs):
+        # type: (**Any) -> List[DagNode]
         """
         for flags, see pymel.core.general.listRelatives
 
@@ -2192,6 +2236,7 @@ class DagNode(Entity):
         return result
 
     def addChild(self, child, **kwargs):
+        # type: (Any, **Any) -> DagNode
         """parent (reversed)
 
         Returns
@@ -2204,6 +2249,7 @@ class DagNode(Entity):
         return child
 
     def __or__(self, child, **kwargs):
+        # type: (Any, **Any) -> DagNode
         """
         operator for `addChild`. Use to easily daisy-chain together parenting operations.
         The operation order visually mimics the resulting dag path:
@@ -2226,11 +2272,12 @@ class DagNode(Entity):
 #}
     #instance = instance
 
-    #--------------------------
+    # -------------------------
     #    Shading
-    #--------------------------
+    # -------------------------
 
     def isDisplaced(self):
+        # type: () -> bool
         """Returns whether any of this object's shading groups have a displacement shader input
 
         Returns
@@ -3531,6 +3578,7 @@ class Transform(DagNode):
             raise e
 
     def attr(self, attr, checkShape=True):
+        # type: (Any, Any) -> Attribute
         """
         when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
         be returned.
@@ -3609,6 +3657,7 @@ class Transform(DagNode):
 #    translate = property( _getTranslate , _setTranslate )
 
     def getShape(self, **kwargs):
+        # type: (**Any) -> DagNode
         """
         :rtype: `DagNode`
         """
@@ -3619,6 +3668,7 @@ class Transform(DagNode):
             pass
 
     def getShapes(self, **kwargs):
+        # type: (**Any) -> DagNode
         """
         :rtype: `DagNode`
         """
@@ -3894,6 +3944,7 @@ class Transform(DagNode):
 
     # TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with _api.
     def getBoundingBox(self, invisible=False, space='object'):
+        # type: (Any, Any) -> BoundingBox
         """xform -boundingBox and xform -boundingBoxInvisible
 
         :rtype: `BoundingBox`
@@ -3917,6 +3968,7 @@ class Transform(DagNode):
         return datatypes.BoundingBox(res[:3], res[3:])
 
     def getBoundingBoxMin(self, invisible=False, space='object'):
+        # type: (Any, Any) -> Vector
         """
         :rtype: `Vector`
         """
@@ -3924,6 +3976,7 @@ class Transform(DagNode):
         # return self.getBoundingBox(invisible).min()
 
     def getBoundingBoxMax(self, invisible=False, space='object'):
+        # type: (Any, Any) -> Vector
         """
         :rtype: `Vector`
         """
@@ -7666,6 +7719,7 @@ class SelectionSet(_api.MSelectionList):
         return melList
 
     def __len__(self):
+        # type: () -> int
         """
         Returns
         -------
@@ -7674,6 +7728,7 @@ class SelectionSet(_api.MSelectionList):
         return self.apicls.length(self)
 
     def __contains__(self, item):
+        # type: (Any) -> bool
         """
         Returns
         -------
@@ -7687,6 +7742,7 @@ class SelectionSet(_api.MSelectionList):
             return self.apicls.hasItem(self, general.PyNode(item).__apiobject__())
 
     def __repr__(self):
+        # type: () -> str
         """
         Returns
         -------
@@ -7697,6 +7753,7 @@ class SelectionSet(_api.MSelectionList):
         return 'nt.%s(%s)' % (self.__class__.__name__, names)
 
     def __getitem__(self, index):
+        # type: (Any) -> general.PyNode
         """
         Returns
         -------
@@ -7790,6 +7847,7 @@ class SelectionSet(_api.MSelectionList):
             return self.apicls.add(self, general.PyNode(item).__apiobject__())
 
     def pop(self, index):
+        # type: (int) -> general.PyNode
         """
         Parameters
         ----------
@@ -7804,6 +7862,7 @@ class SelectionSet(_api.MSelectionList):
         return self.apicls.remove(self, index)
 
     def isSubSet(self, other):
+        # type: (Any) -> bool
         """
         Returns
         -------
@@ -7814,6 +7873,7 @@ class SelectionSet(_api.MSelectionList):
         return set(self).issubset(other)
 
     def isSuperSet(self, other, flatten=True):
+        # type: (Any, Any) -> bool
         """
         Returns
         -------
@@ -7824,6 +7884,7 @@ class SelectionSet(_api.MSelectionList):
         return set(self).issuperset(other)
 
     def getIntersection(self, other):
+        # type: (Any) -> SelectionSet
         """
         Returns
         -------
@@ -7839,6 +7900,7 @@ class SelectionSet(_api.MSelectionList):
         self.difference(diff)
 
     def getDifference(self, other):
+        # type: (Any) -> SelectionSet
         """
         Returns
         -------
@@ -7855,6 +7917,7 @@ class SelectionSet(_api.MSelectionList):
         self.apicls.merge(self, other, _api.MSelectionList.kRemoveFromList)
 
     def getUnion(self, other):
+        # type: (Any) -> SelectionSet
         """
         Returns
         -------
@@ -7870,6 +7933,7 @@ class SelectionSet(_api.MSelectionList):
         self.apicls.merge(self, other, _api.MSelectionList.kMergeNormal)
 
     def getSymmetricDifference(self, other):
+        # type: (Any) -> SelectionSet
         """
         Also known as XOR
 
@@ -7987,13 +8051,13 @@ class ObjectSet(Entity):
 #    def _elements(self):
 #        """ used internally to get a list of elements without casting to node classes"""
 #        return sets( self, q=True)
-#    #-----------------------
+#    # ----------------------
 #    # Maya Methods
-#    #-----------------------
+#    # ----------------------
 
-    #-----------------------
+    # ----------------------
     # Python ObjectSet Methods
-    #-----------------------
+    # ----------------------
 
     @classmethod
     def _getApiObjs(cls, item, tryCast=True):
@@ -8013,6 +8077,7 @@ class ObjectSet(Entity):
             raise TypeError(item)
 
     def __contains__(self, item):
+        # type: (Any) -> bool
         """
         Returns
         -------
@@ -8024,6 +8089,7 @@ class ObjectSet(Entity):
         return self.asSelectionSet()[index]
 
     def __len__(self):
+        # type: () -> int
         """
         Returns
         -------
@@ -8188,10 +8254,12 @@ class ObjectSet(Entity):
                 raise
 
     def isSubSet(self, other):
+        # type: (Any) -> bool
         """:rtype: `bool`"""
         return self.asSelectionSet().isSubSet(other)
 
     def isSuperSet(self, other):
+        # type: (Any) -> bool
         """:rtype: `bool`"""
         return self.asSelectionSet().isSuperSet(other)
 
@@ -8205,6 +8273,7 @@ class ObjectSet(Entity):
         return self.asSelectionSet() == SelectionSet(other)
 
     def getDifference(self, other):
+        # type: (Any) -> SelectionSet
         """:rtype: `SelectionSet`"""
         sel = self.asSelectionSet()
         sel.difference(other)
@@ -8227,6 +8296,7 @@ class ObjectSet(Entity):
         self.resetTo(sel)
 
     def getIntersection(self, other):
+        # type: (Any) -> SelectionSet
         """:rtype: `SelectionSet`"""
         if isinstance(other, ObjectSet):
             return self._getIntersection(other)
@@ -8243,6 +8313,7 @@ class ObjectSet(Entity):
         self.resetTo(sel)
 
     def getUnion(self, other):
+        # type: (Any) -> SelectionSet
         """:rtype: `SelectionSet`"""
         if isinstance(other, ObjectSet):
             return self._getUnion(other)

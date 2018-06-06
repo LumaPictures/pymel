@@ -7,6 +7,7 @@ import pymel.versions as versions
 
 import pymel.internal.pmcmds as cmds
 
+
 def currentTime(*args, **kwargs):
     """
     Modifications:
@@ -17,13 +18,16 @@ def currentTime(*args, **kwargs):
     else:
         return cmds.currentTime(*args, **kwargs)
 
+
 def getCurrentTime():
     """get the current time as a float"""
     return cmds.currentTime(q=1)
 
+
 def setCurrentTime(time):
     """set the current time """
     return cmds.currentTime(time)
+
 
 def listAnimatable(*args, **kwargs):
     """
@@ -31,7 +35,9 @@ def listAnimatable(*args, **kwargs):
         - returns an empty list when the result is None
         - returns wrapped classes
     """
-    return map(_general.PyNode, _util.listForNone(cmds.listAnimatable(*args, **kwargs)))
+    return map(_general.PyNode,
+               _util.listForNone(cmds.listAnimatable(*args, **kwargs)))
+
 
 def keyframe(*args, **kwargs):
     """
@@ -45,8 +51,10 @@ def keyframe(*args, **kwargs):
         return list(_util.pairIter(res))
     return res
 
+
 def deformer(*args, **kwargs):
     return map(_general.PyNode, cmds.deformer(*args, **kwargs))
+
 
 def _constraint(func):
     def constraintWithWeightSyntax(*args, **kwargs):
@@ -96,6 +104,7 @@ def _constraint(func):
     constraint.__name__ = func.__name__
     return constraint
 
+
 for contstraintCmdName in ('''aimConstraint geometryConstraint normalConstraint
                               orientConstraint parentConstraint pointConstraint
                               pointOnPolyConstraint poleVectorConstraint
@@ -103,6 +112,7 @@ for contstraintCmdName in ('''aimConstraint geometryConstraint normalConstraint
     cmd = getattr(cmds, contstraintCmdName, None)
     if cmd:
         globals()[contstraintCmdName] = _constraint(cmd)
+
 
 def ikHandle(*args, **kwargs):
     """

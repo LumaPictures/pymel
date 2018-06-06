@@ -18,15 +18,19 @@ import pymel.internal.cmdcache as _cmdcache
 import pymel.api as _api
 import datatypes
 
+if False:
+    from typing import *
 
-#--------------------------
+# -------------------------
 # Mel <---> Python Glue
-#--------------------------
+# -------------------------
 
 MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector',
             'vector[]']
 
+
 def isValidMelType(typStr):
+    # type: (Any) -> bool
     """Returns whether ``typeStr`` is a valid MEL type identifier
 
     Returns
@@ -35,6 +39,7 @@ def isValidMelType(typStr):
     """
     return typStr in MELTYPES
 
+
 def _flatten(iterables):
     for it in iterables:
         if util.isIterable(it):
@@ -42,6 +47,7 @@ def _flatten(iterables):
                 yield element
         else:
             yield it
+
 
 def pythonToMel(arg):
     """
@@ -79,9 +85,11 @@ def pythonToMel(arg):
 
         return '{%s}' % ','.join(newargs)
 
-    # in order for PyNodes to get wrapped in quotes we have to treat special cases first,
-    # we cannot simply test if arg is an instance of basestring because PyNodes are not
+    # in order for PyNodes to get wrapped in quotes we have to treat special
+    # cases first, we cannot simply test if arg is an instance of basestring
+    # because PyNodes are not
     return '"%s"' % cmds.encodeString(str(arg))
+
 
 def pythonToMelCmd(*commandAndArgs, **kwargs):
     '''Given a mel command name, and a set of python args / kwargs, return
@@ -139,7 +147,8 @@ def pythonToMelCmd(*commandAndArgs, **kwargs):
                 strFlags.append('-%s' % key)
             elif (isinstance(val, (tuple, list))
                     and len(val) == flagInfo.get('numArgs')):
-                strFlags.append('-%s %s' % (key, ' '.join(pythonToMel(x) for x in val)))
+                strFlags.append('-%s %s' %
+                                (key, ' '.join(pythonToMel(x) for x in val)))
             else:
                 strFlags.append('-%s %s' % (key, pythonToMel(val)))
         cmdStr = '%s %s %s' % (command, ' '.join(strFlags), ' '.join(strArgs))
@@ -148,7 +157,9 @@ def pythonToMelCmd(*commandAndArgs, **kwargs):
         cmdStr = '%s(%s)' % (command, ','.join(strArgs))
     return cmdStr
 
+
 def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
+    # type: (Any, bool, bool, bool) -> str
     """
     return the name of the closest MEL type equivalent for the given python
     object.
@@ -277,7 +288,6 @@ class MelGlobals(collections.MutableMapping, dict):
 
     The variable will now be accessible within MEL as a global string.
     """
-    #__metaclass__ = util.Singleton
     melTypeToPythonType = {
         'string': str,
         'int': int,
@@ -303,7 +313,6 @@ class MelGlobals(collections.MutableMapping, dict):
 #            _mm.eval(self._setItemCmd % (index, value) )
 
     class MelGlobalArray(util.defaultlist):
-        #__metaclass__ = util.metaStatic
 
         def __init__(self, type, variable, *args, **kwargs):
 
@@ -322,14 +331,13 @@ class MelGlobals(collections.MutableMapping, dict):
             super(MelGlobals.MelGlobalArray, self).__setitem__(index, value)
         setItem = __setitem__
 
-        # prevent these from
         def append(self, val):
             raise AttributeError
 
         def extend(self, val):
             raise AttributeError
 
-    typeMap = {}
+    typeMap = {}  # type: Dict[str, str]
     VALID_TYPES = MELTYPES
 
     def __iter__(self):
@@ -340,13 +348,44 @@ class MelGlobals(collections.MutableMapping, dict):
         return len(mel.env())
 
     def __getitem__(self, variable):
+        # type: (str) -> str
+        """
+        Parameters
+        ----------
+        variable : str
+
+        Returns
+        -------
+        str
+        """
         return self.__class__.get(variable)
 
     def __setitem__(self, variable, value):
+        # type: (str, Any) -> Any
+        """
+        Parameters
+        ----------
+        variable : str
+        value : Any
+
+        Returns
+        -------
+        Any
+        """
         return self.__class__.set(variable, value)
 
     @classmethod
     def _formatVariable(cls, variable):
+        # type: (str) -> str
+        """
+        Parameters
+        ----------
+        variable : str
+
+        Returns
+        -------
+        str
+        """
         # TODO : add validity check
         if not variable.startswith('$'):
             variable = '$' + variable
@@ -356,7 +395,18 @@ class MelGlobals(collections.MutableMapping, dict):
 
     @classmethod
     def getType(cls, variable):
-        """Get the type of a global MEL variable"""
+        # type: (str) -> str
+        """
+        Get the type of a global MEL variable
+
+        Parameters
+        ----------
+        variable : str
+
+        Returns
+        -------
+        str
+        """
         variable = cls._formatVariable(variable)
         info = mel.whatIs(variable).split()
         if len(info) == 2 and info[1] == 'variable':
@@ -375,9 +425,23 @@ class MelGlobals(collections.MutableMapping, dict):
 
     @classmethod
     def initVar(cls, type, variable):
-        """Initialize a new global MEL variable"""
+        # type: (str, str) -> str
+        """
+        Initialize a new global MEL variable
+
+        Parameters
+        ----------
+        type : str
+            one of ``MELTYPES``
+        variable : str
+
+        Returns
+        -------
+        str
+        """
         if type not in MELTYPES:
-            raise TypeError, "type must be a valid mel type: %s" % ', '.join(["'%s'" % x for x in MELTYPES])
+            raise TypeError("type must be a valid mel type: %s" %
+                            ', '.join(["'%s'" % x for x in MELTYPES]))
         variable = cls._formatVariable(variable)
         _mm.eval(cls._get_decl_statement(type, variable))
         MelGlobals.typeMap[variable] = type
@@ -393,8 +457,23 @@ class MelGlobals(collections.MutableMapping, dict):
     # ...but may want to switch this in the future...
     @classmethod
     def get(cls, variable, type=None):
-        """get a MEL global variable.  If the type is not specified, the mel
-        ``whatIs`` command will be used to determine it."""
+        # type: (str, Optional[str]) -> Any
+        """
+        get a MEL global variable.
+
+        If the type is not specified, the mel ``whatIs`` command will be used
+        to determine it.
+
+        Parameters
+        ----------
+        variable : str
+        type : Optional[str]
+            one of ``MELTYPES``
+
+        Returns
+        -------
+        Any
+        """
 
         variable = cls._formatVariable(variable)
         if type is None:
@@ -425,7 +504,17 @@ class MelGlobals(collections.MutableMapping, dict):
 
     @classmethod
     def set(cls, variable, value, type=None):
-        """set a mel global variable"""
+        # type: (str, Any, Optional[str]) -> None
+        """
+        set a mel global variable
+
+        Parameters
+        ----------
+        variable : str
+        value : Any
+        type : Optional[str]
+            one of ``MELTYPES``
+        """
         variable = cls._formatVariable(variable)
         if type is None:
             try:
@@ -442,14 +531,24 @@ class MelGlobals(collections.MutableMapping, dict):
 
     @classmethod
     def keys(cls):
-        """list all global variables"""
+        # type: () -> List[str]
+        """
+        list all global variables
+
+        Returns
+        -------
+        List[str]
+        """
         return mel.env()
 
+
 melGlobals = MelGlobals()
+
 
 # for backward compatibility
 def getMelGlobal(type, variable):
     return melGlobals.get(variable, type)
+
 
 def setMelGlobal(type, variable, value):
     return melGlobals.set(variable, value, type)
@@ -484,6 +583,7 @@ class Catch(object):
         Catch.result = None
         Catch.success = None
 
+
 catch = Catch()
 
 
@@ -499,7 +599,9 @@ class OptionVarList(tuple):
         self.key = key
 
     def __setitem__(self, key, val):
-        raise TypeError, '%s object does not support item assignment - try casting to a list, and assigning the whole list to the optionVar' % self.__class__.__name__
+        raise TypeError('%s object does not support item assignment - try '
+                        'casting to a list, and assigning the whole list to '
+                        'the optionVar' % self.__class__.__name__)
 
     def appendVar(self, val):
         """values appended to the OptionVarList with this method will be added
@@ -512,9 +614,11 @@ class OptionVarList(tuple):
             return cmds.optionVar(intValueAppend=[self.key, val])
         if isinstance(val, float):
             return cmds.optionVar(floatValueAppend=[self.key, val])
-        raise TypeError, 'unsupported datatype: strings, ints, floats and their subclasses are supported'
+        raise TypeError('unsupported datatype: strings, ints, floats and '
+                        'their subclasses are supported')
 
     append = appendVar
+
 
 class OptionVarDict(collections.MutableMapping):
 
@@ -602,18 +706,19 @@ class OptionVarDict(collections.MutableMapping):
     def __len__(self):
         return len(self.keys())
 
+
 optionVar = OptionVarDict()
 
-class Env(object):
 
+class Env(object):
     """ A Singleton class to represent Maya current optionVars and settings """
-    #__metaclass__ = util.Singleton
 
     optionVars = OptionVarDict()
-    #grid = Grid()
-    #playbackOptions = PlaybackOptions()
+    # grid = Grid()
+    # playbackOptions = PlaybackOptions()
 
-    # TODO : create a wrapper for os.environ which allows direct appending and popping of individual env entries (i.e. make ':' transparent)
+    # TODO : create a wrapper for os.environ which allows direct appending
+    # and popping of individual env entries (i.e. make ':' transparent)
     envVars = os.environ
 
     def setConstructionHistory(self, state):
@@ -691,42 +796,49 @@ class Env(object):
 
 env = Env()
 
-#--------------------------
+
+# -------------------------
 # Maya.mel Wrapper
-#--------------------------
+# -------------------------
 
 class MelError(RuntimeError):
 
     """Generic MEL error"""
     pass
 
+
 class MelConversionError(MelError, TypeError):
 
     """MEL cannot process a conversion or cast between data types"""
     pass
+
 
 class MelUnknownProcedureError(MelError, NameError):
 
     """The called MEL procedure does not exist or has not been sourced"""
     pass
 
+
 class MelArgumentError(MelError, TypeError):
 
     """The arguments passed to the MEL script are incorrect"""
     pass
+
 
 class MelSyntaxError(MelError, SyntaxError):
 
     """The MEL script has a syntactical error"""
     pass
 
+
 class MelCallable(object):
 
-    """ Class for wrapping up callables created by Mel class' procedure calls.
+    """
+    Class for wrapping up callables created by Mel class' procedure calls.
 
-        The class is designed to support chained, "namespace-protected" MEL procedure
-        calls, like: Foo.bar.spam(). In this case, Foo, bar and spam would each be MelCallable
-        objects.
+    The class is designed to support chained, "namespace-protected" MEL
+    procedure calls, like: ``Foo.bar.spam()``. In this case, Foo, bar and spam
+    would each be `MelCallable` objects.
     """
 
     def __init__(self, head, name):
@@ -747,6 +859,7 @@ class MelCallable(object):
     def __call__(self, *args, **kwargs):
         cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
         return Mel._eval(cmd, self.full_name)
+
 
 class Mel(object):
 
@@ -881,6 +994,7 @@ class Mel(object):
 
     @classmethod
     def source(cls, script, language='mel'):
+        # type: (str, str) -> None
         """use this to source mel or python scripts.
 
         Parameters
@@ -894,7 +1008,6 @@ class Mel(object):
             from mel to python via `pymel.tools.mel2py`, with this simple
             switch you can change back and forth from sourcing mel to
             importing python.
-
         """
 
         if language == 'mel':
@@ -911,7 +1024,8 @@ class Mel(object):
                 sys.modules[modulePath] = module
 
         else:
-            raise TypeError, "language keyword expects 'mel' or 'python'. got '%s'" % language
+            raise TypeError("language keyword expects 'mel' or 'python'. "
+                            "got '%s'" % language)
 
     @classmethod
     def eval(cls, cmd):
@@ -1065,15 +1179,19 @@ class Mel(object):
 
     @staticmethod
     def tokenize(*args):
-        raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
+        raise NotImplementedError("Calling the mel command 'tokenize' from "
+                                  "python will crash Maya. Use the string "
+                                  "split method instead.")
 
     # just a convenient alias
     globals = melGlobals
+
 
 mel = Mel()
 
 
 def conditionExists(conditionName):
+    # type: (str) -> None
     """
     Returns True if the named condition exists, False otherwise.
 

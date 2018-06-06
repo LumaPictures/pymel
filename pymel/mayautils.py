@@ -11,9 +11,14 @@ import pymel.internal as _internal
 _logger = _internal.getLogger(__name__)
 from pymel.util import path as _path
 
+if False:
+    from typing import *
+
 sep = os.path.pathsep
 
+
 def source(file, searchPath=None, recurse=False):
+    # type: (Any, Iterable[str], bool) -> None
     """
     Execute a python script.
 
@@ -59,12 +64,15 @@ def source(file, searchPath=None, recurse=False):
                         pass
         except:
             raise ValueError, "File '" + filename + "' not found in path"
-            # In case the raise exception is replaced by a warning don't forget to return here
+            # In case the raise exception is replaced by a warning don't
+            # forget to return here
             return
     # _logger.debug("Executing: "+filepath)
     return execfile(filepath)
 
+
 def getMayaLocation(version=None):
+    # type: (bool) -> Optional[str]
     """
     Get the path to the Maya install directory.
 
@@ -100,7 +108,8 @@ def getMayaLocation(version=None):
         if version != actual_long_version:
             short_version = versions.parseVersionStr(version, extension=False)
             if version == short_version:
-                try_version = actual_long_version.replace(actual_short_version, short_version)
+                try_version = actual_long_version.replace(actual_short_version,
+                                                          short_version)
             else:
                 try_version = version
             try_loc = loc.replace(actual_long_version, try_version)
@@ -112,7 +121,9 @@ def getMayaLocation(version=None):
 
     return loc
 
+
 def getMayaAppDir(versioned=False):
+    # type: (bool) -> Optional[str]
     """
     Get the path to the current user's Maya application directory.
 
@@ -123,8 +134,8 @@ def getMayaAppDir(versioned=False):
     Parameters
     ----------
     versioned : bool
-        if True, the current Maya version including '-x64' suffix, if applicable,
-        will be appended.
+        if True, the current Maya version including '-x64' suffix, if
+        applicable, will be appended.
 
     Returns
     -------
@@ -157,11 +168,13 @@ def getMayaAppDir(versioned=False):
 
     return appDir
 
+
 def getUserPrefsDir():
     """Get the prefs directory below the Maya application directory"""
     appDir = getMayaAppDir(versioned=True)
     if appDir:
         return os.path.join(appDir, 'prefs')
+
 
 def getUserScriptsDir():
     """Get the scripts directory below the Maya application directory"""
@@ -169,16 +182,20 @@ def getUserScriptsDir():
     if appDir:
         return os.path.join(appDir, 'scripts')
 
+
 def executeDeferred(func, *args, **kwargs):
     """
-    This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this
-    function does a simple check to see if we're in batch or interactive mode.  In interactive it runs maya.utils.executeDeferred,
-    and if we're in batch mode, it just executes the function.
+    This is a wrap for maya.utils.executeDeferred.  Maya's version does not
+    execute at all when in batch mode, so this function does a simple check to
+    see if we're in batch or interactive mode.  In interactive it runs
+    `maya.utils.executeDeferred`, and if we're in batch mode, it just executes
+    the function.
 
     Use this function in your userSetup.py file if:
         1. you are importing pymel there
         2. you want to execute some code that relies on maya.cmds
-        3. you want your userSetup.py to work in both interactive and standalone mode
+        3. you want your userSetup.py to work in both interactive and
+           standalone mode
 
     Example userSetup.py file::
 
@@ -189,7 +206,6 @@ def executeDeferred(func, *args, **kwargs):
         mayautils.executeDeferred( delayedStartup )
 
     Takes a single parameter which should be a callable function.
-
     """
     import maya.utils
     import maya.OpenMaya
@@ -198,38 +214,41 @@ def executeDeferred(func, *args, **kwargs):
     else:
         if isinstance(func, basestring):
             if args or kwargs:
-                raise ValueError('if passing a string to be executed, no additional args may be passed')
+                raise ValueError('if passing a string to be executed, no '
+                                 'additional args may be passed')
             exec func
         else:
             func(*args, **kwargs)
 
-def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn', prepend=False):
+
+def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None,
+                          errors='warn', prepend=False):
+    # type: (Union[str, List[str], Tuple[str]], bool, str, Any, Any) -> None
     """
     Given a path or list of paths, recurses through directories appending to
-    the ``MAYA_SCRIPT_PATH`` environment variable any found directories containing
-    mel scripts.
+    the ``MAYA_SCRIPT_PATH`` environment variable any found directories
+    containing mel scripts.
 
-    The root directories, if given, are always added to the ``MAYA_SCRIPT_PATH``,
-    even if they don't contain any mel scripts.
+    The root directories, if given, are always added to the
+    ``MAYA_SCRIPT_PATH``, even if they don't contain any mel scripts.
 
-    :Parameters:
-        roots : str or list of str
-            a single path or list of paths to recurse. if left to its default, will use the current
-            ``MAYA_SCRIPT_PATH`` values
-
-        verobse : bool
-            verbose on or off
-
-        excludeRegex : str
-            string to be compiled to a regular expression of paths to skip.  This regex only needs to match
-            the folder name
-
+    Parameters
+    ----------
+    roots : Union[str, List[str], Tuple[str]]
+        a single path or list of paths to recurse. if left to its default,
+        will use the current ``MAYA_SCRIPT_PATH`` values
+    verbose : bool
+        verbose on or off
+    excludeRegex : str
+        string to be compiled to a regular expression of paths to skip.
+        This regex only needs to match the folder name
     """
 
     regex = '[.]|(obsolete)'
 
     if excludeRegex:
-        assert isinstance(excludeRegex, basestring), "please pass a regular expression as a string"
+        assert isinstance(excludeRegex, basestring), \
+            "please pass a regular expression as a string"
         regex = regex + '|' + excludeRegex
 
     includeRegex = "(?!(" + regex + "))"  # add a negative lookahead assertion
@@ -261,11 +280,13 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
         rootVars = varList[:]
 
     _logger.debug("Recursing Maya script path")
-    _logger.debug("Only directories which match %s will be traversed" % includeRegex)
+    _logger.debug("Only directories which match %s will be traversed" %
+                  includeRegex)
     for rootVar in rootVars:
         root = _path(rootVar)
         if re.match(includeRegex, root.name) and root.exists():
-            _logger.debug("Searching for all valid script directories below %s" % rootVar)
+            _logger.debug("Searching for all valid script directories "
+                          "below %s" % rootVar)
             for f in root.walkdirs(errors=errors, regex=includeRegex):
                 try:
                     if len(f.files("*.mel")):
@@ -275,6 +296,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
 
     if len(varList) > initalLen:
         os.environ["MAYA_SCRIPT_PATH"] = os.path.pathsep.join(varList)
-        _logger.info("Added %d directories to Maya script path" % (len(varList) - initalLen))
+        _logger.info("Added %d directories to Maya script path" %
+                     (len(varList) - initalLen))
     else:
         _logger.info("Maya script path recursion did not find any paths to add")

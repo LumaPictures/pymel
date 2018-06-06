@@ -34,9 +34,10 @@ _thisModule = sys.modules[__name__]
 # instead!
 thisModuleCmd = "import %s; import sys; sys.modules[%r]" % (__name__, __name__)
 
-#-----------------------------------------------
+
+# ----------------------------------------------
 #  Enhanced UI Commands
-#-----------------------------------------------
+# ----------------------------------------------
 
 def _lsUI(**kwargs):
     long = kwargs.pop('long', kwargs.pop('l', True))
@@ -61,6 +62,7 @@ _commandsToUITypes = {
     'optionMenu': 'popupMenu',
 }
 
+
 def _findLongName(name, type=None):
     # this remap is currently for OptionMenu, but the fix only works in 2011
     # lsUI won't list popupMenus or optionMenus
@@ -76,6 +78,7 @@ def _findLongName(name, type=None):
         raise ValueError, "could not find a UI element matching the name %s" % name
     return res[0]
 
+
 def lsUI(**kwargs):
     """
 Modified:
@@ -86,6 +89,7 @@ Modified:
     return [uitypes.PyUI(x) for x in _lsUI(**kwargs)]
 
 scriptTableCmds = {}
+
 
 def scriptTable(*args, **kwargs):
     """
@@ -142,6 +146,7 @@ Maya Bug Fix:
         cmds.scriptTable(uiName, e=1, **kwargs)
     return uitypes.ScriptTable(uiName)
 
+
 def getPanel(*args, **kwargs):
     typeOf = kwargs.pop('typeOf', kwargs.pop('to', None))
     if typeOf:
@@ -185,23 +190,27 @@ def getPanel(*args, **kwargs):
 #        return general.PyNode(res)
 #    return res
 
-#===============================================================================
+
+# ==============================================================================
 # Provides classes and functions to facilitate UI creation in Maya
-#===============================================================================
+# ==============================================================================
 
 def verticalLayout(*args, **kwargs):
     kwargs['orientation'] = 'vertical'
     return autoLayout(*args, **kwargs)
 
+
 def horizontalLayout(*args, **kwargs):
     kwargs['orientation'] = 'horizontal'
     return autoLayout(*args, **kwargs)
+
 
 def promptBox(title, message, okText, cancelText, **kwargs):
     """ Prompt for a value. Returns the string value or None if cancelled """
     ret = promptDialog(t=title, m=message, b=[okText, cancelText], db=okText, cb=cancelText, **kwargs)
     if ret == okText:
         return promptDialog(q=1, tx=1)
+
 
 def promptBoxGenerator(*args, **kwargs):
     """ Keep prompting for values until cancelled """
@@ -211,7 +220,9 @@ def promptBoxGenerator(*args, **kwargs):
             return
         yield ret
 
+
 def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
+    # type: (str, str, str, str, *tuple of str, **dict of objects) -> Union[bool, str]
     """ Prompt for confirmation.
 
     Parameters
@@ -226,7 +237,7 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
         The label of the second/'no' button
     moreButtons : tuple of str
         strings indicating the labels for buttons beyond the second
-    returnButton : boolean
+    returnButton : bool
         by default, if there are only two buttons, the return value is a boolean
         indicating whether the 'yes' button was pressed; if you wish to always
         force the label of the pressed button to be returned, set this to True
@@ -235,7 +246,7 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
 
     Returns
     -------
-    result : bool or str
+    result : Union[bool, str]
         by default, if there are only two buttons, the return value is a boolean
         indicating whether the 'yes' button was pressed; otherwise, if there
         were more than two buttons or the returnButton keyword arg was set to
@@ -254,6 +265,7 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     else:
         return (ret == yes)
 
+
 def informBox(title, message, ok="Ok"):
     """ Information box """
     confirmDialog(t=title, m=message, b=[ok], db=ok)
@@ -266,6 +278,7 @@ class PopupError(Exception):
     """
     def __new__(cls, msgOrException, title='Error', button='Ok', msg=None,
                 icon='critical'):
+        # type: (Union[str, Exception], str, str, Optional[str], str) -> None
         """
         Parameters
         ----------
@@ -309,6 +322,7 @@ class PopupError(Exception):
     def __init__(self, msg, *args, **kwargs):
         super(PopupError, self).__init__(msg)
 
+
 def promptForFolder():
     """ Prompt the user for a folder path """
     ret = cmds.fileDialog2(fm=3, okc='Get Folder')
@@ -316,6 +330,7 @@ def promptForFolder():
         folder = _Path(ret[0])
         if folder.exists():
             return folder
+
 
 def promptForPath(**kwargs):
     """ Prompt the user for a folder path """
@@ -346,10 +361,12 @@ def promptForPath(**kwargs):
             # as this would break mode 1/100+ causing them to return None
             return folder
 
+
 def fileDialog(*args, **kwargs):
     ret = cmds.fileDialog(*args, **kwargs)
     if ret:
         return _Path(ret)
+
 
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
@@ -374,6 +391,7 @@ def pathButtonGrp(name=None, *args, **kwargs):
 
     return uitypes.PathButtonGrp(name=name, create=create, *args, **kwargs)
 
+
 def folderButtonGrp(name=None, *args, **kwargs):
     import uitypes
     if name is None or not cmds.textFieldButtonGrp(name, ex=1):
@@ -382,6 +400,7 @@ def folderButtonGrp(name=None, *args, **kwargs):
         create = False
 
     return uitypes.FolderButtonGrp(name=name, create=create, *args, **kwargs)
+
 
 def vectorFieldGrp(*args, **kwargs):
     import uitypes
@@ -394,6 +413,7 @@ def uiTemplate(name=None, force=False, exists=None):
         return cmds.uiTemplate(name, exists=1)
     else:
         return uitypes.UITemplate(name=name, force=force)
+
 
 def setParent(*args, **kwargs):
     """
@@ -409,14 +429,17 @@ Modifications
             result = uitypes.PyUI(result)
     return result
 
+
 def currentParent():
     "shortcut for ``ui.PyUI(setParent(q=1))`` "
 
     return setParent(q=1)
 
+
 def currentMenuParent():
     "shortcut for ``ui.PyUI(setParent(q=1, menu=1))`` "
     return setParent(q=1, menu=1)
+
 
 # fix a bug it becomes impossible to create a menu after setParent has been called
 def menu(*args, **kwargs):
@@ -449,9 +472,11 @@ def menu(*args, **kwargs):
         result = []
     return result
 
+
 def autoLayout(*args, **kwargs):
     import uitypes
     return uitypes.AutoLayout(*args, **kwargs)
+
 
 def subMenuItem(*args, **kwargs):
     """
@@ -539,6 +564,7 @@ def subMenuItem(*args, **kwargs):
 #        return self.getter(self)
 
 def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=None, numberOfControls=1, **kwargs):
+    # type: (Any, Any, Union[str, type], bool, Union[int, bool, float, str, Path, Vector, List[Union[int, bool, float]]], int, **Any) -> None
     """
     This function allows for a simplified interface for automatically creating UI's to control numeric values.
 
@@ -552,19 +578,18 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         The dataType that the UI should control.  It can be a type object or the string name of the type.
         For example for a boolean, you can specify 'bool' or pass in the bool class. Also, if the UI is meant to
         control an array, you can pass the type name as a stirng with a integer suffix representing the array length. ex. 'bool3'
-
     numberOfControls : int
         A parameter for specifying the number of controls per control group.  For example, for a checkBoxGrp, numberOfControls
         will map to the 'numberOfCheckBoxes' keyword.
-
     slider : bool
         Specify whether or not sliders should be used for int and float controls. Ignored for other
         types, as well as for int and float arrays
-
     value : Union[int, bool, float, str, Path, Vector, List[Union[int, bool, float]]]
         The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate
         number of elements.
 
+    Examples
+    --------
     A straightforward example::
 
         settings = {}
