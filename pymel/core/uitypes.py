@@ -1,3 +1,4 @@
+import os
 import sys
 import re
 import pymel.util as _util
