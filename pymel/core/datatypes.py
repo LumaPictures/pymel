@@ -3676,7 +3676,7 @@ def getPlugValue(plug):
 
             raise TypeError("%s: Unsupported numeric attribute: %s" %
                             (plug.partialName(True, True, True, False, True, True),
-                             dataType)
+                             dataType))
 
         elif dataType == _api.MFnData.kString:  # 4
             return plug.asString()
