@@ -1531,7 +1531,7 @@ class test_parent_instance(unittest.TestCase):
         self.assertTrue(orig.__apimdagpath__().isValid())
         self.assertEqual(orig.instanceNumber(), 0)
 
-    
+
     def test_pm_parent_nonInst_to_nonInst(self):
         orig = pm.PyNode(self.nonInstCube)
         parent = pm.PyNode(self.nonInstParent)
@@ -1542,8 +1542,8 @@ class test_parent_instance(unittest.TestCase):
         self.assertTrue(orig.__apimdagpath__().isValid())
         # getting instanceNumber will trigger usage of dag path
         self.assertEqual(orig.instanceNumber(), 0)
-    
-    
+
+
     def test_pm_parent_nonInst_to_inst(self):
         orig = pm.PyNode(self.nonInstCube)
         parent = pm.PyNode(self.instParentA1)

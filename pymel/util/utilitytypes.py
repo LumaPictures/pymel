@@ -775,7 +775,7 @@ class LazyDocStringError(Exception):
 class LazyDocString(types.StringType):
 
     """
-    Set the __doc__ of an object to an object of this class in order to have
+    Set the __doc__ of an object to an instance of this class in order to have
     a docstring that is dynamically generated when used.
 
     Due to restrictions of inheriting from StringType (which is necessary,
@@ -783,7 +783,7 @@ class LazyDocString(types.StringType):
     the creator can only take a single object.
 
     Since the object initialization requires multiple parameters, the
-    LazyDocString should be fed an sliceable-iterable on creation,
+    LazyDocString should be given a sliceable-iterable on creation,
     of the following form:
 
         LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )

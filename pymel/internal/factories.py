@@ -2461,7 +2461,7 @@ class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
 
         if not building:
             # dataclasses multiply inherit their API class (but don't include
-            # then when we're building because the inherited methods will
+            # them when we're building because the inherited methods will
             # prevent overrides from being generated)
             if not proxy and apicls is not None and apicls not in bases:
                 bases = bases + (apicls,)

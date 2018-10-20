@@ -64,7 +64,7 @@ Building an Official PyMEL Release
             if mod.split('.')[0] == 'pymel':
                 del sys.modules[mod]
     import pymel
-    assert pymel.__file__.startswith(pymelInit)                
+    assert pymel.__file__.startswith(pymelInit)
     print pymel.__file__
     import pymel.core as pm
     ```

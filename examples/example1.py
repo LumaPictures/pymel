@@ -397,71 +397,69 @@ global proc myMelScript( string $type, float $val[] )
 }
 """)
 
-
-cmds.file( newFile=1, force=1)
-objs = cmds.ls( type= 'transform')
-if objs is not None:                    # returns None when it finds no matches
+cmds.file(newFile=1, force=1)
+objs = cmds.ls(type='transform')
+if objs is not None:  # returns None when it finds no matches
     for x in objs:
         print mm.eval('longNameOf("%s")' % x)
 
         # make and break some connections
-        cmds.connectAttr(   '%s.sx' % x,  '%s.sy' % x )
-        cmds.connectAttr(   '%s.sx' % x,  '%s.sz' % x )
-        cmds.disconnectAttr( '%s.sx' % x,  '%s.sy' % x)
+        cmds.connectAttr('%s.sx' % x, '%s.sy' % x)
+        cmds.connectAttr('%s.sx' % x, '%s.sz' % x)
+        cmds.disconnectAttr('%s.sx' % x, '%s.sy' % x)
 
-        conn = cmds.listConnections( x + ".sx", s=0, d=1, p=1)
+        conn = cmds.listConnections(x + ".sx", s=0, d=1, p=1)
         # returns None when it finds no matches
         if conn is not None:
             for inputPlug in conn:
-                cmds.disconnectAttr( x + ".sx", inputPlug )
+                cmds.disconnectAttr(x + ".sx", inputPlug)
 
         # add and set a string array attribute with the history of this transform's shape
-        if not mm.eval( 'attributeExists "newAt" "%s"' % x):
-            cmds.addAttr(  x, ln='newAt', dataType='stringArray')
-        shape = cmds.listRelatives( x, s=1, f=1 )
+        if not mm.eval('attributeExists "newAt" "%s"' % x):
+            cmds.addAttr(x, ln='newAt', dataType='stringArray')
+        shape = cmds.listRelatives(x, s=1, f=1)
         if shape is not None:
-            history = cmds.listHistory( shape[0] )
+            history = cmds.listHistory(shape[0])
         else:
             history = []
-        args = tuple( ['%s.newAt' % x, len(history)] + history )
-        cmds.setAttr( *args ,  **{ 'type' : 'stringArray' } )
+        args = tuple(['%s.newAt' % x, len(history)] + history)
+        cmds.setAttr(*args, **{'type': 'stringArray'})
 
         # get and set some attributes
-        cmds.setAttr ( '%s.rotate' % x, 1,  1, 1 )
-        scale = cmds.getAttr ( '%s.scale' % x )
-        scale = scale[0] # maya packs the previous result in a list for no apparent reason
-        trans = list( cmds.getAttr ( '%s.translate' % x )[0] )  # the tuple must be converted to a list for item assignment
+        cmds.setAttr('%s.rotate' % x, 1, 1, 1)
+        scale = cmds.getAttr('%s.scale' % x)
+        scale = scale[0]  # maya packs the previous result in a list for no apparent reason
+        trans = list(cmds.getAttr('%s.translate' % x)[0])  # the tuple must be converted to a list for item assignment
         trans[0] *= scale[0]
         trans[1] *= scale[1]
         trans[2] *= scale[2]
-        cmds.setAttr ( '%s.scale' % x, trans[0], trans[1], trans[2] )
-        mm.eval('myMelScript("%s",{%s,%s,%s})' % (cmds.nodeType(x), trans[0], trans[1], trans[2]) )
+        cmds.setAttr('%s.scale' % x, trans[0], trans[1], trans[2])
+        mm.eval('myMelScript("%s",{%s,%s,%s})' % (cmds.nodeType(x), trans[0], trans[1], trans[2]))
 
-
-
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 #        Default Python
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
 import pymel.core as pm
-pm.newFile( force=1 )
-for x in pm.ls( type='transform'):
-    print x.longName()                # object oriented design
+
+pm.newFile(force=1)
+for x in pm.ls(type='transform'):
+    print x.longName()  # object oriented design
 
     # make and break some connections
-    x.sx >> x.sy                      # connection operator
+    x.sx >> x.sy  # connection operator
     x.sx >> x.sz
-    x.sx // x.sy                      # disconnection operator
-    x.sx.disconnect()                 # smarter methods -- (automatically disconnects all inputs and outputs when no arg is passed)
+    x.sx // x.sy  # disconnection operator
+    x.sx.disconnect()  # smarter methods -- (automatically disconnects all inputs and outputs when no arg is passed)
 
     # add and set a string array attribute with the history of this transform's shape
     if not x.hasAttr('newAt'):
-        x.addAttr( 'newAt', dataType='stringArray')
-    x.newAt.set( x.getShape().history() )
+        x.addAttr('newAt', dataType='stringArray')
+    x.newAt.set(x.getShape().history())
 
     # get and set some attributes
-    x.rotate.set( [1,1,1] )
+    x.rotate.set([1, 1, 1])
     trans = x.translate.get()
-    trans *= x.scale.get()           # vector math
-    x.translate.set( trans )         # ability to pass list/vector args
+    trans *= x.scale.get()  # vector math
+    x.translate.set(trans)  # ability to pass list/vector args
     pm.mel.myMelScript(x.type(), trans) # automatic handling of mel procedures

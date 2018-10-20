@@ -180,8 +180,6 @@ class PymelControlPanel(object):
         if sel:
             self.buildClassColumn(sel[0])
 
-
-
     def assignMelMethod(self, method):
         #print "method %s is now assigned" % method
         if method in pm.util.listForNone( self.unassignedMelMethodLister.getAllItems() ):
@@ -193,8 +191,6 @@ class PymelControlPanel(object):
         if method in pm.util.listForNone( self.assignedMelMethodLister.getAllItems() ):
             self.assignedMelMethodLister.removeItem(method)
             self.unassignedMelMethodLister.append( method )
-
-
 
     def processClassFrames(self):
         """
@@ -265,11 +261,9 @@ class PymelControlPanel(object):
         #self.classFrames[className].frame.setCollapse(False)
 
 
-
 class ClassFrame(object):
+
     def __init__(self, parent, className, apiClassName ):
-
-
         self.parent = parent
         self.className = className
         self.apiClassName = apiClassName
@@ -280,7 +274,6 @@ class ClassFrame(object):
             row = MethodRow( self, self.className, self.apiClassName, method, self.classInfo[method] )
 
             self.rows[method] = row
-
 
     def updateMelNames(self, melMethods):
         logger.debug( '%s: updating melNames' % self.className )
@@ -357,9 +350,8 @@ class ClassFrame(object):
 
 
 class MethodRow(object):
-    def __init__(self, parent, className, apiClassName, apiMethodName, methodInfoList):
-
-
+    def __init__(self, parent, className, apiClassName, apiMethodName,
+                 methodInfoList):
         self.parent = parent
         self.className = className
         self.methodName = methodInfoList[0].get('pymelName', apiMethodName)
