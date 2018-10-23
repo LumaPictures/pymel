@@ -464,6 +464,9 @@ class Enum(object):
             super(Enum, self).__setattr__('_keyStrings', keyStrings)
         return self._keyStrings
 
+# strangely this is required to fix a crash when referencing pymel from mypy
+EnumType = Enum
+
 import utilitytypes
 class EnumDict(utilitytypes.EquivalencePairs):
 

@@ -214,7 +214,7 @@ def getLogger(name):
     return logger
 
 # keep as an enumerator so that we can keep the order
-logLevels = util.Enum('logLevels', dict([(getLevelName(n), n) for n in range(0, CRITICAL + 1, 10)]))
+logLevels = util.EnumType('logLevels', dict([(getLevelName(n), n) for n in range(0, CRITICAL + 1, 10)]))
 
 def nameToLevel(name):
     try:
