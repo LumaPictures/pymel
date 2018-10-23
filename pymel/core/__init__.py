@@ -301,11 +301,10 @@ def _installCallbacks():
         # BUG: autodesk still has not add python callback support, and calling this as MEL is not getting the plugin name passed to it
         # mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
 
-        if _versions.current() >= _versions.v2009:
-            _logger.debug("Adding pluginUnloaded callback")
-            id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded)
-            if hasattr(id, 'disown'):
-                id.disown()
+        _logger.debug("Adding pluginUnloaded callback")
+        id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded)
+        if hasattr(id, 'disown'):
+            id.disown()
 
     else:
         _logger.debug("PluginUnloaded callback already exists")

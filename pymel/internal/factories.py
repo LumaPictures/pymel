@@ -3528,18 +3528,17 @@ def mayaTypeToApiType(mayaType):
         return mayaTypesToApiTypes[mayaType]
     except KeyError:
         apiType = None
-        if versions.current() >= versions.v2012:
-            import pymel.api.plugins as plugins
-            try:
-                inheritance = apicache.getInheritance(mayaType,
-                                                      checkManip3D=False)
-            except Exception:
-                inheritance = None
-            if inheritance:
-                for mayaType in reversed(inheritance[:-1]):
-                    apiType = mayaTypesToApiTypes.get(mayaType)
-                    if apiType:
-                        break
+        import pymel.api.plugins as plugins
+        try:
+            inheritance = apicache.getInheritance(mayaType,
+                                                  checkManip3D=False)
+        except Exception:
+            inheritance = None
+        if inheritance:
+            for mayaType in reversed(inheritance[:-1]):
+                apiType = mayaTypesToApiTypes.get(mayaType)
+                if apiType:
+                    break
 
         if not apiType:
             apiType = 'kInvalid'
@@ -3553,19 +3552,16 @@ def mayaTypeToApiType(mayaType):
 def isMayaType(mayaType):
     '''Whether the given type is a currently-defined maya node name
     '''
-    if versions.current() >= versions.v2012:
-        # use nodeType(isTypeName) preferentially, because it returns results
-        # for some objects that objectType(tagFromType) returns 0 for
-        # (like TadskAssetInstanceNode_TdependNode, which is a parent of
-        # adskMaterial
-        try:
-            cmds.nodeType(mayaType, isTypeName=True)
-        except RuntimeError:
-            return False
-        else:
-            return True
+    # use nodeType(isTypeName) preferentially, because it returns results
+    # for some objects that objectType(tagFromType) returns 0 for
+    # (like TadskAssetInstanceNode_TdependNode, which is a parent of
+    # adskMaterial
+    try:
+        cmds.nodeType(mayaType, isTypeName=True)
+    except RuntimeError:
+        return False
     else:
-        return bool(cmds.objectType(tagFromType=mayaType))
+        return True
 
 # Keep around for debugging/info gathering...
 def getComponentTypes():

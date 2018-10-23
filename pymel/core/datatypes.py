@@ -3202,11 +3202,7 @@ class Unit(float):
         return 'dt.%s(%s, unit=%r)' % (self.__class__.__name__, self, self.unit)
 
     def asUnit(self, unit):
-        # in python2.6/maya2010 'as' becomes a keyword.
         return self._data.asUnits(self.__class__.kUnit(unit))
-
-#    def asUnit(self) :
-#        return self.asUnit(self.unit)
 
     def asUIUnit(self):
         return self.asUnit(self.__class__.getUIUnit())
