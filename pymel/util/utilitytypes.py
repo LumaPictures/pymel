@@ -884,7 +884,8 @@ def addLazyDocString(object, creator, *creatorArgs, **creatorKwargs):
 
         object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
     """
-    object.__doc__ = LazyDocString((object, creator, creatorArgs, creatorKwargs))
+    lazyDoc = LazyDocString((object, creator, creatorArgs, creatorKwargs))
+    object.__doc__ = lazyDoc
 
 class TwoWayDict(dict):
 

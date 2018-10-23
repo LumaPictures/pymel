@@ -30,10 +30,12 @@ class DocstringBuilder(object):
     def _addFlag(self, flag, docs):
         # flag type
         try:
-            typ = self.getTypeIdentifier(docs['args'])
-        except KeyError, e:
-            raise KeyError("Error retrieving doc information for: "
-                           "%s, %s\n%s" % (self.cmdName, flag, e))
+            argInfo = docs['args']
+        except KeyError:
+            raise KeyError("Error retrieving doc args for: "
+                           "%r, %r" % (self.cmdName, flag))
+
+        typ = self.getTypeIdentifier(argInfo)
 
         # flag docstring
         descr = docs.get('docstring', '')
