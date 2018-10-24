@@ -514,15 +514,15 @@ def _getParserClass(strObj):
     return newcls
 
 # ------ Do not edit below this line --------
-TanimLayer = _factories._addCmdDocs('TanimLayer')
+TanimLayer = _factories.getCmdFunc('TanimLayer')
 
-adskAsset = _factories._addCmdDocs('adskAsset')
+adskAsset = _factories.getCmdFunc('adskAsset')
 
-adskAssetLibrary = _factories._addCmdDocs('adskAssetLibrary')
+adskAssetLibrary = _factories.getCmdFunc('adskAssetLibrary')
 
-adskAssetList = _factories._addCmdDocs('adskAssetList')
+adskAssetList = _factories.getCmdFunc('adskAssetList')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def adskAssetListUI(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -538,65 +538,65 @@ def adskAssetListUI(*args, **kwargs):
     res = cmds.adskAssetListUI(*args, **kwargs)
     return res
 
-agFormatIn = _factories._addCmdDocs('agFormatIn')
+agFormatIn = _factories.getCmdFunc('agFormatIn')
 
-agFormatOut = _factories._addCmdDocs('agFormatOut')
+agFormatOut = _factories.getCmdFunc('agFormatOut')
 
-artAttr = _factories._addCmdDocs('artAttr')
+artAttr = _factories.getCmdFunc('artAttr')
 
-artAttrSkinPaint = _factories._addCmdDocs('artAttrSkinPaint')
+artAttrSkinPaint = _factories.getCmdFunc('artAttrSkinPaint')
 
-artAttrSkinPaintCmd = _factories._addCmdDocs('artAttrSkinPaintCmd')
+artAttrSkinPaintCmd = _factories.getCmdFunc('artAttrSkinPaintCmd')
 
-artFluidAttr = _factories._addCmdDocs('artFluidAttr')
+artFluidAttr = _factories.getCmdFunc('artFluidAttr')
 
-artSelect = _factories._addCmdDocs('artSelect')
+artSelect = _factories.getCmdFunc('artSelect')
 
-artSetPaint = _factories._addCmdDocs('artSetPaint')
+artSetPaint = _factories.getCmdFunc('artSetPaint')
 
-blend = _factories._addCmdDocs('blend')
+blend = _factories.getCmdFunc('blend')
 
-caddyManip = _factories._addCmdDocs('caddyManip')
+caddyManip = _factories.getCmdFunc('caddyManip')
 
-clearShear = _factories._addCmdDocs('clearShear')
+clearShear = _factories.getCmdFunc('clearShear')
 
-copyNode = _factories._addCmdDocs('copyNode')
+copyNode = _factories.getCmdFunc('copyNode')
 
-crashInfoCmd = _factories._addCmdDocs('crashInfoCmd')
+crashInfoCmd = _factories.getCmdFunc('crashInfoCmd')
 
-customerInvolvementProgram = _factories._addCmdDocs('customerInvolvementProgram')
+customerInvolvementProgram = _factories.getCmdFunc('customerInvolvementProgram')
 
-dagCommandWrapper = _factories._addCmdDocs('dagCommandWrapper')
+dagCommandWrapper = _factories.getCmdFunc('dagCommandWrapper')
 
-dagObjectHit = _factories._addCmdDocs('dagObjectHit')
+dagObjectHit = _factories.getCmdFunc('dagObjectHit')
 
-debug = _factories._addCmdDocs('debug')
+debug = _factories.getCmdFunc('debug')
 
-debugNamespace = _factories._addCmdDocs('debugNamespace')
+debugNamespace = _factories.getCmdFunc('debugNamespace')
 
-debugVar = _factories._addCmdDocs('debugVar')
+debugVar = _factories.getCmdFunc('debugVar')
 
-dgControl = _factories._addCmdDocs('dgControl')
+dgControl = _factories.getCmdFunc('dgControl')
 
-dgPerformance = _factories._addCmdDocs('dgPerformance')
+dgPerformance = _factories.getCmdFunc('dgPerformance')
 
-dgcontrol = _factories._addCmdDocs('dgcontrol')
+dgcontrol = _factories.getCmdFunc('dgcontrol')
 
-dgdebug = _factories._addCmdDocs('dgdebug')
+dgdebug = _factories.getCmdFunc('dgdebug')
 
-dgstats = _factories._addCmdDocs('dgstats')
+dgstats = _factories.getCmdFunc('dgstats')
 
-directConnectPath = _factories._addCmdDocs('directConnectPath')
+directConnectPath = _factories.getCmdFunc('directConnectPath')
 
-dispatchGenericCommand = _factories._addCmdDocs('dispatchGenericCommand')
+dispatchGenericCommand = _factories.getCmdFunc('dispatchGenericCommand')
 
-dynTestData = _factories._addCmdDocs('dynTestData')
+dynTestData = _factories.getCmdFunc('dynTestData')
 
-evalContinue = _factories._addCmdDocs('evalContinue')
+evalContinue = _factories.getCmdFunc('evalContinue')
 
-extendFluid = _factories._addCmdDocs('extendFluid')
+extendFluid = _factories.getCmdFunc('extendFluid')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def flagTest(*args, **kwargs):
     for flag in ['timeRange', 'tr']:
         try:
@@ -608,25 +608,25 @@ def flagTest(*args, **kwargs):
     res = cmds.flagTest(*args, **kwargs)
     return res
 
-flushIdleQueue = _factories._addCmdDocs('flushIdleQueue')
+flushIdleQueue = _factories.getCmdFunc('flushIdleQueue')
 
-flushThumbnailCache = _factories._addCmdDocs('flushThumbnailCache')
+flushThumbnailCache = _factories.getCmdFunc('flushThumbnailCache')
 
-fontAttributes = _factories._addCmdDocs('fontAttributes')
+fontAttributes = _factories.getCmdFunc('fontAttributes')
 
-greasePencil = _factories._addCmdDocs('greasePencil')
+greasePencil = _factories.getCmdFunc('greasePencil')
 
-greasePencilHelper = _factories._addCmdDocs('greasePencilHelper')
+greasePencilHelper = _factories.getCmdFunc('greasePencilHelper')
 
-greaseRenderPlane = _factories._addCmdDocs('greaseRenderPlane')
+greaseRenderPlane = _factories.getCmdFunc('greaseRenderPlane')
 
-groupParts = _factories._addCmdDocs('groupParts')
+groupParts = _factories.getCmdFunc('groupParts')
 
-hotkeyEditor = _factories._addCmdDocs('hotkeyEditor')
+hotkeyEditor = _factories.getCmdFunc('hotkeyEditor')
 
-hotkeyMapSet = _factories._addCmdDocs('hotkeyMapSet')
+hotkeyMapSet = _factories.getCmdFunc('hotkeyMapSet')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def imageWindowEditor(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -642,73 +642,73 @@ def imageWindowEditor(*args, **kwargs):
     res = cmds.imageWindowEditor(*args, **kwargs)
     return res
 
-interactionStyle = _factories._addCmdDocs('interactionStyle')
+interactionStyle = _factories.getCmdFunc('interactionStyle')
 
-iterOnNurbs = _factories._addCmdDocs('iterOnNurbs')
+iterOnNurbs = _factories.getCmdFunc('iterOnNurbs')
 
-journal = _factories._addCmdDocs('journal')
+journal = _factories.getCmdFunc('journal')
 
-licenseCheck = _factories._addCmdDocs('licenseCheck')
+licenseCheck = _factories.getCmdFunc('licenseCheck')
 
-manipComponentPivot = _factories._addCmdDocs('manipComponentPivot')
+manipComponentPivot = _factories.getCmdFunc('manipComponentPivot')
 
-memoryDiag = _factories._addCmdDocs('memoryDiag')
+memoryDiag = _factories.getCmdFunc('memoryDiag')
 
-meshIntersectTest = _factories._addCmdDocs('meshIntersectTest')
+meshIntersectTest = _factories.getCmdFunc('meshIntersectTest')
 
-mouldMesh = _factories._addCmdDocs('mouldMesh')
+mouldMesh = _factories.getCmdFunc('mouldMesh')
 
-mouldSrf = _factories._addCmdDocs('mouldSrf')
+mouldSrf = _factories.getCmdFunc('mouldSrf')
 
-mouldSubdiv = _factories._addCmdDocs('mouldSubdiv')
+mouldSubdiv = _factories.getCmdFunc('mouldSubdiv')
 
-movieCompressor = _factories._addCmdDocs('movieCompressor')
+movieCompressor = _factories.getCmdFunc('movieCompressor')
 
-myTestCmd = _factories._addCmdDocs('myTestCmd')
+myTestCmd = _factories.getCmdFunc('myTestCmd')
 
-nodeGrapher = _factories._addCmdDocs('nodeGrapher')
+nodeGrapher = _factories.getCmdFunc('nodeGrapher')
 
-nop = _factories._addCmdDocs('nop')
+nop = _factories.getCmdFunc('nop')
 
-nurbsCurveRebuildPref = _factories._addCmdDocs('nurbsCurveRebuildPref')
+nurbsCurveRebuildPref = _factories.getCmdFunc('nurbsCurveRebuildPref')
 
-ogsdebug = _factories._addCmdDocs('ogsdebug')
+ogsdebug = _factories.getCmdFunc('ogsdebug')
 
-paint3d = _factories._addCmdDocs('paint3d')
+paint3d = _factories.getCmdFunc('paint3d')
 
-polyColorSetCmdWrapper = _factories._addCmdDocs('polyColorSetCmdWrapper')
+polyColorSetCmdWrapper = _factories.getCmdFunc('polyColorSetCmdWrapper')
 
-polyIterOnPoly = _factories._addCmdDocs('polyIterOnPoly')
+polyIterOnPoly = _factories.getCmdFunc('polyIterOnPoly')
 
-polyPrimitiveMisc = _factories._addCmdDocs('polyPrimitiveMisc')
+polyPrimitiveMisc = _factories.getCmdFunc('polyPrimitiveMisc')
 
-polySelectEditCtxDataCmd = _factories._addCmdDocs('polySelectEditCtxDataCmd')
+polySelectEditCtxDataCmd = _factories.getCmdFunc('polySelectEditCtxDataCmd')
 
-polySelectSp = _factories._addCmdDocs('polySelectSp')
+polySelectSp = _factories.getCmdFunc('polySelectSp')
 
-polySetVertices = _factories._addCmdDocs('polySetVertices')
+polySetVertices = _factories.getCmdFunc('polySetVertices')
 
-polySpinEdge = _factories._addCmdDocs('polySpinEdge')
+polySpinEdge = _factories.getCmdFunc('polySpinEdge')
 
-polyTestPop = _factories._addCmdDocs('polyTestPop')
+polyTestPop = _factories.getCmdFunc('polyTestPop')
 
-polyToCurve = _factories._addCmdDocs('polyToCurve')
+polyToCurve = _factories.getCmdFunc('polyToCurve')
 
-polyUVStackSimilarShellsCmd = _factories._addCmdDocs('polyUVStackSimilarShellsCmd')
+polyUVStackSimilarShellsCmd = _factories.getCmdFunc('polyUVStackSimilarShellsCmd')
 
-polyWarpImage = _factories._addCmdDocs('polyWarpImage')
+polyWarpImage = _factories.getCmdFunc('polyWarpImage')
 
-printStudio = _factories._addCmdDocs('printStudio')
+printStudio = _factories.getCmdFunc('printStudio')
 
-psdConvSolidTxOptions = _factories._addCmdDocs('psdConvSolidTxOptions')
+psdConvSolidTxOptions = _factories.getCmdFunc('psdConvSolidTxOptions')
 
-rampWidget = _factories._addCmdDocs('rampWidget')
+rampWidget = _factories.getCmdFunc('rampWidget')
 
-rampWidgetAttrless = _factories._addCmdDocs('rampWidgetAttrless')
+rampWidgetAttrless = _factories.getCmdFunc('rampWidgetAttrless')
 
-readPDC = _factories._addCmdDocs('readPDC')
+readPDC = _factories.getCmdFunc('readPDC')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def repeatLast(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -724,9 +724,9 @@ def repeatLast(*args, **kwargs):
     res = cmds.repeatLast(*args, **kwargs)
     return res
 
-retimeHelper = _factories._addCmdDocs('retimeHelper')
+retimeHelper = _factories.getCmdFunc('retimeHelper')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def selectKeyframe(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -738,18 +738,18 @@ def selectKeyframe(*args, **kwargs):
     res = cmds.selectKeyframe(*args, **kwargs)
     return res
 
-subdDisplayMode = _factories._addCmdDocs('subdDisplayMode')
+subdDisplayMode = _factories.getCmdFunc('subdDisplayMode')
 
-subdToNurbs = _factories._addCmdDocs('subdToNurbs')
+subdToNurbs = _factories.getCmdFunc('subdToNurbs')
 
-subgraph = _factories._addCmdDocs('subgraph')
+subgraph = _factories.getCmdFunc('subgraph')
 
-syncSculptCache = _factories._addCmdDocs('syncSculptCache')
+syncSculptCache = _factories.getCmdFunc('syncSculptCache')
 
-testPa = _factories._addCmdDocs('testPa')
+testPa = _factories.getCmdFunc('testPa')
 
-testPassContribution = _factories._addCmdDocs('testPassContribution')
+testPassContribution = _factories.getCmdFunc('testPassContribution')
 
-texSculptCacheSync = _factories._addCmdDocs('texSculptCacheSync')
+texSculptCacheSync = _factories.getCmdFunc('texSculptCacheSync')
 
-webViewCmd = _factories._addCmdDocs('webViewCmd')
+webViewCmd = _factories.getCmdFunc('webViewCmd')

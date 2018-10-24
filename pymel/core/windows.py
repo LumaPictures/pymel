@@ -222,7 +222,7 @@ def promptBoxGenerator(*args, **kwargs):
 
 
 def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
-    # type: (str, str, str, str, *tuple of str, **dict of objects) -> Union[bool, str]
+    # type: (str, str, str, str, *str, **Any) -> Union[bool, str]
     """ Prompt for confirmation.
 
     Parameters
@@ -235,13 +235,13 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
         The label of the first/'yes' button
     no : str
         The label of the second/'no' button
-    moreButtons : tuple of str
+    moreButtons : str
         strings indicating the labels for buttons beyond the second
     returnButton : bool
         by default, if there are only two buttons, the return value is a boolean
         indicating whether the 'yes' button was pressed; if you wish to always
         force the label of the pressed button to be returned, set this to True
-    kwargs : dict of objects
+    kwargs : Any
         keyword args to pass to the underlying confirmDialog call
 
     Returns
@@ -826,7 +826,7 @@ def getMainProgressBar():
     return uitypes.ProgressBar(melGlobals['gMainProgressBar'])
 
 # ------ Do not edit below this line --------
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attrColorSliderGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -845,7 +845,7 @@ def attrColorSliderGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttrColorSliderGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attrControlGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -864,7 +864,7 @@ def attrControlGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttrControlGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attrEnumOptionMenu(*args, **kwargs):
     import uitypes
     if len(args):
@@ -883,7 +883,7 @@ def attrEnumOptionMenu(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttrEnumOptionMenu)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attrEnumOptionMenuGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -902,7 +902,7 @@ def attrEnumOptionMenuGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttrEnumOptionMenuGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attrFieldGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -921,7 +921,7 @@ def attrFieldGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttrFieldGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attrFieldSliderGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -940,7 +940,7 @@ def attrFieldSliderGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttrFieldSliderGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attrNavigationControlGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -959,7 +959,7 @@ def attrNavigationControlGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttrNavigationControlGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def attributeMenu(*args, **kwargs):
     import uitypes
     if len(args):
@@ -978,7 +978,7 @@ def attributeMenu(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AttributeMenu)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def colorIndexSliderGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -997,7 +997,7 @@ def colorIndexSliderGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ColorIndexSliderGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def colorSliderButtonGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1016,7 +1016,7 @@ def colorSliderButtonGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ColorSliderButtonGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def colorSliderGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1035,7 +1035,7 @@ def colorSliderGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ColorSliderGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def columnLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1054,7 +1054,7 @@ def columnLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ColumnLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def colorEditor(*args, **kwargs):
     import uitypes
     res = cmds.colorEditor(*args, **kwargs)
@@ -1062,7 +1062,7 @@ def colorEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ColorEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def floatField(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1081,7 +1081,7 @@ def floatField(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FloatField)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def floatFieldGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1100,7 +1100,7 @@ def floatFieldGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FloatFieldGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def floatScrollBar(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1119,7 +1119,7 @@ def floatScrollBar(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FloatScrollBar)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def floatSlider(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1138,7 +1138,7 @@ def floatSlider(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FloatSlider)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def floatSlider2(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1157,7 +1157,7 @@ def floatSlider2(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FloatSlider2)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def floatSliderButtonGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1176,7 +1176,7 @@ def floatSliderButtonGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FloatSliderButtonGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def floatSliderGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1195,7 +1195,7 @@ def floatSliderGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FloatSliderGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def frameLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1214,7 +1214,7 @@ def frameLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FrameLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def iconTextButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1233,7 +1233,7 @@ def iconTextButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IconTextButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def iconTextCheckBox(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1252,7 +1252,7 @@ def iconTextCheckBox(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IconTextCheckBox)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def iconTextRadioButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1271,7 +1271,7 @@ def iconTextRadioButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IconTextRadioButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def iconTextRadioCollection(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1290,7 +1290,7 @@ def iconTextRadioCollection(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IconTextRadioCollection)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def iconTextScrollList(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1309,7 +1309,7 @@ def iconTextScrollList(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IconTextScrollList)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def iconTextStaticLabel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1328,7 +1328,7 @@ def iconTextStaticLabel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IconTextStaticLabel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def intField(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1347,7 +1347,7 @@ def intField(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IntField)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def intFieldGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1366,7 +1366,7 @@ def intFieldGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IntFieldGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def intScrollBar(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1385,7 +1385,7 @@ def intScrollBar(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IntScrollBar)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def intSlider(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1404,7 +1404,7 @@ def intSlider(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IntSlider)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def intSliderGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1423,7 +1423,7 @@ def intSliderGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.IntSliderGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def paneLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1442,7 +1442,7 @@ def paneLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.PaneLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def panel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1461,7 +1461,7 @@ def panel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Panel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def radioButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1480,7 +1480,7 @@ def radioButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.RadioButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def radioButtonGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1499,7 +1499,7 @@ def radioButtonGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.RadioButtonGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def radioCollection(*args, **kwargs):
     import uitypes
     res = cmds.radioCollection(*args, **kwargs)
@@ -1507,7 +1507,7 @@ def radioCollection(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.RadioCollection)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def radioMenuItemCollection(*args, **kwargs):
     import uitypes
     res = cmds.radioMenuItemCollection(*args, **kwargs)
@@ -1515,7 +1515,7 @@ def radioMenuItemCollection(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.RadioMenuItemCollection)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def symbolButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1534,7 +1534,7 @@ def symbolButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.SymbolButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def symbolCheckBox(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1553,7 +1553,7 @@ def symbolCheckBox(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.SymbolCheckBox)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def textCurves(*args, **kwargs):
     import uitypes
     res = cmds.textCurves(*args, **kwargs)
@@ -1561,7 +1561,7 @@ def textCurves(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.TextCurves)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def textField(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1580,7 +1580,7 @@ def textField(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.TextField)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def textFieldButtonGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1599,7 +1599,7 @@ def textFieldButtonGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.TextFieldButtonGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def textFieldGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1618,7 +1618,7 @@ def textFieldGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.TextFieldGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def text(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1637,7 +1637,7 @@ def text(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Text)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def textScrollList(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1661,7 +1661,7 @@ def textScrollList(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def toolButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1680,7 +1680,7 @@ def toolButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ToolButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def toolCollection(*args, **kwargs):
     import uitypes
     res = cmds.toolCollection(*args, **kwargs)
@@ -1688,7 +1688,7 @@ def toolCollection(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ToolCollection)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def window(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1707,7 +1707,7 @@ def window(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Window)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def blendShapeEditor(*args, **kwargs):
     import uitypes
     res = cmds.blendShapeEditor(*args, **kwargs)
@@ -1715,7 +1715,7 @@ def blendShapeEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.BlendShapeEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def blendShapePanel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1734,7 +1734,7 @@ def blendShapePanel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.BlendShapePanel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def button(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1753,7 +1753,7 @@ def button(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Button)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def checkBox(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1772,7 +1772,7 @@ def checkBox(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.CheckBox)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def checkBoxGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1791,7 +1791,7 @@ def checkBoxGrp(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.CheckBoxGrp)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def confirmDialog(*args, **kwargs):
     import uitypes
     res = cmds.confirmDialog(*args, **kwargs)
@@ -1799,7 +1799,7 @@ def confirmDialog(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ConfirmDialog)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def fontDialog(*args, **kwargs):
     import uitypes
     res = cmds.fontDialog(*args, **kwargs)
@@ -1807,7 +1807,7 @@ def fontDialog(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FontDialog)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def formLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1828,7 +1828,7 @@ def formLayout(*args, **kwargs):
 
 _menu = menu
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def menu(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1847,7 +1847,7 @@ def menu(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Menu)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def menuBarLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1866,7 +1866,7 @@ def menuBarLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.MenuBarLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def menuEditor(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1885,7 +1885,7 @@ def menuEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.MenuEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def menuItem(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1904,7 +1904,7 @@ def menuItem(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.MenuItem)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def menuSet(*args, **kwargs):
     import uitypes
     res = cmds.menuSet(*args, **kwargs)
@@ -1912,7 +1912,7 @@ def menuSet(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.MenuSet)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def promptDialog(*args, **kwargs):
     import uitypes
     res = cmds.promptDialog(*args, **kwargs)
@@ -1920,7 +1920,7 @@ def promptDialog(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.PromptDialog)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scrollField(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1939,7 +1939,7 @@ def scrollField(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ScrollField)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scrollLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1958,7 +1958,7 @@ def scrollLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ScrollLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scriptedPanel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -1977,7 +1977,7 @@ def scriptedPanel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ScriptedPanel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scriptedPanelType(*args, **kwargs):
     import uitypes
     res = cmds.scriptedPanelType(*args, **kwargs)
@@ -1985,7 +1985,7 @@ def scriptedPanelType(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ScriptedPanelType)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def shelfButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2004,7 +2004,7 @@ def shelfButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ShelfButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def shelfLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2023,7 +2023,7 @@ def shelfLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ShelfLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def shelfTabLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2042,7 +2042,7 @@ def shelfTabLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ShelfTabLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def tabLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2061,7 +2061,7 @@ def tabLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.TabLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def outlinerEditor(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2080,7 +2080,7 @@ def outlinerEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.OutlinerEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def optionMenu(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2104,7 +2104,7 @@ def optionMenu(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def outlinerPanel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2123,7 +2123,7 @@ def outlinerPanel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.OutlinerPanel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def optionMenuGrp(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2147,7 +2147,7 @@ def optionMenuGrp(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def animCurveEditor(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2166,7 +2166,7 @@ def animCurveEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AnimCurveEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def animDisplay(*args, **kwargs):
     import uitypes
     res = cmds.animDisplay(*args, **kwargs)
@@ -2174,7 +2174,7 @@ def animDisplay(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.AnimDisplay)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def separator(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2193,7 +2193,7 @@ def separator(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Separator)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def visor(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2212,7 +2212,7 @@ def visor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Visor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def layout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2231,7 +2231,7 @@ def layout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Layout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def layoutDialog(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2250,7 +2250,7 @@ def layoutDialog(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.LayoutDialog)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def layerButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2269,7 +2269,7 @@ def layerButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.LayerButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hyperGraph(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2288,7 +2288,7 @@ def hyperGraph(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.HyperGraph)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hyperPanel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2307,7 +2307,7 @@ def hyperPanel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.HyperPanel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hyperShade(*args, **kwargs):
     import uitypes
     res = cmds.hyperShade(*args, **kwargs)
@@ -2315,7 +2315,7 @@ def hyperShade(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.HyperShade)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def rowColumnLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2334,7 +2334,7 @@ def rowColumnLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.RowColumnLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def rowLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2353,7 +2353,7 @@ def rowLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.RowLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def renderWindowEditor(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2372,7 +2372,7 @@ def renderWindowEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.RenderWindowEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def glRenderEditor(*args, **kwargs):
     import uitypes
     res = cmds.glRenderEditor(*args, **kwargs)
@@ -2382,7 +2382,7 @@ def glRenderEditor(*args, **kwargs):
 
 _scriptTable = scriptTable
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scriptTable(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2401,7 +2401,7 @@ def scriptTable(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ScriptTable)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def keyframeStats(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2420,7 +2420,7 @@ def keyframeStats(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.KeyframeStats)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def keyframeOutliner(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2439,7 +2439,7 @@ def keyframeOutliner(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.KeyframeOutliner)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def canvas(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2458,7 +2458,7 @@ def canvas(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Canvas)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def channelBox(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2477,7 +2477,7 @@ def channelBox(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ChannelBox)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def gradientControl(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2496,7 +2496,7 @@ def gradientControl(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.GradientControl)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def gradientControlNoAttr(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2515,7 +2515,7 @@ def gradientControlNoAttr(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.GradientControlNoAttr)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def gridLayout(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2534,7 +2534,7 @@ def gridLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.GridLayout)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def messageLine(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2553,7 +2553,7 @@ def messageLine(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.MessageLine)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def popupMenu(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2572,7 +2572,7 @@ def popupMenu(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.PopupMenu)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def modelEditor(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2596,7 +2596,7 @@ def modelEditor(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def modelPanel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2615,7 +2615,7 @@ def modelPanel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ModelPanel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def helpLine(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2634,7 +2634,7 @@ def helpLine(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.HelpLine)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hardwareRenderPanel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2653,7 +2653,7 @@ def hardwareRenderPanel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.HardwareRenderPanel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def image(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2672,7 +2672,7 @@ def image(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.Image)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nodeIconButton(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2691,7 +2691,7 @@ def nodeIconButton(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.NodeIconButton)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def commandLine(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2710,7 +2710,7 @@ def commandLine(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.CommandLine)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def progressBar(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2729,7 +2729,7 @@ def progressBar(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ProgressBar)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def defaultLightListCheckBox(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2748,7 +2748,7 @@ def defaultLightListCheckBox(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.DefaultLightListCheckBox)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def exclusiveLightCheckBox(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2767,7 +2767,7 @@ def exclusiveLightCheckBox(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ExclusiveLightCheckBox)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def clipSchedulerOutliner(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2786,7 +2786,7 @@ def clipSchedulerOutliner(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ClipSchedulerOutliner)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def clipEditor(*args, **kwargs):
     import uitypes
     res = cmds.clipEditor(*args, **kwargs)
@@ -2794,7 +2794,7 @@ def clipEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.ClipEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def deviceEditor(*args, **kwargs):
     import uitypes
     res = cmds.deviceEditor(*args, **kwargs)
@@ -2802,7 +2802,7 @@ def deviceEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.DeviceEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def devicePanel(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2821,7 +2821,7 @@ def devicePanel(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.DevicePanel)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def dynPaintEditor(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2840,7 +2840,7 @@ def dynPaintEditor(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.DynPaintEditor)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nameField(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2859,7 +2859,7 @@ def nameField(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.NameField)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def cmdScrollFieldExecuter(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2878,7 +2878,7 @@ def cmdScrollFieldExecuter(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.CmdScrollFieldExecuter)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def cmdScrollFieldReporter(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2897,7 +2897,7 @@ def cmdScrollFieldReporter(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.CmdScrollFieldReporter)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def cmdShell(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2916,7 +2916,7 @@ def cmdShell(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.CmdShell)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nameField(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2935,7 +2935,7 @@ def nameField(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.NameField)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def palettePort(*args, **kwargs):
     import uitypes
     if len(args):
@@ -2954,9 +2954,9 @@ def palettePort(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.PalettePort)
     return res
 
-saveShelf = _factories._addCmdDocs('saveShelf')
+saveShelf = _factories.getCmdFunc('saveShelf')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def runTimeCommand(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2972,9 +2972,9 @@ def runTimeCommand(*args, **kwargs):
     res = cmds.runTimeCommand(*args, **kwargs)
     return res
 
-saveAllShelves = _factories._addCmdDocs('saveAllShelves')
+saveAllShelves = _factories.getCmdFunc('saveAllShelves')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def soundControl(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2990,7 +2990,7 @@ def soundControl(*args, **kwargs):
     res = cmds.soundControl(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def flowLayout(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3006,17 +3006,17 @@ def flowLayout(*args, **kwargs):
     res = cmds.flowLayout(*args, **kwargs)
     return res
 
-toggleWindowVisibility = _factories._addCmdDocs('toggleWindowVisibility')
+toggleWindowVisibility = _factories.getCmdFunc('toggleWindowVisibility')
 
-webBrowserPrefs = _factories._addCmdDocs('webBrowserPrefs')
+webBrowserPrefs = _factories.getCmdFunc('webBrowserPrefs')
 
-thumbnailCaptureComponent = _factories._addCmdDocs('thumbnailCaptureComponent')
+thumbnailCaptureComponent = _factories.getCmdFunc('thumbnailCaptureComponent')
 
-disableIncorrectNameWarning = _factories._addCmdDocs('disableIncorrectNameWarning')
+disableIncorrectNameWarning = _factories.getCmdFunc('disableIncorrectNameWarning')
 
-saveViewportSettings = _factories._addCmdDocs('saveViewportSettings')
+saveViewportSettings = _factories.getCmdFunc('saveViewportSettings')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hotBox(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3032,7 +3032,7 @@ def hotBox(*args, **kwargs):
     res = cmds.hotBox(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def componentBox(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3048,7 +3048,7 @@ def componentBox(*args, **kwargs):
     res = cmds.componentBox(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hotkeyCheck(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3064,9 +3064,9 @@ def hotkeyCheck(*args, **kwargs):
     res = cmds.hotkeyCheck(*args, **kwargs)
     return res
 
-deleteUI = _factories._addCmdDocs('deleteUI')
+deleteUI = _factories.getCmdFunc('deleteUI')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def rangeControl(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3082,9 +3082,9 @@ def rangeControl(*args, **kwargs):
     res = cmds.rangeControl(*args, **kwargs)
     return res
 
-overrideModifier = _factories._addCmdDocs('overrideModifier')
+overrideModifier = _factories.getCmdFunc('overrideModifier')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def webBrowser(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3100,13 +3100,13 @@ def webBrowser(*args, **kwargs):
     res = cmds.webBrowser(*args, **kwargs)
     return res
 
-workspaceControlState = _factories._addCmdDocs('workspaceControlState')
+workspaceControlState = _factories.getCmdFunc('workspaceControlState')
 
-spreadSheetEditor = _factories._addCmdDocs('spreadSheetEditor')
+spreadSheetEditor = _factories.getCmdFunc('spreadSheetEditor')
 
-createEditor = _factories._addCmdDocs('createEditor')
+createEditor = _factories.getCmdFunc('createEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nodeEditor(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3122,7 +3122,7 @@ def nodeEditor(*args, **kwargs):
     res = cmds.nodeEditor(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hudSliderButton(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3138,7 +3138,7 @@ def hudSliderButton(*args, **kwargs):
     res = cmds.hudSliderButton(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hudButton(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3154,7 +3154,7 @@ def hudButton(*args, **kwargs):
     res = cmds.hudButton(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def treeLister(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3170,13 +3170,13 @@ def treeLister(*args, **kwargs):
     res = cmds.treeLister(*args, **kwargs)
     return res
 
-objectTypeUI = _factories._addCmdDocs('objectTypeUI')
+objectTypeUI = _factories.getCmdFunc('objectTypeUI')
 
-menuSetPref = _factories._addCmdDocs('menuSetPref')
+menuSetPref = _factories.getCmdFunc('menuSetPref')
 
-setStartupMessage = _factories._addCmdDocs('setStartupMessage')
+setStartupMessage = _factories.getCmdFunc('setStartupMessage')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeControl(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3192,15 +3192,15 @@ def timeControl(*args, **kwargs):
     res = cmds.timeControl(*args, **kwargs)
     return res
 
-multiTouch = _factories._addCmdDocs('multiTouch')
+multiTouch = _factories.getCmdFunc('multiTouch')
 
-renameUI = _factories._addCmdDocs('renameUI')
+renameUI = _factories.getCmdFunc('renameUI')
 
-grabColor = _factories._addCmdDocs('grabColor')
+grabColor = _factories.getCmdFunc('grabColor')
 
-connectControl = _factories._addCmdDocs('connectControl')
+connectControl = _factories.getCmdFunc('connectControl')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hotkey(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3216,11 +3216,11 @@ def hotkey(*args, **kwargs):
     res = cmds.hotkey(*args, **kwargs)
     return res
 
-windowPref = _factories._addCmdDocs('windowPref')
+windowPref = _factories.getCmdFunc('windowPref')
 
-lsUI = _factories._addCmdDocs(lsUI)
+lsUI = _factories.addCmdDocs(lsUI)
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def colorInputWidgetGrp(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3236,11 +3236,11 @@ def colorInputWidgetGrp(*args, **kwargs):
     res = cmds.colorInputWidgetGrp(*args, **kwargs)
     return res
 
-canCreateCaddyManip = _factories._addCmdDocs('canCreateCaddyManip')
+canCreateCaddyManip = _factories.getCmdFunc('canCreateCaddyManip')
 
-progressWindow = _factories._addCmdDocs('progressWindow')
+progressWindow = _factories.getCmdFunc('progressWindow')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeField(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3256,7 +3256,7 @@ def timeField(*args, **kwargs):
     res = cmds.timeField(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nameCommand(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3272,15 +3272,15 @@ def nameCommand(*args, **kwargs):
     res = cmds.nameCommand(*args, **kwargs)
     return res
 
-minimizeApp = _factories._addCmdDocs('minimizeApp')
+minimizeApp = _factories.getCmdFunc('minimizeApp')
 
-loadUI = _factories._addCmdDocs('loadUI')
+loadUI = _factories.getCmdFunc('loadUI')
 
-refreshEditorTemplates = _factories._addCmdDocs('refreshEditorTemplates')
+refreshEditorTemplates = _factories.getCmdFunc('refreshEditorTemplates')
 
-panelConfiguration = _factories._addCmdDocs('panelConfiguration')
+panelConfiguration = _factories.getCmdFunc('panelConfiguration')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def annotate(*args, **kwargs):
     res = cmds.annotate(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['annotate']
@@ -3290,13 +3290,13 @@ def annotate(*args, **kwargs):
             break
     return res
 
-setUITemplate = _factories._addCmdDocs('setUITemplate')
+setUITemplate = _factories.getCmdFunc('setUITemplate')
 
-defaultNavigation = _factories._addCmdDocs('defaultNavigation')
+defaultNavigation = _factories.getCmdFunc('defaultNavigation')
 
-contentBrowser = _factories._addCmdDocs('contentBrowser')
+contentBrowser = _factories.getCmdFunc('contentBrowser')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nodeOutliner(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3312,7 +3312,7 @@ def nodeOutliner(*args, **kwargs):
     res = cmds.nodeOutliner(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def falloffCurveAttr(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3328,21 +3328,21 @@ def falloffCurveAttr(*args, **kwargs):
     res = cmds.falloffCurveAttr(*args, **kwargs)
     return res
 
-editor = _factories._addCmdDocs('editor')
+editor = _factories.getCmdFunc('editor')
 
-showSelectionInTitle = _factories._addCmdDocs('showSelectionInTitle')
+showSelectionInTitle = _factories.getCmdFunc('showSelectionInTitle')
 
-inViewMessage = _factories._addCmdDocs('inViewMessage')
+inViewMessage = _factories.getCmdFunc('inViewMessage')
 
-setNodeTypeFlag = _factories._addCmdDocs('setNodeTypeFlag')
+setNodeTypeFlag = _factories.getCmdFunc('setNodeTypeFlag')
 
-buttonManip = _factories._addCmdDocs('buttonManip')
+buttonManip = _factories.getCmdFunc('buttonManip')
 
-inViewEditor = _factories._addCmdDocs('inViewEditor')
+inViewEditor = _factories.getCmdFunc('inViewEditor')
 
-editorTemplate = _factories._addCmdDocs('editorTemplate')
+editorTemplate = _factories.getCmdFunc('editorTemplate')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeFieldGrp(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3358,9 +3358,9 @@ def timeFieldGrp(*args, **kwargs):
     res = cmds.timeFieldGrp(*args, **kwargs)
     return res
 
-componentEditor = _factories._addCmdDocs('componentEditor')
+componentEditor = _factories.getCmdFunc('componentEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def dockControl(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3376,9 +3376,9 @@ def dockControl(*args, **kwargs):
     res = cmds.dockControl(*args, **kwargs)
     return res
 
-setFocus = _factories._addCmdDocs('setFocus')
+setFocus = _factories.getCmdFunc('setFocus')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def headsUpDisplay(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3394,11 +3394,11 @@ def headsUpDisplay(*args, **kwargs):
     res = cmds.headsUpDisplay(*args, **kwargs)
     return res
 
-setMenuMode = _factories._addCmdDocs('setMenuMode')
+setMenuMode = _factories.getCmdFunc('setMenuMode')
 
-workspacePanel = _factories._addCmdDocs('workspacePanel')
+workspacePanel = _factories.getCmdFunc('workspacePanel')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def workspaceControl(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3414,7 +3414,7 @@ def workspaceControl(*args, **kwargs):
     res = cmds.workspaceControl(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def falloffCurve(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3430,9 +3430,9 @@ def falloffCurve(*args, **kwargs):
     res = cmds.falloffCurve(*args, **kwargs)
     return res
 
-panelHistory = _factories._addCmdDocs('panelHistory')
+panelHistory = _factories.getCmdFunc('panelHistory')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def control(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3448,7 +3448,7 @@ def control(*args, **kwargs):
     res = cmds.control(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hudSlider(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3464,11 +3464,11 @@ def hudSlider(*args, **kwargs):
     res = cmds.hudSlider(*args, **kwargs)
     return res
 
-savePrefObjects = _factories._addCmdDocs('savePrefObjects')
+savePrefObjects = _factories.getCmdFunc('savePrefObjects')
 
-linearPrecision = _factories._addCmdDocs('linearPrecision')
+linearPrecision = _factories.getCmdFunc('linearPrecision')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def swatchDisplayPort(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3484,19 +3484,19 @@ def swatchDisplayPort(*args, **kwargs):
     res = cmds.swatchDisplayPort(*args, **kwargs)
     return res
 
-hotkeySet = _factories._addCmdDocs('hotkeySet')
+hotkeySet = _factories.getCmdFunc('hotkeySet')
 
-autoPlace = _factories._addCmdDocs('autoPlace')
+autoPlace = _factories.getCmdFunc('autoPlace')
 
-dimWhen = _factories._addCmdDocs('dimWhen')
+dimWhen = _factories.getCmdFunc('dimWhen')
 
-uiTemplate = _factories._addCmdDocs(uiTemplate)
+uiTemplate = _factories.addCmdDocs(uiTemplate)
 
-savePrefs = _factories._addCmdDocs('savePrefs')
+savePrefs = _factories.getCmdFunc('savePrefs')
 
-textManip = _factories._addCmdDocs('textManip')
+textManip = _factories.getCmdFunc('textManip')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nodeTreeLister(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3512,7 +3512,7 @@ def nodeTreeLister(*args, **kwargs):
     res = cmds.nodeTreeLister(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def viewManip(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3528,7 +3528,7 @@ def viewManip(*args, **kwargs):
     res = cmds.viewManip(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def treeView(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3544,9 +3544,9 @@ def treeView(*args, **kwargs):
     res = cmds.treeView(*args, **kwargs)
     return res
 
-artBuildPaintMenu = _factories._addCmdDocs('artBuildPaintMenu')
+artBuildPaintMenu = _factories.getCmdFunc('artBuildPaintMenu')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def picture(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3562,7 +3562,7 @@ def picture(*args, **kwargs):
     res = cmds.picture(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def switchTable(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3578,7 +3578,7 @@ def switchTable(*args, **kwargs):
     res = cmds.switchTable(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timePort(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3596,7 +3596,7 @@ def timePort(*args, **kwargs):
 
 _getPanel = getPanel
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def getPanel(*args, **kwargs):
     res = _getPanel(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['getPanel']
@@ -3606,13 +3606,13 @@ def getPanel(*args, **kwargs):
             break
     return res
 
-loadPrefObjects = _factories._addCmdDocs('loadPrefObjects')
+loadPrefObjects = _factories.getCmdFunc('loadPrefObjects')
 
-disable = _factories._addCmdDocs('disable')
+disable = _factories.getCmdFunc('disable')
 
-scmh = _factories._addCmdDocs('scmh')
+scmh = _factories.getCmdFunc('scmh')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hotkeyEditorPanel(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -3628,19 +3628,19 @@ def hotkeyEditorPanel(*args, **kwargs):
     res = cmds.hotkeyEditorPanel(*args, **kwargs)
     return res
 
-setParent = _factories._addCmdDocs(setParent)
+setParent = _factories.addCmdDocs(setParent)
 
-scriptEditorInfo = _factories._addCmdDocs('scriptEditorInfo')
+scriptEditorInfo = _factories.getCmdFunc('scriptEditorInfo')
 
-saveMenu = _factories._addCmdDocs('saveMenu')
+saveMenu = _factories.getCmdFunc('saveMenu')
 
-headsUpMessage = _factories._addCmdDocs('headsUpMessage')
+headsUpMessage = _factories.getCmdFunc('headsUpMessage')
 
-showWindow = _factories._addCmdDocs('showWindow')
+showWindow = _factories.getCmdFunc('showWindow')
 
-workspaceLayoutManager = _factories._addCmdDocs('workspaceLayoutManager')
+workspaceLayoutManager = _factories.getCmdFunc('workspaceLayoutManager')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def toolBar(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)

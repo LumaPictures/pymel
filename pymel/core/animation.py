@@ -157,7 +157,7 @@ def ikHandle(*args, **kwargs):
 # ------ Do not edit below this line --------
 _aimConstraint = aimConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def aimConstraint(*args, **kwargs):
     res = _aimConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -167,7 +167,7 @@ def aimConstraint(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def animCurveEditor(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -183,9 +183,9 @@ def animCurveEditor(*args, **kwargs):
     res = cmds.animCurveEditor(*args, **kwargs)
     return res
 
-animDisplay = _factories._addCmdDocs('animDisplay')
+animDisplay = _factories.getCmdFunc('animDisplay')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def animLayer(*args, **kwargs):
     res = cmds.animLayer(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -197,17 +197,17 @@ def animLayer(*args, **kwargs):
             break
     return res
 
-animView = _factories._addCmdDocs('animView')
+animView = _factories.getCmdFunc('animView')
 
-applyTake = _factories._addCmdDocs('applyTake')
+applyTake = _factories.getCmdFunc('applyTake')
 
-autoKeyframe = _factories._addCmdDocs('autoKeyframe')
+autoKeyframe = _factories.getCmdFunc('autoKeyframe')
 
-bakeClip = _factories._addCmdDocs('bakeClip')
+bakeClip = _factories.getCmdFunc('bakeClip')
 
-bakeDeformer = _factories._addCmdDocs('bakeDeformer')
+bakeDeformer = _factories.getCmdFunc('bakeDeformer')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def bakeResults(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -219,7 +219,7 @@ def bakeResults(*args, **kwargs):
     res = cmds.bakeResults(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def bakeSimulation(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -231,18 +231,18 @@ def bakeSimulation(*args, **kwargs):
     res = cmds.bakeSimulation(*args, **kwargs)
     return res
 
-bindSkin = _factories._addCmdDocs('bindSkin')
+bindSkin = _factories.getCmdFunc('bindSkin')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def blendShape(*args, **kwargs):
     res = cmds.blendShape(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-blendShapeEditor = _factories._addCmdDocs('blendShapeEditor')
+blendShapeEditor = _factories.getCmdFunc('blendShapeEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def blendShapePanel(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -258,7 +258,7 @@ def blendShapePanel(*args, **kwargs):
     res = cmds.blendShapePanel(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def blendTwoAttr(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -272,14 +272,14 @@ def blendTwoAttr(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def boneLattice(*args, **kwargs):
     res = cmds.boneLattice(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def bufferCurve(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -291,42 +291,42 @@ def bufferCurve(*args, **kwargs):
     res = cmds.bufferCurve(*args, **kwargs)
     return res
 
-buildBookmarkMenu = _factories._addCmdDocs('buildBookmarkMenu')
+buildBookmarkMenu = _factories.getCmdFunc('buildBookmarkMenu')
 
-buildKeyframeMenu = _factories._addCmdDocs('buildKeyframeMenu')
+buildKeyframeMenu = _factories.getCmdFunc('buildKeyframeMenu')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def character(*args, **kwargs):
     res = cmds.character(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def characterMap(*args, **kwargs):
     res = cmds.characterMap(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-characterize = _factories._addCmdDocs('characterize')
+characterize = _factories.getCmdFunc('characterize')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def choice(*args, **kwargs):
     res = cmds.choice(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-clip = _factories._addCmdDocs('clip')
+clip = _factories.getCmdFunc('clip')
 
-clipEditor = _factories._addCmdDocs('clipEditor')
+clipEditor = _factories.getCmdFunc('clipEditor')
 
-clipMatching = _factories._addCmdDocs('clipMatching')
+clipMatching = _factories.getCmdFunc('clipMatching')
 
-clipSchedule = _factories._addCmdDocs('clipSchedule')
+clipSchedule = _factories.getCmdFunc('clipSchedule')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def clipSchedulerOutliner(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -342,34 +342,34 @@ def clipSchedulerOutliner(*args, **kwargs):
     res = cmds.clipSchedulerOutliner(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def cluster(*args, **kwargs):
     res = cmds.cluster(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def combinationShape(*args, **kwargs):
     res = cmds.combinationShape(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-connectJoint = _factories._addCmdDocs('connectJoint')
+connectJoint = _factories.getCmdFunc('connectJoint')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def controller(*args, **kwargs):
     res = cmds.controller(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-copyDeformerWeights = _factories._addCmdDocs('copyDeformerWeights')
+copyDeformerWeights = _factories.getCmdFunc('copyDeformerWeights')
 
-copyFlexor = _factories._addCmdDocs('copyFlexor')
+copyFlexor = _factories.getCmdFunc('copyFlexor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def copyKey(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -381,11 +381,11 @@ def copyKey(*args, **kwargs):
     res = cmds.copyKey(*args, **kwargs)
     return res
 
-copySkinWeights = _factories._addCmdDocs('copySkinWeights')
+copySkinWeights = _factories.getCmdFunc('copySkinWeights')
 
-currentTime = _factories._addCmdDocs(currentTime)
+currentTime = _factories.addCmdDocs(currentTime)
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def cutKey(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -397,22 +397,22 @@ def cutKey(*args, **kwargs):
     res = cmds.cutKey(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def dagPose(*args, **kwargs):
     res = cmds.dagPose(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-defineDataServer = _factories._addCmdDocs('defineDataServer')
+defineDataServer = _factories.getCmdFunc('defineDataServer')
 
-defineVirtualDevice = _factories._addCmdDocs('defineVirtualDevice')
+defineVirtualDevice = _factories.getCmdFunc('defineVirtualDevice')
 
-deformer = _factories._addCmdDocs(deformer)
+deformer = _factories.addCmdDocs(deformer)
 
-deformerWeights = _factories._addCmdDocs('deformerWeights')
+deformerWeights = _factories.getCmdFunc('deformerWeights')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def deltaMush(*args, **kwargs):
     res = cmds.deltaMush(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -428,32 +428,32 @@ def deltaMush(*args, **kwargs):
             res = res[0]
     return res
 
-deviceManager = _factories._addCmdDocs('deviceManager')
+deviceManager = _factories.getCmdFunc('deviceManager')
 
-disconnectJoint = _factories._addCmdDocs('disconnectJoint')
+disconnectJoint = _factories.getCmdFunc('disconnectJoint')
 
-dopeSheetEditor = _factories._addCmdDocs('dopeSheetEditor')
+dopeSheetEditor = _factories.getCmdFunc('dopeSheetEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def dropoffLocator(*args, **kwargs):
     res = cmds.dropoffLocator(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-effector = _factories._addCmdDocs('effector')
+effector = _factories.getCmdFunc('effector')
 
-enableDevice = _factories._addCmdDocs('enableDevice')
+enableDevice = _factories.getCmdFunc('enableDevice')
 
-evaluationManager = _factories._addCmdDocs('evaluationManager')
+evaluationManager = _factories.getCmdFunc('evaluationManager')
 
-evaluator = _factories._addCmdDocs('evaluator')
+evaluator = _factories.getCmdFunc('evaluator')
 
-filterCurve = _factories._addCmdDocs('filterCurve')
+filterCurve = _factories.getCmdFunc('filterCurve')
 
-findDeformers = _factories._addCmdDocs('findDeformers')
+findDeformers = _factories.getCmdFunc('findDeformers')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def findKeyframe(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -465,7 +465,7 @@ def findKeyframe(*args, **kwargs):
     res = cmds.findKeyframe(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def flexor(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -481,16 +481,16 @@ def flexor(*args, **kwargs):
     res = cmds.flexor(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def flow(*args, **kwargs):
     res = cmds.flow(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-freezeOptions = _factories._addCmdDocs('freezeOptions')
+freezeOptions = _factories.getCmdFunc('freezeOptions')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def geomBind(*args, **kwargs):
     res = cmds.geomBind(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -499,7 +499,7 @@ def geomBind(*args, **kwargs):
 
 _geometryConstraint = geometryConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def geometryConstraint(*args, **kwargs):
     res = _geometryConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -509,40 +509,40 @@ def geometryConstraint(*args, **kwargs):
         res = res[0]
     return res
 
-hikGlobals = _factories._addCmdDocs('hikGlobals')
+hikGlobals = _factories.getCmdFunc('hikGlobals')
 
 _ikHandle = ikHandle
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def ikHandle(*args, **kwargs):
     res = _ikHandle(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-ikHandleDisplayScale = _factories._addCmdDocs('ikHandleDisplayScale')
+ikHandleDisplayScale = _factories.getCmdFunc('ikHandleDisplayScale')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def ikSolver(*args, **kwargs):
     res = cmds.ikSolver(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def ikSystem(*args, **kwargs):
     res = cmds.ikSystem(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-ikSystemInfo = _factories._addCmdDocs('ikSystemInfo')
+ikSystemInfo = _factories.getCmdFunc('ikSystemInfo')
 
-ikfkDisplayMethod = _factories._addCmdDocs('ikfkDisplayMethod')
+ikfkDisplayMethod = _factories.getCmdFunc('ikfkDisplayMethod')
 
-insertJoint = _factories._addCmdDocs('insertJoint')
+insertJoint = _factories.getCmdFunc('insertJoint')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def joint(*args, **kwargs):
     res = cmds.joint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -554,23 +554,23 @@ def joint(*args, **kwargs):
             res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def jointCluster(*args, **kwargs):
     res = cmds.jointCluster(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-jointDisplayScale = _factories._addCmdDocs('jointDisplayScale')
+jointDisplayScale = _factories.getCmdFunc('jointDisplayScale')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def jointLattice(*args, **kwargs):
     res = cmds.jointLattice(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def keyTangent(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -584,7 +584,7 @@ def keyTangent(*args, **kwargs):
 
 _keyframe = keyframe
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def keyframe(*args, **kwargs):
     for flag in ['index', 't', 'time']:
         try:
@@ -596,7 +596,7 @@ def keyframe(*args, **kwargs):
     res = _keyframe(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def keyframeOutliner(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -612,7 +612,7 @@ def keyframeOutliner(*args, **kwargs):
     res = cmds.keyframeOutliner(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def keyframeStats(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -628,29 +628,29 @@ def keyframeStats(*args, **kwargs):
     res = cmds.keyframeStats(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def keyingGroup(*args, **kwargs):
     res = cmds.keyingGroup(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def lattice(*args, **kwargs):
     res = cmds.lattice(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-listAnimatable = _factories._addCmdDocs(listAnimatable)
+listAnimatable = _factories.addCmdDocs(listAnimatable)
 
-marker = _factories._addCmdDocs('marker')
+marker = _factories.getCmdFunc('marker')
 
-mirrorJoint = _factories._addCmdDocs('mirrorJoint')
+mirrorJoint = _factories.getCmdFunc('mirrorJoint')
 
-movIn = _factories._addCmdDocs('movIn')
+movIn = _factories.getCmdFunc('movIn')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def movOut(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -662,16 +662,16 @@ def movOut(*args, **kwargs):
     res = cmds.movOut(*args, **kwargs)
     return res
 
-movieInfo = _factories._addCmdDocs('movieInfo')
+movieInfo = _factories.getCmdFunc('movieInfo')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def mute(*args, **kwargs):
     res = cmds.mute(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nonLinear(*args, **kwargs):
     res = cmds.nonLinear(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -680,7 +680,7 @@ def nonLinear(*args, **kwargs):
 
 _normalConstraint = normalConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def normalConstraint(*args, **kwargs):
     res = _normalConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -692,7 +692,7 @@ def normalConstraint(*args, **kwargs):
 
 _orientConstraint = orientConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def orientConstraint(*args, **kwargs):
     res = _orientConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -702,7 +702,7 @@ def orientConstraint(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def pairBlend(*args, **kwargs):
     res = cmds.pairBlend(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -711,7 +711,7 @@ def pairBlend(*args, **kwargs):
 
 _parentConstraint = parentConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def parentConstraint(*args, **kwargs):
     res = _parentConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -721,7 +721,7 @@ def parentConstraint(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def pasteKey(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -733,19 +733,19 @@ def pasteKey(*args, **kwargs):
     res = cmds.pasteKey(*args, **kwargs)
     return res
 
-pathAnimation = _factories._addCmdDocs('pathAnimation')
+pathAnimation = _factories.getCmdFunc('pathAnimation')
 
-percent = _factories._addCmdDocs('percent')
+percent = _factories.getCmdFunc('percent')
 
-play = _factories._addCmdDocs('play')
+play = _factories.getCmdFunc('play')
 
-playbackOptions = _factories._addCmdDocs('playbackOptions')
+playbackOptions = _factories.getCmdFunc('playbackOptions')
 
-playblast = _factories._addCmdDocs('playblast')
+playblast = _factories.getCmdFunc('playblast')
 
 _pointConstraint = pointConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def pointConstraint(*args, **kwargs):
     res = _pointConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -757,7 +757,7 @@ def pointConstraint(*args, **kwargs):
 
 _pointOnPolyConstraint = pointOnPolyConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def pointOnPolyConstraint(*args, **kwargs):
     res = _pointOnPolyConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -769,7 +769,7 @@ def pointOnPolyConstraint(*args, **kwargs):
 
 _poleVectorConstraint = poleVectorConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def poleVectorConstraint(*args, **kwargs):
     res = _poleVectorConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -779,13 +779,13 @@ def poleVectorConstraint(*args, **kwargs):
         res = res[0]
     return res
 
-polyUniteSkinned = _factories._addCmdDocs('polyUniteSkinned')
+polyUniteSkinned = _factories.getCmdFunc('polyUniteSkinned')
 
-pose = _factories._addCmdDocs('pose')
+pose = _factories.getCmdFunc('pose')
 
-poseEditor = _factories._addCmdDocs('poseEditor')
+poseEditor = _factories.getCmdFunc('poseEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def posePanel(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -801,21 +801,21 @@ def posePanel(*args, **kwargs):
     res = cmds.posePanel(*args, **kwargs)
     return res
 
-readTake = _factories._addCmdDocs('readTake')
+readTake = _factories.getCmdFunc('readTake')
 
-recordDevice = _factories._addCmdDocs('recordDevice')
+recordDevice = _factories.getCmdFunc('recordDevice')
 
-removeJoint = _factories._addCmdDocs('removeJoint')
+removeJoint = _factories.getCmdFunc('removeJoint')
 
-reorderDeformers = _factories._addCmdDocs('reorderDeformers')
+reorderDeformers = _factories.getCmdFunc('reorderDeformers')
 
-reroot = _factories._addCmdDocs('reroot')
+reroot = _factories.getCmdFunc('reroot')
 
-rotationInterpolation = _factories._addCmdDocs('rotationInterpolation')
+rotationInterpolation = _factories.getCmdFunc('rotationInterpolation')
 
 _scaleConstraint = scaleConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scaleConstraint(*args, **kwargs):
     res = _scaleConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -825,7 +825,7 @@ def scaleConstraint(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scaleKey(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -837,35 +837,35 @@ def scaleKey(*args, **kwargs):
     res = cmds.scaleKey(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def sculpt(*args, **kwargs):
     res = cmds.sculpt(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-sculptTarget = _factories._addCmdDocs('sculptTarget')
+sculptTarget = _factories.getCmdFunc('sculptTarget')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def sequenceManager(*args, **kwargs):
     res = cmds.sequenceManager(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-setDrivenKeyframe = _factories._addCmdDocs('setDrivenKeyframe')
+setDrivenKeyframe = _factories.getCmdFunc('setDrivenKeyframe')
 
-setInfinity = _factories._addCmdDocs('setInfinity')
+setInfinity = _factories.getCmdFunc('setInfinity')
 
-setKeyPath = _factories._addCmdDocs('setKeyPath')
+setKeyPath = _factories.getCmdFunc('setKeyPath')
 
-setKeyframe = _factories._addCmdDocs('setKeyframe')
+setKeyframe = _factories.getCmdFunc('setKeyframe')
 
-setKeyframeBlendshapeTargetWts = _factories._addCmdDocs('setKeyframeBlendshapeTargetWts')
+setKeyframeBlendshapeTargetWts = _factories.getCmdFunc('setKeyframeBlendshapeTargetWts')
 
-shapeEditor = _factories._addCmdDocs('shapeEditor')
+shapeEditor = _factories.getCmdFunc('shapeEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def shapePanel(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -881,16 +881,16 @@ def shapePanel(*args, **kwargs):
     res = cmds.shapePanel(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def shot(*args, **kwargs):
     res = cmds.shot(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-shotRipple = _factories._addCmdDocs('shotRipple')
+shotRipple = _factories.getCmdFunc('shotRipple')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def simplify(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -902,9 +902,9 @@ def simplify(*args, **kwargs):
     res = cmds.simplify(*args, **kwargs)
     return res
 
-skeletonEmbed = _factories._addCmdDocs('skeletonEmbed')
+skeletonEmbed = _factories.getCmdFunc('skeletonEmbed')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def skinCluster(*args, **kwargs):
     res = cmds.skinCluster(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -919,9 +919,9 @@ def skinCluster(*args, **kwargs):
             break
     return res
 
-skinPercent = _factories._addCmdDocs('skinPercent')
+skinPercent = _factories.getCmdFunc('skinPercent')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def snapKey(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -933,27 +933,27 @@ def snapKey(*args, **kwargs):
     res = cmds.snapKey(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def snapshot(*args, **kwargs):
     res = cmds.snapshot(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def softMod(*args, **kwargs):
     res = cmds.softMod(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-sound = _factories._addCmdDocs('sound')
+sound = _factories.getCmdFunc('sound')
 
-substituteGeometry = _factories._addCmdDocs('substituteGeometry')
+substituteGeometry = _factories.getCmdFunc('substituteGeometry')
 
 _tangentConstraint = tangentConstraint
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def tangentConstraint(*args, **kwargs):
     res = _tangentConstraint(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -963,7 +963,7 @@ def tangentConstraint(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def tension(*args, **kwargs):
     res = cmds.tension(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -979,43 +979,43 @@ def tension(*args, **kwargs):
             res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def textureDeformer(*args, **kwargs):
     res = cmds.textureDeformer(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeEditor(*args, **kwargs):
     res = cmds.timeEditor(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeEditorAnimSource(*args, **kwargs):
     res = cmds.timeEditorAnimSource(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-timeEditorBakeClips = _factories._addCmdDocs('timeEditorBakeClips')
+timeEditorBakeClips = _factories.getCmdFunc('timeEditorBakeClips')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeEditorClip(*args, **kwargs):
     res = cmds.timeEditorClip(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-timeEditorClipLayer = _factories._addCmdDocs('timeEditorClipLayer')
+timeEditorClipLayer = _factories.getCmdFunc('timeEditorClipLayer')
 
-timeEditorClipOffset = _factories._addCmdDocs('timeEditorClipOffset')
+timeEditorClipOffset = _factories.getCmdFunc('timeEditorClipOffset')
 
-timeEditorComposition = _factories._addCmdDocs('timeEditorComposition')
+timeEditorComposition = _factories.getCmdFunc('timeEditorComposition')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeEditorPanel(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -1031,31 +1031,31 @@ def timeEditorPanel(*args, **kwargs):
     res = cmds.timeEditorPanel(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeEditorTracks(*args, **kwargs):
     res = cmds.timeEditorTracks(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def timeWarp(*args, **kwargs):
     res = cmds.timeWarp(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-ubercam = _factories._addCmdDocs('ubercam')
+ubercam = _factories.getCmdFunc('ubercam')
 
-volumeBind = _factories._addCmdDocs('volumeBind')
+volumeBind = _factories.getCmdFunc('volumeBind')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def wire(*args, **kwargs):
     res = cmds.wire(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-wrinkle = _factories._addCmdDocs('wrinkle')
+wrinkle = _factories.getCmdFunc('wrinkle')
 
-writeTake = _factories._addCmdDocs('writeTake')
+writeTake = _factories.getCmdFunc('writeTake')

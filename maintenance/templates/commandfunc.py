@@ -1,5 +1,5 @@
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def {{ funcName }}(*args, **kwargs):
   {% if uiWidget %}
     import uitypes

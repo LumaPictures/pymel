@@ -31,6 +31,10 @@ from . import plogging
 from . import pmcmds
 from . import docstrings
 
+if False:
+    from typing import *
+    C = TypeVar('C', bound=Callable)
+
 _logger = plogging.getLogger(__name__)
 
 # Initialize the cache globals
@@ -439,13 +443,18 @@ def loadCmdDocCache():
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
 
-def _addCmdDocs(func, cmdName=None):
-    if isinstance(func, basestring):
-        func = getattr(pmcmds, func, None)
-        if func is None:
-            # assume UI command
-            return None
 
+def getCmdFunc(cmdName):
+    # type: (str) -> Optional[Callable]
+    func = getattr(pmcmds, cmdName, None)
+    if func is None:
+        # assume UI command
+        return None
+    return addCmdDocs(func)
+
+
+def addCmdDocs(func, cmdName=None):
+    # type: (C, Optional[str]) -> C
     if cmdName is None:
         try:
             cmdName = func.__name__
@@ -913,7 +922,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
         newFunc = simpleWrapFunc
 
         # create an initial docstring.  this will be filled out below
-        # by _addCmdDocs
+        # by addCmdDocs
         doc = docBuilderCls.section('Modifications')
         for func, wrapCondition in wraps:
             if wrapCondition != Always:
@@ -958,7 +967,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
 
     if cmdlist[funcName]['type'] != 'runtime':
         # runtime functions have no docs
-        _addCmdDocs(newFunc, funcName)
+        addCmdDocs(newFunc, funcName)
 
     if rename:
         newFunc.__name__ = rename
@@ -1125,7 +1134,7 @@ def addMelDocs(cmdName, flag=None):
         # A command
         def doc_decorator(func):
             try:
-                wrappedMelFunc = _addCmdDocs(func, cmdName)
+                wrappedMelFunc = addCmdDocs(func, cmdName)
                 wrappedMelFunc.__module__ = func.__module__
             except KeyError:
                 _logger.info(("No documentation available %s command" % (cmdName)))

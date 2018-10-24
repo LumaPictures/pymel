@@ -2153,55 +2153,55 @@ def isModified():
 #renameFile = _factories.make_factories.createflagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
 # ------ Do not edit below this line --------
-aaf2fcp = _factories._addCmdDocs('aaf2fcp')
+aaf2fcp = _factories.getCmdFunc('aaf2fcp')
 
-allNodeTypes = _factories._addCmdDocs('allNodeTypes')
+allNodeTypes = _factories.getCmdFunc('allNodeTypes')
 
-assignInputDevice = _factories._addCmdDocs('assignInputDevice')
+assignInputDevice = _factories.getCmdFunc('assignInputDevice')
 
-attachDeviceAttr = _factories._addCmdDocs('attachDeviceAttr')
+attachDeviceAttr = _factories.getCmdFunc('attachDeviceAttr')
 
-attrCompatibility = _factories._addCmdDocs('attrCompatibility')
+attrCompatibility = _factories.getCmdFunc('attrCompatibility')
 
-audioTrack = _factories._addCmdDocs('audioTrack')
+audioTrack = _factories.getCmdFunc('audioTrack')
 
-autoSave = _factories._addCmdDocs('autoSave')
+autoSave = _factories.getCmdFunc('autoSave')
 
-cacheFile = _factories._addCmdDocs('cacheFile')
+cacheFile = _factories.getCmdFunc('cacheFile')
 
-cacheFileCombine = _factories._addCmdDocs('cacheFileCombine')
+cacheFileCombine = _factories.getCmdFunc('cacheFileCombine')
 
-cacheFileMerge = _factories._addCmdDocs('cacheFileMerge')
+cacheFileMerge = _factories.getCmdFunc('cacheFileMerge')
 
-cacheFileTrack = _factories._addCmdDocs('cacheFileTrack')
+cacheFileTrack = _factories.getCmdFunc('cacheFileTrack')
 
-clearCache = _factories._addCmdDocs('clearCache')
+clearCache = _factories.getCmdFunc('clearCache')
 
-cmdFileOutput = _factories._addCmdDocs('cmdFileOutput')
+cmdFileOutput = _factories.getCmdFunc('cmdFileOutput')
 
-convertUnit = _factories._addCmdDocs('convertUnit')
+convertUnit = _factories.getCmdFunc('convertUnit')
 
-crashInfo = _factories._addCmdDocs('crashInfo')
+crashInfo = _factories.getCmdFunc('crashInfo')
 
-dagObjectCompare = _factories._addCmdDocs('dagObjectCompare')
+dagObjectCompare = _factories.getCmdFunc('dagObjectCompare')
 
-date = _factories._addCmdDocs('date')
+date = _factories.getCmdFunc('date')
 
-dbcount = _factories._addCmdDocs('dbcount')
+dbcount = _factories.getCmdFunc('dbcount')
 
-dbfootprint = _factories._addCmdDocs('dbfootprint')
+dbfootprint = _factories.getCmdFunc('dbfootprint')
 
-dbmessage = _factories._addCmdDocs('dbmessage')
+dbmessage = _factories.getCmdFunc('dbmessage')
 
-dbpeek = _factories._addCmdDocs('dbpeek')
+dbpeek = _factories.getCmdFunc('dbpeek')
 
-dbtrace = _factories._addCmdDocs('dbtrace')
+dbtrace = _factories.getCmdFunc('dbtrace')
 
-detachDeviceAttr = _factories._addCmdDocs('detachDeviceAttr')
+detachDeviceAttr = _factories.getCmdFunc('detachDeviceAttr')
 
-deviceEditor = _factories._addCmdDocs('deviceEditor')
+deviceEditor = _factories.getCmdFunc('deviceEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def devicePanel(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2217,29 +2217,29 @@ def devicePanel(*args, **kwargs):
     res = cmds.devicePanel(*args, **kwargs)
     return res
 
-dgInfo = _factories._addCmdDocs('dgInfo')
+dgInfo = _factories.getCmdFunc('dgInfo')
 
-dgdirty = _factories._addCmdDocs('dgdirty')
+dgdirty = _factories.getCmdFunc('dgdirty')
 
-dgeval = _factories._addCmdDocs('dgeval')
+dgeval = _factories.getCmdFunc('dgeval')
 
-dgfilter = _factories._addCmdDocs('dgfilter')
+dgfilter = _factories.getCmdFunc('dgfilter')
 
-dgmodified = _factories._addCmdDocs('dgmodified')
+dgmodified = _factories.getCmdFunc('dgmodified')
 
-dgtimer = _factories._addCmdDocs('dgtimer')
+dgtimer = _factories.getCmdFunc('dgtimer')
 
-dirmap = _factories._addCmdDocs('dirmap')
+dirmap = _factories.getCmdFunc('dirmap')
 
-diskCache = _factories._addCmdDocs('diskCache')
+diskCache = _factories.getCmdFunc('diskCache')
 
-displayString = _factories._addCmdDocs('displayString')
+displayString = _factories.getCmdFunc('displayString')
 
-dynamicLoad = _factories._addCmdDocs('dynamicLoad')
+dynamicLoad = _factories.getCmdFunc('dynamicLoad')
 
-error = _factories._addCmdDocs('error')
+error = _factories.getCmdFunc('error')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def exportEdits(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2255,9 +2255,9 @@ def exportEdits(*args, **kwargs):
     res = cmds.exportEdits(*args, **kwargs)
     return res
 
-fcheck = _factories._addCmdDocs('fcheck')
+fcheck = _factories.getCmdFunc('fcheck')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def fileBrowserDialog(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2273,9 +2273,9 @@ def fileBrowserDialog(*args, **kwargs):
     res = cmds.fileBrowserDialog(*args, **kwargs)
     return res
 
-fileDialog = _factories._addCmdDocs('fileDialog')
+fileDialog = _factories.getCmdFunc('fileDialog')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def fileDialog2(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2291,45 +2291,45 @@ def fileDialog2(*args, **kwargs):
     res = cmds.fileDialog2(*args, **kwargs)
     return res
 
-fileInfo = _factories._addCmdDocs(fileInfo)
+fileInfo = _factories.addCmdDocs(fileInfo)
 
-filePathEditor = _factories._addCmdDocs('filePathEditor')
+filePathEditor = _factories.getCmdFunc('filePathEditor')
 
-findType = _factories._addCmdDocs('findType')
+findType = _factories.getCmdFunc('findType')
 
-flushUndo = _factories._addCmdDocs('flushUndo')
+flushUndo = _factories.getCmdFunc('flushUndo')
 
-getFileList = _factories._addCmdDocs('getFileList')
+getFileList = _factories.getCmdFunc('getFileList')
 
-getInputDeviceRange = _factories._addCmdDocs('getInputDeviceRange')
+getInputDeviceRange = _factories.getCmdFunc('getInputDeviceRange')
 
-getModifiers = _factories._addCmdDocs('getModifiers')
+getModifiers = _factories.getCmdFunc('getModifiers')
 
-getModulePath = _factories._addCmdDocs('getModulePath')
+getModulePath = _factories.getCmdFunc('getModulePath')
 
-hardware = _factories._addCmdDocs('hardware')
+hardware = _factories.getCmdFunc('hardware')
 
-hitTest = _factories._addCmdDocs('hitTest')
+hitTest = _factories.getCmdFunc('hitTest')
 
-imfPlugins = _factories._addCmdDocs('imfPlugins')
+imfPlugins = _factories.getCmdFunc('imfPlugins')
 
-internalVar = _factories._addCmdDocs('internalVar')
+internalVar = _factories.getCmdFunc('internalVar')
 
-launch = _factories._addCmdDocs('launch')
+launch = _factories.getCmdFunc('launch')
 
-launchImageEditor = _factories._addCmdDocs('launchImageEditor')
+launchImageEditor = _factories.getCmdFunc('launchImageEditor')
 
-listDeviceAttachments = _factories._addCmdDocs('listDeviceAttachments')
+listDeviceAttachments = _factories.getCmdFunc('listDeviceAttachments')
 
-listInputDeviceAxes = _factories._addCmdDocs('listInputDeviceAxes')
+listInputDeviceAxes = _factories.getCmdFunc('listInputDeviceAxes')
 
-listInputDeviceButtons = _factories._addCmdDocs('listInputDeviceButtons')
+listInputDeviceButtons = _factories.getCmdFunc('listInputDeviceButtons')
 
-listInputDevices = _factories._addCmdDocs('listInputDevices')
+listInputDevices = _factories.getCmdFunc('listInputDevices')
 
-loadModule = _factories._addCmdDocs('loadModule')
+loadModule = _factories.getCmdFunc('loadModule')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def loadPlugin(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2345,27 +2345,27 @@ def loadPlugin(*args, **kwargs):
     res = cmds.loadPlugin(*args, **kwargs)
     return res
 
-melInfo = _factories._addCmdDocs('melInfo')
+melInfo = _factories.getCmdFunc('melInfo')
 
-memory = _factories._addCmdDocs('memory')
+memory = _factories.getCmdFunc('memory')
 
-moduleInfo = _factories._addCmdDocs('moduleInfo')
+moduleInfo = _factories.getCmdFunc('moduleInfo')
 
-mouse = _factories._addCmdDocs('mouse')
+mouse = _factories.getCmdFunc('mouse')
 
-namespace = _factories._addCmdDocs('namespace')
+namespace = _factories.getCmdFunc('namespace')
 
-namespaceInfo = _factories._addCmdDocs(namespaceInfo)
+namespaceInfo = _factories.addCmdDocs(namespaceInfo)
 
-ogs = _factories._addCmdDocs('ogs')
+ogs = _factories.getCmdFunc('ogs')
 
-openGLExtension = _factories._addCmdDocs('openGLExtension')
+openGLExtension = _factories.getCmdFunc('openGLExtension')
 
-openMayaPref = _factories._addCmdDocs('openMayaPref')
+openMayaPref = _factories.getCmdFunc('openMayaPref')
 
-pluginDisplayFilter = _factories._addCmdDocs('pluginDisplayFilter')
+pluginDisplayFilter = _factories.getCmdFunc('pluginDisplayFilter')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def pluginInfo(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2381,7 +2381,7 @@ def pluginInfo(*args, **kwargs):
     res = cmds.pluginInfo(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def preloadRefEd(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2397,15 +2397,15 @@ def preloadRefEd(*args, **kwargs):
     res = cmds.preloadRefEd(*args, **kwargs)
     return res
 
-profiler = _factories._addCmdDocs('profiler')
+profiler = _factories.getCmdFunc('profiler')
 
-profilerTool = _factories._addCmdDocs('profilerTool')
+profilerTool = _factories.getCmdFunc('profilerTool')
 
-recordAttr = _factories._addCmdDocs('recordAttr')
+recordAttr = _factories.getCmdFunc('recordAttr')
 
-redo = _factories._addCmdDocs('redo')
+redo = _factories.getCmdFunc('redo')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def reference(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2421,7 +2421,7 @@ def reference(*args, **kwargs):
     res = cmds.reference(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def referenceEdit(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2439,7 +2439,7 @@ def referenceEdit(*args, **kwargs):
 
 _referenceQuery = referenceQuery
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def referenceQuery(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2455,13 +2455,13 @@ def referenceQuery(*args, **kwargs):
     res = _referenceQuery(*args, **kwargs)
     return res
 
-rehash = _factories._addCmdDocs('rehash')
+rehash = _factories.getCmdFunc('rehash')
 
-reloadImage = _factories._addCmdDocs('reloadImage')
+reloadImage = _factories.getCmdFunc('reloadImage')
 
-requires = _factories._addCmdDocs('requires')
+requires = _factories.getCmdFunc('requires')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def saveImage(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2477,7 +2477,7 @@ def saveImage(*args, **kwargs):
     res = cmds.saveImage(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def sceneEditor(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2493,39 +2493,39 @@ def sceneEditor(*args, **kwargs):
     res = cmds.sceneEditor(*args, **kwargs)
     return res
 
-sceneUIReplacement = _factories._addCmdDocs('sceneUIReplacement')
+sceneUIReplacement = _factories.getCmdFunc('sceneUIReplacement')
 
-scriptNode = _factories._addCmdDocs('scriptNode')
+scriptNode = _factories.getCmdFunc('scriptNode')
 
-selLoadSettings = _factories._addCmdDocs('selLoadSettings')
+selLoadSettings = _factories.getCmdFunc('selLoadSettings')
 
-setAttrMapping = _factories._addCmdDocs('setAttrMapping')
+setAttrMapping = _factories.getCmdFunc('setAttrMapping')
 
-setInputDeviceMapping = _factories._addCmdDocs('setInputDeviceMapping')
+setInputDeviceMapping = _factories.getCmdFunc('setInputDeviceMapping')
 
-shotTrack = _factories._addCmdDocs('shotTrack')
+shotTrack = _factories.getCmdFunc('shotTrack')
 
-showHelp = _factories._addCmdDocs('showHelp')
+showHelp = _factories.getCmdFunc('showHelp')
 
-sysFile = _factories._addCmdDocs('sysFile')
+sysFile = _factories.getCmdFunc('sysFile')
 
-timer = _factories._addCmdDocs('timer')
+timer = _factories.getCmdFunc('timer')
 
-timerX = _factories._addCmdDocs('timerX')
+timerX = _factories.getCmdFunc('timerX')
 
-translator = _factories._addCmdDocs('translator')
+translator = _factories.getCmdFunc('translator')
 
-unassignInputDevice = _factories._addCmdDocs('unassignInputDevice')
+unassignInputDevice = _factories.getCmdFunc('unassignInputDevice')
 
-undo = _factories._addCmdDocs('undo')
+undo = _factories.getCmdFunc('undo')
 
-undoInfo = _factories._addCmdDocs('undoInfo')
+undoInfo = _factories.getCmdFunc('undoInfo')
 
-unknownNode = _factories._addCmdDocs('unknownNode')
+unknownNode = _factories.getCmdFunc('unknownNode')
 
-unknownPlugin = _factories._addCmdDocs('unknownPlugin')
+unknownPlugin = _factories.getCmdFunc('unknownPlugin')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def unloadPlugin(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -2541,8 +2541,8 @@ def unloadPlugin(*args, **kwargs):
     res = cmds.unloadPlugin(*args, **kwargs)
     return res
 
-warning = _factories._addCmdDocs('warning')
+warning = _factories.getCmdFunc('warning')
 
-whatsNewHighlight = _factories._addCmdDocs('whatsNewHighlight')
+whatsNewHighlight = _factories.getCmdFunc('whatsNewHighlight')
 
-workspace = _factories._addCmdDocs(workspace)
+workspace = _factories.addCmdDocs(workspace)

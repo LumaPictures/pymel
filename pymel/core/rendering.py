@@ -126,16 +126,16 @@ def ambientLight(*args, **kwargs):
 # ------ Do not edit below this line --------
 _ambientLight = ambientLight
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def ambientLight(*args, **kwargs):
     res = _ambientLight(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-assignViewportFactories = _factories._addCmdDocs('assignViewportFactories')
+assignViewportFactories = _factories.getCmdFunc('assignViewportFactories')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def batchRender(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -151,9 +151,9 @@ def batchRender(*args, **kwargs):
     res = cmds.batchRender(*args, **kwargs)
     return res
 
-binMembership = _factories._addCmdDocs('binMembership')
+binMembership = _factories.getCmdFunc('binMembership')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def camera(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -171,31 +171,31 @@ def camera(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def cameraSet(*args, **kwargs):
     res = cmds.cameraSet(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def cameraView(*args, **kwargs):
     res = cmds.cameraView(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-checkDefaultRenderGlobals = _factories._addCmdDocs('checkDefaultRenderGlobals')
+checkDefaultRenderGlobals = _factories.getCmdFunc('checkDefaultRenderGlobals')
 
-convertIffToPsd = _factories._addCmdDocs('convertIffToPsd')
+convertIffToPsd = _factories.getCmdFunc('convertIffToPsd')
 
-convertSolidTx = _factories._addCmdDocs('convertSolidTx')
+convertSolidTx = _factories.getCmdFunc('convertSolidTx')
 
-convertTessellation = _factories._addCmdDocs('convertTessellation')
+convertTessellation = _factories.getCmdFunc('convertTessellation')
 
-createLayeredPsdFile = _factories._addCmdDocs('createLayeredPsdFile')
+createLayeredPsdFile = _factories.getCmdFunc('createLayeredPsdFile')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def createRenderLayer(*args, **kwargs):
     res = cmds.createRenderLayer(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['createRenderLayer']
@@ -205,7 +205,7 @@ def createRenderLayer(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def defaultLightListCheckBox(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -223,26 +223,26 @@ def defaultLightListCheckBox(*args, **kwargs):
 
 _directionalLight = directionalLight
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def directionalLight(*args, **kwargs):
     res = _directionalLight(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-displacementToPoly = _factories._addCmdDocs('displacementToPoly')
+displacementToPoly = _factories.getCmdFunc('displacementToPoly')
 
-doBlur = _factories._addCmdDocs('doBlur')
+doBlur = _factories.getCmdFunc('doBlur')
 
-dolly = _factories._addCmdDocs('dolly')
+dolly = _factories.getCmdFunc('dolly')
 
-editRenderLayerAdjustment = _factories._addCmdDocs('editRenderLayerAdjustment')
+editRenderLayerAdjustment = _factories.getCmdFunc('editRenderLayerAdjustment')
 
-editRenderLayerGlobals = _factories._addCmdDocs('editRenderLayerGlobals')
+editRenderLayerGlobals = _factories.getCmdFunc('editRenderLayerGlobals')
 
-editRenderLayerMembers = _factories._addCmdDocs('editRenderLayerMembers')
+editRenderLayerMembers = _factories.getCmdFunc('editRenderLayerMembers')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def exclusiveLightCheckBox(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -258,28 +258,28 @@ def exclusiveLightCheckBox(*args, **kwargs):
     res = cmds.exclusiveLightCheckBox(*args, **kwargs)
     return res
 
-frameBufferName = _factories._addCmdDocs('frameBufferName')
+frameBufferName = _factories.getCmdFunc('frameBufferName')
 
-getRenderDependencies = _factories._addCmdDocs('getRenderDependencies')
+getRenderDependencies = _factories.getCmdFunc('getRenderDependencies')
 
-getRenderTasks = _factories._addCmdDocs('getRenderTasks')
+getRenderTasks = _factories.getCmdFunc('getRenderTasks')
 
-glRender = _factories._addCmdDocs('glRender')
+glRender = _factories.getCmdFunc('glRender')
 
-glRenderEditor = _factories._addCmdDocs('glRenderEditor')
+glRenderEditor = _factories.getCmdFunc('glRenderEditor')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def hwReflectionMap(*args, **kwargs):
     res = cmds.hwReflectionMap(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-hwRender = _factories._addCmdDocs('hwRender')
+hwRender = _factories.getCmdFunc('hwRender')
 
-hwRenderLoad = _factories._addCmdDocs('hwRenderLoad')
+hwRenderLoad = _factories.getCmdFunc('hwRenderLoad')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def imagePlane(*args, **kwargs):
     res = cmds.imagePlane(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -291,9 +291,9 @@ def imagePlane(*args, **kwargs):
             res = res[0]
     return res
 
-iprEngine = _factories._addCmdDocs('iprEngine')
+iprEngine = _factories.getCmdFunc('iprEngine')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def layeredShaderPort(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -309,7 +309,7 @@ def layeredShaderPort(*args, **kwargs):
     res = cmds.layeredShaderPort(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def layeredTexturePort(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -325,24 +325,24 @@ def layeredTexturePort(*args, **kwargs):
     res = cmds.layeredTexturePort(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def lightList(*args, **kwargs):
     res = cmds.lightList(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-lightlink = _factories._addCmdDocs('lightlink')
+lightlink = _factories.getCmdFunc('lightlink')
 
-listCameras = _factories._addCmdDocs('listCameras')
+listCameras = _factories.getCmdFunc('listCameras')
 
-lookThru = _factories._addCmdDocs('lookThru')
+lookThru = _factories.getCmdFunc('lookThru')
 
-lsThroughFilter = _factories._addCmdDocs(lsThroughFilter)
+lsThroughFilter = _factories.addCmdDocs(lsThroughFilter)
 
-makebot = _factories._addCmdDocs('makebot')
+makebot = _factories.getCmdFunc('makebot')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nodeIconButton(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -358,28 +358,28 @@ def nodeIconButton(*args, **kwargs):
     res = cmds.nodeIconButton(*args, **kwargs)
     return res
 
-nodePreset = _factories._addCmdDocs('nodePreset')
+nodePreset = _factories.getCmdFunc('nodePreset')
 
-ogsRender = _factories._addCmdDocs('ogsRender')
+ogsRender = _factories.getCmdFunc('ogsRender')
 
-orbit = _factories._addCmdDocs('orbit')
+orbit = _factories.getCmdFunc('orbit')
 
-panZoom = _factories._addCmdDocs('panZoom')
+panZoom = _factories.getCmdFunc('panZoom')
 
-perCameraVisibility = _factories._addCmdDocs('perCameraVisibility')
+perCameraVisibility = _factories.getCmdFunc('perCameraVisibility')
 
 _pointLight = pointLight
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def pointLight(*args, **kwargs):
     res = _pointLight(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-preferredRenderer = _factories._addCmdDocs('preferredRenderer')
+preferredRenderer = _factories.getCmdFunc('preferredRenderer')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def prepareRender(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -395,9 +395,9 @@ def prepareRender(*args, **kwargs):
     res = cmds.prepareRender(*args, **kwargs)
     return res
 
-projectionManip = _factories._addCmdDocs('projectionManip')
+projectionManip = _factories.getCmdFunc('projectionManip')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def psdChannelOutliner(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -413,13 +413,13 @@ def psdChannelOutliner(*args, **kwargs):
     res = cmds.psdChannelOutliner(*args, **kwargs)
     return res
 
-psdEditTextureFile = _factories._addCmdDocs('psdEditTextureFile')
+psdEditTextureFile = _factories.getCmdFunc('psdEditTextureFile')
 
-psdExport = _factories._addCmdDocs('psdExport')
+psdExport = _factories.getCmdFunc('psdExport')
 
-psdTextureFile = _factories._addCmdDocs('psdTextureFile')
+psdTextureFile = _factories.getCmdFunc('psdTextureFile')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def rampColorPort(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -435,27 +435,27 @@ def rampColorPort(*args, **kwargs):
     res = cmds.rampColorPort(*args, **kwargs)
     return res
 
-render = _factories._addCmdDocs('render')
+render = _factories.getCmdFunc('render')
 
-renderGlobalsNode = _factories._addCmdDocs('renderGlobalsNode')
+renderGlobalsNode = _factories.getCmdFunc('renderGlobalsNode')
 
-renderInfo = _factories._addCmdDocs('renderInfo')
+renderInfo = _factories.getCmdFunc('renderInfo')
 
-renderLayerPostProcess = _factories._addCmdDocs('renderLayerPostProcess')
+renderLayerPostProcess = _factories.getCmdFunc('renderLayerPostProcess')
 
-renderManip = _factories._addCmdDocs('renderManip')
+renderManip = _factories.getCmdFunc('renderManip')
 
-renderPartition = _factories._addCmdDocs('renderPartition')
+renderPartition = _factories.getCmdFunc('renderPartition')
 
-renderPassRegistry = _factories._addCmdDocs('renderPassRegistry')
+renderPassRegistry = _factories.getCmdFunc('renderPassRegistry')
 
-renderQualityNode = _factories._addCmdDocs('renderQualityNode')
+renderQualityNode = _factories.getCmdFunc('renderQualityNode')
 
-renderSettings = _factories._addCmdDocs('renderSettings')
+renderSettings = _factories.getCmdFunc('renderSettings')
 
-renderThumbnailUpdate = _factories._addCmdDocs('renderThumbnailUpdate')
+renderThumbnailUpdate = _factories.getCmdFunc('renderThumbnailUpdate')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def renderWindowEditor(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -471,7 +471,7 @@ def renderWindowEditor(*args, **kwargs):
     res = cmds.renderWindowEditor(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def renderer(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -487,36 +487,36 @@ def renderer(*args, **kwargs):
     res = cmds.renderer(*args, **kwargs)
     return res
 
-resolutionNode = _factories._addCmdDocs('resolutionNode')
+resolutionNode = _factories.getCmdFunc('resolutionNode')
 
-roll = _factories._addCmdDocs('roll')
+roll = _factories.getCmdFunc('roll')
 
-sampleImage = _factories._addCmdDocs('sampleImage')
+sampleImage = _factories.getCmdFunc('sampleImage')
 
-setDefaultShadingGroup = _factories._addCmdDocs('setDefaultShadingGroup')
+setDefaultShadingGroup = _factories.getCmdFunc('setDefaultShadingGroup')
 
-setRenderPassType = _factories._addCmdDocs('setRenderPassType')
+setRenderPassType = _factories.getCmdFunc('setRenderPassType')
 
-shadingConnection = _factories._addCmdDocs('shadingConnection')
+shadingConnection = _factories.getCmdFunc('shadingConnection')
 
-shadingNetworkCompare = _factories._addCmdDocs('shadingNetworkCompare')
+shadingNetworkCompare = _factories.getCmdFunc('shadingNetworkCompare')
 
-shadingNode = _factories._addCmdDocs(shadingNode)
+shadingNode = _factories.addCmdDocs(shadingNode)
 
-showShadingGroupAttrEditor = _factories._addCmdDocs('showShadingGroupAttrEditor')
+showShadingGroupAttrEditor = _factories.getCmdFunc('showShadingGroupAttrEditor')
 
-soloMaterial = _factories._addCmdDocs('soloMaterial')
+soloMaterial = _factories.getCmdFunc('soloMaterial')
 
 _spotLight = spotLight
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def spotLight(*args, **kwargs):
     res = _spotLight(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def spotLightPreviewPort(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -532,13 +532,13 @@ def spotLightPreviewPort(*args, **kwargs):
     res = cmds.spotLightPreviewPort(*args, **kwargs)
     return res
 
-surfaceSampler = _factories._addCmdDocs('surfaceSampler')
+surfaceSampler = _factories.getCmdFunc('surfaceSampler')
 
-surfaceShaderList = _factories._addCmdDocs('surfaceShaderList')
+surfaceShaderList = _factories.getCmdFunc('surfaceShaderList')
 
-swatchRefresh = _factories._addCmdDocs('swatchRefresh')
+swatchRefresh = _factories.getCmdFunc('swatchRefresh')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def textureWindow(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -554,22 +554,22 @@ def textureWindow(*args, **kwargs):
     res = cmds.textureWindow(*args, **kwargs)
     return res
 
-track = _factories._addCmdDocs('track')
+track = _factories.getCmdFunc('track')
 
-tumble = _factories._addCmdDocs('tumble')
+tumble = _factories.getCmdFunc('tumble')
 
-uvLink = _factories._addCmdDocs('uvLink')
+uvLink = _factories.getCmdFunc('uvLink')
 
-viewCamera = _factories._addCmdDocs('viewCamera')
+viewCamera = _factories.getCmdFunc('viewCamera')
 
-viewClipPlane = _factories._addCmdDocs('viewClipPlane')
+viewClipPlane = _factories.getCmdFunc('viewClipPlane')
 
-viewFit = _factories._addCmdDocs('viewFit')
+viewFit = _factories.getCmdFunc('viewFit')
 
-viewHeadOn = _factories._addCmdDocs('viewHeadOn')
+viewHeadOn = _factories.getCmdFunc('viewHeadOn')
 
-viewLookAt = _factories._addCmdDocs('viewLookAt')
+viewLookAt = _factories.getCmdFunc('viewLookAt')
 
-viewPlace = _factories._addCmdDocs('viewPlace')
+viewPlace = _factories.getCmdFunc('viewPlace')
 
-viewSet = _factories._addCmdDocs('viewSet')
+viewSet = _factories.getCmdFunc('viewSet')

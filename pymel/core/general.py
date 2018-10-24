@@ -7735,25 +7735,25 @@ class Scene(object):
 SCENE = Scene()
 
 # ------ Do not edit below this line --------
-about = _factories._addCmdDocs('about')
+about = _factories.getCmdFunc('about')
 
-addAttr = _factories._addCmdDocs(addAttr)
+addAttr = _factories.addCmdDocs(addAttr)
 
-addExtension = _factories._addCmdDocs('addExtension')
+addExtension = _factories.getCmdFunc('addExtension')
 
-affectedNet = _factories._addCmdDocs('affectedNet')
+affectedNet = _factories.getCmdFunc('affectedNet')
 
-affects = _factories._addCmdDocs('affects')
+affects = _factories.getCmdFunc('affects')
 
-aliasAttr = _factories._addCmdDocs('aliasAttr')
+aliasAttr = _factories.getCmdFunc('aliasAttr')
 
-align = _factories._addCmdDocs('align')
+align = _factories.getCmdFunc('align')
 
-applyAttrPattern = _factories._addCmdDocs('applyAttrPattern')
+applyAttrPattern = _factories.getCmdFunc('applyAttrPattern')
 
-artAttrTool = _factories._addCmdDocs('artAttrTool')
+artAttrTool = _factories.getCmdFunc('artAttrTool')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def assembly(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -7771,31 +7771,31 @@ def assembly(*args, **kwargs):
         res = _factories.maybeConvert(res, PyNode)
     return res
 
-attributeInfo = _factories._addCmdDocs('attributeInfo')
+attributeInfo = _factories.getCmdFunc('attributeInfo')
 
-attributeName = _factories._addCmdDocs('attributeName')
+attributeName = _factories.getCmdFunc('attributeName')
 
-attributeQuery = _factories._addCmdDocs('attributeQuery')
+attributeQuery = _factories.getCmdFunc('attributeQuery')
 
-bakePartialHistory = _factories._addCmdDocs('bakePartialHistory')
+bakePartialHistory = _factories.getCmdFunc('bakePartialHistory')
 
-baseTemplate = _factories._addCmdDocs('baseTemplate')
+baseTemplate = _factories.getCmdFunc('baseTemplate')
 
-baseView = _factories._addCmdDocs('baseView')
+baseView = _factories.getCmdFunc('baseView')
 
-color = _factories._addCmdDocs('color')
+color = _factories.getCmdFunc('color')
 
-colorIndex = _factories._addCmdDocs('colorIndex')
+colorIndex = _factories.getCmdFunc('colorIndex')
 
-colorManagementCatalog = _factories._addCmdDocs('colorManagementCatalog')
+colorManagementCatalog = _factories.getCmdFunc('colorManagementCatalog')
 
-colorManagementConvert = _factories._addCmdDocs('colorManagementConvert')
+colorManagementConvert = _factories.getCmdFunc('colorManagementConvert')
 
-colorManagementFileRules = _factories._addCmdDocs('colorManagementFileRules')
+colorManagementFileRules = _factories.getCmdFunc('colorManagementFileRules')
 
-colorManagementPrefs = _factories._addCmdDocs('colorManagementPrefs')
+colorManagementPrefs = _factories.getCmdFunc('colorManagementPrefs')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def commandLogging(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -7811,7 +7811,7 @@ def commandLogging(*args, **kwargs):
     res = cmds.commandLogging(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def commandPort(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -7827,11 +7827,11 @@ def commandPort(*args, **kwargs):
     res = cmds.commandPort(*args, **kwargs)
     return res
 
-connectAttr = _factories._addCmdDocs(connectAttr)
+connectAttr = _factories.addCmdDocs(connectAttr)
 
-connectionInfo = _factories._addCmdDocs('connectionInfo')
+connectionInfo = _factories.getCmdFunc('connectionInfo')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def container(*args, **kwargs):
     res = cmds.container(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -7843,23 +7843,23 @@ def container(*args, **kwargs):
             break
     return res
 
-containerBind = _factories._addCmdDocs('containerBind')
+containerBind = _factories.getCmdFunc('containerBind')
 
-containerProxy = _factories._addCmdDocs('containerProxy')
+containerProxy = _factories.getCmdFunc('containerProxy')
 
-containerPublish = _factories._addCmdDocs('containerPublish')
+containerPublish = _factories.getCmdFunc('containerPublish')
 
-containerTemplate = _factories._addCmdDocs('containerTemplate')
+containerTemplate = _factories.getCmdFunc('containerTemplate')
 
-containerView = _factories._addCmdDocs('containerView')
+containerView = _factories.getCmdFunc('containerView')
 
-contextInfo = _factories._addCmdDocs('contextInfo')
+contextInfo = _factories.getCmdFunc('contextInfo')
 
-copyAttr = _factories._addCmdDocs('copyAttr')
+copyAttr = _factories.getCmdFunc('copyAttr')
 
-createAttrPatterns = _factories._addCmdDocs('createAttrPatterns')
+createAttrPatterns = _factories.getCmdFunc('createAttrPatterns')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def createDisplayLayer(*args, **kwargs):
     res = cmds.createDisplayLayer(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['createDisplayLayer']
@@ -7869,43 +7869,43 @@ def createDisplayLayer(*args, **kwargs):
             break
     return res
 
-createNode = _factories._addCmdDocs(createNode)
+createNode = _factories.addCmdDocs(createNode)
 
-currentUnit = _factories._addCmdDocs('currentUnit')
+currentUnit = _factories.getCmdFunc('currentUnit')
 
-curveRGBColor = _factories._addCmdDocs('curveRGBColor')
+curveRGBColor = _factories.getCmdFunc('curveRGBColor')
 
-cycleCheck = _factories._addCmdDocs('cycleCheck')
+cycleCheck = _factories.getCmdFunc('cycleCheck')
 
-delete = _factories._addCmdDocs(delete)
+delete = _factories.addCmdDocs(delete)
 
-deleteAttr = _factories._addCmdDocs('deleteAttr')
+deleteAttr = _factories.getCmdFunc('deleteAttr')
 
-deleteAttrPattern = _factories._addCmdDocs('deleteAttrPattern')
+deleteAttrPattern = _factories.getCmdFunc('deleteAttrPattern')
 
-deleteExtension = _factories._addCmdDocs('deleteExtension')
+deleteExtension = _factories.getCmdFunc('deleteExtension')
 
-disconnectAttr = _factories._addCmdDocs(disconnectAttr)
+disconnectAttr = _factories.addCmdDocs(disconnectAttr)
 
-displayAffected = _factories._addCmdDocs('displayAffected')
+displayAffected = _factories.getCmdFunc('displayAffected')
 
-displayColor = _factories._addCmdDocs('displayColor')
+displayColor = _factories.getCmdFunc('displayColor')
 
-displayCull = _factories._addCmdDocs('displayCull')
+displayCull = _factories.getCmdFunc('displayCull')
 
-displayLevelOfDetail = _factories._addCmdDocs('displayLevelOfDetail')
+displayLevelOfDetail = _factories.getCmdFunc('displayLevelOfDetail')
 
-displayPref = _factories._addCmdDocs('displayPref')
+displayPref = _factories.getCmdFunc('displayPref')
 
-displayRGBColor = _factories._addCmdDocs('displayRGBColor')
+displayRGBColor = _factories.getCmdFunc('displayRGBColor')
 
-displaySmoothness = _factories._addCmdDocs('displaySmoothness')
+displaySmoothness = _factories.getCmdFunc('displaySmoothness')
 
-displayStats = _factories._addCmdDocs('displayStats')
+displayStats = _factories.getCmdFunc('displayStats')
 
-displaySurface = _factories._addCmdDocs('displaySurface')
+displaySurface = _factories.getCmdFunc('displaySurface')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def distanceDimension(*args, **kwargs):
     res = cmds.distanceDimension(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['distanceDimension']
@@ -7915,27 +7915,27 @@ def distanceDimension(*args, **kwargs):
             break
     return res
 
-duplicate = _factories._addCmdDocs(duplicate)
+duplicate = _factories.addCmdDocs(duplicate)
 
-editDisplayLayerGlobals = _factories._addCmdDocs('editDisplayLayerGlobals')
+editDisplayLayerGlobals = _factories.getCmdFunc('editDisplayLayerGlobals')
 
-editDisplayLayerMembers = _factories._addCmdDocs('editDisplayLayerMembers')
+editDisplayLayerMembers = _factories.getCmdFunc('editDisplayLayerMembers')
 
-exactWorldBoundingBox = _factories._addCmdDocs('exactWorldBoundingBox')
+exactWorldBoundingBox = _factories.getCmdFunc('exactWorldBoundingBox')
 
-getAttr = _factories._addCmdDocs(getAttr)
+getAttr = _factories.addCmdDocs(getAttr)
 
-getClassification = _factories._addCmdDocs(getClassification)
+getClassification = _factories.addCmdDocs(getClassification)
 
-group = _factories._addCmdDocs(group)
+group = _factories.addCmdDocs(group)
 
-hide = _factories._addCmdDocs('hide')
+hide = _factories.getCmdFunc('hide')
 
-hilite = _factories._addCmdDocs('hilite')
+hilite = _factories.getCmdFunc('hilite')
 
-inheritTransform = _factories._addCmdDocs('inheritTransform')
+inheritTransform = _factories.getCmdFunc('inheritTransform')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def instance(*args, **kwargs):
     res = cmds.instance(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['instance']
@@ -7945,26 +7945,26 @@ def instance(*args, **kwargs):
             break
     return res
 
-instanceable = _factories._addCmdDocs('instanceable')
+instanceable = _factories.getCmdFunc('instanceable')
 
 _instancer = instancer
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def instancer(*args, **kwargs):
     res = _instancer(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
 
-isConnected = _factories._addCmdDocs('isConnected')
+isConnected = _factories.getCmdFunc('isConnected')
 
-isDirty = _factories._addCmdDocs('isDirty')
+isDirty = _factories.getCmdFunc('isDirty')
 
-isolateSelect = _factories._addCmdDocs('isolateSelect')
+isolateSelect = _factories.getCmdFunc('isolateSelect')
 
-license = _factories._addCmdDocs('license')
+license = _factories.getCmdFunc('license')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def listAttr(*args, **kwargs):
     res = cmds.listAttr(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['listAttr']
@@ -7974,97 +7974,97 @@ def listAttr(*args, **kwargs):
             break
     return res
 
-listAttrPatterns = _factories._addCmdDocs('listAttrPatterns')
+listAttrPatterns = _factories.getCmdFunc('listAttrPatterns')
 
-listConnections = _factories._addCmdDocs(listConnections)
+listConnections = _factories.addCmdDocs(listConnections)
 
-listHistory = _factories._addCmdDocs(listHistory)
+listHistory = _factories.addCmdDocs(listHistory)
 
-listNodeTypes = _factories._addCmdDocs('listNodeTypes')
+listNodeTypes = _factories.getCmdFunc('listNodeTypes')
 
-listNodesWithIncorrectNames = _factories._addCmdDocs('listNodesWithIncorrectNames')
+listNodesWithIncorrectNames = _factories.getCmdFunc('listNodesWithIncorrectNames')
 
-listRelatives = _factories._addCmdDocs(listRelatives)
+listRelatives = _factories.addCmdDocs(listRelatives)
 
-listSets = _factories._addCmdDocs(listSets)
+listSets = _factories.addCmdDocs(listSets)
 
-lockNode = _factories._addCmdDocs('lockNode')
+lockNode = _factories.getCmdFunc('lockNode')
 
-ls = _factories._addCmdDocs(ls)
+ls = _factories.addCmdDocs(ls)
 
-makeIdentity = _factories._addCmdDocs('makeIdentity')
+makeIdentity = _factories.getCmdFunc('makeIdentity')
 
-makeLive = _factories._addCmdDocs('makeLive')
+makeLive = _factories.getCmdFunc('makeLive')
 
-makePaintable = _factories._addCmdDocs('makePaintable')
+makePaintable = _factories.getCmdFunc('makePaintable')
 
-matchTransform = _factories._addCmdDocs('matchTransform')
+matchTransform = _factories.getCmdFunc('matchTransform')
 
-move = _factories._addCmdDocs(move)
+move = _factories.addCmdDocs(move)
 
-nodeCast = _factories._addCmdDocs('nodeCast')
+nodeCast = _factories.getCmdFunc('nodeCast')
 
-nodeType = _factories._addCmdDocs(nodeType)
+nodeType = _factories.addCmdDocs(nodeType)
 
-objExists = _factories._addCmdDocs('objExists')
+objExists = _factories.getCmdFunc('objExists')
 
-objectCenter = _factories._addCmdDocs('objectCenter')
+objectCenter = _factories.getCmdFunc('objectCenter')
 
-objectType = _factories._addCmdDocs('objectType')
+objectType = _factories.getCmdFunc('objectType')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def paramDimension(*args, **kwargs):
     res = cmds.paramDimension(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
 
-paramLocator = _factories._addCmdDocs('paramLocator')
+paramLocator = _factories.getCmdFunc('paramLocator')
 
-parent = _factories._addCmdDocs(parent)
+parent = _factories.addCmdDocs(parent)
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def partition(*args, **kwargs):
     res = cmds.partition(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
 
-performanceOptions = _factories._addCmdDocs('performanceOptions')
+performanceOptions = _factories.getCmdFunc('performanceOptions')
 
-pickWalk = _factories._addCmdDocs('pickWalk')
+pickWalk = _factories.getCmdFunc('pickWalk')
 
-pixelMove = _factories._addCmdDocs('pixelMove')
+pixelMove = _factories.getCmdFunc('pixelMove')
 
-polySplitCtx2 = _factories._addCmdDocs('polySplitCtx2')
+polySplitCtx2 = _factories.getCmdFunc('polySplitCtx2')
 
-relationship = _factories._addCmdDocs('relationship')
+relationship = _factories.getCmdFunc('relationship')
 
-removeMultiInstance = _factories._addCmdDocs('removeMultiInstance')
+removeMultiInstance = _factories.getCmdFunc('removeMultiInstance')
 
-rename = _factories._addCmdDocs(rename)
+rename = _factories.addCmdDocs(rename)
 
-renameAttr = _factories._addCmdDocs('renameAttr')
+renameAttr = _factories.getCmdFunc('renameAttr')
 
-reorder = _factories._addCmdDocs('reorder')
+reorder = _factories.getCmdFunc('reorder')
 
-reorderContainer = _factories._addCmdDocs('reorderContainer')
+reorderContainer = _factories.getCmdFunc('reorderContainer')
 
-resetTool = _factories._addCmdDocs('resetTool')
+resetTool = _factories.getCmdFunc('resetTool')
 
-rotate = _factories._addCmdDocs(rotate)
+rotate = _factories.addCmdDocs(rotate)
 
-saveToolSettings = _factories._addCmdDocs('saveToolSettings')
+saveToolSettings = _factories.getCmdFunc('saveToolSettings')
 
-scale = _factories._addCmdDocs(scale)
+scale = _factories.addCmdDocs(scale)
 
-scaleComponents = _factories._addCmdDocs('scaleComponents')
+scaleComponents = _factories.getCmdFunc('scaleComponents')
 
-sculptMeshCacheChangeCloneSource = _factories._addCmdDocs('sculptMeshCacheChangeCloneSource')
+sculptMeshCacheChangeCloneSource = _factories.getCmdFunc('sculptMeshCacheChangeCloneSource')
 
-select = _factories._addCmdDocs(select)
+select = _factories.addCmdDocs(select)
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def selectKey(*args, **kwargs):
     for flag in ['t', 'time']:
         try:
@@ -8076,33 +8076,33 @@ def selectKey(*args, **kwargs):
     res = cmds.selectKey(*args, **kwargs)
     return res
 
-selectMode = _factories._addCmdDocs('selectMode')
+selectMode = _factories.getCmdFunc('selectMode')
 
-selectPref = _factories._addCmdDocs('selectPref')
+selectPref = _factories.getCmdFunc('selectPref')
 
-selectPriority = _factories._addCmdDocs('selectPriority')
+selectPriority = _factories.getCmdFunc('selectPriority')
 
-selectType = _factories._addCmdDocs('selectType')
+selectType = _factories.getCmdFunc('selectType')
 
-selectedNodes = _factories._addCmdDocs('selectedNodes')
+selectedNodes = _factories.getCmdFunc('selectedNodes')
 
-setAttr = _factories._addCmdDocs(setAttr)
+setAttr = _factories.addCmdDocs(setAttr)
 
-setToolTo = _factories._addCmdDocs('setToolTo')
+setToolTo = _factories.getCmdFunc('setToolTo')
 
-sets = _factories._addCmdDocs(sets)
+sets = _factories.addCmdDocs(sets)
 
-shapeCompare = _factories._addCmdDocs('shapeCompare')
+shapeCompare = _factories.getCmdFunc('shapeCompare')
 
-showHidden = _factories._addCmdDocs('showHidden')
+showHidden = _factories.getCmdFunc('showHidden')
 
-snapMode = _factories._addCmdDocs('snapMode')
+snapMode = _factories.getCmdFunc('snapMode')
 
-softSelect = _factories._addCmdDocs('softSelect')
+softSelect = _factories.getCmdFunc('softSelect')
 
 _spaceLocator = spaceLocator
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def spaceLocator(*args, **kwargs):
     res = _spaceLocator(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -8112,25 +8112,25 @@ def spaceLocator(*args, **kwargs):
         res = res[0]
     return res
 
-suitePrefs = _factories._addCmdDocs('suitePrefs')
+suitePrefs = _factories.getCmdFunc('suitePrefs')
 
-symmetricModelling = _factories._addCmdDocs('symmetricModelling')
+symmetricModelling = _factories.getCmdFunc('symmetricModelling')
 
-threadCount = _factories._addCmdDocs('threadCount')
+threadCount = _factories.getCmdFunc('threadCount')
 
-timeCode = _factories._addCmdDocs('timeCode')
+timeCode = _factories.getCmdFunc('timeCode')
 
-toggle = _factories._addCmdDocs('toggle')
+toggle = _factories.getCmdFunc('toggle')
 
-toggleAxis = _factories._addCmdDocs('toggleAxis')
+toggleAxis = _factories.getCmdFunc('toggleAxis')
 
-toggleDisplacement = _factories._addCmdDocs('toggleDisplacement')
+toggleDisplacement = _factories.getCmdFunc('toggleDisplacement')
 
-toolDropped = _factories._addCmdDocs('toolDropped')
+toolDropped = _factories.getCmdFunc('toolDropped')
 
-toolHasOptions = _factories._addCmdDocs('toolHasOptions')
+toolHasOptions = _factories.getCmdFunc('toolHasOptions')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def toolPropertyWindow(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -8146,25 +8146,25 @@ def toolPropertyWindow(*args, **kwargs):
     res = cmds.toolPropertyWindow(*args, **kwargs)
     return res
 
-transformCompare = _factories._addCmdDocs('transformCompare')
+transformCompare = _factories.getCmdFunc('transformCompare')
 
-transformLimits = _factories._addCmdDocs('transformLimits')
+transformLimits = _factories.getCmdFunc('transformLimits')
 
-ungroup = _factories._addCmdDocs('ungroup')
+ungroup = _factories.getCmdFunc('ungroup')
 
-upAxis = _factories._addCmdDocs('upAxis')
+upAxis = _factories.getCmdFunc('upAxis')
 
-webView = _factories._addCmdDocs('webView')
+webView = _factories.getCmdFunc('webView')
 
-xform = _factories._addCmdDocs('xform')
+xform = _factories.getCmdFunc('xform')
 
-xformConstraint = _factories._addCmdDocs('xformConstraint')
+xformConstraint = _factories.getCmdFunc('xformConstraint')
 
-encodeString = _factories._addCmdDocs('encodeString')
+encodeString = _factories.getCmdFunc('encodeString')
 
-format = _factories._addCmdDocs('format')
+format = _factories.getCmdFunc('format')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def assignCommand(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -8180,34 +8180,34 @@ def assignCommand(*args, **kwargs):
     res = cmds.assignCommand(*args, **kwargs)
     return res
 
-commandEcho = _factories._addCmdDocs('commandEcho')
+commandEcho = _factories.getCmdFunc('commandEcho')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def condition(*args, **kwargs):
     res = cmds.condition(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
 
-evalDeferred = _factories._addCmdDocs('evalDeferred')
+evalDeferred = _factories.getCmdFunc('evalDeferred')
 
-isTrue = _factories._addCmdDocs('isTrue')
+isTrue = _factories.getCmdFunc('isTrue')
 
-itemFilter = _factories._addCmdDocs('itemFilter')
+itemFilter = _factories.getCmdFunc('itemFilter')
 
-itemFilterAttr = _factories._addCmdDocs('itemFilterAttr')
+itemFilterAttr = _factories.getCmdFunc('itemFilterAttr')
 
-itemFilterRender = _factories._addCmdDocs('itemFilterRender')
+itemFilterRender = _factories.getCmdFunc('itemFilterRender')
 
-itemFilterType = _factories._addCmdDocs('itemFilterType')
+itemFilterType = _factories.getCmdFunc('itemFilterType')
 
-pause = _factories._addCmdDocs('pause')
+pause = _factories.getCmdFunc('pause')
 
-refresh = _factories._addCmdDocs('refresh')
+refresh = _factories.getCmdFunc('refresh')
 
-stringArrayIntersector = _factories._addCmdDocs('stringArrayIntersector')
+stringArrayIntersector = _factories.getCmdFunc('stringArrayIntersector')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def selectionConnection(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)

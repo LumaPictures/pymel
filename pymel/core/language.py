@@ -1282,7 +1282,7 @@ def conditionExists(conditionName):
 #env = Env()
 
 # ------ Do not edit below this line --------
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def callbacks(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -1298,23 +1298,23 @@ def callbacks(*args, **kwargs):
     res = cmds.callbacks(*args, **kwargs)
     return res
 
-evalEcho = _factories._addCmdDocs('evalEcho')
+evalEcho = _factories.getCmdFunc('evalEcho')
 
-evalNoSelectNotify = _factories._addCmdDocs('evalNoSelectNotify')
+evalNoSelectNotify = _factories.getCmdFunc('evalNoSelectNotify')
 
-getLastError = _factories._addCmdDocs('getLastError')
+getLastError = _factories.getCmdFunc('getLastError')
 
-getProcArguments = _factories._addCmdDocs('getProcArguments')
+getProcArguments = _factories.getCmdFunc('getProcArguments')
 
-melOptions = _factories._addCmdDocs('melOptions')
+melOptions = _factories.getCmdFunc('melOptions')
 
-optionVar = _factories._addCmdDocs(optionVar)
+optionVar = _factories.addCmdDocs(optionVar)
 
-python = _factories._addCmdDocs('python')
+python = _factories.getCmdFunc('python')
 
-resourceManager = _factories._addCmdDocs('resourceManager')
+resourceManager = _factories.getCmdFunc('resourceManager')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scriptJob(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -1330,8 +1330,8 @@ def scriptJob(*args, **kwargs):
     res = cmds.scriptJob(*args, **kwargs)
     return res
 
-sortCaseInsensitive = _factories._addCmdDocs('sortCaseInsensitive')
+sortCaseInsensitive = _factories.getCmdFunc('sortCaseInsensitive')
 
-stackTrace = _factories._addCmdDocs('stackTrace')
+stackTrace = _factories.getCmdFunc('stackTrace')
 
-waitCursor = _factories._addCmdDocs('waitCursor')
+waitCursor = _factories.getCmdFunc('waitCursor')

@@ -6,11 +6,11 @@ import pymel.internal.factories as _factories
 import pymel.internal.pmcmds as cmds
 
 # ------ Do not edit below this line --------
-alignCtx = _factories._addCmdDocs('alignCtx')
+alignCtx = _factories.getCmdFunc('alignCtx')
 
-arcLenDimContext = _factories._addCmdDocs('arcLenDimContext')
+arcLenDimContext = _factories.getCmdFunc('arcLenDimContext')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def art3dPaintCtx(*args, **kwargs):
     res = cmds.art3dPaintCtx(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['art3dPaintCtx']
@@ -20,7 +20,7 @@ def art3dPaintCtx(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def artAttrCtx(*args, **kwargs):
     res = cmds.artAttrCtx(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['artAttrCtx']
@@ -30,21 +30,21 @@ def artAttrCtx(*args, **kwargs):
             break
     return res
 
-artAttrPaintVertexCtx = _factories._addCmdDocs('artAttrPaintVertexCtx')
+artAttrPaintVertexCtx = _factories.getCmdFunc('artAttrPaintVertexCtx')
 
-artAttrSkinPaintCtx = _factories._addCmdDocs('artAttrSkinPaintCtx')
+artAttrSkinPaintCtx = _factories.getCmdFunc('artAttrSkinPaintCtx')
 
-artBaseCtx = _factories._addCmdDocs('artBaseCtx')
+artBaseCtx = _factories.getCmdFunc('artBaseCtx')
 
-artFluidAttrCtx = _factories._addCmdDocs('artFluidAttrCtx')
+artFluidAttrCtx = _factories.getCmdFunc('artFluidAttrCtx')
 
-artPuttyCtx = _factories._addCmdDocs('artPuttyCtx')
+artPuttyCtx = _factories.getCmdFunc('artPuttyCtx')
 
-artSelectCtx = _factories._addCmdDocs('artSelectCtx')
+artSelectCtx = _factories.getCmdFunc('artSelectCtx')
 
-artSetPaintCtx = _factories._addCmdDocs('artSetPaintCtx')
+artSetPaintCtx = _factories.getCmdFunc('artSetPaintCtx')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def artUserPaintCtx(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -60,93 +60,93 @@ def artUserPaintCtx(*args, **kwargs):
     res = cmds.artUserPaintCtx(*args, **kwargs)
     return res
 
-blendCtx = _factories._addCmdDocs('blendCtx')
+blendCtx = _factories.getCmdFunc('blendCtx')
 
-boxDollyCtx = _factories._addCmdDocs('boxDollyCtx')
+boxDollyCtx = _factories.getCmdFunc('boxDollyCtx')
 
-boxZoomCtx = _factories._addCmdDocs('boxZoomCtx')
+boxZoomCtx = _factories.getCmdFunc('boxZoomCtx')
 
-clipEditorCurrentTimeCtx = _factories._addCmdDocs('clipEditorCurrentTimeCtx')
+clipEditorCurrentTimeCtx = _factories.getCmdFunc('clipEditorCurrentTimeCtx')
 
-createNurbsCircleCtx = _factories._addCmdDocs('createNurbsCircleCtx')
+createNurbsCircleCtx = _factories.getCmdFunc('createNurbsCircleCtx')
 
-createNurbsConeCtx = _factories._addCmdDocs('createNurbsConeCtx')
+createNurbsConeCtx = _factories.getCmdFunc('createNurbsConeCtx')
 
-createNurbsCubeCtx = _factories._addCmdDocs('createNurbsCubeCtx')
+createNurbsCubeCtx = _factories.getCmdFunc('createNurbsCubeCtx')
 
-createNurbsCylinderCtx = _factories._addCmdDocs('createNurbsCylinderCtx')
+createNurbsCylinderCtx = _factories.getCmdFunc('createNurbsCylinderCtx')
 
-createNurbsPlaneCtx = _factories._addCmdDocs('createNurbsPlaneCtx')
+createNurbsPlaneCtx = _factories.getCmdFunc('createNurbsPlaneCtx')
 
-createNurbsSphereCtx = _factories._addCmdDocs('createNurbsSphereCtx')
+createNurbsSphereCtx = _factories.getCmdFunc('createNurbsSphereCtx')
 
-createNurbsSquareCtx = _factories._addCmdDocs('createNurbsSquareCtx')
+createNurbsSquareCtx = _factories.getCmdFunc('createNurbsSquareCtx')
 
-createNurbsTorusCtx = _factories._addCmdDocs('createNurbsTorusCtx')
+createNurbsTorusCtx = _factories.getCmdFunc('createNurbsTorusCtx')
 
-createPolyConeCtx = _factories._addCmdDocs('createPolyConeCtx')
+createPolyConeCtx = _factories.getCmdFunc('createPolyConeCtx')
 
-createPolyCubeCtx = _factories._addCmdDocs('createPolyCubeCtx')
+createPolyCubeCtx = _factories.getCmdFunc('createPolyCubeCtx')
 
-createPolyCylinderCtx = _factories._addCmdDocs('createPolyCylinderCtx')
+createPolyCylinderCtx = _factories.getCmdFunc('createPolyCylinderCtx')
 
-createPolyHelixCtx = _factories._addCmdDocs('createPolyHelixCtx')
+createPolyHelixCtx = _factories.getCmdFunc('createPolyHelixCtx')
 
-createPolyPipeCtx = _factories._addCmdDocs('createPolyPipeCtx')
+createPolyPipeCtx = _factories.getCmdFunc('createPolyPipeCtx')
 
-createPolyPlaneCtx = _factories._addCmdDocs('createPolyPlaneCtx')
+createPolyPlaneCtx = _factories.getCmdFunc('createPolyPlaneCtx')
 
-createPolyPlatonicSolidCtx = _factories._addCmdDocs('createPolyPlatonicSolidCtx')
+createPolyPlatonicSolidCtx = _factories.getCmdFunc('createPolyPlatonicSolidCtx')
 
-createPolyPrismCtx = _factories._addCmdDocs('createPolyPrismCtx')
+createPolyPrismCtx = _factories.getCmdFunc('createPolyPrismCtx')
 
-createPolyPyramidCtx = _factories._addCmdDocs('createPolyPyramidCtx')
+createPolyPyramidCtx = _factories.getCmdFunc('createPolyPyramidCtx')
 
-createPolySoccerBallCtx = _factories._addCmdDocs('createPolySoccerBallCtx')
+createPolySoccerBallCtx = _factories.getCmdFunc('createPolySoccerBallCtx')
 
-createPolySphereCtx = _factories._addCmdDocs('createPolySphereCtx')
+createPolySphereCtx = _factories.getCmdFunc('createPolySphereCtx')
 
-createPolyTorusCtx = _factories._addCmdDocs('createPolyTorusCtx')
+createPolyTorusCtx = _factories.getCmdFunc('createPolyTorusCtx')
 
-ctxAbort = _factories._addCmdDocs('ctxAbort')
+ctxAbort = _factories.getCmdFunc('ctxAbort')
 
-ctxCompletion = _factories._addCmdDocs('ctxCompletion')
+ctxCompletion = _factories.getCmdFunc('ctxCompletion')
 
-ctxData = _factories._addCmdDocs('ctxData')
+ctxData = _factories.getCmdFunc('ctxData')
 
-ctxEditMode = _factories._addCmdDocs('ctxEditMode')
+ctxEditMode = _factories.getCmdFunc('ctxEditMode')
 
-ctxTraverse = _factories._addCmdDocs('ctxTraverse')
+ctxTraverse = _factories.getCmdFunc('ctxTraverse')
 
-currentCtx = _factories._addCmdDocs('currentCtx')
+currentCtx = _factories.getCmdFunc('currentCtx')
 
-currentTimeCtx = _factories._addCmdDocs('currentTimeCtx')
+currentTimeCtx = _factories.getCmdFunc('currentTimeCtx')
 
-curveAddPtCtx = _factories._addCmdDocs('curveAddPtCtx')
+curveAddPtCtx = _factories.getCmdFunc('curveAddPtCtx')
 
-curveBezierCtx = _factories._addCmdDocs('curveBezierCtx')
+curveBezierCtx = _factories.getCmdFunc('curveBezierCtx')
 
-curveCVCtx = _factories._addCmdDocs('curveCVCtx')
+curveCVCtx = _factories.getCmdFunc('curveCVCtx')
 
-curveEPCtx = _factories._addCmdDocs('curveEPCtx')
+curveEPCtx = _factories.getCmdFunc('curveEPCtx')
 
-curveEditorCtx = _factories._addCmdDocs('curveEditorCtx')
+curveEditorCtx = _factories.getCmdFunc('curveEditorCtx')
 
-curveMoveEPCtx = _factories._addCmdDocs('curveMoveEPCtx')
+curveMoveEPCtx = _factories.getCmdFunc('curveMoveEPCtx')
 
-curveSketchCtx = _factories._addCmdDocs('curveSketchCtx')
+curveSketchCtx = _factories.getCmdFunc('curveSketchCtx')
 
-directKeyCtx = _factories._addCmdDocs('directKeyCtx')
+directKeyCtx = _factories.getCmdFunc('directKeyCtx')
 
-distanceDimContext = _factories._addCmdDocs('distanceDimContext')
+distanceDimContext = _factories.getCmdFunc('distanceDimContext')
 
-dollyCtx = _factories._addCmdDocs('dollyCtx')
+dollyCtx = _factories.getCmdFunc('dollyCtx')
 
-dpBirailCtx = _factories._addCmdDocs('dpBirailCtx')
+dpBirailCtx = _factories.getCmdFunc('dpBirailCtx')
 
-dragAttrContext = _factories._addCmdDocs('dragAttrContext')
+dragAttrContext = _factories.getCmdFunc('dragAttrContext')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def draggerContext(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -162,59 +162,59 @@ def draggerContext(*args, **kwargs):
     res = cmds.draggerContext(*args, **kwargs)
     return res
 
-drawExtrudeFacetCtx = _factories._addCmdDocs('drawExtrudeFacetCtx')
+drawExtrudeFacetCtx = _factories.getCmdFunc('drawExtrudeFacetCtx')
 
-dynPaintCtx = _factories._addCmdDocs('dynPaintCtx')
+dynPaintCtx = _factories.getCmdFunc('dynPaintCtx')
 
-dynParticleCtx = _factories._addCmdDocs('dynParticleCtx')
+dynParticleCtx = _factories.getCmdFunc('dynParticleCtx')
 
-dynSelectCtx = _factories._addCmdDocs('dynSelectCtx')
+dynSelectCtx = _factories.getCmdFunc('dynSelectCtx')
 
-dynWireCtx = _factories._addCmdDocs('dynWireCtx')
+dynWireCtx = _factories.getCmdFunc('dynWireCtx')
 
-graphDollyCtx = _factories._addCmdDocs('graphDollyCtx')
+graphDollyCtx = _factories.getCmdFunc('graphDollyCtx')
 
-graphSelectContext = _factories._addCmdDocs('graphSelectContext')
+graphSelectContext = _factories.getCmdFunc('graphSelectContext')
 
-graphTrackCtx = _factories._addCmdDocs('graphTrackCtx')
+graphTrackCtx = _factories.getCmdFunc('graphTrackCtx')
 
-greasePencilCtx = _factories._addCmdDocs('greasePencilCtx')
+greasePencilCtx = _factories.getCmdFunc('greasePencilCtx')
 
-hotkeyCtx = _factories._addCmdDocs('hotkeyCtx')
+hotkeyCtx = _factories.getCmdFunc('hotkeyCtx')
 
-ikHandleCtx = _factories._addCmdDocs('ikHandleCtx')
+ikHandleCtx = _factories.getCmdFunc('ikHandleCtx')
 
-ikSplineHandleCtx = _factories._addCmdDocs('ikSplineHandleCtx')
+ikSplineHandleCtx = _factories.getCmdFunc('ikSplineHandleCtx')
 
-insertJointCtx = _factories._addCmdDocs('insertJointCtx')
+insertJointCtx = _factories.getCmdFunc('insertJointCtx')
 
-insertKeyCtx = _factories._addCmdDocs('insertKeyCtx')
+insertKeyCtx = _factories.getCmdFunc('insertKeyCtx')
 
-jointCtx = _factories._addCmdDocs('jointCtx')
+jointCtx = _factories.getCmdFunc('jointCtx')
 
-keyframeRegionCurrentTimeCtx = _factories._addCmdDocs('keyframeRegionCurrentTimeCtx')
+keyframeRegionCurrentTimeCtx = _factories.getCmdFunc('keyframeRegionCurrentTimeCtx')
 
-keyframeRegionDirectKeyCtx = _factories._addCmdDocs('keyframeRegionDirectKeyCtx')
+keyframeRegionDirectKeyCtx = _factories.getCmdFunc('keyframeRegionDirectKeyCtx')
 
-keyframeRegionDollyCtx = _factories._addCmdDocs('keyframeRegionDollyCtx')
+keyframeRegionDollyCtx = _factories.getCmdFunc('keyframeRegionDollyCtx')
 
-keyframeRegionInsertKeyCtx = _factories._addCmdDocs('keyframeRegionInsertKeyCtx')
+keyframeRegionInsertKeyCtx = _factories.getCmdFunc('keyframeRegionInsertKeyCtx')
 
-keyframeRegionMoveKeyCtx = _factories._addCmdDocs('keyframeRegionMoveKeyCtx')
+keyframeRegionMoveKeyCtx = _factories.getCmdFunc('keyframeRegionMoveKeyCtx')
 
-keyframeRegionScaleKeyCtx = _factories._addCmdDocs('keyframeRegionScaleKeyCtx')
+keyframeRegionScaleKeyCtx = _factories.getCmdFunc('keyframeRegionScaleKeyCtx')
 
-keyframeRegionSelectKeyCtx = _factories._addCmdDocs('keyframeRegionSelectKeyCtx')
+keyframeRegionSelectKeyCtx = _factories.getCmdFunc('keyframeRegionSelectKeyCtx')
 
-keyframeRegionSetKeyCtx = _factories._addCmdDocs('keyframeRegionSetKeyCtx')
+keyframeRegionSetKeyCtx = _factories.getCmdFunc('keyframeRegionSetKeyCtx')
 
-keyframeRegionTrackCtx = _factories._addCmdDocs('keyframeRegionTrackCtx')
+keyframeRegionTrackCtx = _factories.getCmdFunc('keyframeRegionTrackCtx')
 
-lassoContext = _factories._addCmdDocs('lassoContext')
+lassoContext = _factories.getCmdFunc('lassoContext')
 
-latticeDeformKeyCtx = _factories._addCmdDocs('latticeDeformKeyCtx')
+latticeDeformKeyCtx = _factories.getCmdFunc('latticeDeformKeyCtx')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def manipMoveContext(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -230,9 +230,9 @@ def manipMoveContext(*args, **kwargs):
     res = cmds.manipMoveContext(*args, **kwargs)
     return res
 
-manipMoveLimitsCtx = _factories._addCmdDocs('manipMoveLimitsCtx')
+manipMoveLimitsCtx = _factories.getCmdFunc('manipMoveLimitsCtx')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def manipRotateContext(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -248,9 +248,9 @@ def manipRotateContext(*args, **kwargs):
     res = cmds.manipRotateContext(*args, **kwargs)
     return res
 
-manipRotateLimitsCtx = _factories._addCmdDocs('manipRotateLimitsCtx')
+manipRotateLimitsCtx = _factories.getCmdFunc('manipRotateLimitsCtx')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def manipScaleContext(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -266,69 +266,69 @@ def manipScaleContext(*args, **kwargs):
     res = cmds.manipScaleContext(*args, **kwargs)
     return res
 
-manipScaleLimitsCtx = _factories._addCmdDocs('manipScaleLimitsCtx')
+manipScaleLimitsCtx = _factories.getCmdFunc('manipScaleLimitsCtx')
 
-mateCtx = _factories._addCmdDocs('mateCtx')
+mateCtx = _factories.getCmdFunc('mateCtx')
 
-modelCurrentTimeCtx = _factories._addCmdDocs('modelCurrentTimeCtx')
+modelCurrentTimeCtx = _factories.getCmdFunc('modelCurrentTimeCtx')
 
-modelingToolkitSuperCtx = _factories._addCmdDocs('modelingToolkitSuperCtx')
+modelingToolkitSuperCtx = _factories.getCmdFunc('modelingToolkitSuperCtx')
 
-moveKeyCtx = _factories._addCmdDocs('moveKeyCtx')
+moveKeyCtx = _factories.getCmdFunc('moveKeyCtx')
 
-mpBirailCtx = _factories._addCmdDocs('mpBirailCtx')
+mpBirailCtx = _factories.getCmdFunc('mpBirailCtx')
 
-orbitCtx = _factories._addCmdDocs('orbitCtx')
+orbitCtx = _factories.getCmdFunc('orbitCtx')
 
-panZoomCtx = _factories._addCmdDocs('panZoomCtx')
+panZoomCtx = _factories.getCmdFunc('panZoomCtx')
 
-paramDimContext = _factories._addCmdDocs('paramDimContext')
+paramDimContext = _factories.getCmdFunc('paramDimContext')
 
-polyAppendFacetCtx = _factories._addCmdDocs('polyAppendFacetCtx')
+polyAppendFacetCtx = _factories.getCmdFunc('polyAppendFacetCtx')
 
-polyCreaseCtx = _factories._addCmdDocs('polyCreaseCtx')
+polyCreaseCtx = _factories.getCmdFunc('polyCreaseCtx')
 
-polyCreateFacetCtx = _factories._addCmdDocs('polyCreateFacetCtx')
+polyCreateFacetCtx = _factories.getCmdFunc('polyCreateFacetCtx')
 
-polyCutCtx = _factories._addCmdDocs('polyCutCtx')
+polyCutCtx = _factories.getCmdFunc('polyCutCtx')
 
-polyCutUVCtx = _factories._addCmdDocs('polyCutUVCtx')
+polyCutUVCtx = _factories.getCmdFunc('polyCutUVCtx')
 
-polyMergeEdgeCtx = _factories._addCmdDocs('polyMergeEdgeCtx')
+polyMergeEdgeCtx = _factories.getCmdFunc('polyMergeEdgeCtx')
 
-polyMergeFacetCtx = _factories._addCmdDocs('polyMergeFacetCtx')
+polyMergeFacetCtx = _factories.getCmdFunc('polyMergeFacetCtx')
 
-polySelectCtx = _factories._addCmdDocs('polySelectCtx')
+polySelectCtx = _factories.getCmdFunc('polySelectCtx')
 
-polySelectEditCtx = _factories._addCmdDocs('polySelectEditCtx')
+polySelectEditCtx = _factories.getCmdFunc('polySelectEditCtx')
 
-polyShortestPathCtx = _factories._addCmdDocs('polyShortestPathCtx')
+polyShortestPathCtx = _factories.getCmdFunc('polyShortestPathCtx')
 
-polySlideEdgeCtx = _factories._addCmdDocs('polySlideEdgeCtx')
+polySlideEdgeCtx = _factories.getCmdFunc('polySlideEdgeCtx')
 
-polySplitCtx = _factories._addCmdDocs('polySplitCtx')
+polySplitCtx = _factories.getCmdFunc('polySplitCtx')
 
-polySuperCtx = _factories._addCmdDocs('polySuperCtx')
+polySuperCtx = _factories.getCmdFunc('polySuperCtx')
 
-polyVertexNormalCtx = _factories._addCmdDocs('polyVertexNormalCtx')
+polyVertexNormalCtx = _factories.getCmdFunc('polyVertexNormalCtx')
 
-projectionContext = _factories._addCmdDocs('projectionContext')
+projectionContext = _factories.getCmdFunc('projectionContext')
 
-propModCtx = _factories._addCmdDocs('propModCtx')
+propModCtx = _factories.getCmdFunc('propModCtx')
 
-regionSelectKeyCtx = _factories._addCmdDocs('regionSelectKeyCtx')
+regionSelectKeyCtx = _factories.getCmdFunc('regionSelectKeyCtx')
 
-renderWindowSelectContext = _factories._addCmdDocs('renderWindowSelectContext')
+renderWindowSelectContext = _factories.getCmdFunc('renderWindowSelectContext')
 
-retimeKeyCtx = _factories._addCmdDocs('retimeKeyCtx')
+retimeKeyCtx = _factories.getCmdFunc('retimeKeyCtx')
 
-rollCtx = _factories._addCmdDocs('rollCtx')
+rollCtx = _factories.getCmdFunc('rollCtx')
 
-roundCRCtx = _factories._addCmdDocs('roundCRCtx')
+roundCRCtx = _factories.getCmdFunc('roundCRCtx')
 
-scaleKeyCtx = _factories._addCmdDocs('scaleKeyCtx')
+scaleKeyCtx = _factories.getCmdFunc('scaleKeyCtx')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def scriptCtx(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -344,19 +344,19 @@ def scriptCtx(*args, **kwargs):
     res = cmds.scriptCtx(*args, **kwargs)
     return res
 
-sculptMeshCacheCtx = _factories._addCmdDocs('sculptMeshCacheCtx')
+sculptMeshCacheCtx = _factories.getCmdFunc('sculptMeshCacheCtx')
 
-selectContext = _factories._addCmdDocs('selectContext')
+selectContext = _factories.getCmdFunc('selectContext')
 
-selectKeyCtx = _factories._addCmdDocs('selectKeyCtx')
+selectKeyCtx = _factories.getCmdFunc('selectKeyCtx')
 
-selectKeyframeRegionCtx = _factories._addCmdDocs('selectKeyframeRegionCtx')
+selectKeyframeRegionCtx = _factories.getCmdFunc('selectKeyframeRegionCtx')
 
-setEditCtx = _factories._addCmdDocs('setEditCtx')
+setEditCtx = _factories.getCmdFunc('setEditCtx')
 
-setKeyCtx = _factories._addCmdDocs('setKeyCtx')
+setKeyCtx = _factories.getCmdFunc('setKeyCtx')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def shadingGeometryRelCtx(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -372,7 +372,7 @@ def shadingGeometryRelCtx(*args, **kwargs):
     res = cmds.shadingGeometryRelCtx(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def shadingLightRelCtx(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -388,7 +388,7 @@ def shadingLightRelCtx(*args, **kwargs):
     res = cmds.shadingLightRelCtx(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def showManipCtx(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -404,75 +404,75 @@ def showManipCtx(*args, **kwargs):
     res = cmds.showManipCtx(*args, **kwargs)
     return res
 
-skinBindCtx = _factories._addCmdDocs('skinBindCtx')
+skinBindCtx = _factories.getCmdFunc('skinBindCtx')
 
-snapTogetherCtx = _factories._addCmdDocs('snapTogetherCtx')
+snapTogetherCtx = _factories.getCmdFunc('snapTogetherCtx')
 
-snapshotBeadContext = _factories._addCmdDocs('snapshotBeadContext')
+snapshotBeadContext = _factories.getCmdFunc('snapshotBeadContext')
 
-snapshotBeadCtx = _factories._addCmdDocs('snapshotBeadCtx')
+snapshotBeadCtx = _factories.getCmdFunc('snapshotBeadCtx')
 
-snapshotModifyKeyCtx = _factories._addCmdDocs('snapshotModifyKeyCtx')
+snapshotModifyKeyCtx = _factories.getCmdFunc('snapshotModifyKeyCtx')
 
-softModContext = _factories._addCmdDocs('softModContext')
+softModContext = _factories.getCmdFunc('softModContext')
 
-softModCtx = _factories._addCmdDocs('softModCtx')
+softModCtx = _factories.getCmdFunc('softModCtx')
 
-softSelectOptionsCtx = _factories._addCmdDocs('softSelectOptionsCtx')
+softSelectOptionsCtx = _factories.getCmdFunc('softSelectOptionsCtx')
 
-spBirailCtx = _factories._addCmdDocs('spBirailCtx')
+spBirailCtx = _factories.getCmdFunc('spBirailCtx')
 
-srtContext = _factories._addCmdDocs('srtContext')
+srtContext = _factories.getCmdFunc('srtContext')
 
-stitchSurfaceCtx = _factories._addCmdDocs('stitchSurfaceCtx')
+stitchSurfaceCtx = _factories.getCmdFunc('stitchSurfaceCtx')
 
-superCtx = _factories._addCmdDocs('superCtx')
+superCtx = _factories.getCmdFunc('superCtx')
 
-targetWeldCtx = _factories._addCmdDocs('targetWeldCtx')
+targetWeldCtx = _factories.getCmdFunc('targetWeldCtx')
 
-texCutContext = _factories._addCmdDocs('texCutContext')
+texCutContext = _factories.getCmdFunc('texCutContext')
 
-texLatticeDeformContext = _factories._addCmdDocs('texLatticeDeformContext')
+texLatticeDeformContext = _factories.getCmdFunc('texLatticeDeformContext')
 
-texManipContext = _factories._addCmdDocs('texManipContext')
+texManipContext = _factories.getCmdFunc('texManipContext')
 
-texMoveContext = _factories._addCmdDocs('texMoveContext')
+texMoveContext = _factories.getCmdFunc('texMoveContext')
 
-texMoveUVShellContext = _factories._addCmdDocs('texMoveUVShellContext')
+texMoveUVShellContext = _factories.getCmdFunc('texMoveUVShellContext')
 
-texRotateContext = _factories._addCmdDocs('texRotateContext')
+texRotateContext = _factories.getCmdFunc('texRotateContext')
 
-texScaleContext = _factories._addCmdDocs('texScaleContext')
+texScaleContext = _factories.getCmdFunc('texScaleContext')
 
-texSculptCacheContext = _factories._addCmdDocs('texSculptCacheContext')
+texSculptCacheContext = _factories.getCmdFunc('texSculptCacheContext')
 
-texSelectContext = _factories._addCmdDocs('texSelectContext')
+texSelectContext = _factories.getCmdFunc('texSelectContext')
 
-texSelectShortestPathCtx = _factories._addCmdDocs('texSelectShortestPathCtx')
+texSelectShortestPathCtx = _factories.getCmdFunc('texSelectShortestPathCtx')
 
-texSmoothContext = _factories._addCmdDocs('texSmoothContext')
+texSmoothContext = _factories.getCmdFunc('texSmoothContext')
 
-texSmudgeUVContext = _factories._addCmdDocs('texSmudgeUVContext')
+texSmudgeUVContext = _factories.getCmdFunc('texSmudgeUVContext')
 
-texTweakUVContext = _factories._addCmdDocs('texTweakUVContext')
+texTweakUVContext = _factories.getCmdFunc('texTweakUVContext')
 
-texWinToolCtx = _factories._addCmdDocs('texWinToolCtx')
+texWinToolCtx = _factories.getCmdFunc('texWinToolCtx')
 
-textureLassoContext = _factories._addCmdDocs('textureLassoContext')
+textureLassoContext = _factories.getCmdFunc('textureLassoContext')
 
-texturePlacementContext = _factories._addCmdDocs('texturePlacementContext')
+texturePlacementContext = _factories.getCmdFunc('texturePlacementContext')
 
-threePointArcCtx = _factories._addCmdDocs('threePointArcCtx')
+threePointArcCtx = _factories.getCmdFunc('threePointArcCtx')
 
-trackCtx = _factories._addCmdDocs('trackCtx')
+trackCtx = _factories.getCmdFunc('trackCtx')
 
-trimCtx = _factories._addCmdDocs('trimCtx')
+trimCtx = _factories.getCmdFunc('trimCtx')
 
-tumbleCtx = _factories._addCmdDocs('tumbleCtx')
+tumbleCtx = _factories.getCmdFunc('tumbleCtx')
 
-twoPointArcCtx = _factories._addCmdDocs('twoPointArcCtx')
+twoPointArcCtx = _factories.getCmdFunc('twoPointArcCtx')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def userCtx(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -488,10 +488,10 @@ def userCtx(*args, **kwargs):
     res = cmds.userCtx(*args, **kwargs)
     return res
 
-view2dToolCtx = _factories._addCmdDocs('view2dToolCtx')
+view2dToolCtx = _factories.getCmdFunc('view2dToolCtx')
 
-walkCtx = _factories._addCmdDocs('walkCtx')
+walkCtx = _factories.getCmdFunc('walkCtx')
 
-wireContext = _factories._addCmdDocs('wireContext')
+wireContext = _factories.getCmdFunc('wireContext')
 
-wrinkleContext = _factories._addCmdDocs('wrinkleContext')
+wrinkleContext = _factories.getCmdFunc('wrinkleContext')

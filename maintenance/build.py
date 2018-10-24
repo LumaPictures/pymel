@@ -189,7 +189,7 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
             callbackFlags=callbackFlags, uiWidget=uiWidget).encode()
     else:
         if existing:
-            return "\n{newName} = _factories._addCmdDocs({origName})\n".format(
+            return "\n{newName} = _factories.addCmdDocs({origName})\n".format(
                 newName=rename or funcName,
                 origName=funcName)
         # no doc in runtime module
@@ -198,7 +198,7 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
                 newName=rename or funcName,
                 origName=funcName)
         else:
-            return "\n{newName} = _factories._addCmdDocs('{origName}')\n".format(
+            return "\n{newName} = _factories.getCmdFunc('{origName}')\n".format(
                 newName=rename or funcName,
                 origName=funcName)
 
@@ -220,7 +220,7 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
             newFunc.__doc__ = inFunc.__doc__
         elif inFunc.__doc__:
             newFunc.__doc__ = inFunc.__doc__
-    _addCmdDocs(newFunc, funcName)
+    addCmdDocs(newFunc, funcName)
 
 
 def _getModulePath(module):

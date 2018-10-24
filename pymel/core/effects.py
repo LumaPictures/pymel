@@ -5,7 +5,7 @@ import general as _general
 import pymel.internal.pmcmds as cmds
 
 # ------ Do not edit below this line --------
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def addDynamic(*args, **kwargs):
     res = cmds.addDynamic(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['addDynamic']
@@ -15,7 +15,7 @@ def addDynamic(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def addPP(*args, **kwargs):
     res = cmds.addPP(*args, **kwargs)
     wraps = _factories.simpleCommandWraps['addPP']
@@ -25,7 +25,7 @@ def addPP(*args, **kwargs):
             break
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def air(*args, **kwargs):
     res = cmds.air(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -35,7 +35,7 @@ def air(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def arrayMapper(*args, **kwargs):
     res = cmds.arrayMapper(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -45,11 +45,11 @@ def arrayMapper(*args, **kwargs):
         res = res[0]
     return res
 
-collision = _factories._addCmdDocs('collision')
+collision = _factories.getCmdFunc('collision')
 
-colorAtPoint = _factories._addCmdDocs('colorAtPoint')
+colorAtPoint = _factories.getCmdFunc('colorAtPoint')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def connectDynamic(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -65,9 +65,9 @@ def connectDynamic(*args, **kwargs):
     res = cmds.connectDynamic(*args, **kwargs)
     return res
 
-constrain = _factories._addCmdDocs('constrain')
+constrain = _factories.getCmdFunc('constrain')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def drag(*args, **kwargs):
     res = cmds.drag(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -77,22 +77,22 @@ def drag(*args, **kwargs):
         res = res[0]
     return res
 
-dynCache = _factories._addCmdDocs('dynCache')
+dynCache = _factories.getCmdFunc('dynCache')
 
-dynControl = _factories._addCmdDocs('dynControl')
+dynControl = _factories.getCmdFunc('dynControl')
 
-dynExport = _factories._addCmdDocs('dynExport')
+dynExport = _factories.getCmdFunc('dynExport')
 
-dynExpression = _factories._addCmdDocs('dynExpression')
+dynExpression = _factories.getCmdFunc('dynExpression')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def dynGlobals(*args, **kwargs):
     res = cmds.dynGlobals(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def dynPaintEditor(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -108,11 +108,11 @@ def dynPaintEditor(*args, **kwargs):
     res = cmds.dynPaintEditor(*args, **kwargs)
     return res
 
-dynPref = _factories._addCmdDocs('dynPref')
+dynPref = _factories.getCmdFunc('dynPref')
 
-emit = _factories._addCmdDocs('emit')
+emit = _factories.getCmdFunc('emit')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def emitter(*args, **kwargs):
     res = cmds.emitter(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -122,7 +122,7 @@ def emitter(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def event(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
@@ -138,18 +138,18 @@ def event(*args, **kwargs):
     res = cmds.event(*args, **kwargs)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def expression(*args, **kwargs):
     res = cmds.expression(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-expressionEditorListen = _factories._addCmdDocs('expressionEditorListen')
+expressionEditorListen = _factories.getCmdFunc('expressionEditorListen')
 
-fluidCacheInfo = _factories._addCmdDocs('fluidCacheInfo')
+fluidCacheInfo = _factories.getCmdFunc('fluidCacheInfo')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def fluidEmitter(*args, **kwargs):
     res = cmds.fluidEmitter(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -159,17 +159,17 @@ def fluidEmitter(*args, **kwargs):
         res = res[0]
     return res
 
-fluidVoxelInfo = _factories._addCmdDocs('fluidVoxelInfo')
+fluidVoxelInfo = _factories.getCmdFunc('fluidVoxelInfo')
 
-getDefaultBrush = _factories._addCmdDocs('getDefaultBrush')
+getDefaultBrush = _factories.getCmdFunc('getDefaultBrush')
 
-getFluidAttr = _factories._addCmdDocs('getFluidAttr')
+getFluidAttr = _factories.getCmdFunc('getFluidAttr')
 
-getParticleAttr = _factories._addCmdDocs('getParticleAttr')
+getParticleAttr = _factories.getCmdFunc('getParticleAttr')
 
-goal = _factories._addCmdDocs('goal')
+goal = _factories.getCmdFunc('goal')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def gravity(*args, **kwargs):
     res = cmds.gravity(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -179,96 +179,96 @@ def gravity(*args, **kwargs):
         res = res[0]
     return res
 
-loadFluid = _factories._addCmdDocs('loadFluid')
+loadFluid = _factories.getCmdFunc('loadFluid')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nBase(*args, **kwargs):
     res = cmds.nBase(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def nParticle(*args, **kwargs):
     res = cmds.nParticle(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-nSoft = _factories._addCmdDocs('nSoft')
+nSoft = _factories.getCmdFunc('nSoft')
 
-newton = _factories._addCmdDocs('newton')
+newton = _factories.getCmdFunc('newton')
 
-paintEffectsDisplay = _factories._addCmdDocs('paintEffectsDisplay')
+paintEffectsDisplay = _factories.getCmdFunc('paintEffectsDisplay')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def particle(*args, **kwargs):
     res = cmds.particle(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-particleExists = _factories._addCmdDocs('particleExists')
+particleExists = _factories.getCmdFunc('particleExists')
 
-particleFill = _factories._addCmdDocs('particleFill')
+particleFill = _factories.getCmdFunc('particleFill')
 
-particleInstancer = _factories._addCmdDocs('particleInstancer')
+particleInstancer = _factories.getCmdFunc('particleInstancer')
 
-particleRenderInfo = _factories._addCmdDocs('particleRenderInfo')
+particleRenderInfo = _factories.getCmdFunc('particleRenderInfo')
 
-pfxstrokes = _factories._addCmdDocs('pfxstrokes')
+pfxstrokes = _factories.getCmdFunc('pfxstrokes')
 
-radial = _factories._addCmdDocs('radial')
+radial = _factories.getCmdFunc('radial')
 
-resampleFluid = _factories._addCmdDocs('resampleFluid')
+resampleFluid = _factories.getCmdFunc('resampleFluid')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def rigidBody(*args, **kwargs):
     res = cmds.rigidBody(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def rigidSolver(*args, **kwargs):
     res = cmds.rigidSolver(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-runup = _factories._addCmdDocs('runup')
+runup = _factories.getCmdFunc('runup')
 
-saveFluid = _factories._addCmdDocs('saveFluid')
+saveFluid = _factories.getCmdFunc('saveFluid')
 
-saveInitialState = _factories._addCmdDocs('saveInitialState')
+saveInitialState = _factories.getCmdFunc('saveInitialState')
 
-setDynamic = _factories._addCmdDocs('setDynamic')
+setDynamic = _factories.getCmdFunc('setDynamic')
 
-setFluidAttr = _factories._addCmdDocs('setFluidAttr')
+setFluidAttr = _factories.getCmdFunc('setFluidAttr')
 
-setParticleAttr = _factories._addCmdDocs('setParticleAttr')
+setParticleAttr = _factories.getCmdFunc('setParticleAttr')
 
-soft = _factories._addCmdDocs('soft')
+soft = _factories.getCmdFunc('soft')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def spring(*args, **kwargs):
     res = cmds.spring(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def stroke(*args, **kwargs):
     res = cmds.stroke(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
-truncateFluidCache = _factories._addCmdDocs('truncateFluidCache')
+truncateFluidCache = _factories.getCmdFunc('truncateFluidCache')
 
-truncateHairCache = _factories._addCmdDocs('truncateHairCache')
+truncateHairCache = _factories.getCmdFunc('truncateHairCache')
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def turbulence(*args, **kwargs):
     res = cmds.turbulence(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -278,7 +278,7 @@ def turbulence(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def uniform(*args, **kwargs):
     res = cmds.uniform(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -288,7 +288,7 @@ def uniform(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def volumeAxis(*args, **kwargs):
     res = cmds.volumeAxis(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -298,7 +298,7 @@ def volumeAxis(*args, **kwargs):
         res = res[0]
     return res
 
-@_factories._addCmdDocs
+@_factories.addCmdDocs
 def vortex(*args, **kwargs):
     res = cmds.vortex(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):

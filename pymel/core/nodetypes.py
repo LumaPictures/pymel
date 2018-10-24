@@ -1288,7 +1288,7 @@ class DagNode(Entity):
     # TODO: support for underworld nodes
     def name(self, update=True, long=False, stripNamespace=False, levels=0,
              stripUnderWorld=False):
-        # type: (bool, {True, False, None}, bool, int, bool) -> unicode
+        # type: (bool, Optional[bool], bool, int, bool) -> unicode
         '''The name of the node
 
         Parameters
@@ -1298,7 +1298,7 @@ class DagNode(Entity):
             current name (and will therefore detect renames, re-parenting, etc);
             if False, it will use a cached value if available (which is slightly
             faster, but may be out of date)
-        long : {True, False, None}
+        long : Optional[bool]
             if True, will include always include the full dag path, starting
             from the world root, including leading pipe ( | ); if False, will
             return the shortest-unique path; if None, node names will always be
@@ -3583,7 +3583,9 @@ class Transform(DagNode):
         when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
         be returned.
 
-        :rtype: `Attribute`
+        Returns
+        -------
+        Attribute
         """
         # print "ATTR: Transform"
         try:
@@ -3659,7 +3661,9 @@ class Transform(DagNode):
     def getShape(self, **kwargs):
         # type: (**Any) -> DagNode
         """
-        :rtype: `DagNode`
+        Returns
+        -------
+        DagNode
         """
         kwargs['shapes'] = True
         try:
@@ -3670,7 +3674,9 @@ class Transform(DagNode):
     def getShapes(self, **kwargs):
         # type: (**Any) -> DagNode
         """
-        :rtype: `DagNode`
+        Returns
+        -------
+        DagNode
         """
         kwargs['shapes'] = True
         return self.getChildren(**kwargs)
@@ -3947,9 +3953,9 @@ class Transform(DagNode):
         # type: (Any, Any) -> BoundingBox
         """xform -boundingBox and xform -boundingBoxInvisible
 
-        :rtype: `BoundingBox`
-
-
+        Returns
+        -------
+        BoundingBox
         """
         kwargs = {'query': True}
         if invisible:
@@ -3970,7 +3976,9 @@ class Transform(DagNode):
     def getBoundingBoxMin(self, invisible=False, space='object'):
         # type: (Any, Any) -> Vector
         """
-        :rtype: `Vector`
+        Returns
+        -------
+        Vector
         """
         return self.getBoundingBox(invisible, space)[0]
         # return self.getBoundingBox(invisible).min()
@@ -3978,7 +3986,9 @@ class Transform(DagNode):
     def getBoundingBoxMax(self, invisible=False, space='object'):
         # type: (Any, Any) -> Vector
         """
-        :rtype: `Vector`
+        Returns
+        -------
+        Vector
         """
         return self.getBoundingBox(invisible, space)[1]
 # ------ Do not edit below this line --------
@@ -5269,7 +5279,9 @@ if not _factories.building:
                 >>> myCurve.numEPs()
                 9
     
-            :rtype: `int`
+            Returns
+            -------
+            int
             """)
 
 

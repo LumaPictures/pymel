@@ -505,8 +505,8 @@ class PyUI(unicode):
 
     # delete = _factories.functionFactory('deleteUI', rename='delete')
     # rename = _factories.functionFactory('renameUI', rename='rename')
-    delete = _factories._addCmdDocs('deleteUI')
-    rename = _factories._addCmdDocs('renameUI')
+    delete = _factories.getCmdFunc('deleteUI')
+    rename = _factories.getCmdFunc('renameUI')
 
     type = objectTypeUI
 
