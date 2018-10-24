@@ -1,7 +1,10 @@
 import re
 import os.path
 import platform
+from abc import ABCMeta, abstractmethod
 from HTMLParser import HTMLParser
+import xml.etree.cElementTree as ET
+
 import pymel.util as util
 import pymel.versions as versions
 import plogging
@@ -10,7 +13,12 @@ from pymel.mayautils import getMayaLocation
 try:
     from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
 except ImportError:
-    from BeautifulSoup import BeautifulSoup, NavigableString
+    try:
+        from BeautifulSoup import BeautifulSoup, NavigableString
+    except ImportError:
+        BeautifulSoup = None
+        NavigableString = None
+
 from keyword import iskeyword as _iskeyword
 
 FLAGMODES = ('create', 'query', 'edit', 'multiuse')
@@ -72,10 +80,27 @@ def mayaDocsLocation(version=None):
 
     return os.path.realpath(docLocation)
 
+
+def xmlText(element, strip=True, allowNone=True):
+    '''Given an xml Element object, returns it's full text (with children)'''
+    if allowNone and element is None:
+        return ''
+    text = "".join(element.itertext())
+    if strip:
+        text = text.strip()
+    return text
+
+
+def standardizeWhitespace(text):
+    return ' '.join(text.split())
+
+
 #---------------------------------------------------------------
 #        Doc Parser
 #---------------------------------------------------------------
 class CommandDocParser(HTMLParser):
+
+    _lettersRe = re.compile('([a-zA-Z]+)')
 
     def __init__(self, command):
         self.command = command
@@ -173,11 +198,11 @@ class CommandDocParser(HTMLParser):
                 self.emptyModeFlags.append(self.currFlag)
             elif self.emptyModeFlags:
                     #_logger.debug("past empty flags:", self.command, self.emptyModeFlags, self.currFlag)
-                basename = re.match('([a-zA-Z]+)', self.currFlag).groups()[0]
+                basename = self._lettersRe.match(self.currFlag).groups()[0]
                 modes = self.flags[self.currFlag]['modes']
                 self.emptyModeFlags.reverse()
                 for flag in self.emptyModeFlags:
-                    if re.match('([a-zA-Z]+)', flag).groups()[0] == basename:
+                    if self._lettersRe.match(flag).groups()[0] == basename:
                         self.flags[flag]['modes'] = modes
                     else:
                         break
@@ -402,7 +427,9 @@ class CommandModuleDocParser(HTMLParser):
             return
 
 class ApiDocParser(object):
-    OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
+    __metaclass__ = ABCMeta
+
+    NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
 
     # in enums with multiple keys per int value, which (pymel) key name to use
@@ -422,22 +449,50 @@ class ApiDocParser(object):
                    'MString', 'MStringArray', 'MStatus']
     NOT_TYPES = ['MCallbackId']
 
+    _bracketRe = re.compile(r'\[|\]')
+    _capitalizedWithNumsRe = re.compile('([A-Z0-9][a-z0-9]*)')
+    _isMethodNameRe = re.compile('is[A-Z].*')
+    _capitalizedRe = re.compile('([A-Z][a-z]*)')
+    _fillStorageResultRe = re.compile(r'\b([fF]ill|[sS]tor(age)|(ing))|([rR]esult)')
+    _setMethodNameRe = re.compile('set([A-Z].*)')
+    _getMethodNameRe = re.compile('get[A-Z]')
+
+    def __new__(cls, apiModule, version=None, *args, **kwargs):
+        # temp transition - use XML for 2019+
+        installVersion = versions.installName() if version is None else version
+        # for 2019+, installVersion should be just a number string...
+        if (cls == ApiDocParser):
+            try:
+                versionNum = float(installVersion)
+            except ValueError:
+                parserCls = HtmlApiDocParser
+            else:
+                if versionNum >= 2019:
+                    parserCls = XmlApiDocParser
+                else:
+                    parserCls = HtmlApiDocParser
+            return parserCls.__new__(parserCls, apiModule, version, *args, **kwargs)
+        else:
+            return super(ApiDocParser, cls).__new__(cls)
+
     def __init__(self, apiModule, version=None, verbose=False, enumClass=tuple,
-                 docLocation=None):
+                 docLocation=None, strict=False):
         self.version = versions.installName() if version is None else version
         self.apiModule = apiModule
         self.verbose = verbose
         if docLocation is None:
-            docLocation = mayaDocsLocation('2009' if self.version == '2008' else self.version)
+            docLocation = mayaDocsLocation(self.version)
         self.docloc = docLocation
         self.enumClass = enumClass
         if not os.path.isdir(self.docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+        self.strict = strict
 
         self.enums = {}
         self.pymelEnums = {}
         self.methods = util.defaultdict(list)
-        self.currentMethod = None
+        self.currentMethodName = None
+        self.currentRawMethod = None
         self.badEnums = []
 
     def __repr__(self):
@@ -450,17 +505,19 @@ class ApiDocParser(object):
                                                  self.enumClass.__name__,
                                                  self.docloc)
 
+    def fullMethodName(self):
+        className = self.apiClassName or "<no class>"
+        methodName = self.currentMethodName or "<no method>"
+        return className + '.' + methodName
+
     def formatMsg(self, *args):
-        return self.apiClassName + '.' + self.currentMethod + ': ' + ' '.join([str(x) for x in args])
+        return self.fullMethodName() + ': ' + ' '.join([str(x) for x in args])
 
     def xprint(self, *args):
         if self.verbose:
             print self.formatMsg(*args)
 
     def getPymelMethodNames(self):
-
-        setReg = re.compile('set([A-Z].*)')
-
         pymelNames = {}
         pairs = {}
         pairsList = []
@@ -478,7 +535,7 @@ class ApiDocParser(object):
                 info['inverse'] = (setMethod, False)
 
         for member in self.methods:
-            m = setReg.match(member)
+            m = self._setMethodNameRe.match(member)
             if m:
                 # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
                 # setSomething()  &  something()  becomes  setSomething() & getSomething()
@@ -488,7 +545,7 @@ class ApiDocParser(object):
                 setMethod = member  # for name clarity
                 if origGetMethod in self.methods:
                     # fix set
-                    if re.match('is[A-Z].*', origGetMethod):
+                    if self._isMethodNameRe.match(origGetMethod):
                         newSetMethod = 'set' + origGetMethod[2:]  # remove 'is' #member[5:]
                         pymelNames[setMethod] = newSetMethod
                         for info in self.methods[setMethod]:
@@ -515,15 +572,13 @@ class ApiDocParser(object):
 
     def getClassFilename(self):
         filename = 'class'
-        for tok in re.split('([A-Z][a-z]*)', self.apiClassName):
+        for tok in self._capitalizedRe.split(self.apiClassName):
             if tok:
                 if tok[0].isupper():
                     filename += '_' + tok.lower()
                 else:
                     filename += tok
         return filename
-
-    _capitalizedRe = re.compile('([A-Z0-9][a-z0-9]*)')
 
     def _apiEnumNamesToPymelEnumNames(self, apiEnumNames):
         """remove all common prefixes from list of enum values"""
@@ -539,7 +594,7 @@ class ApiDocParser(object):
 
             # {'kFooBar':0, 'kFooSomeThing':1}
             #     => [['k', 'Foo', 'Some', 'Thing'], ['k', 'Foo', 'Bar']]
-            splitEnums = [[y for y in self._capitalizedRe.split(x) if y] for x in apiEnumNames]
+            splitEnums = [[y for y in self._capitalizedWithNumsRe.split(x) if y] for x in apiEnumNames]
 
             # [['k', 'Invalid'], ['k', 'Pre', 'Transform']]
             #     => [('k', 'k'), ('Foo', 'Foo'), ('Some', 'Bar')]
@@ -669,16 +724,37 @@ class ApiDocParser(object):
         return methodName
 
     def isSetMethod(self):
-        if re.match('set[A-Z]', self.currentMethod):
-            return True
-        else:
-            return False
+        return bool(self._setMethodNameRe.match(self.currentMethodName))
 
     def isGetMethod(self):
-        if re.match('get[A-Z]', self.currentMethod):
-            return True
-        else:
-            return False
+        return bool(self._getMethodNameRe.match(self.currentMethodName))
+
+    def parseValue(self, rawValue, valueType):
+        try:
+            # Constants
+            value = {
+                'true': True,
+                'false': False,
+                'NULL': None
+            }[rawValue]
+        except KeyError:
+            try:
+                if valueType in ['int', 'uint', 'long', 'uchar']:
+                    value = int(rawValue.rstrip('UuLl'))
+                elif valueType in ['float', 'double']:
+                    # '1.0 / 24.0'
+                    if '/' in rawValue:
+                        value = eval(rawValue)
+                    # '1.0e-5F'  --> '1.0e-5'
+                    elif rawValue.endswith(('F', 'f')):
+                        value = float(rawValue[:-1])
+                    else:
+                        value = float(rawValue)
+                else:
+                    value = self.handleEnumDefaults(rawValue, valueType)
+            except ValueError:
+                value = self.handleEnumDefaults(rawValue, valueType)
+        return value
 
     def parseType(self, tokens):
         for i, each in enumerate(tokens):
@@ -699,14 +775,549 @@ class ApiDocParser(object):
         argtype = self.handleEnums(argtype)
         return argtype, tokens
 
-    def parseTypes(self, proto):
+    def parseEnum(self, enumData):
+        try:
+            parsedEnumData = self._parseEnum(enumData)
+            enumDocs = parsedEnumData['docs']
+
+            apiEnum = util.Enum(parsedEnumData['name'],
+                                parsedEnumData['values'], multiKeys=True)
+            apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
+            pymelEnum = self._apiEnumToPymelEnum(apiEnum,
+                                                 apiToPymelNames=apiToPymelNames)
+            for apiName, pymelName in apiToPymelNames.iteritems():
+                apiDoc = enumDocs.get(apiName)
+                if apiDoc is not None:
+                    enumDocs[pymelName] = apiDoc
+
+            enumInfo = {'values': apiEnum,
+                        'valueDocs': enumDocs,
+                        }
+            self.enums[parsedEnumData['name']] = enumInfo
+            self.pymelEnums[parsedEnumData['name']] = pymelEnum
+        except AttributeError as msg:
+            if self.strict:
+                raise
+            _logger.error("FAILED ENUM: %s", msg)
+            import traceback
+            _logger.debug(traceback.format_exc())
+
+    def parseMethod(self, rawMethod):
+        self.currentRawMethod = rawMethod
+        try:
+            methodName, returnType, returnQualifiers = self.getMethodNameAndOutput()
+            if methodName is None:
+                return
+
+            # skip constructors and destructors
+            if methodName.startswith('~') or methodName == self.apiClassName:
+                return
+
+            # convert operators to python special methods
+            if methodName.startswith('operator'):
+                methodName = self.getOperatorName(methodName)
+                if methodName is None:
+                    return
+
+            # no MStatus in python
+            if returnType in ['MStatus', 'void']:
+                returnType = None
+
+            # convert to unicode
+            self.currentMethodName = str(methodName)
+            try:
+                return self._parseMethod(returnType, returnQualifiers)
+            finally:
+                # reset
+                self.currentMethodName = None
+        finally:
+            # reset
+            self.currentRawMethod = None
+
+    def _parseMethod(self, returnType, returnQualifiers):
+        self.xprint("RETURN", returnType)
+
+        if self.hasNoPython():
+            return
+
+        names, types, typeQualifiers, defaults = self.parseArgTypes()
+
+        try:
+            directions, docs, methodDoc, returnDoc, deprecated = self.parseMethodArgs(returnType, names, types, typeQualifiers)
+        except AssertionError, msg:
+            if self.strict:
+                raise
+            _logger.error(self.formatMsg("FAILED", str(msg)))
+            return
+        except AttributeError:
+            if self.strict:
+                raise
+            import traceback
+            _logger.error(self.formatMsg(traceback.format_exc()))
+            return
+
+        argInfo = {}
+        argList = []
+        inArgs = []
+        outArgs = []
+
+        for argname in names[:]:
+            type = types[argname]
+            if argname not in directions:
+                self.xprint("Warning: assuming direction is 'in'")
+                directions[argname] = 'in'
+            direction = directions[argname]
+            doc = docs.get(argname, '')
+
+            if type == 'MStatus':
+                types.pop(argname)
+                defaults.pop(argname, None)
+                directions.pop(argname, None)
+                docs.pop(argname, None)
+                idx = names.index(argname)
+                names.pop(idx)
+            else:
+                if direction == 'in':
+                    inArgs.append(argname)
+                else:
+                    outArgs.append(argname)
+                argInfo[argname] = {'type': type, 'doc': doc}
+
+        # correct bad outputs
+        if self.isGetMethod() and not returnType and not outArgs:
+            for argname in names:
+                if '&' in typeQualifiers[argname]:
+                    doc = docs.get(argname, '')
+                    directions[argname] = 'out'
+                    idx = inArgs.index(argname)
+                    inArgs.pop(idx)
+                    outArgs.append(argname)
+
+                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
+                        self.apiClassName, self.currentMethodName, ', '.join(names), argname, doc))
+
+        # now that the directions are correct, make the argList
+        for argname in names:
+            type = types[argname]
+            self.xprint("DIRECTIONS", directions)
+            direction = directions[argname]
+            data = (argname, type, direction)
+            self.xprint("ARG", data)
+            argList.append(data)
+
+        methodInfo = {'argInfo': argInfo,
+                      'returnInfo': {'type': returnType,
+                                     'doc': returnDoc,
+                                     'qualifiers': returnQualifiers},
+                      'args': argList,
+                      'returnType': returnType,
+                      'inArgs': inArgs,
+                      'outArgs': outArgs,
+                      'doc': methodDoc,
+                      'defaults': defaults,
+                      #'directions' : directions,
+                      'types': types,
+                      'static': self.isStaticMethod(),
+                      'typeQualifiers': typeQualifiers,
+                      'deprecated': deprecated}
+        self.methods[self.currentMethodName].append(methodInfo)
+        return methodInfo
+
+    def setClass(self, apiClassName):
+        self.enums = {}
+        self.pymelEnums = {}
+        self.methods = util.defaultdict(list)
+        self.currentMethodName = None
+        self.badEnums = []
+
+        self.apiClassName = apiClassName
+        self.apiClass = getattr(self.apiModule, self.apiClassName)
+        self.docfile = self.getClassPath()
+
+        _logger.info("parsing file %s", self.docfile)
+
+    def parse(self, apiClassName):
+        self.setClass(apiClassName)
+        try:
+            self.parseBody()
+        except:
+            print "To reproduce run:\n%r.parse(%r)" % (self, apiClassName)
+            print self.formatMsg("Unknown error")
+            raise
+
+        pymelNames, invertibles = self.getPymelMethodNames()
+        return {'methods': dict(self.methods),
+                'enums': self.enums,
+                'pymelEnums': self.pymelEnums,
+                'pymelMethods': pymelNames,
+                'invertibles': invertibles
+                }
+
+    @abstractmethod
+    def parseArgTypes(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _parseEnum(self, enumData):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def hasNoPython(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def isStaticMethod(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def getMethodNameAndOutput(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def getClassPath(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def parseBody(self):
+        raise NotImplementedError()
+
+
+class XmlApiDocParser(ApiDocParser):
+    _backslashTagRe = re.compile(r'(?:^|(?<=\s))\\(\S+)\s+', re.MULTILINE)
+    _paramDirRe = re.compile(r'^param\[(?P<dir>in|out|in,out|inout)\]$')
+
+    def fullMethodName(self):
+        fullName = super(XmlApiDocParser, self).fullMethodName()
+        if self.currentRawMethod is not None:
+            line = ''
+            location = self.currentRawMethod.find('location')
+            if location is not None:
+                line = location.attrib.get('line', '')
+            if line:
+                fullName += ':' + line
+        return fullName
+
+    def setClass(self, apiClassName):
+        super(XmlApiDocParser, self).setClass(apiClassName)
+        self.tree = ET.parse(self.docfile)
+        self.root = self.tree.getroot()
+        self.cdef = self.root.find(".//compounddef[@kind='class'][@id='{}']".format(self.baseFilename))
+
+    def parseArgTypes(self):
+        names = []
+        types = {}
+        defaults = {}
+        typeQualifiers = {}
+
+        # TYPES
+        argsstring = self.currentRawMethod.find('argsstring')
+        if argsstring is None or xmlText(argsstring) != "(void)":
+            for param in self.currentRawMethod.findall('param'):
+                paramNameElem = param.find('defname')
+                if paramNameElem is None:
+                    paramNameElem = param.find('declname')
+                paramName = xmlText(paramNameElem)
+                rawType = xmlText(param.find('type'))
+                parsedType, qualifiers = self.parseType(rawType.split())
+                names.append(paramName)
+
+                arrayInfo = param.find('array')
+                if arrayInfo is not None:
+                    brackets = xmlText(arrayInfo)
+                    if brackets:
+                        numbuf = self._bracketRe.split(brackets)
+                        if len(numbuf) > 1:
+                            if not isinstance(parsedType, str):
+                                if isinstance(parsedType, self.enumClass):
+                                    raise TypeError("%s should be a string, but it has been marked as an enum. "
+                                                    "Check if it is a new type which should be added to "
+                                                    "OTHER_TYPES or MISSING_TYPES on this class." % (parsedType,))
+                                else:
+                                    raise TypeError("%r should be a string" % (parsedType,))
+                            # Note that these two args need to be cast differently:
+                            #   int2 foo;
+                            #   int bar[2];
+                            # ... so, instead of storing the type of both as
+                            # 'int2', we make the second one 'int__array2'
+                            parsedType = parsedType + '__array' + numbuf[1]
+                        else:
+                            print "this is not a bracketed number", repr(brackets), parsedType
+
+                types[paramName] = parsedType
+                typeQualifiers[paramName] = qualifiers
+
+                defaultElem = param.find('defval')
+                if defaultElem is not None:
+                    default = xmlText(defaultElem)
+                    if default:
+                        default = self.parseValue(default, parsedType)
+                        # default must be set here, because 'NULL' may mean default is set to back to None,
+                        # but in this case it is meaningful (ie, doesn't mean "there was no default")
+                        self.xprint('DEFAULT', default)
+                        defaults[paramName] = default
+
+        return names, types, typeQualifiers, defaults
+
+    def _parseEnum(self, enumData):
+        enumValues = {}
+        enumDocs = {}
+        enumName = xmlText(enumData.find('name'))
+        self.xprint("ENUM", enumName)
+
+        for enumValue in enumData.findall('enumvalue'):
+            enumKey = xmlText(enumValue.find('name'))
+            try:
+                enumVal = getattr(self.apiClass, enumKey)
+            except:
+                _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
+                enumVal = None
+            enumValues[enumKey] = enumVal
+            # TODO:
+            # do we want to feed the docstrings to the Enum object itself
+            # (which seems to have support for docstrings)? Currently, we're
+            # not...
+            docs = []
+            for docType in ('briefdescription', 'detaileddescription'):
+                docElem = enumValue.find(docType)
+                if docElem is not None:
+                    docText = xmlText(docElem)
+                    if docText:
+                        docs.append(docText)
+            if docs:
+                enumDocs[enumKey] = '\n\n'.join(docs)
+
+        return {'values': enumValues, 'docs': enumDocs, 'name': enumName}
+
+    def hasNoPython(self):
+        for text in self.currentRawMethod.itertext():
+            if text in self.NO_PYTHON_MSG:
+                self.xprint("NO PYTHON")
+                self.currentMethodName = None
+                return True
+        return False
+
+    def isDeprecated(self):
+        for text in self.currentRawMethod.itertext():
+            if text in self.DEPRECATED_MSG:
+                self.xprint("DEPRECATED")
+                return True
+        return False
+
+    def isStaticMethod(self):
+        return self.currentRawMethod.attrib.get('static') == "yes"
+
+    def iterBackslashTags(self, text):
+        r"""Iterator that parses text with tags like: "\tag Some text for tag"
+
+        Sometimes detail text does not parse parameters properly, and we end up with text like this,
+        from 2019 MFnMesh.addPolygon 2nd overload (with 6 args):
+
+        If we are adding to an existing polygonal mesh then parentOrOwner is
+        ignored and the geometry is returned.
+
+        \param[in] vertexArray Array of ordered vertices that make up the polygon.
+        \param[in] loopCounts Array of vertex loop counts.
+        \param[out] faceIndex Index of the newly added polygon.
+        \param[in] mergeVertices If true then if a vertex falls within
+                                                            pointTolerance of an existing vertex then the
+                                                            existing vertex is reused.
+        \param[in] pointTolerance Specifies how close verticies have to be to
+                                                            before they are &lt;i&gt;merged&lt;/i&gt;.  This merging is
+                                                            only done if &lt;i&gt;mergeVerticies&lt;/i&gt; is true.
+        \param[in] parentOrOwner The DAG parent or kMeshData the new
+                                                            surface will belong to.
+        \param[out] ReturnStatus Status code.
+
+        \return
+        The transform if one is created, otherwise the geometry.
+
+        This code will iterate through, finding lines that start with a "backslash tag", and issuing tuples like this:
+
+        ("param[in]", "vertexArray Array of ordered vertices that make up the polygon.\n")
+        ("param[in]", "loopCounts Array of vertex loop counts.\n")
+
+        The text before we find the first tag will be ignored.
+        """
+        currentTag = None
+        lastPosition = 0
+        for match in self._backslashTagRe.finditer(text):
+            previousText = text[lastPosition:match.start()]
+            if currentTag is not None:
+                yield (currentTag, previousText)
+            currentTag = match.group(1)
+            lastPosition = match.end()
+        if currentTag is not None:
+            yield (currentTag, text[lastPosition:])
+
+    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
+        directions = {}
+        docs = {}
+        deprecated = self.isDeprecated()
+        returnDoc = ''
+        methodDoc = ''
+
+        brief = self.currentRawMethod.find('briefdescription')
+        if brief is not None:
+            briefText = xmlText(brief)
+            if briefText not in self.DEPRECATED_MSG and briefText not in self.NO_PYTHON_MSG:
+                methodDoc = briefText
+
+        detail = self.currentRawMethod.find('detaileddescription')
+
+        if not methodDoc and detail is not None:
+            for para in detail.findall('para'):
+                paraText = xmlText(para)
+                if paraText:
+                    methodDoc = paraText
+
+        if returnType and detail is not None:
+            returnElem = detail.find(".//simplesect[@kind='return']")
+            returnDoc = standardizeWhitespace(xmlText(returnElem))
+
+        paramDescriptions = []
+        if detail is not None:
+            paramList = detail.find(".//parameterlist[@kind='param']")
+            if paramList is not None:
+                paramDescriptions = paramList.findall('parameteritem')
+
+        missingParamDocs = set(names)
+        foundParamDocs = set()
+
+        def validateName(name):
+            try:
+                missingParamDocs.remove(name)
+            except KeyError:
+                # check if it's in foundParamDocs - this is just for a clearer error message
+                if name in foundParamDocs:
+                    msg = "Found parameter description with name {} more than once".format(name)
+                    raise ValueError(self.formatMsg(msg))
+                else:
+                    msg = "Found parameter description with name {}, but no matching declaration".format(name)
+                    raise ValueError(self.formatMsg(msg))
+            foundParamDocs.add(name)
+
+        if len(paramDescriptions) > len(names):
+            msg = "found more ({}) parameter descriptions than parameter declarations ({})".format(
+                len(paramDescriptions), len(names))
+            raise ValueError(self.formatMsg(msg))
+
+        for param in paramDescriptions:
+            nameList = param.find('parameternamelist')
+            allNames = nameList.findall('parametername')
+
+            # Don't have an example of nameList > 1, so error for now
+            if len(allNames) > 1:
+                raise ValueError(self.formatMsg("found more than 1 name for parameter {!r}".format(name)))
+
+            name = xmlText(allNames[0])
+            validateName(name)
+            directions[name] = allNames[0].attrib['direction']
+            docs[name] = xmlText(param.find('parameterdescription'))
+
+        if missingParamDocs or (returnType and not returnDoc):
+            # Sometimes, "parameteritem" xml objects may not be properly created,
+            # but (manually) parsable information still exists in the detaileddescription
+            # ie, this happens in the 2019 MFnMesh.addPolygon 2nd overload (with 6 args)
+            if not paramDescriptions and detail is not None:
+                for tag, tagText in self.iterBackslashTags(xmlText(detail)):
+                    paramMatch = self._paramDirRe.match(tag)
+                    if paramMatch is not None:
+                        splitText = tagText.strip().split()
+                        name = splitText[0]
+                        validateName(name)
+                        directions[name] = paramMatch.group('dir')
+                        docs[name] = ' '.join(splitText[1:])
+
+        if missingParamDocs:
+            wereMissingAll = len(missingParamDocs) == len(names)
+            for missing in list(missingParamDocs):
+                if (types[missing] == 'MStatus'
+                        and ('*' in typeQualifiers[missing]
+                             or '&' in typeQualifiers[missing])):
+                    missingParamDocs.remove(missing)
+                    foundParamDocs.add(missing)
+                    directions[missing] = 'out'
+                    continue
+            if not wereMissingAll and missingParamDocs:
+                msg = "found parameters that were missing documentation: {}".format(
+                    ", ".join(sorted(missingParamDocs)))
+                raise ValueError(self.formatMsg(msg))
+
+        for name, dir in directions.iteritems():
+            doc = docs.get(name, '')
+            if dir == 'in':
+                # attempt to correct bad in/out docs
+                if self._fillStorageResultRe.search(doc):
+                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
+                        self.apiClassName, self.currentMethodName, ', '.join(names), name, doc))
+                    dir = 'out'
+                elif not self.isSetMethod() and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float', 'uint', 'uchar']:
+                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
+                        self.apiClassName, self.currentMethodName, ', '.join(names), name, types[name], doc))
+                    dir = 'out'
+            elif dir == 'out':
+                if types[name] == 'MAnimCurveChange':
+                    _logger.warn("%s.%s(%s): Setting MAnimCurveChange argument '%s' to an input arg (instead of output)" % (
+                        self.apiClassName, self.currentMethodName, ', '.join(names), name))
+                    dir = 'in'
+            elif dir in ('in,out', 'inout'):
+                # it makes the most sense to treat these types as inputs
+                # maybe someday we can deal with dual-direction args...?
+                dir = 'in'
+            else:
+                raise ValueError("direction must be either 'in', 'out', 'inout', or 'in,out'. got {!r}".format(dir))
+
+            assert name in names
+            directions[name] = dir
+            docs[name] = doc.replace('\n\r', ' ').replace('\n', ' ')
+
+        return directions, docs, methodDoc, returnDoc, deprecated
+
+    def getMethodNameAndOutput(self):
+        methodName = self.currentRawMethod.find("name").text
+
+        returnType = xmlText(self.currentRawMethod.find("type"))
+        returnType, returnQualifiers = self.parseType(returnType.split())
+
+        return methodName, returnType, returnQualifiers
+
+    def getClassPath(self):
+        self.baseFilename = self.getClassFilename()
+        filename = self.baseFilename + '.xml'
+        apiBase = os.path.join(self.docloc, 'doxygen_xml')
+        return os.path.join(apiBase, filename)
+
+    def parseBody(self):
+        types = self.cdef.find("./sectiondef[@kind='public-type']")
+        if types is not None:
+            for enum in types.findall("./memberdef[@kind='enum'][@prot='public']"):
+                self.parseEnum(enum)
+
+        funcs = self.cdef.find("./sectiondef[@kind='public-func']")
+        if funcs is not None:
+            for func in funcs.findall("./memberdef[@kind='function'][@prot='public']"):
+                self.parseMethod(func)
+
+
+class HtmlApiDocParser(ApiDocParser):
+    NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
+    DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
+
+    _enumRe = re.compile('Enumerator')
+    _paramPostNameRe = re.compile('([^=]*)(?:\s*=\s*(.*))?')
+
+    def parseArgTypes(self):
         defaults = {}
         names = []
         types = {}
         typeQualifiers = {}
         tmpTypes = []
         # TYPES
-        for paramtype in proto.findAll('td', **{'class': 'paramtype'}):
+        for paramtype in self.currentRawMethod.findAll('td', **{'class': 'paramtype'}):
             buf = []
             for x in paramtype.findAll(text=True):
                 buf.extend(x.split())
@@ -716,7 +1327,7 @@ class ApiDocParser(object):
 
         # ARGUMENT NAMES
         i = 0
-        for paramname in proto.findAll('td', **{'class': 'paramname'}):
+        for paramname in self.currentRawMethod.findAll('td', **{'class': 'paramname'}):
             buf = [x.strip().encode('ascii', 'ignore') for x in paramname.findAll(text=True) if x.strip() not in['', ',']]
             if not buf:
                 continue
@@ -730,10 +1341,10 @@ class ApiDocParser(object):
             if joined:
                 joined = joined.encode('ascii', 'ignore')
                 # break apart into index and defaults :  '[3] = NULL'
-                brackets, default = re.search('([^=]*)(?:\s*=\s*(.*))?', joined).groups()
+                brackets, default = self._paramPostNameRe.search(joined).groups()
 
                 if brackets:
-                    numbuf = re.split(r'\[|\]', brackets)
+                    numbuf = self._bracketRe.split(brackets)
                     if len(numbuf) > 1:
                         if not isinstance(type, str):
                             if isinstance(type, self.enumClass):
@@ -752,31 +1363,9 @@ class ApiDocParser(object):
                         print "this is not a bracketed number", repr(brackets), joined
 
                 if default is not None:
-                    try:
-                        # Constants
-                        default = {
-                            'true': True,
-                            'false': False,
-                            'NULL': None
-                        }[default]
-                    except KeyError:
-                        try:
-                            if type in ['int', 'uint', 'long', 'uchar']:
-                                default = int(default)
-                            elif type in ['float', 'double']:
-                                # '1.0 / 24.0'
-                                if '/' in default:
-                                    default = eval(default)
-                                # '1.0e-5F'  --> '1.0e-5'
-                                elif default.endswith('F'):
-                                    default = float(default[:-1])
-                                else:
-                                    default = float(default)
-                            else:
-                                default = self.handleEnumDefaults(default, type)
-                        except ValueError:
-                            default = self.handleEnumDefaults(default, type)
-                    # default must be set here, because 'NULL' may be set to back to None, but this is in fact the value we want
+                    default = self.parseValue(default, type)
+                    # default must be set here, because 'NULL' may mean default is set to back to None,
+                    # but in this case it is meaningful (ie, doesn't mean "there was no default")
                     self.xprint('DEFAULT', default)
                     defaults[argname] = default
 
@@ -787,27 +1376,26 @@ class ApiDocParser(object):
         assert sorted(names) == sorted(types.keys()), 'name-type mismatch %s %s' % (sorted(names), sorted(types.keys()))
         return names, types, typeQualifiers, defaults
 
-    def parseEnums(self, proto):
+    def _parseEnum(self, rawEnum):
         enumValues = {}
         enumDocs = {}
 
         # get the doc portion...
-        memdoc = proto.findNextSibling('div', 'memdoc')
+        memdoc = rawEnum.findNextSibling('div', 'memdoc')
         # ...then search through it's dl items, looking for one with text that
         # says "Enumerator"...
-        enumRe = re.compile('Enumerator')
         for dl in memdoc.findAll('dl'):
-            if dl.find(text=enumRe):
+            if dl.find(text=self._enumRe):
                 break
         else:
-            raise RuntimeError("couldn't find list of Enumerator items in enum %s" % self.currentMethod)
+            raise RuntimeError("couldn't find list of Enumerator items in enum %s" % self.currentMethodName)
         # ...and each "em" in that should be the enumerator values...
         for em in dl.findAll('em'):
             enumKey = str(em.contents[-1])
             try:
                 enumVal = getattr(self.apiClass, enumKey)
             except:
-                _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethod))
+                _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
                 enumVal = None
             enumValues[enumKey] = enumVal
             # TODO:
@@ -821,47 +1409,43 @@ class ApiDocParser(object):
             else:
                 enumDocs[enumKey] = str(docItem.contents[0]).strip()
 
-        apiEnum = util.Enum(self.currentMethod, enumValues, multiKeys=True)
-        apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
-        pymelEnum = self._apiEnumToPymelEnum(apiEnum,
-                                             apiToPymelNames=apiToPymelNames)
-        for apiName, pymelName in apiToPymelNames.iteritems():
-            apiDoc = enumDocs.get(apiName)
-            if apiDoc is not None:
-                enumDocs[pymelName] = apiDoc
+        return {'values': enumValues, 'docs': enumDocs, 'name': self.currentMethodName}
 
-        enumInfo = {'values': apiEnum,
-                    'valueDocs': enumDocs,
-
-                    #'doc' : methodDoc
-                    }
-        return enumInfo, pymelEnum
-
-    def isObsolete(self, proto):
+    def hasNoPython(self):
         # ARGUMENT DIRECTION AND DOCUMENTATION
-        addendum = proto.findNextSiblings('div', limit=1)[0]
+        addendum = self.currentRawMethod.findNextSiblings('div', limit=1)[0]
         # try: self.xprint( addendum.findAll(text=True ) )
         # except: pass
 
         # if addendum.findAll( text = re.compile( '(This method is obsolete.)|(Deprecated:)') ):
 
-        if addendum.findAll(text=lambda x: x in self.OBSOLETE_MSG):
-            self.xprint("OBSOLETE")
-            self.currentMethod = None
+        if addendum.findAll(text=lambda x: x in self.NO_PYTHON_MSG):
+            self.xprint("NO PYTHON")
+            self.currentMethodName = None
             return True
         return False
 
-    def parseMethodArgs(self, proto, returnType, names, types, typeQualifiers):
+    def isStaticMethod(self):
+        try:
+            res = self.currentRawMethod.findAll('code')
+            if res:
+                code = res[-1].string
+                if code and code.strip() == '[static]':
+                    return True
+        except IndexError:
+            pass
+        return False
+
+    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
         directions = {}
         docs = {}
         deprecated = False
         returnDoc = ''
 
-        addendum = proto.findNextSiblings('div', 'memdoc', limit=1)[0]
-        #if self.currentMethod == 'createColorSet': raise NotImplementedError
+        addendum = self.currentRawMethod.findNextSiblings('div', 'memdoc', limit=1)[0]
         if addendum.findAll(text=lambda x: x in self.DEPRECATED_MSG):
             self.xprint("DEPRECATED")
-            # print self.apiClassName + '.' + self.currentMethod + ':' + ' DEPRECATED'
+            # print self.apiClassName + '.' + self.currentMethodName + ':' + ' DEPRECATED'
             deprecated = True
 
         methodDoc = addendum.p
@@ -936,20 +1520,20 @@ class ApiDocParser(object):
             for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs):
                 if dir == '[in]':
                     # attempt to correct bad in/out docs
-                    if re.search(r'\b([fF]ill|[sS]tor(age)|(ing))|([rR]esult)', doc):
+                    if self._fillStorageResultRe.search(doc):
                         _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
-                            self.apiClassName, self.currentMethod, ', '.join(names), name, doc))
+                            self.apiClassName, self.currentMethodName, ', '.join(names), name, doc))
                         dir = 'out'
-                    elif not re.match('set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float', 'uint', 'uchar']:
+                    elif not self.isSetMethod() and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float', 'uint', 'uchar']:
                         _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
-                            self.apiClassName, self.currentMethod, ', '.join(names), name, types[name], doc))
+                            self.apiClassName, self.currentMethodName, ', '.join(names), name, types[name], doc))
                         dir = 'out'
                     else:
                         dir = 'in'
                 elif dir == '[out]':
                     if types[name] == 'MAnimCurveChange':
                         _logger.warn("%s.%s(%s): Setting MAnimCurveChange argument '%s' to an input arg (instead of output)" % (
-                            self.apiClassName, self.currentMethod, ', '.join(names), name))
+                            self.apiClassName, self.currentMethodName, ', '.join(names), name))
                         dir = 'in'
                     else:
                         dir = 'out'
@@ -979,9 +1563,9 @@ class ApiDocParser(object):
 
     TYPEDEF_RE = re.compile('^typedef(\s|$)')
 
-    def getMethodNameAndOutput(self, proto):
+    def getMethodNameAndOutput(self):
         # NAME AND RETURN TYPE
-        memb = proto.find('td', **{'class': 'memname'})
+        memb = self.currentRawMethod.find('td', **{'class': 'memname'})
         buf = []
         for text in memb.findAll(text=True):
             text = text.strip().encode('ascii', 'ignore')
@@ -1001,18 +1585,20 @@ class ApiDocParser(object):
             methodName = methodName.split('::')[-1]
             returnType, returnQualifiers = self.parseType(returnTypeToks)
 
-            # convert operators to python special methods
-            if methodName.startswith('operator'):
-                methodName = self.getOperatorName(methodName)
-            else:
-                #constructors and destructors
-                if methodName.startswith('~') or methodName == self.apiClassName:
-                    methodName = None
-            # no MStatus in python
-            if returnType in ['MStatus', 'void']:
-                returnType = None
-
         return methodName, returnType, returnQualifiers
+
+    def _parseMethod(self, returnType, returnQualifiers):
+        if self.currentMethodName == 'void(*':
+            return
+
+        # ENUMS
+        if returnType == 'enum':
+            self.xprint("ENUM", returnType)
+            # print returnType, methodName
+            self.parseEnum(self.currentRawMethod)
+            return
+
+        super(HtmlApiDocParser, self)._parseMethod(returnType, returnQualifiers)
 
     DOXYGEN_VER_RE = re.compile('Generated by Doxygen ([0-9.]+)')
 
@@ -1030,159 +1616,15 @@ class ApiDocParser(object):
             path = os.path.join(apiBase, 'cpp_ref', filename)
         return path
 
-    def parseMethod(self, proto):
-        methodName, returnType, returnQualifiers = self.getMethodNameAndOutput(proto)
-        if methodName is None:
-            return
-        # convert to unicode
-        self.currentMethod = str(methodName)
-        try:
-            if self.currentMethod == 'void(*':
-                return
-            # ENUMS
-            if returnType == 'enum':
-                self.xprint("ENUM", returnType)
-                # print returnType, methodName
-                try:
-                    # print enumList
-                    enumData = self.parseEnums(proto)
-                    self.enums[self.currentMethod] = enumData[0]
-                    self.pymelEnums[self.currentMethod] = enumData[1]
-
-                except AttributeError, msg:
-                    _logger.error("FAILED ENUM: %s", msg)
-                    import traceback
-                    _logger.debug(traceback.format_exc())
-
-            # ARGUMENTS
-            else:
-                self.xprint("RETURN", returnType)
-
-                # Static methods
-                static = False
-                try:
-                    res = proto.findAll('code')
-                    if res:
-                        code = res[-1].string
-                        if code and code.strip() == '[static]':
-                            static = True
-                except IndexError:
-                    pass
-
-                if self.isObsolete(proto):
-                    return
-
-                names, types, typeQualifiers, defaults = self.parseTypes(proto)
-
-                try:
-                    directions, docs, methodDoc, returnDoc, deprecated = self.parseMethodArgs(proto, returnType, names, types, typeQualifiers)
-                except AssertionError, msg:
-                    _logger.error(self.formatMsg("FAILED", str(msg)))
-                    return
-                except AttributeError:
-                    import traceback
-                    _logger.error(self.formatMsg(traceback.format_exc()))
-                    return
-
-                argInfo = {}
-                argList = []
-                inArgs = []
-                outArgs = []
-
-                for argname in names[:]:
-                    type = types[argname]
-                    if argname not in directions:
-                        self.xprint("Warning: assuming direction is 'in'")
-                        directions[argname] = 'in'
-                    direction = directions[argname]
-                    doc = docs.get(argname, '')
-
-                    if type == 'MStatus':
-                        types.pop(argname)
-                        defaults.pop(argname, None)
-                        directions.pop(argname, None)
-                        docs.pop(argname, None)
-                        idx = names.index(argname)
-                        names.pop(idx)
-                    else:
-                        if direction == 'in':
-                            inArgs.append(argname)
-                        else:
-                            outArgs.append(argname)
-                        argInfo[argname] = {'type': type, 'doc': doc}
-
-                # correct bad outputs
-                if self.isGetMethod() and not returnType and not outArgs:
-                    for argname in names:
-                        if '&' in typeQualifiers[argname]:
-                            doc = docs.get(argname, '')
-                            directions[argname] = 'out'
-                            idx = inArgs.index(argname)
-                            inArgs.pop(idx)
-                            outArgs.append(argname)
-
-                            _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
-                                self.apiClassName, self.currentMethod, ', '.join(names), argname, doc))
-
-                # now that the directions are correct, make the argList
-                for argname in names:
-                    type = types[argname]
-                    self.xprint("DIRECTIONS", directions)
-                    direction = directions[argname]
-                    data = (argname, type, direction)
-                    self.xprint("ARG", data)
-                    argList.append(data)
-
-                methodInfo = {'argInfo': argInfo,
-                              'returnInfo': {'type': returnType,
-                                             'doc': returnDoc,
-                                             'qualifiers': returnQualifiers},
-                              'args': argList,
-                              'returnType': returnType,
-                              'inArgs': inArgs,
-                              'outArgs': outArgs,
-                              'doc': methodDoc,
-                              'defaults': defaults,
-                              #'directions' : directions,
-                              'types': types,
-                              'static': static,
-                              'typeQualifiers': typeQualifiers,
-                              'deprecated': deprecated}
-                self.methods[self.currentMethod].append(methodInfo)
-                return methodInfo
-        finally:
-            # reset
-            self.currentMethod = None
-
     def setClass(self, apiClassName):
-        self.enums = {}
-        self.pymelEnums = {}
-        self.methods = util.defaultdict(list)
-        self.currentMethod = None
-        self.badEnums = []
-
-        self.apiClassName = apiClassName
-        self.apiClass = getattr(self.apiModule, self.apiClassName)
-        self.docfile = self.getClassPath()
-
-        _logger.info("parsing file %s", self.docfile)
+        super(HtmlApiDocParser, self).setClass(apiClassName)
 
         with open(self.docfile) as f:
             self.soup = BeautifulSoup(f.read(), convertEntities='html')
         self.doxygenVersion = self.getDoxygenVersion(self.soup)
 
-    def parse(self, apiClassName):
-        self.setClass(apiClassName)
-        try:
-            for proto in self.soup.body.findAll('div', **{'class': 'memproto'}):
-                self.parseMethod(proto)
-        except:
-            print "To reproduce run:\n%r.parse(%r)" % (self, apiClassName)
-            raise
-        pymelNames, invertibles = self.getPymelMethodNames()
-        return {'methods': dict(self.methods),
-                'enums': self.enums,
-                'pymelEnums': self.pymelEnums,
-                'pymelMethods': pymelNames,
-                'invertibles': invertibles
-                }
+    def parseBody(self):
+        for proto in self.soup.body.findAll('div', **{'class': 'memproto'}):
+            self.parseMethod(proto)
+
+
