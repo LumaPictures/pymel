@@ -1361,15 +1361,11 @@ class XmlApiDocParser(ApiDocParser):
         return os.path.join(apiBase, filename)
 
     def parseBody(self):
-        types = self.cdef.find("./sectiondef[@kind='public-type']")
-        if types is not None:
-            for enum in types.findall("./memberdef[@kind='enum'][@prot='public']"):
-                self.parseEnum(enum)
+        for enum in self.cdef.findall("./*/memberdef[@kind='enum'][@prot='public']"):
+            self.parseEnum(enum)
 
-        funcs = self.cdef.find("./sectiondef[@kind='public-func']")
-        if funcs is not None:
-            for func in funcs.findall("./memberdef[@kind='function'][@prot='public']"):
-                self.parseMethod(func)
+        for func in self.cdef.findall("./*/memberdef[@kind='function'][@prot='public']"):
+            self.parseMethod(func)
 
 
 class HtmlApiDocParser(ApiDocParser):
