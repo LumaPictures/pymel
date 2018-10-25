@@ -94,6 +94,24 @@ def xmlText(element, strip=True, allowNone=True):
 def standardizeWhitespace(text):
     return ' '.join(text.strip().split())
 
+# Thanks to Eloff for this snippet: https://stackoverflow.com/a/925630/920545
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+
+    def handle_data(self, d):
+        self.fed.append(d)
+
+    def get_data(self):
+        return ''.join(self.fed)
+
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()
+
 
 #---------------------------------------------------------------
 #        Doc Parser
@@ -1173,6 +1191,7 @@ class XmlApiDocParser(ApiDocParser):
                 paraText = xmlText(para)
                 if paraText:
                     methodDoc = paraText
+                    break
 
         if returnType and detail is not None:
             returnElem = detail.find(".//simplesect[@kind='return']")
@@ -1230,7 +1249,10 @@ class XmlApiDocParser(ApiDocParser):
                         name = splitText[0]
                         validateName(name)
                         directions[name] = paramMatch.group('dir')
-                        docs[name] = ' '.join(splitText[1:])
+                        # Because this didn't parse correctly, it may have some tags
+                        # still in the text - ie, "<i>merged</i>" (which gets encoded
+                        # in the xml as: "&lt;i&gt;merged&lt;/i&gt")
+                        docs[name] = strip_tags(' '.join(splitText[1:]))
 
         if missingParamDocs:
             wereMissingAll = len(missingParamDocs) == len(names)
