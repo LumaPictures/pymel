@@ -81,11 +81,39 @@ def mayaDocsLocation(version=None):
     return os.path.realpath(docLocation)
 
 
-def xmlText(element, strip=True, allowNone=True):
-    '''Given an xml Element object, returns it's full text (with children)'''
+def iterXmlTextUntil(element, predicate, _recursing=False):
+    '''Like Element.itertext, except will return early if predicate returns False for any child element
+
+    The predicate is NOT called on the passed in element.
+    '''
+    tag = element.tag
+    if not isinstance(tag, basestring) and tag is not None:
+        return
+    if element.text:
+        yield element.text
+    for e in element:
+        try:
+            if not predicate(e):
+                raise GeneratorExit
+            for s in iterXmlTextUntil(e, predicate, True):
+                yield s
+            if e.tail:
+                yield e.tail
+        except GeneratorExit:
+            if _recursing:
+                raise
+            return
+
+
+def xmlText(element, strip=True, predicate=lambda x: True, allowNone=True):
+    '''Given an xml Element object, returns it's full text (with children)
+
+    If predicate is given, and it returns False for this element or any child,
+    then text generation will be terminated at that point.
+    '''
     if allowNone and element is None:
         return ''
-    text = "".join(element.itertext())
+    text = "".join(iterXmlTextUntil(element, predicate))
     if strip:
         text = text.strip()
     return text
@@ -1186,9 +1214,12 @@ class XmlApiDocParser(ApiDocParser):
 
         detail = self.currentRawMethod.find('detaileddescription')
 
+        def stopOnAnythingButRef(element):
+            return element.tag == 'ref'
+
         if not methodDoc and detail is not None:
             for para in detail.findall('para'):
-                paraText = xmlText(para)
+                paraText = xmlText(para, predicate=stopOnAnythingButRef)
                 if paraText:
                     methodDoc = paraText
                     break
