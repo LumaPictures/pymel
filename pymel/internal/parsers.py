@@ -951,6 +951,9 @@ class ApiDocParser(object):
             self.xprint("ARG", data)
             argList.append(data)
 
+        if returnType is None:
+            returnDoc = ''
+
         methodInfo = {'argInfo': argInfo,
                       'returnInfo': {'type': returnType,
                                      'doc': standardizeWhitespace(returnDoc),
@@ -1156,7 +1159,8 @@ class XmlApiDocParser(ApiDocParser):
     def isStaticMethod(self):
         return self.currentRawMethod.attrib.get('static') == "yes"
 
-    def iterBackslashTags(self, text):
+    @classmethod
+    def iterBackslashTags(cls, text, subTags=('li',)):
         r"""Iterator that parses text with tags like: "\tag Some text for tag"
 
         Sometimes detail text does not parse parameters properly, and we end up with text like this,
@@ -1189,15 +1193,24 @@ class XmlApiDocParser(ApiDocParser):
         The text before we find the first tag will be ignored.
         """
         currentTag = None
+        currentTextChunks = []
         lastPosition = 0
-        for match in self._backslashTagRe.finditer(text):
-            previousText = text[lastPosition:match.start()]
-            if currentTag is not None:
-                yield (currentTag, previousText)
-            currentTag = match.group(1)
+        for match in cls._backslashTagRe.finditer(text):
+            currentTextChunks.append(text[lastPosition:match.start()])
             lastPosition = match.end()
+            newTag = match.group(1)
+            if newTag in subTags:
+                currentTextChunks.append(' ')
+                continue
+
+            if currentTag is not None:
+                yield (currentTag, ''.join(currentTextChunks))
+            currentTextChunks = []
+            currentTag = newTag
+
+        currentTextChunks.append(text[lastPosition:])
         if currentTag is not None:
-            yield (currentTag, text[lastPosition:])
+            yield (currentTag, ''.join(currentTextChunks))
 
     def parseMethodArgs(self, returnType, names, types, typeQualifiers):
         directions = {}
@@ -1284,6 +1297,9 @@ class XmlApiDocParser(ApiDocParser):
                         # still in the text - ie, "<i>merged</i>" (which gets encoded
                         # in the xml as: "&lt;i&gt;merged&lt;/i&gt")
                         docs[name] = strip_tags(' '.join(splitText[1:]))
+                    elif tag == 'return':
+                        if not returnDoc:
+                            returnDoc = strip_tags(tagText)
 
         if missingParamDocs:
             wereMissingAll = len(missingParamDocs) == len(names)
