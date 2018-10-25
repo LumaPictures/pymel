@@ -1094,7 +1094,7 @@ class XmlApiDocParser(ApiDocParser):
 
     def hasNoPython(self):
         for text in self.currentRawMethod.itertext():
-            if text in self.NO_PYTHON_MSG:
+            if any(badMsg in text for badMsg in self.NO_PYTHON_MSG):
                 self.xprint("NO PYTHON")
                 self.currentMethodName = None
                 return True
@@ -1102,7 +1102,7 @@ class XmlApiDocParser(ApiDocParser):
 
     def isDeprecated(self):
         for text in self.currentRawMethod.itertext():
-            if text in self.DEPRECATED_MSG:
+            if any(badMsg in text for badMsg in self.DEPRECATED_MSG):
                 self.xprint("DEPRECATED")
                 return True
         return False
@@ -1419,7 +1419,7 @@ class HtmlApiDocParser(ApiDocParser):
 
         # if addendum.findAll( text = re.compile( '(This method is obsolete.)|(Deprecated:)') ):
 
-        if addendum.findAll(text=lambda x: x in self.NO_PYTHON_MSG):
+        if addendum.findAll(text=lambda x: any(badMsg in x for badMsg in self.NO_PYTHON_MSG)):
             self.xprint("NO PYTHON")
             self.currentMethodName = None
             return True
@@ -1443,7 +1443,7 @@ class HtmlApiDocParser(ApiDocParser):
         returnDoc = ''
 
         addendum = self.currentRawMethod.findNextSiblings('div', 'memdoc', limit=1)[0]
-        if addendum.findAll(text=lambda x: x in self.DEPRECATED_MSG):
+        if addendum.findAll(text=lambda x: any(badMsg in x for badMsg in self.DEPRECATED_MSG)):
             self.xprint("DEPRECATED")
             # print self.apiClassName + '.' + self.currentMethodName + ':' + ' DEPRECATED'
             deprecated = True
