@@ -92,7 +92,7 @@ def xmlText(element, strip=True, allowNone=True):
 
 
 def standardizeWhitespace(text):
-    return ' '.join(text.split())
+    return ' '.join(text.strip().split())
 
 
 #---------------------------------------------------------------
@@ -881,7 +881,7 @@ class ApiDocParser(object):
                     inArgs.append(argname)
                 else:
                     outArgs.append(argname)
-                argInfo[argname] = {'type': type, 'doc': doc}
+                argInfo[argname] = {'type': type, 'doc': standardizeWhitespace(doc)}
 
         # correct bad outputs
         if self.isGetMethod() and not returnType and not outArgs:
@@ -907,13 +907,13 @@ class ApiDocParser(object):
 
         methodInfo = {'argInfo': argInfo,
                       'returnInfo': {'type': returnType,
-                                     'doc': returnDoc,
+                                     'doc': standardizeWhitespace(returnDoc),
                                      'qualifiers': returnQualifiers},
                       'args': argList,
                       'returnType': returnType,
                       'inArgs': inArgs,
                       'outArgs': outArgs,
-                      'doc': methodDoc,
+                      'doc': standardizeWhitespace(methodDoc),
                       'defaults': defaults,
                       #'directions' : directions,
                       'types': types,
@@ -1176,7 +1176,7 @@ class XmlApiDocParser(ApiDocParser):
 
         if returnType and detail is not None:
             returnElem = detail.find(".//simplesect[@kind='return']")
-            returnDoc = standardizeWhitespace(xmlText(returnElem))
+            returnDoc = xmlText(returnElem)
 
         paramDescriptions = []
         if detail is not None:
