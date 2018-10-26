@@ -95,7 +95,7 @@ def iterXmlTextAndElem(element):
             yield (e.tail, e, True)
 
 
-def getFirstText(element, ignore=('ref',)):
+def getFirstText(element, ignore=('ref')):
     '''Finds a non-empty text element, then stops once it hits not first non-filtered sub-element
 
     >>> getFirstText(ET.fromstring('<top>Some text. <sub>Blah</sub> tail.</top>'))
@@ -1081,51 +1081,55 @@ class XmlApiDocParser(ApiDocParser):
         typeQualifiers = {}
 
         # TYPES
-        argsstring = self.currentRawMethod.find('argsstring')
-        if argsstring is None or xmlText(argsstring) != "(void)":
-            for param in self.currentRawMethod.findall('param'):
-                paramNameElem = param.find('defname')
-                if paramNameElem is None:
-                    paramNameElem = param.find('declname')
-                paramName = xmlText(paramNameElem)
-                rawType = xmlText(param.find('type'))
-                parsedType, qualifiers = self.parseType(rawType.split())
-                names.append(paramName)
+        for param in self.currentRawMethod.findall('param'):
+            paramNameElem = param.find('defname')
+            if paramNameElem is None:
+                paramNameElem = param.find('declname')
+            paramName = xmlText(paramNameElem)
+            rawType = xmlText(param.find('type'))
+            parsedType, qualifiers = self.parseType(rawType.split())
+            names.append(paramName)
 
-                arrayInfo = param.find('array')
-                if arrayInfo is not None:
-                    brackets = xmlText(arrayInfo)
-                    if brackets:
-                        numbuf = self._bracketRe.split(brackets)
-                        if len(numbuf) > 1:
-                            if not isinstance(parsedType, str):
-                                if isinstance(parsedType, self.enumClass):
-                                    raise TypeError("%s should be a string, but it has been marked as an enum. "
-                                                    "Check if it is a new type which should be added to "
-                                                    "OTHER_TYPES or MISSING_TYPES on this class." % (parsedType,))
-                                else:
-                                    raise TypeError("%r should be a string" % (parsedType,))
-                            # Note that these two args need to be cast differently:
-                            #   int2 foo;
-                            #   int bar[2];
-                            # ... so, instead of storing the type of both as
-                            # 'int2', we make the second one 'int__array2'
-                            parsedType = parsedType + '__array' + numbuf[1]
-                        else:
-                            print "this is not a bracketed number", repr(brackets), parsedType
+            arrayInfo = param.find('array')
+            if arrayInfo is not None:
+                brackets = xmlText(arrayInfo)
+                if brackets:
+                    numbuf = self._bracketRe.split(brackets)
+                    if len(numbuf) > 1:
+                        if not isinstance(parsedType, str):
+                            if isinstance(parsedType, self.enumClass):
+                                raise TypeError("%s should be a string, but it has been marked as an enum. "
+                                                "Check if it is a new type which should be added to "
+                                                "OTHER_TYPES or MISSING_TYPES on this class." % (parsedType,))
+                            else:
+                                raise TypeError("%r should be a string" % (parsedType,))
+                        # Note that these two args need to be cast differently:
+                        #   int2 foo;
+                        #   int bar[2];
+                        # ... so, instead of storing the type of both as
+                        # 'int2', we make the second one 'int__array2'
+                        parsedType = parsedType + '__array' + numbuf[1]
+                    else:
+                        print "this is not a bracketed number", repr(brackets), parsedType
 
-                types[paramName] = parsedType
-                typeQualifiers[paramName] = qualifiers
+            types[paramName] = parsedType
+            typeQualifiers[paramName] = qualifiers
 
-                defaultElem = param.find('defval')
-                if defaultElem is not None:
-                    default = xmlText(defaultElem)
-                    if default:
-                        default = self.parseValue(default, parsedType)
-                        # default must be set here, because 'NULL' may mean default is set to back to None,
-                        # but in this case it is meaningful (ie, doesn't mean "there was no default")
-                        self.xprint('DEFAULT', default)
-                        defaults[paramName] = default
+            defaultElem = param.find('defval')
+            if defaultElem is not None:
+                default = xmlText(defaultElem)
+                if default:
+                    default = self.parseValue(default, parsedType)
+                    # default must be set here, because 'NULL' may mean default is set to back to None,
+                    # but in this case it is meaningful (ie, doesn't mean "there was no default")
+                    self.xprint('DEFAULT', default)
+                    defaults[paramName] = default
+        # filter myFunc(void) type funcs - this also gets stuff like "myFunc(void) const"
+        if types == {'': 'void'}:
+            names = []
+            types = {}
+            typeQualifiers = {}
+            defaults = {}
 
         return names, types, typeQualifiers, defaults
 
