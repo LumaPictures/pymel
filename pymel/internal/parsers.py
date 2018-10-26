@@ -1610,6 +1610,7 @@ class HtmlApiDocParser(ApiDocParser):
             for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs):
                 if dir == '[in]':
                     # attempt to correct bad in/out docs
+                    # TODO: fix? see MFnMesh.booleanOp(useLegacy)
                     if self._fillStorageResultRe.search(doc):
                         _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
                             self.apiClassName, self.currentMethodName, ', '.join(names), name, doc))
