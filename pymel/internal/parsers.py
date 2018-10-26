@@ -81,31 +81,45 @@ def mayaDocsLocation(version=None):
     return os.path.realpath(docLocation)
 
 
-def iterXmlTextUntil(element, predicate, _recursing=False):
-    '''Like Element.itertext, except will return early if predicate returns False for any child element
-
-    The predicate is NOT called on the passed in element.
-    '''
+def iterXmlTextAndElem(element):
+    '''Like Element.itertext, except returns a tuple of (text, element, isTail)'''
     tag = element.tag
     if not isinstance(tag, basestring) and tag is not None:
         return
     if element.text:
-        yield element.text
+        yield (element.text, element, False)
     for e in element:
-        try:
-            if not predicate(e):
-                raise GeneratorExit
-            for s in iterXmlTextUntil(e, predicate, True):
-                yield s
-            if e.tail:
-                yield e.tail
-        except GeneratorExit:
-            if _recursing:
-                raise
-            return
+        for s in iterXmlTextAndElem(e):
+            yield s
+        if e.tail:
+            yield (e.tail, e, True)
 
 
-def xmlText(element, strip=True, predicate=lambda x: True, allowNone=True):
+def getFirstText(element, ignore=('ref',)):
+    '''Finds a non-empty text element, then stops once it hits not first non-filtered sub-element
+
+    >>> getFirstText(ET.fromstring('<top>Some text. <sub>Blah</sub> tail.</top>'))
+    'Some text. '
+    >>> getFirstText(ET.fromstring('<top><sub>Blah blah</sub> More stuff</top>'))
+    'Blah blah'
+    >>> getFirstText(ET.fromstring('<top> <sub>Blah blah <ref>someRef</ref> More stuff</sub> The end</top>'))
+    'Blah blah someRef More stuff'
+    '''
+    chunks = []
+    foundText = False
+
+    for text, elem, isTail in iterXmlTextAndElem(element):
+        if foundText:
+            if elem.tag not in ignore:
+                break
+        elif text.strip():
+            foundText = True
+        chunks.append(text)
+
+    return ''.join(chunks).strip()
+
+
+def xmlText(element, strip=True, allowNone=True):
     '''Given an xml Element object, returns it's full text (with children)
 
     If predicate is given, and it returns False for this element or any child,
@@ -113,7 +127,7 @@ def xmlText(element, strip=True, predicate=lambda x: True, allowNone=True):
     '''
     if allowNone and element is None:
         return ''
-    text = "".join(iterXmlTextUntil(element, predicate))
+    text = "".join(element.itertext())
     if strip:
         text = text.strip()
     return text
@@ -1221,18 +1235,15 @@ class XmlApiDocParser(ApiDocParser):
 
         brief = self.currentRawMethod.find('briefdescription')
         if brief is not None:
-            briefText = xmlText(brief)
+            briefText = getFirstText(brief)
             if briefText not in self.DEPRECATED_MSG and briefText not in self.NO_PYTHON_MSG:
                 methodDoc = briefText
 
         detail = self.currentRawMethod.find('detaileddescription')
 
-        def stopOnAnythingButRef(element):
-            return element.tag == 'ref'
-
         if not methodDoc and detail is not None:
             for para in detail.findall('para'):
-                paraText = xmlText(para, predicate=stopOnAnythingButRef)
+                paraText = getFirstText(para)
                 if paraText:
                     methodDoc = paraText
                     break
