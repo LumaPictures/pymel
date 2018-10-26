@@ -95,7 +95,7 @@ def iterXmlTextAndElem(element):
             yield (e.tail, e, True)
 
 
-def getFirstText(element, ignore=('ref')):
+def getFirstText(element, ignore=('ref', 'bold', 'emphasis')):
     '''Finds a non-empty text element, then stops once it hits not first non-filtered sub-element
 
     >>> getFirstText(ET.fromstring('<top>Some text. <sub>Blah</sub> tail.</top>'))
