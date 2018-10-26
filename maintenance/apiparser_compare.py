@@ -6,6 +6,7 @@ Written for transitioning to doxygen-xml docs, so we can compare to old results'
 import argparse
 import inspect
 import os
+import re
 import sys
 
 THIS_FILE = os.path.normpath(os.path.abspath(inspect.getsourcefile(lambda: None)))
@@ -48,6 +49,40 @@ class ApiEnum(tuple):
         if pymelName is not None:
             parts[0] = pymelName
         return '.'.join([str(x) for x in parts])
+
+
+def writeClassInfo(classInfo, path):
+    from pprint import pformat
+    with open(path, "w") as f:
+        f.write(pformat(classInfo))
+
+
+def readClassInfo(path):
+    from pymel.util import Enum, EnumValue
+    with open(path, 'r') as f:
+        contents = f.read()
+    return eval(contents)
+
+
+def iterItemsRecursive(thisValue, parentKeys=None, parentValue=None):
+    if parentKeys is None:
+        parentKeys = []
+    if isinstance(thisValue, (tuple, list)):
+        for i, subVal in enumerate(thisValue):
+            newParentKeys = parentKeys + [i]
+            for subItem in iterItemsRecursive(subVal,
+                                              parentKeys=newParentKeys,
+                                              parentValue=thisValue):
+                yield subItem
+    elif isinstance(thisValue, dict):
+        for key, subVal in thisValue.iteritems():
+            newParentKeys = parentKeys + [key]
+            for subItem in iterItemsRecursive(subVal,
+                                              parentKeys=newParentKeys,
+                                              parentValue=thisValue):
+                yield subItem
+    else:
+        yield (thisValue, parentKeys, parentValue)
 
 
 def parse(parsers=None, classes=None, baseDir=None, verbose=False):
@@ -126,13 +161,98 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False):
         for className, classData in apiClassInfo.iteritems():
             classFile = os.path.join(outputDir, className + '.py')
             print "writing: {}".format(classFile)
-            with open(classFile, "w") as f:
-                f.write(pformat(classData))
+            writeClassInfo(classData, classFile)
     print "done"
 
 
+class Transform(object):
+    """Individual transform applied to an apiClassInfo"""
+    def xform(self, inputClassInfo):
+        raise NotImplementedError
+
+
+class StripStrings(Transform):
+    def xform(self, classInfo):
+        for item, parentKeys, parent in iterItemsRecursive(classInfo):
+            if isinstance(item, basestring):
+                parent[parentKeys[-1]] = item.strip()
+
+
+class RegexpTransform(Transform):
+    def __init__(self, find, replace, keyFilter=None):
+        if not isinstance(find, re._pattern_type):
+            find = re.compile(find)
+        self.find = find
+        self.replace = replace
+        self.keyFilter = keyFilter
+
+    def xform(self, classInfo):
+        for item, parentKeys, parent in iterItemsRecursive(classInfo):
+            if isinstance(item, basestring):
+                parent[parentKeys[-1]] = self.fine.sub(self.replace, item)
+
+
+class Processor(object):
+    """Used to massage / format raw classInfo data to make for easier
+    comparisons."""
+    def __init__(self, xforms):
+        self.xforms = xforms
+
+    def processDir(self, dir, classes=None):
+        if classes is not None:
+            classes = set(classes)
+        outputDir = dir + '_processed'
+        if not os.path.isdir(outputDir):
+            os.makedirs(outputDir)
+
+        contents = os.listdir(dir)
+        for filename in contents:
+            base, ext = os.path.splitext(filename)
+            if ext == '.py' and (classes is None or base in classes):
+                path = os.path.join(dir, filename)
+                if os.path.isfile(path):
+                    self.processFile(path, outputDir)
+        return outputDir
+
+    def processFile(self, path, outputDir):
+        outPath = os.path.join(outputDir, os.path.basename(path))
+        print "Processing: {}...".format(path),
+        try:
+            classInfo = readClassInfo(path)
+            for xform in self.xforms:
+                xform.xform(classInfo)
+            writeClassInfo(classInfo, outPath)
+            print "Wrote {}".format(outPath),
+        finally:
+            # add the newline
+            print
+
+
+PROCESSORS = {
+    'ApiDocParserOld': Processor([
+        StripStrings(),
+    ]),
+    'HtmlApiDocParser': Processor([
+    ]),
+    'XmlApiDocParser': Processor([
+    ]),
+}
+
+
+
 def compare(dir1, dir2, classes=None, baseDir=None):
-    pass
+    dir1 = os.path.join(baseDir, dir1)
+    dir2 = os.path.join(baseDir, dir2)
+    processors = []
+    for inputDir in (dir1, dir2):
+        basename = os.path.basename(inputDir)
+        try:
+            processors.append(PROCESSORS[basename])
+        except KeyError:
+            raise KeyError("Unrecognized dir name: {}".format(basename))
+    outputDirs = []
+    for inputDir, processor in zip((dir1, dir2), processors):
+        outputDirs.append(processor.processDir(inputDir, classes=classes))
 
 
 def parse_cmd(args):
