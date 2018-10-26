@@ -1376,7 +1376,7 @@ class XmlApiDocParser(ApiDocParser):
     def getClassPath(self):
         self.baseFilename = self.getClassFilename()
         filename = self.baseFilename + '.xml'
-        apiBase = os.path.join(self.docloc, 'doxygen_xml')
+        apiBase = os.path.join(self.docloc, 'xml')
         return os.path.join(apiBase, filename)
 
     def parseBody(self):
