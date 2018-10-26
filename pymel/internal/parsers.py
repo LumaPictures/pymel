@@ -869,6 +869,10 @@ class ApiDocParser(object):
             if methodName is None:
                 return
 
+            # Old html parser filtered these from returnQualifiers, so we enforce this
+            # too, for consistency
+            returnQualifiers = [x for x in returnQualifiers if x not in ['const', 'unsigned'] and x]
+
             # skip constructors and destructors
             if methodName.startswith('~') or methodName == self.apiClassName:
                 return
@@ -1652,7 +1656,7 @@ class HtmlApiDocParser(ApiDocParser):
         for text in memb.findAll(text=True):
             text = text.strip().encode('ascii', 'ignore')
             buf.extend(text.split())
-        buf = [x for x in buf if x not in ['const', 'unsigned'] and x]
+        buf = [x for x in buf if x]
 
         assert buf, "could not parse a method name"
 
