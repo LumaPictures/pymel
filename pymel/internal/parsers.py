@@ -1375,8 +1375,14 @@ class XmlApiDocParser(ApiDocParser):
         for enum in self.cdef.findall("./*/memberdef[@kind='enum'][@prot='public']"):
             self.parseEnum(enum)
 
-        for func in self.cdef.findall("./*/memberdef[@kind='function'][@prot='public']"):
-            self.parseMethod(func)
+        for func in self.cdef.findall("./*/memberdef[@kind='function']"):
+            # We take public functions, and protected virtual functions
+            # Protected virtual funcs may not be exposed if the method they override
+            # isn't public, but better to be overly inclusive
+            protection = func.attrib.get('prot')
+            if (protection == 'public' or
+                    (protection == 'protected' and func.attrib.get('virt') == 'virtual')):
+                self.parseMethod(func)
 
 
 class HtmlApiDocParser(ApiDocParser):
