@@ -64,8 +64,10 @@ def readClassInfo(path):
     return eval(contents)
 
 
-def iterItemsRecursive(thisValue, parentKeys=None, parentValue=None,
-                       yieldParents=False):
+def iterItemsRecursive(thisValue, parents=None, parentKeys=None,
+                       leavesOnly=True):
+    if parents is None:
+        parents = []
     if parentKeys is None:
         parentKeys = []
 
@@ -73,25 +75,31 @@ def iterItemsRecursive(thisValue, parentKeys=None, parentValue=None,
         return (isinstance(item, list) or
                 (isinstance(item, tuple) and not isinstance(item, ApiEnum)))
 
-    if yieldParents or not (isListLike(thisValue)
+    if not leavesOnly or not (isListLike(thisValue)
                             or isinstance(thisValue, dict)):
-        yield (thisValue, parentKeys, parentValue)
+        yield (thisValue, parents, parentKeys)
 
     if isListLike(thisValue):
-        for i, subVal in enumerate(thisValue):
+        # iterate backwards, so if child deletes item, iteration is still valid
+        indicesItems = list(enumerate(thisValue))
+        for i, subVal in reversed(indicesItems):
+            newParents = parents + [thisValue]
             newParentKeys = parentKeys + [i]
             for subItem in iterItemsRecursive(subVal,
+                                              parents=newParents,
                                               parentKeys=newParentKeys,
-                                              parentValue=thisValue,
-                                              yieldParents=yieldParents):
+                                              leavesOnly=leavesOnly):
                 yield subItem
     elif isinstance(thisValue, dict):
-        for key, subVal in thisValue.iteritems():
+        # need to use items, because we may change thisValue while iterating
+        # children...
+        for key, subVal in thisValue.items():
+            newParents = parents + [thisValue]
             newParentKeys = parentKeys + [key]
             for subItem in iterItemsRecursive(subVal,
+                                              parents=newParents,
                                               parentKeys=newParentKeys,
-                                              parentValue=thisValue,
-                                              yieldParents=yieldParents):
+                                              leavesOnly=leavesOnly):
                 yield subItem
 
 
@@ -177,30 +185,30 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False):
 
 class Transform(object):
     """Individual transform applied to an apiClassInfo"""
-    YIELD_PARENTS = False
+    LEAVES_ONLY = True
     def xform(self, classInfo):
-        for item, parentKeys, parent in iterItemsRecursive(
-                classInfo, yieldParents=self.YIELD_PARENTS):
-            self.xformItem(item, parentKeys, parent)
+        for item, parents, parentKeys in iterItemsRecursive(
+                classInfo, leavesOnly=self.LEAVES_ONLY):
+            self.xformItem(item, parents, parentKeys)
 
-    def xformItem(self, item, parentKeys, parent):
+    def xformItem(self, item, parents, parentKeys):
         raise NotImplementedError
 
 # Do this first, as it will then allow other Transforms to alter items inside of
 # tuples
 class TuplesToLists(Transform):
-    YIELD_PARENTS = True
+    LEAVES_ONLY = False
 
-    def xformItem(self, item, parentKeys, parent):
+    def xformItem(self, item, parents, parentKeys):
         if (isinstance(item, tuple) and not isinstance(item, ApiEnum)
-                and parent is not None):
-            parent[parentKeys[-1]] = list(item)
+                and parents):
+            parents[-1][parentKeys[-1]] = list(item)
 
 
 class StripStrings(Transform):
-    def xformItem(self, item, parentKeys, parent):
-        if isinstance(item, basestring) and parent is not None:
-            parent[parentKeys[-1]] = item.strip()
+    def xformItem(self, item, parents, parentKeys):
+        if isinstance(item, basestring) and parents:
+            parents[-1][parentKeys[-1]] = item.strip()
 
 
 class RegexpTransform(Transform):
@@ -211,9 +219,16 @@ class RegexpTransform(Transform):
         self.replace = replace
         self.keyFilter = keyFilter
 
-    def xformItem(self, item, parentKeys, parent):
-        if isinstance(item, basestring) and parent is not None:
-            parent[parentKeys[-1]] = self.fine.sub(self.replace, item)
+    def xformItem(self, item, parents, parentKeys):
+        if isinstance(item, basestring) and parents:
+            parents[-1][parentKeys[-1]] = self.fine.sub(self.replace, item)
+
+
+class RemoveNoScriptDocs(Transform):
+    def xformItem(self, item, parents, parentKeys):
+        if (parentKeys[-1] == 'doc' and isinstance(item, basestring)
+                and 'NO SCRIPT SUPPORT' in item and len(parents) > 1):
+            del parents[-2][parentKeys[-2]]
 
 
 class Processor(object):
@@ -255,6 +270,7 @@ class Processor(object):
 PROCESSORS = {
     'ApiDocParserOld': Processor([
         TuplesToLists(),
+        RemoveNoScriptDocs(),
         StripStrings(),
     ]),
     'HtmlApiDocParser': Processor([
