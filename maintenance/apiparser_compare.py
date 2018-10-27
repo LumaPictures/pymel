@@ -205,10 +205,10 @@ class TuplesToLists(Transform):
             parents[-1][parentKeys[-1]] = list(item)
 
 
-class StripStrings(Transform):
+class CleanupWhitespace(Transform):
     def xformItem(self, item, parents, parentKeys):
         if isinstance(item, basestring) and parents:
-            parents[-1][parentKeys[-1]] = item.strip()
+            parents[-1][parentKeys[-1]] = ' '.join(item.strip().split())
 
 
 class RegexpTransform(Transform):
@@ -271,7 +271,7 @@ PROCESSORS = {
     'ApiDocParserOld': Processor([
         TuplesToLists(),
         RemoveNoScriptDocs(),
-        StripStrings(),
+        CleanupWhitespace(),
     ]),
     'HtmlApiDocParser': Processor([
         TuplesToLists(),
