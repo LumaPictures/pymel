@@ -58,6 +58,7 @@ def writeClassInfo(classInfo, path):
 
 
 def readClassInfo(path):
+    # need these in the local namespace for the eval
     from pymel.util import Enum, EnumValue
     with open(path, 'r') as f:
         contents = f.read()
@@ -234,8 +235,10 @@ class RemoveNoScriptDocs(Transform):
 class Processor(object):
     """Used to massage / format raw classInfo data to make for easier
     comparisons."""
-    def __init__(self, xforms):
-        self.xforms = xforms
+    def __init__(self, xforms, autoTuplesToLists=True):
+        self.xforms = list(xforms)
+        if autoTuplesToLists:
+            self.xforms.insert(0, TuplesToLists())
 
     def processDir(self, dir, classes=None):
         if classes is not None:
@@ -269,15 +272,12 @@ class Processor(object):
 
 PROCESSORS = {
     'ApiDocParserOld': Processor([
-        TuplesToLists(),
         RemoveNoScriptDocs(),
         CleanupWhitespace(),
     ]),
     'HtmlApiDocParser': Processor([
-        TuplesToLists(),
     ]),
     'XmlApiDocParser': Processor([
-        TuplesToLists(),
     ]),
 }
 
