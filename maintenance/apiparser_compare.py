@@ -177,26 +177,30 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False):
 
 class Transform(object):
     """Individual transform applied to an apiClassInfo"""
-    def xform(self, inputClassInfo):
-        raise NotImplementedError
+    YIELD_PARENTS = False
+    def xform(self, classInfo):
+        for item, parentKeys, parent in iterItemsRecursive(
+                classInfo, yieldParents=self.YIELD_PARENTS):
+            self.xformItem(item, parentKeys, parent)
 
+    def xformItem(self, item, parentKeys, parent):
+        raise NotImplementedError
 
 # Do this first, as it will then allow other Transforms to alter items inside of
 # tuples
 class TuplesToLists(Transform):
-    def xform(self, classInfo):
-        for item, parentKeys, parent in iterItemsRecursive(classInfo,
-                                                           yieldParents=True):
-            if (isinstance(item, tuple) and not isinstance(item, ApiEnum)
-                    and parent is not None):
-                parent[parentKeys[-1]] = list(item)
+    YIELD_PARENTS = True
+
+    def xformItem(self, item, parentKeys, parent):
+        if (isinstance(item, tuple) and not isinstance(item, ApiEnum)
+                and parent is not None):
+            parent[parentKeys[-1]] = list(item)
 
 
 class StripStrings(Transform):
-    def xform(self, classInfo):
-        for item, parentKeys, parent in iterItemsRecursive(classInfo):
-            if isinstance(item, basestring) and parent is not None:
-                parent[parentKeys[-1]] = item.strip()
+    def xformItem(self, item, parentKeys, parent):
+        if isinstance(item, basestring) and parent is not None:
+            parent[parentKeys[-1]] = item.strip()
 
 
 class RegexpTransform(Transform):
@@ -207,10 +211,9 @@ class RegexpTransform(Transform):
         self.replace = replace
         self.keyFilter = keyFilter
 
-    def xform(self, classInfo):
-        for item, parentKeys, parent in iterItemsRecursive(classInfo):
-            if isinstance(item, basestring) and parent is not None:
-                parent[parentKeys[-1]] = self.fine.sub(self.replace, item)
+    def xformItem(self, item, parentKeys, parent):
+        if isinstance(item, basestring) and parent is not None:
+            parent[parentKeys[-1]] = self.fine.sub(self.replace, item)
 
 
 class Processor(object):
