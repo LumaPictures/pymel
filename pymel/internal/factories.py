@@ -445,7 +445,7 @@ def loadCmdDocCache():
 
 
 def getCmdFunc(cmdName):
-    # type: (str) -> Optional[Callable]
+    # type: (str) -> Callable
     func = getattr(pmcmds, cmdName, None)
     if func is None:
         # assume UI command

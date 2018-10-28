@@ -189,14 +189,17 @@ class DependNode(general.PyNode):
         return name
 
     def namespace(self, root=False):
-        # type: (Any) -> unicode
+        # type: (bool) -> unicode
         """Returns the namespace of the object with trailing colon included.
 
         See `DependNode.parentNamespace` for a variant which does not include
         the trailing colon.
 
-        By default, if the object is in the root namespace, an empty string is
-        returned; if root is True, ':' is returned in this case.
+        Parameters
+        ----------
+        root : bool
+            By default, if the object is in the root namespace, an empty string
+            is returned; if root is True, ':' is returned in this case.
 
         Returns
         -------
@@ -236,8 +239,9 @@ class DependNode(general.PyNode):
     def nodeName(self, **kwargs):
         # type: (**Any) -> unicode
         """
-        This produces the same results as `DependNode.name` and is included to simplify looping over lists
-        of nodes that include both Dag and Depend nodes.
+        This produces the same results as `DependNode.name` and is included to
+        simplify looping over lists of nodes that include both Dag and Depend
+        nodes.
 
         Returns
         -------
@@ -359,7 +363,8 @@ class DependNode(general.PyNode):
     def referenceFile(self):
         # type: () -> Optional[_FileReference]
         """referenceQuery -file
-        Return the reference file to which this object belongs.  None if object is not referenced
+        Return the reference file to which this object belongs.
+        None if object is not referenced
 
         Returns
         -------
@@ -439,7 +444,7 @@ class DependNode(general.PyNode):
         return general.listConnections(self, **kwargs)
 
     def shadingGroups(self):
-        # type: () -> List[DependNode]
+        # type: () -> List[ShadingEngine]
         """list any shading groups in the future of this object - works for
         shading nodes, transforms, and shapes
 
@@ -450,7 +455,7 @@ class DependNode(general.PyNode):
 
         Returns
         -------
-        List[DependNode]
+        List[ShadingEngine]
         """
         return self.future(type='shadingEngine')
 
@@ -749,7 +754,8 @@ class DependNode(general.PyNode):
         List[general.Attribute]
         """
         # stringify fix
-        return map(lambda x: self.attr(x), _util.listForNone(cmds.attributeInfo(self.name(), **kwargs)))
+        return [self.attr(x) for x
+                in _util.listForNone(cmds.attributeInfo(self.name(), **kwargs))]
 
 
 #}
@@ -761,8 +767,10 @@ class DependNode(general.PyNode):
 
     def stripNum(self):
         # type: () -> unicode
-        """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
-        the name will be returned unchanged.
+        """
+        Return the name of the node with trailing numbers stripped off.
+
+        If no trailing numbers are found the name will be returned unchanged.
 
         >>> from pymel.core import *
         >>> SCENE.lambert1.stripNum()
@@ -776,8 +784,10 @@ class DependNode(general.PyNode):
 
     def extractNum(self):
         # type: () -> unicode
-        """Return the trailing numbers of the node name. If no trailing numbers are found
-        an error will be raised.
+        """
+        Return the trailing numbers of the node name.
+
+        If no trailing numbers are found an error will be raised.
 
         >>> from pymel.core import *
         >>> SCENE.lambert1.extractNum()
@@ -791,7 +801,9 @@ class DependNode(general.PyNode):
 
     def nextUniqueName(self):
         # type: () -> unicode
-        """Increment the trailing number of the object until a unique name is found
+        """
+        Increment the trailing number of the object until a unique name is
+        found.
 
         If there is no trailing number, appends '1' to the name.
 
@@ -803,7 +815,8 @@ class DependNode(general.PyNode):
 
     def nextName(self):
         # type: () -> unicode
-        """Increment the trailing number of the object by 1
+        """
+        Increment the trailing number of the object by 1
 
         Raises an error if the name has no trailing number.
 
@@ -819,7 +832,8 @@ class DependNode(general.PyNode):
 
     def prevName(self):
         # type: () -> unicode
-        """Decrement the trailing number of the object by 1
+        """
+        Decrement the trailing number of the object by 1
 
         Raises an error if the name has no trailing number.
 
@@ -2184,7 +2198,7 @@ class DagNode(Entity):
         """
         see also `childAtIndex`
 
-        for flags, see pymel.core.general.listRelatives
+        for flags, see ``pymel.core.general.listRelatives``
 
         Returns
         -------
@@ -2198,7 +2212,7 @@ class DagNode(Entity):
     def getSiblings(self, **kwargs):
         # type: (**Any) -> List[DagNode]
         """
-        for flags, see pymel.core.general.listRelatives
+        for flags, see ``pymel.core.general.listRelatives``
 
         Returns
         -------
@@ -2213,7 +2227,7 @@ class DagNode(Entity):
     def listRelatives(self, **kwargs):
         # type: (**Any) -> List[DagNode]
         """
-        for flags, see pymel.core.general.listRelatives
+        for flags, see ``pymel.core.general.listRelatives``
 
         Returns
         -------
@@ -2278,7 +2292,9 @@ class DagNode(Entity):
 
     def isDisplaced(self):
         # type: () -> bool
-        """Returns whether any of this object's shading groups have a displacement shader input
+        """
+        Returns whether any of this object's shading groups have a
+        displacement shader input
 
         Returns
         -------
@@ -2308,8 +2324,11 @@ class DagNode(Entity):
             return parent.isVisible(checkOverride=checkOverride)
 
     def setObjectColor(self, color=None):
-        """This command sets the dormant wireframe color of the specified objects to an integer
-        representing one of the user defined colors, or, if set to None, to the default class color"""
+        """
+        This command sets the dormant wireframe color of the specified objects
+        to an integer representing one of the user defined colors, or, if set
+        to None, to the default class color
+        """
 
         kwargs = {}
         if color:
@@ -3580,7 +3599,8 @@ class Transform(DagNode):
     def attr(self, attr, checkShape=True):
         # type: (Any, Any) -> Attribute
         """
-        when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
+        when checkShape is enabled, if the attribute does not exist the
+        transform but does on the shape, then the shape's attribute will
         be returned.
 
         Returns
@@ -3672,11 +3692,11 @@ class Transform(DagNode):
             pass
 
     def getShapes(self, **kwargs):
-        # type: (**Any) -> DagNode
+        # type: (**Any) -> List[DagNode]
         """
         Returns
         -------
-        DagNode
+        List[DagNode]
         """
         kwargs['shapes'] = True
         return self.getChildren(**kwargs)
@@ -3728,7 +3748,7 @@ class Transform(DagNode):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
     def _getSpaceArg(self, space, kwargs):
-        "for internal use only"
+        """for internal use only"""
         if kwargs.pop('worldSpace', kwargs.pop('ws', False)):
             space = 'world'
         elif kwargs.pop('objectSpace', kwargs.pop('os', False)):
@@ -3847,7 +3867,9 @@ class Transform(DagNode):
             elif len(rotation) == 4:
                 rotation = _api.MQuaternion(*rotation)
             else:
-                raise ValueError("rotation given to setRotation must have either 3 or 4 elements (for euler or quaternion, respectively)")
+                raise ValueError(
+                    "rotation given to setRotation must have either 3 or 4 "
+                    "elements (for euler or quaternion, respectively)")
         if isinstance(rotation, _api.MEulerRotation):
             # MFnTransform.setRotation doesn't have a (non-deprecated) override
             # which takes euler angles AND a transform space... this sort of
@@ -3903,7 +3925,9 @@ class Transform(DagNode):
         curr = self.getRotation(space)
         self._rotateBy(rotation, space)
         new = self.getRotation(space)
-        undoItem = _factories.ApiUndoItem(Transform.setRotation, (self, new, space), (self, curr, space))
+        undoItem = _factories.ApiUndoItem(Transform.setRotation,
+                                          (self, new, space),
+                                          (self, curr, space))
         _factories.apiUndo.append(undoItem)
 
 
@@ -8218,33 +8242,50 @@ class ObjectSet(Entity):
 #        sets( self, forceElement=set2 )
 
     def forceElement(self, member):
-        """Forces addition of the items to the set. If the items are in
+        """
+        Forces addition of the items to the set. If the items are in
         another set which is in the same partition as the given set,
         the items will be removed from the other set in order to keep the
         sets in the partition mutually exclusive with respect to membership."""
         cmds.sets(member, forceElement=self)
 
     def members(self, flatten=False):
-        """return members as a list
-        :rtype: `list`
+        """
+        return members as a list
+
+        Returns
+        -------
+        List[general.PyNode]
         """
         return list(self.asSelectionSet(flatten))
 
     @_warnings.deprecated('Use ObjectSet.members instead', 'ObjectSet')
     def elements(self, flatten=False):
-        """return members as a list
-        :rtype: `list`
+        """
+        return members as a list
+
+        Returns
+        -------
+        List[general.PyNode]
         """
         return list(self.asSelectionSet(flatten))
 
     def flattened(self):
-        """return a flattened list of members.  equivalent to `ObjectSet.members(flatten=True)`
-        :rtype: `list`
+        """
+        return a flattened list of members.
+
+        equivalent to `ObjectSet.members(flatten=True)`
+
+        Returns
+        -------
+        List[general.PyNode]
         """
         return self.members(flatten=True)
 
     def resetTo(self, newContents):
-        """clear and set the members to the passed list/set"""
+        """
+        clear and set the members to the passed list/set
+        """
         self.clear()
         self.addMembers(newContents)
 
@@ -8266,27 +8307,59 @@ class ObjectSet(Entity):
                 raise
 
     def isSubSet(self, other):
-        # type: (Any) -> bool
-        """:rtype: `bool`"""
+        # type: (Union[str, ObjectSet]) -> bool
+        """
+        Parameters
+        ----------
+        other : Union[str, ObjectSet]
+
+        Returns
+        -------
+        bool
+        """
         return self.asSelectionSet().isSubSet(other)
 
     def isSuperSet(self, other):
-        # type: (Any) -> bool
-        """:rtype: `bool`"""
+        # type: (Union[str, ObjectSet]) -> bool
+        """
+        Parameters
+        ----------
+        other : Union[str, ObjectSet]
+
+        Returns
+        -------
+        bool
+        """
         return self.asSelectionSet().isSuperSet(other)
 
     def isEqual(self, other):
+        # type: (Union[str, ObjectSet]) -> bool
         """
         do not use __eq__ to test equality of set contents. __eq__ will only tell you if
         the passed object is the same node, not if this set and the passed set
         have the same contents.
-        :rtype: `bool`
+
+        Parameters
+        ----------
+        other : Union[str, ObjectSet]
+
+        Returns
+        -------
+        bool
         """
         return self.asSelectionSet() == SelectionSet(other)
 
     def getDifference(self, other):
-        # type: (Any) -> SelectionSet
-        """:rtype: `SelectionSet`"""
+        # type: (Union[str, ObjectSet]) -> SelectionSet
+        """
+        Parameters
+        ----------
+        other : Union[str, ObjectSet]
+
+        Returns
+        -------
+        SelectionSet
+        """
         sel = self.asSelectionSet()
         sel.difference(other)
         return sel
@@ -8296,8 +8369,17 @@ class ObjectSet(Entity):
         self.resetTo(sel)
 
     def getSymmetricDifference(self, other):
-        """also known as XOR
-        :rtype: `SelectionSet`
+        # type: (Union[str, ObjectSet]) -> SelectionSet
+        """
+        also known as XOR
+
+        Parameters
+        ----------
+        other : Union[str, ObjectSet]
+
+        Returns
+        -------
+        SelectionSet
         """
         sel = self.getSymmetricDifference()
         sel.difference(other)
@@ -8308,8 +8390,16 @@ class ObjectSet(Entity):
         self.resetTo(sel)
 
     def getIntersection(self, other):
-        # type: (Any) -> SelectionSet
-        """:rtype: `SelectionSet`"""
+        # type: (Union[str, ObjectSet]) -> SelectionSet
+        """
+        Parameters
+        ----------
+        other : Union[str, ObjectSet]
+
+        Returns
+        -------
+        SelectionSet
+        """
         if isinstance(other, ObjectSet):
             return self._getIntersection(other)
 
@@ -8325,8 +8415,16 @@ class ObjectSet(Entity):
         self.resetTo(sel)
 
     def getUnion(self, other):
-        # type: (Any) -> SelectionSet
-        """:rtype: `SelectionSet`"""
+        # type: (Union[str, ObjectSet]) -> SelectionSet
+        """
+        Parameters
+        ----------
+        other : Union[str, ObjectSet]
+
+        Returns
+        -------
+        SelectionSet
+        """
         if isinstance(other, ObjectSet):
             return self._getUnion(other)
 
@@ -8461,7 +8559,8 @@ class ShadingEngine(ObjectSet):
 class AnimLayer(ObjectSet):
 
     def getAttribute(self):
-        '''Retrieve the attributes animated on this AnimLayer
+        '''
+        Retrieve the attributes animated on this AnimLayer
         '''
         # Unfortunately, cmds.animLayer('MyAnimLayer', q=1, attribute=1)
         # returns none unique attribute names, ie,
@@ -8775,7 +8874,8 @@ class AnimLayer(ObjectSet):
 
 class AnimCurve(DependNode):
 
-    def addKeys(self, time, values, tangentInType='linear', tangentOutType='linear', unit=None):
+    def addKeys(self, time, values, tangentInType='linear',
+                tangentOutType='linear', unit=None):
         if not unit:
             unit = _api.MTime.uiUnit()
         times = _api.MTimeArray()
@@ -8784,9 +8884,10 @@ class AnimCurve(DependNode):
         keys = _api.MDoubleArray()
         for value in values:
             keys.append(value)
+        infoObj = _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values']
         return self.__apimfn__().addKeys(times, keys,
-                                         _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent' + tangentInType.capitalize()),
-                                         _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent' + tangentOutType.capitalize()))
+                                         infoObj.getIndex('kTangent' + tangentInType.capitalize()),
+                                         infoObj.getIndex('kTangent' + tangentOutType.capitalize()))
 
     def numKeyframes(self):
         # just because MFnAnimCurve.numKeyframes is deprecated...

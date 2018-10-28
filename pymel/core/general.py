@@ -29,6 +29,7 @@ from pymel.util.enum import Enum
 if False:
     from typing import *
     import pymel.core.nodetypes as nodetypes
+    import pymel.core.other as other
 
 _logger = _getLogger(__name__)
 
@@ -58,10 +59,14 @@ def _getPymelTypeFromObject(obj, name):
     elif obj.hasFn(_api.MFn.kComponent):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
         if compTypes is None:
-            _logger.raiseLog(_logger.DEBUG, 'Got an instance of a component which could not be mapped to a pymel class: %s' % obj.apiTypeStr())
+            _logger.raiseLog(_logger.DEBUG,
+                             'Got an instance of a component which could not '
+                             'be mapped to a pymel class: %s' % obj.apiTypeStr())
             compTypes = [Component]
         if len(compTypes) != 1:
-            _logger.raiseLog(_logger.WARNING, 'Got an instance of a component with more than one possible PyNode type: %s' % obj.apiTypeStr())
+            _logger.raiseLog(_logger.WARNING,
+                             'Got an instance of a component with more than '
+                             'one possible PyNode type: %s' % obj.apiTypeStr())
         pymelType = compTypes[0]
     elif obj.hasFn(_api.MFn.kAttribute):
         pymelType = AttributeDefaults
@@ -109,7 +114,8 @@ def _getPymelType(arg, name):
         if _api.isValidMPlug(arg):
             pymelType = Attribute
         else:
-            raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid"
+            raise MayaAttributeError("Unable to determine Pymel type: "
+                                     "the passed MPlug is not valid")
 
 #    # --------------------------------
 #    # No Api Object : Virtual PyNode
@@ -458,18 +464,27 @@ def setAttr(attr, *args, **kwargs):
                                     "The supplied value will be interperted as a 'doubleArray' and not as a 'double3' (vector). "
                                     "Supply an explicit 'datatype' argument to avoid this warning.")
                         else:
-                            raise ValueError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
+                            raise ValueError(
+                                "pymel.core.setAttr: %s is not a supported "
+                                "type for use with the force flag" %
+                                type(arg[0]))
 
-                        #_logger.debug("adding %r as %r", attr, datatype)
-                        addAttr(attrName.nodePath, ln=attrName.attribute, dt=datatype)
+                        # _logger.debug("adding %r as %r", attr, datatype)
+                        addAttr(attrName.nodePath, ln=attrName.attribute,
+                                dt=datatype)
 
                     # empty array is being passed
                     # if the attribute exists, this is ok
                     except IndexError:
-                        raise ValueError, "pymel.core.setAttr: when setting 'force' keyword to create a new array attribute, you must provide an array with at least one element"
+                        raise ValueError(
+                            "pymel.core.setAttr: when setting 'force' keyword "
+                            "to create a new array attribute, you must "
+                            "provide an array with at least one element")
 
                     except TypeError:
-                        raise ValueError, "pymel.core.setAttr: %s is not a supported type" % type(args)
+                        raise ValueError(
+                            "pymel.core.setAttr: %s is not a supported type" %
+                            type(args))
 
                 else:
                     if isinstance(arg, datatypes.Vector):
@@ -479,7 +494,8 @@ def setAttr(attr, *args, **kwargs):
                     else:
                         datatype = getAttr(attr, type=1)
                         if not datatype:
-                            datatype = addAttr(attr, q=1, dataType=1)  # [0] # this is returned as a single element list
+                            # [0] # this is returned as a single element list
+                            datatype = addAttr(attr, q=1, dataType=1)
                 if datatype:
                     kwargs['type'] = datatype
 
@@ -606,8 +622,9 @@ def setAttr(attr, *args, **kwargs):
         else:
             raise TypeError, msg
     except RuntimeError, msg:
-        # normally this is handled in pmcmds, but setAttr error is different for some reason
-        # can't use 'startswith' because of Autodesk test strings wrapped in commas
+        # normally this is handled in pmcmds, but setAttr error is different
+        # for some reason can't use 'startswith' because of Autodesk test
+        # strings wrapped in commas
         if 'No object matches name: ' in str(msg):
             raise _objectError(attr)
         else:
@@ -708,7 +725,8 @@ def addAttr(*args, **kwargs):
         for editArg, value in kwargs.iteritems():
             if editArg not in ('e', 'edit') and value:
                 break
-        if editArg in ('hasMinValue', 'hnv', 'hasMaxValue', 'hxv', 'hasSoftMinValue', 'hsn', 'hasSoftMaxValue', 'hsx'):
+        if editArg in ('hasMinValue', 'hnv', 'hasMaxValue', 'hxv',
+                       'hasSoftMinValue', 'hsn', 'hasSoftMaxValue', 'hsx'):
             # bugfix: hasM*Value works as a toggle, regardless of whether you specify True or False
             if bool(value) != bool(cmds.addAttr(*args, **{'query': True, editArg: True})):
                 return cmds.addAttr(*args, **kwargs)
@@ -820,14 +838,17 @@ def addAttr(*args, **kwargs):
 
 
 def hasAttr(pyObj, attr, checkShape=True):
-    # type: (PyNode, Union[unicode, Attribute], Any) -> bool
-    """convenience function for determining if an object has an attribute.
-    If checkShape is enabled, the shape node of a transform will also be checked for the attribute.
+    # type: (PyNode, Union[unicode, Attribute], bool) -> bool
+    """
+    Convenience function for determining if an object has an attribute.
 
     Parameters
     ----------
     pyObj : PyNode
     attr : Union[unicode, Attribute]
+    checkShape : bool
+        If enabled, the shape node of a transform will also be
+        checked for the attribute.
 
     Returns
     -------
@@ -990,12 +1011,14 @@ def listConnections(*args, **kwargs):
 
                 if source:
                     if not dest:
-                        return [(s, d) for d, s in makePairs(cmds.listConnections(*args, **kwargs))]
+                        return [(s, d) for d, s in makePairs(
+                            cmds.listConnections(*args, **kwargs))]
                     else:
                         res = []
                         kwargs.pop('destination', None)
                         kwargs['d'] = False
-                        res = [(s, d) for d, s in makePairs(cmds.listConnections(*args, **kwargs))]
+                        res = [(s, d) for d, s in makePairs(
+                            cmds.listConnections(*args, **kwargs))]
 
                         kwargs.pop('source', None)
                         kwargs['s'] = False
@@ -1010,7 +1033,8 @@ def listConnections(*args, **kwargs):
             return map(CastObj, _util.listForNone(cmds.listConnections(*args, **kwargs)))
 
     # if passed a list of types, concatenate the resutls
-    # NOTE: there may be duplicate results if a leaf type and it's parent are both passed: ex.  animCurve and animCurveTL
+    # NOTE: there may be duplicate results if a leaf type and it's parent are
+    # both passed: ex.  animCurve and animCurveTL
     types = kwargs.get('type', kwargs.get('t', None))
     if _util.isIterable(types):
         types = list(set(types))  # remove dupes from types list
@@ -1101,7 +1125,8 @@ def listRelatives(*args, **kwargs):
     kwargs.pop('f', None)
     # Stringify Fix
     #args = [ unicode(x) for x in args ]
-    if kwargs.get('allDescendents', kwargs.get('ad', False)) and kwargs.pop('shapes', kwargs.pop('s', False)):
+    if kwargs.get('allDescendents', kwargs.get('ad', False)) and \
+            kwargs.pop('shapes', kwargs.pop('s', False)):
         kwargs['fullPath'] = True
         kwargs.pop('f', None)
 
@@ -1188,13 +1213,16 @@ def ls(*args, **kwargs):
 #            newArgs.append(arg)
 
     for i, val in enumerate(regexArgs):
-        # add a prefix which allows the regex to match against a dag path, mounted at the right
+        # add a prefix which allows the regex to match against a dag path,
+        # mounted at the right
         if isinstance(val, basestring):
             if not val.endswith('$'):
                 val = val + '$'
             val = re.compile('(\||^)' + val)
         elif not isinstance(val, re._pattern_type):
-            raise TypeError('regex flag must be passed a valid regex string, a compiled regex object, or a list of these types. got %s' % type(val).__name__)
+            raise TypeError('regex flag must be passed a valid regex string, '
+                            'a compiled regex object, or a list of these '
+                            'types. got %s' % type(val).__name__)
         regexArgs[i] = val
 
     editable = kwargs.pop('editable', False)
@@ -1239,7 +1267,8 @@ def ls(*args, **kwargs):
 #
 #    return res
     if kwargs.get('showNamespace', kwargs.get('sns', False)):
-        return [system.Namespace(item) if i % 2 else PyNode(item) for i, item in enumerate(res)]
+        return [system.Namespace(item) if i % 2 else PyNode(item)
+                for i, item in enumerate(res)]
 
     return map(PyNode, res)
 
@@ -1295,7 +1324,8 @@ def listTransforms(*args, **kwargs):
     res = cmds.listRelatives(res, p=1, path=1)
     if res is None:
         return []
-    # res = list(set(res)) # ruins the order, but prevents dupes, which can happend when a transform has more than one shape
+    # res = list(set(res)) # ruins the order, but prevents dupes, which can
+    # happend when a transform has more than one shape
     return [PyNode(x) for x in res]  # , ['transform']*len(res) )
 
 
@@ -1310,7 +1340,7 @@ def listSets(*args, **kwargs):
     -------
     List[PyNode]
     """
-    # cmds.listSets() reports existance of defaultCreaseDataSet which does not
+    # cmds.listSets() reports existence of defaultCreaseDataSet which does not
     # exist if checked with cmds.objExists at least linux-2010
     if not args and not kwargs:
         kwargs['allSets'] = True
@@ -1374,10 +1404,10 @@ def nodeType(node, **kwargs):
 
 def group(*args, **kwargs):
     """
-Modifications
-  - if no objects are passed or selected, the empty flag is automatically set
-Maya Bug Fix:
-  - corrected to return a unique name
+    Modifications
+      - if no objects are passed or selected, the empty flag is automatically set
+    Maya Bug Fix:
+      - corrected to return a unique name
     """
     if not args and not cmds.ls(sl=1):
         kwargs['empty'] = True
@@ -1411,7 +1441,8 @@ def parent(*args, **kwargs):
 
     if args and args[-1] is None:
         if not kwargs.get('w', kwargs.get('world', True)):
-            raise ValueError('No parent given, but parent to world explicitly set to False')
+            raise ValueError('No parent given, but parent to world '
+                             'explicitly set to False')
         if 'world' in kwargs:
             del kwargs['world']
         kwargs['w'] = True
@@ -1440,7 +1471,6 @@ def parent(*args, **kwargs):
             n.__apimobject__()
     else:
         nodes = cmds.ls(sl=1, type='dagNode')
-
 
     # There are some situations in which you can only pass one node - ie, with
     # shape=True, removeObject=True - and we don't want to abort in these
@@ -1539,7 +1569,8 @@ def _pathFromMObj(mObj, fullPath=False):
     elif mObj.hasFn(_api.MFn.kDependencyNode):
         result = _api.MFnDependencyNode(mObj).name()
     else:
-        raise TypeError("mObj must be either DagNode or DependencyNode - got a %s" % mObj.apiTypeStr())
+        raise TypeError("mObj must be either DagNode or DependencyNode - "
+                        "got a %s" % mObj.apiTypeStr())
     return result
 
 
@@ -1648,7 +1679,7 @@ class NodeTracker(object):
 
 
 def duplicate(*args, **kwargs):
-    # type: (*Any, **Any) -> List[DependNode]
+    # type: (*Any, **Any) -> List[nodetypes.DependNode]
     """
     Modifications:
       - new option: addShape
@@ -1662,7 +1693,7 @@ def duplicate(*args, **kwargs):
 
     Returns
     -------
-    List[DependNode]
+    List[nodetypes.DependNode]
     """
     addShape = kwargs.pop('addShape', False)
     kwargs.pop('rr', None)
@@ -1754,13 +1785,15 @@ def duplicate(*args, **kwargs):
         for invalidArg in ('renameChildren', 'rc', 'instanceLeaf', 'ilf',
                            'parentOnly', 'po', 'smartTransform', 'st'):
             if kwargs.get(invalidArg, False):
-                raise ValueError("duplicate: argument %r may not be used with 'addShape' argument" % invalidArg)
+                raise ValueError("duplicate: argument %r may not be used "
+                                 "with 'addShape' argument" % invalidArg)
         name = kwargs.pop('name', kwargs.pop('n', None))
 
         newShapes = []
         for origShape in [PyNode(x) for x in args]:
             if 'shape' not in cmds.nodeType(origShape.name(), inherited=True):
-                raise TypeError('addShape arg of duplicate requires all arguments to be shapes (non-shape arg: %r)'
+                raise TypeError('addShape arg of duplicate requires all '
+                                'arguments to be shapes (non-shape arg: %r)'
                                 % origShape)
 
             # This is somewhat complex, because if we have a transform with
@@ -1887,7 +1920,7 @@ Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
     """
     import nodetypes
-    import other
+    import pymel.core.other as other
     # added catch to use object name explicitly when object is a Pymel Node
     if isinstance(newname, nodetypes.DagNode):
         newname = newname.nodeName()
@@ -2034,6 +2067,7 @@ Modifications
     return ObjectSet(cmds.sets( *elements, **kwargs ))
     '''
 
+
 def delete(*args, **kwargs):
     """
 Modifications:
@@ -2072,7 +2106,8 @@ Modifications:
 # -------------------------
 
 def uniqueObjExists(name):
-    '''Returns True if name uniquely describes an object in the scene.
+    '''
+    Returns True if name uniquely describes an object in the scene.
     '''
     all = cmds.ls(name)
     # in case result is None...
@@ -2113,8 +2148,8 @@ def spaceLocator(*args, **kwargs):
 
 def instancer(*args, **kwargs):
     """
-Maya Bug Fix:
-  - name of newly created instancer was not returned
+    Maya Bug Fix:
+      - name of newly created instancer was not returned
     """
     # instancer does not like PyNode objects
     args = map(unicode, args)
@@ -2139,7 +2174,8 @@ class MayaObjectError(TypeError):
         self.node = unicode(node)
 
     def __str__(self):
-        msg = "Maya %s does not exist (or is not unique):" % (self._objectDescription)
+        msg = "Maya %s does not exist (or is not unique):" % (
+            self._objectDescription,)
         if self.node:
             msg += ": %r" % (self.node)
         return msg
@@ -2163,7 +2199,7 @@ class MayaAttributeEnumError(MayaAttributeError):
     def __str__(self):
         msg = super(MayaAttributeEnumError, self).__str__()
         if self.enum:
-            msg += " - %r" % (self.enum)
+            msg += " - %r" % (self.enum,)
         return msg
 
 
@@ -2173,9 +2209,10 @@ class MayaComponentError(MayaAttributeError):
 
 class MayaInstanceError(MayaNodeError):
     def __str__(self):
-        msg = "Maya %s was reparented to an instance, and dag path is now ambiguous:" % (self._objectDescription)
+        msg = "Maya %s was reparented to an instance, and dag path " \
+              "is now ambiguous:" % (self._objectDescription,)
         if self.node:
-            msg += ": %r" % (self.node)
+            msg += ": %r" % (self.node,)
         return msg
 
 
@@ -2453,21 +2490,30 @@ class PyNode(_util.ProxyUnicode):
                 if vClassInfo and vClassInfo.preCreate:
                     kwargs = vClassInfo.preCreate(**kwargs)
                     if isinstance(kwargs, tuple):
-                        assert len(kwargs) == 2, "preCreate must either 1 or 2 dictionaries of keyword arguments"
+                        assert len(kwargs) == 2, \
+                            "preCreate must either 1 or 2 dictionaries of " \
+                            "keyword arguments"
                         kwargs, postArgs = kwargs
-                        assert isinstance(postArgs, dict), "preCreate second return value must be a dictionary of keyword arguments"
-                    assert isinstance(kwargs, dict), "_preCreateVirtual must return a dictionary of keyword arguments"
+                        assert isinstance(postArgs, dict), \
+                            "preCreate second return value must be a " \
+                            "dictionary of keyword arguments"
+                    assert isinstance(kwargs, dict), \
+                        "_preCreateVirtual must return a dictionary of " \
+                        "keyword arguments"
 
                 # ---------------------------------
                 # Creation
                 # ---------------------------------
                 if vClassInfo and vClassInfo.create:
                     newNode = vClassInfo.create(**kwargs)
-                    assert isinstance(newNode, basestring), "_createVirtual must return the name created node"
+                    assert isinstance(newNode, basestring), \
+                        "_createVirtual must return the name created node"
 
                 elif hasattr(cls, '__melcmd__') and not cls.__melcmd_isinfo__:
                     try:
-                        _logger.debug('creating node of type %s using %s' % (cls.__melnode__, cls.__melcmd__.__name__))
+                        _logger.debug('creating node of type %s using %s' %
+                                      (cls.__melnode__,
+                                       cls.__melcmd__.__name__))
                         res = cls.__melcmd__(**kwargs)
                     except Exception, e:
                         _logger.debug('failed to create %s' % e)
@@ -2486,13 +2532,19 @@ class PyNode(_util.ProxyUnicode):
                                         newNode = shape[0]
                                         break
                             if newNode is None:
-                                raise ValueError, "could not find type %s in result %s returned by %s" % (cls.__name__, res, cls.__melcmd__.__name__)
+                                raise ValueError(
+                                    "could not find type %s in result %s "
+                                    "returned by %s" % (cls.__name__, res,
+                                                        cls.__melcmd__.__name__))
                         elif cls.__melnode__ == nodeType(res):  # isinstance(res,cls):
                             newNode = res
                         else:
-                            raise ValueError, "unexpect result %s returned by %s" % (res, cls.__melcmd__.__name__)
+                            raise ValueError("unexpect result %s returned "
+                                             "by %s" %
+                                             (res, cls.__melcmd__.__name__))
                 else:
-                    _logger.debug('creating node of type %s using createNode' % cls.__melnode__)
+                    _logger.debug('creating node of type %s using createNode' %
+                                  cls.__melnode__)
                     try:
                         newNode = createNode(cls.__melnode__, **kwargs)
                     except RuntimeError:
@@ -2507,7 +2559,9 @@ class PyNode(_util.ProxyUnicode):
                         vClassInfo.postCreate(newNode, **postArgs)
                     return cls(newNode)
 
-            raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
+            raise ValueError('PyNode expects at least one argument: an '
+                             'object name, MObject, MObjectHandle, MDagPath, '
+                             'or MPlug')
 
         # print "type:", pymelType
         # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
@@ -2516,8 +2570,10 @@ class PyNode(_util.ProxyUnicode):
         newcls = None
 
         if cls is not PyNode:
-            # a PyNode class was explicitly required, if an existing object was passed to init check that the object type
-            # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
+            # a PyNode class was explicitly required, if an existing object
+            # was passed to init check that the object type is compatible with
+            # the required class, if no existing object was passed, create an
+            # empty PyNode of the required class
             # There is one exception type:  MeshVertex( Mesh( 'pSphere1') )
             # TODO : can add object creation option in the __init__ if desired
 
@@ -2525,7 +2581,9 @@ class PyNode(_util.ProxyUnicode):
                 if issubclass(cls, Component):
                     newcls = cls
                 else:
-                    raise TypeError, "Determined type is %s, which is not a subclass of desired type %s" % (pymelType.__name__, cls.__name__)
+                    raise TypeError("Determined type is %s, which is not a "
+                                    "subclass of desired type %s" %
+                                    (pymelType.__name__, cls.__name__))
             else:
                 newcls = pymelType
         else:
@@ -2540,11 +2598,13 @@ class PyNode(_util.ProxyUnicode):
             self.__apiobjects__ = obj
             return self
         else:
-            raise TypeError, "Cannot make a %s out of a %r object" % (cls.__name__, pymelType)
+            raise TypeError("Cannot make a %s out of a %r object" %
+                            (cls.__name__, pymelType))
 
     def __init__(self, *args, **kwargs):
-        # this  prevents the _api class which is the second base, from being automatically instantiated. This __init__ should
-        # be overridden on subclasses of PyNode
+        # this  prevents the _api class which is the second base, from being
+        # automatically instantiated. This __init__ should be overridden on
+        # subclasses of PyNode
         pass
 
     def __melobject__(self):
@@ -2576,11 +2636,13 @@ class PyNode(_util.ProxyUnicode):
                         # so that we can get the right one later
                         if isinstance(obj, _api.MDagPath):
                             mfn = _api.MFnDagNode(obj)
-                            _logger.warning("Could not create desired MFn. Defaulting to MFnDagNode.")
+                            _logger.warning("Could not create desired MFn. "
+                                            "Defaulting to MFnDagNode.")
 
                         elif isinstance(obj, _api.MObject):
                             mfn = _api.MFnDependencyNode(obj)
-                            _logger.warning("Could not create desired MFn. Defaulting to MFnDependencyNode.")
+                            _logger.warning("Could not create desired MFn. "
+                                            "Defaulting to MFnDependencyNode.")
                         else:
                             raise
                     return mfn
@@ -2598,7 +2660,9 @@ class PyNode(_util.ProxyUnicode):
         if isinstance(other, basestring):
             return other.__add__(self.name())
         else:
-            raise TypeError, "cannot concatenate '%s' and '%s' objects" % (other.__class__.__name__, self.__class__.__name__)
+            raise TypeError("cannot concatenate '%s' and '%s' objects" %
+                            (other.__class__.__name__,
+                             self.__class__.__name__))
 
     def __reduce__(self):
         """allows PyNodes to be pickled"""
@@ -2683,7 +2747,7 @@ class PyNode(_util.ProxyUnicode):
         :rtype: `other.NameParser`
 
         """
-        import other
+        import pymel.core.other as other
         return other.NameParser(self).stripNamespace(*args, **kwargs)
 
     def swapNamespace(self, prefix):
@@ -2693,7 +2757,7 @@ class PyNode(_util.ProxyUnicode):
 
         :rtype: `other.NameParser`
         """
-        import other
+        import pymel.core.other as other
         return other.NameParser(self).swapNamespace(prefix)
 
     def namespaceList(self):
@@ -2712,7 +2776,7 @@ class PyNode(_util.ProxyUnicode):
 
         :rtype: `other.NameParser`
         """
-        import other
+        import pymel.core.other as other
         return other.NameParser(self).addPrefix(prefix)
 
 
@@ -2815,7 +2879,8 @@ _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 #_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
 
 def _getParent(getter, obj, generations):
-    '''If generations is None, then a list of all the parents is returned.
+    '''
+    If generations is None, then a list of all the parents is returned.
     '''
     if generations == 0:
         return obj
@@ -3057,6 +3122,12 @@ class Attribute(PyNode):
     #elementByPhysicalIndex = _factories.wrapApiMethod( _api.MPlug, 'elementByPhysicalIndex' )
 
     def removeMultiInstance(self, index=None, break_=False):
+        """
+        Parameters
+        ----------
+        index : Optional[Union[int, Iterable[int]]]
+        break_ : bool
+        """
         if index is None:
             if not self.isElement():
                 raise ValueError("if calling removeMultiInstance without an"
@@ -3080,11 +3151,11 @@ class Attribute(PyNode):
     __delitem__ = removeMultiInstance
 
     def attr(self, attr):
-        # type: (Any) -> List[Attribute]
+        # type: (Any) -> Attribute
         """
         Returns
         -------
-        List[Attribute]
+        Attribute
         """
         node = self.node()
         try:
@@ -3227,7 +3298,8 @@ class Attribute(PyNode):
     def name(self, includeNode=True, longName=True, fullAttrPath=False,
              fullDagPath=False, placeHolderIndices=True):
         # type: (Any, Any, Any, Any, Any) -> unicode
-        """ Returns the name of the attribute (plug)
+        """
+        Returns the name of the attribute (plug)
 
             >>> tx = SCENE.persp.t.tx
             >>> tx.name()
@@ -3288,12 +3360,12 @@ class Attribute(PyNode):
 #        pass
 
     def plugNode(self):
-        # type: () -> List[nodetypes.DependNode]
+        # type: () -> nodetypes.DependNode
         """plugNode
 
         Returns
         -------
-        List[nodetypes.DependNode]
+        nodetypes.DependNode
         """
         # we shouldn't have to use this
         # if self._node is None:
@@ -3416,7 +3488,7 @@ class Attribute(PyNode):
         return self.node().namespace(*args, **kwargs)
 
     def array(self):
-        # type: () -> List[Attribute]
+        # type: () -> Attribute
         """
         Returns the array (multi) attribute of the current element:
 
@@ -3439,7 +3511,7 @@ class Attribute(PyNode):
 
         Returns
         -------
-        List[Attribute]
+        Attribute
         """
         try:
             return Attribute(self._node, self.__apimplug__().array())
@@ -3456,6 +3528,7 @@ class Attribute(PyNode):
     #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
 
     def elements(self):
+        # type: () -> List[unicode]
         """
         ``listAttr -multi``
 
@@ -3466,6 +3539,10 @@ class Attribute(PyNode):
 
         Modifications:
           - returns an empty list when the result is None
+
+        Returns
+        -------
+        List[unicode]
         """
         if self.isElement():
             arrayAttr = self.array()
@@ -3537,7 +3614,8 @@ class Attribute(PyNode):
 # xxx{ Connections
 # ---------------------
 
-    def isConnectedTo(self, other, ignoreUnitConversion=False, checkLocalArray=False, checkOtherArray=False):
+    def isConnectedTo(self, other, ignoreUnitConversion=False,
+                      checkLocalArray=False, checkOtherArray=False):
         """
         Determine if the attribute is connected to the passed attribute.
 
@@ -3547,6 +3625,9 @@ class Attribute(PyNode):
 
         If checkLocalArray and checkOtherArray are used together then all element combinations will be tested.
 
+        Returns
+        -------
+        bool
         """
 
         if cmds.isConnected(self, other,
@@ -3735,13 +3816,25 @@ class Attribute(PyNode):
     def evaluate(self, **kwargs):
         cmds.dgeval(self, **kwargs)
 
-    def affects(self, **kwargs):
+    def affects(self):
+        # type: () -> List[Attribute]
+        """
+        Returns
+        -------
+        List[Attribute]
+        """
         rawResult = cmds.affects(self.plugAttr(), self.node())
         if not rawResult:
             return []
         return [Attribute('%s.%s' % (self.node(), x)) for x in rawResult]
 
-    def affected(self, **kwargs):
+    def affected(self):
+        # type: () -> List[Attribute]
+        """
+        Returns
+        -------
+        List[Attribute]
+        """
         rawResult = cmds.affects(self.plugAttr(), self.node(), by=True)
         if not rawResult:
             return []
@@ -3845,8 +3938,9 @@ class Attribute(PyNode):
 
     def setLocked(self, locked, checkReference=CHECK_ATTR_BEFORE_LOCK):
         # type: (bool, bool) -> None
-        '''
-        Sets the locked state for this plug's value. A plug's locked state determines whether or not the plug's value can be changed.
+        """
+        Sets the locked state for this plug's value. A plug's locked state
+        determines whether or not the plug's value can be changed.
 
         Parameters
         ----------
@@ -3858,7 +3952,7 @@ class Attribute(PyNode):
             By default pymel and the maya api do not check if the node is referenced before
             setting the locked state. This is unsafe because changes to the locked state on
             referenced nodes are not saved with the scene.
-        '''
+        """
 
         if checkReference and self.node().isReferenced():
             raise AttributeError("The attribute '%s' is from a referenced file, and cannot be %s."
@@ -3941,6 +4035,10 @@ class Attribute(PyNode):
     def isUsedAsColor(self):
         """
         attributeQuery -usedAsColor
+
+        Returns
+        -------
+        bool
         """
         return cmds.attributeQuery(self.attrName(), node=self.node(), uac=True)
 
@@ -3953,7 +4051,8 @@ class Attribute(PyNode):
         Whether the attribute actually exists.
 
         In spirit, similar to 'attributeQuery -exists'...
-        ...however, also handles multi (array) attribute elements, such as plusMinusAverage.input1D[2]
+        ...however, also handles multi (array) attribute elements, such as
+        plusMinusAverage.input1D[2]
 
         Returns
         -------
@@ -3976,12 +4075,14 @@ class Attribute(PyNode):
             return self.parent().exists()
         else:
             try:
-                return bool(cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True))
+                return bool(cmds.attributeQuery(self.lastPlugAttr(),
+                                                node=self.node(), exists=True))
             except TypeError:
                 return False
 
     def getDefault(self):
-        result = cmds.attributeQuery(self.attrName(), node=self.node(), listDefault=True)
+        result = cmds.attributeQuery(self.attrName(), node=self.node(),
+                                     listDefault=True)
         if isinstance(result, list) and len(result) == 1 and not self.isCompound():
             return result[0]
         return result
@@ -3999,7 +4100,8 @@ class Attribute(PyNode):
         -------
         float
         """
-        if cmds.attributeQuery(self.attrName(), node=self.node(), softMinExists=True):
+        if cmds.attributeQuery(self.attrName(), node=self.node(),
+                               softMinExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        softMin=True)[0]
 
@@ -4012,7 +4114,8 @@ class Attribute(PyNode):
         -------
         float
         """
-        if cmds.attributeQuery(self.attrName(), node=self.node(), softMaxExists=True):
+        if cmds.attributeQuery(self.attrName(), node=self.node(),
+                               softMaxExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        softMax=True)[0]
 
@@ -4025,7 +4128,8 @@ class Attribute(PyNode):
         -------
         float
         """
-        if cmds.attributeQuery(self.attrName(), node=self.node(), minExists=True):
+        if cmds.attributeQuery(self.attrName(), node=self.node(),
+                               minExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        min=True)[0]
 
@@ -4038,7 +4142,8 @@ class Attribute(PyNode):
         -------
         float
         """
-        if cmds.attributeQuery(self.attrName(), node=self.node(), maxExists=True):
+        if cmds.attributeQuery(self.attrName(), node=self.node(),
+                               maxExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        max=True)[0]
 
@@ -4195,6 +4300,7 @@ class Attribute(PyNode):
         for i in range(self.numChildren()):
             res.append(Attribute(self.node(), self.__apimfn__().child(i)))
         return res
+
     children = getChildren
 
     def iterDescendants(self, levels=None, leavesOnly=False):
@@ -4251,18 +4357,19 @@ class Attribute(PyNode):
                     yield grandChild
 
     def getSiblings(self):
-        # type: () -> List[Attribute]
+        # type: () -> Optional[List[Attribute]]
         """
         attributeQuery -listSiblings
 
         Returns
         -------
-        List[Attribute]
+        Optional[List[Attribute]]
         """
         try:
             return self.getParent().getChildren()
         except:
             pass
+
     siblings = getSiblings
 
     @_warnings.deprecated('use Attribute.getParent instead', 'Attribute')
@@ -4583,6 +4690,8 @@ def _MPlugOut(self, x):
     # try: return PyNode(self.node(), x)
     # except: pass
     # return PyNode(x)
+
+
 _factories.ApiTypeRegister.register('MObject', PyNode, inCast=_MObjectIn)
 _factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=_MDagPathIn)
 _factories.ApiTypeRegister.register('MPlug', PyNode, inCast=_MPlugIn, outCast=_MPlugOut)
@@ -4617,13 +4726,15 @@ ProxySlice = _util.proxyClass(slice, 'ProxySlice', module=__name__, dataAttrName
 # prevent auto-completion generator from getting confused
 ProxySlice.__module__ = __name__
 
+
 # Really, don't need to have another class inheriting from
 # the proxy class, but do this so I can define a method using
 # normal class syntax...
 class HashableSlice(ProxySlice):
 
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and not kwargs and isinstance(args[0], (slice, HashableSlice)):
+        if len(args) == 1 and not kwargs \
+                and isinstance(args[0], (slice, HashableSlice)):
             if isinstance(args[0], HashableSlice):
                 self._slice = args[0]._slice
             else:
@@ -4898,6 +5009,7 @@ class Component(PyNode):
         return None
 
     def name(self):
+        # type: () -> unicode
         melObj = self.__melobject__()
         if isinstance(melObj, basestring):
             return melObj
@@ -5119,26 +5231,32 @@ class DimensionedComponent(Component):
             if self.dimensions == 1:
                 if (isinstance(indexObjs, (slice, HashableSlice)) and not
                         (allowComplete and self._isCompleteIndex(indexObjs))):
-                    return self._standardizeIndices(self._sliceToIndices(indexObjs), label=label)
+                    return self._standardizeIndices(
+                        self._sliceToIndices(indexObjs), label=label)
                 else:
                     indices.add(ComponentIndex((indexObjs,), label=label))
             else:
-                raise IndexError("Single Index given for a multi-dimensional component")
+                raise IndexError("Single Index given for a multi-dimensional "
+                                 "component")
         elif isinstance(indexObjs, ComponentIndex):
             if label and indexObjs.label and label != indexObjs.label:
-                raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
+                raise IndexError('ComponentIndex object had a different label '
+                                 'than desired (wanted %s, found %s)'
                                  % (label, indexObjs.label))
             if allowComplete and self._isCompleteIndex(indexObjs):
                 indices.add(self._completeIndex(label=label))
             else:
                 indices.update(self._flattenIndex(indexObjs))
         elif isinstance(indexObjs, dict):
-            # Dicts are used to specify component labels for a group of indices at once...
+            # Dicts are used to specify component labels for a group of
+            # indices at once...
             for dictLabel, dictIndices in indexObjs.iteritems():
                 if label and label != dictLabel:
-                    raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
+                    raise IndexError('ComponentIndex object had a different '
+                                     'label than desired (wanted %s, found %s)'
                                      % (label, dictLabel))
-                indices.update(self._standardizeIndices(dictIndices, label=dictLabel))
+                indices.update(self._standardizeIndices(dictIndices,
+                                                        label=dictLabel))
         elif allowIterable and _util.isIterable(indexObjs):
             for index in indexObjs:
                 indices.update(self._standardizeIndices(index,
@@ -5153,10 +5271,14 @@ class DimensionedComponent(Component):
         return tuple(indices)
 
     def _completeIndex(self, label=None):
-        return ComponentIndex((HashableSlice(None),) * self.dimensions, label=label)
+        return ComponentIndex((HashableSlice(None),) * self.dimensions,
+                              label=label)
 
     def _isCompleteIndex(self, indexObj):
-        '''Return true if the indexObj represents the entire set of indices possible for this component'''
+        '''
+        Return true if the indexObj represents the entire set of indices
+        possible for this component
+        '''
         if isinstance(indexObj, ComponentIndex):
             return (len(indexObj) == 0
                     or indexObj == self._completeIndex(label=indexObj.label))
@@ -5197,7 +5319,8 @@ class DimensionedComponent(Component):
                                                    partialIndex=oldPartial):
                     yield indice
             elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
-                yield partialIndex + (self._translateNegativeIndice(dimIndex, partialIndex),)
+                yield partialIndex + \
+                      (self._translateNegativeIndice(dimIndex, partialIndex),)
             else:
                 yield partialIndex + (dimIndex,)
 
@@ -5244,7 +5367,8 @@ class DimensionedComponent(Component):
                               item.__class__.__name__))
         if isinstance(item, (slice, HashableSlice)):
             if item.step and item.step < 0:
-                raise IndexError("Components do not support slices with negative steps")
+                raise IndexError("Components do not support slices with "
+                                 "negative steps")
             # 'None' compares as less than all numbers, so need
             # to check for it explicitly
             if item.start is None and item.stop is None:
@@ -5344,7 +5468,8 @@ class ComponentIndex(tuple):
                 label = other.label
             else:
                 if other.label != self.label:
-                    raise ValueError('cannot add two ComponentIndex objects with different labels')
+                    raise ValueError('cannot add two ComponentIndex objects '
+                                     'with different labels')
                 label = self.label
         else:
             label = self.label
@@ -5632,7 +5757,8 @@ class DiscreteComponent(DimensionedComponent):
         for _ in xrange(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
-        mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
+        mfncomp.getElement(self._currentFlatIndex,
+                           *[x() for x in dimensionIndicePtrs])
         curIndex = ComponentIndex([x.get() for x in dimensionIndicePtrs])
         return self.__class__(self._node, curIndex)
 
@@ -5653,7 +5779,8 @@ class DiscreteComponent(DimensionedComponent):
         for _ in xrange(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
-        mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
+        mfncomp.getElement(self._currentFlatIndex,
+                           *[x() for x in dimensionIndicePtrs])
         if self.dimensions == 1:
             return dimensionIndicePtrs[0].get()
         else:
@@ -5694,9 +5821,8 @@ class ContinuousComponent(DimensionedComponent):
     VALID_SINGLE_INDEX_TYPES = (int, long, float, slice, HashableSlice)
 
     def _standardizeIndices(self, indexObjs, **kwargs):
-        return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
-                                                                    allowIterable=False,
-                                                                    **kwargs)
+        return super(ContinuousComponent, self)._standardizeIndices(
+            indexObjs, allowIterable=False, **kwargs)
 
     def _sliceToIndices(self, sliceObj, partialIndex=None):
         # Note that as opposed to a DiscreteComponent, where we
@@ -5705,8 +5831,9 @@ class ContinuousComponent(DimensionedComponent):
         # indices... the only caveat is we need to convert it to a
         # HashableSlice, as we will be sticking it into a set...
         if sliceObj.step != None:
-            raise MayaComponentError("%ss may not use slice-indices with a 'step' -  bad slice: %s" %
-                                     (self.__class__.__name__, sliceObj))
+            raise MayaComponentError(
+                "%ss may not use slice-indices with a 'step' -  "
+                "bad slice: %s" % (self.__class__.__name__, sliceObj))
         if partialIndex is None:
             partialIndex = ComponentIndex()
         if sliceObj.start == sliceObj.stop == None:
@@ -5766,6 +5893,7 @@ class Component1D(DiscreteComponent):
         return [HashableSlice(x.start, x.stop - 1, x.step) for x in _util.sequenceToSlices(array)]
 
     def name(self):
+        # type: () -> unicode
         # this function produces a name that uses extended slice notation, such as vtx[10:40:2]
         melobj = self.__melobject__()
         if isinstance(melobj, basestring):
@@ -5873,9 +6001,11 @@ class MItComponent(Component):
         # keep track of when things such as geomChanged need to be called,
         # we simply never retain the MIt for long..
         if self._currentFlatIndex == 0 or alwaysUnindexed:
-            return self.__apicls__(self.__apimdagpath__(), self.__apimobject__())
+            return self.__apicls__(self.__apimdagpath__(),
+                                   self.__apimobject__())
         else:
-            return self.__apicls__(self.__apimdagpath__(), self.currentItem().__apimobject__())
+            return self.__apicls__(self.__apimdagpath__(),
+                                   self.currentItem().__apimobject__())
 
     def __apimfn__(self):
         return self.__apimit__()
@@ -6009,7 +6139,9 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice(
+            [array[i] for i in range(array.length())])
+        return MeshEdge._compOrEmptyList(self, compSlice)
 
     def connectedFaces(self):
         # type: () -> List[MeshFace]
@@ -6020,7 +6152,9 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice(
+            [array[i] for i in range(array.length())])
+        return MeshFace._compOrEmptyList(self, compSlice)
 
     def connectedVertices(self):
         # type: () -> List[MeshVertex]
@@ -6031,7 +6165,8 @@ class MeshVertex(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice([array[i] for i in range(array.length())])
+        return MeshVertex._compOrEmptyList(self, compSlice)
 
     def isConnectedTo(self, component):
         # type: (Any) -> bool
@@ -6053,6 +6188,7 @@ class MeshVertex(MItComponent1D):
         raise TypeError, 'type %s is not supported' % type(component)
 
     def getColor(self, *args, **kwargs):
+        # type: (*Any, **Any) -> datatypes.Color
         # Want all possible versions of this command, so easiest to just manually
         # wrap (particularly want to be able to invoke with no args!
         color = _api.MColor()
@@ -6230,7 +6366,9 @@ class MeshEdge(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice(
+            [array[i] for i in range(array.length())])
+        return MeshEdge._compOrEmptyList(self, compSlice)
 
     def connectedFaces(self):
         # type: () -> List[MeshFace]
@@ -6241,14 +6379,16 @@ class MeshEdge(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice(
+            [array[i] for i in range(array.length())])
+        return MeshFace._compOrEmptyList(self, compSlice)
 
     def connectedVertices(self):
-        # type: () -> List[MeshVertex]
+        # type: () -> Tuple[MeshVertex, MeshVertex]
         """
         Returns
         -------
-        List[MeshVertex]
+        Tuple[MeshVertex, MeshVertex]
         """
 
         index0 = self.__apimfn__().index(0)
@@ -6256,8 +6396,12 @@ class MeshEdge(MItComponent1D):
         return (MeshVertex(self, index0), MeshVertex(self, index1))
 
     def isConnectedTo(self, component):
-        # type: (Any) -> bool
+        # type: (Union[MeshFace, MeshEdge, MeshVertex]) -> bool
         """
+        Parameters
+        ----------
+        component : Union[MeshFace, MeshEdge, MeshVertex]
+
         Returns
         -------
         bool
@@ -6379,7 +6523,9 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice(
+            [array[i] for i in range(array.length())])
+        return MeshEdge._compOrEmptyList(self, compSlice)
 
     def connectedFaces(self):
         # type: () -> List[MeshFace]
@@ -6390,7 +6536,9 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice(
+            [array[i] for i in range(array.length())])
+        return MeshFace._compOrEmptyList(self, compSlice)
 
     def connectedVertices(self):
         # type: () -> List[MeshVertex]
@@ -6401,11 +6549,17 @@ class MeshFace(MItComponent1D):
         """
         array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex._compOrEmptyList(self, self._sequenceToComponentSlice([array[i] for i in range(array.length())]))
+        compSlice = self._sequenceToComponentSlice(
+            [array[i] for i in range(array.length())])
+        return MeshVertex._compOrEmptyList(self, compSlice)
 
     def isConnectedTo(self, component):
-        # type: (Any) -> bool
+        # type: (Union[MeshFace, MeshEdge, MeshVertex]) -> bool
         """
+        Parameters
+        ----------
+        component : Union[MeshFace, MeshEdge, MeshVertex]
+
         Returns
         -------
         bool
@@ -7079,7 +7233,8 @@ class NurbsSurfaceIsoparm(Component2DFloat):
         if hasattr(self, '_partialIndex'):
             self._partialIndex = self._convertUVtoU(self._partialIndex)
         if 'ComponentIndex' in self.__apiobjects__:
-            self.__apiobjects__['ComponentIndex'] = self._convertUVtoU(self.__apiobjects__['ComponentIndex'])
+            self.__apiobjects__['ComponentIndex'] = \
+                self._convertUVtoU(self.__apiobjects__['ComponentIndex'])
         if hasattr(self, '_indices'):
             self._indices = self._convertUVtoU(self._indices)
         self._ComponentLabel__ = self._convertUVtoU(self._ComponentLabel__)
@@ -7108,12 +7263,13 @@ class NurbsSurfaceIsoparm(Component2DFloat):
                     index['u'] = oldUvIndex
                 del index['uv']
         elif isinstance(index, ComponentIndex):
-            # do this check INSIDE here, because, since a ComponentIndex is a tuple,
-            # we don't want to change a ComponentIndex object with a 'v' index
-            # into a list in the next elif clause!
+            # do this check INSIDE here, because, since a ComponentIndex is a
+            # tuple, we don't want to change a ComponentIndex object with a
+            # 'v' index into a list in the next elif clause!
             if index.label == 'uv':
                 index.label = 'u'
-        elif isinstance(index, (list, tuple)) and not isinstance(index, ComponentIndex):
+        elif isinstance(index, (list, tuple)) \
+                and not isinstance(index, ComponentIndex):
             index = [cls._convertUVtoU(x) for x in index]
         elif isinstance(index, basestring):
             if index == 'uv':
@@ -7256,7 +7412,9 @@ class ParticleComponent(Component1D):
 
     def attr(self, attr):
         try:
-            return cmds.particle(self._node, q=1, attribute=attr, order=super(ParticleComponent, self).currentItemIndex())
+            currIndex = super(ParticleComponent, self).currentItemIndex()
+            return cmds.particle(self._node, q=1, attribute=attr,
+                                 order=currIndex)
         except RuntimeError:
             raise MayaParticleAttributeError('%s.%s' % (self, attr))
 
@@ -7372,17 +7530,22 @@ class ParticleComponent(Component1D):
 #    def rotate( self, *args, **kwargs ):
 #        return rotate( self, *args, **kwargs )
 
+
 class AttributeDefaults(PyNode):
     __slots__ = ()
     __apicls__ = _api.MFnAttribute
     __metaclass__ = _factories.MetaMayaTypeRegistry
 
     def __apiobject__(self):
-        "Return the default API object for this attribute, if it is valid"
+        """
+        Return the default API object for this attribute, if it is valid
+        """
         return self.__apimobject__()
 
     def __apimobject__(self):
-        "Return the MObject for this attribute, if it is valid"
+        """
+        Return the MObject for this attribute, if it is valid
+        """
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
@@ -7394,19 +7557,24 @@ class AttributeDefaults(PyNode):
         raise MayaAttributeError
 
     def __apimplug__(self):
-        "Return the MPlug for this attribute, if it is valid"
+        """
+        Return the MPlug for this attribute, if it is valid
+        """
         # check validity
         # self.__apimobject__()
         return self.__apiobjects__['MPlug']
 
     def __apimdagpath__(self):
-        "Return the MDagPath for the node of this attribute, if it is valid"
+        """
+        Return the MDagPath for the node of this attribute, if it is valid
+        """
         try:
             return self.node().__apimdagpath__()
         except AttributeError:
             pass
 
     def name(self):
+        # type: () -> unicode
         return self.__apimfn__().name()
 # ------ Do not edit below this line --------
     DisconnectBehavior = Enum('DisconnectBehavior', {'delete': 0, 'reset': 1, 'nothing': 2})
@@ -7728,7 +7896,9 @@ class Scene(object):
             try:
                 return self.__dict__[obj]
             except KeyError:
-                raise AttributeError, "type object %r has no attribute %r" % (self.__class__.__name__, obj)
+                raise AttributeError(
+                    "type object %r has no attribute %r" %
+                    (self.__class__.__name__, obj))
 
         return PyNode(obj)
 

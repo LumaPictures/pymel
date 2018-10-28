@@ -1543,8 +1543,11 @@ if not _factories.building:
     Spaces = Space.Space
 
 
+# FIXME: this does not return anything
 def equivalentSpace(space1, space2, rotationOnly=False):
-    '''Compare the two given space values to see if they are equal
+    # type: (Union[int, str], Union[int, str], bool) -> None
+    '''
+    Compare the two given space values to see if they are equal
 
     Parameters
     ----------
@@ -2284,8 +2287,8 @@ class Quaternion(Matrix):
             yield self[i]
 
     def __len__(self):
-
-        # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
+        # api incorrectly returns 4. this might make sense if it did not
+        # simply return z a second time as the fourth element
         return self.size
 #
 #    # TODO : support for optional __iter__ arguments
