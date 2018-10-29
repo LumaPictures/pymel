@@ -59,11 +59,19 @@ def writeClassInfo(classInfo, path):
 
 
 def readClassInfo(path):
-    # need these in the local namespace for the eval
-    from pymel.util import Enum, EnumValue
+    import pymel.util
     with open(path, 'r') as f:
         contents = f.read()
-    return eval(contents)
+    # we compile + exec, instead of just doing "eval", to get a more informative
+    # traceback
+    contents = 'result = {}\n'.format(contents)
+    compiled = compile(contents, path, 'single')
+    locals = {
+        'Enum': pymel.util.Enum,
+        'EnumValue': pymel.util.EnumValue,
+    }
+    exec(compiled, globals(), locals)
+    return locals['result']
 
 
 def iterItemsRecursive(thisValue, parents=None, parentKeys=None,
