@@ -236,9 +236,24 @@ class RegexpTransform(Transform):
 
 class RemoveNoScriptDocs(Transform):
     def xformItem(self, item, parents, parentKeys):
-        if (parentKeys[-1] == 'doc' and isinstance(item, basestring)
-                and 'NO SCRIPT SUPPORT' in item and len(parents) > 1):
+        if (len(parents) > 1 and parentKeys[-1] == 'doc'
+                and isinstance(item, basestring)
+                and 'NO SCRIPT SUPPORT' in item):
             del parents[-2][parentKeys[-2]]
+
+
+class FixFloatDefaultStrings(Transform):
+    def xformItem(self, item, parents, parentKeys):
+        '''Change "2.0f" to 2.0'''
+        if (len(parents) > 1 and parentKeys[-2] == 'defaults'
+                and isinstance(item, basestring) and len(item) > 1
+                and item[-1] == 'f'):
+            try:
+                floatVal = float(item[:-1])
+            except ValueError:
+                pass
+            else:
+                parents[-1][parentKeys[-1]] = floatVal
 
 
 class Processor(object):
@@ -290,6 +305,7 @@ PRE_PROCESSORS = {
     'ApiDocParserOld': Processor([
         RemoveNoScriptDocs(),
         CleanupWhitespace(),
+        FixFloatDefaultStrings(),
     ]),
     'HtmlApiDocParser': Processor([
     ]),
