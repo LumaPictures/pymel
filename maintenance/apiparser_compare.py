@@ -75,7 +75,7 @@ def readClassInfo(path):
 
 
 def iterItemsRecursive(thisValue, parents=None, parentKeys=None,
-                       leavesOnly=True):
+                       yieldParents=False, yieldLeaves=True):
     if parents is None:
         parents = []
     if parentKeys is None:
@@ -85,32 +85,80 @@ def iterItemsRecursive(thisValue, parents=None, parentKeys=None,
         return (isinstance(item, list) or
                 (isinstance(item, tuple) and not isinstance(item, ApiEnum)))
 
-    if not leavesOnly or not (isListLike(thisValue)
-                            or isinstance(thisValue, dict)):
-        yield (thisValue, parents, parentKeys)
+    yieldItem = (thisValue, parents, parentKeys)
+    if isListLike(thisValue) or isinstance(thisValue, dict):
+        if yieldParents:
+            msg = (yield yieldItem)
+            if msg is not None:
+                # if msg is not None, a "send" command was issued, which also
+                # acts like it's own next, so we need another yield... this way,
+                # the "next()" issued by the for loop will get the "correct"
+                # next yield, as well as handle a potential StopIteration
+                # properly
 
-    if isListLike(thisValue):
-        # iterate backwards, so if child deletes item, iteration is still valid
-        indicesItems = list(enumerate(thisValue))
-        for i, subVal in reversed(indicesItems):
-            newParents = parents + [thisValue]
-            newParentKeys = parentKeys + [i]
-            for subItem in iterItemsRecursive(subVal,
-                                              parents=newParents,
-                                              parentKeys=newParentKeys,
-                                              leavesOnly=leavesOnly):
-                yield subItem
-    elif isinstance(thisValue, dict):
-        # need to use items, because we may change thisValue while iterating
-        # children...
-        for key, subVal in thisValue.items():
+                # because this tripped me a up: a yield statement that handles
+                # a potential send, like this:
+                #
+                #     foo = yield yieldItem
+                #
+                # consists of two parts - the yield, and the setting of foo to
+                # a value from a send (or to None, if "next()" was invoked).
+                # However, the "yield" part is excecuted first, and the storing
+                # of foo (from a potential send) happens second, the NEXT TIME
+                # A SEND() OR NEXT() happens. That is, execution happens
+                # something like this:
+                #
+                #   - calling func calls generator.next() / send()
+                #       - generator runs statements up to yield
+                #       - "yield yieldItem" portion runs
+                #   - calling func gets control back
+                #   - calling func calls generator.send('blah')
+                #       - generator stores foo = 'blah', then continues
+                #         execution until NEXT yield
+                #
+                # That is, the yield and the store part of the statement get
+                # broken up into different "execution blocks", triggered by
+                # different next() / send() statements!
+                yield
+            if msg == StopIteration:
+                return
+
+        if isinstance(thisValue, dict):
+            # need to use items, because we may change thisValue while iterating
+            # children... use list for python-3 forward compatibility
+            subItems = list(thisValue.items())
+        else:
+            subItems = list(enumerate(thisValue))
+            # iterate backwards, so if child deletes item, iteration is still valid
+            subItems.reverse()
+
+        for key, subVal in subItems:
             newParents = parents + [thisValue]
             newParentKeys = parentKeys + [key]
-            for subItem in iterItemsRecursive(subVal,
+            subGenerator = iterItemsRecursive(subVal,
                                               parents=newParents,
                                               parentKeys=newParentKeys,
-                                              leavesOnly=leavesOnly):
-                yield subItem
+                                              yieldParents=yieldParents,
+                                              yieldLeaves=yieldLeaves)
+            for subItem in subGenerator:
+                msg = (yield subItem)
+                # if they sent a StopIteration to the toplevel generator, they
+                # actually want to send it to the current lowest generator, so
+                # pass the message along
+                if msg is not None:
+                    # still need to "consume" the send
+                    yield
+                    subGenerator.send(msg)
+
+
+    elif yieldLeaves:
+        msg = yield yieldItem
+        # generally speaking, a user shouldn't call send  after a leaf item,
+        # since the only message we handle is StopIteration, and that makes no
+        # sense for a leaf item, which has no items to yield... but just in case
+        # they do...
+        if msg is not None:
+            yield
 
 
 def parse(parsers=None, classes=None, baseDir=None, verbose=False):
@@ -195,10 +243,14 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False):
 
 class Transform(object):
     """Individual transform applied to an apiClassInfo"""
-    LEAVES_ONLY = True
+    YIELD_PARENTS = False
+    YIELD_LEAVES = True
+
     def xform(self, classInfo):
-        for item, parents, parentKeys in iterItemsRecursive(
-                classInfo, leavesOnly=self.LEAVES_ONLY):
+        self.iterator = iterItemsRecursive(
+            classInfo, yieldParents=self.YIELD_PARENTS,
+            yieldLeaves=self.YIELD_LEAVES)
+        for item, parents, parentKeys in self.iterator:
             self.xformItem(item, parents, parentKeys)
 
     def xformItem(self, item, parents, parentKeys):
@@ -207,7 +259,8 @@ class Transform(object):
 # Do this first, as it will then allow other Transforms to alter items inside of
 # tuples
 class TuplesToLists(Transform):
-    LEAVES_ONLY = False
+    YIELD_PARENTS = True
+    YIELD_LEAVES = False
 
     def xformItem(self, item, parents, parentKeys):
         if (isinstance(item, tuple) and not isinstance(item, ApiEnum)
@@ -246,11 +299,16 @@ class RegexpTransform(Transform):
 
 
 class RemoveNoScriptDocs(Transform):
+    YIELD_PARENTS = True
+    YIELD_LEAVES = False
+
     def xformItem(self, item, parents, parentKeys):
-        if (len(parents) > 1 and parentKeys[-1] == 'doc'
-                and isinstance(item, basestring)
-                and 'NO SCRIPT SUPPORT' in item):
-            del parents[-2][parentKeys[-2]]
+        if isinstance(item, dict):
+            doc = item.get('doc')
+            if isinstance(doc, basestring) and 'NO SCRIPT SUPPORT' in doc:
+                if parents:
+                    del parents[-1][parentKeys[-1]]
+                self.iterator.send(StopIteration)
 
 
 class FixFloatDefaultStrings(Transform):
