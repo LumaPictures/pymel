@@ -241,7 +241,7 @@ class RegexpTransform(Transform):
 
     def xformItem(self, item, parents, parentKeys):
         if isinstance(item, basestring) and parents:
-            parents[-1][parentKeys[-1]] = self.fine.sub(self.replace, item)
+            parents[-1][parentKeys[-1]] = self.find.sub(self.replace, item)
 
 
 class RemoveNoScriptDocs(Transform):
@@ -321,6 +321,8 @@ PRE_PROCESSORS = {
     'HtmlApiDocParser': Processor([
     ]),
     'XmlApiDocParser': Processor([
+        RegexpTransform(r'This method is obsolete. \[From Maya 2019\]',
+                        'This method is obsolete.'),
     ]),
 }
 
