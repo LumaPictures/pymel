@@ -19,6 +19,7 @@ if sys.path[0] != pymelSrcDir:
 
 import pymel.internal.parsers as parsers
 from pymel.internal.parsers import ApiDocParser, _logger
+from pymel.util import compareCascadingDicts, AddedKey, ChangedKey, RemovedKey
 
 try:
     from pymel.internal.parsers import HtmlApiDocParser, XmlApiDocParser
@@ -235,12 +236,15 @@ class RemoveNoScriptDocs(Transform):
 class Processor(object):
     """Used to massage / format raw classInfo data to make for easier
     comparisons."""
-    def __init__(self, xforms, autoTuplesToLists=True):
+    AUTO_TUPLES_TO_LISTS = True
+
+    def __init__(self, xforms):
         self.xforms = list(xforms)
-        if autoTuplesToLists:
+        if self.AUTO_TUPLES_TO_LISTS:
             self.xforms.insert(0, TuplesToLists())
 
     def processDir(self, dir, classes=None):
+        processedItems = {}
         if classes is not None:
             classes = set(classes)
         outputDir = dir + '_processed'
@@ -253,24 +257,28 @@ class Processor(object):
             if ext == '.py' and (classes is None or base in classes):
                 path = os.path.join(dir, filename)
                 if os.path.isfile(path):
-                    self.processFile(path, outputDir)
-        return outputDir
+                    processedItems[base] = self.processFile(path, outputDir)
+        return processedItems
 
     def processFile(self, path, outputDir):
         outPath = os.path.join(outputDir, os.path.basename(path))
         print "Processing: {}...".format(path),
         try:
             classInfo = readClassInfo(path)
-            for xform in self.xforms:
-                xform.xform(classInfo)
+            self.applyXforms(classInfo)
             writeClassInfo(classInfo, outPath)
             print "Wrote {}".format(outPath),
+            return outPath
         finally:
             # add the newline
             print
 
+    def applyXforms(self, classInfo):
+        for xform in self.xforms:
+            xform.xform(classInfo)
 
-PROCESSORS = {
+
+PRE_PROCESSORS = {
     'ApiDocParserOld': Processor([
         RemoveNoScriptDocs(),
         CleanupWhitespace(),
@@ -282,20 +290,111 @@ PROCESSORS = {
 }
 
 
+class DiffProcessor(Processor):
+    AUTO_TUPLES_TO_LISTS = False
+
+
+class DiffTransform(Transform):
+    @classmethod
+    def deleteEmptyRecursive(cls, item):
+        '''Recursively prunes a differences dict of now-empty items
+
+        Returns True if the given item is now completely empty, False otherwise'''
+        if not isinstance(item, dict):
+            return False
+
+        isEmpty = True
+        for key in list(item):
+            subItem = item[key]
+            if cls.deleteEmptyRecursive(subItem):
+                del item[key]
+            else:
+                isEmpty = False
+        return isEmpty
+
+    def xform(self, diffDict):
+        super(DiffTransform, self).xform(diffDict)
+        # go through and remove any items that have only empty children
+        self.deleteEmptyRecursive(diffDict)
+
+
+class IgnoreMissingDocsInOld(DiffTransform):
+    def xformItem(self, item, parents, parentKeys):
+        if parentKeys[-2:] == ['returnInfo', 'doc']:
+            if (isinstance(item, AddedKey)
+                    or (isinstance(item, ChangedKey) and item.oldVal == '')):
+                del parents[-1][parentKeys[-1]]
+
+
+DIFF_PROCESSORS = {
+    ('ApiDocParserOld', 'XmlApiDocParser') : DiffProcessor([
+        IgnoreMissingDocsInOld()
+    ]),
+}
+
 
 def compare(dir1, dir2, classes=None, baseDir=None):
-    dir1 = os.path.join(baseDir, dir1)
-    dir2 = os.path.join(baseDir, dir2)
+
+    dirs = [os.path.join(baseDir, d) for d in (dir1, dir2)]
     processors = []
-    for inputDir in (dir1, dir2):
-        basename = os.path.basename(inputDir)
+    parserTypes = []
+    for inputDir in dirs:
+        parserType = os.path.basename(inputDir)
         try:
-            processors.append(PROCESSORS[basename])
+            processors.append(PRE_PROCESSORS[parserType])
         except KeyError:
-            raise KeyError("Unrecognized dir name: {}".format(basename))
-    outputDirs = []
-    for inputDir, processor in zip((dir1, dir2), processors):
-        outputDirs.append(processor.processDir(inputDir, classes=classes))
+            raise KeyError("Unrecognized dir name: {}".format(parserType))
+        parserTypes.append(parserType)
+
+    # we need the dirs/processors in a standard order to use as a key...
+    if parserTypes[1] < parserTypes[1]:
+        parserTypes.reverse()
+        processors.reverse()
+        dirs.reverse()
+    # convert parserTypes to tuple, for use as key
+    parserTypes = tuple(parserTypes)
+
+    processedItems = []
+    for inputDir, processor in zip(dirs, processors):
+        processedItems.append(processor.processDir(inputDir, classes=classes))
+
+    print "finished pre-processing..."
+
+    names = [set(x) for x in processedItems]
+    combined = names[0].intersection(names[1])
+
+    foundAnyMissing = False
+    for dirNames, sourceDir in zip(names, dirs):
+        missing = dirNames - combined
+        if missing:
+            foundAnyMissing = True
+            print "Following items were missing in {}:".format(sourceDir)
+            for name in sorted(dirNames):
+                print '  {}'.format(name)
+
+    foundAnyDiffs = False
+    for name in sorted(combined):
+        classInfos = [readClassInfo(items[name]) for items in processedItems]
+        diffs = compareCascadingDicts(
+            classInfos[0], classInfos[1], useAddedKeys=True,
+            useChangedKeys=True)[-1]
+        if not diffs:
+            continue
+
+        processor = DIFF_PROCESSORS.get(parserTypes)
+        if processor is not None:
+            processor.applyXforms(diffs)
+
+        if diffs:
+            if not foundAnyDiffs:
+                foundAnyDiffs = True
+                print "Following items had differences:"
+            print '  {}'.format(name)
+            # from pprint import pprint
+            # pprint(diffs)
+
+    if not foundAnyMissing and not foundAnyDiffs:
+        print "All items identical!"
 
 
 def parse_cmd(args):
