@@ -218,7 +218,17 @@ class TuplesToLists(Transform):
 class CleanupWhitespace(Transform):
     def xformItem(self, item, parents, parentKeys):
         if isinstance(item, basestring) and parents:
-            parents[-1][parentKeys[-1]] = ' '.join(item.strip().split())
+            # replace 'non-breaking space'
+            newString = item.replace('\xc2\xa0', ' ')
+            parents[-1][parentKeys[-1]] = ' '.join(newString.strip().split())
+
+
+class RemoveEmptyEnumDocs(Transform):
+    def xformItem(self, item, parents, parentKeys):
+        if (len(parents) == 4 and parentKeys[0] == 'enums'
+                and parentKeys[-2] == 'valueDocs'
+                and isinstance(item, basestring) and item == ''):
+            del parents[-1][parentKeys[-1]]
 
 
 class RegexpTransform(Transform):
@@ -306,6 +316,7 @@ PRE_PROCESSORS = {
         RemoveNoScriptDocs(),
         CleanupWhitespace(),
         FixFloatDefaultStrings(),
+        RemoveEmptyEnumDocs(),
     ]),
     'HtmlApiDocParser': Processor([
     ]),
