@@ -301,6 +301,28 @@ PRE_PROCESSORS = {
 class DiffProcessor(Processor):
     AUTO_TUPLES_TO_LISTS = False
 
+    @classmethod
+    def countChanges(cls, diffDict):
+        '''Recursively count number of added, removed, and changed items'''
+        if not isinstance(diffDict, dict):
+            raise TypeError(diffDict)
+        added = 0
+        removed = 0
+        changed = 0
+        for val in diffDict.itervalues():
+            if isinstance(val, dict):
+                subAdded, subRemoved, subChanged = cls.countChanges(val)
+                added += subAdded
+                removed += subRemoved
+                changed += subChanged
+            elif isinstance(val, AddedKey):
+                added += 1
+            elif isinstance(val, RemovedKey):
+                removed += 1
+            else:
+                changed += 1
+        return (added, removed, changed)
+
 
 class DiffTransform(Transform):
     @classmethod
@@ -397,7 +419,9 @@ def compare(dir1, dir2, classes=None, baseDir=None):
             if not foundAnyDiffs:
                 foundAnyDiffs = True
                 print "Following items had differences:"
-            print '  {}'.format(name)
+            changeCounts = DiffProcessor.countChanges(diffs)
+            print '  {0} ({1[0]} added, {1[1]} removed, {1[2]} changed)'.format(
+                name, changeCounts)
             # from pprint import pprint
             # pprint(diffs)
 
