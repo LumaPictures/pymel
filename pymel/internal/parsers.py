@@ -512,7 +512,7 @@ class ApiDocParser(object):
                     elif isMethod in allFnMembers:
                         addSetGetPair(setMethod, isMethod)
 
-        return pymelNames, pairsList
+        return pymelNames, sorted(pairsList)
 
     def getClassFilename(self):
         filename = 'class'
