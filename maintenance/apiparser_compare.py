@@ -391,7 +391,7 @@ class Processor(object):
         if self.AUTO_TUPLES_TO_LISTS:
             self.xforms.insert(0, TuplesToLists())
 
-    def processDir(self, dir, classes=None):
+    def processDir(self, dir, classes=None, skipPreprocess=False):
         processedItems = {}
         if classes:
             classes = set(classes)
@@ -405,19 +405,19 @@ class Processor(object):
             if ext == '.py' and (not classes or base in classes):
                 path = os.path.join(dir, filename)
                 if os.path.isfile(path):
-                    processedItems[base] = self.processFile(base, path,
-                                                            outputDir)
+                    outPath = os.path.join(outputDir, os.path.basename(path))
+                    if not skipPreprocess:
+                        self.processFile(base, path, outPath)
+                    processedItems[base] = outPath
         return processedItems
 
-    def processFile(self, className, path, outputDir):
-        outPath = os.path.join(outputDir, os.path.basename(path))
+    def processFile(self, className, path, outPath):
         print "Processing: {}...".format(path),
         try:
             classInfo = readClassInfo(path)
             self.applyXforms(className, classInfo)
             writeClassInfo(classInfo, outPath)
             print "Wrote {}".format(outPath),
-            return outPath
         finally:
             # add the newline
             print
@@ -557,7 +557,7 @@ DIFF_PROCESSORS = {
 }
 
 
-def compare(dir1, dir2, classes=None, baseDir=None):
+def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False):
 
     dirs = [os.path.join(baseDir, d) for d in (dir1, dir2)]
     processors = []
@@ -580,7 +580,8 @@ def compare(dir1, dir2, classes=None, baseDir=None):
 
     processedItems = []
     for inputDir, processor in zip(dirs, processors):
-        processedItems.append(processor.processDir(inputDir, classes=classes))
+        processedItems.append(processor.processDir(
+            inputDir, classes=classes, skipPreprocess=skipPreprocess))
 
     print "finished pre-processing..."
 
@@ -629,7 +630,8 @@ def parse_cmd(args):
 
 
 def compare_cmd(args):
-    compare(args.dir1, args.dir2, classes=args.classes, baseDir=args.base_dir)
+    compare(args.dir1, args.dir2, classes=args.classes, baseDir=args.base_dir,
+            skipPreprocess=args.skip_preprocess)
 
 
 def getParser():
@@ -666,6 +668,10 @@ def getParser():
     compare_subparser.add_argument(
         'dir2', help='Second directory of parsed class infos to compare;'
                      ' if a relative dir, taken relative to BASE_DIR')
+    compare_subparser.add_argument(
+        '--skip-preprocess', action='store_true',
+        help="Assume pre-processor has already run - still uses the output in"
+        " the pre-processed output dir, but does not re-create them")
     compare_subparser.set_defaults(func=compare_cmd)
     return parser
 
