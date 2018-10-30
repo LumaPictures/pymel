@@ -1079,12 +1079,23 @@ class XmlApiDocParser(ApiDocParser):
         defaults = {}
         typeQualifiers = {}
 
+        def returnEmtpy():
+            return [], {}, {}, {}
+
+        foundUnknownName = False
+
         # TYPES
         for param in self.currentRawMethod.findall('param'):
             paramNameElem = param.find('defname')
             if paramNameElem is None:
                 paramNameElem = param.find('declname')
             paramName = xmlText(paramNameElem)
+            if paramName == '':
+                if foundUnknownName:
+                    # if we find more than one uknown param name, we abort
+                    return returnEmtpy()
+                foundUnknownName = True
+
             rawType = xmlText(param.find('type'))
             parsedType, qualifiers = self.parseType(rawType.split())
             names.append(paramName)
@@ -1125,10 +1136,7 @@ class XmlApiDocParser(ApiDocParser):
                     defaults[paramName] = default
         # filter myFunc(void) type funcs - this also gets stuff like "myFunc(void) const"
         if types == {'': 'void'}:
-            names = []
-            types = {}
-            typeQualifiers = {}
-            defaults = {}
+            return returnEmtpy()
 
         return names, types, typeQualifiers, defaults
 
