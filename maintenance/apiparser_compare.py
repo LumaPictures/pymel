@@ -393,7 +393,7 @@ class Processor(object):
 
     def processDir(self, dir, classes=None):
         processedItems = {}
-        if classes is not None:
+        if classes:
             classes = set(classes)
         outputDir = dir + '_processed'
         if not os.path.isdir(outputDir):
@@ -402,7 +402,7 @@ class Processor(object):
         contents = os.listdir(dir)
         for filename in contents:
             base, ext = os.path.splitext(filename)
-            if ext == '.py' and (classes is None or base in classes):
+            if ext == '.py' and (not classes or base in classes):
                 path = os.path.join(dir, filename)
                 if os.path.isfile(path):
                     processedItems[base] = self.processFile(base, path,
