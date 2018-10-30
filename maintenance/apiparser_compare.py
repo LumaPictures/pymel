@@ -433,31 +433,7 @@ class DiffProcessor(Processor):
         return (added, removed, changed)
 
 
-class DiffTransform(Transform):
-    @classmethod
-    def deleteEmptyRecursive(cls, item):
-        '''Recursively prunes a differences dict of now-empty items
-
-        Returns True if the given item is now completely empty, False otherwise'''
-        if not isinstance(item, dict):
-            return False
-
-        isEmpty = True
-        for key in list(item):
-            subItem = item[key]
-            if cls.deleteEmptyRecursive(subItem):
-                del item[key]
-            else:
-                isEmpty = False
-        return isEmpty
-
-    def xform(self, diffDict, className):
-        super(DiffTransform, self).xform(diffDict, className)
-        # go through and remove any items that have only empty children
-        self.deleteEmptyRecursive(diffDict)
-
-
-class IgnoreMissingDocsInOld(DiffTransform):
+class IgnoreMissingDocsInOld(Transform):
     def xformItem(self, item, parents, parentKeys):
         if parentKeys[-2:] == ['returnInfo', 'doc']:
             if (isinstance(item, AddedKey)
@@ -465,7 +441,7 @@ class IgnoreMissingDocsInOld(DiffTransform):
                 self.delAndRemoveEmptyParents(parents, parentKeys)
 
 
-class IgnoreKnownNew2019Funcs(DiffTransform):
+class IgnoreKnownNew2019Funcs(Transform):
     YIELD_PARENTS = True
     YIELD_LEAVES = False
 
