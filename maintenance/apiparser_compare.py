@@ -330,10 +330,10 @@ class RegexpTransform(IterTransform):
 
 class MethodTransform(Transform):
     def _doXform(self):
-        methods = self.classInfo.get('methods')
-        if not methods:
+        self.methods = self.classInfo.get('methods')
+        if not self.methods:
             return
-        for self.methodName, self.overrides in list(methods.items()):
+        for self.methodName, self.overrides in list(self.methods.items()):
             # for DiffProcessor, self.overrides will be a dict, while
             # for a "normal" classInfo, it should be a list
             if isinstance(self.overrides, dict):
@@ -345,7 +345,7 @@ class MethodTransform(Transform):
                 continue
             for self.overrideIndex in indices:
                 self.methodInfo = self.overrides[self.overrideIndex]
-                self.parents = [self.classInfo, self.classInfo['methods'],
+                self.parents = [self.classInfo, self.methods,
                            self.overrides]
                 self.parentKeys = ['methods', self.methodName,
                                    self.overrideIndex]
@@ -427,6 +427,26 @@ class Processor(object):
             xform.xform(classInfo, className)
 
 
+class CleanUpInvertibles(MethodTransform):
+    '''After other Transforms remove items, invertibles might no longer be
+    valid - remove them'''
+    def _doXform(self):
+        invertibles = self.classInfo.get('invertibles')
+        if invertibles:
+            methods = self.classInfo.get('methods', {})
+
+            for i in reversed(range(len(invertibles))):
+                setter, getter = invertibles[i]
+                if setter not in methods or getter not in methods:
+                    del invertibles[i]
+        super(CleanUpInvertibles, self)._doXform()
+
+    def methodXform(self):
+        inverse = self.methodInfo.get('inverse')
+        if isinstance(inverse, (list, tuple)) and inverse[0] not in self.methods:
+            del self.methodInfo['inverse']
+
+
 PRE_PROCESSORS = {
     'ApiDocParserOld': Processor([
         RemoveNoScriptDocs(),
@@ -441,6 +461,7 @@ PRE_PROCESSORS = {
         RegexpTransform(r'(\w) ([\.;,])',
                         r'\1\2',
                         keyFilter=lambda keys: keys and keys[-1] == 'doc'),
+        CleanUpInvertibles(),
     ]),
     'HtmlApiDocParser': Processor([
     ]),
