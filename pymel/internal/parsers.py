@@ -497,7 +497,7 @@ class ApiDocParser(object):
     # since 'object' is in PYMEL_ENUM_DEFAULTS['Space'], that is preferred
     PYMEL_ENUM_DEFAULTS = {'Space': ('object',)}
 
-    MISSING_TYPES = ['MUint64', 'MInt64']
+    MISSING_TYPES = ['MUint64', 'MInt64', 'MGLfloat', 'MGLdouble']
     OTHER_TYPES = ['void', 'char', 'uchar',
                    'double', 'double2', 'double3', 'double4',
                    'float', 'float2', 'float3', 'float4',
