@@ -1232,20 +1232,54 @@ class XmlApiDocParser(ApiDocParser):
                 currentTextChunks.append(' ')
                 continue
 
-            if currentTag is not None:
-                yield (currentTag, ''.join(currentTextChunks))
+            yield (currentTag, ''.join(currentTextChunks))
             currentTextChunks = []
             currentTag = newTag
 
         currentTextChunks.append(text[lastPosition:])
-        if currentTag is not None:
-            yield (currentTag, ''.join(currentTextChunks))
+        yield (currentTag, ''.join(currentTextChunks))
+
+    @classmethod
+    def parseBackslashTags(cls, text):
+        info = {
+            'params': {},
+            'returnDoc': '',
+        }
+        foundSomething = False
+        remainingPieces = []
+        for tag, tagText in cls.iterBackslashTags(text):
+            if tag is None:
+                remainingPieces.append(tagText)
+            else:
+                paramMatch = cls._paramDirRe.match(tag)
+                if paramMatch is not None:
+                    splitText = tagText.strip().split()
+                    name = splitText[0]
+                    paramInfo = {
+                        'direction': paramMatch.group('dir'),
+                        # Because this didn't parse correctly, it may have some tags
+                        # still in the text - ie, "<i>merged</i>" (which gets encoded
+                        # in the xml as: "&lt;i&gt;merged&lt;/i&gt")
+                        'doc': strip_tags(' '.join(splitText[1:])),
+                    }
+                    info['params'][name] = paramInfo
+                    foundSomething = True
+                elif tag == 'return':
+                    info['returnDoc'] = strip_tags(tagText)
+                    foundSomething = True
+                else:
+                    remainingPieces.append('{} {}'.format(tag, tagText))
+        if foundSomething:
+            info['remainingText'] = strip_tags(''.join(remainingPieces))
+            return info
 
     def parseMethodArgs(self, returnType, names, types, typeQualifiers):
         directions = {}
-        docs = {}
+        docs = {
+            # we have returnDoc in here so it can be modified by internal funcs
+            '<returnDoc>': ''
+        }
         deprecated = self.isDeprecated()
-        returnDoc = ''
         methodDoc = ''
 
         brief = self.currentRawMethod.find('briefdescription')
@@ -1265,7 +1299,7 @@ class XmlApiDocParser(ApiDocParser):
 
         if returnType and detail is not None:
             returnElem = detail.find(".//simplesect[@kind='return']")
-            returnDoc = xmlText(returnElem)
+            docs['<returnDoc>'] = xmlText(returnElem)
 
         paramDescriptions = []
         if detail is not None:
@@ -1274,20 +1308,34 @@ class XmlApiDocParser(ApiDocParser):
                 paramDescriptions = paramList.findall('parameteritem')
 
         missingParamDocs = set(names)
-        foundParamDocs = set()
 
         def validateName(name):
             try:
                 missingParamDocs.remove(name)
             except KeyError:
                 # check if it's in foundParamDocs - this is just for a clearer error message
-                if name in foundParamDocs:
+                if name in docs:
                     msg = "Found parameter description with name {} more than once".format(name)
                     raise ValueError(self.formatMsg(msg))
                 else:
                     msg = "Found parameter description with name {}, but no matching declaration".format(name)
                     raise ValueError(self.formatMsg(msg))
-            foundParamDocs.add(name)
+
+        def parseRawTagInfo(text):
+            parsedTags = self.parseBackslashTags(text)
+            foundSomething = False
+            if parsedTags:
+                for paramName, paramInfo in parsedTags['params'].iteritems():
+                    if paramName not in docs:
+                        docs[paramName] = paramInfo['doc']
+                        directions[paramName] = paramInfo['direction']
+                        missingParamDocs.remove(paramName)
+                        foundSomething = True
+                if not docs['<returnDoc>']:
+                    docs['<returnDoc>'] = parsedTags['returnDoc']
+                    foundSomething = True
+            if foundSomething:
+                return parsedTags['remainingText']
 
         if len(paramDescriptions) > len(names):
             msg = "found more ({}) parameter descriptions than parameter declarations ({})".format(
@@ -1307,25 +1355,22 @@ class XmlApiDocParser(ApiDocParser):
             directions[name] = allNames[0].attrib['direction']
             docs[name] = xmlText(param.find('parameterdescription'))
 
-        if missingParamDocs or (returnType and not returnDoc):
+            # sometimes backslash tags get placed in the description of other
+            # parameters. check for that...
+            #
+            # As an example, this happens in the 2019 xml docs,
+            # MCameraSetMessage.addCameraLayerCallback - the docs for
+            # 'clientData' appear inside the docs for 'func'
+            remainingText = parseRawTagInfo(docs[name])
+            if remainingText:
+                docs[name] = remainingText
+
+        if missingParamDocs or (returnType and not docs['<returnDoc>']):
             # Sometimes, "parameteritem" xml objects may not be properly created,
             # but (manually) parsable information still exists in the detaileddescription
             # ie, this happens in the 2019 MFnMesh.addPolygon 2nd overload (with 6 args)
-            if not paramDescriptions and detail is not None:
-                for tag, tagText in self.iterBackslashTags(xmlText(detail)):
-                    paramMatch = self._paramDirRe.match(tag)
-                    if paramMatch is not None:
-                        splitText = tagText.strip().split()
-                        name = splitText[0]
-                        validateName(name)
-                        directions[name] = paramMatch.group('dir')
-                        # Because this didn't parse correctly, it may have some tags
-                        # still in the text - ie, "<i>merged</i>" (which gets encoded
-                        # in the xml as: "&lt;i&gt;merged&lt;/i&gt")
-                        docs[name] = strip_tags(' '.join(splitText[1:]))
-                    elif tag == 'return':
-                        if not returnDoc:
-                            returnDoc = strip_tags(tagText)
+            if detail is not None:
+                parseRawTagInfo(xmlText(detail))
 
         if missingParamDocs:
             wereMissingAll = len(missingParamDocs) == len(names)
@@ -1334,7 +1379,6 @@ class XmlApiDocParser(ApiDocParser):
                         and ('*' in typeQualifiers[missing]
                              or '&' in typeQualifiers[missing])):
                     missingParamDocs.remove(missing)
-                    foundParamDocs.add(missing)
                     directions[missing] = 'out'
                     continue
             if not wereMissingAll and missingParamDocs:
@@ -1370,6 +1414,7 @@ class XmlApiDocParser(ApiDocParser):
             directions[name] = dir
             docs[name] = doc.replace('\n\r', ' ').replace('\n', ' ')
 
+        returnDoc = docs.pop('<returnDoc>')
         return directions, docs, methodDoc, returnDoc, deprecated
 
     def getMethodNameAndOutput(self):
