@@ -254,6 +254,17 @@ class Transform(object):
         for item, parents, parentKeys in self.iterator:
             self.xformItem(item, parents, parentKeys)
 
+    def delAndRemoveEmptyParents(self, parents, parentKeys, startLevel=1):
+        if len(parents) >= startLevel:
+            del parents[-startLevel][parentKeys[-startLevel]]
+        nextLevel = startLevel + 1
+        while len(parents) >= nextLevel:
+            if not parents[-nextLevel][parentKeys[-nextLevel]]:
+                del parents[-nextLevel][parentKeys[-nextLevel]]
+                nextLevel += 1
+            else:
+                break
+
     def xformItem(self, item, parents, parentKeys):
         raise NotImplementedError
 
@@ -282,7 +293,7 @@ class RemoveEmptyEnumDocs(Transform):
         if (len(parents) == 4 and parentKeys[0] == 'enums'
                 and parentKeys[-2] == 'valueDocs'
                 and isinstance(item, basestring) and item == ''):
-            del parents[-1][parentKeys[-1]]
+            self.delAndRemoveEmptyParents(parents, parentKeys)
 
 
 class RegexpTransform(Transform):
@@ -308,7 +319,7 @@ class RemoveNoScriptDocs(Transform):
             doc = item.get('doc')
             if isinstance(doc, basestring) and 'NO SCRIPT SUPPORT' in doc:
                 if parents:
-                    del parents[-1][parentKeys[-1]]
+                    self.delAndRemoveEmptyParents(parents, parentKeys)
                 self.iterator.send(StopIteration)
 
 
@@ -451,7 +462,7 @@ class IgnoreMissingDocsInOld(DiffTransform):
         if parentKeys[-2:] == ['returnInfo', 'doc']:
             if (isinstance(item, AddedKey)
                     or (isinstance(item, ChangedKey) and item.oldVal == '')):
-                del parents[-1][parentKeys[-1]]
+                self.delAndRemoveEmptyParents(parents, parentKeys)
 
 
 class IgnoreKnownNew2019Funcs(DiffTransform):
