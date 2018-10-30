@@ -864,39 +864,38 @@ class ApiDocParser(object):
 
     def parseMethod(self, rawMethod):
         self.currentRawMethod = rawMethod
-        try:
-            methodName, returnType, returnQualifiers = self.getMethodNameAndOutput()
+        methodName, returnType, returnQualifiers = self.getMethodNameAndOutput()
+        if methodName is None:
+            return
+
+        # Old html parser filtered these from returnQualifiers, so we enforce this
+        # too, for consistency
+        returnQualifiers = [x for x in returnQualifiers if x not in ['const', 'unsigned'] and x]
+
+        # skip constructors and destructors
+        if methodName.startswith('~') or methodName == self.apiClassName:
+            return
+
+        # convert operators to python special methods
+        if methodName.startswith('operator'):
+            methodName = self.getOperatorName(methodName)
             if methodName is None:
                 return
 
-            # Old html parser filtered these from returnQualifiers, so we enforce this
-            # too, for consistency
-            returnQualifiers = [x for x in returnQualifiers if x not in ['const', 'unsigned'] and x]
+        # no MStatus in python
+        if returnType in ['MStatus', 'void']:
+            returnType = None
 
-            # skip constructors and destructors
-            if methodName.startswith('~') or methodName == self.apiClassName:
-                return
+        # convert to unicode
+        self.currentMethodName = str(methodName)
 
-            # convert operators to python special methods
-            if methodName.startswith('operator'):
-                methodName = self.getOperatorName(methodName)
-                if methodName is None:
-                    return
+        result = self._parseMethod(returnType, returnQualifiers)
 
-            # no MStatus in python
-            if returnType in ['MStatus', 'void']:
-                returnType = None
-
-            # convert to unicode
-            self.currentMethodName = str(methodName)
-            try:
-                return self._parseMethod(returnType, returnQualifiers)
-            finally:
-                # reset
-                self.currentMethodName = None
-        finally:
-            # reset
-            self.currentRawMethod = None
+        # used to reset these to none using a try/finally, but then some
+        # error handlers couldn't use them, reducing their usefulness
+        self.currentMethodName = None
+        self.currentRawMethod = None
+        return result
 
     def _parseMethod(self, returnType, returnQualifiers):
         self.xprint("RETURN", returnType)
