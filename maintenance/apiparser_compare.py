@@ -246,7 +246,8 @@ class Transform(object):
     YIELD_PARENTS = False
     YIELD_LEAVES = True
 
-    def xform(self, classInfo):
+    def xform(self, classInfo, className):
+        self.currentClass = className
         self.iterator = iterItemsRecursive(
             classInfo, yieldParents=self.YIELD_PARENTS,
             yieldLeaves=self.YIELD_LEAVES)
@@ -349,15 +350,16 @@ class Processor(object):
             if ext == '.py' and (classes is None or base in classes):
                 path = os.path.join(dir, filename)
                 if os.path.isfile(path):
-                    processedItems[base] = self.processFile(path, outputDir)
+                    processedItems[base] = self.processFile(base, path,
+                                                            outputDir)
         return processedItems
 
-    def processFile(self, path, outputDir):
+    def processFile(self, className, path, outputDir):
         outPath = os.path.join(outputDir, os.path.basename(path))
         print "Processing: {}...".format(path),
         try:
             classInfo = readClassInfo(path)
-            self.applyXforms(classInfo)
+            self.applyXforms(className, classInfo)
             writeClassInfo(classInfo, outPath)
             print "Wrote {}".format(outPath),
             return outPath
@@ -365,9 +367,9 @@ class Processor(object):
             # add the newline
             print
 
-    def applyXforms(self, classInfo):
+    def applyXforms(self, className, classInfo):
         for xform in self.xforms:
-            xform.xform(classInfo)
+            xform.xform(classInfo, className)
 
 
 PRE_PROCESSORS = {
@@ -438,8 +440,8 @@ class DiffTransform(Transform):
                 isEmpty = False
         return isEmpty
 
-    def xform(self, diffDict):
-        super(DiffTransform, self).xform(diffDict)
+    def xform(self, diffDict, className):
+        super(DiffTransform, self).xform(diffDict, className)
         # go through and remove any items that have only empty children
         self.deleteEmptyRecursive(diffDict)
 
@@ -452,9 +454,51 @@ class IgnoreMissingDocsInOld(DiffTransform):
                 del parents[-1][parentKeys[-1]]
 
 
+class IgnoreKnownNew2019Funcs(DiffTransform):
+    YIELD_PARENTS = True
+    YIELD_LEAVES = False
+
+    NEW_METHODS = {
+        'MFnMesh': {
+            'create': [6],
+            'createColorSetDataMesh': True,
+            'createColorSetWithNameDataMesh': True,
+            'createUVSetDataMesh': True,
+            'createUVSetDataMeshWithName': True,
+            'objectChanged': True,
+        }
+    }
+
+    def xformItem(self, item, parents, parentKeys):
+        # because we unconditionally stop iteration the first time, parents
+        # should always be empty
+        assert(len(parents) == 0)
+        try:
+            newClassMethods = self.NEW_METHODS.get(self.currentClass)
+            if not newClassMethods:
+                return
+            allMethodChanges = item.get('methods', {})
+            if not allMethodChanges:
+                return
+            for methodName, overrides in newClassMethods.iteritems():
+                methodChanges = allMethodChanges.get(methodName)
+                if methodChanges is None:
+                    continue
+                if isinstance(methodChanges, AddedKey) and overrides is True:
+                    del allMethodChanges[methodName]
+                elif isinstance(methodChanges, dict):
+                    for overrideIndex in overrides:
+                        overrideChanges = methodChanges.get(overrideIndex)
+                        if isinstance(overrideChanges, AddedKey):
+                            del methodChanges[overrideIndex]
+        finally:
+            self.iterator.send(StopIteration)
+
+
 DIFF_PROCESSORS = {
     ('ApiDocParserOld', 'XmlApiDocParser') : DiffProcessor([
-        IgnoreMissingDocsInOld()
+        IgnoreMissingDocsInOld(),
+        IgnoreKnownNew2019Funcs(),
     ]),
 }
 
@@ -509,7 +553,7 @@ def compare(dir1, dir2, classes=None, baseDir=None):
 
         processor = DIFF_PROCESSORS.get(parserTypes)
         if processor is not None:
-            processor.applyXforms(diffs)
+            processor.applyXforms(name, diffs)
 
         if diffs:
             if not foundAnyDiffs:
