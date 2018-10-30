@@ -170,7 +170,7 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False):
         if isOld:
             parsers = ('html',)
         else:
-            parsers = ('html', 'xml')
+            parsers = ('xml',)
 
     classInfoByType = {}
 
@@ -664,7 +664,7 @@ def getParser():
         help='What parsers to write out data for; note that xml will only be'
              ' available if using the new pymel branch that supports it; if no'
              ' parsers are specified, will default to "html" on "old" pymel,'
-             ' and "xml" and "html" on "new" python')
+             ' and "xml" on "new" python')
     parse_subparser.add_argument('-v', '--verbose', action='store_true',
                                  help='output more info when parsing')
     parse_subparser.set_defaults(func=parse_cmd)
