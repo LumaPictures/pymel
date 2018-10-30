@@ -458,7 +458,7 @@ PRE_PROCESSORS = {
                         r'\1\2',
                         keyFilter=lambda keys: keys and keys[-1] == 'doc'),
         # clean up "MFnMesh ." => "MFnMesh."
-        RegexpTransform(r'(\w) ([\.;,])',
+        RegexpTransform(r'''([\w'"]) ([\.;,])''',
                         r'\1\2',
                         keyFilter=lambda keys: keys and keys[-1] == 'doc'),
         CleanUpInvertibles(),
