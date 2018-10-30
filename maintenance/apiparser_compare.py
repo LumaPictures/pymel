@@ -248,11 +248,11 @@ class Transform(object):
 
     def xform(self, classInfo, className):
         self.currentClass = className
-        self.iterator = iterItemsRecursive(
-            classInfo, yieldParents=self.YIELD_PARENTS,
-            yieldLeaves=self.YIELD_LEAVES)
-        for item, parents, parentKeys in self.iterator:
-            self.xformItem(item, parents, parentKeys)
+        self.classInfo = classInfo
+        self._doXform()
+
+    def _doXform(self):
+        raise NotImplementedError
 
     def delAndRemoveEmptyParents(self, parents, parentKeys, startLevel=1):
         if len(parents) >= startLevel:
@@ -265,12 +265,22 @@ class Transform(object):
             else:
                 break
 
+
+class IterTransform(Transform):
+    def _doXform(self):
+        self.iterator = iterItemsRecursive(
+            self.classInfo, yieldParents=self.YIELD_PARENTS,
+            yieldLeaves=self.YIELD_LEAVES)
+        for item, parents, parentKeys in self.iterator:
+            self.xformItem(item, parents, parentKeys)
+
     def xformItem(self, item, parents, parentKeys):
         raise NotImplementedError
 
+
 # Do this first, as it will then allow other Transforms to alter items inside of
 # tuples
-class TuplesToLists(Transform):
+class TuplesToLists(IterTransform):
     YIELD_PARENTS = True
     YIELD_LEAVES = False
 
@@ -280,7 +290,7 @@ class TuplesToLists(Transform):
             parents[-1][parentKeys[-1]] = list(item)
 
 
-class CleanupWhitespace(Transform):
+class CleanupWhitespace(IterTransform):
     def xformItem(self, item, parents, parentKeys):
         if isinstance(item, basestring) and parents:
             # replace 'non-breaking space'
@@ -289,14 +299,22 @@ class CleanupWhitespace(Transform):
 
 
 class RemoveEmptyEnumDocs(Transform):
-    def xformItem(self, item, parents, parentKeys):
-        if (len(parents) == 4 and parentKeys[0] == 'enums'
-                and parentKeys[-2] == 'valueDocs'
-                and isinstance(item, basestring) and item == ''):
-            self.delAndRemoveEmptyParents(parents, parentKeys)
+    def _doXform(self):
+        enums = self.classInfo.get('enums')
+        if not enums:
+            return
+        for enumInfo in enums.itervalues():
+            valueDocs = enumInfo.get('valueDocs')
+            if not valueDocs:
+                continue
+            toDel = [key for key, val in valueDocs.iteritems() if val == '']
+            for k in toDel:
+                del valueDocs[k]
+            if not valueDocs:
+                del enumInfo['valueDocs']
 
 
-class RegexpTransform(Transform):
+class RegexpTransform(IterTransform):
     def __init__(self, find, replace, keyFilter=None):
         if not isinstance(find, re._pattern_type):
             find = re.compile(find)
@@ -310,31 +328,57 @@ class RegexpTransform(Transform):
                 parents[-1][parentKeys[-1]] = self.find.sub(self.replace, item)
 
 
-class RemoveNoScriptDocs(Transform):
-    YIELD_PARENTS = True
-    YIELD_LEAVES = False
-
-    def xformItem(self, item, parents, parentKeys):
-        if isinstance(item, dict):
-            doc = item.get('doc')
-            if isinstance(doc, basestring) and 'NO SCRIPT SUPPORT' in doc:
-                if parents:
-                    self.delAndRemoveEmptyParents(parents, parentKeys)
-                self.iterator.send(StopIteration)
-
-
-class FixFloatDefaultStrings(Transform):
-    def xformItem(self, item, parents, parentKeys):
-        '''Change "2.0f" to 2.0'''
-        if (len(parents) > 1 and parentKeys[-2] == 'defaults'
-                and isinstance(item, basestring) and len(item) > 1
-                and item[-1] == 'f'):
-            try:
-                floatVal = float(item[:-1])
-            except ValueError:
-                pass
+class MethodTransform(Transform):
+    def _doXform(self):
+        methods = self.classInfo.get('methods')
+        if not methods:
+            return
+        for self.methodName, self.overrides in list(methods.items()):
+            # for DiffProcessor, self.overrides will be a dict, while
+            # for a "normal" classInfo, it should be a list
+            if isinstance(self.overrides, dict):
+                indices = list(self.overrides.keys())
+            elif isinstance(self.overrides, list):
+                indices = range(len(self.overrides))
+                indices.reverse()
             else:
-                parents[-1][parentKeys[-1]] = floatVal
+                continue
+            for self.overrideIndex in indices:
+                self.methodInfo = self.overrides[self.overrideIndex]
+                self.parents = [self.classInfo, self.classInfo['methods'],
+                           self.overrides]
+                self.parentKeys = ['methods', self.methodName,
+                                   self.overrideIndex]
+                self.methodXform()
+
+    def methodXform(self):
+        raise NotImplementedError
+
+    def delCurrentMethod(self):
+        self.delAndRemoveEmptyParents(self.parents, self.parentKeys)
+
+
+class RemoveNoScriptDocs(MethodTransform):
+    def methodXform(self):
+        doc = self.methodInfo.get('doc')
+        if isinstance(doc, basestring) and 'NO SCRIPT SUPPORT' in doc:
+            self.delCurrentMethod()
+
+
+class FixFloatDefaultStrings(MethodTransform):
+    def methodXform(self):
+        '''Change "2.0f" to 2.0'''
+        defaults = self.methodInfo.get('defaults')
+        if not isinstance(defaults, dict):
+            return
+        for varname, defVal in defaults.iteritems():
+            if isinstance(defVal, basestring) and defVal[-1] == 'f':
+                try:
+                    floatVal = float(defVal[:-1])
+                except ValueError:
+                    pass
+                else:
+                    defaults[varname] = floatVal
 
 
 class Processor(object):
@@ -433,18 +477,22 @@ class DiffProcessor(Processor):
         return (added, removed, changed)
 
 
-class IgnoreMissingDocsInOld(Transform):
-    def xformItem(self, item, parents, parentKeys):
-        if parentKeys[-2:] == ['returnInfo', 'doc']:
-            if (isinstance(item, AddedKey)
-                    or (isinstance(item, ChangedKey) and item.oldVal == '')):
-                self.delAndRemoveEmptyParents(parents, parentKeys)
+class IgnoreMissingDocsInOld(MethodTransform):
+    def methodXform(self):
+        if not isinstance(self.methodInfo, dict):
+            return
+        returnInfo = self.methodInfo.get('returnInfo')
+        if not isinstance(returnInfo, dict):
+            return
+        doc = returnInfo.get('doc')
+        if (isinstance(doc, AddedKey)
+                or (isinstance(doc, ChangedKey) and doc.oldVal == '')):
+            parents = self.parents + [self.methodInfo, returnInfo]
+            parentKeys = self.parentKeys + ['returnInfo', 'doc']
+            self.delAndRemoveEmptyParents(parents, parentKeys)
 
 
 class IgnoreKnownNew2019Funcs(Transform):
-    YIELD_PARENTS = True
-    YIELD_LEAVES = False
-
     NEW_METHODS = {
         'MFnMesh': {
             'create': [6],
@@ -456,30 +504,28 @@ class IgnoreKnownNew2019Funcs(Transform):
         }
     }
 
-    def xformItem(self, item, parents, parentKeys):
-        # because we unconditionally stop iteration the first time, parents
-        # should always be empty
-        assert(len(parents) == 0)
-        try:
-            newClassMethods = self.NEW_METHODS.get(self.currentClass)
-            if not newClassMethods:
-                return
-            allMethodChanges = item.get('methods', {})
-            if not allMethodChanges:
-                return
-            for methodName, overrides in newClassMethods.iteritems():
-                methodChanges = allMethodChanges.get(methodName)
-                if methodChanges is None:
-                    continue
-                if isinstance(methodChanges, AddedKey) and overrides is True:
+    def _doXform(self):
+        newClassMethods = self.NEW_METHODS.get(self.currentClass)
+        if not newClassMethods:
+            return
+        allMethodChanges = self.classInfo.get('methods', {})
+        if not allMethodChanges:
+            return
+        for methodName, overrides in newClassMethods.iteritems():
+            methodChanges = allMethodChanges.get(methodName)
+            if methodChanges is None:
+                continue
+            if isinstance(methodChanges, AddedKey) and overrides is True:
+                del allMethodChanges[methodName]
+            elif isinstance(methodChanges, dict):
+                for overrideIndex in overrides:
+                    overrideChanges = methodChanges.get(overrideIndex)
+                    if isinstance(overrideChanges, AddedKey):
+                        del methodChanges[overrideIndex]
+                if not methodChanges:
                     del allMethodChanges[methodName]
-                elif isinstance(methodChanges, dict):
-                    for overrideIndex in overrides:
-                        overrideChanges = methodChanges.get(overrideIndex)
-                        if isinstance(overrideChanges, AddedKey):
-                            del methodChanges[overrideIndex]
-        finally:
-            self.iterator.send(StopIteration)
+            if not allMethodChanges:
+                del self.classInfo['methods']
 
 
 DIFF_PROCESSORS = {
