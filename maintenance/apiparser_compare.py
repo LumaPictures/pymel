@@ -587,14 +587,15 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False):
 
     names = [set(x) for x in processedItems]
     combined = names[0].intersection(names[1])
+    allMissing = [n - combined for n in names]
+    allMissing.reverse()
 
     foundAnyMissing = False
-    for dirNames, sourceDir in zip(names, dirs):
-        missing = dirNames - combined
+    for dirNames, sourceDir, missing in zip(names, dirs, allMissing):
         if missing:
             foundAnyMissing = True
             print "Following items were missing in {}:".format(sourceDir)
-            for name in sorted(dirNames):
+            for name in sorted(missing):
                 print '  {}'.format(name)
 
     foundAnyDiffs = False
