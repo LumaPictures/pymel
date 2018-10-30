@@ -9,6 +9,8 @@ import os
 import re
 import sys
 
+from collections import OrderedDict
+
 THIS_FILE = os.path.normpath(os.path.abspath(inspect.getsourcefile(lambda: None)))
 THIS_DIR = os.path.dirname(THIS_FILE)
 
@@ -557,7 +559,8 @@ DIFF_PROCESSORS = {
 }
 
 
-def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False):
+def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False,
+            showSame=False):
 
     dirs = [os.path.join(baseDir, d) for d in (dir1, dir2)]
     processors = []
@@ -590,15 +593,15 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False):
     allMissing = [n - combined for n in names]
     allMissing.reverse()
 
-    foundAnyMissing = False
     for dirNames, sourceDir, missing in zip(names, dirs, allMissing):
         if missing:
-            foundAnyMissing = True
-            print "Following items were missing in {}:".format(sourceDir)
+            print "Following {} items were missing in {}:".format(len(missing),
+                                                                  sourceDir)
             for name in sorted(missing):
                 print '  {}'.format(name)
 
-    foundAnyDiffs = False
+    allDiffs = OrderedDict()
+    same = []
     for name in sorted(combined):
         classInfos = [readClassInfo(items[name]) for items in processedItems]
         diffs = compareCascadingDicts(
@@ -612,17 +615,23 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False):
             processor.applyXforms(name, diffs)
 
         if diffs:
-            if not foundAnyDiffs:
-                foundAnyDiffs = True
-                print "Following items had differences:"
+            allDiffs[name] = diffs
+        else:
+            same.append(name)
+
+    if allDiffs:
+        print "Following {} items had differences:".format(len(allDiffs))
+        for name, diffs in allDiffs.iteritems():
             changeCounts = DiffProcessor.countChanges(diffs)
             print '  {0} ({1[0]} added, {1[1]} removed, {1[2]} changed)'.format(
                 name, changeCounts)
             # from pprint import pprint
             # pprint(diffs)
 
-    if not foundAnyMissing and not foundAnyDiffs:
-        print "All items identical!"
+    print "Found {} identical items".format(len(same))
+    if showSame:
+        for name in same:
+            print '  {}'.format(name)
 
 
 def parse_cmd(args):
@@ -632,7 +641,7 @@ def parse_cmd(args):
 
 def compare_cmd(args):
     compare(args.dir1, args.dir2, classes=args.classes, baseDir=args.base_dir,
-            skipPreprocess=args.skip_preprocess)
+            skipPreprocess=args.skip_preprocess, showSame=args.show_same)
 
 
 def getParser():
@@ -673,6 +682,9 @@ def getParser():
         '--skip-preprocess', action='store_true',
         help="Assume pre-processor has already run - still uses the output in"
         " the pre-processed output dir, but does not re-create them")
+    compare_subparser.add_argument(
+        '--show-same', action='store_true',
+        help='Print names of identical classes, instead of just count')
     compare_subparser.set_defaults(func=compare_cmd)
     return parser
 
