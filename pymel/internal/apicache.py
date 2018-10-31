@@ -811,7 +811,7 @@ class ApiCache(startup.SubItemCache):
         self.apiTypesToApiEnums = dict(inspect.getmembers(api.MFn, lambda x: type(x) is int))
         self.apiEnumsToApiTypes = dict((self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
 
-    def _buildMayaReservedTypes(self, force=False):
+    def _buildMayaReservedTypes(self):
         """
         Build a list of Maya reserved types.
 
