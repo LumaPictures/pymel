@@ -317,9 +317,30 @@ class Enum(object):
         return not self == other
 
     def __repr__(self):
-        return '%s(%r, {%s})' % (self.__class__.__name__, self.name,
-                                 ', '.join(['%r: %s' % (v.key, k)
-                                            for k, v in self._values.items()]))
+        if len(self._keys) != len(self._values):
+            # multiKeys
+            indexDict = {}
+            defaults = {}
+            for key, index in self._keys.iteritems():
+                keysForIndex = indexDict.setdefault(index, [])
+                if len(keysForIndex) == 1:
+                    defaults[index] = self._values[index].key
+                keysForIndex.append(key)
+            keysFlat = []
+            for enumValue in self.itervalues():
+                for key in indexDict[enumValue.index]:
+                    keysFlat.append((key, enumValue.index))
+            multiKeyInfo = ', multiKeys=True, defaults=%r' % defaults
+        else:
+            keysFlat = [(ev.key, ev.index) for ev in self.itervalues()]
+            multiKeyInfo = ''
+
+        return '%s(%r, {\n    %s\n}%s)' % (
+            self.__class__.__name__,
+            self.name,
+            ',\n    '.join('%r: %r' % item for item in keysFlat),
+            multiKeyInfo,
+        )
 
     def __str__(self):
         return '%s%s' % (self.__class__.__name__, self.keys())

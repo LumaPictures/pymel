@@ -735,7 +735,7 @@ class ApiCache(startup.SubItemCache):
             setattr(self, name, {})
         self.docLocation = docLocation
 
-    def _buildMayaToApiInfo(self, reservedOnly=True):
+    def _buildMayaToApiInfo(self, reservedOnly=False):
 
         self._buildMayaNodeInfo()
         # Fixes for types that don't have a MFn by doing a node creation and testing it
@@ -811,7 +811,7 @@ class ApiCache(startup.SubItemCache):
         self.apiTypesToApiEnums = dict(inspect.getmembers(api.MFn, lambda x: type(x) is int))
         self.apiEnumsToApiTypes = dict((self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
 
-    def _buildMayaReservedTypes(self, force=False):
+    def _buildMayaReservedTypes(self):
         """
         Build a list of Maya reserved types.
 
@@ -1086,7 +1086,7 @@ class ApiCache(startup.SubItemCache):
 
         self._buildApiClassInfo()
 
-        self._buildMayaToApiInfo()
+        self._buildMayaToApiInfo(reservedOnly=False)
         self._buildApiTypeToApiClasses()
 
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")

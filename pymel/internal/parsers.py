@@ -463,7 +463,6 @@ class ApiDocParser(object):
 
         setReg = re.compile('set([A-Z].*)')
 
-        allFnMembers = self.methods.keys()
         pymelNames = {}
         pairs = {}
         pairsList = []
@@ -480,7 +479,7 @@ class ApiDocParser(object):
             for info in self.methods[getMethod]:
                 info['inverse'] = (setMethod, False)
 
-        for member in allFnMembers:
+        for member in self.methods:
             m = setReg.match(member)
             if m:
                 # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
@@ -489,7 +488,7 @@ class ApiDocParser(object):
                 basename = m.group(1)
                 origGetMethod = util.uncapitalize(basename)
                 setMethod = member  # for name clarity
-                if origGetMethod in allFnMembers:
+                if origGetMethod in self.methods:
                     # fix set
                     if re.match('is[A-Z].*', origGetMethod):
                         newSetMethod = 'set' + origGetMethod[2:]  # remove 'is' #member[5:]
@@ -509,12 +508,12 @@ class ApiDocParser(object):
                 else:
                     getMethod = 'get' + basename
                     isMethod = 'is' + basename
-                    if getMethod in allFnMembers:
+                    if getMethod in self.methods:
                         addSetGetPair(setMethod, getMethod)
-                    elif isMethod in allFnMembers:
+                    elif isMethod in self.methods:
                         addSetGetPair(setMethod, isMethod)
 
-        return pymelNames, pairsList
+        return pymelNames, sorted(pairsList)
 
     def getClassFilename(self):
         filename = 'class'
