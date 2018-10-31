@@ -163,7 +163,8 @@ def iterItemsRecursive(thisValue, parents=None, parentKeys=None,
             yield
 
 
-def parse(parsers=None, classes=None, baseDir=None, verbose=False):
+def parse(parsers=None, classes=None, baseDir=None, verbose=False,
+          strict=False):
     from pprint import pformat
 
     if not parsers:
@@ -193,7 +194,8 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False):
         apiClassInfo = {}
         classInfoByType[parserName] = apiClassInfo
 
-        parser = parserType(api, enumClass=ApiEnum, verbose=verbose)
+        parser = parserType(api, enumClass=ApiEnum, verbose=verbose,
+                            strict=strict)
 
         if classes:
             classes = set(classes)
@@ -636,7 +638,7 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False,
 
 def parse_cmd(args):
     parse(parsers=args.parsers, classes=args.classes, baseDir=args.base_dir,
-          verbose=args.verbose)
+          verbose=args.verbose, strict=args.strict)
 
 
 def compare_cmd(args):
@@ -667,6 +669,8 @@ def getParser():
              ' and "xml" on "new" python')
     parse_subparser.add_argument('-v', '--verbose', action='store_true',
                                  help='output more info when parsing')
+    parse_subparser.add_argument('-s', '--strict', action='store_true',
+                                 help='fail on any error')
     parse_subparser.set_defaults(func=parse_cmd)
 
     compare_subparser = subparsers.add_parser(
