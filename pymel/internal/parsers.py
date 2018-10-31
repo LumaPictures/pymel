@@ -838,6 +838,8 @@ class ApiDocParser(object):
     def parseEnum(self, enumData):
         try:
             parsedEnumData = self._parseEnum(enumData)
+            if not parsedEnumData:
+                return
             enumDocs = parsedEnumData['docs']
 
             apiEnum = util.Enum(parsedEnumData['name'],
@@ -855,7 +857,7 @@ class ApiDocParser(object):
                         }
             self.enums[parsedEnumData['name']] = enumInfo
             self.pymelEnums[parsedEnumData['name']] = pymelEnum
-        except AttributeError as msg:
+        except Exception as msg:
             if self.strict:
                 raise
             _logger.error("FAILED ENUM: %s", msg)
@@ -1144,6 +1146,7 @@ class XmlApiDocParser(ApiDocParser):
         enumValues = {}
         enumDocs = {}
         enumName = xmlText(enumData.find('name'))
+        self.currentMethodName = enumName
         self.xprint("ENUM", enumName)
 
         for enumValue in enumData.findall('enumvalue'):
@@ -1152,7 +1155,7 @@ class XmlApiDocParser(ApiDocParser):
                 enumVal = getattr(self.apiClass, enumKey)
             except:
                 _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
-                enumVal = None
+                continue
             enumValues[enumKey] = enumVal
             # TODO:
             # do we want to feed the docstrings to the Enum object itself
@@ -1167,6 +1170,8 @@ class XmlApiDocParser(ApiDocParser):
                         docs.append(docText)
             if docs:
                 enumDocs[enumKey] = '\n\n'.join(docs)
+        if not enumValues:
+            return
 
         return {'values': enumValues, 'docs': enumDocs, 'name': enumName}
 
