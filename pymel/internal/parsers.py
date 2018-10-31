@@ -1307,20 +1307,6 @@ class XmlApiDocParser(ApiDocParser):
             if paramList is not None:
                 paramDescriptions = paramList.findall('parameteritem')
 
-        missingParamDocs = set(names)
-
-        def validateName(name):
-            try:
-                missingParamDocs.remove(name)
-            except KeyError:
-                # check if it's in foundParamDocs - this is just for a clearer error message
-                if name in docs:
-                    msg = "Found parameter description with name {} more than once".format(name)
-                    raise ValueError(self.formatMsg(msg))
-                else:
-                    msg = "Found parameter description with name {}, but no matching declaration".format(name)
-                    raise ValueError(self.formatMsg(msg))
-
         def parseRawTagInfo(text):
             parsedTags = self.parseBackslashTags(text)
             foundSomething = False
@@ -1342,16 +1328,60 @@ class XmlApiDocParser(ApiDocParser):
                 len(paramDescriptions), len(names))
             raise ValueError(self.formatMsg(msg))
 
-        for param in paramDescriptions:
-            nameList = param.find('parameternamelist')
-            allNames = nameList.findall('parametername')
+        paramDescriptionNames = []
+        missingParamDocs = set(names)
+        foundParamNameOnce = {}
+        foundParamNameRepeated = {}
+
+        for i, param in enumerate(paramDescriptions):
+            allNames = param.find('parameternamelist').findall('parametername')
 
             # Don't have an example of nameList > 1, so error for now
             if len(allNames) > 1:
                 raise ValueError(self.formatMsg("found more than 1 name for parameter {!r}".format(name)))
 
             name = xmlText(allNames[0])
-            validateName(name)
+            paramDescriptionNames.append(name)
+            try:
+                missingParamDocs.remove(name)
+            except KeyError:
+                # if it's in foundParamNameOnce / foundParamNameRepeated,
+                # it's a repeat, we'll deal with that later
+                if name in foundParamNameRepeated:
+                    foundParamNameRepeated[name].append(i)
+                elif name in foundParamNameOnce:
+                    foundParamNameRepeated[name] = [foundParamNameOnce.pop(name), i]
+                else:
+                    # otherwise, we have a totally unexpected name...
+                    msg = "Found parameter description with name {}, but no matching declaration".format(name)
+                    raise ValueError(self.formatMsg(msg))
+            else:
+                foundParamNameOnce[name] = i
+
+        # check for repeats
+        if foundParamNameRepeated:
+            # if all the names that show up onlyOnce match the names at the
+            # same positions of "names", then just use "names" to fill in
+            # the remaining names
+            uniquesMatch = True
+            for name, i in foundParamNameOnce.iteritems():
+                if names[i] != name:
+                    uniquesMatch = False
+                    break
+            if uniquesMatch:
+                paramDescriptionNames = names[:len(paramDescriptions)]
+                # note we may still have missing names if
+                # len(paramDescriptions) < len(names)
+                missingParamDocs = set(names) - set(paramDescriptionNames)
+            else:
+                # otherwise, we error (for now)
+                raise ValueError("Found repeated param names, and non-repated"
+                                 " name placement did not match declared names:"
+                                " {}".format(", ".join(sorted(foundParamNameRepeated))))
+
+        for name, param in zip(paramDescriptionNames, paramDescriptions):
+            allNames = param.find('parameternamelist').findall('parametername')
+
             directions[name] = allNames[0].attrib['direction']
             docs[name] = xmlText(param.find('parameterdescription'))
 
