@@ -509,6 +509,7 @@ class ApiDocParser(object):
                    'MString', 'MStringArray', 'MStatus']
     NOT_TYPES = ['MCallbackId']
 
+    _anonymousEnumRe = re.compile(r'^@[0-9]+$')
     _bracketRe = re.compile(r'\[|\]')
     _capitalizedWithNumsRe = re.compile('([A-Z0-9][a-z0-9]*)')
     _isMethodNameRe = re.compile('is[A-Z].*')
@@ -792,29 +793,33 @@ class ApiDocParser(object):
     def parseValue(self, rawValue, valueType):
         try:
             # Constants
-            value = {
+            return {
                 'true': True,
                 'false': False,
                 'NULL': None
             }[rawValue]
         except KeyError:
-            try:
-                if valueType in ['int', 'uint', 'long', 'uchar']:
-                    value = int(rawValue.rstrip('UuLl'))
-                elif valueType in ['float', 'double']:
-                    # '1.0 / 24.0'
-                    if '/' in rawValue:
-                        value = eval(rawValue)
-                    # '1.0e-5F'  --> '1.0e-5'
-                    elif rawValue.endswith(('F', 'f')):
-                        value = float(rawValue[:-1])
-                    else:
-                        value = float(rawValue)
+            pass
+
+        try:
+            if valueType in ['int', 'uint', 'long', 'uchar']:
+                return int(rawValue.rstrip('UuLl'))
+            elif valueType in ['float', 'double']:
+                # '1.0 / 24.0'
+                if isinstance(rawValue, basestring) and rawValue.count('/') == 1:
+                    numerator, divisor = rawValue.split('/')
+                    return self.parseValue(numerator) / self.parseValue(divisor)
+                # '1.0e-5F'  --> '1.0e-5'
+                elif rawValue.endswith(('F', 'f')):
+                    return float(rawValue[:-1])
                 else:
-                    value = self.handleEnumDefaults(rawValue, valueType)
-            except ValueError:
-                value = self.handleEnumDefaults(rawValue, valueType)
-        return value
+                    return float(rawValue)
+        except (ValueError, TypeError):
+            pass
+
+        if rawValue in self.constants:
+            return self.constants[rawValue]
+        return self.handleEnumDefaults(rawValue, valueType)
 
     def parseType(self, tokens):
         for i, each in enumerate(tokens):
@@ -997,6 +1002,7 @@ class ApiDocParser(object):
         self.methods = util.defaultdict(list)
         self.currentMethodName = None
         self.badEnums = []
+        self.constants = {}
 
         self.apiClassName = apiClassName
         self.apiClass = getattr(self.apiModule, self.apiClassName)
@@ -1014,12 +1020,16 @@ class ApiDocParser(object):
             raise
 
         pymelNames, invertibles = self.getPymelMethodNames()
-        return {'methods': dict(self.methods),
-                'enums': self.enums,
-                'pymelEnums': self.pymelEnums,
-                'pymelMethods': pymelNames,
-                'invertibles': invertibles
-                }
+        parsed = {
+            'methods': dict(self.methods),
+            'enums': self.enums,
+            'pymelEnums': self.pymelEnums,
+            'pymelMethods': pymelNames,
+            'invertibles': invertibles,
+        }
+        if self.constants:
+            parsed['constants'] = self.constants
+        return parsed
 
     @abstractmethod
     def parseArgTypes(self):
@@ -1074,6 +1084,7 @@ class XmlApiDocParser(ApiDocParser):
         self.tree = ET.parse(self.docfile)
         self.root = self.tree.getroot()
         self.cdef = self.root.find(".//compounddef[@kind='class'][@id='{}']".format(self.baseFilename))
+        self.numAnonymousEnums = 0
 
     def parseArgTypes(self):
         names = []
@@ -1171,6 +1182,12 @@ class XmlApiDocParser(ApiDocParser):
             if docs:
                 enumDocs[enumKey] = '\n\n'.join(docs)
         if not enumValues:
+            return
+
+        if self._anonymousEnumRe.match(enumName):
+            # for an example of an anonymous enum, see MFnDagNode.kNextPos
+            for key, value in enumValues.viewitems():
+                self.constants[key] = value
             return
 
         return {'values': enumValues, 'docs': enumDocs, 'name': enumName}
