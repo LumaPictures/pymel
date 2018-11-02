@@ -99,7 +99,7 @@ def getFirstText(element, ignore=('ref', 'bold', 'emphasis')):
     '''Finds a non-empty text element, then stops once it hits not first non-filtered sub-element
 
     >>> getFirstText(ET.fromstring('<top>Some text. <sub>Blah</sub> tail.</top>'))
-    'Some text. '
+    'Some text.'
     >>> getFirstText(ET.fromstring('<top><sub>Blah blah</sub> More stuff</top>'))
     'Blah blah'
     >>> getFirstText(ET.fromstring('<top> <sub>Blah blah <ref>someRef</ref> More stuff</sub> The end</top>'))
