@@ -153,7 +153,7 @@ class TestSurfaceRangeDomain(unittest.TestCase):
 
 # This bug only seems to affect windows (or at least, Win x64 -
 # haven't tried on 32-bit).
-class TestMMatrixSetAttr(unittest.TestCase):
+class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
     def setUp(self):
         # pymel essentially fixes this bug by wrapping
         # the api's __setattr__... so undo this before testing
@@ -251,9 +251,15 @@ class TestMMatrixSetAttr(unittest.TestCase):
         except Exception:
             if shouldPass:
                 raise
+            else:
+                print("MMatrix/MEulerRotation setattr bug is still around...")
         else:
             if not shouldPass:
-                self.fail("MMatrix setattr bug seems to have been fixed!")
+                self.fail("MMatrix/MEulerRotation setattr bug seems to have"
+                          " been fixed!")
+            else:
+                print("MMatrix/MEulerRotation still functions properly on {},"
+                      " as expected".format(os.name))
 
     def tearDown(self):
         # Restore the 'fixed' __setattr__'s

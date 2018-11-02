@@ -33,7 +33,8 @@ except ImportError:
 import pymel.api as api
 
 
-DEFAULT_BASE_DIR = os.path.expanduser('~/Desktop/parserOutput')
+DEFAULT_BASE_DIR = os.path.join(os.path.expanduser('~'),
+                   'Desktop', 'parserOutput')
 
 
 # copied from apicache
