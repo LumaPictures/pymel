@@ -33,6 +33,8 @@ from . import docstrings
 
 if False:
     from typing import *
+    import pymel.core.general
+    import pymel.core.uitypes
     C = TypeVar('C', bound=Callable)
 
 _logger = plogging.getLogger(__name__)
@@ -73,6 +75,7 @@ building = False
 # treating _apiCacheInst as though it ISN'T in sync, and needs to be updated
 # whenever we interact with it...
 
+
 def loadApiCache():
     _logger.debug("Loading api cache...")
     _start = time.time()
@@ -89,6 +92,7 @@ def loadApiCache():
     _elapsed = time.time() - _start
     _logger.debug("Initialized API Cache in in %.2f sec" % _elapsed)
 
+
 def _setApiCacheGlobals():
     global _apiCacheInst
     global _apiMelBridgeCacheInst
@@ -101,6 +105,7 @@ def _setApiCacheGlobals():
                            _apiCacheInst.extraDicts())]:
         for name, val in zip(names, values):
             globals()[name] = val
+
 
 def loadCmdCache():
     global _cmdCacheInst
@@ -132,9 +137,11 @@ def saveApiCache():
     global _apiCacheInst
     _apiCacheInst.save(globals())
 
+
 def saveApiMelBridgeCache():
     global _apiMelBridgeCacheInst
     _apiMelBridgeCacheInst.save(globals())
+
 
 def mergeApiClassOverrides():
     global _apiCacheInst
@@ -144,11 +151,12 @@ def mergeApiClassOverrides():
     _apiCacheInst._mergeClassOverrides(_apiMelBridgeCacheInst)
     _setApiCacheGlobals()
 
+
 loadApiCache()  # need mayaTypesToApiTypes
 
-#---------------------------------------------------------------
+# ---------------------------------------------------------------
 #        Mappings and Lists
-#---------------------------------------------------------------
+# ---------------------------------------------------------------
 
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name']
 
@@ -181,25 +189,63 @@ nodeTypeToInfoCommand = {
     'transform': 'xform'
 }
 
+
 def toPyNode(res):
-    "returns a PyNode object"
+    # type: (Optional[str]) -> Optional[pymel.core.general.PyNode]
+    """
+    returns a PyNode object
+
+    Parameters
+    ----------
+    res : Optional[str]
+
+    Returns
+    -------
+    Optional[pymel.core.general.PyNode]
+    """
     if res is not None and res != '':
         import pymel.core.general
         return pymel.core.general.PyNode(res)
 
+
 def unwrapToPyNode(res):
-    "unwraps a 1-item list, and returns a PyNode object"
+    # type: (List[str]) -> Optional[pymel.core.general.PyNode]
+    """
+    unwraps a 1-item list, and returns a PyNode object
+
+    Parameters
+    ----------
+    res : List[str]
+
+    Returns
+    -------
+    Optional[pymel.core.general.PyNode]
+    """
     if res is not None and res[0]:
         import pymel.core.general
         return pymel.core.general.PyNode(res[0])
 
+
 def toPyUI(res):
-    "returns a PyUI object"
+    # type: (Optional[str]) -> Optional[pymel.core.uitypes.PyUI]
+    """
+    returns a PyUI object
+
+    Parameters
+    ----------
+    res : Optional[str]
+
+    Returns
+    -------
+    Optional[pymel.core.uitypes.PyUI]
+    """
     if res is not None:
         import pymel.core.uitypes
         return pymel.core.uitypes.PyUI(res)
 
+
 def toPyType(moduleName, objectName):
+    # type: (str, str) -> Callable[[Any], Any]
     """
     Returns a function which casts it's single argument to
     an object with the given name in the given module (name).
@@ -208,6 +254,15 @@ def toPyType(moduleName, objectName):
     may be imported when the function is called, to avoid
     making factories dependent on, say, pymel.core.general or
     pymel.core.uitypes
+
+    Parameters
+    ----------
+    moduleName : str
+    objectName : str
+
+    Returns
+    -------
+    Callable[[Any], Any]
     """
     def toGivenClass(res):
         # Use the 'from moduleName import objectName' form of
@@ -223,28 +278,75 @@ def toPyType(moduleName, objectName):
     toGivenClass.__doc__ = "returns a %s object" % objectName
     return toGivenClass
 
+
 def toPyNodeList(res):
-    "returns a list of PyNode objects"
+    # type: (Optional[List[str]]) -> List[pymel.core.general.PyNode]
+    """
+    returns a list of PyNode objects
+
+    Parameters
+    ----------
+    res : Optional[List[str]]
+
+    Returns
+    -------
+    List[pymel.core.general.PyNode]
+    """
     if res is None:
         return []
     import pymel.core.general
     return [pymel.core.general.PyNode(x) for x in res]
 
+
 def splitToPyNodeList(res):
-    "converts a whitespace-separated string of names to a list of PyNode objects"
+    # type: (str) -> List[pymel.core.general.PyNode]
+    """
+    converts a whitespace-separated string of names to a list of PyNode objects
+
+    Parameters
+    ----------
+    res : str
+
+    Returns
+    -------
+    List[pymel.core.general.PyNode]
+    """
     return toPyNodeList(res.split())
 
+
 def toPyUIList(res):
-    "returns a list of PyUI objects"
+    # type: (str) -> List[pymel.core.uitypes.PyUI]
+    """
+    returns a list of PyUI objects
+
+    Parameters
+    ----------
+    res : str
+
+    Returns
+    -------
+    List[pymel.core.uitypes.PyUI]
+    """
     if res is None:
         return []
     import pymel.core.uitypes
     return [pymel.core.uitypes.PyUI(x) for x in res]
 
+
 def toPyTypeList(moduleName, objectName):
+    # type: (str, str) -> Callable[[Any], List[Any]]
     """
     Returns a function which casts the members of it's iterable
     argument to the given class.
+
+    Parameters
+    ----------
+    moduleName : str
+    objectName : str
+
+    Returns
+    -------
+    Callable[[Any], List[Any]]
     """
     def toGivenClassList(res):
         module = __import__(moduleName, globals(), locals(), [objectName], -1)
@@ -256,10 +358,12 @@ def toPyTypeList(moduleName, objectName):
     toGivenClassList.__doc__ = "returns a list of %s objects" % objectName
     return toGivenClassList
 
+
 def raiseError(typ, *args):
     def f(res):
         raise typ(*args)
     return f
+
 
 class Flag(Condition):
 
@@ -287,6 +391,7 @@ class Flag(Condition):
 
     def __str__(self):
         return self.longName
+
 
 # TODO: commands that don't return anything, but perhaps should?
 # affectedNet (PyNodes created)
@@ -381,7 +486,7 @@ simpleCommandWraps = {
                    Flag('unbindAttr', 'ua') & ~(Flag('publishName', 'pn') | Flag('publishAsParent', 'pap') | Flag('publishAsChild', 'pac'))),
                   ],
 }
-#---------------------------------------------------------------
+# ---------------------------------------------------------------
 
 if docstringMode == 'html':
     examples = cmdcache.CmdProcessedExamplesCache().read()
@@ -396,6 +501,7 @@ if docstringMode == 'html':
 # FIXME
 #: stores a dictionary of pymel classnames to mel method names
 classToMelMap = util.defaultdict(list)
+
 
 def _getApiOverrideNameAndData(classname, pymelName):
     explicitRename = False
@@ -430,9 +536,9 @@ def getUncachedCmds():
     return list(set(map(itemgetter(0), inspect.getmembers(cmds, callable))).difference(cmdlist.keys()))
 
 
-#-----------------------
+# -----------------------
 # Function Factory
-#-----------------------
+# -----------------------
 
 docCacheLoaded = False
 def loadCmdDocCache():
@@ -445,7 +551,16 @@ def loadCmdDocCache():
 
 
 def getCmdFunc(cmdName):
-    # type: (str) -> Callable
+    # type: (Optional[str]) -> Callable
+    """
+    Parameters
+    ----------
+    cmdName : Optional[str]
+
+    Returns
+    -------
+    Callable
+    """
     func = getattr(pmcmds, cmdName, None)
     if func is None:
         # assume UI command
@@ -455,6 +570,17 @@ def getCmdFunc(cmdName):
 
 def addCmdDocs(func, cmdName=None):
     # type: (C, Optional[str]) -> C
+    """
+    Parameters
+    ----------
+    func : C
+    cmdName : Optional[str]
+
+    Returns
+    -------
+    C
+    """
+
     if cmdName is None:
         try:
             cmdName = func.__name__
@@ -517,7 +643,10 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
 
 
 def _getTimeRangeFlags(cmdName):
-    """used parsed data and naming convention to determine which flags are callbacks"""
+    """
+    used parsed data and naming convention to determine which flags are
+    callbacks
+    """
 
     commandFlags = set()
     try:
@@ -533,7 +662,6 @@ def _getTimeRangeFlags(cmdName):
 
 
 class Callback(object):
-
     """
     Enables deferred function evaluation with 'baked' arguments.
     Useful where lambdas won't work...
@@ -610,6 +738,7 @@ Error Trace:
         finally:
             cmds.undoInfo(closeChunk=1)
 
+
 class CallbackWithArgs(Callback):
 
     def __call__(self, *args, **kwargs):
@@ -627,9 +756,12 @@ class CallbackWithArgs(Callback):
         finally:
             cmds.undoInfo(closeChunk=1)
 
+
 def makeUICallback(origCallback, args, doPassSelf):
-    """this function is used to make the callback, so that we can ensure the origCallback gets
-    "pinned" down"""
+    """
+    this function is used to make the callback, so that we can ensure the origCallback gets
+    "pinned" down
+    """
     # print "fixing callback", key
     creationTraceback = ''.join(traceback.format_stack())
 
@@ -652,6 +784,7 @@ def makeUICallback(origCallback, args, doPassSelf):
             res = unicode(res)
         return res
     return callback
+
 
 def fixCallbacks(inFunc, commandFlags, funcName=None):
     """
@@ -703,6 +836,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
 
     return newUiFunc
 
+
 def _getSourceFunction(funcNameOrObject, module=None):
     inFunc = None
     if isinstance(funcNameOrObject, basestring):
@@ -737,6 +871,7 @@ def _getSourceFunction(funcNameOrObject, module=None):
     # python doesn't like unicode function names
     funcName = str(funcName)
     return inFunc, funcName, customFunc
+
 
 def convertTimeValues(rawVal):
     # in mel, you would do:
@@ -782,6 +917,7 @@ def convertTimeValues(rawVal):
         values[i] = val
     return values
 
+
 def maybeConvert(val, castFunc):
     if isinstance(val, list):
         try:
@@ -793,6 +929,7 @@ def maybeConvert(val, castFunc):
             return castFunc(val)
         except Exception:
             return val
+
 
 def functionFactory(funcNameOrObject, returnFunc=None, module=None,
                     rename=None, uiWidget=False):
@@ -1182,6 +1319,7 @@ class ApiTypeRegister(object):
 
     @staticmethod
     def _makeRefFunc(capitalizedApiType, size=1, **kwargs):
+        # type: (Any, int, **Any) -> Any
         """
         Returns a function which will return a SafeApiPtr object of the given
         type.
@@ -2136,6 +2274,7 @@ def getProxyResult(self, apiClass, method, final_do=()):
 
 
 def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=None):
+    # type: (class, string, string, bool, None or int) -> Any
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
     no special API classes required.  Inputs go in the front door, and outputs come out the back door.
@@ -3068,6 +3207,7 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
 
 
 def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs=None):
+    # type: (Any, str, str, str, Any) -> Optional[type]
     """
     Parameters
     ----------
@@ -3113,6 +3253,7 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraA
 
 
 def addCustomPyNode(module, mayaType, extraAttrs=None):
+    # type: (Any, Any, Any) -> Optional[str]
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
 
@@ -3152,6 +3293,7 @@ def addCustomPyNode(module, mayaType, extraAttrs=None):
 
 
 def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
+    # type: (Any, Any, Any, Any) -> Tuple[str, type]
     """
     create a PyNode type for a maya node.
 

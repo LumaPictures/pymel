@@ -58,6 +58,7 @@ _pluginData = {}
 
 _module = sys.modules[__name__]
 
+
 def _addPluginCommand(pluginName, funcName):
     global _pluginData
 
@@ -86,6 +87,7 @@ def _addPluginCommand(pluginName, funcName):
     except Exception, msg:
         _logger.warning("exception: %s" % str(msg))
 
+
 def _addPluginNode(pluginName, mayaType):
     global _pluginData
 
@@ -106,7 +108,9 @@ def _removePluginCommand(pluginName, command):
         _pmcmds.removeWrappedCmd(command)
         _module.__dict__.pop(command, None)
     except KeyError:
-        _logger.warn("Failed to remove %s from module %s" % (command, _module.__name__))
+        _logger.warn("Failed to remove %s from module %s" %
+                     (command, _module.__name__))
+
 
 def _removePluginNode(pluginName, node):
     global _pluginData
@@ -115,6 +119,7 @@ def _removePluginNode(pluginName, node):
     if node in nodes:
         nodes.remove(node)
     _factories.removePyNode(nodetypes, node)
+
 
 def _pluginLoaded(*args):
     global _pluginData
@@ -127,21 +132,22 @@ def _pluginLoaded(*args):
 
     if not pluginName:
         return
-    
+
     # Check to see if plugin is really loaded
-    if not (cmds.pluginInfo(pluginName, query=1, loaded=1)): 
+    if not (cmds.pluginInfo(pluginName, query=1, loaded=1)):
         return
-    
+
     # Make sure there are no registered callbacks for this plug-in. It has been
-    # reported that some 3rd party plug-ins will enter here twice, causing a 
-    # "callback id leak" which potentially leads to a crash. The reported 
-    # scenario was: 
+    # reported that some 3rd party plug-ins will enter here twice, causing a
+    # "callback id leak" which potentially leads to a crash. The reported
+    # scenario was:
     # - Launching mayapy.exe
     # - Opening a Maya scene having a requires statement (to the plug-in)
     # - The plug-in imports pymel, causing initialization and entering here.
-    if (pluginName in _pluginData) and 'callbackId' in _pluginData[pluginName] and _pluginData[pluginName]['callbackId'] != None:
+    if (pluginName in _pluginData) and 'callbackId' in _pluginData[pluginName] \
+            and _pluginData[pluginName]['callbackId'] != None:
         _api.MEventMessage.removeCallback(_pluginData[pluginName]['callbackId'])
-    
+
     _logger.debug("Plugin loaded: %s", pluginName)
     _pluginData[pluginName] = {}
 
@@ -315,6 +321,7 @@ def _installCallbacks():
         _logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join(preLoadedPlugins))
         for plugin in preLoadedPlugins:
             _pluginLoaded(plugin)
+
 
 if not _factories.building:
     _installCallbacks()
