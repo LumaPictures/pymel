@@ -16,6 +16,8 @@ THIS_FILE = os.path.normpath(os.path.abspath(inspect.getsourcefile(lambda: None)
 THIS_DIR = os.path.dirname(THIS_FILE)
 PYMEL_ROOT = os.path.dirname(THIS_DIR)
 
+DEFAULT_MODULES = ('nodetypes', 'uitypes', 'datatypes', 'general')
+
 def git(arg, output=False):
     if isinstance(arg, basestring):
         args = arg.split()
@@ -56,7 +58,7 @@ def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
                 child = None
             printobj(childname, child, prefix=childprefix, depth=depth + 1, file=file)
 
-def writemods(branch, output):
+def writemods(branch, output, modules=None):
     git(['checkout', branch])
     hash = githash()
     if hash != branch:
@@ -65,8 +67,19 @@ def writemods(branch, output):
         commit = hash
     if not os.path.isdir(output):
         os.makedirs(output)
-    for modname in ['nodetypes', 'uitypes', 'datatypes', 'general']:
-        fullname = 'pymel.core.' + modname
+    if not modules:
+        modules = DEFAULT_MODULES
+    for modname in modules:
+        fullnames = (modname, 'pymel.core.' + modname)
+        for fullname in fullnames:
+            try:
+                mod = __import__(fullname, globals(), locals(), [''])
+                break
+            except Exception:
+                pass
+        else:
+            raise RuntimeError("failed to import module {!r} or {!r}"
+                               .format(*fullnames))
         mod = __import__(fullname, globals(), locals(), [''])
         print mod
         path = os.path.join(output, '%s@%s.txt' % (fullname, commit))
@@ -79,6 +92,15 @@ def getparser():
         help='git branch to checkout (and add to output filenames)')
     parser.add_argument('-o', '--output-dir', default='pymel_modules',
         help="Directory to which to write out pymel module information")
+    parser.add_argument('-m', '--module', dest='modules', action='append',
+        help="What pymel modules to print out; may be specified multiple times"
+             " to specify multiple modules; modules should be specified using"
+             " the import name (ie, 'pymel.core.nodetypes'); if a module fails"
+             " to import, it will assume it is in 'pymel.core' (so you may just"
+             " use 'nodetypes'); if not given at all, the default set of"
+             " modules is: {}".format(', '.join(DEFAULT_MODULES)))
+    parser.add_argument('--traceback', action='store_true',
+        help="If given, will print full tracebacks on errors")
     return parser
 
 def main(argv=None):
@@ -86,7 +108,14 @@ def main(argv=None):
         argv = sys.argv[1:]
     parser = getparser()
     args = parser.parse_args(argv)
-    writemods(args.branch, args.output_dir)
+    try:
+        writemods(args.branch, args.output_dir, modules=args.modules)
+    except Exception as e:
+        if args.traceback:
+            raise
+        print e
+        return 1
+    return 0
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
