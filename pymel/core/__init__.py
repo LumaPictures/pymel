@@ -69,6 +69,8 @@ def _addPluginCommand(pluginName, funcName):
     _factories.cmdlist[funcName] = _cmdcache.getCmdInfoBasic(funcName)
     _factories.cmdlist[funcName]['plugin'] = pluginName
     _pmcmds.addWrappedCmd(funcName)
+    # FIXME: I think we can call a much simpler factory function, because
+    # plugins cannnot opt into the complex mutations that functionFactory can apply
     func = _factories.functionFactory(funcName)
     try:
         if func:
