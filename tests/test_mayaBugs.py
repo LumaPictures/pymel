@@ -384,18 +384,24 @@ class TestScriptJobListConditions(unittest.TestCase):
         # this seems to return None in non-gui mayapy sessions
         conditions = cmds.scriptJob(listConditions=1)
         self.assertIsNot(conditions, None, 'expected failure here')
-        self.assertIn('DagObjectCreated', conditions)
+        self.assertIn('MayaInitialized', conditions)
         self.assertIn('UndoAvailable', conditions)
 
     def runTest(self):
+        # we only get failures in non-gui
+        expectFailure = om.MGlobal.mayaState() not in \
+                        (om.MGlobal.kInteractive, om.MGlobal.kBaseUIMode)
         try:
             self._doTest()
-        except AssertionError as e:
-            if e.args[0] != 'expected failure here':
+        except Exception as e:
+            if not expectFailure:
+                raise
+            if not isinstance(e, AssertionError) or e.args[0] != 'expected failure here':
                 raise
         else:
-            # check that things are BAD!
-            self.fail("scriptJob(listConditions=1) bug fixed!")
+            if expectFailure:
+                # check that things are BAD!
+                self.fail("scriptJob(listConditions=1) bug fixed!")
 
 
 #===============================================================================
