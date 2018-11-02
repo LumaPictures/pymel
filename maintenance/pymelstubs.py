@@ -5,7 +5,7 @@ from maintenance.stubs import packagestubs
 
 
 def pymelstubs(extensions=('py', 'pypredef', 'pi'),
-               modules=('pymel', 'maya', 'PySide2', 'shiboken2', 'flux'),
+               modules=('pymel', 'maya', 'PySide2', 'shiboken2'),
                skip_module_regex=None,
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
