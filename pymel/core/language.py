@@ -275,9 +275,9 @@ class MelGlobals(collections.MutableMapping, dict):
     To retrieve existing global variables, just use the name as a key:
 
     >>> melGlobals['gResourceFileList'] #doctest: +ELLIPSIS
-    [u'defaultRunTimeCommands.res.mel', u'localizedPanelLabel.res.mel', ...]
+    [...u'defaultRunTimeCommands.res.mel', ...]
     >>> # works with or without $
-    >>> melGlobals['gFilterUIDefaultAttributeFilterList']  #doctest: +ELLIPSIS
+    >>> melGlobals['$gFilterUIDefaultAttributeFilterList']  #doctest: +ELLIPSIS
     [u'DefaultHiddenAttributesFilter', u'animCurveFilter', ..., u'publishedFilter']
 
     Creating new variables requires the use of the `initVar` function to specify the type:
