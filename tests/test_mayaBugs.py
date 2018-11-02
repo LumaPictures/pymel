@@ -155,24 +155,6 @@ class TestSurfaceRangeDomain(unittest.TestCase):
 # haven't tried on 32-bit).
 class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
     def setUp(self):
-        # pymel essentially fixes this bug by wrapping
-        # the api's __setattr__... so undo this before testing
-        self.origSetAttrs = {}
-        self.fixedSetAttrs = {}
-        if 'pymel.internal.factories' in sys.modules:
-            factories = sys.modules['pymel.internal.factories']
-            for cls in (om.MMatrix, om.MEulerRotation):
-                origSetAttr = factories.MetaMayaTypeWrapper._originalApiSetAttrs.get(
-                    cls, None)
-                if origSetAttr:
-                    print "restoring original %s.__setattr__" % (cls.__name__)
-                    self.origSetAttrs[cls] = origSetAttr
-                    self.fixedSetAttrs[cls] = cls.__setattr__
-                    cls.__setattr__ = origSetAttr
-                else:
-                    print "%s did not seem to have an altered __setattr__" % (cls.__name__)
-        else:
-            print "pymel.internal.factories was not imported yet..."
         cmds.file(new=1, f=1)
 
     def runTest(self):
@@ -261,10 +243,6 @@ class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
                 print("MMatrix/MEulerRotation still functions properly on {},"
                       " as expected".format(os.name))
 
-    def tearDown(self):
-        # Restore the 'fixed' __setattr__'s
-        for cls, origSetAttr in self.origSetAttrs.iteritems():
-            cls.__setattr__ = origSetAttr
 
 # Introduced in maya 2014
 # Change request #: BSPR-12597

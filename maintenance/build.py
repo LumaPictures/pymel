@@ -706,8 +706,6 @@ class ApiMethodGenerator(MelMethodGenerator):
     VALID_NAME = re.compile('[a-zA-Z_][a-zA-Z0-9_]*$')
     proxy = True
 
-    _originalApiSetAttrs = {}
-
     def __init__(self, classname, existingClass, parentClasses,
                  parentMethods, parentApicls, childClasses=()):
         super(ApiMethodGenerator, self).__init__(classname, existingClass, parentClasses, parentMethods)
@@ -929,25 +927,8 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
                 'removeAttrs': _setRepr(self.removeAttrs),
             }
 
-        if self._hasApiSetAttrBug(self.apicls):
-            # correct the setAttr bug by wrapping the api's
-            # __setattr__ to handle data descriptors...
-            origSetAttr = self.apicls.__setattr__
-            # in case we need to restore the original setattr later...
-            # ... as we do in a test for this bug!
-            self._originalApiSetAttrs[self.apicls] = origSetAttr
-
-            # FIXME:
-            raise RuntimeError(self.classname)
-
-            def apiSetAttrWrap(self, name, value):
-                if hasattr(self.__class__, name):
-                    if hasattr(getattr(self.__class__, name), '__set__'):
-                        # we've got a data descriptor with a __set__...
-                        # don't use the apicls's __setattr__
-                        return super(self.apicls, self).__setattr__(name, value)
-                return origSetAttr(self, name, value)
-            apicls.__setattr__ = apiSetAttrWrap
+        if factories.MetaMayaTypeWrapper._hasApiSetAttrBug(self.apicls):
+            attrs['__setattr__'] = Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
@@ -988,58 +969,6 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         attrs.update(constant)
 
         return attrs, methods
-
-    def _hasApiSetAttrBug(self, apiClass):
-        """
-        Maya has a bug on windows where some api objects have a __setattr__
-        that bypasses properties (and other data descriptors).
-
-        This tests if the given apiClass has such a bug.
-        """
-        class MyClass1(object):
-
-            def __init__(self):
-                self._bar = 'not set'
-
-            def _setBar(self, val):
-                self._bar = val
-
-            def _getBar(self):
-                return self._bar
-            bar = property(_getBar, _setBar)
-
-        class MyClass2(MyClass1, apiClass):
-            pass
-
-        foo2 = MyClass2()
-        foo2.bar = 7
-        # Here, on windows, MMatrix's __setattr__ takes over, and
-        # (after presumabably determining it didn't need to do
-        # whatever special case thing it was designed to do)
-        # instead of calling the super's __setattr__, which would
-        # use the property, inserts it into the object's __dict__
-        # manually
-        if foo2.bar != 7:
-            return True
-
-        # Starting in Maya2018 (at least on windows?), many wrapped datatypes
-        # define a __setattr__ which will work in the "general" case tested
-        # above, but will still take precedence if a "_swig_property" is
-        # defined - ie, MEulerRotation.order.  Check to see if the apicls has
-        # any properties, and ensure that our property still overrides theirs...
-        for name, member in inspect.getmembers(apiClass,
-                                               lambda x: isinstance(x, property)):
-            setattr(MyClass1, name, MyClass1.__dict__['bar'])
-            try:
-                setattr(foo2, name, 1.23456)
-            except Exception:
-                return True
-            if getattr(foo2, name) != 1.23456:
-                return True
-            # only check for one property - we assume that all apicls properties
-            # will behave the same way...
-            break
-        return False
 
 
 class NodeTypeGenerator(ApiMethodGenerator):

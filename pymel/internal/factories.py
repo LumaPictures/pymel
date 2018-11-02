@@ -2516,8 +2516,6 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
 
     """ A metaclass to wrap Maya api types, with support for class constants """
 
-    _originalApiSetAttrs = {}
-
     class ClassConstant(object):
 
         """Class constant"""
@@ -2682,23 +2680,6 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             #         return super(newcls, self).__getattribute__(name)
             #
             #     classdict['__getattribute__'] = __getattribute__
-            #
-            #     if cls._hasApiSetAttrBug(apicls):
-            #         # correct the setAttr bug by wrapping the api's
-            #         # __setattr__ to handle data descriptors...
-            #         origSetAttr = apicls.__setattr__
-            #         # in case we need to restore the original setattr later...
-            #         # ... as we do in a test for this bug!
-            #         cls._originalApiSetAttrs[apicls] = origSetAttr
-            #
-            #         def apiSetAttrWrap(self, name, value):
-            #             if hasattr(self.__class__, name):
-            #                 if hasattr(getattr(self.__class__, name), '__set__'):
-            #                     # we've got a data descriptor with a __set__...
-            #                     # don't use the apicls's __setattr__
-            #                     return super(apicls, self).__setattr__(name, value)
-            #             return origSetAttr(self, name, value)
-            #         apicls.__setattr__ = apiSetAttrWrap
 
         # create the new class
         newcls = super(MetaMayaTypeWrapper, cls).__new__(cls, classname, bases, classdict)
@@ -2807,6 +2788,21 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             # will behave the same way...
             break
         return False
+
+    @staticmethod
+    def setattr_fixed_forDataDescriptorBug(self, name, value):
+        """
+        Fixes __setattr__ to work properly with properties
+
+        Maya has a bug on windows where some api objects have a __setattr__
+        that bypasses properties (and other data descriptors).
+        """
+        if hasattr(self.__class__, name):
+            if hasattr(getattr(self.__class__, name), '__set__'):
+                # we've got a data descriptor with a __set__...
+                # don't use the apicls's __setattr__
+                return super(self.apicls, self).__setattr__(name, value)
+        return self.apicls.__setattr__(self, name, value)
 
 
 class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
