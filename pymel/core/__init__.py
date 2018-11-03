@@ -35,6 +35,44 @@ import datatypes as dt
 import uitypes
 import uitypes as ui
 
+# This is for backwards incompatibility due to a bug in the way LazyLoadModule
+# was used, which made all the uitypes available in this namespace
+# We may consider deprecating or removing these at some point, so don't rely on
+# these always being there!
+_uitypes_names = ['AnimCurveEditor', 'AnimDisplay', 'AttrColorSliderGrp',
+    'AttrControlGrp', 'AttrEnumOptionMenu', 'AttrEnumOptionMenuGrp',
+    'AttrFieldGrp', 'AttrFieldSliderGrp', 'AttrNavigationControlGrp',
+    'AttributeMenu', 'BlendShapeEditor', 'BlendShapePanel', 'Button', 'Canvas',
+    'ChannelBox', 'CheckBox', 'CheckBoxGrp', 'ClipEditor',
+    'ClipSchedulerOutliner', 'CmdScrollFieldExecuter', 'CmdScrollFieldReporter',
+    'CmdShell', 'ColorEditor', 'ColorIndexSliderGrp', 'ColorSliderButtonGrp',
+    'ColorSliderGrp', 'ColumnLayout', 'CommandLine', 'ConfirmDialog',
+    'DefaultLightListCheckBox', 'DeviceEditor', 'DevicePanel', 'DynPaintEditor',
+    'DynRelEdPanel', 'DynRelEditor', 'ExclusiveLightCheckBox', 'FloatField',
+    'FloatFieldGrp', 'FloatScrollBar', 'FloatSlider', 'FloatSlider2',
+    'FloatSliderButtonGrp', 'FloatSliderGrp', 'FontDialog', 'FrameLayout',
+    'GlRenderEditor', 'GradientControl', 'GradientControlNoAttr', 'GridLayout',
+    'HardwareRenderPanel', 'HelpLine', 'HyperGraph', 'HyperPanel', 'HyperShade',
+    'IconTextButton', 'IconTextCheckBox', 'IconTextRadioButton',
+    'IconTextRadioCollection', 'IconTextScrollList', 'IconTextStaticLabel',
+    'Image', 'IntField', 'IntFieldGrp', 'IntScrollBar', 'IntSlider',
+    'IntSliderGrp', 'KeyframeOutliner', 'KeyframeStats', 'LayerButton',
+    'LayoutDialog', 'MenuBarLayout', 'MenuEditor', 'MenuSet', 'MessageLine',
+    'ModelEditor', 'ModelPanel', 'NameField', 'NodeIconButton',
+    'OutlinerEditor', 'OutlinerPanel', 'PalettePort', 'PaneLayout',
+    'ProgressBar', 'PromptDialog', 'RadioButton', 'RadioButtonGrp',
+    'RadioCollection', 'RadioMenuItemCollection', 'RenderLayerButton',
+    'RenderWindowEditor', 'RowColumnLayout', 'ScriptTable', 'ScriptedPanel',
+    'ScriptedPanelType', 'ScrollField', 'ScrollLayout', 'Separator',
+    'ShelfButton', 'ShelfLayout', 'ShelfTabLayout', 'ShellField',
+    'SymbolButton', 'SymbolCheckBox', 'TabLayout', 'Text', 'TextCurves',
+    'TextField', 'TextFieldButtonGrp', 'TextFieldGrp', 'ToolButton',
+    'ToolCollection']
+if not _factories.building:
+    for _uiname in _uitypes_names:
+        setattr(nodetypes, _uiname, getattr(uitypes, _uiname))
+    del _uiname
+
 # create some aliases for legacy reasons
 objectTypeUI = windows.objectTypeUI = ui.objectTypeUI
 toQtObject = windows.toQtObject = ui.toQtObject
