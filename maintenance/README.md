@@ -78,7 +78,39 @@ Building an Official PyMEL Release
     cmd cache)
 
 
-## 3) Run Tests
+## 3) Generate core modules from templates
+
+
+### To generate the modules
+
+  - start gui maya
+
+  - in the script editor, run the following, substituting location of your dev
+    version of pymel:
+
+    ```python
+    import sys
+    import os
+    pymelPath = r'E:\Projects\Dev\_work\pymel'   # ...or wherever YOUR pymel version is installed
+    pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
+    if not os.path.isfile(pymelInit):
+        raise RuntimeError('invalid pymel path: %s' % pymelPath)
+    if sys.path[0] != pymelPath:
+        sys.path.insert(0, pymelPath)
+    import pymel
+    if not pymel.__file__.startswith(pymelInit):  # don't check equality, it may be a .pyc
+        for mod in list(sys.modules):
+            if mod.split('.')[0] == 'pymel':
+                del sys.modules[mod]
+    import pymel
+    assert pymel.__file__.startswith(pymelInit)
+    import maintenance.build
+    assert maintenance.build.__file__.startswith(pymelPath)
+    maintenance.build.generateAll()
+    ```
+
+
+## 4) Run Tests
 
   - cd into tests directory, then
     
@@ -117,7 +149,7 @@ Building an Official PyMEL Release
       ```
 
 
-## 4) Resolve Issues
+## 5) Resolve Issues
 
 ### Version Constants
 
@@ -147,7 +179,7 @@ Indicated by this error:
     this should be done)
 
 
-## 5) Build Stubs
+## 6) Build Stubs
 
   - from a clean/default environment maya gui, run:
 
@@ -175,7 +207,7 @@ Indicated by this error:
     standard library are found.
 
 
-## 6) Update the Changelog
+## 7) Update the Changelog
 
   - run changelog script:
 
@@ -189,7 +221,7 @@ Indicated by this error:
   - edit as necessary
 
 
-## 7) Build Docs
+## 8) Build Docs
 
   - WARNING: When I last attempted to build the docs on windows, the inheritance
     graphs were not generated properly, despite the fact that graphviz was
@@ -273,7 +305,7 @@ A few notes on rebuilding:
     module) before rebuilding
 
 
-## 8) Make Release
+## 9) Make Release
 
   - before releasing, make sure to tag the release (TODO: make this part of
     makerelease?):
