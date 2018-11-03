@@ -3414,7 +3414,6 @@ class BoundingBox(_api.MBoundingBox):
     def depth(self):
         res = _api.MBoundingBox.depth(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
-    d = property(depth)
 
     @_f.addApiDocs(_api.MBoundingBox, 'expand')
     def expand(self, point):
@@ -3426,7 +3425,6 @@ class BoundingBox(_api.MBoundingBox):
     def height(self):
         res = _api.MBoundingBox.height(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
-    h = property(height)
 
     @_f.addApiDocs(_api.MBoundingBox, 'intersects')
     def intersects(self, box, tol=0.0):
@@ -3455,8 +3453,12 @@ class BoundingBox(_api.MBoundingBox):
     def width(self):
         res = _api.MBoundingBox.width(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
-    w = property(width)
 # ------ Do not edit above this line --------
+    if not _f.building:
+        w = property(width)
+        h = property(height)
+        d = property(depth)
+
 
 
 #_factories.ApiTypeRegister.register( 'MVector', Vector )
