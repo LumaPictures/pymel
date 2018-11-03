@@ -2405,6 +2405,8 @@ class PyNode(_util.ProxyUnicode):
                                 raise ValueError, "could not find type %s in result %s returned by %s" % (cls.__name__, res, cls.__melcmd__.__name__)
                         elif cls.__melnode__ == nodeType(res):  # isinstance(res,cls):
                             newNode = res
+                        elif hasattr(res, 'getShape') and cls.__melnode__ == nodeType(res.getShape()):
+                            newNode = res.getShape()
                         else:
                             raise ValueError, "unexpect result %s returned by %s" % (res, cls.__melcmd__.__name__)
                 else:
