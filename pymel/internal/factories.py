@@ -1316,12 +1316,12 @@ class ApiTypeRegister(object):
 
     To register a new type call `ApiTypeRegister.register`.
     """
-    types = {}
-    inCast = {}
+    types = {}  # type: Dict[str, str]
+    inCast = {}  # type: Dict[str, Callable[[Any], Any]]
     # outcast functions have signature:
     #     func(pynodeInstance, value)
     # ...but as far as I can tell, only MPlug actually uses self
-    outCast = {}
+    outCast = {}  # type: Dict[str, Callable[[Any, Any], Any]]
     refInit = {}
     refCast = {}
     arrayItemTypes = {}
@@ -1384,9 +1384,12 @@ class ApiTypeRegister(object):
     @classmethod
     def getPymelType(cls, apiType):
         """
-        We need a way to map from api name to pymelName.  we start by looking up types which are registered
-        and then fall back to naming convention for types that haven't been registered yet. Perhaps pre-register
-        the names? """
+        Map from api name to pymelName.
+
+        we start by looking up types which are registered and then fall back
+        to naming convention for types that haven't been registered yet.
+        Perhaps pre-register the names?
+        """
         try:
             #_logger.debug("getting %s from dict" % apiType)
             return cls.types[apiType]
@@ -1407,11 +1410,22 @@ class ApiTypeRegister(object):
 
     @classmethod
     def register(cls, apiTypeName, pymelType, inCast=None, outCast=None, apiArrayItemType=None):
+        # type: (str, Type, Optional[Callable[[Any], Any]], Optional[Callable[[Any], Any]], Optional[Type]) -> None
         """
-        pymelType is the type to be used internally by pymel.  apiType will be hidden from the user
-        and converted to the pymel type.
-        apiTypeName is the name of an apiType as a string
-        if apiArrayItemType is set, it should be the api type that represents each item in the array"""
+        pymelType is the type to be used internally by pymel.
+        apiType will be hidden from the user and converted to the pymel type,
+        possibly via inCast.
+
+        Parameters
+        ----------
+        apiTypeName : str
+            the name of an apiType
+        pymelType : Type
+        inCast : Optional[Callable[[Any], Any]]
+        outCast : Optional[Callable[[Any], Any]]
+        apiArrayItemType : Optional[Type]
+            if set, it should be the api type that represents each item in the array
+        """
 
         #apiTypeName = pymelType.__class__.__name__
         capType = util.capitalize(apiTypeName)
@@ -1480,7 +1494,7 @@ class ApiTypeRegister(object):
                     cls.outCast[apiTypeName] = None
 
             else:
-                #-- Api Array types
+                # -- Api Array types
                 if apiArrayItemType:
 
                     cls.refInit[apiTypeName] = apiType
@@ -1506,7 +1520,7 @@ class ApiTypeRegister(object):
                         cls.refCast[apiTypeName] = pymelArrayRefCast
                         cls.outCast[apiTypeName] = pymelArrayOutCast
 
-                #-- Api types
+                # -- Api types
                 else:
                     cls.refInit[apiTypeName] = apiType
                     cls.refCast[apiTypeName] = pymelType
@@ -1538,7 +1552,17 @@ ApiTypeRegister.register('MDoubleArray', float, apiArrayItemType=float)
 class ApiArgUtil(object):
 
     def __init__(self, apiClassName, methodName, methodIndex=0):
-        """If methodInfo is None, then the methodIndex will be used to lookup the methodInfo from apiClassInfo"""
+        # type: (str, str, int) -> None
+        """
+        If methodInfo is None, then the methodIndex will be used to lookup
+        the methodInfo from apiClassInfo
+
+        Parameters
+        ----------
+        apiClassName : str
+        methodName : str
+        methodIndex : int
+        """
         self.apiClassName = apiClassName
         self.methodName = methodName
 
@@ -1588,18 +1612,30 @@ class ApiArgUtil(object):
         return res
 
     def inArgs(self):
+        # type: () -> List[str]
         return self.methodInfo['inArgs']
 
     def outArgs(self):
+        # type: () -> List[str]
         return self.methodInfo['outArgs']
 
     def argList(self):
+        # type: () -> List[str]
         return self.methodInfo['args']
 
     def argInfo(self):
         return self.methodInfo['argInfo']
 
     def getGetterInfo(self):
+        # type: () -> Optional[ApiArgUtil]
+        """
+        Return an ApiArgUtil for the getter method
+        (assumes the current instance is the setter)
+
+        Returns
+        -------
+        Optional[ApiArgUtil]
+        """
         try:
             inverse, isgetter = self.methodInfo['inverse']
             if isgetter:
@@ -1633,7 +1669,7 @@ class ApiArgUtil(object):
 
                 # Other: ensure we can cast result
                 else:
-                    assert  returnType in ApiTypeRegister.outCast or \
+                    assert returnType in ApiTypeRegister.outCast or \
                         returnType == self.apiClassName, \
                         '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
 
@@ -1645,7 +1681,7 @@ class ApiArgUtil(object):
                 # Input
                 else:
                     if direction == 'in':
-                        assert  argtype in ApiTypeRegister.inCast or \
+                        assert argtype in ApiTypeRegister.inCast or \
                             defaults.has_key(argname) or \
                             argtype == self.apiClassName, \
                             '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
@@ -1677,11 +1713,13 @@ class ApiArgUtil(object):
 #            return apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
 
     def getInputTypes(self):
+        # type: () -> List[str]
         inArgs = self.methodInfo['inArgs']
         types = self.methodInfo['types']
         return [str(types[x]) for x in inArgs]
 
     def getOutputTypes(self):
+        # type: () -> List[str]
         ret = self.methodInfo['returnType']
         if ret is None:
             ret = []
@@ -1708,9 +1746,9 @@ class ApiArgUtil(object):
         return self.methodInfo['doc']
 
     def getPrototype(self, className=True, methodName=True, outputs=False, defaults=False):
-        inArgs = self.methodInfo['inArgs']
-        outArgs = self.methodInfo['outArgs']
-        returnType = self.methodInfo['returnType']
+        inArgs = self.inArgs()
+        outArgs = self.outArgs()
+        returnType = self.getReturnType()
         types = self.methodInfo['types']
         args = []
 
@@ -1718,7 +1756,6 @@ class ApiArgUtil(object):
             arg = str(types[x]) + ' ' + x
             if defaults:
                 try:
-                    #_logger.debug(self.methodInfo['defaults'][x])
                     arg += '=' + str(self.methodInfo['defaults'][x])
                 except KeyError:
                     pass
@@ -1744,6 +1781,17 @@ class ApiArgUtil(object):
         return proto
 
     def castInput(self, argName, input):
+        # type: (str, Any) -> Any
+        """
+        Parameters
+        ----------
+        argName : str
+        input : Any
+
+        Returns
+        -------
+        Any
+        """
         # enums
         argtype = self.methodInfo['types'][argName]
         info = self.methodInfo['argInfo'][argName]
@@ -1762,21 +1810,12 @@ class ApiArgUtil(object):
             return cls.castInputEnum(apiClassName, enumName, input)
 
         elif input is not None:
-            #            try:
-
             f = ApiTypeRegister.inCast[argtype]
             if f is None:
                 return input
 
             input = cls.toInternalUnits(input, unit)
             return f(input)
-#            except:
-#                if input is None:
-#                    # we should do a check to ensure that the default is None, but for now, just return
-#                    return input
-#                if argtype != cls.__name__:
-#                    raise TypeError, "Cannot cast a %s to %s" % ( type(input).__name__, argtype )
-#                return cls(input)
 
     @classmethod
     def castInputEnum(cls, apiClassName, enumName, input):
@@ -2166,8 +2205,10 @@ class ApiUndoItem(object):
 
 class ApiRedoUndoItem(ApiUndoItem):
 
-    """Similar to the base ApiUndoItem, but allows specifying a separate
-    function for the redoer and the undoer"""
+    """
+    Similar to the base ApiUndoItem, but allows specifying a separate
+    function for the redoer and the undoer
+    """
     __slots__ = ['_undoer']
 
     def __init__(self, redoer, redoArgs, undoer, undoArgs, redoKwargs=None,
@@ -2186,6 +2227,21 @@ if _DEBUG_API_WRAPS:
 
 
 def getUndoArgs(args, argList, getter, getterInArgs):
+    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]], Callable, List[str]) -> List[Any]
+    """
+    Parameters
+    ----------
+    args : List[Any]
+        argument values
+    argList : List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]
+    getter : Callable
+        get function
+    getterInArgs : List[str]
+
+    Returns
+    -------
+    List[Any]
+    """
     getterArgs = []  # args required to get the current state before setting it
     undo_args = []  # args required to reset back to the original (starting) state  ( aka "undo" )
     missingUndoIndices = []  # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
@@ -2222,11 +2278,28 @@ def getUndoArgs(args, argList, getter, getterInArgs):
 
 
 def getDoArgs(args, argList):
+    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]]]
+    """
+    Parameters
+    ----------
+    args : List[Any]
+        argument values
+    argList : List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]
+
+    Returns
+    -------
+    do_args : List[Any]
+    final_do_args : List[Any]
+        Arguments prepped to be passed to the API method.
+        Same as above but with SafeApiPtr converted
+    out_type_list : List[Tuple[str, int]]
+        list of (argument type, index)
+    """
     do_args = []
     final_do_args = []
     outTypeList = []
     inCount = totalCount = 0
-    for name, argtype, direction, unit in argList:
+    for _, argtype, direction, unit in argList:
         if direction == 'in':
             arg = ApiArgUtil._castInput(args[inCount], argtype, unit)
             inCount += 1
@@ -2244,7 +2317,32 @@ def getDoArgs(args, argList):
     return do_args, final_do_args, outTypeList
 
 
+# FIXME: if we reframe getterInArgs as a set of indices, then we can omit the argument names in generated functions, which are quite long
 def processApiArgs(args, argList, getter, setter, getterInArgs):
+    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]], Callable, Callable, List[str]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]]]
+    """
+    Parameters
+    ----------
+    args : List[Any]
+        argument values
+    argList : List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]
+    getter : Callable
+        get function
+    setter : Callable
+        set function
+    getterInArgs : List[str]
+        list of argument names that are used to get the initial state when
+        a method is undoable.
+
+    Returns
+    -------
+    do_args : List[Any]
+    final_do_args : List[Any]
+        Same as above but with SafeApiPtr converted
+    outTypeList : List[Tuple[str, int]]
+        list of (argument type, index), used by processApiResult to retrieve
+        output values from do_args
+    """
     undoEnabled = cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
 
     # get the value we are about to set
@@ -2259,7 +2357,25 @@ def processApiArgs(args, argList, getter, setter, getterInArgs):
     return do_args, final_do_args, outTypeList
 
 
+# FIXME: this function should not be applied unless len(outArgs) > 0
+# FIXME: outArgs seems redundant with outTypeList
 def processApiResult(result, outArgs, outTypeList, do_args):
+    # type: (Any, List[str], List[Tuple[str, int]], List[Any]) -> Any
+    """
+    Parameters
+    ----------
+    result : Any
+        Result returned from the API method
+    outArgs : List[str]
+        output argument names
+    outTypeList : List[Tuple[str, int]]
+        output argument types and their indices.  should be same len as outArgs
+    do_args : List[Any]
+
+    Returns
+    -------
+    Any
+    """
     if len(outArgs):
         if result is not None:
             result = [result]
@@ -2286,7 +2402,7 @@ def getProxyResult(self, apiClass, method, final_do=()):
 
 
 def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=None):
-    # type: (class, string, string, bool, None or int) -> None
+    # type: (Type, str, str, bool, Optional[int]) -> None
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
     no special API classes required.  Inputs go in the front door, and outputs come out the back door.
@@ -2322,17 +2438,16 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
 
     Parameters
     ----------
-
-    apiClass : class
+    apiClass : Type
         the api class
-    methodName : string
+    methodName : str
         the name of the api method
-    newName : string
+    newName : str
         optionally provided if a name other than that of api method is desired
     proxy : bool
         If True, then __apimfn__ function used to retrieve the proxy class. If False,
         then we assume that the class being wrapped inherits from the underlying api class.
-    overloadIndex : None or int
+    overloadIndex : Optional[int]
         which of the overloaded C++ signatures to use as the basis of our wrapped function.
     """
 
@@ -2975,9 +3090,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
         newcls = super(_MetaMayaCommandWrapper, cls).__new__(cls, classname, bases, classdict)
 
-        #-------------------------
+        # -------------------------
         #   MEL Methods
-        #-------------------------
+        # -------------------------
         melCmdName, infoCmd = cls.getMelCmd(classdict)
 
         classdict = {}
@@ -3448,6 +3563,7 @@ class VirtualClassManager(object):
                  preCreate='_preCreateVirtual',
                  create='_createVirtual',
                  postCreate='_postCreateVirtual', ):
+        # type: (Any, bool, str or callable, str or callable, str or callable, str or callable) -> None
         """Register a new virtual class
 
         Allows a user to create their own subclasses of leaf PyMEL node classes,
@@ -3534,7 +3650,8 @@ class VirtualClassManager(object):
 
         For a usage example, see examples/customClasses.py
 
-        :parameters:
+        Parameters
+        ----------
         nameRequired : `bool`
             True if the _isVirtual callback requires the string name to operate
             on. The object's name is not always immediately avaiable and may
@@ -3590,7 +3707,8 @@ class VirtualClassManager(object):
         # inspect callbacks to ensure proper number of args and kwargs ( create callback must support **kwargs )
         # ensure that the name of our node does not conflict with a real node
 
-        vClassInfo = VirtualClassInfo(vclass, parentCls, nameRequired, isVirtual, preCreate, create, postCreate)
+        vClassInfo = VirtualClassInfo(vclass, parentCls, nameRequired,
+                                      isVirtual, preCreate, create, postCreate)
         self._byParentClass[parentCls].append(vClassInfo)
         self._byVirtualClass[vclass] = vClassInfo
 
@@ -3602,7 +3720,8 @@ class VirtualClassManager(object):
         self._byParentClass[vClassInfo.parent].remove(vClassInfo)
 
     def getVirtualClass(self, baseClass, obj, name=None, fnDepend=None):
-        '''Returns the virtual class to use for the given baseClass + obj, or
+        '''
+        Returns the virtual class to use for the given baseClass + obj, or
         the original baseClass if no virtual class matches.
         '''
         vClasses = self._byParentClass.get(baseClass)
@@ -3619,7 +3738,8 @@ class VirtualClassManager(object):
         return baseClass
 
     def getVirtualClassInfo(self, vclass):
-        '''Given a virtual class, returns it's registered VirtualClassInfo
+        '''
+        Given a virtual class, returns it's registered VirtualClassInfo
         '''
         return self._byVirtualClass.get(vclass)
 
@@ -3628,7 +3748,7 @@ virtualClasses = VirtualClassManager()
 # for backwards compatibility + ease of access
 registerVirtualClass = virtualClasses.register
 
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def isValidPyNode(arg):
@@ -3677,14 +3797,23 @@ def toApiFunctionSet(obj):
 
 
 def apiClassNameToPymelClassName(apiName, allowGuess=True):
-    '''Given the name of an api class, such as MFnTransform, MSpace, MAngle,
+    # type: (str, bool) -> Optional[str]
+    """
+    Given the name of an api class, such as MFnTransform, MSpace, MAngle,
     returns the name of the corresponding pymel class.
 
-    If allowGuessing, and we cannot find a registered type that matches, will
-    try to do string parsing to guess the pymel name.
+    Parameters
+    ----------
+    apiName : str
+    allowGuess : bool
+        If enabled, and we cannot find a registered type that matches, will
+        try to do string parsing to guess the pymel name.
 
-    Returns None if it was unable to determine the name.
-    '''
+    Returns
+    -------
+    Optional[str]
+        Returns None if it was unable to determine the name.
+    """
     pymelName = apiClassNamesToPyNodeNames.get(apiName, None)
     if pymelName is None:
         if allowGuess:
@@ -3696,11 +3825,11 @@ def apiClassNameToPymelClassName(apiName, allowGuess=True):
             pymelName = ApiTypeRegister.types.get(apiName, None)
     return pymelName
 
-# get the API type from a maya type
-
 
 def mayaTypeToApiType(mayaType):
-    """ Get the Maya API type from the name of a Maya type """
+    """
+    Get the Maya API type from the name of a Maya type
+    """
     try:
         return mayaTypesToApiTypes[mayaType]
     except KeyError:
