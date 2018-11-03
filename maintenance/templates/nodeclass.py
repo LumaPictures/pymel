@@ -82,6 +82,9 @@ class {{ classname }}({{ parents }}):
    {% for alias in method.aliases %}
     {{ alias }} = {{ method.name }}
    {% endfor %}
+   {% for alias in method.properties %}
+    {{ alias }} = property({{ method.name }})
+   {% endfor %}
   {% endif %}
 
  {% endfor %}
