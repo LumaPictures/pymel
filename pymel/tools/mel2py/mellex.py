@@ -67,6 +67,8 @@ tokens = reserved + (
 t_ignore = ' \t\x0c'
 
 # Newlines
+
+
 def t_NEWLINE(t):
     r'\n+|\r+'
     t.lexer.lineno += t.value.count("\n")
@@ -136,6 +138,7 @@ def t_LPAREN(t):
     r'\('
     return t
 
+
 def t_RPAREN(t):
     r'\)'
     return t
@@ -148,29 +151,36 @@ def t_RPAREN(t):
 #    r'\]([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?'
 #    return t
 
+
 def t_LBRACKET(t):
     r'\['
     return t
+
 
 def t_RBRACKET(t):
     r'\]'
     return t
 
+
 def t_CAPTURE(t):
     r'`'
     return t
+
 
 def t_SEMI(t):
     r';'
     return t
 
+
 def t_VAR(t):
     r'\$[A-Za-z_][\w_]*'
     return t
 
+
 def t_COMPONENT(t):
     r'\.[xyz]'
     return t
+
 
 def t_ELLIPSIS(t):
     r'\.\.'
@@ -220,6 +230,8 @@ t_FCONST = r'(((\d+\.)(\d+)?|(\d+)?(\.\d+))(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))(
 t_SCONST = r'"([^\\\n]|(\\.)|\\\n)*?"'
 
 # Comments
+
+
 def t_COMMENT_BLOCK(t):
     r'/\*(.|\n)*?\*/|/\*(.|\n)*?$'
     # r'/\*(.|\n)*?\*/'
@@ -230,6 +242,7 @@ def t_COMMENT_BLOCK(t):
 
     t.lexer.lineno += t.value.count('\n')
     return t
+
 
 def t_COMMENT(t):
     r'//.*'

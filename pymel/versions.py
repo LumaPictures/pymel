@@ -159,7 +159,6 @@ v2018_4 = 20180400
 v2019 = 20190000
 
 
-
 def current():
     # type: () -> int
     """Get the current version of Maya

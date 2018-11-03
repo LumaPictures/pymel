@@ -27,6 +27,7 @@ _logger = _internal.getLogger(__name__)
 mayaTypeNameToPymelTypeName = {}
 pymelTypeNameToMayaTypeName = {}
 
+
 def _addTypeNames():
     for name, obj in globals().items():
         if isinstance(obj, type) and issubclass(obj, PyUI):
@@ -79,6 +80,7 @@ def toPyQtObject(mayaName):
     if ptr is not None:
         return sip.wrapinstance(long(ptr), qtcore.QObject)
 
+
 def toPyQtControl(mayaName):
     """
     Given the name of a May UI control, return the corresponding QWidget.
@@ -93,6 +95,7 @@ def toPyQtControl(mayaName):
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is not None:
         return sip.wrapinstance(long(ptr), qtgui.QWidget)
+
 
 def toPyQtLayout(mayaName):
     """
@@ -109,6 +112,7 @@ def toPyQtLayout(mayaName):
     if ptr is not None:
         return sip.wrapinstance(long(ptr), qtgui.QWidget)
 
+
 def toPyQtWindow(mayaName):
     """
     Given the name of a May UI control, return the corresponding QWidget.
@@ -123,6 +127,7 @@ def toPyQtWindow(mayaName):
     ptr = mui.MQtUtil.findWindow(mayaName)
     if ptr is not None:
         return sip.wrapinstance(long(ptr), qtgui.QWidget)
+
 
 def toPyQtMenuItem(mayaName):
     """
@@ -142,6 +147,8 @@ def toPyQtMenuItem(mayaName):
         return sip.wrapinstance(long(ptr), qtgui.QAction)
 
 # PYSIDE VERSIONS
+
+
 def pysideWrapInstance(ptr, base=None):
     '''Utility to convert a point to a Qt Class and produce the same result
     as sip.wrapinstance using shiboken.wrapInstance.
@@ -184,6 +191,7 @@ def pysideWrapInstance(ptr, base=None):
         base = qtwidgets.QWidget
     return wrapInstance(long(ptr), base)
 
+
 def toPySideObject(mayaName):
     """
     Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
@@ -211,6 +219,7 @@ def toPySideObject(mayaName):
     if ptr is not None:
         return pysideWrapInstance(long(ptr), qtcore.QObject)
 
+
 def toPySideControl(mayaName):
     """
     Given the name of a May UI control, return the corresponding QWidget.
@@ -232,6 +241,7 @@ def toPySideControl(mayaName):
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is not None:
         return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+
 
 def toPySideLayout(mayaName):
     """
@@ -255,6 +265,7 @@ def toPySideLayout(mayaName):
     if ptr is not None:
         return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
 
+
 def toPySideWindow(mayaName):
     """
     Given the name of a May UI control, return the corresponding QWidget.
@@ -275,6 +286,7 @@ def toPySideWindow(mayaName):
     ptr = mui.MQtUtil.findWindow(mayaName)
     if ptr is not None:
         return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+
 
 def toPySideMenuItem(mayaName):
     """
@@ -343,6 +355,7 @@ else:
     raise ValueError('preferred_python_qt_binding must be set to either'
                      ' pyside or pyqt')
 
+
 # really, this should be in core.windows; but, due to that fact that this module
 # is "higher" in the import hierarchy than core.windows, and we need this function
 # here, we're just defining it here
@@ -405,7 +418,7 @@ class PyUI(unicode):
                 # but this just provides a failsafe...
                 for testType in 'panel scriptedPanel window control layout menu'.split():
                     if getattr(cmds, testType)(name, ex=1, q=1):
-                        newcls =globals().get(_util.capitalize(testType), PyUI)
+                        newcls = globals().get(_util.capitalize(testType), PyUI)
                         if newcls != PyUI:
                             break
         else:
@@ -518,6 +531,7 @@ class PyUI(unicode):
 
 
 class Panel(PyUI):
+
     """pymel panel class"""
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(windows.panel)

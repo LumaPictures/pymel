@@ -51,6 +51,7 @@ _thisModule = sys.modules[__name__]
 
 # internal utilities
 
+
 def _toCompOrArray(value):
     if hasattr(value, '__iter__'):
         if type(value) is not Array:
@@ -61,6 +62,7 @@ def _toCompOrArray(value):
     else:
         raise TypeError, "invalid value type %s cannot be converted to Array" % (clsname(value))
     return value
+
 
 def _toCompOrArrayInstance(value, cls=None):
     if cls == None:
@@ -74,6 +76,7 @@ def _toCompOrArrayInstance(value, cls=None):
     else:
         raise TypeError, "invalid value type %s cannot be converted to %s" % (clsname(value), cls.__name__)
     return value
+
 
 def _shapeInfo(value):
     shape, ndim, size = None, None, None
@@ -162,6 +165,7 @@ def _patchfn(basefn):
     fn.__doc__ = basedoc + "\nThis function has been overriden from %s.%s to work element-wise on iterables" % (basefn.__module__, basefn.__name__)
     return fn
 
+
 def patchMath():
     """ Overload various math functions to work element-wise on iterables
 
@@ -205,6 +209,7 @@ patchMath()
 # NOTE : it's not very consistent that min and max accept a variable number of arguments and
 # sum, prod, any, all don't? But it's the way it is with the builtins
 
+
 def sum(a, start=0, axis=None):
     """ sum(a[, start=0[, axis=(axis0, axis1, ...)]]) --> numeric or Array
 
@@ -232,6 +237,7 @@ def sum(a, start=0, axis=None):
     else:
         return a + start
 
+
 def prod(a, start=1, axis=None):
     """ prod(a[, start=1[, axis=(axis0, axis1, ...)]]) --> numeric or Array
 
@@ -258,6 +264,7 @@ def prod(a, start=1, axis=None):
         return reduce(operator.mul, a, start)
     else:
         return a * start
+
 
 def any(a, axis=None):
     """ any(a [,axis=(axis0, axis1, ...)]) --> bool or Array of booleans
@@ -291,6 +298,7 @@ def any(a, axis=None):
     else:
         return bool(a)
 
+
 def all(a, axis=None):
     """ all(a, [,axis=(axis0, axis1, ...)]) --> bool or Array of booleans
 
@@ -322,6 +330,7 @@ def all(a, axis=None):
         return _all(a)
     else:
         return bool(a)
+
 
 def min(*args, **kwargs):
     """ min(iterable[, key=func[, axis=(axis0, axis1, ...)]]) --> value
@@ -366,6 +375,7 @@ def min(*args, **kwargs):
         return _min(a, **opt)
     else:
         return a
+
 
 def max(*args, **kwargs):
     """ max(iterable[, key=func[, axis=(axis0, axis1, ...)]]) --> value
@@ -413,6 +423,7 @@ def max(*args, **kwargs):
 
 # Array specific functions that also exist as methods on the Array classes
 
+
 def sqlength(a, axis=None):
     """ sqlength(a[, axis=(axis0, axis1, ...)]) --> numeric or Array
 
@@ -448,6 +459,7 @@ def sqlength(a, axis=None):
     else:
         raise TypeError, "sqlength not implemented for %s" % (clsname(a))
 
+
 def length(a, axis=None):
     """ length(a[, axis=(axis0, axis1, ...)]) --> numeric or Array
 
@@ -468,6 +480,7 @@ def length(a, axis=None):
         Array([0.865938219505, 0.865938219505, 0.707])
     """
     return sqrt(sqlength(a, axis))
+
 
 def normal(a, axis=None):
     """ normal(a[, axis=(axis0, axis1, ...)]) --> Array
@@ -506,6 +519,7 @@ def normal(a, axis=None):
         return a.normal(*axis)
     else:
         raise TypeError, "normal not implemented for %s" % (clsname(a))
+
 
 def dist(a, b, axis=None):
     """ dist(a, b[, axis=(axis0, axis1, ...)]) --> float or Array
@@ -549,6 +563,7 @@ def dist(a, b, axis=None):
 
 # iterator classes on a specific Array axis, supporting __getitem__ and __setitem__
 # in a numpy like way
+
 
 class ArrayIter(object):
 
@@ -4945,6 +4960,7 @@ class Array(object):
 
 # functions that work on MatrixN (and just defer to MatrixN methods)
 
+
 def det(value):
     """ det(m) --> float
 
@@ -4962,6 +4978,7 @@ def det(value):
         except:
             raise TypeError, "%s not convertible to MatrixN" % (clsname(value))
         return value.det()
+
 
 def inv(value):
     """ inv(m) --> MatrixN
@@ -4981,6 +4998,7 @@ def inv(value):
         except:
             raise TypeError, "%s not convertible to MatrixN" % (clsname(value))
         return value.inverse()
+
 
 class MatrixN(Array):
 
@@ -6072,6 +6090,7 @@ class MatrixN(Array):
 
 # only on size 3 Vectors
 
+
 def cross(u, v):
     """ cross(u, v) --> VectorN
 
@@ -6092,6 +6111,7 @@ def cross(u, v):
         except:
             raise TypeError, "%s is not convertible to type VectorN, cross product is only defined for two Vectors of size 3" % (clsname(u))
     return u.cross(v)
+
 
 def dot(u, v):
     """ dot(u, v) --> float
@@ -6114,6 +6134,7 @@ def dot(u, v):
             raise TypeError, "%s is not convertible to type VectorN, dot product is only defined for two Vectors of identical size" % (clsname(u))
     return u.dot(v)
 
+
 def outer(u, v):
     """ outer(u, v) --> MatrixN
 
@@ -6134,6 +6155,7 @@ def outer(u, v):
         except:
             raise TypeError, "%s is not convertible to type VectorN, outer product is only defined for two Vectors" % (clsname(u))
     return u.outer(v)
+
 
 def angle(a, b, c=None):
     """ angle(u, v) --> float
@@ -6171,6 +6193,7 @@ def angle(a, b, c=None):
     else:
         return a.angle(b)
 
+
 def axis(a, b, c=None, normalize=False):
     """ axis(u, v[, normalize=False]) --> VectorN
 
@@ -6205,6 +6228,7 @@ def axis(a, b, c=None, normalize=False):
         return a.axis(b, c, normalize=normalize)
     else:
         return a.axis(b, normalize=normalize)
+
 
 def cotan(a, b, c=None):
     """ cotan(u, v) --> float :
@@ -6242,6 +6266,7 @@ def cotan(a, b, c=None):
 #
 #    VectorN Class
 #
+
 
 class VectorN(Array):
 

@@ -41,6 +41,7 @@ _f = _factories
 # Get config settings for checking if an attribute is referenced before changing the lock state
 CHECK_ATTR_BEFORE_LOCK = _startup.pymel_options.get('check_attr_before_lock', False)
 
+
 def _getPymelTypeFromObject(obj, name):
     if obj.hasFn(_api.MFn.kDependencyNode):
         fnDepend = _api.MFnDependencyNode(obj)
@@ -145,6 +146,7 @@ def _getPymelType(arg, name):
 # ----------------------
 #  Object Manipulation
 # ----------------------
+
 
 def select(*args, **kwargs):
     """
@@ -685,17 +687,17 @@ def addAttr(*args, **kwargs):
             >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoLong2' in x.name()]
             [u'autoLong2', u'autoLong2_first', u'autoLong2_second']
     """
-    attributeTypes = [ 'bool', 'long', 'short', 'byte', 'char', 'enum',
-                       'float', 'double', 'doubleAngle', 'doubleLinear',
-                       'compound', 'message', 'time', 'fltMatrix', 'reflectance',
-                       'spectrum', 'float2', 'float3', 'double2', 'double3', 'long2',
-                       'long3', 'short2', 'short3', datatypes.Vector ]
+    attributeTypes = ['bool', 'long', 'short', 'byte', 'char', 'enum',
+                      'float', 'double', 'doubleAngle', 'doubleLinear',
+                      'compound', 'message', 'time', 'fltMatrix', 'reflectance',
+                      'spectrum', 'float2', 'float3', 'double2', 'double3', 'long2',
+                      'long3', 'short2', 'short3', datatypes.Vector]
 
-    dataTypes = [ 'string', 'stringArray', 'matrix', 'reflectanceRGB',
-                  'spectrumRGB', 'doubleArray', 'Int32Array', 'vectorArray',
-                  'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray' ]
+    dataTypes = ['string', 'stringArray', 'matrix', 'reflectanceRGB',
+                 'spectrumRGB', 'doubleArray', 'Int32Array', 'vectorArray',
+                 'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray']
 
-    type = kwargs.pop('type', kwargs.pop('typ', None ))
+    type = kwargs.pop('type', kwargs.pop('typ', None))
     childSuffixes = kwargs.pop('childSuffixes', None)
 
     if type is not None:
@@ -1914,6 +1916,7 @@ Modifications:
     return map(PyNode, _util.listForNone(cmds.attributeInfo(*args, **kwargs)))
 '''
 
+
 def rename(obj, newname, **kwargs):
     """
 Modifications:
@@ -2208,6 +2211,7 @@ class MayaComponentError(MayaAttributeError):
 
 
 class MayaInstanceError(MayaNodeError):
+
     def __str__(self):
         msg = "Maya %s was reparented to an instance, and dag path " \
               "is now ambiguous:" % (self._objectDescription,)
@@ -2217,6 +2221,7 @@ class MayaInstanceError(MayaNodeError):
 
 
 class DeletedMayaNodeError(MayaNodeError):
+
     def __init__(self, node=None):
         if hasattr(node, '_name'):
             # Since the object has been deleted, normal name lookup for
@@ -2234,7 +2239,7 @@ class DeletedMayaNodeError(MayaNodeError):
 
     @classmethod
     def handle(cls, pynode):
-        option  = _startup.pymel_options['deleted_pynode_name_access']
+        option = _startup.pymel_options['deleted_pynode_name_access']
         if option == 'ignore':
             return
         errorInst = cls(pynode)
@@ -2878,6 +2883,7 @@ _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 #_factories.ApiTypeRegister.register('MDagPath', DagNode, inCast=_MDagPathIn )
 #_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
 
+
 def _getParent(getter, obj, generations):
     '''
     If generations is None, then a list of all the parents is returned.
@@ -3122,6 +3128,7 @@ class Attribute(PyNode):
     #elementByPhysicalIndex = _factories.wrapApiMethod( _api.MPlug, 'elementByPhysicalIndex' )
 
     def removeMultiInstance(self, index=None, break_=False):
+        # type: (Optional[Union[int, Iterable[int]]], bool) -> None
         """
         Parameters
         ----------
@@ -3616,6 +3623,7 @@ class Attribute(PyNode):
 
     def isConnectedTo(self, other, ignoreUnitConversion=False,
                       checkLocalArray=False, checkOtherArray=False):
+        # type: (Any, Any, Any, Any) -> bool
         """
         Determine if the attribute is connected to the passed attribute.
 
@@ -4033,6 +4041,7 @@ class Attribute(PyNode):
         return cmds.attributeQuery(self.attrName(), node=self.node(), connectable=True)
 
     def isUsedAsColor(self):
+        # type: () -> bool
         """
         attributeQuery -usedAsColor
 
@@ -4955,7 +4964,7 @@ class Component(PyNode):
         component = None
         # try making from MFnComponent.create, if _mfncompclass has it defined
         if (hasattr(self._mfncompclass, 'create')
-            and self._apienum__ not in self._componentEnums + [None]):
+                and self._apienum__ not in self._componentEnums + [None]):
             try:
                 component = self._mfncompclass().create(self._apienum__)
             # Note - there's a bug with kSurfaceFaceComponent - can't use create
@@ -5056,6 +5065,7 @@ class Component(PyNode):
 
 
 class DimensionedComponent(Component):
+
     """
     Components for which having a __getitem__ of some sort makes sense
 
@@ -5306,6 +5316,7 @@ class DimensionedComponent(Component):
             index = ComponentIndex(index + (HashableSlice(None),))
 
         indices = [ComponentIndex(label=index.label)]
+
         def flattenDimIndex(dimIndex, partialIndex):
             if _util.isIterable(dimIndex):
                 if allowIterable:
@@ -5320,7 +5331,7 @@ class DimensionedComponent(Component):
                     yield indice
             elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
                 yield partialIndex + \
-                      (self._translateNegativeIndice(dimIndex, partialIndex),)
+                    (self._translateNegativeIndice(dimIndex, partialIndex),)
             else:
                 yield partialIndex + (dimIndex,)
 
@@ -5806,6 +5817,7 @@ class DiscreteComponent(DimensionedComponent):
 
 
 class ContinuousComponent(DimensionedComponent):
+
     """
     Components whose dimensions are continuous.
 
@@ -5979,6 +5991,7 @@ class Component3D(DiscreteComponent):
 
 # Mixin class for components which use MIt* objects for some functionality
 class MItComponent(Component):
+
     """
     Abstract base class for pymel components that can be accessed via iterators.
 
@@ -7923,6 +7936,7 @@ applyAttrPattern = _factories.getCmdFunc('applyAttrPattern')
 
 artAttrTool = _factories.getCmdFunc('artAttrTool')
 
+
 @_factories.addCmdDocs
 def assembly(*args, **kwargs):
     if len(args):
@@ -8182,6 +8196,7 @@ objectCenter = _factories.getCmdFunc('objectCenter')
 
 objectType = _factories.getCmdFunc('objectType')
 
+
 @_factories.addCmdDocs
 def paramDimension(*args, **kwargs):
     res = cmds.paramDimension(*args, **kwargs)
@@ -8192,6 +8207,7 @@ def paramDimension(*args, **kwargs):
 paramLocator = _factories.getCmdFunc('paramLocator')
 
 parent = _factories.addCmdDocs(parent)
+
 
 @_factories.addCmdDocs
 def partition(*args, **kwargs):
@@ -8234,6 +8250,7 @@ sculptMeshCacheChangeCloneSource = _factories.getCmdFunc('sculptMeshCacheChangeC
 
 select = _factories.addCmdDocs(select)
 
+
 @_factories.addCmdDocs
 def selectKey(*args, **kwargs):
     for flag in ['t', 'time']:
@@ -8272,6 +8289,7 @@ softSelect = _factories.getCmdFunc('softSelect')
 
 _spaceLocator = spaceLocator
 
+
 @_factories.addCmdDocs
 def spaceLocator(*args, **kwargs):
     res = _spaceLocator(*args, **kwargs)
@@ -8299,6 +8317,7 @@ toggleDisplacement = _factories.getCmdFunc('toggleDisplacement')
 toolDropped = _factories.getCmdFunc('toolDropped')
 
 toolHasOptions = _factories.getCmdFunc('toolHasOptions')
+
 
 @_factories.addCmdDocs
 def toolPropertyWindow(*args, **kwargs):
@@ -8333,6 +8352,7 @@ xformConstraint = _factories.getCmdFunc('xformConstraint')
 encodeString = _factories.getCmdFunc('encodeString')
 
 format = _factories.getCmdFunc('format')
+
 
 @_factories.addCmdDocs
 def assignCommand(*args, **kwargs):

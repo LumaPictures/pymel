@@ -541,6 +541,8 @@ def getUncachedCmds():
 # -----------------------
 
 docCacheLoaded = False
+
+
 def loadCmdDocCache():
     global docCacheLoaded
     if docCacheLoaded:
@@ -662,6 +664,7 @@ def _getTimeRangeFlags(cmdName):
 
 
 class Callback(object):
+
     """
     Enables deferred function evaluation with 'baked' arguments.
     Useful where lambdas won't work...
@@ -1113,6 +1116,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
 
     return newFunc
 
+
 def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None):
     """
     Add documentation to a method that corresponds to a single command flag
@@ -1151,6 +1155,7 @@ def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName
 
     return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring)
 
+
 def createflag(cmdName, flag):
     """create flag decorator"""
     def create_decorator(method):
@@ -1165,6 +1170,7 @@ def secondaryflag( cmdName, flag ):
         return makeSecondaryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
     return secondary_decorator
 '''
+
 
 def makeQueryFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None):
     #name = 'get' + flag[0].upper() + flag[1:]
@@ -1189,6 +1195,7 @@ def makeQueryFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=
 
     return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring)
 
+
 def queryflag(cmdName, flag):
     """query flag decorator"""
     def query_decorator(method):
@@ -1211,6 +1218,7 @@ def handleCallbacks(args, kwargs, callbackFlags):
         except KeyError:
             pass
 
+
 def asEdit(self, func, kwargs, flag, val):
     kwargs['edit'] = True
     kwargs[flag] = val
@@ -1219,6 +1227,7 @@ def asEdit(self, func, kwargs, flag, val):
     except TypeError:
         kwargs.pop('edit')
         return func(self, **kwargs)
+
 
 def asQuery(self, func, kwargs, flag):
     kwargs['query'] = True
@@ -1280,6 +1289,7 @@ def addMelDocs(cmdName, flag=None):
 
     return doc_decorator
 
+
 def listForNoneQuery(res, kwargs, flags):
     "convert a None to an empty list on the given query flags"
     if res is None and kwargs.get('query', kwargs.get('q', False ) ) and \
@@ -1319,7 +1329,7 @@ class ApiTypeRegister(object):
 
     @staticmethod
     def _makeRefFunc(capitalizedApiType, size=1, **kwargs):
-        # type: (Any, int, **Any) -> Any
+        # type: (Any, int, **Any) -> None
         """
         Returns a function which will return a SafeApiPtr object of the given
         type.
@@ -1523,6 +1533,7 @@ ApiTypeRegister.register('MStringArray', list, apiArrayItemType=unicode)
 ApiTypeRegister.register('MIntArray', int, apiArrayItemType=int)
 ApiTypeRegister.register('MFloatArray', float, apiArrayItemType=float)
 ApiTypeRegister.register('MDoubleArray', float, apiArrayItemType=float)
+
 
 class ApiArgUtil(object):
 
@@ -2126,6 +2137,7 @@ class ApiUndo(object):
 
 apiUndo = ApiUndo()
 
+
 class ApiUndoItem(object):
 
     """A simple class that reprsents an undo item to be undone or redone."""
@@ -2274,7 +2286,7 @@ def getProxyResult(self, apiClass, method, final_do=()):
 
 
 def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=None):
-    # type: (class, string, string, bool, None or int) -> Any
+    # type: (class, string, string, bool, None or int) -> None
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
     no special API classes required.  Inputs go in the front door, and outputs come out the back door.
@@ -2467,6 +2479,7 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
             return beforeDeprecationWrapper(*args, **kwargs)
     return wrappedApiFunc
 
+
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
     """decorator for adding API docs"""
 
@@ -2475,10 +2488,12 @@ def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
 
     return doc_decorator
 
+
 def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoable=True):
 
     util.addLazyDocString(wrappedApiFunc, addApiDocsCallback, apiClass, methodName, overloadIndex, undoable, wrappedApiFunc.__doc__)
     return wrappedApiFunc
+
 
 def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, origDocstring=''):
     apiClassName = apiClass.__name__
@@ -2504,7 +2519,7 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
         if isinstance(pymelType, apicache.ApiEnum):
             pymelType = pymelType.pymelName()
 
-        pymelType = repr(pymelType) #.replace("'", "`")
+        pymelType = repr(pymelType)  # .replace("'", "`")
         if typ in ApiTypeRegister.arrayItemTypes.keys():
             pymelType = 'List[%s]' % pymelType
         return pymelType
@@ -2561,6 +2576,7 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
 
 
 class ClassConstant(object):
+
     """Class constant descriptor"""
 
     def __init__(self, value):
@@ -3366,13 +3382,16 @@ def addPyNodeType(pyNodeType, parentPyNode):
     pyNodeNamesToPyNodes[pyNodeType.__name__] = pyNodeType
     pyNodeTypesHierarchy[pyNodeType] = parentPyNode
 
+
 def removePyNodeType(pyNodeTypeName):
     pyNodeType = pyNodeNamesToPyNodes.pop(pyNodeTypeName, None)
     pyNodeTypesHierarchy.pop(pyNodeType, None)
 
+
 def clearPyNodeTypes():
     pyNodeNamesToPyNodes.clear()
     pyNodeTypesHierarchy.clear()
+
 
 def addMayaType(mayaType, apiType=None):
     """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
@@ -3387,6 +3406,7 @@ def addMayaType(mayaType, apiType=None):
     _apiCacheInst.addMayaType(mayaType, apiType, globals())
     _setApiCacheGlobals()
 
+
 def removeMayaType(mayaType):
     """ Remove a type from the MayaTypes lists.
 
@@ -3400,8 +3420,10 @@ def removeMayaType(mayaType):
 VirtualClassInfo = util.namedtuple('VirtualClassInfo',
                                    'vclass parent nameRequired isVirtual preCreate create postCreate')
 
+
 class VirtualClassError(Exception):
     pass
+
 
 class VirtualClassManager(object):
     # these methods are particularly dangerous to override, so we prohibit it...
@@ -3608,11 +3630,14 @@ registerVirtualClass = virtualClasses.register
 
 #-------------------------------------------------------------------------------
 
+
 def isValidPyNode(arg):
     return pyNodeTypesHierarchy.has_key(arg)
 
+
 def isValidPyNodeName(arg):
     return pyNodeNamesToPyNodes.has_key(arg)
+
 
 def toApiTypeStr(obj, default=None):
     if isinstance(obj, int):
@@ -3623,6 +3648,7 @@ def toApiTypeStr(obj, default=None):
         mayaType = getattr(obj, '__melnode__', None)
         return mayaTypesToApiTypes.get(mayaType, default)
 
+
 def toApiTypeEnum(obj, default=None):
     if isinstance(obj, util.ProxyUnicode):
         obj = getattr(obj, '__melnode__', default)
@@ -3630,6 +3656,7 @@ def toApiTypeEnum(obj, default=None):
         return apiTypesToApiEnums[obj]
     except KeyError:
         return mayaTypesToApiEnums.get(obj, default)
+
 
 def toApiFunctionSet(obj):
     if isinstance(obj, basestring):
@@ -3647,6 +3674,7 @@ def toApiFunctionSet(obj):
             return apiTypesToApiClasses[apiEnumsToApiTypes[obj]]
         except KeyError:
             return None
+
 
 def apiClassNameToPymelClassName(apiName, allowGuess=True):
     '''Given the name of an api class, such as MFnTransform, MSpace, MAngle,
@@ -3669,6 +3697,8 @@ def apiClassNameToPymelClassName(apiName, allowGuess=True):
     return pymelName
 
 # get the API type from a maya type
+
+
 def mayaTypeToApiType(mayaType):
     """ Get the Maya API type from the name of a Maya type """
     try:
@@ -3696,6 +3726,7 @@ def mayaTypeToApiType(mayaType):
         mayaTypesToApiTypes[mayaType] = apiType
         return apiType
 
+
 def isMayaType(mayaType):
     '''Whether the given type is a currently-defined maya node name
     '''
@@ -3711,6 +3742,8 @@ def isMayaType(mayaType):
         return True
 
 # Keep around for debugging/info gathering...
+
+
 def getComponentTypes():
     # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
     # and there's also a kMeshVtxFaceComponent (which does)??

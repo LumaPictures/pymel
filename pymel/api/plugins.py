@@ -88,12 +88,20 @@ import maya.cmds
 #===============================================================================
 # Errors
 #===============================================================================
+
+
 class PluginError(Exception):
     pass
+
+
 class PluginRegistryError(PluginError):
     pass
+
+
 class AlreadyRegisteredError(PluginRegistryError):
     pass
+
+
 class NotRegisteredError(PluginRegistryError):
     pass
 
@@ -235,6 +243,8 @@ NON_CREATABLE = set(['MPxManipContainer',
                      ])
 
 _enumToStr = None
+
+
 def enumToStr():
     '''Returns a dictionary mapping from an MPxNode node type enum to it's
     string name.
@@ -248,6 +258,7 @@ def enumToStr():
                 _enumToStr[val] = name
     return _enumToStr
 
+
 def _guessEnumStrFromMpxClass(className):
     assert className.startswith('MPx')
     name = className[3:]
@@ -255,6 +266,7 @@ def _guessEnumStrFromMpxClass(className):
     enumStr = 'k' + name
     if enumStr in enums:
         return enumStr
+
 
 def _suggestNewMPxValues(classes=None):
     if classes is None:
@@ -300,6 +312,8 @@ def _suggestNewMPxValues(classes=None):
         # pprint.pprint(mpxToMaya)
 
 _allMPx = None
+
+
 def allMPx():
     '''
     Returns a list of all MPx classes
@@ -327,11 +341,14 @@ registered = set()
 
 pyNodeMethods = {}
 
+
 def _pluginModule():
     return inspect.getmodule(lambda: None)
 
+
 def _pluginName():
     return _pluginModule().__name__.split('.')[-1]
+
 
 def _pluginFile():
     return inspect.getsourcefile(lambda: None)
@@ -339,15 +356,18 @@ def _pluginFile():
 #    print module, __name__
 #    return module.__file__
 
+
 def _loadPlugin():
     thisFile = _pluginFile()
     if not maya.cmds.pluginInfo(thisFile, query=1, loaded=1):
         maya.cmds.loadPlugin(thisFile)
 
+
 def _unloadPlugin():
     thisFile = _pluginFile()
     if maya.cmds.pluginInfo(thisFile, query=1, loaded=1):
         maya.cmds.unloadPlugin(thisFile)
+
 
 def _getPlugin(object=None):
     if object is None:
@@ -364,11 +384,15 @@ def _getPlugin(object=None):
 
 # allow this file to be loaded as its own dummy plugin
 # Initialize the script plug-in
+
+
 def initializePlugin(mobject):
     "do not call directly"
     pass
 
 # Uninitialize the script plug-in
+
+
 def uninitializePlugin(mobject):
     "do not call directly"
 
@@ -391,6 +415,7 @@ def uninitializePlugin(mobject):
 #===============================================================================
 # Plugin Mixin Classes
 #===============================================================================
+
 
 class BasePluginMixin(object):
     # The name of the command or the node type
@@ -538,6 +563,7 @@ class Command(BasePluginMixin, mpx.MPxCommand):
             import pymel.core
             pymel.core._removePluginCommand(mplugin.name(), name)
 
+
 class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
     _typeId = None
     # Override to do nothing - should be (de)registered by the transform!
@@ -549,6 +575,7 @@ class TransformationMatrix(BasePluginMixin, mpx.MPxTransformationMatrix):
     @classmethod
     def deregister(cls, plugin=None):
         pass
+
 
 class FileTranslator(BasePluginMixin, mpx.MPxFileTranslator):
     # the pathname of the icon used in file selection dialogs
@@ -724,20 +751,26 @@ if hasattr(mpx, 'MPxBlendShape'):
     class BlendShape(DependNode, mpx.MPxBlendShape):
         pass
 
+
 class CameraSet(DependNode, mpx.MPxCameraSet):
     pass
+
 
 class Constraint(DependNode, mpx.MPxConstraint):
     pass
 
+
 class DeformerNode(DependNode, mpx.MPxDeformerNode):
     pass
+
 
 class EmitterNode(DependNode, mpx.MPxEmitterNode):
     pass
 
+
 class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode):
     pass
+
 
 class FieldNode(DependNode, mpx.MPxFieldNode):
     pass
@@ -747,23 +780,30 @@ if hasattr(mpx, 'MPxGeometryFilter'):
     class GeometryFilter(DependNode, mpx.MPxGeometryFilter):
         pass
 
+
 class HardwareShader(DependNode, mpx.MPxHardwareShader):
     pass
+
 
 class HwShaderNode(DependNode, mpx.MPxHwShaderNode):
     pass
 
+
 class IkSolverNode(DependNode, mpx.MPxIkSolverNode):
     pass
+
 
 class ImagePlane(DependNode, mpx.MPxImagePlane):
     pass
 
+
 class LocatorNode(DependNode, mpx.MPxLocatorNode):
     pass
 
+
 class ManipContainer(DependNode, mpx.MPxManipContainer):
     pass
+
 
 class ManipulatorNode(DependNode, mpx.MPxManipulatorNode):
     pass
@@ -773,14 +813,18 @@ if hasattr(mpx, 'MPxMotionPathNode'):
     class MotionPathNode(DependNode, mpx.MPxMotionPathNode):
         pass
 
+
 class ObjectSet(DependNode, mpx.MPxObjectSet):
     pass
+
 
 class ParticleAttributeMapperNode(DependNode, mpx.MPxParticleAttributeMapperNode):
     pass
 
+
 class PolyTrg(DependNode, mpx.MPxPolyTrg):
     pass
+
 
 class SpringNode(DependNode, mpx.MPxSpringNode):
     pass
@@ -790,11 +834,14 @@ if hasattr(mpx, 'MPxSkinCluster'):
     class SkinCluster(DependNode, mpx.MPxSkinCluster):
         pass
 
+
 class SurfaceShape(DependNode, mpx.MPxSurfaceShape):
     pass
 
+
 class ComponentShape(SurfaceShape, mpx.MPxComponentShape):
     pass
+
 
 class Transform(DependNode, mpx.MPxTransform):
     # Bug in python - can't just use MPxTransformationMatrix, as there's a
@@ -899,6 +946,7 @@ def _buildMpxNamesToApiEnumNames(dummyClasses=None, dummyNodes=None):
             mpxToEnumNames[mpxCls.__name__] = mobj.apiTypeStr()
     return mpxToEnumNames
 
+
 def _buildAll():
     with _DummyPluginNodesMaker() as nodeMaker:
         hierarchy = _buildPluginHierarchy(dummyClasses=nodeMaker.dummyClasses)
@@ -906,6 +954,7 @@ def _buildAll():
                                                      dummyNodes=nodeMaker.nodes)
         mpxToMaya = _buildMpxNamesToMayaNodes(hierarchy=hierarchy)
     return hierarchy, mpxToMaya, mpxToMpxEnums
+
 
 def _buildMpxNamesToMayaNodes(hierarchy=None):
     if hierarchy is None:
@@ -918,6 +967,7 @@ def _buildMpxNamesToMayaNodes(hierarchy=None):
             mayaType = parents[-1]
         mpxNamesToMayaNodes[mpxCls.__name__] = mayaType
     return mpxNamesToMayaNodes
+
 
 def _createDummyPluginNodeClasses():
     '''Registers with the dummy pymel plugin a dummy node type for each MPxNode
@@ -947,6 +997,7 @@ def _createDummyPluginNodeClasses():
             dummyClasses[mpxType] = DummyClass
 
     return dummyClasses
+
 
 class _DummyPluginNodesMaker(object):
 
@@ -1020,6 +1071,7 @@ def mayaPlugins():
                     plugins.append(x)
     return plugins
 
+
 def loadAllMayaPlugins():
     '''will load all maya-installed plugins
 
@@ -1035,6 +1087,7 @@ def loadAllMayaPlugins():
         except RuntimeError:
             pass
     logger.debug("...done loading all maya plugins")
+
 
 def unloadAllPlugins(skipErrors=False, exclude=('DirectConnect',)):
     import logging
@@ -1080,6 +1133,7 @@ UNREPORTED_COMMANDS = {
     'tool': {},  # Tool replacing contextCommand to match Maya implementation
     #'other':{}, # just to hold any commands we may want that don't fall in other categories
 }
+
 
 def pluginCommands(pluginName, reportedOnly=False):
     '''Returns the list of all commands that the plugin provides, to the best

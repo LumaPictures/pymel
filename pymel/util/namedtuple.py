@@ -6,6 +6,7 @@ import sys as _sys
 
 __all__ = ['namedtuple']
 
+
 def namedtuple(typename, field_names, docAppend="", verbose=False):
     """ Returns a new subclass of tuple with named fields.
 

@@ -2,8 +2,10 @@
 # Condition objects - used for chaining together tests that yield True/False results
 #------------------------------------------------------------------------------
 
+
 class NO_DATA(Exception):
     pass
+
 
 class Condition(object):
 
@@ -42,6 +44,7 @@ Always = Condition(True)
 
 Never = Condition(False)
 
+
 class Inverse(Condition):
 
     def __init__(self, toInvert):
@@ -52,6 +55,7 @@ class Inverse(Condition):
 
     def __str__(self):
         return "not %s" % self.toInvert
+
 
 class AndOrAbstract(Condition):
 
@@ -76,9 +80,11 @@ class AndOrAbstract(Condition):
     def __str__(self):
         return "(%s)" % self._strJoiner.join([str(x) for x in self.args])
 
+
 class And(AndOrAbstract):
     _breakEarly = False
     _strJoiner = ' and '
+
 
 class Or(AndOrAbstract):
     _breakEarly = True

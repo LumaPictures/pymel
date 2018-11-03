@@ -75,7 +75,7 @@ def _addPluginCommand(pluginName, funcName):
     try:
         if func:
             # FIXME: figure out what to do about moduleCmds. could a plugin function be in moduleCmds???
-            coreModule = 'pymel.core.%s' % _cmdcache.getModule(funcName, {}) #_factories.moduleCmds)
+            coreModule = 'pymel.core.%s' % _cmdcache.getModule(funcName, {})  # _factories.moduleCmds)
             if coreModule in sys.modules:
                 setattr(sys.modules[coreModule], funcName, func)
             # Note that we add the function to both a core module (ie,
@@ -280,6 +280,7 @@ global _pluginLoadedCB
 global _pluginUnloadedCB
 _pluginLoadedCB = None
 _pluginUnloadedCB = None
+
 
 def _installCallbacks():
     """install the callbacks that trigger new nodes and commands to be added to pymel when a

@@ -16,6 +16,8 @@ __all__ = [  # 'NameParseError', 'ParsingWarning',
 # TODO : modify Yacc to take mro of class then relative line no or use decorators ?
 
 # no parsed class for this, the Parsers and NameParsed class for each token (e.g. t_Alpha and --> Alpha, AlphaParser) will be created automatically anyway
+
+
 class NameBaseParser(Parser):
 
     """ Base for name parser with common tokens """
@@ -23,6 +25,7 @@ class NameBaseParser(Parser):
     t_Num = r'[0-9]+'
 
     start = None
+
 
 class NameAlphaPartParser(NameBaseParser):
 
@@ -33,6 +36,7 @@ class NameAlphaPartParser(NameBaseParser):
         '''NameAlphaPart : Alpha'''
         p[0] = NameAlphaPart(Token(p[1], type='Alpha', pos=p.lexpos(1)))
 
+
 class NameNumPartParser(NameBaseParser):
 
     """ Parser for a name part starting with a number """
@@ -41,6 +45,7 @@ class NameNumPartParser(NameBaseParser):
     def p_npart(self, p):
         '''NameNumPart : Num'''
         p[0] = NameNumPart(Token(p[1], type='Num', pos=p.lexpos(1)))
+
 
 class NamePartParser(NameAlphaPartParser, NameNumPartParser):
 
@@ -51,6 +56,7 @@ class NamePartParser(NameAlphaPartParser, NameNumPartParser):
         '''NamePart : NameAlphaPart
                     | NameNumPart'''
         p[0] = NamePart(p[1])
+
 
 class NameAlphaGroupParser(NameAlphaPartParser, NameNumPartParser):
 
@@ -69,6 +75,7 @@ class NameAlphaGroupParser(NameAlphaPartParser, NameNumPartParser):
         ''' NameAlphaGroup : NameAlphaPart '''
         p[0] = NameAlphaGroup(p[1])
 
+
 class NameNumGroupParser(NameAlphaPartParser, NameNumPartParser):
 
     """
@@ -86,6 +93,7 @@ class NameNumGroupParser(NameAlphaPartParser, NameNumPartParser):
         ''' NameNumGroup : NameNumPart '''
         p[0] = NameNumGroup(p[1])
 
+
 class NameGroupParser(NameAlphaGroupParser, NameNumGroupParser):
 
     """
@@ -97,6 +105,7 @@ class NameGroupParser(NameAlphaGroupParser, NameNumGroupParser):
         ''' NameGroup : NameAlphaGroup
                         | NameNumGroup '''
         p[0] = NameGroup(p[1])
+
 
 class NameSepParser(Parser):
 
@@ -118,6 +127,7 @@ class NameSepParser(Parser):
     precedence = (('left', 'Underscore'),
                   ('right', ('Alpha', 'Num')),
                   )
+
 
 class MayaNameParser(NameSepParser, NameGroupParser):
 
@@ -150,6 +160,7 @@ class MayaNameParser(NameSepParser, NameGroupParser):
         else:
             p[0] = MayaName(p[1])
 
+
 class NamespaceSepParser(Parser):
 
     """ A Parser for the Namespace separator """
@@ -165,6 +176,7 @@ class NamespaceSepParser(Parser):
                   ('left', 'Underscore'),
                   ('right', 'Alpha', 'Num'),
                   )
+
 
 class NamespaceParser(NamespaceSepParser, MayaNameParser, EmptyParser):
 
@@ -185,6 +197,7 @@ class NamespaceParser(NamespaceSepParser, MayaNameParser, EmptyParser):
         else:
             p[0] = Namespace(p[1])
 
+
 class MayaShortNameParser(NamespaceParser, MayaNameParser):
 
     """ A parser for MayaShortName, a short object name (without preceding path) with a possible preceding namespace """
@@ -198,6 +211,7 @@ class MayaShortNameParser(NamespaceParser, MayaNameParser):
             p[0] = MayaShortName(p[1], p[2])
         else:
             p[0] = MayaShortName(Namespace(pos=p.lexpos(1)), p[1])
+
 
 class DagPathSepParser(Parser):
 
@@ -215,6 +229,7 @@ class DagPathSepParser(Parser):
                   ('left', 'Underscore'),
                   ('left', 'Alpha', 'Num'),
                   )
+
 
 class MayaNodePathParser(DagPathSepParser, MayaShortNameParser):
 
@@ -235,6 +250,7 @@ class MayaNodePathParser(DagPathSepParser, MayaShortNameParser):
         else:
             p[0] = MayaNodePath(p[1])
 
+
 class AttrSepParser(Parser):
 
     """ A Parser for the MayaAttributePath separator """
@@ -252,6 +268,7 @@ class AttrSepParser(Parser):
                   ('left', 'Underscore'),
                   ('left', 'Alpha', 'Num'),
                   )
+
 
 class NameIndexParser(Parser):
 
@@ -271,6 +288,7 @@ class NameIndexParser(Parser):
                   ('left', 'Underscore'),
                   ('left', 'Alpha', 'Num'),
                   )
+
 
 class NameRangeIndexParser(Parser):
 
@@ -294,22 +312,27 @@ class NameRangeIndexParser(Parser):
                   ('left', 'Alpha', 'Num'),
                   )
 
+
 class SingleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):
 
     """ A NameParsed for the reserved single indexed components names:
         vtx,
         Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' """
 
+
 class DoubleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):
     pass
 
+
 class TripleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):
     pass
+
 
 class ComponentNameParser(SingleComponentNameParser, DoubleComponentNameParser, TripleComponentNameParser):
     pass
 
 # NOTE : call these attributes and the couple(node.attribute) a plug like in API ?
+
 
 class NodeAttributeNameParser(NameIndexParser, MayaNameParser):
 
@@ -329,6 +352,7 @@ class NodeAttributeNameParser(NameIndexParser, MayaNameParser):
         else:
             p[0] = Attribute(p[1])
 
+
 class NodeAttributePathParser(AttrSepParser, NodeAttributeNameParser):
 
     """ Parser for a full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated Attribute """
@@ -343,6 +367,7 @@ class NodeAttributePathParser(AttrSepParser, NodeAttributeNameParser):
         ''' AttributePath : Attribute '''
         p[0] = AttributePath(p[1])
 
+
 class AttributeNameParser(NodeAttributePathParser, MayaNodePathParser):
 
     """ Parser for the name of a Maya attribute, a MayaNodePath followed by a AttrSep and a AttributePath """
@@ -354,6 +379,7 @@ class AttributeNameParser(NodeAttributePathParser, MayaNodePathParser):
         p[0] = NodeAttribute(p[1], p[2], p[3])
 
 # ComponentNameParser
+
 
 class MayaObjectNameParser(AttributeNameParser):
 
@@ -386,6 +412,8 @@ class NameParsed(Parsed):
 # TODO : build _accepts from yacc rules directly
 
 # Atomic Name element, an alphabetic or numeric word
+
+
 class NamePart(NameParsed):
 
     """
@@ -425,6 +453,7 @@ class NameAlphaPart(NamePart):
     def isNum(self):
         return False
 
+
 class NameNumPart(NamePart):
 
     """
@@ -455,6 +484,8 @@ class NameNumPart(NamePart):
         return True
 
 # A Name group, all the consecutive parts between two underscores
+
+
 class NameGroup(NameParsed):
 
     """
@@ -512,6 +543,7 @@ class NameGroup(NameParsed):
             newval = formatStr % (tail.value - 1)
             self.setSubItem(-1, newval)
 
+
 class NameAlphaGroup(NameGroup):
 
     """
@@ -531,6 +563,7 @@ class NameAlphaGroup(NameGroup):
 
     def isAlpha(self):
         return True
+
 
 class NameNumGroup(NameGroup):
 
@@ -553,6 +586,8 @@ class NameNumGroup(NameGroup):
         return False
 
 # separator for name groups
+
+
 class NameSep(NameParsed):
 
     """
@@ -574,6 +609,8 @@ class NameSep(NameParsed):
         return NameSep()
 
 # a short Maya name without namespaces or attributes
+
+
 class MayaName(NameParsed):
 
     """
@@ -672,6 +709,7 @@ class MayaName(NameParsed):
         except AttributeError:
             raise "could not find trailing numbers to decrement"
 
+
 class NamespaceSep(NameParsed):
 
     """
@@ -687,6 +725,7 @@ class NamespaceSep(NameParsed):
     @classmethod
     def default(cls):
         return Token(':', type='Colon', pos=0)
+
 
 class Namespace(NameParsed):
 
@@ -808,6 +847,7 @@ class Namespace(NameParsed):
         else:
             return False
 
+
 class MayaShortName(NameParsed):
 
     """
@@ -884,6 +924,7 @@ class MayaShortName(NameParsed):
         """ All parts of that name group """
         return self.parts[-1]
 
+
 class DagPathSep(NameParsed):
 
     """
@@ -899,6 +940,7 @@ class DagPathSep(NameParsed):
     @classmethod
     def default(cls):
         return Token('|', type='Pipe', pos=0)
+
 
 class MayaNodePath(NameParsed):
 
@@ -1076,6 +1118,7 @@ class MayaNodePath(NameParsed):
         return isinstance(self.parts[0], DagPathSep)
     isAbsolute = isLongName
 
+
 class AttrSep(NameParsed):
 
     """
@@ -1091,6 +1134,7 @@ class AttrSep(NameParsed):
     @classmethod
     def default(cls):
         return Token('.', type='Dot', pos=0)
+
 
 class NameIndex(NameParsed):
 
@@ -1116,6 +1160,7 @@ class NameIndex(NameParsed):
     def value(self):
         """ Index of that node attribute name """
         return int(self.strip("[]"))
+
 
 class NameRangeIndex(NameParsed):
 
@@ -1196,6 +1241,8 @@ class NameRangeIndex(NameParsed):
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex')
 #
 #
+
+
 class Component(NameParsed):
 
     """
@@ -1228,6 +1275,7 @@ class Component(NameParsed):
 
 # Decided to avoid the API denomination where attributes exist on nodes and a specific node+attribute association
 # is called a plug as most scripting people are used to calling both attributes ?
+
 
 class Attribute(NameParsed):
 
@@ -1267,6 +1315,7 @@ class Attribute(NameParsed):
 
     def isCompound(self):
         return False
+
 
 class AttributePath(NameParsed):
 
@@ -1335,6 +1384,7 @@ class AttributePath(NameParsed):
 
     def isCompound(self):
         return len(self.attributes) > 1
+
 
 class NodeAttribute(NameParsed):
 
@@ -1492,6 +1542,8 @@ class MayaObjectName(NameParsed):
         return self.type == Component
 
 # Empty special NameParsed class
+
+
 class Empty(NameParsed):
     _parser = EmptyParser
     _accepts = ()
@@ -1541,6 +1593,7 @@ def getBasicPartList(name):
     getParts(MayaObjectName(name))
     return partList
 
+
 def parse(name):
     """main entry point for parsing a maya node name"""
     return MayaObjectName(name).object
@@ -1554,12 +1607,14 @@ def parse(name):
 
 # testing
 
+
 def _decomposeGroup(name, ident=0):
     tab = "\t" * ident
     print tab + "group:%s (%r)" % (name, name)
     print tab + "[%s-%s] parts:" % (name.first, name.last), " ".join(name.parts)
     print tab + "tail:", name.tail
     print tab + "is ok for head:", name.isAlpha()
+
 
 def _decomposeName(name, ident=0):
     tab = "\t" * ident
@@ -1570,6 +1625,7 @@ def _decomposeName(name, ident=0):
     print tab + "reduced: ", name.reduced()
     for group in name.groups:
         _decomposeGroup(group, ident=ident + 1)
+
 
 def _decomposeNamespace(name, ident=0):
     tab = "\t" * ident
@@ -1586,6 +1642,7 @@ def _decomposeNamespace(name, ident=0):
         for space in name.spaces:
             _decomposeName(space, ident=ident + 1)
 
+
 def _decomposeShortName(name, ident=0):
     tab = "\t" * ident
     print tab + "short name: %s (%r)" % (name, name)
@@ -1595,6 +1652,7 @@ def _decomposeShortName(name, ident=0):
     print tab + "is absolute namespace: ", name.isAbsoluteNamespace()
     _decomposeNamespace(name.namespace, ident=ident + 1)
     _decomposeName(name.name, ident=ident + 1)
+
 
 def _decomposeNodeName(name, ident=0):
     tab = "\t" * ident
@@ -1612,6 +1670,7 @@ def _decomposeNodeName(name, ident=0):
     for node in name.nodes:
         _decomposeShortName(node, ident=ident + 1)
 
+
 def _decomposeNodeAttributeName(name, ident=0):
     tab = "\t" * ident
     print tab + "node attribute name: %s (%r)" % (name, name)
@@ -1620,6 +1679,7 @@ def _decomposeNodeAttributeName(name, ident=0):
     print tab + "index: %s" % name.index
     print tab + "indexValue: %s" % name.indexValue
     _decomposeName(name.name, ident=ident + 1)
+
 
 def _decomposeNodeAttributePathName(name, ident=0):
     tab = "\t" * ident
@@ -1645,6 +1705,7 @@ def _decomposeAttributeName(name, ident=0):
     _decomposeNodeName(name.node, ident=ident + 1)
     _decomposeNodeAttributePathName(name.attribute, ident=ident + 1)
 
+
 def _decomposeObjectName(name, ident=0):
     tab = "\t" * ident
     print tab + "That object name is a %s" % name.type.__name__
@@ -1663,6 +1724,7 @@ def _decomposeObjectName(name, ident=0):
         _decomposeComponentName(name.object, ident=ident + 1)
     else:
         raise ValueError, "type should be MayaNodePath, NodeAttribute or Component"
+
 
 def _test(expr):
     """ Tests the name parsing of the string argument expr and displays results """
@@ -1684,6 +1746,7 @@ def _test(expr):
         print "is valid:", name.isValid()
         _decomposeObjectName(name)
         print "=" * 80
+
 
 def _itest():
     """ Inerractive name parsing test, enter a name and see result decomposition """

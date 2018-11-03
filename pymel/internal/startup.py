@@ -56,6 +56,7 @@ pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() 
 #    import maya.standalone.initialize()
 _hasUninitialize = versions.current() >= versions.v2016
 
+
 def _moduleJoin(*args):
     """
     Joins with the base pymel directory.
@@ -70,6 +71,7 @@ def mayaStartupHasRun():
     Returns True if maya.app.startup has already finished, False otherwise.
     """
     return 'maya.app.startup.gui' in sys.modules or 'maya.app.startup.batch' in sys.modules
+
 
 def mayaStartupHasStarted():
     """
@@ -116,6 +118,8 @@ def setupFormatting():
 
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
+
+
 def mayaInit(forversion=None):
     global _mayaUninitialized
     _mayaUninitialized = False
@@ -130,6 +134,7 @@ def mayaInit(forversion=None):
 
 
 def _mayaInit(forversion=None):
+    # type: (Any) -> bool
     """ Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
     it is possible to pass the desired Maya version number to define which Maya to initialize
 
@@ -222,6 +227,7 @@ def _mayaInit(forversion=None):
     isInitializing = True
     return True
 
+
 def initMEL():
     if 'PYMEL_SKIP_MEL_INIT' in os.environ or pymel_options.get('skip_mel_init', False):
         _logger.info("Skipping MEL initialization")
@@ -293,6 +299,7 @@ def initMEL():
 
     _logger.debug("done running mel files")
 
+
 def initAE():
     try:
         pkg = __import__('AETemplates')
@@ -307,6 +314,7 @@ def initAE():
         for data in subpackages(pkg):
             pass
     return True
+
 
 def finalize():
     global finalizeEnabled
@@ -335,6 +343,7 @@ def finalize():
     elif state == om.MGlobal.kInteractive:
         initAE()
 
+
 def fixMayapySegFault():
     # first, install a maya exit callback that will let us know if uninitialize
     # has already been called...
@@ -345,7 +354,7 @@ def fixMayapySegFault():
         # Turn off undo, because maya seems to have a bug where uninitialize()
         # will crash if undo is on, and certain custom conditions have been
         # created - ie, from the command line:
-        
+
         # mayapy -c 'import maya.standalone
         # maya.standalone.initialize()
         # import maya.cmds as cmds
@@ -464,6 +473,8 @@ def fixMayapy2011SegFault():
                 atexit.register(hardExit)
 
 # Fix for non US encodings in Maya
+
+
 def encodeFix():
     if mayaInit():
         from maya.cmds import about
@@ -497,10 +508,12 @@ def _dump(data, filename, protocol=-1):
     with open(filename, mode='wb') as file:
         pickle.dump(data, file, protocol)
 
+
 def _load(filename):
     with open(filename, mode='rb') as file:
         res = pickle.load(file)
         return res
+
 
 class PymelCache(object):
     # override these
@@ -736,8 +749,10 @@ class SubItemCache(PymelCache):
 # Config stuff
 #===============================================================================
 
+
 def getConfigFile():
     return plogging.getConfigFile()
+
 
 def parsePymelConfig():
     import ConfigParser

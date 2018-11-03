@@ -76,6 +76,7 @@ tokens = mellex.tokens
 
 #  Formating functions----------------------------------------------------------
 
+
 def format_substring(x, t):
     """convert:
             substring( var, 2, (len(var)) )
@@ -114,11 +115,13 @@ def format_substring(x, t):
 
     return '%s[%s:%s]' % (x[0], start, end)
 
+
 def format_tokenize(x, t):
     if len(x) > 2:
         return Token('%s=%s.split(%s)' % (x[2], x[0], x[1]), 'string', tokenize=x[2])
     else:
         return Token('%s=%s.split()' % (x[1], x[0]), 'string', tokenize=x[1])
+
 
 def format_tokenize_size(tokenized, sizeVar):
     """tokenize fix:
@@ -134,6 +137,7 @@ def format_tokenize_size(tokenized, sizeVar):
     buf = tokenized.__dict__.pop('tokenize')
     return tokenized + '\n' + sizeVar + " = len(%s)\n" % buf
 
+
 def format_fread(x, t):
     formatStr = {
         'string': "%s",
@@ -142,6 +146,7 @@ def format_fread(x, t):
         'vector': "%f %f %f"
     }[x[1].type]
     return "fscanf(%s,'%s')" % (x[0], formatStr)
+
 
 def format_fopen(x, t):
     try:
@@ -162,6 +167,7 @@ def format_source(x, t):
         return ''
     else:
         return '%smel.source(%s)' % (t.lexer.pymel_namespace, x[0])
+
 
 def format_command(command, args, t):
     if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
@@ -445,6 +451,7 @@ def format_command(command, args, t):
             print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
             return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
+
 def store_assignment_spillover(token, t):
     if hasattr(token, '__dict__'):
         try:
@@ -456,6 +463,7 @@ def store_assignment_spillover(token, t):
             # print "adding to spillover:", token, token.lineno
             token = var
     return token
+
 
 def merge_assignment_spillover(t, curr_lineno, title=''):
     result = ''
@@ -475,6 +483,7 @@ def merge_assignment_spillover(t, curr_lineno, title=''):
                 t.lexer.spillover_pre.append(token)
 
     return result
+
 
 def format_assignment_value(val, typ):
     """
@@ -497,6 +506,7 @@ def format_assignment_value(val, typ):
             print "NO TYPE", val
 
     return val
+
 
 def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 
@@ -550,6 +560,7 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
     #    print "'%s'" % p[0]
     return res
 
+
 def find_num_leading_space(text):
     '''Given a text block consisting of multiple lines, find the number of
     characters in the longest common whitespace that appears at the start of
@@ -570,6 +581,7 @@ def find_num_leading_space(text):
                 break
     return i
 
+
 def strip_leading_space(text):
     '''Given a text block consisting of multiple lines, strip out common
     whitespace that appears at the start of every non-empty line
@@ -583,6 +595,7 @@ def strip_leading_space(text):
         lines[i] = line[leadNum:]
     return '\n'.join(lines)
 
+
 def format_singleline_comments(comments):
     comment = Comment.join(comments)
     lines = ['#' + line for line in comment.split('\n')]
@@ -590,6 +603,7 @@ def format_singleline_comments(comments):
     if lines[-1]:
         lines.append('')
     return '\n'.join(lines)
+
 
 def format_multiline_string_comment(comments):
     lines = Comment.join(comments, stripCommonSpace=True).split('\n')
@@ -614,6 +628,7 @@ def format_multiline_string_comment(comments):
         comment = '"""' + comment + '"""\n'
     return comment
 
+
 def format_comments(comments):
     if isinstance(comments, Comment):
         comments = [comments]
@@ -625,6 +640,7 @@ def append_comments(t, funcname=''):
         print "appending comments:", funcname, t.lexer.comment_queue
     t[0] += format_comments(t.lexer.comment_queue)
     t.lexer.comment_queue = []
+
 
 def format_held_comments(t, funcname=''):
     try:
@@ -638,6 +654,7 @@ def format_held_comments(t, funcname=''):
         print "adding held comments:", funcname, commentList
 
     return format_comments(commentList)
+
 
 def format_held_comments_and_docstring(t, funcname=''):
     '''Splits the held comments into the last comment block and the rest of the
@@ -710,6 +727,7 @@ def entabLines(line):
 
 #  Utility functions -----------------------------------------------------------
 
+
 def pythonizeName(name):
     alphaNumeric = string.ascii_letters + string.digits
     chars = []
@@ -724,9 +742,11 @@ def pythonizeName(name):
         chars.insert(0, 'n')
     return ''.join(chars)
 
+
 def getModuleBasename(script):
     name = os.path.splitext(os.path.basename(script))[0]
     return pythonizeName(name)
+
 
 def findModule(moduleName):
     for f in sys.path:
@@ -772,6 +792,8 @@ def findModule(moduleName):
 #        if fullpath in batchData.currentFiles:
 #            script_to_module[name] = moduleName
 #            return moduleName
+
+
 def fileInlist(file, fileList):
     file = util.path(file)
     for dir in fileList:
@@ -781,6 +803,7 @@ def fileInlist(file, fileList):
         except OSError:
             pass
     return False
+
 
 def _melObj_to_pyModule(script):
     """
@@ -796,6 +819,7 @@ def _melObj_to_pyModule(script):
         if batchData.currentModules.has_value(melfile):
             return batchData.currentModules.get_key(melfile)
     return None
+
 
 def _melProc_to_pyModule(t, procedure):
     """
@@ -858,9 +882,11 @@ def _melProc_to_pyModule(t, procedure):
 
         return batchData.proc_to_module[procedure]
 
+
 def vprint(t, *args):
     if t.lexer.verbose:
         print args
+
 
 def toList(t):
     tokens = []
@@ -868,6 +894,7 @@ def toList(t):
         if i is not None:
             tokens.append(t[i])
     return tokens
+
 
 def hasNonCommentPyCode(pyCode):
     '''Returns True if the given chunk of python code has any lines that contain
@@ -1016,6 +1043,7 @@ melCmdList = [x for x in melCmdList if not proc_remap.has_key(x) and (hasattr(py
 
 #  Token -----------------------------------------------------------------------
 
+
 class Token(str):
 
     def __new__(cls, val, type, lineno=None, **kwargs):
@@ -1047,6 +1075,7 @@ class Token(str):
             pass
         return Token(str.__add__(self, other), **newdict)
 
+
 class ArrayToken(Token):
 
     def __new__(cls, val, type, size, lineno=None, **kwargs):
@@ -1055,6 +1084,7 @@ class ArrayToken(Token):
         return self
 
 #  BatchData -------------------------------------------------------------------
+
 
 class BatchData(object):
     __metaclass__ = util.Singleton
@@ -1073,6 +1103,7 @@ global batchData
 batchData = BatchData()
 
 #  Comment ---------------------------------------------------------------------
+
 
 class Comment(object):
 
@@ -1131,6 +1162,7 @@ translation_unit
         declaration
 """
 
+
 def p_translation_unit(t):
     '''translation_unit : external_declaration
                         | translation_unit external_declaration'''
@@ -1138,6 +1170,8 @@ def p_translation_unit(t):
     # print '\n'
 
 # external-declaration:
+
+
 def p_external_declaration(t):
     '''external_declaration : statement
                             | function_definition'''
@@ -1146,6 +1180,8 @@ def p_external_declaration(t):
     #    print "external_declaration", t[0]
 
 # function-definition:
+
+
 def p_function_definition(t):
     '''function_definition :  function_declarator function_specifiers_opt ID seen_func LPAREN function_arg_list_opt RPAREN hold_comments compound_statement'''
     #t[0] = assemble(t, 'p_function_definition')
@@ -1170,6 +1206,7 @@ def p_function_definition(t):
                                           entabLines(docstring),
                                           entabLines(t[9]))
 
+
 def p_seen_func(t):
     '''seen_func :'''
 
@@ -1188,6 +1225,7 @@ def p_seen_func(t):
     # else:
     #    print "skipping function: (%s) %s.%s, %s" % (  t.lexer.root_module, module, t[-1], t[-2] )
 
+
 def p_hold_comments(t):
     '''hold_comments :'''
     if t.lexer.verbose:
@@ -1196,6 +1234,8 @@ def p_hold_comments(t):
     t.lexer.comment_queue = []
 
 # function-specifiers
+
+
 def p_function_specifiers_opt(t):
     '''function_specifiers_opt : type_specifier
                                   | type_specifier LBRACKET RBRACKET
@@ -1205,6 +1245,7 @@ def p_function_specifiers_opt(t):
     #
     t[0] = assemble(t, 'p_function_specifiers_opt')
 
+
 def p_function_declarator(t):
     '''function_declarator : GLOBAL PROC
                            | PROC'''
@@ -1213,12 +1254,14 @@ def p_function_declarator(t):
     #
     t[0] = t[1:]
 
+
 def p_function_arg(t):
     '''function_arg : type_specifier variable
                     | type_specifier variable LBRACKET RBRACKET'''
     #t[0] = assemble(t, 'p_function_arg')
     t[0] = t[2]
     t.lexer.type_map[t[2]] = t[1]
+
 
 def p_function_arg_list(t):
     '''function_arg_list : function_arg
@@ -1231,6 +1274,7 @@ def p_function_arg_list(t):
     else:
         t[0] = [t[1]]
 
+
 def p_function_arg_list_opt(t):
     '''function_arg_list_opt : function_arg_list
                         |  empty'''
@@ -1242,6 +1286,8 @@ def p_function_arg_list_opt(t):
         t[0] = t[1]
 
 # declaration:
+
+
 def p_declaration_statement(t):
     '''declaration_statement : declaration_specifiers init_declarator_list SEMI'''
     # int var=6;
@@ -1387,6 +1433,8 @@ def p_declaration_specifiers(t):
     #t[0] = assemble(t, 'p_declaration_specifiers', ' ')
 
 # type-specifier:
+
+
 def p_type_specifier(t):
     '''type_specifier : INT
                       | FLOAT
@@ -1434,6 +1482,7 @@ def p_declarator_1(t):
     '''declarator : variable'''
     t[0] = assemble(t, 'p_declarator')
 
+
 def p_declarator_2(t):
     '''declarator :  declarator LBRACKET constant_expression_opt RBRACKET'''
 #                    | LPAREN declarator RPAREN        removed 11/05 in effort to get cast_expression working
@@ -1454,6 +1503,7 @@ def p_declarator_2(t):
 def p_constant_expression_opt_1(t):
     '''constant_expression_opt : empty'''
     t[0] = assemble(t, 'p_constant_expression_opt_1')
+
 
 def p_constant_expression_opt_2(t):
     '''constant_expression_opt : constant_expression'''
@@ -1479,12 +1529,15 @@ def p_statement_required(t):
     t[0] = assemble(t, 'p_statement_required')
 
 # statement:
+
+
 def p_statement_simple(t):
     '''statement : expression_statement
               | command_statement
               | compound_statement'''
 
     t[0] = assemble(t, 'p_statement_simple')
+
 
 def p_statement_complex(t):
     '''statement : selection_statement
@@ -1523,6 +1576,7 @@ def p_labeled_statement_list(t):
 #
 #    t[0] = ['else:\n'] + t[3]
 
+
 def p_labeled_statement_2(t):
     '''labeled_statement : CASE constant_expression COLON statement_list_opt'''
     #t[0] = assemble(t, 'p_labeled_statement_2')
@@ -1544,6 +1598,7 @@ def p_labeled_statement_2(t):
 
     t[0] = [t[2], block, fallthrough]
 
+
 def p_labeled_statement_3(t):
     '''labeled_statement : DEFAULT COLON statement_list_opt'''
     #t[0] = assemble(t, 'p_labeled_statement_3')
@@ -1556,6 +1611,8 @@ def p_labeled_statement_3(t):
     t[0] = [None, block, False]
 
 # expression-statement:
+
+
 def p_expression_statement(t):
     '''expression_statement : expression_opt SEMI'''
 
@@ -1564,6 +1621,8 @@ def p_expression_statement(t):
     append_comments(t)
 
 # compound-statement:
+
+
 def p_compound_statement(t):
     '''compound_statement   : LBRACE statement_list RBRACE
                             | LBRACE RBRACE'''  # causes reduce/reduce conflict with postfix_expression
@@ -1580,6 +1639,7 @@ def p_compound_statement(t):
         t[0] = 'pass\n'
         append_comments(t, 'compound_pass')
 
+
 def p_statement_list_opt(t):
     '''statement_list_opt : statement_list
                   | empty'''
@@ -1590,6 +1650,8 @@ def p_statement_list_opt(t):
         t[0] = []
 
 # statement-list:
+
+
 def p_statement_list(t):
     '''statement_list   : statement
                         | statement_list statement'''
@@ -1600,6 +1662,8 @@ def p_statement_list(t):
         t[0] = t[1] + [t[2]]
 
 # selection-statement
+
+
 def p_selection_statement_1(t):
     '''selection_statement : IF LPAREN expression RPAREN statement_required'''
     #t[0] = assemble(t, 'p_selection_statement_1')
@@ -1622,6 +1686,7 @@ def p_selection_statement_2(t):
         elseStmnt = 'else:\n%s' % (entabLines(t[8]))
 
     t[0] += format_held_comments(t, 'if/else') + elseStmnt
+
 
 def p_selection_statement_3(t):
     '''selection_statement : SWITCH LPAREN expression RPAREN hold_comments LBRACE labeled_statement_list RBRACE'''
@@ -1974,6 +2039,7 @@ def p_iteration_statement_2(t):
     else:
         default_formatting()
 
+
 def p_iteration_statement_3(t):
     '''iteration_statement : FOR LPAREN variable IN expression seen_FOR RPAREN hold_comments statement_required '''
     #t[0] = assemble(t, 'p_iteration_statement_3')
@@ -2019,6 +2085,8 @@ def p_jump_statement(t):
     append_comments(t)
 
 # optional expression
+
+
 def p_expression_opt(t):
     '''expression_opt : empty
                       | expression'''
@@ -2062,6 +2130,7 @@ def p_expression_list_opt(t):
     else:
         t[0] = []
 
+
 def p_expression_list(t):
     '''expression_list : expression
                   | expression_list COMMA expression'''
@@ -2077,6 +2146,7 @@ def p_expression_list(t):
     else:
         t[0] = t[1] + [t[3]]
 
+
 def p_expression(t):
     '''expression : conditional_expression'''
     t[0] = assemble(t, 'p_expression')
@@ -2089,6 +2159,8 @@ def p_constant_expression(t):
     t[0] = assemble(t, 'p_constant_expression')
 
 # conditional-expression
+
+
 def p_conditional_expression_1(t):
     '''conditional_expression : logical_or_expression'''
     t[0] = assemble(t, 'p_conditional_expression_1', ' ')
@@ -2120,6 +2192,8 @@ def p_logical_or_expression_1(t):
     t[0] = assemble(t, 'p_logical_or_expression', ' ')
 
 # logical-and-expression
+
+
 def p_logical_and_expression_1(t):
     '''logical_and_expression : assignment_expression
                               | logical_and_expression LAND assignment_expression'''
@@ -2189,6 +2263,8 @@ def p_assignment_expression(t):
         t[0] = assemble(t, 'p_assignment_expression')
 
 # assignment_operator:
+
+
 def p_assignment_operator(t):
     '''
     assignment_operator : EQUALS
@@ -2202,6 +2278,8 @@ def p_assignment_operator(t):
     t[0] = assemble(t, 'p_assignment_operator')
 
 # equality-expression:
+
+
 def p_equality_expression_1(t):
     '''equality_expression : relational_expression
                             | equality_expression EQ relational_expression
@@ -2214,6 +2292,7 @@ def p_equality_expression_1(t):
     t[0] = assemble(t, 'p_equality_expression_3', ' ')
 
 # relational-expression:
+
 
 def p_relational_expression_1(t):
     '''relational_expression : shift_expression
@@ -2229,11 +2308,15 @@ def p_relational_expression_1(t):
     t[0] = assemble(t, 'p_relational_expression_5')
 
 # shift-expression
+
+
 def p_shift_expression(t):
     'shift_expression : additive_expression'
     t[0] = assemble(t, 'p_shift_expression')
 
 # additive-expression
+
+
 def p_additive_expression(t):
     '''additive_expression : multiplicative_expression
                             | additive_expression PLUS multiplicative_expression
@@ -2258,6 +2341,7 @@ def p_additive_expression(t):
     #        t[0] = t[1][:-1] + '%s" % ' + t[3]
 
 # multiplicative-expression
+
 
 def p_multiplicative_expression(t):
     '''multiplicative_expression : cast_expression
@@ -2307,6 +2391,7 @@ def p_unary_expression(t):
     else:
         t[0] = assemble(t, 'p_unary_expression')
 
+
 def p_unary_expression_2(t):
     '''unary_expression : PLUSPLUS unary_expression
                         | MINUSMINUS unary_expression'''
@@ -2316,6 +2401,8 @@ def p_unary_expression_2(t):
     t[0].assignment = t[2]
 
 # unary-command-expression:
+
+
 def p_unary_command_expression(t):
     '''unary_command_expression : procedure_expression
                                 | unary_operator procedure_expression'''
@@ -2325,6 +2412,8 @@ def p_unary_command_expression(t):
     t[0] = assemble(t, 'p_unary_expression')
 
 # unary-operator
+
+
 def p_unary_operator(t):
     '''unary_operator : PLUS
                     | MINUS
@@ -2337,6 +2426,8 @@ def p_unary_operator(t):
 #    t[0] = assemble(t, 'p_catch_expression')
 
 # procedure_expression
+
+
 def p_procedure_expression(t):
     '''procedure_expression : command_expression
                              | procedure'''
@@ -2367,6 +2458,7 @@ def p_procedure(t):
         t[0] = format_command(t[1], [t[2]], t)
     else:
         t[0] = format_command(t[1], [], t)
+
 
 def p_procedure_expression_list(t):
     '''procedure_expression_list : constant_expression
@@ -2399,6 +2491,8 @@ def p_command_expression(t):
     t[0] = t[2]
 
 # postfix-expression:
+
+
 def p_postfix_expression(t):
     '''postfix_expression : primary_expression
                             | postfix_expression PLUSPLUS
@@ -2427,6 +2521,7 @@ def p_postfix_expression_2(t):
     t[2] = [store_assignment_spillover(x, t) for x in t[2]]
     t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ', ', t[2], matchFormatting=True)
 
+
 def p_postfix_expression_3(t):
     '''postfix_expression : LVEC vector_element_list RVEC'''
 
@@ -2441,6 +2536,7 @@ def p_postfix_expression_3(t):
     # result of assigned this into a matrix variable...
     t[0] = Token('Vector([%s])' % ', '.join(t[2]), 'vector', t.lexer.lineno)
 
+
 def p_postfix_expression_4(t):
     '''postfix_expression : LVEC matrix_row_list RVEC'''
 
@@ -2450,6 +2546,7 @@ def p_postfix_expression_4(t):
     t[2] = [[store_assignment_spillover(x, t) for x in row] for row in t[2]]
     rows = ['[%s]' % ', '.join(row) for row in t[2]]
     t[0] = Token('Matrix([%s])' % ', '.join(rows), 'matrix', t.lexer.lineno)
+
 
 def p_postfix_expression_5(t):
     '''postfix_expression : postfix_expression LBRACKET expression RBRACKET'''
@@ -2486,10 +2583,13 @@ def p_postfix_expression_5(t):
         t[0].indexingItem = (t[1], t[3])
 
 # matrix_row_list:
+
+
 def p_matrix_row_list_1(t):
     '''matrix_row_list : vector_element_list SEMI vector_element_list'''
     # new
     t[0] = [t[1], t[3]]
+
 
 def p_matrix_row_list_2(t):
     '''matrix_row_list : matrix_row_list SEMI vector_element_list'''
@@ -2498,6 +2598,8 @@ def p_matrix_row_list_2(t):
     t[0] = t[1] + [t[3]]
 
 # vector_element_list:
+
+
 def p_vector_element_list(t):
     '''vector_element_list : expression
                            | vector_element_list COMMA expression'''
@@ -2510,10 +2612,13 @@ def p_vector_element_list(t):
         t[0] = t[1] + [t[3]]
 
 # primary-expression:
+
+
 def p_primary_expression_paren(t):
     '''primary_expression :    LPAREN expression RPAREN'''
 
     t[0] = Token(t[1] + t[2] + t[3], t[2].type)
+
 
 def p_primary_expression(t):
     '''primary_expression :    boolean
@@ -2522,11 +2627,13 @@ def p_primary_expression(t):
     if t.lexer.verbose >= 2:
         print "p_primary_expression", t[0]
 
+
 def p_primary_expression1(t):
     '''primary_expression :     SCONST'''
     t[0] = Token(t[1], 'string', t.lexer.lineno)
     if t.lexer.verbose >= 2:
         print "p_primary_expression", t[0]
+
 
 def p_primary_expression2(t):
     '''primary_expression :     variable'''
@@ -2537,10 +2644,12 @@ def p_primary_expression2(t):
     # print "mapping", t[1], t.lexer.type_map.get(t[1], None)
     # print "p_primary_expression", t[0]
 
+
 def p_numerical_constant(t):
     '''numerical_constant : int_constant
                           | float_constant'''
     t[0] = assemble(t, 'p_numerical_constant')
+
 
 def p_int_constant(t):
     '''int_constant :     ICONST'''
@@ -2548,6 +2657,7 @@ def p_int_constant(t):
     # if t[1].startswith('0x'):
     #    t[1] = "int( '%s', 16 )" % t[1]
     t[0] = Token(t[1], 'int', t.lexer.lineno)
+
 
 def p_float_constant(t):
     '''float_constant :     FCONST'''
@@ -2574,6 +2684,7 @@ def p_boolean_true(t):
     if t.lexer.verbose >= 2:
         print "p_boolean_true", t[0]
 
+
 def p_boolean_false(t):
     '''boolean : OFF
                 | FALSE
@@ -2581,6 +2692,7 @@ def p_boolean_false(t):
     t[0] = 'False'
     if t.lexer.verbose >= 2:
         print "p_boolean_false", t[0]
+
 
 def p_variable(t):
     '''variable : VAR'''
@@ -2607,6 +2719,7 @@ def p_variable(t):
     if t.lexer.verbose >= 2:
         print "p_variable", t[0]
 
+
 def p_variable_vector_component(t):
     '''variable :  VAR COMPONENT'''
     t[1] = t[1].lstrip('$')
@@ -2618,6 +2731,8 @@ def p_variable_vector_component(t):
 # -- difference between a comamnd_statement and a command:
 #        a command_statement is always followed by a semi-colon
 #        a command_statement can receive a command_expression as input
+
+
 def p_command_statement(t):
     '''command_statement : ID SEMI
             | ID command_statement_input_list SEMI'''
@@ -2628,6 +2743,7 @@ def p_command_statement(t):
     else:
         t[0] = format_command(t[1], t[2], t) + '\n'
     append_comments(t)
+
 
 def p_command_statement_input_list(t):
     '''command_statement_input_list : command_statement_input
@@ -2654,9 +2770,11 @@ def p_command_statement_input(t):
                                   | command_expression'''
     t[0] = assemble(t, 'p_command_statement_input')
 
+
 def p_command_statement_input_2(t):
     '''command_statement_input     : object_list'''
     t[0] = map(lambda x: "'%s'" % x, t[1])
+
 
 def p_command_statement_input_3(t):
     '''command_statement_input     : ELLIPSIS'''
@@ -2666,6 +2784,8 @@ def p_command_statement_input_3(t):
 # -- difference between a comamnd_statement and a command:
 #        a command_statement is always followed by a semi-colon
 #        a command_statement can receive a command_expression as input
+
+
 def p_command(t):
     '''command : ID
                 | ID command_input_list'''
@@ -2695,18 +2815,22 @@ def p_command_input_list(t):
         else:
             t[0] = [t[1]]
 
+
 def p_command_input(t):
     '''command_input : unary_expression
                       | command_flag'''
     t[0] = assemble(t, 'p_command_input')
 
+
 def p_command_input_2(t):
     '''command_input     : object_list'''
     t[0] = map(lambda x: "'%s'" % x, t[1])
 
+
 def p_command_input_3(t):
     '''command_input     : ELLIPSIS'''
     t[0] = Token("'%s'" % t[1], None, t.lexer.lineno)
+
 
 def p_object_list(t):
     '''object_list : object
@@ -2738,6 +2862,7 @@ def p_object_list(t):
         t[0] = [t[1]]
     # print "result", t[0]
 
+
 def p_object_1(t):
     '''object    : ID'''
     if t.lexer.verbose >= 1:
@@ -2759,6 +2884,7 @@ def p_object_2(t):
         print 'p_object_2'
     t[0] = Token(t[1] + t[2] + t[3] + t[4], 'string', lexspan=(t.lexpos(1), t.lexpos(4)))
     #t[0] = assemble(t, 'p_object_2')
+
 
 def p_flag(t):
     '''command_flag : MINUS ID
@@ -2800,6 +2926,7 @@ def p_empty(t):
     '''empty : '''
     t[0] = assemble(t, 'p_empty')
 
+
 def _error(t):
     if t.lexer.verbose:
         print "Error parsing script, attempting to read forward and restart parser"
@@ -2808,6 +2935,7 @@ def _error(t):
         if not tok or tok.type == 'RBRACE':
             break
     yacc.restart()
+
 
 def p_error(t):
     if t is None:
@@ -2839,6 +2967,7 @@ lexer = lex.lex(module=mellex)
 _outputdir = tempfile.gettempdir()
 parser = yacc.yacc(method='''LALR''', debug=0, outputdir=_outputdir )
 
+
 class MelParseError(Exception):
 
     def __init__(self, *args, **kwargs):
@@ -2857,11 +2986,13 @@ class MelParseError(Exception):
                 base += "line %d (%s): %s\n" % (errToken.lineno, errToken.type, errToken.value)
         return base
 
+
 class ExpressionParseError(MelParseError, TypeError):
 
     '''Error when mel code cannot be parsed into a python expression
     '''
     pass
+
 
 class MelParser(object):
 

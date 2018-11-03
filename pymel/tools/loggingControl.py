@@ -10,6 +10,7 @@ logLevelNames = [logging.getLevelName(n) for n in xrange(0, logging.CRITICAL + 1
 levelsDict = dict(zip(logLevelNames, range(0, logging.CRITICAL + 1, 10)))
 levelsDict.update(dict(zip(range(0, logging.CRITICAL + 1, 10), logLevelNames)))
 
+
 def refreshLoggerHierarchy():
     for v in logging.Logger.manager.loggerDict.values():
         try:
@@ -25,6 +26,7 @@ def refreshLoggerHierarchy():
                 v.parent.children.append(v)
         except:
             v.parent.children = [v]
+
 
 def initMenu():
     return LoggingMenu(parent=pymel.melGlobals["gMainWindow"])

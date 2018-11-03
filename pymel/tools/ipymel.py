@@ -162,11 +162,13 @@ color_table = ColorSchemeTable([NoColor, LinuxColors, LightBGColors],
                                _scheme_default)
 color_table['Neutral'] = LightBGColors
 
+
 def splitDag(obj):
     buf = obj.split('|')
     tail = buf[-1]
     path = '|'.join(buf[:-1])
     return path, tail
+
 
 def expand(obj):
     """
@@ -179,6 +181,7 @@ def expand(obj):
 
     """
     return (obj + '*', obj + '*:*', obj + '*:*:*')
+
 
 def api_ls(args, dagOnly, long=False):
     '''Because the tab completer runs in a subthread, and cmds.ls doesn't
@@ -218,6 +221,7 @@ def api_ls(args, dagOnly, long=False):
                 results.append(dagPath.partialPathName())
     return results
 
+
 def api_children(path):
     sel = om.MSelectionList()
     try:
@@ -232,6 +236,7 @@ def api_children(path):
         return []
     return [om.MFnDagNode(dagPath.child(i)).fullPathName()
             for i in xrange(dagPath.childCount())]
+
 
 def api_listAttr(path, shortNames=False):
     sel = om.MSelectionList()
@@ -258,6 +263,7 @@ def api_listAttr(path, shortNames=False):
         return [plug.child(i).partialName(useLongNames=not shortNames)
                 for i in xrange(plug.numChildren())]
 
+
 def complete_node_with_attr(node, attr):
     # print "noe_with_attr", node, attr
     long_attrs = api_listAttr(node)
@@ -269,15 +275,17 @@ def complete_node_with_attr(node, attr):
         attrs = long_attrs + short_attrs
     return [u'%s.%s' % (node, a) for a in attrs if a.startswith(attr)]
 
+
 def pymel_dag_completer(self, event):
     return pymel_name_completer(self, event, dagOnly=True)
+
 
 def pymel_name_completer(self, event, dagOnly=False):
     def get_children(obj, dagOnly):
         path, partialObj = splitDag(obj)
         # print "getting children", repr(path), repr(partialObj)
 
-        #try:
+        # try:
         if True:
             fullpaths = api_ls(path, dagOnly, long=True)
             if not fullpaths or not fullpaths[0]:
@@ -381,6 +389,8 @@ def pymel_name_completer(self, event, dagOnly=False):
 
 
 PYTHON_TOKEN_RE = re.compile(r"(\S+(\.\w+)*)\.(\w*)$")
+
+
 def pymel_python_completer(self, event):
     """Match attributes or global python names"""
     import pymel.core as pm
@@ -430,6 +440,7 @@ def pymel_python_completer(self, event):
 
     raise TryNext
 
+
 def buildRecentFileMenu():
     import pymel.core as pm
 
@@ -467,6 +478,7 @@ def buildRecentFileMenu():
     # toNativePath
     # first, check if we are the same.
 
+
 def open_completer(self, event):
     relpath = event.symbol
     # print event # dbg
@@ -485,6 +497,7 @@ def open_completer(self, event):
         return []
 
     raise TryNext
+
 
 class TreePager(object):
 
@@ -538,6 +551,7 @@ class TreePager(object):
                 tree += line
         return tree
 
+
 class DagTree(TreePager):
 
     def getChildren(self, obj):
@@ -582,6 +596,8 @@ dag_parser = OptionParser()
 dag_parser.add_option("-d", type="int", dest="maxdepth")
 dag_parser.add_option("-t", action="store_false", dest="shapes", default=True)
 dag_parser.add_option("-s", action="store_true", dest="shapes")
+
+
 def dag(self, parameter_s=''):
     import pymel.core as pm
 
@@ -593,6 +609,7 @@ def dag(self, parameter_s=''):
     else:
         roots = pm.ls(assemblies=1)
     page(dagtree.make_tree(roots))
+
 
 class DGHistoryTree(TreePager):
 
@@ -615,6 +632,8 @@ dg_parser = OptionParser()
 dg_parser.add_option("-d", type="int", dest="maxdepth")
 dg_parser.add_option("-t", action="store_false", dest="shapes", default=True)
 dg_parser.add_option("-s", action="store_true", dest="shapes")
+
+
 def dghist(self, parameter_s=''):
     """
 
@@ -634,6 +653,8 @@ def dghist(self, parameter_s=''):
     page(dgtree.make_tree(roots))
 
 # formerly: magic_open
+
+
 def openf(self, parameter_s=''):
     """Change the current working directory.
 
@@ -764,8 +785,11 @@ def openf(self, parameter_s=''):
 # maya sets a sigint / ctrl-c / KeyboardInterrupt handler that quits maya -
 # want to override this to get "normal" python interpreter behavior, where it
 # interrupts the current python command, but doesn't exit the interpreter
+
+
 def ipymel_sigint_handler(signal, frame):
     raise KeyboardInterrupt
+
 
 def install_sigint_handler(force=False):
     import signal
@@ -774,6 +798,8 @@ def install_sigint_handler(force=False):
 
 # unfortunately, it seems maya overrides the SIGINT hook whenever a plugin is
 # loaded...
+
+
 def sigint_plugin_loaded_callback(*args):
     # from the docs, as of 2015 the args are:
     #   ( [ pathToPlugin, pluginName ], clientData )
@@ -785,6 +811,7 @@ DAG_MAGIC_COMPLETER_RE = re.compile(r"(?P<preamble>%dag\s+)(?P<namematch>(?P<pre
 DAG_COMPLETER_RE = re.compile(r"(?P<preamble>((.+(\s+|\())|(SCENE\.))[^\w|:._]*)(?P<namematch>(?P<previous_parts>([a-zA-Z0-9:_]*\|)+)(?P<current_part>[a-zA-Z0-9:_]*))$")
 NAME_COMPLETER_RE = re.compile(r"(?P<preamble>((.+(\s+|\())|(SCENE\.))[^\w|:._]*)(?P<namematch>(?P<previous_parts>([a-zA-Z0-9:_.]*(\.|\|))*)(?P<current_part>[a-zA-Z0-9:_]*))$")
 ATTR_RE = re.compile(r"""(?P<prefix>[a-zA-Z_0-9|:.]+)\.(?P<partial_attr>\w*)$""")
+
 
 def setup(shell):
     global ip
@@ -798,7 +825,6 @@ def setup(shell):
     ip.set_hook('complete_command', pymel_dag_completer, re_key=DAG_COMPLETER_RE.pattern)
     ip.set_hook('complete_command', pymel_name_completer, re_key=NAME_COMPLETER_RE.pattern)
     ip.set_hook('complete_command', open_completer, str_key="openf")
-
 
     ip.ex("from pymel.core import *")
     # stuff in __main__ is not necessarily in ipython's 'main' namespace... so

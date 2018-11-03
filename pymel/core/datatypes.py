@@ -808,6 +808,7 @@ class Vector(VectorN):
 
     # rest derived from VectorN class
 
+
 class FloatVector(Vector):
 
     """ A 3 dimensional vector class that wraps Maya's api FloatVector class,
@@ -2112,6 +2113,7 @@ class Matrix(MatrixN):
 
 
 class FloatMatrix(Matrix):
+
     """
     A 4x4 matrix class that wraps Maya's api FloatMatrix class,
     It behaves identically to Matrix, but it also derives from api's FloatMatrix

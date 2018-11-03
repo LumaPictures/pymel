@@ -17,7 +17,9 @@ FLAGMODES = ('create', 'query', 'edit', 'multiuse')
 
 _logger = plogging.getLogger(__name__)
 
+
 def mayaIsRunning():
+    # type: () -> bool
     """
     Returns True if maya.cmds have  False otherwise.
 
@@ -37,6 +39,7 @@ def mayaIsRunning():
         return True
     except:
         return False
+
 
 def mayaDocsLocation(version=None):
     docLocation = os.environ.get('MAYA_DOC_DIR')
@@ -77,6 +80,8 @@ def mayaDocsLocation(version=None):
 #---------------------------------------------------------------
 #        Doc Parser
 #---------------------------------------------------------------
+
+
 class CommandDocParser(HTMLParser):
 
     def __init__(self, command):
@@ -402,6 +407,7 @@ class CommandModuleDocParser(HTMLParser):
                 #_logger.debug(cmd)
         except IndexError:
             return
+
 
 class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']

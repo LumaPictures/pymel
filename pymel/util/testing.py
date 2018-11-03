@@ -14,6 +14,7 @@ from warnings import warn
 TEST_MAIN_FUNC_NAME = "test_main"
 SUITE_FUNC_NAME = "suite"
 
+
 def doctestFriendly(func):
     """
     Decorator which prepares maya to run doctests.
@@ -48,12 +49,14 @@ def doctestFriendly(func):
         return result
     return prepForDoctest
 
+
 @doctestFriendly
 def doctestobj(*args, **kwargs):
     """
     Wrapper for doctest.run_docstring_examples that works in maya gui.
     """
     return doctest.run_docstring_examples(*args, **kwargs)
+
 
 @doctestFriendly
 def doctestmod(*args, **kwargs):
@@ -66,6 +69,7 @@ def doctestmod(*args, **kwargs):
 #    finder = moduleFinder.ModuleFinder()
 #    finder.find_all_submodules(path)
 
+
 class MayaTestRunner(TextTestRunner):
 
     def __init__(self, stream=sys.stdout, descriptions=True, verbosity=2):
@@ -77,12 +81,15 @@ class MayaTestRunner(TextTestRunner):
     def run(self, *args, **kwargs):
         super(MayaTestRunner, self).run(*args, **kwargs)
 
+
 def addFuncToModule(func, module):
     if not hasattr(module, func.__name__):
         setattr(module, func.__name__, func)
 
+
 def startsWithDoubleUnderscore(testcase):
     return testcase.__name__.startswith("__")
+
 
 def setupUnittestModule(moduleName, suiteFuncName=SUITE_FUNC_NAME, testMainName=TEST_MAIN_FUNC_NAME,
                         filterTestCases=startsWithDoubleUnderscore):
@@ -133,6 +140,7 @@ def setupUnittestModule(moduleName, suiteFuncName=SUITE_FUNC_NAME, testMainName=
 #
 #    # For now, just calls standard TextTestRunner with different defaults
 #    def __init__
+
 
 class TestCaseExtended(TestCase):
     # Set this to True if you want to create a TestCase that you DON'T
@@ -301,6 +309,7 @@ def isOneToOne(dict):
     """
     return len(set(dict.itervalues())) == len(dict)
 
+
 def isEquivalenceRelation(inputs, outputs, dict):
     """
     Tests if the given dictionary defines an equivalence relation from between inputs and outputs.
@@ -317,6 +326,7 @@ def isEquivalenceRelation(inputs, outputs, dict):
         return True
     else:
         return False
+
 
 class SuiteFromModule(TestSuite):
 
@@ -435,6 +445,7 @@ class DoctestSuiteFromModule(SuiteFromModule):
             theSuite = TestSuite()
         return theSuite
 
+
 def setCompare(iter1, iter2):
     """
     Compares two groups of objects, returning the sets:
@@ -444,6 +455,7 @@ def setCompare(iter1, iter2):
     s2 = set(iter2)
     intersect = s1 & s2
     return s1 - intersect, intersect, s2 - intersect
+
 
 def suite():
     theSuite = TestSuite()

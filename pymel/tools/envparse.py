@@ -19,6 +19,8 @@ _logger = logging.getLogger(__name__)
 # first level lexer : form LVAR ASSIGN VALUE, then second level parsing of VALUE
 # variables substitution are done as in Maya, taking only into account already defined vars
 # when line is encountered
+
+
 class EnvLex:
 
     """ ply.lex lexer class to parse Maya.env file """
@@ -157,6 +159,8 @@ class EnvLex:
             print tok
 
 # second level lexer : os dependant parsing of values and variable substitution
+
+
 class ValueLex:
 
     """ second level lexer to parse right-values depending on os name """
@@ -255,6 +259,8 @@ class ValueLex:
             print tok
 
 # Do the 2 level parse of a Maya.env format text and return a symbol table of the declared env vars
+
+
 def parse(text, environ=os.environ, osname=os.name):
     symbols = environ.copy()
     newsymbols = {}
@@ -333,6 +339,8 @@ def parse(text, environ=os.environ, osname=os.name):
     return newsymbols
 
 # parse the Maya.env file and set the environment variables and python path accordingly
+
+
 def parseMayaenv(envLocation=None, version=None):
     """ parse the Maya.env file and set the environement variablas and python path accordingly.
         You can specify a location for the Maya.env file or the Maya version"""

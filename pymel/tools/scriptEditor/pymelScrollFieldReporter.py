@@ -104,6 +104,7 @@ if platform.system() in ('Windows', 'Microsoft'):
 else:
     updateCmd = 'scrollField -e -insertionPosition %(len)d -insertText \"%(text)s\" "%(name)s";'
 
+
 class Reporter(object):
     cmdReporter = None
 
@@ -244,6 +245,7 @@ class Reporter(object):
         cmd = 'scrollField -e -text "%s" "%s";' % (text, self.name)
         self.executeCommand(cmd)
 
+
 class ReporterDict(dict):
 
     def __getitem__(self, lookupName):
@@ -257,12 +259,14 @@ class ReporterDict(dict):
 reporters = ReporterDict({})
 #reporters = {}
 
+
 def removeCallback(id):
     try:
         OpenMaya.MMessage.removeCallback(id)
     except:
         sys.stderr.write("Failed to remove callback\n")
         raise
+
 
 def createCallback(stringData):
     # global declares module level variables that will be assigned
@@ -278,6 +282,7 @@ def createCallback(stringData):
         messageIdSet = True
     return id
 
+
 def uiDeletedCallback(name):
     #outputFile = open( '/var/tmp/commandOutput', 'a')
     #outputFile.write( 'before=%s\n' % reporters  )
@@ -289,6 +294,7 @@ def uiDeletedCallback(name):
     #outputFile = open( '/var/tmp/commandOutput', 'a')
     #outputFile.write( 'after=%s\n' % reporters  )
     # outputFile.close()
+
 
 def cmdCallback(nativeMsg, messageType, data):
     global callbackState
@@ -384,6 +390,8 @@ def cmdCallback(nativeMsg, messageType, data):
     #OpenMaya.MGlobal.executeCommand( cmd, False, False )
 
 # command
+
+
 class scriptedCommand(OpenMayaMPx.MPxCommand):
 
     def __init__(self):
@@ -466,10 +474,14 @@ class scriptedCommand(OpenMayaMPx.MPxCommand):
         #
 
 # Creator
+
+
 def cmdCreator():
     return OpenMayaMPx.asMPxPtr(scriptedCommand())
 
 # Syntax creator
+
+
 def syntaxCreator():
     syntax = OpenMaya.MSyntax()
     syntax.addArg(OpenMaya.MSyntax.kString)
@@ -488,6 +500,8 @@ def syntaxCreator():
     return syntax
 
 # Initialize the script plug-in
+
+
 def initializePlugin(mobject):
     mplugin = OpenMayaMPx.MFnPlugin(mobject)
 
@@ -509,6 +523,8 @@ def initializePlugin(mobject):
         raise
 
 # Uninitialize the script plug-in
+
+
 def uninitializePlugin(mobject):
     global messageIdSet
     global messageId

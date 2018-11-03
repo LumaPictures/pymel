@@ -61,6 +61,7 @@ __version__ = "0.4.3"
 import operator
 from collections import OrderedDict
 
+
 class EnumException(Exception):
 
     """ Base class for all exceptions in this module """
@@ -70,12 +71,14 @@ class EnumException(Exception):
             raise NotImplementedError, \
                 "%s is an abstract class for subclassing" % self.__class__
 
+
 class EnumEmptyError(AssertionError, EnumException):
 
     """ Raised when attempting to create an empty enumeration """
 
     def __str__(self):
         return "Enumerations cannot be empty"
+
 
 class EnumBadKeyError(TypeError, EnumException):
 
@@ -87,6 +90,7 @@ class EnumBadKeyError(TypeError, EnumException):
     def __str__(self):
         return "Enumeration keys must be strings: %r" % (self.key,)
 
+
 class EnumImmutableError(TypeError, EnumException):
 
     """ Raised when attempting to modify an Enum """
@@ -96,6 +100,7 @@ class EnumImmutableError(TypeError, EnumException):
 
     def __str__(self):
         return "Enumeration does not allow modification"
+
 
 class EnumBadDefaultKeyError(ValueError, EnumException):
 
@@ -107,6 +112,7 @@ class EnumBadDefaultKeyError(ValueError, EnumException):
 
     def __str__(self):
         return "Given default key %r for index %r not present in keys" % (self.key, self.val)
+
 
 class EnumValue(object):
 
@@ -182,11 +188,14 @@ class EnumValue(object):
         return result
 
 # Modified to support multiple keys for the same value
+
+
 class Enum(object):
 
     """ Enumerated type """
 
     def __init__(self, name, keys, **kwargs):
+        # type: (str, dict from str to int, or iterable of keys, **Any) -> None
         """ Create an enumeration instance
 
         Parameters
@@ -468,6 +477,8 @@ class Enum(object):
 EnumType = Enum
 
 import utilitytypes
+
+
 class EnumDict(utilitytypes.EquivalencePairs):
 
     """

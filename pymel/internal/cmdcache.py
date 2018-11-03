@@ -195,6 +195,7 @@ util.setCascadingDictItem(cmdlistOverrides, ('keyframe', 'flags', 'index', 'args
 # it crashes testNodeCmd
 util.setCascadingDictItem(cmdlistOverrides, ('pointOnPolyConstraint', 'resultNeedsUnpacking', ), True)
 
+
 def getCmdInfoBasic(command):
     typemap = {
         'string': unicode,
@@ -274,6 +275,7 @@ def getCmdInfoBasic(command):
     if removedFlags:
         res['removedFlags'] = removedFlags
     return res
+
 
 def getCmdInfo(command, version, python=True):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
@@ -364,6 +366,7 @@ def getCmdInfo(command, version, python=True):
         return basicInfo
 
         #raise IOError, "cannot find maya documentation directory"
+
 
 def fixCodeExamples(style='maya', force=False):
     """cycle through all examples from the maya docs, replacing maya.cmds with pymel and inserting pymel output.
@@ -529,6 +532,7 @@ def getModuleCommandList(category, version=None):
     parser = CommandModuleDocParser(category, version)
     return parser.parse()
 
+
 def getCallbackFlags(cmdInfo):
     """used parsed data and naming convention to determine which flags are callbacks"""
     commandFlags = []
@@ -541,6 +545,7 @@ def getCallbackFlags(cmdInfo):
             if data['args'] in ['script', callable] or 'command' in flag.lower():
                 commandFlags += [flag, data['shortname']]
     return commandFlags
+
 
 def getModule(funcName, knownModuleCmds):
     # determine to which module this function belongs
@@ -569,6 +574,8 @@ def getModule(funcName, knownModuleCmds):
 #  Command Help Documentation
 #-----------------------------------------------
 _cmdArgMakers = {}
+
+
 def cmdArgMakers(force=False):
     global _cmdArgMakers
 
@@ -619,6 +626,7 @@ def cmdArgMakers(force=False):
 
     return _cmdArgMakers
 
+
 def nodeCreationCmd(func, nodeType):
     argMakers = cmdArgMakers()
 
@@ -629,6 +637,7 @@ def nodeCreationCmd(func, nodeType):
 
     # run the function
     return func(*createArgs)
+
 
 def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
@@ -942,6 +951,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
         cmds.delete(newObjs)
     return cmdInfo
 
+
 def _getNodeHierarchy(version=None):
     """
     get node hierarchy as a list of 3-value tuples:
@@ -993,12 +1003,15 @@ class CmdExamplesCache(startup.PymelCache):
     DESC = 'the list of Maya command examples'
     USE_VERSION = True
 
+
 class CmdProcessedExamplesCache(CmdExamplesCache):
     USE_VERSION = False
+
 
 class CmdDocsCache(startup.PymelCache):
     NAME = 'mayaCmdsDocs'
     DESC = 'the Maya command documentation'
+
 
 class CmdCache(startup.SubItemCache):
     NAME = 'mayaCmdsList'

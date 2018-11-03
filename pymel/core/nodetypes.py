@@ -59,6 +59,7 @@ _factories.clearPyNodeTypes()
 mayaTypeNameToPymelTypeName = {}
 pymelTypeNameToMayaTypeName = {}
 
+
 def _addTypeNames():
     for name, obj in globals().items():
         if isinstance(obj, type) and issubclass(obj, DependNode):
@@ -1882,7 +1883,7 @@ class DagNode(Entity):
             if path.pathCount() != pathCount:
                 continue
             path.pop()
-            if path.pathCount() != pathCount -1:
+            if path.pathCount() != pathCount - 1:
                 continue
             if path.node() == parentMObj:
                 return True
@@ -2006,11 +2007,14 @@ class DagNode(Entity):
         return self.__apimdagpath__().instanceNumber()
 
     def getInstances(self, includeSelf=True):
+        # type: (Any) -> List[DagNode]
         """
         Returns
         -------
         List[DagNode]
 
+        Examples
+        --------
         >>> from pymel.core import *
         >>> f=newFile(f=1) #start clean
         >>>
@@ -8250,6 +8254,7 @@ class ObjectSet(Entity):
         cmds.sets(member, forceElement=self)
 
     def members(self, flatten=False):
+        # type: (Any) -> List[general.PyNode]
         """
         return members as a list
 
@@ -8261,6 +8266,7 @@ class ObjectSet(Entity):
 
     @_warnings.deprecated('Use ObjectSet.members instead', 'ObjectSet')
     def elements(self, flatten=False):
+        # type: (Any) -> List[general.PyNode]
         """
         return members as a list
 
@@ -8271,6 +8277,7 @@ class ObjectSet(Entity):
         return list(self.asSelectionSet(flatten))
 
     def flattened(self):
+        # type: () -> List[general.PyNode]
         """
         return a flattened list of members.
 
@@ -9716,10 +9723,13 @@ class TransferAttributes(DependNode):
 
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
+
 class NodetypesLazyLoadModule(_util.LazyLoadModule):
+
     '''Like a standard lazy load  module, but with dynamic PyNode class creation
     '''
     _checkedForNewReservedTypes = False
+
     @classmethod
     def _unwrappedNodeTypes(cls):
         # get node types, but avoid checking inheritance for all nodes for

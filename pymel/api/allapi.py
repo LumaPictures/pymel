@@ -62,6 +62,7 @@ except:
 # ie, we have to 'call' the object before feeding to
 # the api function...
 
+
 class SafeApiPtr(object):
 
     """
@@ -92,6 +93,7 @@ class SafeApiPtr(object):
     """
 
     def __init__(self, valueType, scriptUtil=None, size=1, asTypeNPtr=False):
+        # type: (str, MScriptUtil, int, bool) -> None
         """
         Parameters
         ----------
@@ -207,17 +209,20 @@ def isValidMObjectHandle(obj):
     else:
         return False
 
+
 def isValidMObject(obj):
     if isinstance(obj, MObject):
         return not obj.isNull()
     else:
         return False
 
+
 def isValidMPlug(obj):
     if isinstance(obj, MPlug):
         return not obj.isNull()
     else:
         return False
+
 
 def isValidMDagPath(obj):
     if isinstance(obj, MDagPath):
@@ -227,11 +232,13 @@ def isValidMDagPath(obj):
     else:
         return False
 
+
 def isValidMNode(obj):
     if isValidMObject(obj):
         return obj.hasFn(MFn.kDependencyNode)
     else:
         return False
+
 
 def isValidMDagNode(obj):
     if isValidMObject(obj):
@@ -239,10 +246,13 @@ def isValidMDagNode(obj):
     else:
         return False
 
+
 def isValidMNodeOrPlug(obj):
     return isValidMPlug(obj) or isValidMNode(obj)
 
 # returns a MObject for an existing node
+
+
 def toMObject(nodeName):
     """ Get the API MObject given the name of an existing node """
     sel = MSelectionList()
@@ -257,7 +267,9 @@ def toMObject(nodeName):
         pass
     return result
 
+
 def toApiObject(nodeName, dagPlugs=True):
+    # type: (Any, bool) -> None
     """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name
     of an existing node, attribute, components selection
 
@@ -388,6 +400,7 @@ def toApiObject(nodeName, dagPlugs=True):
                 # if not isValidMObject(obj) : return
                 return obj
 
+
 def toMDagPath(nodeName):
     """ Get an API MDagPAth to the node, given the name of an existing dag node """
     obj = toMObject(nodeName)
@@ -396,6 +409,7 @@ def toMDagPath(nodeName):
         dagPath = MDagPath()
         dagFn.getPath(dagPath)
         return dagPath
+
 
 # returns a MPlug for an existing plug
 def toMPlug(plugName):
@@ -410,6 +424,7 @@ def toMPlug(plugName):
         if plug.isNull():
             plug = None
     return plug
+
 
 def toComponentMObject(dagPath):
     """
@@ -433,6 +448,7 @@ def toComponentMObject(dagPath):
         mit.next()
     sel.getDagPath(0, dagPath, component)
     return component
+
 
 # MDagPath, MPlug or MObject to name
 # Note there is a kNamedObject API type but not corresponding MFn, thus
@@ -474,8 +490,8 @@ def nameToMObject(*args):
     else:
         return tuple(result)
 
-# wrap of api iterators
 
+# wrap of api iterators
 def MItNodes(*args, **kwargs):
     """ Iterator on MObjects of nodes of the specified types in the Maya scene,
         if a list of tyes is passed as args, then all nodes of a type included in the list will be iterated on,
@@ -568,6 +584,7 @@ def MItGraph(nodeOrPlug, *args, **kwargs):
     while not iterObj.isDone():
         yield (iterObj.thisNode())
         iterObj.next()
+
 
 # Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
 def MItDag(root=None, *args, **kwargs):
@@ -684,6 +701,7 @@ def MItDag(root=None, *args, **kwargs):
                 yield obj
             iterObj.next()
 
+
 # Essentially duplicated in datatypes - only difference is
 # whether return value is a PyMel or api object
 # Repeated for speed
@@ -743,7 +761,8 @@ def getPlugValue(plug):
 
         elif dataType == MFnData.kNumeric:
 
-            # all of the dynamic mental ray attributes fail here, but i have no idea why they are numeric attrs and not message attrs.
+            # all of the dynamic mental ray attributes fail here, but i have
+            # no idea why they are numeric attrs and not message attrs.
             # cmds.getAttr returns None, so we will too.
             try:
                 dataObj = plug.asMObject()
@@ -754,9 +773,14 @@ def getPlugValue(plug):
                 numFn = MFnNumericData(dataObj)
             except RuntimeError:
                 if plug.isArray():
-                    raise TypeError, "%s: numeric arrays are not supported" % plug.partialName(True, True, True, False, True, True)
+                    raise TypeError("%s: numeric arrays are not supported" %
+                                    plug.partialName(True, True, True, False,
+                                                     True, True))
                 else:
-                    raise TypeError, "%s: attribute type is numeric, but its data cannot be interpreted numerically" % plug.partialName(True, True, True, False, True, True)
+                    raise TypeError("%s: attribute type is numeric, but its "
+                                    "data cannot be interpreted numerically" %
+                                    plug.partialName(True, True, True, False,
+                                                     True, True))
             dataType = numFn.numericType()
 
             if dataType == MFnNumericData.kBoolean:
@@ -815,7 +839,10 @@ def getPlugValue(plug):
             elif dataType == MFnNumericData.kChar:
                 return plug.asChar()
 
-            raise TypeError, "%s: Unsupported numeric attribute: %s" % (plug.partialName(True, True, True, False, True, True), dataType)
+            raise TypeError(
+                "%s: Unsupported numeric attribute: %s" %
+                (plug.partialName(True, True, True, False, True, True),
+                 dataType))
 
         elif dataType == MFnData.kMatrix:
             return MFnMatrixData(plug.asMObject()).matrix()
@@ -854,6 +881,10 @@ def getPlugValue(plug):
             except RuntimeError:
                 return []
             return MFnStringArrayData(dataObj).array()
-        raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True), dataType)
+        raise TypeError("%s: Unsupported typed attribute: %s" %
+                        (plug.partialName(True, True, True, False, True, True),
+                         dataType))
 
-    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), obj.apiTypeStr())
+    raise TypeError("%s: Unsupported Type: %s" %
+                    (plug.partialName(True, True, True, False, True, True),
+                     obj.apiTypeStr()))
