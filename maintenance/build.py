@@ -232,40 +232,59 @@ def _getModulePath(module):
         return module.__file__.rsplit('.', 1)[0] + '.py'
 
 
-def _resetModule(module):
-    source = _getModulePath(module)
-    with open(source, 'r') as f:
-        text = f.read()
+class ModuleResetter(object):
+    def __init__(self):
+        self._resetModuleInfo = {}
 
-    lines = text.split('\n')
+    def reset(self, module):
+        if module in self._resetModuleInfo:
+            return
+        source = _getModulePath(module)
+        with open(source, 'r') as f:
+            text = f.read()
 
-    def trim(begin):
-        start = None
-        for i, line in enumerate(lines[begin:]):
-            i = begin + i
-            if start is None and line == START_MARKER:
-                start = i
+        lines = text.split('\n')
 
-            elif line == END_MARKER:
-                assert start is not None
-                lines[start:i + 1] = []
-                return start
+        trimmedPositions = []
 
-        # end of lines
-        if start is not None:
-            lines[start:] = []
-        return None
+        def trim(begin):
+            start = None
+            for i, line in enumerate(lines[begin:]):
+                i = begin + i
+                if start is None and line == START_MARKER:
+                    start = i
 
-    begin = 0
-    while begin is not None:
-        begin = trim(begin)
+                elif line == END_MARKER:
+                    assert start is not None
+                    lines[start:i + 1] = []
+                    trimmedPositions.append(start)
+                    return start
 
-    lines.append(START_MARKER)
+            # end of lines
+            if start is not None:
+                lines[start:] = []
+                trimmedPositions.append(start)
+            return None
 
-    print "writing to", source
-    with open(source, 'w') as f:
-        f.write('\n'.join(lines))
-    return lines
+        begin = 0
+        while begin is not None:
+            begin = trim(begin)
+
+        lines.append(START_MARKER)
+
+        print "writing to", source
+        with open(source, 'w') as f:
+            f.write('\n'.join(lines))
+        self._resetModuleInfo[module] = {
+            'lines': lines,
+            'positions': trimmedPositions,
+        }
+
+    def getResetLines(self, module):
+        return self._resetModuleInfo.get(module, {}).get('lines')
+
+    def getResetPositions(self, module):
+        return self._resetModuleInfo.get(module, {}).get('positions')
 
 
 def _writeToModule(new, module):
@@ -1325,7 +1344,7 @@ def iterUIText():
             heritedMethods[classname] = parentMethods.union(methods)
 
 
-def generateTypes(iterator, module, lines=None, suffix=None):
+def generateTypes(iterator, module, resetter, suffix=None):
     """
     Utility for append type templates below their class within a given module.
 
@@ -1333,24 +1352,31 @@ def generateTypes(iterator, module, lines=None, suffix=None):
     ----------
     iterator
     module
-    lines
+    resetter
     suffix
     """
     source = _getModulePath(module)
 
-    if lines is None:
-        with open(source) as f:
-            lines = f.read().split('\n')
+    lines = resetter.getResetLines(module)
+    insertPositions = resetter.getResetPositions(module)
 
     # tally of additions made in middle of code
     offsets = {}
 
     def computeOffset(start):
-        result = 0
+        result = start
         for st, off in offsets.items():
             if st < start:
                 result += off
         return result
+
+    def getInsertPosition(startline, endline):
+        for pos in insertPositions:
+            if pos >= endline:
+                break
+            elif pos > startline:
+                return pos
+        return endline
 
     for text, template in iterator:
         newlines = text.split('\n')
@@ -1372,10 +1398,12 @@ def generateTypes(iterator, module, lines=None, suffix=None):
 
             endline = startline + len(srclines) - 1
 
-            endline += computeOffset(startline)
+            insertLine = getInsertPosition(startline, endline)
+            offsetInsertLine = computeOffset(insertLine)
+
             newlines = [START_MARKER] + newlines + [END_MARKER]
-            lines[endline:endline] = newlines
-            offsets[startline] = len(newlines)
+            lines[offsetInsertLine:offsetInsertLine] = newlines
+            offsets[insertLine] = len(newlines)
         else:
             lines += newlines
 
@@ -1432,14 +1460,14 @@ def generateAll():
         doc['properties'] = ['d']
 
         # Reset modules, before import
+        resetter = ModuleResetter()
         for module, _ in CORE_CMD_MODULES:
-            _resetModule(module)
+            resetter.reset(module)
 
-        _resetModule('pymel.core.windows')
-
-        ntLines = _resetModule('pymel.core.nodetypes')
-        uiLines = _resetModule('pymel.core.uitypes')
-        dtLines = _resetModule('pymel.core.datatypes')
+        resetter.reset('pymel.core.windows')
+        resetter.reset('pymel.core.nodetypes')
+        resetter.reset('pymel.core.uitypes')
+        resetter.reset('pymel.core.datatypes')
 
         # Import to populate existing objects
         import pymel.core
@@ -1455,10 +1483,10 @@ def generateAll():
 
         generateUIFunctions()
 
-        generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', ntLines, suffix='\n_addTypeNames()\n')
-        generateTypes(iterUIText(), 'pymel.core.uitypes', uiLines, suffix='\n_addTypeNames()\n')
-        generateTypes(iterApiTypeText(), 'pymel.core.general')
-        generateTypes(iterApiDataTypeText(), 'pymel.core.datatypes', dtLines)
+        generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', resetter, suffix='\n_addTypeNames()\n')
+        generateTypes(iterUIText(), 'pymel.core.uitypes', resetter, suffix='\n_addTypeNames()\n')
+        generateTypes(iterApiTypeText(), 'pymel.core.general', resetter)
+        generateTypes(iterApiDataTypeText(), 'pymel.core.datatypes', resetter)
 
         compileall.compile_dir(os.path.dirname(pymel.core.__file__),
                                force=True)
