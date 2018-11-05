@@ -1435,7 +1435,6 @@ def generateAll():
         for module, _ in CORE_CMD_MODULES:
             _resetModule(module)
 
-        _resetModule('pymel.core.uitypes')
         _resetModule('pymel.core.windows')
 
         ntLines = _resetModule('pymel.core.nodetypes')
