@@ -2357,17 +2357,13 @@ def processApiArgs(args, argList, getter, setter, getterInArgs):
     return do_args, final_do_args, outTypeList
 
 
-# FIXME: this function should not be applied unless len(outArgs) > 0
-# FIXME: outArgs seems redundant with outTypeList
-def processApiResult(result, outArgs, outTypeList, do_args):
-    # type: (Any, List[str], List[Tuple[str, int]], List[Any]) -> Any
+def processApiResult(result, outTypeList, do_args):
+    # type: (Any, List[Tuple[str, int]], List[Any]) -> Any
     """
     Parameters
     ----------
     result : Any
         Result returned from the API method
-    outArgs : List[str]
-        output argument names
     outTypeList : List[Tuple[str, int]]
         output argument types and their indices.  should be same len as outArgs
     do_args : List[Any]
@@ -2376,7 +2372,7 @@ def processApiResult(result, outArgs, outTypeList, do_args):
     -------
     Any
     """
-    if len(outArgs):
+    if len(outTypeList):
         if result is not None:
             result = [result]
         else:

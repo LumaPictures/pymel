@@ -55,7 +55,11 @@ class {{ classname }}({{ parents }}):
       {% if method.returnType %}
         res = _f.ApiArgUtil._castResult(self, res, {{ method.returnType }}, {{ method.unitType }})
       {% endif %}
-        return _f.processApiResult(res, {{ method.outArgs }}, outTypes, do)
+      {% if method.outArgs %}
+        return _f.processApiResult(res, outTypes, do)
+      {% else %}
+        return res
+      {% endif %}
    {% else %}
       {% if method.undoable %}
         undoEnabled = cmds.undoInfo(q=1, state=1) and _f.apiUndo.cb_enabled
