@@ -241,13 +241,14 @@ def _getSourceStartEndLines(object):
     return startline, endline
 
 
-class ModuleResetter(object):
+class ModuleGenerator(object):
     def __init__(self):
         self.moduleLines = {}
         self.classInsertLocations = {}
         self.classSuffixes = {}
 
-    def getClassLocations(self, moduleName):
+    @classmethod
+    def getClassLocations(cls, moduleName):
         moduleObject = sys.modules[moduleName]
         classLocations = []
         for clsname, clsobj in inspect.getmembers(moduleObject, inspect.isclass):
@@ -264,6 +265,11 @@ class ModuleResetter(object):
             classLocations.append((start, end, clsname))
         classLocations.sort()
         return classLocations
+
+    def getModuleLines(self, module):
+        if isinstance(module, types.ModuleType):
+            module = module.__name__
+        return self.moduleLines[module]
 
     def reset(self, module):
         if module in self.moduleLines:
@@ -354,60 +360,125 @@ class ModuleResetter(object):
         self.moduleLines[module] = lines
 
 
-def _writeToModule(new, module):
-    source = _getModulePath(module)
-    with open(source, 'r') as f:
-        text = f.read()
+    def _writeToModule(self, new, module):
+        lines = self.getModuleLines(module)
 
-    pos = text.find(START_MARKER)
-    if pos != -1:
-        text = text[:pos]
+        # trim off last START_MARKER and anything after
+        for i in xrange(len(lines) - 1, -1, -1):
+            if lines[i] == START_MARKER:
+                del lines[i:]
+                break
 
-    text += START_MARKER + new
+        if lines[-2] != '':
+            if lines[-1] != '':
+                lines.append('')
+            lines.append('')
+        text = '\n'.join(lines)
+        text += START_MARKER + new
 
-    print "writing to", source
-    with open(source, 'w') as f:
-        f.write(text)
-    return text
+        path = _getModulePath(module)
+        print "writing to", path
+        with open(path, 'w') as f:
+            f.write(text)
+        return text
 
 
-def generateFunctions(moduleName, returnFunc=None):
-    """
-    Render templates for mel functions in `moduleName` into its module file.
-    """
-    module = sys.modules[moduleName]
-    moduleShortName = moduleName.split('.')[-1]
+    def generateFunctions(self, moduleName, returnFunc=None):
+        """
+        Render templates for mel functions in `moduleName` into its module file.
+        """
+        module = sys.modules[moduleName]
+        moduleShortName = moduleName.split('.')[-1]
 
-    new = ''
-    for funcName in factories.moduleCmds[moduleShortName]:
-        if funcName in factories.nodeCommandList:
-            new += functionTemplateFactory(funcName, module, returnFunc=returnFunc)
-        else:
+        new = ''
+        for funcName in factories.moduleCmds[moduleShortName]:
+            if funcName in factories.nodeCommandList:
+                new += functionTemplateFactory(funcName, module, returnFunc=returnFunc)
+            else:
+                new += functionTemplateFactory(funcName, module, returnFunc=None)
+        self._writeToModule(new, module)
+
+
+    def generateUIFunctions(self):
+        new = ''
+        module = sys.modules['pymel.core.windows']
+        moduleShortName ='windows'
+
+        for funcName in factories.uiClassList:
+            # Create Class
+            classname = util.capitalize(funcName)
+            new += functionTemplateFactory(funcName, module,
+                                           returnFunc='uitypes.' + classname,
+                                           uiWidget=True)
+
+        nonClassFuncs = set(factories.moduleCmds[moduleShortName]).difference(factories.uiClassList)
+        for funcName in nonClassFuncs:
             new += functionTemplateFactory(funcName, module, returnFunc=None)
-    _writeToModule(new, module)
 
+        new += '''
+    autoLayout.__doc__ = formLayout.__doc__
+    '''
+        self._writeToModule(new, module)
 
-def generateUIFunctions():
-    new = ''
-    module = sys.modules['pymel.core.windows']
-    moduleShortName ='windows'
+    def generateTypes(self, iterator, module, suffix=None):
+        """
+        Utility for append type templates below their class within a given module.
 
-    for funcName in factories.uiClassList:
-        # Create Class
-        classname = util.capitalize(funcName)
-        new += functionTemplateFactory(funcName, module,
-                                       returnFunc='uitypes.' + classname,
-                                       uiWidget=True)
+        Parameters
+        ----------
+        iterator
+        module
+        suffix
+        """
+        source = _getModulePath(module)
 
-    nonClassFuncs = set(factories.moduleCmds[moduleShortName]).difference(factories.uiClassList)
-    for funcName in nonClassFuncs:
-        new += functionTemplateFactory(funcName, module, returnFunc=None)
+        lines = self.moduleLines[module]
 
-    new += '''
-autoLayout.__doc__ = formLayout.__doc__
-'''
-    _writeToModule(new, module)
+        # tally of additions made in middle of code
+        offsets = {}
 
+        def computeOffset(start):
+            result = start
+            for st, off in offsets.items():
+                if st < start:
+                    result += off
+            return result
+
+        for text, template in iterator:
+            newlines = text.split('\n')
+            if template.existingClass:
+                # if there is an existing class, slot the new lines after the class
+
+                # trailing newlines
+                if newlines[-2:] == ['', '']:
+                    newlines = newlines[:-2]
+
+                if not newlines:
+                    continue
+
+                startline, endline = _getSourceStartEndLines(template.existingClass)
+
+                clsName = module + '.' + template.existingClass.__name__
+                insertLine = self.classInsertLocations.get(clsName, endline)
+                offsetInsertLine = computeOffset(insertLine)
+                classSuffix = self.classSuffixes.get(clsName)
+
+                newlines = [START_MARKER] + newlines + [END_MARKER]
+                if classSuffix:
+                    newlines += classSuffix
+                lines[offsetInsertLine:offsetInsertLine] = newlines
+                offsets[insertLine] = len(newlines)
+            else:
+                lines += newlines
+
+        text = '\n'.join(lines)
+
+        if suffix:
+            text += suffix
+
+        print "writing to", source
+        with open(source, 'w') as f:
+            f.write(text)
 
 def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
                   overloadIndex=None, deprecated=False, aliases=(),
@@ -1455,68 +1526,6 @@ def iterUIText():
             heritedMethods[classname] = parentMethods.union(methods)
 
 
-def generateTypes(iterator, module, resetter, suffix=None):
-    """
-    Utility for append type templates below their class within a given module.
-
-    Parameters
-    ----------
-    iterator
-    module
-    resetter
-    suffix
-    """
-    source = _getModulePath(module)
-
-    lines = resetter.moduleLines[module]
-
-    # tally of additions made in middle of code
-    offsets = {}
-
-    def computeOffset(start):
-        result = start
-        for st, off in offsets.items():
-            if st < start:
-                result += off
-        return result
-
-    for text, template in iterator:
-        newlines = text.split('\n')
-        if template.existingClass:
-            # if there is an existing class, slot the new lines after the class
-
-            # trailing newlines
-            if newlines[-2:] == ['', '']:
-                newlines = newlines[:-2]
-
-            if not newlines:
-                continue
-
-            startline, endline = _getSourceStartEndLines(template.existingClass)
-
-            clsName = module + '.' + template.existingClass.__name__
-            insertLine = resetter.classInsertLocations.get(clsName, endline)
-            offsetInsertLine = computeOffset(insertLine)
-            classSuffix = resetter.classSuffixes.get(clsName)
-
-            newlines = [START_MARKER] + newlines + [END_MARKER]
-            if classSuffix:
-                newlines += classSuffix
-            lines[offsetInsertLine:offsetInsertLine] = newlines
-            offsets[insertLine] = len(newlines)
-        else:
-            lines += newlines
-
-    text = '\n'.join(lines)
-
-    if suffix:
-        text += suffix
-
-    print "writing to", source
-    with open(source, 'w') as f:
-        f.write(text)
-
-
 def _deleteImportedCoreModules():
     import linecache
 
@@ -1587,14 +1596,14 @@ def generateAll():
         import pymel.core
 
         # Reset modules, before import
-        resetter = ModuleResetter()
+        generator = ModuleGenerator()
         for module, _ in CORE_CMD_MODULES:
-            resetter.reset(module)
+            generator.reset(module)
 
-        resetter.reset('pymel.core.windows')
-        resetter.reset('pymel.core.nodetypes')
-        resetter.reset('pymel.core.uitypes')
-        resetter.reset('pymel.core.datatypes')
+        generator.reset('pymel.core.windows')
+        generator.reset('pymel.core.nodetypes')
+        generator.reset('pymel.core.uitypes')
+        generator.reset('pymel.core.datatypes')
 
         # "Reload" pymel.core modules, so we use the reset versions
         _deleteImportedCoreModules()
@@ -1607,14 +1616,14 @@ def generateAll():
 
         # Generate Functions
         for module, returnFunc in CORE_CMD_MODULES:
-            generateFunctions(module, returnFunc)
+            generator.generateFunctions(module, returnFunc)
 
-        generateUIFunctions()
+        generator.generateUIFunctions()
 
-        generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', resetter, suffix='\n_addTypeNames()\n')
-        generateTypes(iterUIText(), 'pymel.core.uitypes', resetter, suffix='\n_addTypeNames()\n')
-        generateTypes(iterApiTypeText(), 'pymel.core.general', resetter)
-        generateTypes(iterApiDataTypeText(), 'pymel.core.datatypes', resetter)
+        generator.generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', suffix='\n_addTypeNames()\n')
+        generator.generateTypes(iterUIText(), 'pymel.core.uitypes', suffix='\n_addTypeNames()\n')
+        generator.generateTypes(iterApiTypeText(), 'pymel.core.general')
+        generator.generateTypes(iterApiDataTypeText(), 'pymel.core.datatypes')
 
         compileall.compile_dir(os.path.dirname(pymel.core.__file__),
                                force=True)
