@@ -1588,13 +1588,6 @@ def generateAll():
         doc = factories.apiToMelData[('DependNode', 'isFromReferencedFile')]
         doc['aliases'] = ['isReadOnly']
 
-        doc = factories.apiToMelData[('BoundingBox', 'width')]
-        doc['properties'] = ['w']
-        doc = factories.apiToMelData[('BoundingBox', 'height')]
-        doc['properties'] = ['h']
-        doc = factories.apiToMelData[('BoundingBox', 'depth')]
-        doc['properties'] = ['d']
-
         # import pymel.core, so resetter can read class source info
         import pymel.core
 
