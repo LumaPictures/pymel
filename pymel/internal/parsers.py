@@ -808,7 +808,8 @@ class ApiDocParser(object):
                 # '1.0 / 24.0'
                 if isinstance(rawValue, basestring) and rawValue.count('/') == 1:
                     numerator, divisor = rawValue.split('/')
-                    return self.parseValue(numerator) / self.parseValue(divisor)
+                    return (self.parseValue(numerator, valueType)
+                            / self.parseValue(divisor, valueType))
                 # '1.0e-5F'  --> '1.0e-5'
                 elif rawValue.endswith(('F', 'f')):
                     return float(rawValue[:-1])
