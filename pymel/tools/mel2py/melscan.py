@@ -15,6 +15,8 @@ import pymel.util as util
 import pymel.internal.factories as factories
 
 tokens = mellex.tokens
+
+
 def p_translation_unit(t):
     '''translation_unit : external_declaration
                         | translation_unit external_declaration'''
@@ -24,6 +26,8 @@ def p_translation_unit(t):
     # print '\n'
 
 # external-declaration:
+
+
 def p_external_declaration(t):
     '''external_declaration : function_definition
                             | group'''
@@ -34,6 +38,8 @@ def p_external_declaration(t):
     #    print "external_declaration", t[0]
 
 # function-definition:
+
+
 def p_function_definition(t):
     '''function_definition :  function_declarator function_specifiers_opt ID LPAREN function_arg_list_opt RPAREN group'''
     #t[0] = assemble(t, 'p_function_definition')
@@ -53,6 +59,7 @@ def p_function_definition(t):
         t.lexer.local_procs[t[3]] = {'returnType': t[2], 'args': t[5]}
         #t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
 
+
 def p_function_declarator(t):
     '''function_declarator : GLOBAL PROC
                            | PROC'''
@@ -66,6 +73,7 @@ def p_function_declarator(t):
         # print "global proc"
         t[0] = True
 
+
 def p_type_specifier(t):
     '''type_specifier : INT
                       | FLOAT
@@ -77,6 +85,8 @@ def p_type_specifier(t):
     t[0] = t[1]
 
 # function-specifiers
+
+
 def p_function_specifiers_opt(t):
     '''function_specifiers_opt : type_specifier
                                   | type_specifier LBRACKET RBRACKET
@@ -101,6 +111,7 @@ def p_function_arg(t):
     else:
         t[0] = (t[1] + '[]', t[2])
 
+
 def p_function_arg_list(t):
     '''function_arg_list : function_arg
                         | function_arg_list COMMA function_arg'''
@@ -111,6 +122,7 @@ def p_function_arg_list(t):
     # start a new list
     else:
         t[0] = [t[1]]
+
 
 def p_function_arg_list_opt(t):
     '''function_arg_list_opt : function_arg_list
@@ -140,6 +152,7 @@ def p_group_list_opt(t):
     # print "group_list_opt"
     t[0] = t[1]
 
+
 def p_group_list(t):
     '''group_list : group_list group
             | group'''
@@ -149,6 +162,7 @@ def p_group_list(t):
 #        t[0] = [t[1]]
 #    else:
 #        t[0] = t[1] + [t[2]]
+
 
 def p_group(t):
     '''group : element
@@ -176,6 +190,7 @@ def p_group(t):
 #        t[0] = [t[1]]
 #    else:
 #        t[0] = t[1] + [t[2]]
+
 
 def p_element(t):
     '''element : declaration_specifiers
@@ -245,6 +260,7 @@ def p_element(t):
             '''
     # print "element", t[1]
     t[0] = t[1]
+
 
 def p_empty(t):
     '''empty : '''

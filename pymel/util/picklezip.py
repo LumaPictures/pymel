@@ -6,6 +6,7 @@ except:
 
 __all__ = ['dump', 'load']
 
+
 def dump(object, filename, protocol=-1):
     """
     Save an compressed pickle to disk.
@@ -32,6 +33,7 @@ def _loads(filename):
         return buffer
     finally:
         file.close()
+
 
 def load(filename):
     """

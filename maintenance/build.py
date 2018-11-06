@@ -15,6 +15,9 @@ from pymel.internal import factories
 from pymel.internal import plogging
 from pymel.internal import pmcmds
 
+if False:
+    from typing import *
+
 _logger = plogging.getLogger(__name__)
 
 START_MARKER = '# ------ Do not edit below this line --------'
@@ -413,6 +416,7 @@ autoLayout.__doc__ = formLayout.__doc__
 def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
                   overloadIndex=None, deprecated=False, aliases=(),
                   properties=()):
+    # type: (Type, str, str, bool, Optional[int], Any, Any, Any) -> Optional[dict]
     """
     create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
     no special API classes required.  Inputs go in the front door, and outputs come out the back door.
@@ -446,22 +450,24 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         #. process result and return it
 
 
-    :Parameters:
+    Parameters
+    ----------
+    apiClass : Type
+        the api class
+    apiMethodName : str
+        the name of the api method
+    newName : str
+        optionally provided if a name other than that of api method is desired
+    proxy : bool
+        If True, then __apimfn__ function used to retrieve the proxy class. If False,
+        then we assume that the class being wrapped inherits from the underlying api class.
+    overloadIndex : Optional[int]
+        which of the overloaded C++ signatures to use as the basis of our wrapped function.
 
-        apiClass : class
-            the api class
-        apiMethodName : string
-            the name of the api method
-        newName : string
-            optionally provided if a name other than that of api method is desired
-        proxy : bool
-            If True, then __apimfn__ function used to retrieve the proxy class. If False,
-            then we assume that the class being wrapped inherits from the underlying api class.
-        overloadIndex : None or int
-            which of the overloaded C++ signatures to use as the basis of our wrapped function.
-
-
-        """
+    Returns
+    -------
+    Optional[dict]
+    """
     apiClassName = apiClass.__name__
     argHelper = factories.ApiArgUtil(apiClassName, apiMethodName, overloadIndex)
     undoable = True  # controls whether we print a warning in the docs
@@ -590,6 +596,15 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
 class MelMethodGenerator(object):
 
     def __init__(self, classname, existingClass, parentClasses, parentMethods):
+        # type: (str, Type, Iterable[str], Iterable[str]) -> None
+        """
+        Parameters
+        ----------
+        classname : str
+        existingClass : Type
+        parentClasses : Iterable[str]
+        parentMethods : Iterable[str]
+        """
         self.classname = classname
         self.parentClassname = parentClasses[0] if parentClasses else None
         self.herited = parentMethods
@@ -768,7 +783,7 @@ class MelMethodGenerator(object):
 
     def isMelMethod(self, methodName):
         """
-        Deteremine if the passed method name exists on a parent class as a mel method
+        Determine if the passed method name exists on a parent class as a mel method
         """
         for classname in self.parentClasses:
             if methodName in factories.classToMelMap.get(classname, ()):
@@ -795,6 +810,17 @@ class ApiMethodGenerator(MelMethodGenerator):
 
     def __init__(self, classname, existingClass, parentClasses,
                  parentMethods, parentApicls, childClasses=()):
+        # type: (str, Type, Iterable[str], Iterable[str], Optional[Type], Iterable[str]) -> None
+        """
+        Parameters
+        ----------
+        classname : str
+        existingClass : Type
+        parentClasses : Iterable[str]
+        parentMethods : Iterable[str]
+        parentApicls : Optional[Type]
+        childClasses : Iterable[str]
+        """
         super(ApiMethodGenerator, self).__init__(classname, existingClass, parentClasses, parentMethods)
         self.parentApicls = parentApicls
         self.existingClass = existingClass
@@ -929,7 +955,9 @@ class ApiMethodGenerator(MelMethodGenerator):
                             print self.classname, pymelName, "not on any children"
                             continue
                         else:
-                            _logger.info("%s.%s: Adding disabled method as deprecated. Used by children %s" % (self.classname, pymelName, usedByChildren))
+                            _logger.info("%s.%s: Adding disabled method as "
+                                         "deprecated. Used by children %s" %
+                                         (self.classname, pymelName, usedByChildren))
                             deprecated.append(yieldTuple)
                     elif info[overloadIndex].get('deprecated', False):
                         deprecated.append(yieldTuple)
@@ -1065,6 +1093,18 @@ class NodeTypeGenerator(ApiMethodGenerator):
 
     def __init__(self, classname, existingClass, parentClasses,
                  parentMethods, parentApicls, childClasses=(), mayaType=None):
+        # type: (str, Type, Iterable[str], Iterable[str], Type, Iterable[str], str) -> None
+        """
+        Parameters
+        ----------
+        classname : str
+        existingClass : Type
+        parentClasses : Iterable[str]
+        parentMethods : Iterable[str]
+        parentApicls : Type
+        childClasses : Iterable[str]
+        mayaType : str
+        """
         # mayaType must be set first
         self.mayaType = mayaType
         super(NodeTypeGenerator, self).__init__(
@@ -1212,6 +1252,7 @@ class UITypeGenerator(MelMethodGenerator):
 
 
 def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods, parentApicls):
+    # type: (str, List[str], Any, Any, Any) -> NodeTypeGenerator
     """
     create a PyNode type for a maya node.
 
@@ -1219,10 +1260,15 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods,
     ----------
     mayaType : str
     parentMayaTypes : List[str]
+
+    Returns
+    -------
+    NodeTypeGenerator
     """
     import pymel.core.nodetypes as nt
 
     def getPymelTypeName(mayaTypeName):
+        # type: (str) -> str
         pymelTypeName = nt.mayaTypeNameToPymelTypeName.get(mayaTypeName)
         if pymelTypeName is None:
             pymelTypeName = str(util.capitalize(mayaTypeName))
@@ -1236,6 +1282,7 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods,
         return pymelTypeName
 
     def getCachedPymelType(nodeType):
+        # type: (str) -> str
         if nodeType == 'general.PyNode':
             assert mayaType == 'dependNode'
             return 'general.PyNode'

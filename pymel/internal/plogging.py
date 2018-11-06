@@ -25,6 +25,7 @@ PYMEL_ERRORLEVEL_ENV_VAR = 'PYMEL_ERRORLEVEL'
 # DEFAULT FORMAT SETUP
 #===============================================================================
 
+
 def _fixMayaOutput():
     if not hasattr(sys.stdout, "flush"):
         def flush(*args, **kwargs):
@@ -43,6 +44,7 @@ def _fixMayaOutput():
 
 _fixMayaOutput()
 
+
 def getConfigFile():
     configFile = os.environ.get(PYMEL_CONF_ENV_VAR)
     if configFile and os.path.isfile(configFile):
@@ -57,6 +59,7 @@ def getConfigFile():
     if os.path.isfile(configFile):
         return configFile
     raise IOError, "Could not find pymel.conf"
+
 
 def getLogConfigFile():
     configFile = os.path.join(os.path.dirname(__file__), "user_logging.conf")
@@ -164,6 +167,7 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     finally:
         logging._releaseLock()
 
+
 def _addOldHandlers(logger, oldHandlers, secName, configParser):
     opts = configParser.options(secName)
     if 'remove_existing_handlers' not in opts:
@@ -183,6 +187,7 @@ rootLogger = logging.root
 
 pymelLogger = logging.getLogger("pymel")
 
+
 def environLogLevelOverride(logger):
     """If PYMEL_LOGLEVEL is set, make sure the logging level is at least that
     much for the given logger.
@@ -194,6 +199,7 @@ def environLogLevelOverride(logger):
         currentLevel = logger.getEffectiveLevel()
         if not currentLevel or currentLevel > environLevel:
             logger.setLevel(environLevel)
+
 
 def getLogger(name):
     """
@@ -216,11 +222,13 @@ def getLogger(name):
 # keep as an enumerator so that we can keep the order
 logLevels = util.EnumType('logLevels', dict([(getLevelName(n), n) for n in range(0, CRITICAL + 1, 10)]))
 
+
 def nameToLevel(name):
     try:
         return int(name)
     except ValueError:
         return logLevels.getIndex(name)
+
 
 def levelToName(level):
     if not isinstance(level, int):
@@ -300,6 +308,8 @@ def _setupLevelPreferenceHook():
 #===============================================================================
 ERRORLEVEL = None
 ERRORLEVEL_DEFAULT = logging.ERROR
+
+
 def raiseLog(logger, level, message, errorClass=RuntimeError):
     '''For use in situations in which you may wish to raise an error or simply
     print to a logger.
@@ -334,6 +344,7 @@ def raiseLog(logger, level, message, errorClass=RuntimeError):
         raise errorClass(message)
     else:
         logger.log(level, message)
+
 
 def addErrorLog(logger):
     '''Adds an 'raiseLog' method to the given logger instance

@@ -25,7 +25,9 @@ FLAGMODES = ('create', 'query', 'edit', 'multiuse')
 
 _logger = plogging.getLogger(__name__)
 
+
 def mayaIsRunning():
+    # type: () -> bool
     """
     Returns True if maya.cmds have  False otherwise.
 
@@ -45,6 +47,7 @@ def mayaIsRunning():
         return True
     except:
         return False
+
 
 def mayaDocsLocation(version=None):
     docLocation = os.environ.get('MAYA_DOC_DIR')
@@ -160,6 +163,8 @@ def strip_tags(html):
 #---------------------------------------------------------------
 #        Doc Parser
 #---------------------------------------------------------------
+
+
 class CommandDocParser(HTMLParser):
 
     _lettersRe = re.compile('([a-zA-Z]+)')
@@ -487,6 +492,7 @@ class CommandModuleDocParser(HTMLParser):
                 #_logger.debug(cmd)
         except IndexError:
             return
+
 
 class ApiDocParser(object):
     __metaclass__ = ABCMeta

@@ -14,6 +14,7 @@ from path import path
 #  Pymel Internals
 #-----------------------------------------------
 
+
 def inMaya():
     """
     Returns True if called from a fully initialized Maya session.
@@ -37,6 +38,7 @@ def inMaya():
 #===============================================================================
 
 def capitalize(s):
+    # type: (Any) -> str
     """
     Python's string 'capitalize' method is NOT equiv. to mel's capitalize, which preserves
     capital letters.
@@ -52,7 +54,9 @@ def capitalize(s):
     """
     return s[0].upper() + s[1:]
 
+
 def uncapitalize(s, preserveAcronymns=False):
+    # type: (Any, Any) -> str
     """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'
 
     Returns
@@ -67,7 +71,9 @@ def uncapitalize(s, preserveAcronymns=False):
 
     return s[0].lower() + s[1:]
 
+
 def unescape(s):
+    # type: (Any) -> str
     """
     Returns
     -------
@@ -85,6 +91,7 @@ def unescape(s):
 #===============================================================================
 # Deprecated types
 #===============================================================================
+
 
 def cacheProperty(getter, attr_name, fdel=None, doc=None):
     """a property type for getattr functions that only need to be called once per instance.
@@ -114,6 +121,7 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 # System
 #===============================================================================
 
+
 def timer(command='pass', number=10, setup='import pymel'):
     import timeit
     t = timeit.Timer(command, setup)
@@ -121,7 +129,9 @@ def timer(command='pass', number=10, setup='import pymel'):
     print "command took %.2f sec to execute" % time
     return time
 
+
 def interpreterBits():
+    # type: () -> int
     """
     Returns the number of bits of the architecture the interpreter was compiled on
     (ie, 32 or 64).
@@ -139,6 +149,7 @@ def interpreterBits():
 #===============================================================================
 # Filesystem
 #===============================================================================
+
 
 def toZip(directory, zipFile):
     """Sample for storing directory to a ZipFile"""
@@ -167,6 +178,7 @@ def toZip(directory, zipFile):
 #===============================================================================
 # inspection
 #===============================================================================
+
 
 def subpackages(packagemod):
     """

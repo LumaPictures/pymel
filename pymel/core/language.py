@@ -711,6 +711,7 @@ optionVar = OptionVarDict()
 
 
 class Env(object):
+
     """ A Singleton class to represent Maya current optionVars and settings """
 
     optionVars = OptionVarDict()

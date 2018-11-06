@@ -213,6 +213,7 @@ custom_proc_remap = {
 # do not change the following line !!!
 melparse.proc_remap.update(custom_proc_remap)
 
+
 def resolvePath(melobj, recurse=False, exclude=(), melPathOnly=False, basePackage=''):
     """
     if passed a directory, get all mel files in the directory
@@ -272,6 +273,7 @@ def resolvePath(melobj, recurse=False, exclude=(), melPathOnly=False, basePackag
         basePackage = basePackage + '.'
     return [(basePackage + melparse.getModuleBasename(x), x) for x in files] + recursedResults
 
+
 def fileOnMelPath(file):
     """
     Return True if this file is on the mel path.
@@ -287,6 +289,7 @@ def fileOnMelPath(file):
     path = util.path(info[1])
     return path.samepath(file)
 
+
 def _updateCurrentModules(newResults):
     currentModules = melparse.batchData.currentModules
     for moduleName, melfile in newResults:
@@ -301,6 +304,7 @@ def _updateCurrentModules(newResults):
         elif moduleName in currentModules:
             raise RuntimeError('two mel files result in same python module name: %s, %s => %s' % (currentModules[moduleName], melfile, moduleName))
         currentModules[moduleName] = melfile
+
 
 def _makePackages():
     # Maps from a package (in tuple form) to base directory
@@ -329,6 +333,7 @@ def _makePackages():
             if not initFile.isfile():
                 initFile.touch()
 
+
 def _getInputFiles(input, recurse=False, exclude=(), melPathOnly=False, basePackage=''):
     """
     Returns tuples of the form (packageName, melfile)
@@ -340,7 +345,9 @@ def _getInputFiles(input, recurse=False, exclude=(), melPathOnly=False, basePack
         results.extend(resolvePath(f, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage))
     return results
 
+
 def melInfo(input):
+    # type: (str) -> Tuple[Iterable[str], dict, dict]
     """
     Get information about procedures in a mel file.
 
@@ -375,7 +382,9 @@ def melInfo(input):
     cbParser.build()
     return cbParser.parse(f.bytes())
 
+
 def mel2pyStr(data, currentModule=None, pymelNamespace='', forceCompatibility=False, verbosity=0, basePackage=None):
+    # type: (str, str, str, bool, int, Any) -> None
     """
     convert a string representing mel code into a string representing python code
 
@@ -423,6 +432,7 @@ def mel2py(input, outputDir=None,
            verbosity=0, test=False,
            recurse=False, exclude=(), melPathOnly=False,
            basePackage=None):
+    # type: (Any, str, str, bool, int, bool, bool, str, bool, str) -> None
     """
     Batch convert an entire directory
 

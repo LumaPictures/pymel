@@ -395,6 +395,7 @@ class DependNodeName(NameParser):
             raise ValueError("could not find trailing numbers to decrement on "
                              "object %s" % self)
 
+
 class DagNodeName(DependNodeName):
 
     #    def __eq__(self, other):

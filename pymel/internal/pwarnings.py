@@ -7,6 +7,7 @@ and define a UserWarning class that does only print it's message (no line or mod
 import warnings
 from warnings import formatwarning, linecache
 
+
 def formatwarning(message, category, filename, lineno, line=None):
     """Redefined format warning for maya."""
     if issubclass(category, ExecutionWarning):
@@ -31,9 +32,11 @@ warnings.formatwarning = formatwarning
 #
 #warnings.showwarning = showwarning
 
+
 class ExecutionWarning (UserWarning):
 
     """ Simple Warning class that doesn't print any information besides warning message """
+
 
 def warn(*args, **kwargs):
     """ Default Maya warn which uses ExecutionWarning as the default warning class. """
@@ -41,6 +44,7 @@ def warn(*args, **kwargs):
         args = args + (ExecutionWarning,)
     stacklevel = kwargs.pop("stacklevel", 1) + 1  # add to the stack-level so that this wrapper func is skipped
     return warnings.warn(stacklevel=stacklevel, *args, **kwargs)
+
 
 def deprecated(funcOrMessage, className=None):
     """the decorator can either receive parameters or the function directly.

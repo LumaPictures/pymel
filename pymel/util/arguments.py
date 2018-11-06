@@ -12,7 +12,10 @@ from utilitytypes import ProxyUnicode
 
 # some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
 # doing a hasattr(obj, '__iter__') test will fail for objects that implement __getitem__, but not __iter__, so try iter(obj)
+
+
 def isIterable(obj):
+    # type: (Any) -> bool
     """
     Returns True if an object is iterable and not a string or ProxyUnicode type, otherwise returns False.
 
@@ -32,7 +35,10 @@ def isIterable(obj):
         return True
 
 # consider only ints and floats numeric
+
+
 def isScalar(obj):
+    # type: (Any) -> bool
     """
     Returns True if an object is a number or complex type, otherwise returns False.
 
@@ -43,7 +49,10 @@ def isScalar(obj):
     return operator.isNumberType(obj) and not isinstance(obj, complex)
 
 # TODO : this is unneeded as operator provides it, can call directly to operator methods
+
+
 def isNumeric(obj):
+    # type: (Any) -> bool
     """
     Returns True if an object is a number type, otherwise returns False.
 
@@ -53,7 +62,9 @@ def isNumeric(obj):
     """
     return operator.isNumberType(obj)
 
+
 def isSequence(obj):
+    # type: (Any) -> bool
     """
     same as `operator.isSequenceType`
 
@@ -63,7 +74,9 @@ def isSequence(obj):
     """
     return operator.isSequenceType(obj)
 
+
 def isMapping(obj):
+    # type: (Any) -> bool
     """
     Returns True if an object is a mapping (dictionary) type, otherwise returns False.
 
@@ -76,6 +89,7 @@ def isMapping(obj):
     return operator.isMappingType(obj)
 
 clsname = lambda x: type(x).__name__
+
 
 def convertListArgs(args):
     if len(args) == 1 and isIterable(args[0]):
@@ -155,6 +169,7 @@ def expandArgs(*args, **kwargs):
     else:
         return preorderArgs(limit, _expandArgsTest, *args)
 
+
 def preorderArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
     """ returns a list of a preorder expansion of args """
     stack = [(x, 0) for x in args]
@@ -167,6 +182,7 @@ def preorderArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
             result.appendleft(arg)
 
     return tuple(result)
+
 
 def postorderArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
     """ returns a list of  a postorder expansion of args """
@@ -192,6 +208,7 @@ def postorderArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
 
         return tuple(result)
 
+
 def breadthArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
     """ returns a list of a breadth first expansion of args """
     deq = _deque((x, 0) for x in args)
@@ -208,6 +225,8 @@ def breadthArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
 
 # Same behavior as expandListArg but implemented as an Python iterator, the recursieve approach
 # will be more memory efficient, but slower
+
+
 def iterateArgs(*args, **kwargs):
     """ Iterates through all arguments list: recursively replaces any iterable argument in *args by a tuple of its
     elements that will be inserted at its place in the returned arguments.
@@ -281,6 +300,7 @@ def iterateArgs(*args, **kwargs):
         for arg in preorderIterArgs(limit, _iterateArgsTest, *args):
             yield arg
 
+
 def preorderIterArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
     """ iterator doing a preorder expansion of args """
     if limit:
@@ -293,6 +313,7 @@ def preorderIterArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
     else:
         for arg in args:
             yield arg
+
 
 def postorderIterArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
     """ iterator doing a postorder expansion of args """
@@ -312,6 +333,7 @@ def postorderIterArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
         for arg in args:
             yield arg
 
+
 def breadthIterArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
     """ iterator doing a breadth first expansion of args """
     deq = _deque((x, 0) for x in args)
@@ -322,6 +344,7 @@ def breadthIterArgs(limit=sys.getrecursionlimit(), testFn=isIterable, *args):
                 deq.append((a, level + 1))
         else:
             yield arg
+
 
 def preorder(iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     """ iterator doing a preorder expansion of args """
@@ -335,6 +358,7 @@ def preorder(iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     else:
         for arg in iterable:
             yield arg
+
 
 def postorder(iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     """ iterator doing a postorder expansion of args """
@@ -354,6 +378,7 @@ def postorder(iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
         for arg in iterable:
             yield arg
 
+
 def breadth(iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     """ iterator doing a breadth first expansion of args """
     deq = _deque((x, 0) for x in iterable)
@@ -365,6 +390,7 @@ def breadth(iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
         else:
             yield arg
 
+
 def listForNone(res):
     "returns an empty list when the result is None"
     if res is None:
@@ -373,6 +399,8 @@ def listForNone(res):
 
 # for discussion of implementation,
 # see http://mail.python.org/pipermail/python-list/2008-January/474369.html for discussion...
+
+
 def pairIter(sequence):
     '''
     Returns an iterator over every 2 items of sequence.
@@ -383,6 +411,7 @@ def pairIter(sequence):
     '''
     theIter = iter(sequence)
     return itertools.izip(theIter, theIter)
+
 
 def reorder(x, indexList=[], indexDict={}):
     """
@@ -421,6 +450,7 @@ def reorder(x, indexList=[], indexDict={}):
         newlist.append(val)
     return newlist
 
+
 class RemovedKey(object):
 
     def __init__(self, oldVal):
@@ -435,6 +465,7 @@ class RemovedKey(object):
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self.oldVal)
 
+
 class AddedKey(object):
 
     def __init__(self, newVal):
@@ -448,6 +479,7 @@ class AddedKey(object):
 
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self.newVal)
+
 
 class ChangedKey(object):
 
@@ -464,8 +496,10 @@ class ChangedKey(object):
     def __repr__(self):
         return '%s(%r, %r)' % (type(self).__name__, self.oldVal, self.newVal)
 
+
 def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
                           useChangedKeys=False):
+    # type: (dict, list, or tuple, dict, list, or tuple, str or None or False, bool, bool) -> Tuple[set, set, set, dict]
     '''compares two cascading dicts
 
     Parameters
@@ -601,6 +635,7 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
 
     return both, only1, only2, differences
 
+
 def mergeCascadingDicts(from_dict, to_dict, allowDictToListMerging=False,
                         allowNewListMembers=False):
     """
@@ -650,6 +685,7 @@ def mergeCascadingDicts(from_dict, to_dict, allowDictToListMerging=False,
                 to_dict.extend((None,) * (key + 1 - len(to_dict)))
             to_dict[key] = from_val
 
+
 def setCascadingDictItem(dict, keys, value):
 
     currentDict = dict
@@ -658,6 +694,7 @@ def setCascadingDictItem(dict, keys, value):
             currentDict[key] = {}
         currentDict = currentDict[key]
     currentDict[keys[-1]] = value
+
 
 def getCascadingDictItem(dict, keys, default={}):
 
@@ -670,6 +707,7 @@ def getCascadingDictItem(dict, keys, default={}):
         return currentDict[keys[-1]]
     except KeyError:
         return default
+
 
 def sequenceToSlices(intList, sort=True):
     """convert a sequence of integers into a tuple of slice objects"""
@@ -756,6 +794,7 @@ def sequenceToSlices(intList, sort=True):
                     slices.append(slice(lastVal, lastVal + 1))
 
     return slices
+
 
 def izip_longest(*args, **kwds):
     # izip_longest('ABCD', 'xy', fillvalue='-') --> Ax By C- D-

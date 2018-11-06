@@ -9,6 +9,7 @@ import operator
 import sys
 import warnings
 
+
 class Singleton(type):
 
     """ Metaclass for Singleton classes.
@@ -88,6 +89,7 @@ class Singleton(type):
         newcls = super(Singleton, mcl).__new__(mcl, classname, bases, newdict)
 
         return newcls
+
 
 class metaStatic(Singleton):
 
@@ -247,6 +249,7 @@ except:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
+
 class defaultlist(list):
 
     def __init__(self, default_factory, *args, **kwargs):
@@ -304,10 +307,13 @@ class ModuleInterceptor(object):
                 raise AttributeError, msg
 
 # read only decorator
+
+
 def readonly(f):
     """ Marks a class member as protected, allowing metaProtected to prevent re-assignation on the classes it generates """
     f.__readonly__ = None
     return f
+
 
 class metaReadOnlyAttr(type):
 
@@ -377,9 +383,12 @@ NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__'
                      '__class__', '__weakref__', '__subclasshook__',
                      '__reduce_ex__', '__reduce__', '__dict__', '__sizeof__',
                      '__module__', '__init__', '__doc__']
+
+
 def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
                remove=(), makeDefaultInit = False, sourceIsImmutable=True,
                module=None):
+    # type: (type, str, str, str, Iterable[str], bool, bool, Any) -> None
     """
     This function will generate a proxy class which keeps the internal data separate from the wrapped class. This
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
@@ -530,6 +539,7 @@ ProxyUnicode = proxyClass(unicode, 'ProxyUnicode', module=__name__, dataFuncName
                                   'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
                                   'zfill'])
 
+
 class universalmethod(object):
     #    """
     #    a decorator which is similar to builtin classmethod, but which leaves the method unmodified when called
@@ -569,7 +579,9 @@ class universalmethod(object):
         newfunc.__doc__ = self.__doc__
         return newfunc
 
+
 class LazyLoadModule(types.ModuleType):
+
     """
     :param name: name of the module
     :param contents: dictionary of initial module globals
@@ -772,6 +784,7 @@ class LazyLoadModule(types.ModuleType):
 class LazyDocStringError(Exception):
     pass
 
+
 class LazyDocString(types.StringType):
 
     """
@@ -879,6 +892,7 @@ for _name, _method in inspect.getmembers(types.StringType, inspect.isroutine):
         return LazyDocStringMethodWrapper
     setattr(LazyDocString, _name, makeMethod(_name))
 
+
 def addLazyDocString(object, creator, *creatorArgs, **creatorKwargs):
     """helper for LazyDocString.  Equivalent to :
 
@@ -886,6 +900,7 @@ def addLazyDocString(object, creator, *creatorArgs, **creatorKwargs):
     """
     lazyDoc = LazyDocString((object, creator, creatorArgs, creatorKwargs))
     object.__doc__ = lazyDoc
+
 
 class TwoWayDict(dict):
 
@@ -1011,6 +1026,7 @@ class TwoWayDict(dict):
 
     def get_key(self, v):
         return self._reverse[v]
+
 
 class EquivalencePairs(TwoWayDict):
 
@@ -1143,6 +1159,7 @@ class EquivalencePairs(TwoWayDict):
         except KeyError:
             return d
 
+
 def alias(origAttrName):
     """
     Returns a property which is simply an alias for another property.
@@ -1176,6 +1193,7 @@ def alias(origAttrName):
 
     setter.__name__ = "set_" + origAttrName
     return property(getter, setter)
+
 
 class propertycache(object):
 

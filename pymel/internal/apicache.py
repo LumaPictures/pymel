@@ -28,6 +28,7 @@ else:
 # Utility classes
 #===============================================================================
 
+
 class ApiEnum(tuple):
 
     def __str__(self):
@@ -51,6 +52,7 @@ if versions.current() < versions.v2012:
     api.Enum = ApiEnum
     Enum = ApiEnum
 
+
 def _defaultdictdict(cls, val=None):
     if val is None:
         return _util.defaultdict(dict)
@@ -60,6 +62,7 @@ def _defaultdictdict(cls, val=None):
 #===============================================================================
 # ghost objects
 #===============================================================================
+
 
 class GhostObjsOkHere(object):
     _OK = False
@@ -75,6 +78,7 @@ class GhostObjsOkHere(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         type(self)._OK = self.oldOK
+
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     if versions.current() >= versions.v2012:
@@ -123,10 +127,14 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         _logger.debug("Error trying to create ghost node for '%s'" % mayaType)
         return None
 
+
 class InvalidNodeTypeError(Exception):
     pass
+
+
 class ManipNodeTypeError(InvalidNodeTypeError):
     pass
+
 
 class _GhostObjMaker(object):
 
@@ -183,14 +191,14 @@ class _GhostObjMaker(object):
 
             if obj is not None:
                 if (self.manipError
-                    and (obj.hasFn(api.MFn.kManipulator)
-                                 or obj.hasFn(api.MFn.kManipContainer)
-                                 or obj.hasFn(api.MFn.kPluginManipContainer)
-                                 or obj.hasFn(api.MFn.kPluginManipulatorNode)
-                                 or obj.hasFn(api.MFn.kManipulator2D)
-                                 or obj.hasFn(api.MFn.kManipulator3D)
-                                 or obj.hasFn(api.MFn.kManip2DContainer)
-                                 )
+                        and (obj.hasFn(api.MFn.kManipulator)
+                             or obj.hasFn(api.MFn.kManipContainer)
+                             or obj.hasFn(api.MFn.kPluginManipContainer)
+                             or obj.hasFn(api.MFn.kPluginManipulatorNode)
+                             or obj.hasFn(api.MFn.kManipulator2D)
+                             or obj.hasFn(api.MFn.kManipulator3D)
+                             or obj.hasFn(api.MFn.kManip2DContainer)
+                             )
                     ):
                     raise ManipNodeTypeError
 
@@ -295,8 +303,11 @@ else:
 
 # You'd think getting a comprehensive list of node types would be easy, but
 # due to strange behavior of various edge cases, it can be tricky...
+
+
 def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=True,
                   noManips=True, noPlugins=False, returnRealAbstract=False):
+    # type: (bool, bool, bool, bool, Union[bool, str], bool, bool) -> None
     '''Returns a list of maya types
 
     Parameters
@@ -313,7 +324,7 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
     addAncestors : bool
         If true, add to the list of nodes returned all of their ancestors as
         well
-    noManips : bool | 'fast'
+    noManips : Union[bool, str]
         If true, filter out any manipulator node types; if the special value
         'fast', then it will filter out manipulator node types, but will do so
         using a faster method that may potentially be less thorough
@@ -418,10 +429,12 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
     else:
         return realNodes | abstractNodes
 
+
 def _getAbstractMayaTypes(**kwargs):
     kwargs.setdefault('real', False)
     kwargs['abstract'] = True
     return _getMayaTypes(**kwargs)
+
 
 def _getRealMayaTypes(**kwargs):
     kwargs['real'] = True
@@ -430,6 +443,7 @@ def _getRealMayaTypes(**kwargs):
     kwargs.setdefault('addAncestors', False)
     return _getMayaTypes(**kwargs)
 
+
 def _getAllMayaTypes(**kwargs):
     kwargs['real'] = True
     kwargs['abstract'] = True
@@ -437,6 +451,7 @@ def _getAllMayaTypes(**kwargs):
 
 _fixedLineages = {}
 _cachedInheritances = {}
+
 
 def getInheritance(mayaType, checkManip3D=True, checkCache=True,
                    updateCache=True):
@@ -574,8 +589,10 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
 # Name utilities
 #===============================================================================
 
+
 def nodeToApiName(nodeName):
     return 'k' + _util.capitalize(nodeName)
+
 
 def getLowerCaseMapping(names):
     uniqueLowerNames = {}
@@ -621,6 +638,7 @@ apiSuffixes = ['', 'node', 'shape', 'shapenode']
 #===============================================================================
 # Cache classes
 #===============================================================================
+
 
 class ApiMelBridgeCache(startup.SubItemCache):
     NAME = 'mayaApiMelBridge'

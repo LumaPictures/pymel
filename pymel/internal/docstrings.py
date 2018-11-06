@@ -104,6 +104,7 @@ class DocstringBuilder(object):
 
 
 class RstDocstringBuilder(DocstringBuilder):
+
     """
     Docstring builder that outputs reStructuredText for building HTML docs
     """
@@ -212,6 +213,7 @@ class NumpyDocstringBuilder(DocstringBuilder):
 
 
 class PyDocstringBuilder(DocstringBuilder):
+
     """
     Docstring builder that generates human-readable docstrings for use with
     the python help() function.

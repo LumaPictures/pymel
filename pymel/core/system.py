@@ -115,6 +115,7 @@ displayError = _OpenMaya.MGlobal.displayError
 displayWarning = _OpenMaya.MGlobal.displayWarning
 displayInfo = _OpenMaya.MGlobal.displayInfo
 
+
 def feof(fileid):
     """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch,
     you should use a more pythonic construct for looping through files:
@@ -790,6 +791,7 @@ workspace = Workspace()
 # ----------------------------------------------
 
 class FileInfo(collections.MutableMapping):
+
     """
     store and get custom data specific to this file:
 
@@ -814,6 +816,7 @@ class FileInfo(collections.MutableMapping):
     """
 
     class __metaclass__(_util.Singleton, abc.ABCMeta):
+
         """
         Simple subclass of the abstract base metaclass, and the Pymel Singleton.
         Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
@@ -1102,6 +1105,7 @@ listReferences.__doc__ += iterReferences.__doc__
 #            res += getReferences(reference=ref, recursive=True, namespaces=namespaces, refNodes=refNodes)
 #
 #    return res
+
 
 def getReferences(parentReference=None, recursive=False):
     # type: (Any, Any) -> Dict[unicode, FileReference]

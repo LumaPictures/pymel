@@ -40,6 +40,7 @@ else:
     objectErrorType = ValueError
     objectErrorReg = re.compile(',?No object matches name: ,?(.*)$')
 
+
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
@@ -70,6 +71,7 @@ def getCmdName(inFunc):
                 raise ValueError('could not find a command var in %s' % cmdName)
             cmdName = inFunc.func_closure[freeVarIndex].cell_contents
     return cmdName
+
 
 def getMelRepresentation(args, recursionLimit=None, maintainDicts=True):
     """Will return a list which contains each element of the iterable 'args' converted to a mel-friendly representation.
@@ -195,11 +197,13 @@ def addWrappedCmd(cmdname, cmd=None):
     setattr(_thisModule, cmdname, wrappedCmd)
     #globals()[cmdname] = wrappedCmd
 
+
 def removeWrappedCmd(cmdname):
     try:
         del cmdname
     except NameError:
         warnings.warn("%s not found in %s" % (cmdname, __name__))
+
 
 def addAllWrappedCmds():
     for cmdname, cmd in inspect.getmembers(maya.cmds, callable):

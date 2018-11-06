@@ -313,6 +313,7 @@ class FormatError(ValueError):
     for input."""
     pass
 
+
 class IncompleteCaptureError(ValueError):
 
     """The *scanf() functions raise IncompleteCaptureError if a problem
@@ -334,6 +335,7 @@ try:
 
 except:
     TypeError
+
 
 def sscanf(inputString, formatString):
     """sscanf(inputString, formatString) -> tuple
@@ -390,6 +392,7 @@ _PLUS_MINUS_SET = set("+-")
 _DIGIT_SET = set(DIGITS)
 _OCT_SET = set("01234567")
 _HEX_SET = set("0123456789ABCDEFabcdef")
+
 
 def handleDecimalInt(buffer, optional=False, allowLeadingWhitespace=True):
     """Tries to scan for an integer.  If 'optional' is set to False,

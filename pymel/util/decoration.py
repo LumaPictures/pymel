@@ -25,6 +25,7 @@ def decorated(origFunc, newFunc, decoration=None):
     newFunc.__module__ = origFunc.__module__
     newFunc._decorated = True   # stamp the function as decorated
 
+
 def decorator(func):
     """
     Decorator for decorators. Calls the 'decorated' function above for the decorated function, to preserve docstrings.

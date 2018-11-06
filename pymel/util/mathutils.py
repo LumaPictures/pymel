@@ -5,6 +5,7 @@ import math
 
 # to be able to call conjugate, real and imag on all numericals
 
+
 def conjugate(x):
     """ the conjugate part of x """
     if isinstance(x, complex):
@@ -12,12 +13,14 @@ def conjugate(x):
     else:
         return x
 
+
 def real(x):
     """ the real part of x """
     if isinstance(x, complex):
         return x.real
     else:
         return x
+
 
 def imag(x):
     """ the imaginary part of x """
@@ -27,6 +30,8 @@ def imag(x):
         return type(x)(0)
 
 # overload of built-in round fn to accept complex numbers
+
+
 def round(value, ndigits=0):
     """
     round(number[, ndigits]) -> float
@@ -44,7 +49,9 @@ def round(value, ndigits=0):
 
 # general remapping operations
 
+
 def gamma(c, g):
+    # type: (Any, Any) -> float
     """
     Gamma color correction of c with a single scalar gamma value g
 
@@ -52,7 +59,9 @@ def gamma(c, g):
     """
     return c ** g
 
+
 def blend(a, b, weight=0.5):
+    # type: (Any, Any, Any) -> float
     """
     blend(a, b[, weight=0.5]) :
     Blends values a and b according to normalized weight w,
@@ -64,7 +73,9 @@ def blend(a, b, weight=0.5):
 
 # TODO : modify these so that they accept iterable / element wise operations
 
+
 def smoothmap(min, max, x):
+    # type: (Any, Any, Any) -> float
     """Returns the value of a smooth remapping function.
 
     performs a smooth Hermite interpolation between 0 and 1 in the interval min to max,
@@ -76,7 +87,9 @@ def smoothmap(min, max, x):
     x = float(x - min) / float(max - min)
     return x * x * (3.0 - 2.0 * x)
 
+
 def smoothstep(min, max, x):
+    # type: (Any, Any, Any) -> float
     """Returns the value of a smooth step function.
 
     Returns 0 if x < min, 1 if x > max, and performs a smooth Hermite
@@ -90,7 +103,9 @@ def smoothstep(min, max, x):
         return 1.0
     return smoothmap(min, max, x)
 
+
 def linmap(min, max, x):
+    # type: (Any, Any, Any) -> float
     """Returns the value of a linear remapping function.
 
     performs a linear interpolation between 0 and 1 in the interval min to max,
@@ -100,7 +115,9 @@ def linmap(min, max, x):
     """
     return (float(x) - min) / (max - min)
 
+
 def linstep(min, max, x):
+    # type: (Any, Any, Any) -> float
     """Returns the value of a linear step function.
 
     Returns 0 if x < min, 1 if x > max, and performs a linear
@@ -115,7 +132,10 @@ def linstep(min, max, x):
     return linmap(min, max, x)
 
 # NOTE : x first seem more natural
+
+
 def clamp(x=0.0, min=0.0, max=1.0):
+    # type: (Any, Any, Any) -> float
     """ Clamps the value x between min and max
 
     :rtype: float
@@ -141,7 +161,9 @@ def clamp(x=0.0, min=0.0, max=1.0):
         result = x
     return result
 
+
 def setRange(x=0.0, oldmin=0.0, oldmax=1.0, newmin=0.0, newmax=1.0):
+    # type: (Any, Any, Any, Any, Any) -> float
     """ Resets x range from x linear interpolation of oldmin to oldmax to x linear interpolation from newmin to newmax
 
     :rtype: float
@@ -166,7 +188,9 @@ def setRange(x=0.0, oldmin=0.0, oldmax=1.0, newmin=0.0, newmax=1.0):
         result = (realnewmin + (realnewmax - realnewmin) * (x - oldmin) / (oldmax - oldmin))
     return result
 
+
 def hermiteInterp(x=0.0, y0=0.0, y1=1.0, s0=0.0, s1=0.0):
+    # type: (Any, Any, Any, Any, Any) -> float
     """ Hermite interpolation of x between points y0 and y1 of tangent slope s0 and s1
 
     :rtype: float
@@ -178,7 +202,9 @@ def hermiteInterp(x=0.0, y0=0.0, y1=1.0, s0=0.0, s1=0.0):
     b_neg = w + x
     return ((((x * x) - b_neg) * x + s0) * x + y0)
 
+
 def hermite(x=0.0, v0=0.0, v1=0.0, s0=0.0, s1=0.0):
+    # type: (Any, Any, Any, Any, Any) -> float
     """
     As the MEL command : This command returns x point along on x hermite curve from the five given control arguments.
     The first two arguments are the start and end points of the curve, respectively.

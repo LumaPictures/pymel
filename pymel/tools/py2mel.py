@@ -16,6 +16,7 @@ MAX_FLAG_ARGS = 6
 
 _functionStore = {}
 
+
 def _getFunction(function):
     # function is a string, so we must import its module and get the function object
     if isinstance(function, basestring):
@@ -35,7 +36,9 @@ def _getFunction(function):
 # Flatten a multi-list argument so that in can be passed as
 # a list of arguments to a command.
 
+
 def getMelArgs(function, exactMelType=True):
+    # type: (callable or str, Any) -> default}, {argName : description})
     """Inspect the arguments of a python function and return the cloesst
     compatible MEL arguments.
 
@@ -126,6 +129,7 @@ def getMelArgs(function, exactMelType=True):
         melArgs.append((arg, melType))
 
     return tuple(melArgs), melArgDefaults, parsedDescr
+
 
 def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, argTypes=None):
     """This is a work in progress.  It generates and sources a mel procedure which wraps the passed
@@ -244,6 +248,7 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
 #  Scripted Command Wrapper
 #--------------------------------------------------------
 
+
 def _shortnameByCaps(name):
     """
     uses hungarian notation (aka camelCaps) to generate a shortname, with a maximum of 3 letters
@@ -264,6 +269,7 @@ def _shortnameByCaps(name):
                 break
     return shortname
 
+
 def _shortnameByUnderscores(name):
     """
     for python methods that use underscores instead of camelCaps, with a maximum of 3 letters
@@ -277,6 +283,7 @@ def _shortnameByUnderscores(name):
             break
     return shortname
 
+
 def _shortnameByConvention(name):
     """
     chooses between byUnderscores and ByCaps
@@ -285,6 +292,7 @@ def _shortnameByConvention(name):
     if '_' in name:
         return _shortnameByUnderscores(name)
     return _shortnameByCaps(name)
+
 
 def _shortnameByDoc(method):
     """
@@ -304,6 +312,7 @@ def _shortnameByDoc(method):
         if m:
             return m.group(1)
 
+
 def _nonUniqueName(longname, shortname, shortNames, operation):
     if operation in ['skip', 'warn', 'error'] and shortname in shortNames:
         message = "default short name %r for flag %r is taken" % (shortname, longname)
@@ -315,6 +324,7 @@ def _nonUniqueName(longname, shortname, shortNames, operation):
             return True
         else:
             raise TypeError(message)
+
 
 def _invalidName(commandName, longname, operation):
     if len(longname) < 4 and operation in ['skip', 'warn', 'error']:
@@ -368,6 +378,7 @@ def _getShortNames(objects, nonUniqueName):
                     # print 'could not find a unique shortname for %s: using %s'% ( methodName, shortname )
         shortNames.append((longname, shortname))
     return tuple(shortNames)
+
 
 def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
                 filter=None):
@@ -475,6 +486,7 @@ class WrapperCommand(plugins.Command):
         return argValues
 
     def parseFlagArgs(self, argData):
+        # type: (Any) -> a list of (flagLongName, flagArgList) tuples
         """
         cycle through known flags looking for any that have been set.
 
@@ -506,9 +518,11 @@ class WrapperCommand(plugins.Command):
                 argValues.append((flag, flagArgs))
         return argValues
 
+
 def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
               excludeFlags=[], includeFlagArgs=None, excludeFlagArgs={},
               nonUniqueName='warn', invalidName='warn'):
+    # type: (Any, str, bool, list of str, Any, dict from str to list of str, dict from str to list of str, 'force', 'warn', 'skip', or 'error', 'force', 'warn', 'skip', or 'error') -> None
     """
     Create a MEL command from a python function or class.
 

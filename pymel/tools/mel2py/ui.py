@@ -1,5 +1,6 @@
 from pymel.core.windows import *
 
+
 class MelToPythonWindow(Window):
 
     def __new__(cls, name=None):

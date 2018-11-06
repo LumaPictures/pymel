@@ -38,6 +38,7 @@ from utilitytypes import *
 def verbose():
     return 0
 
+
 def currentfn():
     try:
         return sys._getframe(1).f_code.co_name
@@ -48,6 +49,7 @@ def currentfn():
 class NameParseError(Exception):
     pass
 
+
 class ParsingWarning(UserWarning):
     pass
 
@@ -55,6 +57,8 @@ class ParsingWarning(UserWarning):
 ProxyUni = proxyClass(unicode, 'ProxyUni', module=__name__, dataFuncName='compileName', remove=['__getitem__', '__doc__'])  # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 # For parsed objects, Token or upper level constructs
+
+
 class Parsed(ProxyUni):
 
     _parser = None
@@ -444,6 +448,7 @@ class Parsed(ProxyUni):
 
 # Parsers, all parser must derive from the Parser class
 
+
 class Parser(object):
 
     """ Abstract Base class for all name parsers """
@@ -592,6 +597,7 @@ class Parser(object):
         self.errorcount = 0
         return self.parser.parse(data, lexer=self.lexer, **kwargs)
 
+
 class Token(Parsed):
 
     """ A class for token types, allows direct initialization from a string and type without checking
@@ -621,6 +627,7 @@ class TokenParser(Parser):
             warnings.warn("%s is not matching %s pattern %r" % (data, self.__class__.__name__, self._pattern))
             self.errorcount += 1
 
+
 # special purpose empty parser
 class EmptyTokenParser(Parser):
 
@@ -636,6 +643,7 @@ class EmptyTokenParser(Parser):
 
 # derived TokenParser classes will be built for every token definition detected in Parser classes in this module
 
+
 class EmptyParser(Parser):
 
     """ Parser for the empty production """
@@ -646,16 +654,20 @@ class EmptyParser(Parser):
         'Empty : '
         pass
 
+
 def isParsedClass(x):
     try:
         return issubclass(x, Parsed)
     except:
         return False
+
+
 def isParserClass(x):
     try:
         return issubclass(x, Parser)
     except:
         return False
+
 
 def _printClassTree(cls):
     def _printTree(data, level):
@@ -913,6 +925,7 @@ class autoparsed(type):
 
         return newcls
 
+
 def _getTokenPatterns(parsercls):
     tokensDict = {}
     for name, obj in parsercls.__dict__.items():
@@ -956,6 +969,7 @@ Parser.classes = {}
 #    return dict(inspect.getmembers(module, isParserClass))
 # Stores it at import so that the inspect method isn't recalled at each query
 # Parser.classes(Parser.classes)
+
 
 def process(module=None):
     """cache out a dictionary of all Parsed and Parser classes, and create token classes"""

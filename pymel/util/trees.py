@@ -70,11 +70,14 @@ networkxLoad = False
 
 # Utility
 
+
 def isSequence(x):
     return type(x) is list or type(x) is tuple
 
+
 def isTree(x):
     return (type(type(x)) is MetaTree)
+
 
 def isImmutableTree(x):
     if isTree(x):
@@ -82,16 +85,19 @@ def isImmutableTree(x):
     else:
         return False
 
+
 def isMutableTree(x):
     if isTree(x):
         return x.__getattribute__('parent').fset is not None
     else:
         return False
 
+
 # decorator to identify mutable methods (that are only valid for mutable trees)
 def mutabletree(f):
     f.mutabletree = True
     return f
+
 
 # to create Tree classes
 class MetaTree(type):
@@ -1435,25 +1441,31 @@ class MetaTree(type):
         return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
 
 # derive from one of these as needed
+
+
 class FrozenTree(object):
     __metaclass__ = MetaTree
     mutable = False
     indexed = False
+
 
 class Tree(object):
     __metaclass__ = MetaTree
     mutable = True
     indexed = False
 
+
 class IndexedFrozenTree(object):
     __metaclass__ = MetaTree
     mutable = False
     indexed = True
 
+
 class IndexedTree(object):
     __metaclass__ = MetaTree
     mutable = True
     indexed = True
+
 
 def treeFromDict(childToParentDict):
     """
@@ -1470,6 +1482,7 @@ def treeFromDict(childToParentDict):
         return treeFromChildLink(isChildFn, *s)
     else:
         raise ValueError("%r is not a dictionnary" % childToParentDict)
+
 
 def treeFromChildLink(isExactChildFn, *args):
     """
@@ -1528,10 +1541,10 @@ def treeFromChildLink(isExactChildFn, *args):
                     err = "A child in Tree cannot have multiple " \
                           "parents, check the provided isChild(c, p) " \
                           "function: '%s' - child: %s - new parents: %s - old" \
-                          "parent: %s"  % (isExactChildFn.__name__,
-                                           c.value,
-                                           [x.value for x in pars],
-                                           c.parent.value)
+                          "parent: %s" % (isExactChildFn.__name__,
+                                          c.value,
+                                          [x.value for x in pars],
+                                          c.parent.value)
                     raise ValueError(err)
         # If it's a root we move it to final list
         if not hasParent:
@@ -1540,6 +1553,7 @@ def treeFromChildLink(isExactChildFn, *args):
 
     # print "final list %s" % str(lst)
     return Tree(*lst)
+
 
 def treeFromIsChild(isChildFn, *elements):
     """
@@ -1671,6 +1685,7 @@ def treeFromIsChild(isChildFn, *elements):
 #        """
 #        dirs = [dir.value for dir in self.path()]
 #        return os.path.join(dirs)
+
 
 # unit test with doctest
 if __name__ == '__main__':
