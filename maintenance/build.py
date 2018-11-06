@@ -232,20 +232,79 @@ def _getModulePath(module):
         return module.__file__.rsplit('.', 1)[0] + '.py'
 
 
+def _getSourceStartEndLines(object):
+    srclines, startline = inspect.getsourcelines(object)
+    endline = startline + len(srclines) - 1
+    return startline, endline
+
+
 class ModuleResetter(object):
     def __init__(self):
         self._resetModuleInfo = {}
 
+    def getClassLocations(self, moduleName):
+        moduleObject = sys.modules[moduleName]
+        classLocations = []
+        for clsname, clsobj in inspect.getmembers(moduleObject, inspect.isclass):
+            try:
+                clsmodule = inspect.getmodule(clsobj)
+                if clsmodule != moduleObject:
+                    continue
+                start, end = _getSourceStartEndLines(clsobj)
+            except IOError:
+                # some classes, you won't be able to get source for - ignore
+                #these
+                continue
+
+            classLocations.append((start, end, clsname))
+        classLocations.sort()
+        return classLocations
+
     def reset(self, module):
         if module in self._resetModuleInfo:
             return
+
+        classLocations = self.getClassLocations(module)
+
         source = _getModulePath(module)
         with open(source, 'r') as f:
             text = f.read()
 
         lines = text.split('\n')
 
-        trimmedPositions = []
+        classInsertInfo = {}
+
+        self.totalTrimmed = 0
+
+        def doTrim(trimStart, trimEnd):
+            # see if we're in the middle of a class
+            for clsStart, clsEnd, clsName in classLocations:
+                clsStart -= self.totalTrimmed
+                clsEnd -= self.totalTrimmed
+                if clsStart > trimEnd:
+                    break
+                if clsStart < trimStart and trimEnd <= clsEnd:
+                    # we're trimming inside a class - save the insert
+                    # location, and also trim off any class definition AFTER
+                    # the end marker, but store it away so it may be inserted
+                    # later.
+                    #
+                    # We do this because any custom code which is AFTER the
+                    # auto-generated class code will generally rely on
+                    # members defined in the auto-generated code.  This means
+                    # that it will fail when we import the module if we simply
+                    # remove the sections inbetween the start / end markers.
+                    #
+                    # This, we resetting the module, we also trim off any
+                    # portion in the class "suffix", so the class will import
+                    # properly, then append it back at the "end"
+                    clsSuffix = lines[trimEnd + 1:clsEnd + 1]
+                    classInsertInfo[module + '.' + clsName] = \
+                        (trimStart, clsSuffix)
+                    trimEnd = clsEnd
+                    break
+            lines[trimStart:trimEnd + 1] = []
+            self.totalTrimmed += (trimEnd + 1 - trimStart)
 
         def trim(begin):
             start = None
@@ -256,14 +315,12 @@ class ModuleResetter(object):
 
                 elif line == END_MARKER:
                     assert start is not None
-                    lines[start:i + 1] = []
-                    trimmedPositions.append(start)
+                    doTrim(start, i)
                     return start
 
             # end of lines
             if start is not None:
-                lines[start:] = []
-                trimmedPositions.append(start)
+                doTrim(start, i)
             return None
 
         begin = 0
@@ -272,19 +329,19 @@ class ModuleResetter(object):
 
         lines.append(START_MARKER)
 
-        print "writing to", source
+        print "writing reset", source
         with open(source, 'w') as f:
             f.write('\n'.join(lines))
         self._resetModuleInfo[module] = {
             'lines': lines,
-            'positions': trimmedPositions,
+            'classInsertInfo': classInsertInfo,
         }
 
     def getResetLines(self, module):
         return self._resetModuleInfo.get(module, {}).get('lines')
 
-    def getResetPositions(self, module):
-        return self._resetModuleInfo.get(module, {}).get('positions')
+    def getClassInsertInfo(self, module):
+        return self._resetModuleInfo.get(module, {}).get('classInsertInfo')
 
 
 def _writeToModule(new, module):
@@ -1358,7 +1415,7 @@ def generateTypes(iterator, module, resetter, suffix=None):
     source = _getModulePath(module)
 
     lines = resetter.getResetLines(module)
-    insertPositions = resetter.getResetPositions(module)
+    insertInfos = resetter.getClassInsertInfo(module)
 
     # tally of additions made in middle of code
     offsets = {}
@@ -1369,14 +1426,6 @@ def generateTypes(iterator, module, resetter, suffix=None):
             if st < start:
                 result += off
         return result
-
-    def getInsertPosition(startline, endline):
-        for pos in insertPositions:
-            if pos >= endline:
-                break
-            elif pos > startline:
-                return pos
-        return endline
 
     for text, template in iterator:
         newlines = text.split('\n')
@@ -1390,18 +1439,20 @@ def generateTypes(iterator, module, resetter, suffix=None):
             if not newlines:
                 continue
 
-            try:
-                srclines, startline = inspect.getsourcelines(template.existingClass)
-            except IOError:
-                print template.existingClass, dir(template.existingClass)
-                raise
+            startline, endline = _getSourceStartEndLines(template.existingClass)
 
-            endline = startline + len(srclines) - 1
-
-            insertLine = getInsertPosition(startline, endline)
+            classSuffix = None
+            clsName = module + '.' + template.existingClass.__name__
+            insertInfo = insertInfos.get(clsName)
+            if insertInfo:
+                insertLine, classSuffix = insertInfo
+            else:
+                insertLine = endline
             offsetInsertLine = computeOffset(insertLine)
 
             newlines = [START_MARKER] + newlines + [END_MARKER]
+            if classSuffix:
+                newlines += classSuffix
             lines[offsetInsertLine:offsetInsertLine] = newlines
             offsets[insertLine] = len(newlines)
         else:
@@ -1418,6 +1469,8 @@ def generateTypes(iterator, module, resetter, suffix=None):
 
 
 def generateAll():
+    import linecache
+
     factories.building = True
     factories.loadCmdCache()
 
@@ -1459,6 +1512,9 @@ def generateAll():
         doc = factories.apiToMelData[('BoundingBox', 'depth')]
         doc['properties'] = ['d']
 
+        # import pymel.core, so resetter can read class source info
+        import pymel.core
+
         # Reset modules, before import
         resetter = ModuleResetter()
         for module, _ in CORE_CMD_MODULES:
@@ -1469,7 +1525,19 @@ def generateAll():
         resetter.reset('pymel.core.uitypes')
         resetter.reset('pymel.core.datatypes')
 
-        # Import to populate existing objects
+        # "Reload" pymel.core modules, so we use the reset versions
+        for name in list(sys.modules):
+            splitname = name.split('.')
+            if len(splitname) >= 2 and splitname[:2] == ['pymel', 'core']:
+                del sys.modules[name]
+                assert name not in sys.modules
+                if len(splitname) == 3:
+                    try:
+                        delattr(pymel.core, splitname[2])
+                    except AttributeError:
+                        pass
+        linecache.clearcache()
+        del pymel.core
         import pymel.core
 
         # these are populated when core.general is imported, but they can be

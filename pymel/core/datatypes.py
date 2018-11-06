@@ -3454,10 +3454,9 @@ class BoundingBox(_api.MBoundingBox):
         res = _api.MBoundingBox.width(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 # ------ Do not edit above this line --------
-    if not _f.building:
-        w = property(width)
-        h = property(height)
-        d = property(depth)
+    w = property(width)
+    h = property(height)
+    d = property(depth)
 
 
 
