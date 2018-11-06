@@ -243,7 +243,9 @@ def _getSourceStartEndLines(object):
 
 class ModuleResetter(object):
     def __init__(self):
-        self._resetModuleInfo = {}
+        self.moduleLines = {}
+        self.classInsertLocations = {}
+        self.classSuffixes = {}
 
     def getClassLocations(self, moduleName):
         moduleObject = sys.modules[moduleName]
@@ -264,8 +266,9 @@ class ModuleResetter(object):
         return classLocations
 
     def reset(self, module):
-        if module in self._resetModuleInfo:
-            return
+        if module in self.moduleLines:
+            raise RuntimeError("You probably don't want to reset an already-"
+                               "reset or edited module")
 
         classLocations = self.getClassLocations(module)
 
@@ -274,8 +277,6 @@ class ModuleResetter(object):
             text = f.read()
 
         lines = text.split('\n')
-
-        classInsertInfo = {}
 
         self.totalTrimmed = 0
 
@@ -302,8 +303,10 @@ class ModuleResetter(object):
                     # portion in the class "suffix", so the class will import
                     # properly, then append it back at the "end"
                     clsSuffix = lines[trimEnd + 1:clsEnd + 1]
-                    classInsertInfo[module + '.' + clsName] = \
-                        (trimStart, clsSuffix)
+                    fullClsName = module + '.' + clsName
+                    self.classInsertLocations[fullClsName] = trimStart
+                    if clsSuffix:
+                        self.classSuffixes[fullClsName] = clsSuffix
                     trimEnd = clsEnd
                     break
             _logger.debug("Trimming lines: (original range: {}-{} -"
@@ -341,21 +344,14 @@ class ModuleResetter(object):
         while begin is not None:
             begin = trim(begin)
 
+        del self.totalTrimmed
+
         lines.append(START_MARKER)
 
         print "writing reset", source
         with open(source, 'w') as f:
             f.write('\n'.join(lines))
-        self._resetModuleInfo[module] = {
-            'lines': lines,
-            'classInsertInfo': classInsertInfo,
-        }
-
-    def getResetLines(self, module):
-        return self._resetModuleInfo.get(module, {}).get('lines')
-
-    def getClassInsertInfo(self, module):
-        return self._resetModuleInfo.get(module, {}).get('classInsertInfo')
+        self.moduleLines[module] = lines
 
 
 def _writeToModule(new, module):
@@ -1472,8 +1468,7 @@ def generateTypes(iterator, module, resetter, suffix=None):
     """
     source = _getModulePath(module)
 
-    lines = resetter.getResetLines(module)
-    insertInfos = resetter.getClassInsertInfo(module)
+    lines = resetter.moduleLines[module]
 
     # tally of additions made in middle of code
     offsets = {}
@@ -1499,14 +1494,10 @@ def generateTypes(iterator, module, resetter, suffix=None):
 
             startline, endline = _getSourceStartEndLines(template.existingClass)
 
-            classSuffix = None
             clsName = module + '.' + template.existingClass.__name__
-            insertInfo = insertInfos.get(clsName)
-            if insertInfo:
-                insertLine, classSuffix = insertInfo
-            else:
-                insertLine = endline
+            insertLine = resetter.classInsertLocations.get(clsName, endline)
             offsetInsertLine = computeOffset(insertLine)
+            classSuffix = resetter.classSuffixes.get(clsName)
 
             newlines = [START_MARKER] + newlines + [END_MARKER]
             if classSuffix:
