@@ -303,6 +303,11 @@ class ModuleResetter(object):
                         (trimStart, clsSuffix)
                     trimEnd = clsEnd
                     break
+            _logger.debug("Trimming lines: (original range: {}-{} -"
+                          " new range: {}-{})".format(
+                trimStart + 1 + self.totalTrimmed,
+                trimEnd + 1 + self.totalTrimmed,
+                trimStart + 1, trimEnd + 1))
             lines[trimStart:trimEnd + 1] = []
             self.totalTrimmed += (trimEnd + 1 - trimStart)
 
@@ -311,9 +316,15 @@ class ModuleResetter(object):
             for i, line in enumerate(lines[begin:]):
                 i = begin + i
                 if start is None and line == START_MARKER:
+                    _logger.debug("Found start marked (original line: {} /"
+                                  " new file line: {})".format(
+                        i + self.totalTrimmed + 1, i + 1))
                     start = i
 
                 elif line == END_MARKER:
+                    _logger.debug("Found end marked (original line: {} /"
+                                  " new file line: {})".format(
+                        i + self.totalTrimmed + 1, i + 1))
                     assert start is not None
                     doTrim(start, i)
                     return start
@@ -1468,6 +1479,28 @@ def generateTypes(iterator, module, resetter, suffix=None):
         f.write(text)
 
 
+def _deleteImportedCoreModules():
+    import linecache
+
+    pymelCore = sys.modules.get('pymel.core')
+
+    for name in list(sys.modules):
+        splitname = name.split('.')
+        if len(splitname) >= 2 and splitname[:2] == ['pymel', 'core']:
+            del sys.modules[name]
+            assert name not in sys.modules
+            if len(splitname) == 3 and pymelCore is not None:
+                try:
+                    delattr(pymelCore, splitname[2])
+                except AttributeError:
+                    pass
+    linecache.clearcache()
+
+    pymel = sys.modules.get('pymel')
+    if pymel is not None:
+        if hasattr(pymel, 'core'):
+            del pymel.core
+
 def generateAll():
     import linecache
 
@@ -1526,18 +1559,7 @@ def generateAll():
         resetter.reset('pymel.core.datatypes')
 
         # "Reload" pymel.core modules, so we use the reset versions
-        for name in list(sys.modules):
-            splitname = name.split('.')
-            if len(splitname) >= 2 and splitname[:2] == ['pymel', 'core']:
-                del sys.modules[name]
-                assert name not in sys.modules
-                if len(splitname) == 3:
-                    try:
-                        delattr(pymel.core, splitname[2])
-                    except AttributeError:
-                        pass
-        linecache.clearcache()
-        del pymel.core
+        _deleteImportedCoreModules()
         import pymel.core
 
         # these are populated when core.general is imported, but they can be
