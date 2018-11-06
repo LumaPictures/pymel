@@ -195,14 +195,14 @@ class Enum(object):
     """ Enumerated type """
 
     def __init__(self, name, keys, **kwargs):
-        # type: (str, dict from str to int, or iterable of keys, **Any) -> None
+        # type: (str, Union[Dict[str, int], Iterable[str]], **Any) -> None
         """ Create an enumeration instance
 
         Parameters
         ----------
         name : `str`
             The name of this enumeration
-        keys : `dict` from `str` to `int`, or iterable of keys
+        keys : Union[Dict[str, int], Iterable[str]]
             The keys for the enumeration; if this is a dict, it should map
             from key to it's value (ie, from string to int)
             Otherwise, it should be an iterable of keys, where their index
@@ -222,7 +222,7 @@ class Enum(object):
             one-to-one key / value mapping; if multiple keys are supplied for a
             a single value, then which key is used is indeterminate (an error
             will not be raised).
-        defaultKeys : `dict` from `int` to `string`
+        defaultKeys : Dict[int, str]
             If given, should be a map from values to the 'default' key to
             return for that value when using methods like getKey(index)
             This will only be used if the value actually has multiple keys
@@ -230,7 +230,7 @@ class Enum(object):
             present within keys (if not, a EnumBadDefaultKeyError is raised).
             If there are multiple keys for a given value, and no defaultKey is
             provided, which one is used is undefined.
-        docs : `dict` from `str` to `int, or None
+        docs : Optional[Dict[int, str]]
             if given, should provide a map from keys to an associated docstring
             for that key; the dict need not provide an entry for every key
         """
@@ -344,10 +344,10 @@ class Enum(object):
             keysFlat = [(ev.key, ev.index) for ev in self.itervalues()]
             multiKeyInfo = ''
 
-        return '%s(%r, {\n    %s\n}%s)' % (
+        return '%s(%r, {%s}%s)' % (
             self.__class__.__name__,
             self.name,
-            ',\n    '.join('%r: %r' % item for item in keysFlat),
+            ', '.join('%r: %r' % item for item in keysFlat),
             multiKeyInfo,
         )
 

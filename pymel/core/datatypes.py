@@ -795,7 +795,7 @@ class Vector(VectorN):
             cotangent of the a, b angle, a and b should be MVectors"""
         return VectorN.cotan(self, other)
 # ------ Do not edit below this line --------
-    Axis = Enum('Axis', {'xaxis': 0, 'yaxis': 1, 'zaxis': 2, 'waxis': 3})
+    Axis = Enum('Axis', {'kXaxis': 0, 'xaxis': 0, 'yaxis': 1, 'kYaxis': 1, 'kZaxis': 2, 'zaxis': 2, 'waxis': 3, 'kWaxis': 3}, multiKeys=True, defaults={0: 'xaxis', 1: 'yaxis', 2: 'zaxis', 3: 'waxis'})
     one = _f.ClassConstant([1.0, 1.0, 1.0])
     xAxis = _f.ClassConstant([1.0, 0.0, 0.0])
     xNegAxis = _f.ClassConstant([-1.0, 0.0, 0.0])
@@ -1510,7 +1510,7 @@ class Color(Vector):
             c[0] += 1.0
         return self.__class__(c, mode='hsv')
 # ------ Do not edit below this line --------
-    MColorType = Enum('MColorType', {'RGB': 0, 'HSV': 1, 'CMY': 2, 'CMYK': 3})
+    MColorType = Enum('MColorType', {'RGB': 0, 'kRGB': 0, 'kHSV': 1, 'HSV': 1, 'kCMY': 2, 'CMY': 2, 'kCMYK': 3, 'CMYK': 3}, multiKeys=True, defaults={0: 'RGB', 1: 'HSV', 2: 'CMY', 3: 'CMYK'})
     black = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
     blue = _f.ClassConstant([0.0, 0.0, 1.0, 1.0])
     clear = _f.ClassConstant([0.0, 0.0, 0.0, 0.0])
@@ -2435,7 +2435,7 @@ class TransformationMatrix(Matrix):
     scale = property(_getScale, _setScale, None,
                      "The scale expressed in this TransformationMatrix, in transform space")
 # ------ Do not edit below this line --------
-    RotationOrder = Enum('RotationOrder', {'invalid': 0, 'XYZ': 1, 'YZX': 2, 'ZXY': 3, 'XZY': 4, 'YXZ': 5, 'ZYX': 6, 'last': 7})
+    RotationOrder = Enum('RotationOrder', {'kInvalid': 0, 'invalid': 0, 'XYZ': 1, 'kXYZ': 1, 'YZX': 2, 'kYZX': 2, 'kZXY': 3, 'ZXY': 3, 'XZY': 4, 'kXZY': 4, 'YXZ': 5, 'kYXZ': 5, 'kZYX': 6, 'ZYX': 6, 'last': 7, 'kLast': 7}, multiKeys=True, defaults={0: 'invalid', 1: 'XYZ', 2: 'YZX', 3: 'ZXY', 4: 'XZY', 5: 'YXZ', 6: 'ZYX', 7: 'last'})
     identity = _f.ClassConstant([Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])])
 
     def __getattribute__(self, name):
@@ -2975,7 +2975,7 @@ class EulerRotation(Array):
         except:
             return NotImplemented
 # ------ Do not edit below this line --------
-    RotationOrder = Enum('RotationOrder', {'XYZ': 0, 'YZX': 1, 'ZXY': 2, 'XZY': 3, 'YXZ': 4, 'ZYX': 5})
+    RotationOrder = Enum('RotationOrder', {'XYZ': 0, 'kXYZ': 0, 'YZX': 1, 'kYZX': 1, 'kZXY': 2, 'ZXY': 2, 'XZY': 3, 'kXZY': 3, 'YXZ': 4, 'kYXZ': 4, 'kZYX': 5, 'ZYX': 5}, multiKeys=True, defaults={0: 'XYZ', 1: 'YZX', 2: 'ZXY', 3: 'XZY', 4: 'YXZ', 5: 'ZYX'})
     identity = _f.ClassConstant([0.0, 0.0, 0.0])
 
     @_f.addApiDocs(_api.MEulerRotation, 'alternateSolution')
@@ -3225,7 +3225,7 @@ class Time(Unit):
     def _inCast(cls, x):
         return cls(x)._data
 # ------ Do not edit below this line --------
-    Unit = Enum('Unit', {'invalid': 0, 'hours': 1, 'minutes': 2, 'seconds': 3, 'milliseconds': 4, 'k15FPS': 5, 'film': 6, 'k25FPS': 7, 'NTSCFrame': 8, 'k48FPS': 9, 'k50FPS': 10, 'NTSCField': 11, 'k2FPS': 12, 'k3FPS': 13, 'k4FPS': 14, 'k5FPS': 15, 'k6FPS': 16, 'k8FPS': 17, 'k10FPS': 18, 'k12FPS': 19, 'k16FPS': 20, 'k20FPS': 21, 'k40FPS': 22, 'k75FPS': 23, 'k80FPS': 24, 'k100FPS': 25, 'k120FPS': 26, 'k125FPS': 27, 'k150FPS': 28, 'k200FPS': 29, 'k240FPS': 30, 'k250FPS': 31, 'k300FPS': 32, 'k375FPS': 33, 'k400FPS': 34, 'k500FPS': 35, 'k600FPS': 36, 'k750FPS': 37, 'k1200FPS': 38, 'k1500FPS': 39, 'k2000FPS': 40, 'k3000FPS': 41, 'k6000FPS': 42, 'k23_976FPS': 43, 'k29_97FPS': 44, 'k29_97DF': 45, 'k47_952FPS': 46, 'k59_94FPS': 47, 'k44100FPS': 48, 'k48000FPS': 49, 'userDef': 50, 'last': 51})
+    Unit = Enum('Unit', {'invalid': 0, 'kInvalid': 0, 'hours': 1, 'kHours': 1, 'minutes': 2, 'kMinutes': 2, 'seconds': 3, 'kSeconds': 3, 'milliseconds': 4, 'kMilliseconds': 4, 'k15FPS': 5, 'kGames': 5, 'games': 5, 'k24FPS': 6, 'film': 6, 'kFilm': 6, 'PALFrame': 7, 'k25FPS': 7, 'kPALFrame': 7, 'kNTSCFrame': 8, 'k30FPS': 8, 'NTSCFrame': 8, 'k48FPS': 9, 'kShowScan': 9, 'showScan': 9, 'k50FPS': 10, 'kPALField': 10, 'PALField': 10, 'k60FPS': 11, 'kNTSCField': 11, 'NTSCField': 11, 'k2FPS': 12, 'k3FPS': 13, 'k4FPS': 14, 'k5FPS': 15, 'k6FPS': 16, 'k8FPS': 17, 'k10FPS': 18, 'k12FPS': 19, 'k16FPS': 20, 'k20FPS': 21, 'k40FPS': 22, 'k75FPS': 23, 'k80FPS': 24, 'k100FPS': 25, 'k120FPS': 26, 'k125FPS': 27, 'k150FPS': 28, 'k200FPS': 29, 'k240FPS': 30, 'k250FPS': 31, 'k300FPS': 32, 'k375FPS': 33, 'k400FPS': 34, 'k500FPS': 35, 'k600FPS': 36, 'k750FPS': 37, 'k1200FPS': 38, 'k1500FPS': 39, 'k2000FPS': 40, 'k3000FPS': 41, 'k6000FPS': 42, 'k23_976FPS': 43, 'k29_97FPS': 44, 'k29_97DF': 45, 'k47_952FPS': 46, 'k59_94FPS': 47, 'k44100FPS': 48, 'k48000FPS': 49, 'kUserDef': 50, 'userDef': 50, 'kLast': 51, 'last': 51}, multiKeys=True, defaults={0: 'invalid', 1: 'hours', 2: 'minutes', 3: 'seconds', 4: 'milliseconds', 5: 'k15FPS', 6: 'film', 7: 'k25FPS', 8: 'NTSCFrame', 9: 'k48FPS', 10: 'k50FPS', 11: 'NTSCField', 50: 'userDef', 51: 'last'})
 # ------ Do not edit above this line --------
 
 
@@ -3332,7 +3332,7 @@ class Distance(Unit):
     def _outCast(cls, instance, result):
         return cls(result, 'centimeters').asUIUnit()
 # ------ Do not edit below this line --------
-    Unit = Enum('Unit', {'inches': 1, 'feet': 2, 'yards': 3, 'miles': 4, 'millimeters': 5, 'centimeters': 6, 'kilometers': 7, 'meters': 8})
+    Unit = Enum('Unit', {'inches': 1, 'kInches': 1, 'kFeet': 2, 'feet': 2, 'kYards': 3, 'yards': 3, 'miles': 4, 'kMiles': 4, 'kMillimeters': 5, 'millimeters': 5, 'kCentimeters': 6, 'centimeters': 6, 'kKilometers': 7, 'kilometers': 7, 'kMeters': 8, 'meters': 8}, multiKeys=True, defaults={1: 'inches', 2: 'feet', 3: 'yards', 4: 'miles', 5: 'millimeters', 6: 'centimeters', 7: 'kilometers', 8: 'meters'})
 # ------ Do not edit above this line --------
 
 
@@ -3357,7 +3357,7 @@ class Angle(Unit):
     def _outCast(cls, instance, result):
         return cls(result, 'radians').asUIUnit()
 # ------ Do not edit below this line --------
-    Unit = Enum('Unit', {'invalid': 0, 'radians': 1, 'degrees': 2, 'angMinutes': 3, 'angSeconds': 4, 'last': 5})
+    Unit = Enum('Unit', {'invalid': 0, 'kInvalid': 0, 'radians': 1, 'kRadians': 1, 'degrees': 2, 'kDegrees': 2, 'kAngMinutes': 3, 'angMinutes': 3, 'angSeconds': 4, 'kAngSeconds': 4, 'last': 5, 'kLast': 5}, multiKeys=True, defaults={0: 'invalid', 1: 'radians', 2: 'degrees', 3: 'angMinutes', 4: 'angSeconds', 5: 'last'})
 # ------ Do not edit above this line --------
 
 

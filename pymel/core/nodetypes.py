@@ -851,10 +851,10 @@ class DependNode(general.PyNode):
         """
         _factories.registerVirtualClass(cls, nameRequired)
 # ------ Do not edit below this line --------
-    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'normalAttr': 2, 'extensionAttr': 3, 'invalidAttr': 4})
-    MdgTimerMetric = Enum('MdgTimerMetric', {'metric_callback': 0, 'metric_compute': 1, 'metric_dirty': 2, 'metric_draw': 3, 'metric_fetch': 4, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'metrics': 9})
-    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'on': 1, 'uninitialized': 2, 'invalidState': 3})
-    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'type_inclusive': 1, 'type_count': 2, 'types': 3})
+    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'kLocalDynamicAttr': 1, 'kNormalAttr': 2, 'normalAttr': 2, 'kExtensionAttr': 3, 'extensionAttr': 3, 'kInvalidAttr': 4, 'invalidAttr': 4}, multiKeys=True, defaults={1: 'localDynamicAttr', 2: 'normalAttr', 3: 'extensionAttr', 4: 'invalidAttr'})
+    MdgTimerMetric = Enum('MdgTimerMetric', {'kTimerMetric_callback': 0, 'metric_callback': 0, 'metric_compute': 1, 'kTimerMetric_compute': 1, 'kTimerMetric_dirty': 2, 'metric_dirty': 2, 'metric_draw': 3, 'kTimerMetric_draw': 3, 'kTimerMetric_fetch': 4, 'metric_fetch': 4, 'kTimerMetric_callbackViaAPI': 5, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'kTimerMetric_callbackNotViaAPI': 6, 'kTimerMetric_computeDuringCallback': 7, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'kTimerMetric_computeNotDuringCallback': 8, 'kTimerMetrics': 9, 'metrics': 9}, multiKeys=True, defaults={0: 'metric_callback', 1: 'metric_compute', 2: 'metric_dirty', 3: 'metric_draw', 4: 'metric_fetch', 5: 'metric_callbackViaAPI', 6: 'metric_callbackNotViaAPI', 7: 'metric_computeDuringCallback', 8: 'metric_computeNotDuringCallback', 9: 'metrics'})
+    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'kTimerOff': 0, 'on': 1, 'kTimerOn': 1, 'uninitialized': 2, 'kTimerUninitialized': 2, 'invalidState': 3, 'kTimerInvalidState': 3}, multiKeys=True, defaults={0: 'off', 1: 'on', 2: 'uninitialized', 3: 'invalidState'})
+    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'kTimerType_self': 0, 'type_inclusive': 1, 'kTimerType_inclusive': 1, 'type_count': 2, 'kTimerType_count': 2, 'kTimerTypes': 3, 'types': 3}, multiKeys=True, defaults={0: 'type_self', 1: 'type_inclusive', 2: 'type_count', 3: 'types'})
     __melnode__ = 'dependNode'
     __slots__ = ()
 
@@ -1146,7 +1146,7 @@ class DependNode(general.PyNode):
 class ContainerBase(DependNode):
     pass
 # ------ Do not edit below this line --------
-    MPublishNodeType = Enum('MPublishNodeType', {'parentAnchor': 0, 'childAnchor': 1, 'generic': 2})
+    MPublishNodeType = Enum('MPublishNodeType', {'parentAnchor': 0, 'kParentAnchor': 0, 'childAnchor': 1, 'kChildAnchor': 1, 'generic': 2, 'kGeneric': 2}, multiKeys=True, defaults={0: 'parentAnchor', 1: 'childAnchor', 2: 'generic'})
     __apicls__ = _api.MFnContainerNode
     __melnode__ = u'containerBase'
     __slots__ = ()
@@ -2345,7 +2345,7 @@ class DagNode(Entity):
         else:
             cmds.makeLive(self)
 # ------ Do not edit below this line --------
-    MObjectColorType = Enum('MObjectColorType', {'defaultColor': 0, 'indexColor': 1, 'RGBColor': 2})
+    MObjectColorType = Enum('MObjectColorType', {'defaultColor': 0, 'kUseDefaultColor': 0, 'kUseIndexColor': 1, 'indexColor': 1, 'RGBColor': 2, 'kUseRGBColor': 2}, multiKeys=True, defaults={0: 'defaultColor', 1: 'indexColor', 2: 'RGBColor'})
     __melnode__ = u'dagNode'
     __slots__ = ()
 
@@ -2695,8 +2695,8 @@ class Camera(Shape):
             kwargs['absolute'] = True
         cmds.roll(self, **kwargs)
 # ------ Do not edit below this line --------
-    FilmFit = Enum('FilmFit', {'fillFilmFit': 0, 'horizontalFilmFit': 1, 'verticalFilmFit': 2, 'overscanFilmFit': 3, 'invalid': 4})
-    RollOrder = Enum('RollOrder', {'rotateTranslate': 0, 'translateRotate': 1})
+    FilmFit = Enum('FilmFit', {'kFillFilmFit': 0, 'fillFilmFit': 0, 'horizontalFilmFit': 1, 'kHorizontalFilmFit': 1, 'kVerticalFilmFit': 2, 'verticalFilmFit': 2, 'overscanFilmFit': 3, 'kOverscanFilmFit': 3, 'kInvalid': 4, 'invalid': 4}, multiKeys=True, defaults={0: 'fillFilmFit', 1: 'horizontalFilmFit', 2: 'verticalFilmFit', 3: 'overscanFilmFit', 4: 'invalid'})
+    RollOrder = Enum('RollOrder', {'rotateTranslate': 0, 'kRotateTranslate': 0, 'translateRotate': 1, 'kTranslateRotate': 1}, multiKeys=True, defaults={0: 'rotateTranslate', 1: 'translateRotate'})
     __apicls__ = _api.MFnCamera
     __melcmd__ = staticmethod(rendering.camera)
     __melcmd_isinfo__ = False
@@ -4020,7 +4020,7 @@ class Transform(DagNode):
         """
         return self.getBoundingBox(invisible, space)[1]
 # ------ Do not edit below this line --------
-    LimitType = Enum('LimitType', {'scaleMinX': 0, 'scaleMaxX': 1, 'scaleMinY': 2, 'scaleMaxY': 3, 'scaleMinZ': 4, 'scaleMaxZ': 5, 'shearMinXY': 6, 'shearMaxXY': 7, 'shearMinXZ': 8, 'shearMaxXZ': 9, 'shearMinYZ': 10, 'shearMaxYZ': 11, 'rotateMinX': 12, 'rotateMaxX': 13, 'rotateMinY': 14, 'rotateMaxY': 15, 'rotateMinZ': 16, 'rotateMaxZ': 17, 'translateMinX': 18, 'translateMaxX': 19, 'translateMinY': 20, 'translateMaxY': 21, 'translateMinZ': 22, 'translateMaxZ': 23})
+    LimitType = Enum('LimitType', {'scaleMinX': 0, 'kScaleMinX': 0, 'kScaleMaxX': 1, 'scaleMaxX': 1, 'scaleMinY': 2, 'kScaleMinY': 2, 'kScaleMaxY': 3, 'scaleMaxY': 3, 'scaleMinZ': 4, 'kScaleMinZ': 4, 'kScaleMaxZ': 5, 'scaleMaxZ': 5, 'shearMinXY': 6, 'kShearMinXY': 6, 'kShearMaxXY': 7, 'shearMaxXY': 7, 'shearMinXZ': 8, 'kShearMinXZ': 8, 'kShearMaxXZ': 9, 'shearMaxXZ': 9, 'shearMinYZ': 10, 'kShearMinYZ': 10, 'shearMaxYZ': 11, 'kShearMaxYZ': 11, 'rotateMinX': 12, 'kRotateMinX': 12, 'rotateMaxX': 13, 'kRotateMaxX': 13, 'rotateMinY': 14, 'kRotateMinY': 14, 'rotateMaxY': 15, 'kRotateMaxY': 15, 'rotateMinZ': 16, 'kRotateMinZ': 16, 'rotateMaxZ': 17, 'kRotateMaxZ': 17, 'translateMinX': 18, 'kTranslateMinX': 18, 'kTranslateMaxX': 19, 'translateMaxX': 19, 'translateMinY': 20, 'kTranslateMinY': 20, 'kTranslateMaxY': 21, 'translateMaxY': 21, 'translateMinZ': 22, 'kTranslateMinZ': 22, 'kTranslateMaxZ': 23, 'translateMaxZ': 23}, multiKeys=True, defaults={0: 'scaleMinX', 1: 'scaleMaxX', 2: 'scaleMinY', 3: 'scaleMaxY', 4: 'scaleMinZ', 5: 'scaleMaxZ', 6: 'shearMinXY', 7: 'shearMaxXY', 8: 'shearMinXZ', 9: 'shearMaxXZ', 10: 'shearMinYZ', 11: 'shearMaxYZ', 12: 'rotateMinX', 13: 'rotateMaxX', 14: 'rotateMinY', 15: 'rotateMaxY', 16: 'rotateMinZ', 17: 'rotateMaxZ', 18: 'translateMinX', 19: 'translateMaxX', 20: 'translateMinY', 21: 'translateMaxY', 22: 'translateMinZ', 23: 'translateMaxZ'})
     __apicls__ = _api.MFnTransform
     __melcmd__ = staticmethod(general.xform)
     __melcmd_isinfo__ = True
@@ -5000,7 +5000,7 @@ class NurbsCurve(CurveShape):
                             'knot': general.NurbsCurveKnot,
                             'knots': general.NurbsCurveKnot}
 # ------ Do not edit below this line --------
-    Form = Enum('Form', {'invalid': 0, 'open': 1, 'closed': 2, 'periodic': 3, 'last': 4})
+    Form = Enum('Form', {'kInvalid': 0, 'invalid': 0, 'kOpen': 1, 'open': 1, 'kClosed': 2, 'closed': 2, 'periodic': 3, 'kPeriodic': 3, 'last': 4, 'kLast': 4}, multiKeys=True, defaults={0: 'invalid', 1: 'open', 2: 'closed', 3: 'periodic', 4: 'last'})
     __apicls__ = _api.MFnNurbsCurve
     __melcmd__ = staticmethod(modeling.curve)
     __melcmd_isinfo__ = False
@@ -5336,8 +5336,8 @@ class NurbsSurface(SurfaceShape):
                             'sf': general.NurbsSurfaceFace,
                             'faces': general.NurbsSurfaceFace}
 # ------ Do not edit below this line --------
-    BoundaryType = Enum('BoundaryType', {'invalidBoundary': 0, 'outer': 1, 'inner': 2, 'segment': 3, 'closedSegment': 4})
-    Form = Enum('Form', {'invalid': 0, 'open': 1, 'closed': 2, 'periodic': 3, 'last': 4})
+    BoundaryType = Enum('BoundaryType', {'invalidBoundary': 0, 'kInvalidBoundary': 0, 'outer': 1, 'kOuter': 1, 'kInner': 2, 'inner': 2, 'kSegment': 3, 'segment': 3, 'closedSegment': 4, 'kClosedSegment': 4}, multiKeys=True, defaults={0: 'invalidBoundary', 1: 'outer', 2: 'inner', 3: 'segment', 4: 'closedSegment'})
+    Form = Enum('Form', {'kInvalid': 0, 'invalid': 0, 'kOpen': 1, 'open': 1, 'kClosed': 2, 'closed': 2, 'periodic': 3, 'kPeriodic': 3, 'last': 4, 'kLast': 4}, multiKeys=True, defaults={0: 'invalid', 1: 'open', 2: 'closed', 3: 'periodic', 4: 'last'})
     __apicls__ = _api.MFnNurbsSurface
     __melcmd__ = staticmethod(modeling.surface)
     __melcmd_isinfo__ = False
@@ -6140,9 +6140,9 @@ class Mesh(SurfaceShape):
             args.append(colorSet)
         return mfn.numColors(*args)
 # ------ Do not edit below this line --------
-    BoolOperation = Enum('BoolOperation', {'union': 1, 'difference': 2, 'intersection': 3})
-    MColorRepresentation = Enum('MColorRepresentation', {'alpha': 1, 'RGB': 3, 'RGBA': 4})
-    SplitPlacement = Enum('SplitPlacement', {'onEdge': 0, 'internalPoint': 1, 'invalid': 2})
+    BoolOperation = Enum('BoolOperation', {'union': 1, 'kUnion': 1, 'difference': 2, 'kDifference': 2, 'kIntersection': 3, 'intersection': 3}, multiKeys=True, defaults={1: 'union', 2: 'difference', 3: 'intersection'})
+    MColorRepresentation = Enum('MColorRepresentation', {'alpha': 1, 'kAlpha': 1, 'RGB': 3, 'kRGB': 3, 'kRGBA': 4, 'RGBA': 4}, multiKeys=True, defaults={1: 'alpha', 3: 'RGB', 4: 'RGBA'})
+    SplitPlacement = Enum('SplitPlacement', {'kOnEdge': 0, 'onEdge': 0, 'internalPoint': 1, 'kInternalPoint': 1, 'kInvalid': 2, 'invalid': 2}, multiKeys=True, defaults={0: 'onEdge', 1: 'internalPoint', 2: 'invalid'})
     __apicls__ = _api.MFnMesh
     __melnode__ = u'mesh'
     __slots__ = ()
@@ -7339,7 +7339,7 @@ class Particle(DeformableShape):
         return cmds.particle(self, q=1, count=1)
     num = pointCount
 # ------ Do not edit below this line --------
-    RenderType = Enum('RenderType', {'cloud': 0, 'tube': 1, 'blobby': 2, 'multiPoint': 3, 'multiStreak': 4, 'numeric': 5, 'points': 6, 'spheres': 7, 'sprites': 8, 'streak': 9})
+    RenderType = Enum('RenderType', {'kCloud': 0, 'cloud': 0, 'tube': 1, 'kTube': 1, 'blobby': 2, 'kBlobby': 2, 'multiPoint': 3, 'kMultiPoint': 3, 'kMultiStreak': 4, 'multiStreak': 4, 'kNumeric': 5, 'numeric': 5, 'kPoints': 6, 'points': 6, 'kSpheres': 7, 'spheres': 7, 'kSprites': 8, 'sprites': 8, 'streak': 9, 'kStreak': 9}, multiKeys=True, defaults={0: 'cloud', 1: 'tube', 2: 'blobby', 3: 'multiPoint', 4: 'multiStreak', 5: 'numeric', 6: 'points', 7: 'spheres', 8: 'sprites', 9: 'streak'})
     __melcmd__ = staticmethod(effects.particle)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'particle'
@@ -8450,7 +8450,7 @@ class ObjectSet(Entity):
         '''
         return bool(cmds.sets(self, q=True, r=True))
 # ------ Do not edit below this line --------
-    Restriction = Enum('Restriction', {'none': 0, 'verticesOnly': 1, 'edgesOnly': 2, 'facetsOnly': 3, 'editPointsOnly': 4, 'renderableOnly': 5})
+    Restriction = Enum('Restriction', {'none': 0, 'kNone': 0, 'verticesOnly': 1, 'kVerticesOnly': 1, 'kEdgesOnly': 2, 'edgesOnly': 2, 'facetsOnly': 3, 'kFacetsOnly': 3, 'editPointsOnly': 4, 'kEditPointsOnly': 4, 'renderableOnly': 5, 'kRenderableOnly': 5}, multiKeys=True, defaults={0: 'none', 1: 'verticesOnly', 2: 'edgesOnly', 3: 'facetsOnly', 4: 'editPointsOnly', 5: 'renderableOnly'})
     __apicls__ = _api.MFnSet
     __melnode__ = u'objectSet'
     __slots__ = ()
@@ -8900,9 +8900,9 @@ class AnimCurve(DependNode):
         # just because MFnAnimCurve.numKeyframes is deprecated...
         return self.numKeys()
 # ------ Do not edit below this line --------
-    AnimCurveType = Enum('AnimCurveType', {'TA': 0, 'TL': 1, 'TT': 2, 'TU': 3, 'UA': 4, 'UL': 5, 'UT': 6, 'UU': 7, 'unknown': 8})
-    InfinityType = Enum('InfinityType', {'constant': 0, 'linear': 1, 'cycle': 3, 'cycleRelative': 4, 'oscillate': 5})
-    TangentType = Enum('TangentType', {'global_': 0, 'fixed': 1, 'linear': 2, 'flat': 3, 'smooth': 4, 'step': 5, 'slow': 6, 'fast': 7, 'clamped': 8, 'plateau': 9, 'stepNext': 10, 'auto': 11})
+    AnimCurveType = Enum('AnimCurveType', {'kAnimCurveTA': 0, 'TA': 0, 'TL': 1, 'kAnimCurveTL': 1, 'kAnimCurveTT': 2, 'TT': 2, 'kAnimCurveTU': 3, 'TU': 3, 'kAnimCurveUA': 4, 'UA': 4, 'UL': 5, 'kAnimCurveUL': 5, 'UT': 6, 'kAnimCurveUT': 6, 'UU': 7, 'kAnimCurveUU': 7, 'kAnimCurveUnknown': 8, 'unknown': 8}, multiKeys=True, defaults={0: 'TA', 1: 'TL', 2: 'TT', 3: 'TU', 4: 'UA', 5: 'UL', 6: 'UT', 7: 'UU', 8: 'unknown'})
+    InfinityType = Enum('InfinityType', {'constant': 0, 'kConstant': 0, 'linear': 1, 'kLinear': 1, 'kCycle': 3, 'cycle': 3, 'kCycleRelative': 4, 'cycleRelative': 4, 'oscillate': 5, 'kOscillate': 5}, multiKeys=True, defaults={0: 'constant', 1: 'linear', 3: 'cycle', 4: 'cycleRelative', 5: 'oscillate'})
+    TangentType = Enum('TangentType', {'kTangentGlobal': 0, 'global_': 0, 'kTangentFixed': 1, 'fixed': 1, 'linear': 2, 'kTangentLinear': 2, 'kTangentFlat': 3, 'flat': 3, 'smooth': 4, 'kTangentSmooth': 4, 'kTangentStep': 5, 'step': 5, 'slow': 6, 'kTangentSlow': 6, 'kTangentFast': 7, 'fast': 7, 'clamped': 8, 'kTangentClamped': 8, 'plateau': 9, 'kTangentPlateau': 9, 'stepNext': 10, 'kTangentStepNext': 10, 'kTangentAuto': 11, 'auto': 11}, multiKeys=True, defaults={0: 'global_', 1: 'fixed', 2: 'linear', 3: 'flat', 4: 'smooth', 5: 'step', 6: 'slow', 7: 'fast', 8: 'clamped', 9: 'plateau', 10: 'stepNext', 11: 'auto'})
     __apicls__ = _api.MFnAnimCurve
     __melnode__ = u'animCurve'
     __slots__ = ()
@@ -9579,7 +9579,7 @@ if _apicache.SYMMETRY_CONSTRAINT_MFNDAG_BUG:
 class HikHandle(Transform):
     pass
 # ------ Do not edit below this line --------
-    LimitType = Enum('LimitType', {'scaleMinX': 0, 'scaleMaxX': 1, 'scaleMinY': 2, 'scaleMaxY': 3, 'scaleMinZ': 4, 'scaleMaxZ': 5, 'shearMinXY': 6, 'shearMaxXY': 7, 'shearMinXZ': 8, 'shearMaxXZ': 9, 'shearMinYZ': 10, 'shearMaxYZ': 11, 'rotateMinX': 12, 'rotateMaxX': 13, 'rotateMinY': 14, 'rotateMaxY': 15, 'rotateMinZ': 16, 'rotateMaxZ': 17, 'translateMinX': 18, 'translateMaxX': 19, 'translateMinY': 20, 'translateMaxY': 21, 'translateMinZ': 22, 'translateMaxZ': 23})
+    LimitType = Enum('LimitType', {'scaleMinX': 0, 'kScaleMinX': 0, 'kScaleMaxX': 1, 'scaleMaxX': 1, 'scaleMinY': 2, 'kScaleMinY': 2, 'kScaleMaxY': 3, 'scaleMaxY': 3, 'scaleMinZ': 4, 'kScaleMinZ': 4, 'kScaleMaxZ': 5, 'scaleMaxZ': 5, 'shearMinXY': 6, 'kShearMinXY': 6, 'kShearMaxXY': 7, 'shearMaxXY': 7, 'shearMinXZ': 8, 'kShearMinXZ': 8, 'kShearMaxXZ': 9, 'shearMaxXZ': 9, 'shearMinYZ': 10, 'kShearMinYZ': 10, 'shearMaxYZ': 11, 'kShearMaxYZ': 11, 'rotateMinX': 12, 'kRotateMinX': 12, 'rotateMaxX': 13, 'kRotateMaxX': 13, 'rotateMinY': 14, 'kRotateMinY': 14, 'rotateMaxY': 15, 'kRotateMaxY': 15, 'rotateMinZ': 16, 'kRotateMinZ': 16, 'rotateMaxZ': 17, 'kRotateMaxZ': 17, 'translateMinX': 18, 'kTranslateMinX': 18, 'kTranslateMaxX': 19, 'translateMaxX': 19, 'translateMinY': 20, 'kTranslateMinY': 20, 'kTranslateMaxY': 21, 'translateMaxY': 21, 'translateMinZ': 22, 'kTranslateMinZ': 22, 'kTranslateMaxZ': 23, 'translateMaxZ': 23}, multiKeys=True, defaults={0: 'scaleMinX', 1: 'scaleMaxX', 2: 'scaleMinY', 3: 'scaleMaxY', 4: 'scaleMinZ', 5: 'scaleMaxZ', 6: 'shearMinXY', 7: 'shearMaxXY', 8: 'shearMinXZ', 9: 'shearMaxXZ', 10: 'shearMinYZ', 11: 'shearMaxYZ', 12: 'rotateMinX', 13: 'rotateMaxX', 14: 'rotateMinY', 15: 'rotateMaxY', 16: 'rotateMinZ', 17: 'rotateMaxZ', 18: 'translateMinX', 19: 'translateMaxX', 20: 'translateMinY', 21: 'translateMaxY', 22: 'translateMinZ', 23: 'translateMaxZ'})
     __apicls__ = _api.MFnTransform
     __melnode__ = u'hikHandle'
     __slots__ = ()
@@ -9596,10 +9596,10 @@ class HikHandle(Transform):
 class JointFfd(DependNode):
     pass
 # ------ Do not edit below this line --------
-    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'normalAttr': 2, 'extensionAttr': 3, 'invalidAttr': 4})
-    MdgTimerMetric = Enum('MdgTimerMetric', {'metric_callback': 0, 'metric_compute': 1, 'metric_dirty': 2, 'metric_draw': 3, 'metric_fetch': 4, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'metrics': 9})
-    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'on': 1, 'uninitialized': 2, 'invalidState': 3})
-    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'type_inclusive': 1, 'type_count': 2, 'types': 3})
+    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'kLocalDynamicAttr': 1, 'kNormalAttr': 2, 'normalAttr': 2, 'kExtensionAttr': 3, 'extensionAttr': 3, 'kInvalidAttr': 4, 'invalidAttr': 4}, multiKeys=True, defaults={1: 'localDynamicAttr', 2: 'normalAttr', 3: 'extensionAttr', 4: 'invalidAttr'})
+    MdgTimerMetric = Enum('MdgTimerMetric', {'kTimerMetric_callback': 0, 'metric_callback': 0, 'metric_compute': 1, 'kTimerMetric_compute': 1, 'kTimerMetric_dirty': 2, 'metric_dirty': 2, 'metric_draw': 3, 'kTimerMetric_draw': 3, 'kTimerMetric_fetch': 4, 'metric_fetch': 4, 'kTimerMetric_callbackViaAPI': 5, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'kTimerMetric_callbackNotViaAPI': 6, 'kTimerMetric_computeDuringCallback': 7, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'kTimerMetric_computeNotDuringCallback': 8, 'kTimerMetrics': 9, 'metrics': 9}, multiKeys=True, defaults={0: 'metric_callback', 1: 'metric_compute', 2: 'metric_dirty', 3: 'metric_draw', 4: 'metric_fetch', 5: 'metric_callbackViaAPI', 6: 'metric_callbackNotViaAPI', 7: 'metric_computeDuringCallback', 8: 'metric_computeNotDuringCallback', 9: 'metrics'})
+    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'kTimerOff': 0, 'on': 1, 'kTimerOn': 1, 'uninitialized': 2, 'kTimerUninitialized': 2, 'invalidState': 3, 'kTimerInvalidState': 3}, multiKeys=True, defaults={0: 'off', 1: 'on', 2: 'uninitialized', 3: 'invalidState'})
+    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'kTimerType_self': 0, 'type_inclusive': 1, 'kTimerType_inclusive': 1, 'type_count': 2, 'kTimerType_count': 2, 'kTimerTypes': 3, 'types': 3}, multiKeys=True, defaults={0: 'type_self', 1: 'type_inclusive', 2: 'type_count', 3: 'types'})
     __apicls__ = _api.MFnDependencyNode
     __melnode__ = u'jointFfd'
     __slots__ = ()
@@ -9609,10 +9609,10 @@ class JointFfd(DependNode):
 class TransferAttributes(DependNode):
     pass
 # ------ Do not edit below this line --------
-    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'normalAttr': 2, 'extensionAttr': 3, 'invalidAttr': 4})
-    MdgTimerMetric = Enum('MdgTimerMetric', {'metric_callback': 0, 'metric_compute': 1, 'metric_dirty': 2, 'metric_draw': 3, 'metric_fetch': 4, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'metrics': 9})
-    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'on': 1, 'uninitialized': 2, 'invalidState': 3})
-    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'type_inclusive': 1, 'type_count': 2, 'types': 3})
+    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'kLocalDynamicAttr': 1, 'kNormalAttr': 2, 'normalAttr': 2, 'kExtensionAttr': 3, 'extensionAttr': 3, 'kInvalidAttr': 4, 'invalidAttr': 4}, multiKeys=True, defaults={1: 'localDynamicAttr', 2: 'normalAttr', 3: 'extensionAttr', 4: 'invalidAttr'})
+    MdgTimerMetric = Enum('MdgTimerMetric', {'kTimerMetric_callback': 0, 'metric_callback': 0, 'metric_compute': 1, 'kTimerMetric_compute': 1, 'kTimerMetric_dirty': 2, 'metric_dirty': 2, 'metric_draw': 3, 'kTimerMetric_draw': 3, 'kTimerMetric_fetch': 4, 'metric_fetch': 4, 'kTimerMetric_callbackViaAPI': 5, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'kTimerMetric_callbackNotViaAPI': 6, 'kTimerMetric_computeDuringCallback': 7, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'kTimerMetric_computeNotDuringCallback': 8, 'kTimerMetrics': 9, 'metrics': 9}, multiKeys=True, defaults={0: 'metric_callback', 1: 'metric_compute', 2: 'metric_dirty', 3: 'metric_draw', 4: 'metric_fetch', 5: 'metric_callbackViaAPI', 6: 'metric_callbackNotViaAPI', 7: 'metric_computeDuringCallback', 8: 'metric_computeNotDuringCallback', 9: 'metrics'})
+    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'kTimerOff': 0, 'on': 1, 'kTimerOn': 1, 'uninitialized': 2, 'kTimerUninitialized': 2, 'invalidState': 3, 'kTimerInvalidState': 3}, multiKeys=True, defaults={0: 'off', 1: 'on', 2: 'uninitialized', 3: 'invalidState'})
+    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'kTimerType_self': 0, 'type_inclusive': 1, 'kTimerType_inclusive': 1, 'type_count': 2, 'kTimerType_count': 2, 'kTimerTypes': 3, 'types': 3}, multiKeys=True, defaults={0: 'type_self', 1: 'type_inclusive', 2: 'type_count', 3: 'types'})
     __apicls__ = _api.MFnDependencyNode
     __melcmd__ = staticmethod(modeling.transferAttributes)
     __melcmd_isinfo__ = False
@@ -10677,9 +10677,9 @@ class BoneLattice(GeometryFilter):
 
 
 class THskinCluster(SkinCluster):
-    HistoryLocation = Enum('HistoryLocation', {'frontOfChain': 0, 'normal': 1, 'post': 2, 'other': 3})
-    Origin = Enum('Origin', {'localOrigin': 0, 'worldOrigin': 1})
-    TargetType = Enum('TargetType', {'object': 0, 'tangent': 1})
+    HistoryLocation = Enum('HistoryLocation', {'frontOfChain': 0, 'kFrontOfChain': 0, 'normal': 1, 'kNormal': 1, 'kPost': 2, 'post': 2, 'kOther': 3, 'other': 3}, multiKeys=True, defaults={0: 'frontOfChain', 1: 'normal', 2: 'post', 3: 'other'})
+    Origin = Enum('Origin', {'localOrigin': 0, 'kLocalOrigin': 0, 'worldOrigin': 1, 'kWorldOrigin': 1}, multiKeys=True, defaults={0: 'localOrigin', 1: 'worldOrigin'})
+    TargetType = Enum('TargetType', {'object': 0, 'kObject': 0, 'kTangent': 1, 'tangent': 1}, multiKeys=True, defaults={0: 'object', 1: 'tangent'})
     __apicls__ = _api.MFnBlendShapeDeformer
     __melnode__ = u'THskinCluster'
     __slots__ = ()
@@ -11553,9 +11553,9 @@ class THdeformer(WeightGeometryFilter):
 
 
 class BlendShape(GeometryFilter):
-    HistoryLocation = Enum('HistoryLocation', {'frontOfChain': 0, 'normal': 1, 'post': 2, 'other': 3})
-    Origin = Enum('Origin', {'localOrigin': 0, 'worldOrigin': 1})
-    TargetType = Enum('TargetType', {'object': 0, 'tangent': 1})
+    HistoryLocation = Enum('HistoryLocation', {'frontOfChain': 0, 'kFrontOfChain': 0, 'normal': 1, 'kNormal': 1, 'kPost': 2, 'post': 2, 'kOther': 3, 'other': 3}, multiKeys=True, defaults={0: 'frontOfChain', 1: 'normal', 2: 'post', 3: 'other'})
+    Origin = Enum('Origin', {'localOrigin': 0, 'kLocalOrigin': 0, 'worldOrigin': 1, 'kWorldOrigin': 1}, multiKeys=True, defaults={0: 'localOrigin', 1: 'worldOrigin'})
+    TargetType = Enum('TargetType', {'object': 0, 'kObject': 0, 'kTangent': 1, 'tangent': 1}, multiKeys=True, defaults={0: 'object', 1: 'tangent'})
     __apicls__ = _api.MFnBlendShapeDeformer
     __melcmd__ = staticmethod(animation.blendShape)
     __melcmd_isinfo__ = False
@@ -19874,8 +19874,8 @@ class PointLight(NonExtendedLightShapeNode):
 
 
 class VolumeLight(PointLight):
-    MLightDirection = Enum('MLightDirection', {'outward': 0, 'inward': 1, 'downAxis': 2})
-    MLightShape = Enum('MLightShape', {'boxVolume': 0, 'sphereVolume': 1, 'cylinderVolume': 2, 'coneVolume': 3})
+    MLightDirection = Enum('MLightDirection', {'kOutward': 0, 'outward': 0, 'kInward': 1, 'inward': 1, 'downAxis': 2, 'kDownAxis': 2}, multiKeys=True, defaults={0: 'outward', 1: 'inward', 2: 'downAxis'})
+    MLightShape = Enum('MLightShape', {'boxVolume': 0, 'kBoxVolume': 0, 'sphereVolume': 1, 'kSphereVolume': 1, 'kCylinderVolume': 2, 'cylinderVolume': 2, 'kConeVolume': 3, 'coneVolume': 3}, multiKeys=True, defaults={0: 'boxVolume', 1: 'sphereVolume', 2: 'cylinderVolume', 3: 'coneVolume'})
     __apicls__ = _api.MFnVolumeLight
     __melnode__ = u'volumeLight'
     __slots__ = ()
@@ -19948,8 +19948,8 @@ class VolumeLight(PointLight):
 
 
 class SpotLight(NonExtendedLightShapeNode):
-    MBarnDoor = Enum('MBarnDoor', {'left': 0, 'right': 1, 'top': 2, 'bottom': 3})
-    MDecayRegion = Enum('MDecayRegion', {'first': 0, 'second': 1, 'third': 2})
+    MBarnDoor = Enum('MBarnDoor', {'kLeft': 0, 'left': 0, 'right': 1, 'kRight': 1, 'kTop': 2, 'top': 2, 'bottom': 3, 'kBottom': 3}, multiKeys=True, defaults={0: 'left', 1: 'right', 2: 'top', 3: 'bottom'})
+    MDecayRegion = Enum('MDecayRegion', {'kFirst': 0, 'first': 0, 'kSecond': 1, 'second': 1, 'kThird': 2, 'third': 2}, multiKeys=True, defaults={0: 'first', 1: 'second', 2: 'third'})
     __apicls__ = _api.MFnSpotLight
     __melcmd__ = staticmethod(rendering.spotLight)
     __melcmd_isinfo__ = False
@@ -20369,11 +20369,11 @@ class GreasePlaneRenderShape(Mesh):
 
 
 class FluidShape(SurfaceShape):
-    ColorMethod = Enum('ColorMethod', {'useShadingColor': 0, 'staticColorGrid': 1, 'dynamicColorGrid': 2})
-    CoordinateMethod = Enum('CoordinateMethod', {'fixed': 0, 'grid': 1})
-    FalloffMethod = Enum('FalloffMethod', {'noFalloffGrid': 0, 'staticFalloffGrid': 1})
-    FluidGradient = Enum('FluidGradient', {'constant': 0, 'XGradient': 1, 'YGradient': 2, 'ZGradient': 3, 'negXGradient': 4, 'negYGradient': 5, 'negZGradient': 6, 'centerGradient': 7})
-    FluidMethod = Enum('FluidMethod', {'zero': 0, 'staticGrid': 1, 'dynamicGrid': 2, 'gradient': 3})
+    ColorMethod = Enum('ColorMethod', {'useShadingColor': 0, 'kUseShadingColor': 0, 'staticColorGrid': 1, 'kStaticColorGrid': 1, 'kDynamicColorGrid': 2, 'dynamicColorGrid': 2}, multiKeys=True, defaults={0: 'useShadingColor', 1: 'staticColorGrid', 2: 'dynamicColorGrid'})
+    CoordinateMethod = Enum('CoordinateMethod', {'kFixed': 0, 'fixed': 0, 'kGrid': 1, 'grid': 1}, multiKeys=True, defaults={0: 'fixed', 1: 'grid'})
+    FalloffMethod = Enum('FalloffMethod', {'noFalloffGrid': 0, 'kNoFalloffGrid': 0, 'staticFalloffGrid': 1, 'kStaticFalloffGrid': 1}, multiKeys=True, defaults={0: 'noFalloffGrid', 1: 'staticFalloffGrid'})
+    FluidGradient = Enum('FluidGradient', {'constant': 0, 'kConstant': 0, 'XGradient': 1, 'kXGradient': 1, 'kYGradient': 2, 'YGradient': 2, 'ZGradient': 3, 'kZGradient': 3, 'kNegXGradient': 4, 'negXGradient': 4, 'kNegYGradient': 5, 'negYGradient': 5, 'negZGradient': 6, 'kNegZGradient': 6, 'kCenterGradient': 7, 'centerGradient': 7}, multiKeys=True, defaults={0: 'constant', 1: 'XGradient', 2: 'YGradient', 3: 'ZGradient', 4: 'negXGradient', 5: 'negYGradient', 6: 'negZGradient', 7: 'centerGradient'})
+    FluidMethod = Enum('FluidMethod', {'kZero': 0, 'zero': 0, 'kStaticGrid': 1, 'staticGrid': 1, 'dynamicGrid': 2, 'kDynamicGrid': 2, 'gradient': 3, 'kGradient': 3}, multiKeys=True, defaults={0: 'zero', 1: 'staticGrid', 2: 'dynamicGrid', 3: 'gradient'})
     __apicls__ = _api.MFnFluid
     __melnode__ = u'fluidShape'
     __slots__ = ()
@@ -22992,7 +22992,7 @@ class THdynField(Field):
 
 
 class IkHandle(Transform):
-    Stickiness = Enum('Stickiness', {'stickyOff': 0, 'stickyOn': 1, 'superSticky': 2})
+    Stickiness = Enum('Stickiness', {'stickyOff': 0, 'kStickyOff': 0, 'kStickyOn': 1, 'stickyOn': 1, 'superSticky': 2, 'kSuperSticky': 2}, multiKeys=True, defaults={0: 'stickyOff', 1: 'stickyOn', 2: 'superSticky'})
     __apicls__ = _api.MFnIkHandle
     __melcmd__ = staticmethod(animation.ikHandle)
     __melcmd_isinfo__ = False
@@ -25424,7 +25424,7 @@ class ClientDevice(ThreadedDevice):
 
 
 class Expression(DependNode):
-    UnitConversion = Enum('UnitConversion', {'all': 0, 'none': 1, 'angularOnly': 2})
+    UnitConversion = Enum('UnitConversion', {'all': 0, 'kAll': 0, 'none': 1, 'kNone': 1, 'angularOnly': 2, 'kAngularOnly': 2}, multiKeys=True, defaults={0: 'all', 1: 'none', 2: 'angularOnly'})
     __apicls__ = _api.MFnExpression
     __melcmd__ = staticmethod(effects.expression)
     __melcmd_isinfo__ = False
@@ -25785,7 +25785,7 @@ class ProxyManager(DependNode):
 
 
 class MotionPath(DependNode):
-    Axis = Enum('Axis', {'xaxis': 0, 'yaxis': 1, 'zaxis': 2})
+    Axis = Enum('Axis', {'kXaxis': 0, 'xaxis': 0, 'yaxis': 1, 'kYaxis': 1, 'kZaxis': 2, 'zaxis': 2}, multiKeys=True, defaults={0: 'xaxis', 1: 'yaxis', 2: 'zaxis'})
     __apicls__ = _api.MFnMotionPath
     __melnode__ = u'motionPath'
     __slots__ = ()

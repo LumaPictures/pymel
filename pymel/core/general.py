@@ -4460,8 +4460,8 @@ class Attribute(PyNode):
 
     parent = getParent
 # ------ Do not edit below this line --------
-    FreeToChangeState = Enum('FreeToChangeState', {'freeToChange': 0, 'notFreeToChange': 1, 'childrenNotFreeToChange': 2})
-    MValueSelector = Enum('MValueSelector', {'all': 0, 'nonDefault': 1, 'changed': 2, 'lastAttrSelector': 3})
+    FreeToChangeState = Enum('FreeToChangeState', {'freeToChange': 0, 'kFreeToChange': 0, 'notFreeToChange': 1, 'kNotFreeToChange': 1, 'kChildrenNotFreeToChange': 2, 'childrenNotFreeToChange': 2}, multiKeys=True, defaults={0: 'freeToChange', 1: 'notFreeToChange', 2: 'childrenNotFreeToChange'})
+    MValueSelector = Enum('MValueSelector', {'all': 0, 'kAll': 0, 'nonDefault': 1, 'kNonDefault': 1, 'changed': 2, 'kChanged': 2, 'kLastAttrSelector': 3, 'lastAttrSelector': 3}, multiKeys=True, defaults={0: 'all', 1: 'nonDefault', 2: 'changed', 3: 'lastAttrSelector'})
 
     @_f.addApiDocs(_api.MPlug, 'getExistingArrayAttributeIndices')
     def _getArrayIndices(self):
@@ -7590,7 +7590,7 @@ class AttributeDefaults(PyNode):
         # type: () -> unicode
         return self.__apimfn__().name()
 # ------ Do not edit below this line --------
-    DisconnectBehavior = Enum('DisconnectBehavior', {'delete': 0, 'reset': 1, 'nothing': 2})
+    DisconnectBehavior = Enum('DisconnectBehavior', {'kDelete': 0, 'delete': 0, 'reset': 1, 'kReset': 1, 'kNothing': 2, 'nothing': 2}, multiKeys=True, defaults={0: 'delete', 1: 'reset', 2: 'nothing'})
 
     @_f.addApiDocs(_api.MFnAttribute, 'accepts')
     def accepts(self, type):
@@ -7936,7 +7936,6 @@ applyAttrPattern = _factories.getCmdFunc('applyAttrPattern')
 
 artAttrTool = _factories.getCmdFunc('artAttrTool')
 
-
 @_factories.addCmdDocs
 def assembly(*args, **kwargs):
     if len(args):
@@ -8196,7 +8195,6 @@ objectCenter = _factories.getCmdFunc('objectCenter')
 
 objectType = _factories.getCmdFunc('objectType')
 
-
 @_factories.addCmdDocs
 def paramDimension(*args, **kwargs):
     res = cmds.paramDimension(*args, **kwargs)
@@ -8207,7 +8205,6 @@ def paramDimension(*args, **kwargs):
 paramLocator = _factories.getCmdFunc('paramLocator')
 
 parent = _factories.addCmdDocs(parent)
-
 
 @_factories.addCmdDocs
 def partition(*args, **kwargs):
@@ -8250,7 +8247,6 @@ sculptMeshCacheChangeCloneSource = _factories.getCmdFunc('sculptMeshCacheChangeC
 
 select = _factories.addCmdDocs(select)
 
-
 @_factories.addCmdDocs
 def selectKey(*args, **kwargs):
     for flag in ['t', 'time']:
@@ -8289,7 +8285,6 @@ softSelect = _factories.getCmdFunc('softSelect')
 
 _spaceLocator = spaceLocator
 
-
 @_factories.addCmdDocs
 def spaceLocator(*args, **kwargs):
     res = _spaceLocator(*args, **kwargs)
@@ -8317,7 +8312,6 @@ toggleDisplacement = _factories.getCmdFunc('toggleDisplacement')
 toolDropped = _factories.getCmdFunc('toolDropped')
 
 toolHasOptions = _factories.getCmdFunc('toolHasOptions')
-
 
 @_factories.addCmdDocs
 def toolPropertyWindow(*args, **kwargs):
@@ -8352,7 +8346,6 @@ xformConstraint = _factories.getCmdFunc('xformConstraint')
 encodeString = _factories.getCmdFunc('encodeString')
 
 format = _factories.getCmdFunc('format')
-
 
 @_factories.addCmdDocs
 def assignCommand(*args, **kwargs):
