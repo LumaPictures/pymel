@@ -361,7 +361,11 @@ class ModuleGenerator(object):
 
 
     def _writeToModule(self, new, module):
-        lines = self.getModuleLines(module)
+        if isinstance(module, types.ModuleType):
+            moduleName = module.__name__
+        else:
+            moduleName = module
+        lines = self.moduleLines[moduleName]
 
         # trim off last START_MARKER and anything after
         for i in xrange(len(lines) - 1, -1, -1):
@@ -369,18 +373,17 @@ class ModuleGenerator(object):
                 del lines[i:]
                 break
 
-        if lines[-2] != '':
-            if lines[-1] != '':
-                lines.append('')
+        # by modifying the lines list, we ensure that any subsequent calls
+        # have the updated lines
+        if lines[-1] != '':
             lines.append('')
-        text = '\n'.join(lines)
-        text += START_MARKER + new
+        lines.append(START_MARKER)
+        lines.extend(new.split('\n'))
 
         path = _getModulePath(module)
         print "writing to", path
         with open(path, 'w') as f:
-            f.write(text)
-        return text
+            f.write('\n'.join(lines))
 
 
     def generateFunctions(self, moduleName, returnFunc=None):
