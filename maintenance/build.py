@@ -1752,6 +1752,20 @@ def iterPyNodeText():
     # the children in factories.nodeHierarchy is not complete, but the parents
     # are.
     realChildren = defaultdict(set)
+    if versions.current() < versions.v2019:
+        # for caches before this, we didn't sort the node hierarchy, so we need
+        # to do it here, to get easily comparable / diffable results
+        import pymel.util.trees as trees
+
+        parentDict = {node: parents[0] for node, parents, children in
+                      factories.nodeHierarchy if parents}
+        nodeHierarchyTree = trees.treeFromDict(parentDict)
+        nodeHierarchyTree.sort()
+        newHier = [(x.value, tuple(y.value for y in x.parents()),
+                    tuple(y.value for y in x.childs()))
+                   for x in nodeHierarchyTree.preorder()]
+        factories.nodeHierarchy = newHier
+
     for mayaType, parents, children in factories.nodeHierarchy:
         for parent in parents:
             realChildren[parent].add(mayaType)

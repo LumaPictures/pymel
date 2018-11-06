@@ -994,6 +994,8 @@ def _getNodeHierarchy(version=None):
         from .parsers import NodeHierarchyDocParser
         parser = NodeHierarchyDocParser(version)
         nodeHierarchyTree = trees.IndexedTree(parser.parse())
+    # sort the tree, so we have consistent / comparable results
+    nodeHierarchyTree.sort()
     return [(x.value, tuple(y.value for y in x.parents()), tuple(y.value for y in x.childs()))
             for x in nodeHierarchyTree.preorder()]
 
