@@ -418,9 +418,7 @@ class ModuleGenerator(object):
         for funcName in nonClassFuncs:
             new += functionTemplateFactory(funcName, module, returnFunc=None)
 
-        new += '''
-    autoLayout.__doc__ = formLayout.__doc__
-    '''
+        new += '\nautoLayout.__doc__ = formLayout.__doc__\n'
         self._writeToModule(new, module)
 
     def generateTypes(self, iterator, module, suffix=None):
