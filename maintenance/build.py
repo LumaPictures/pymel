@@ -1549,8 +1549,13 @@ def _deleteImportedCoreModules():
         if hasattr(pymel, 'core'):
             del pymel.core
 
-def generateAll():
+def generateAll(allowNonWindows=False):
     import linecache
+
+    # by default, we only allow building these from windows, because we need to
+    # test for the __setattr__ bug that only happens on windows.
+    if not allowNonWindows and os.name != 'nt':
+        raise ValueError("must build on windows - for testing, set allowNonWindows=True")
 
     factories.building = True
     factories.loadCmdCache()

@@ -83,6 +83,8 @@ Building an Official PyMEL Release
 
 ### To generate the modules
 
+  - build from WINDOWS - important because there is a windows-only bug we need to test for
+  
   - start gui maya
 
   - in the script editor, run the following, substituting location of your dev
