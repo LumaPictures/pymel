@@ -66,15 +66,6 @@ class {{ classname }}({{ parents }}):
         return res
       {% endif %}
    {% else %}
-      {% if method.undoable %}
-        undoEnabled = cmds.undoInfo(q=1, state=1) and _f.apiUndo.cb_enabled
-        if undoEnabled:
-            undo = _f.getUndoArgs([{{ method.inArgs }}], [], self.{{ method.getter }}, {{ method.getterInArgs }})
-      {% endif %}
-      {% if method.undoable %}
-        if undoEnabled:
-            apiUndo.append(_f.ApiUndoItem(self.{{ method.name }}, [], undo))
-      {% endif %}
       {% if method.classmethod %}
         res = _api.{{ method.apiClass }}.{{ method.apiName }}()
       {% elif method.proxy %}
