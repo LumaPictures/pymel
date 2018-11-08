@@ -498,7 +498,7 @@ class ApiDocParser(object):
     __metaclass__ = ABCMeta
 
     NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
-    DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
+    DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated']
 
     # in enums with multiple keys per int value, which (pymel) key name to use
     # as the default - ie, in MSpace, both object and preTransformed map to 2;
@@ -816,7 +816,8 @@ class ApiDocParser(object):
                 # '1.0 / 24.0'
                 if isinstance(rawValue, basestring) and rawValue.count('/') == 1:
                     numerator, divisor = rawValue.split('/')
-                    return self.parseValue(numerator) / self.parseValue(divisor)
+                    return (self.parseValue(numerator, valueType)
+                            / self.parseValue(divisor, valueType))
                 # '1.0e-5F'  --> '1.0e-5'
                 elif rawValue.endswith(('F', 'f')):
                     return float(rawValue[:-1])
@@ -1506,9 +1507,6 @@ class XmlApiDocParser(ApiDocParser):
 
 
 class HtmlApiDocParser(ApiDocParser):
-    NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
-    DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
-
     _enumRe = re.compile('Enumerator')
     _paramPostNameRe = re.compile('([^=]*)(?:\s*=\s*(.*))?')
 
