@@ -826,6 +826,7 @@ def getMainProgressBar():
     return uitypes.ProgressBar(melGlobals['gMainProgressBar'])
 
 # ------ Do not edit below this line --------
+
 @_factories.addCmdDocs
 def attrColorSliderGrp(*args, **kwargs):
     import uitypes
@@ -3375,6 +3376,8 @@ def dockControl(*args, **kwargs):
             pass
     res = cmds.dockControl(*args, **kwargs)
     return res
+
+mayaDpiSetting = _factories.getCmdFunc('mayaDpiSetting')
 
 setFocus = _factories.getCmdFunc('setFocus')
 

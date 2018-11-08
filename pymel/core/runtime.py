@@ -6,6 +6,7 @@ import pymel.internal.factories as _factories
 import pymel.internal.pmcmds as cmds
 
 # ------ Do not edit below this line --------
+
 ATOMTemplateOptions = getattr(cmds, 'ATOMTemplateOptions', None)
 
 AbortCurrentTool = getattr(cmds, 'AbortCurrentTool', None)
@@ -2378,6 +2379,8 @@ MergeVertices = getattr(cmds, 'MergeVertices', None)
 
 MergeVerticesOptions = getattr(cmds, 'MergeVerticesOptions', None)
 
+MinimizeApplication = getattr(cmds, 'MinimizeApplication', None)
+
 MirrorCutPolygonGeometry = getattr(cmds, 'MirrorCutPolygonGeometry', None)
 
 MirrorCutPolygonGeometryOptions = getattr(cmds, 'MirrorCutPolygonGeometryOptions', None)
@@ -3960,6 +3963,8 @@ SetPreferredAngleOptions = getattr(cmds, 'SetPreferredAngleOptions', None)
 
 SetProject = getattr(cmds, 'SetProject', None)
 
+SetReFormTool = getattr(cmds, 'SetReFormTool', None)
+
 SetRigidBodyCollision = getattr(cmds, 'SetRigidBodyCollision', None)
 
 SetRigidBodyInterpenetration = getattr(cmds, 'SetRigidBodyInterpenetration', None)
@@ -4421,6 +4426,10 @@ TangentsPlateau = getattr(cmds, 'TangentsPlateau', None)
 TangentsSpline = getattr(cmds, 'TangentsSpline', None)
 
 TangentsStepped = getattr(cmds, 'TangentsStepped', None)
+
+TangetConstraint = getattr(cmds, 'TangetConstraint', None)
+
+TangetConstraintOptions = getattr(cmds, 'TangetConstraintOptions', None)
 
 TemplateBrushSettings = getattr(cmds, 'TemplateBrushSettings', None)
 

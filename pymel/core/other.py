@@ -515,6 +515,7 @@ def _getParserClass(strObj):
     return newcls
 
 # ------ Do not edit below this line --------
+
 TanimLayer = _factories.getCmdFunc('TanimLayer')
 
 adskAsset = _factories.getCmdFunc('adskAsset')
@@ -652,6 +653,8 @@ journal = _factories.getCmdFunc('journal')
 licenseCheck = _factories.getCmdFunc('licenseCheck')
 
 manipComponentPivot = _factories.getCmdFunc('manipComponentPivot')
+
+mayaDpiSettingAction = _factories.getCmdFunc('mayaDpiSettingAction')
 
 memoryDiag = _factories.getCmdFunc('memoryDiag')
 

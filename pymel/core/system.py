@@ -2157,6 +2157,7 @@ def isModified():
 #renameFile = _factories.make_factories.createflagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
 # ------ Do not edit below this line --------
+
 aaf2fcp = _factories.getCmdFunc('aaf2fcp')
 
 allNodeTypes = _factories.getCmdFunc('allNodeTypes')
@@ -2550,3 +2551,5 @@ warning = _factories.getCmdFunc('warning')
 whatsNewHighlight = _factories.getCmdFunc('whatsNewHighlight')
 
 workspace = _factories.addCmdDocs(workspace)
+
+xpmPicker = _factories.getCmdFunc('xpmPicker')

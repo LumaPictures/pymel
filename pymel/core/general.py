@@ -7918,6 +7918,7 @@ class Scene(object):
 SCENE = Scene()
 
 # ------ Do not edit below this line --------
+
 about = _factories.getCmdFunc('about')
 
 addAttr = _factories.addCmdDocs(addAttr)
