@@ -3,6 +3,7 @@
 A wrap of Maya's Vector, Point, Color, Matrix, TransformationMatrix, Quaternion, EulerRotation types
 """
 
+import os
 import sys
 import math
 import copy

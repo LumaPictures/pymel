@@ -680,6 +680,7 @@ class MelMethodGenerator(object):
         self.existingClass = existingClass
         self.attrs = {}
         self.methods = {}
+        self.prefixLines = []
 
     def setDefault(self, key, value, directParentOnly=True):
         if directParentOnly:
@@ -714,7 +715,8 @@ class MelMethodGenerator(object):
         text = template.render(methods=methods, attrs=attrs,
                                classname=self.classname,
                                parents=self.parentClassname,
-                               existing=self.existingClass is not None)
+                               existing=self.existingClass is not None,
+                               prefixLines=self.prefixLines)
 
         return text, methodNames
 
@@ -1118,7 +1120,14 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
             origSetAttr = internal_vars['origSetAttr']
             self.apicls.__setattr__ = origSetAttr
         if factories.MetaMayaTypeWrapper._hasApiSetAttrBug(self.apicls):
-            self.attrs['__setattr__'] = Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')
+            if os.name != 'nt':
+                # we should only see this in windows - if we see it elsewhere,
+                # raise an error so we can decide what to do
+                raise ValueError("saw setattr bug on non-windows!")
+            self.prefixLines.extend([
+                r"""if os.name == 'nt':""",
+                r"""    __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug""",
+            ])
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
