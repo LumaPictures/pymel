@@ -339,7 +339,7 @@ class Enum(object):
             for enumValue in self.itervalues():
                 for key in indexDict[enumValue.index]:
                     keysFlat.append((key, enumValue.index))
-            multiKeyInfo = ', multiKeys=True, defaults=%r' % defaults
+            multiKeyInfo = ', multiKeys=True, defaultKeys=%r' % defaults
         else:
             keysFlat = [(ev.key, ev.index) for ev in self.itervalues()]
             multiKeyInfo = ''
