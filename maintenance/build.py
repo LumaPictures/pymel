@@ -1107,6 +1107,16 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
                 'removeAttrs': _setRepr(self.removeAttrs),
             }
 
+        # if we imported using old, non-template-generated maya, then
+        # it may have fixed the setattr bug on the OpenMaya class itself - undo
+        # this!
+        setattr = self.apicls.__dict__.get('__setattr__')
+        if setattr is not None and getattr(setattr, '__name__', None) == 'apiSetAttrWrap':
+            internal_vars = dict(zip(setattr.func_code.co_freevars,
+                                     (x.cell_contents for x in
+                                      setattr.func_closure)))
+            origSetAttr = internal_vars['origSetAttr']
+            self.apicls.__setattr__ = origSetAttr
         if factories.MetaMayaTypeWrapper._hasApiSetAttrBug(self.apicls):
             self.attrs['__setattr__'] = Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')
 
