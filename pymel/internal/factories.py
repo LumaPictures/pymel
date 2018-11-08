@@ -3412,7 +3412,9 @@ def addCustomPyNode(module, mayaType, extraAttrs=None):
 
         pynodeName = None
         for node in inheritance:
-            pynodeName, pynodeClass = _addPyNode(module, node, parent)
+            pynodeName, pynodeClass = _addPyNode(
+                module, node, parent,
+                extraAttrs=extraAttrs if node == mayaType else None)
             parent = node
             if 'pymel.all' in sys.modules:
                 setattr(sys.modules['pymel.all'], pynodeName, pynodeClass)
