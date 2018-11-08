@@ -678,21 +678,23 @@ class MelMethodGenerator(object):
         self.herited = parentMethods
         self.parentClasses = parentClasses
         self.existingClass = existingClass
+        self.attrs = {}
+        self.methods = {}
 
-    def setDefault(self, key, value, attrs, directParentOnly=True):
+    def setDefault(self, key, value, directParentOnly=True):
         if directParentOnly:
             if self.existingClass is None or key not in self.existingClass.__dict__:
-                attrs.setdefault(key, value)
+                self.attrs.setdefault(key, value)
         else:
             if self.existingClass is None or not hasattr(self.existingClass, key):
-                attrs.setdefault(key, value)
+                self.attrs.setdefault(key, value)
 
     def render(self):
-        attrs, methods = self.getTemplateData({}, {})
+        self.getTemplateData()
 
-        # self.setDefault('__metaclass__', Literal('_f.MetaMayaTypeRegistry'), attrs)
+        # self.setDefault('__metaclass__', Literal('_f.MetaMayaTypeRegistry'))
 
-        methodNames = set(methods)
+        methodNames = set(self.methods)
         if self.existingClass:
             # add methods that exist *directly* on the existing class
             methodNames.update(
@@ -705,8 +707,8 @@ class MelMethodGenerator(object):
             else:
                 return repr(v)
 
-        attrs = [{'name': k, 'value': toStr(k, attrs[k])} for k in sorted(attrs)]
-        methods = [methods[methodName] for methodName in sorted(methods)]
+        attrs = [{'name': k, 'value': toStr(k, self.attrs[k])} for k in sorted(self.attrs)]
+        methods = [self.methods[methodName] for methodName in sorted(self.methods)]
 
         template = env.get_template('nodeclass.py')
         text = template.render(methods=methods, attrs=attrs,
@@ -716,7 +718,7 @@ class MelMethodGenerator(object):
 
         return text, methodNames
 
-    def getMELData(self, attrs, methods):
+    def getMELData(self):
         """
         Add methods from MEL functions
         """
@@ -725,7 +727,7 @@ class MelMethodGenerator(object):
         # ------------------------
         #   MEL Methods
         # ------------------------
-        melCmdName, infoCmd = self.getMelCmd(attrs)
+        melCmdName, infoCmd = self.getMelCmd()
 
         try:
             cmdInfo = factories.cmdlist[melCmdName]
@@ -749,16 +751,16 @@ class MelMethodGenerator(object):
             # FIXME: add documentation
             # classdict['__doc__'] = util.LazyDocString((newcls, self.docstring, (melCmdName,), {}))
 
-            attrs['__melcmd__'] = cmdPath
-            attrs['__melcmdname__'] = melCmdName
-            attrs['__melcmd_isinfo__'] = infoCmd
+            self.attrs['__melcmd__'] = cmdPath
+            self.attrs['__melcmdname__'] = melCmdName
+            self.attrs['__melcmd_isinfo__'] = infoCmd
 
             # base set of disallowed methods (for MEL)
             filterAttrs = {'name', 'getName', 'setName'}
             # already created attributes for this class:
-            filterAttrs.update(attrs.keys())
+            filterAttrs.update(self.attrs.keys())
             # already created methods for this class:
-            filterAttrs.update(methods.keys())
+            filterAttrs.update(self.methods.keys())
             # methods on parent classes:
             filterAttrs.update(self.herited)
             filterAttrs.update(factories.overrideMethods.get(self.parentClassname, []))
@@ -795,7 +797,7 @@ class MelMethodGenerator(object):
                                     returnFunc = flagInfo['args']
 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                methods[methodName] = {
+                                self.methods[methodName] = {
                                     'name': methodName,
                                     'command': melCmdName,
                                     'type': 'query',
@@ -828,7 +830,7 @@ class MelMethodGenerator(object):
                                 # fixedFunc = fixCallbacks(func, melCmdName)
 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                methods[methodName] = {
+                                self.methods[methodName] = {
                                     'name': methodName,
                                     'command': melCmdName,
                                     'type': 'edit',
@@ -838,9 +840,7 @@ class MelMethodGenerator(object):
                             # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
                         # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
 
-        return attrs, methods
-
-    def getMelCmd(self, attrs):
+    def getMelCmd(self):
         """
         Retrieves the name of the mel command the generated class wraps, and whether it is an info command.
 
@@ -921,13 +921,13 @@ class ApiMethodGenerator(MelMethodGenerator):
             except KeyError:
                 pass
 
-    def addEnums(self, classInfo, attrs):
+    def addEnums(self, classInfo):
         if 'pymelEnums' in classInfo:
             # Enumerators
             for enumName, enum in classInfo['pymelEnums'].items():
-                attrs[enumName] = enum
+                self.attrs[enumName] = enum
 
-    def getAPIData(self, attrs, methods):
+    def getAPIData(self):
         """
         Add methods from API functions
         """
@@ -937,7 +937,7 @@ class ApiMethodGenerator(MelMethodGenerator):
         _logger.info('%s: %s: %s' % (self.__class__, self.classname, self.apicls))
 
         if self.apicls is None:
-            return attrs, methods
+            return
 
         if self.apicls.__name__ not in factories.apiClassNamesToPyNodeNames:
             factories.apiClassNamesToPyNodeNames[self.apicls.__name__] = self.classname
@@ -947,11 +947,11 @@ class ApiMethodGenerator(MelMethodGenerator):
             # are already handled.
             # FIXME: should this be extended to check all parent classes?
             # FIXME: assert that there is nothing explicit in the mel-api bridge
-            return attrs, methods
+            return
 
         # if not proxy and apicls not in self.bases:
-        #     #_logger.debug("ADDING BASE %s" % attrs['apicls'])
-        #     bases = self.bases + (attrs['apicls'],)
+        #     #_logger.debug("ADDING BASE %s" % self.attrs['apicls'])
+        #     bases = self.bases + (self.attrs['apicls'],)
         try:
             classInfo = factories.apiClassInfo[self.apicls.__name__]
         except KeyError:
@@ -1054,21 +1054,19 @@ class ApiMethodGenerator(MelMethodGenerator):
                 # HikGroundPlane, etc...
                 # Figure out why this happens, and stop it!
                 if pymelName not in self.herited and (self.existingClass is None or pymelName not in self.existingClass.__dict__):
-                    if pymelName not in methods:
+                    if pymelName not in self.methods:
                         #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                         doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
                                             proxy=self.proxy, overloadIndex=overloadIndex,
                                             deprecated=deprecated, aliases=aliases,
                                             properties=properties)
                         if doc:
-                            methods[pymelName] = doc
+                            self.methods[pymelName] = doc
                         #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
                     #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
                 #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
 
-            self.addEnums(classInfo, attrs)
-
-        return attrs, methods
+            self.addEnums(classInfo)
 
 
 class ApiDataTypeGenerator(ApiMethodGenerator):
@@ -1085,33 +1083,32 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
             except KeyError:
                 pass
 
-    def getTemplateData(self, attrs, methods):
+    def getTemplateData(self):
         # first populate API methods.  they take precedence.
-        self.setDefault('__slots__', (), attrs)
-        attrs, methods = self.getAPIData(attrs, methods)
-        return attrs, methods
+        self.setDefault('__slots__', ())
+        self.getAPIData()
 
-    def getAPIData(self, attrs, methods):
+    def getAPIData(self):
         """
         Add methods from API functions
         """
-        attrs, methods = super(ApiDataTypeGenerator, self).getAPIData(attrs, methods)
+        super(ApiDataTypeGenerator, self).getAPIData()
 
         _logger.info("%s: removing attributes %s" % (self.classname, self.removeAttrs))
 
         if self.apicls is None:
-            return attrs, methods
+            return
 
         if self.removeAttrs:
             # because datatype classes inherit from their API classes, if a
             # method is renamed, we must also remove the inherited API method.
-            methods['__getattribute__'] = {
+            self.methods['__getattribute__'] = {
                 'type': 'getattribute',
                 'removeAttrs': _setRepr(self.removeAttrs),
             }
 
         if factories.MetaMayaTypeWrapper._hasApiSetAttrBug(self.apicls):
-            attrs['__setattr__'] = Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')
+            self.attrs['__setattr__'] = Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
@@ -1149,9 +1146,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         #                 if not name in constant:
         #                     constant[name] = makeClassConstant(attr.value)
 
-        attrs.update(constant)
-
-        return attrs, methods
+        self.attrs.update(constant)
 
 
 class NodeTypeGenerator(ApiMethodGenerator):
@@ -1185,18 +1180,18 @@ class NodeTypeGenerator(ApiMethodGenerator):
 
         return super(NodeTypeGenerator, self).getApiCls()
 
-    def getTemplateData(self, attrs, methods):
-        self.setDefault('__slots__', (), attrs)
+    def getTemplateData(self):
+        self.setDefault('__slots__', ())
 
-        attrs['__melnode__'] = self.mayaType
+        self.attrs['__melnode__'] = self.mayaType
 
         if self.apicls is not None and self.apicls is not self.parentApicls:
             self.setDefault('__apicls__',
-                            Literal('_api.' + self.apicls.__name__), attrs)
+                            Literal('_api.' + self.apicls.__name__))
 
         # FIXME:
         isVirtual = False
-        # isVirtual = '_isVirtual' in attrs or any(hasattr(b, '_isVirtual')
+        # isVirtual = '_isVirtual' in self.attrs or any(hasattr(b, '_isVirtual')
         #                                              for b in self.bases)
         # if nodeType is None:
         #     # check for a virtual class...
@@ -1210,7 +1205,7 @@ class NodeTypeGenerator(ApiMethodGenerator):
         #     else:
         #         # not a virtual class, just use the classname
         #         nodeType = util.uncapitalize(self.classname)
-        #     attrs['__melnode__'] = nodeType
+        #     self.attrs['__melnode__'] = nodeType
 
         from pymel.core.nodetypes import mayaTypeNameToPymelTypeName, \
             pymelTypeNameToMayaTypeName
@@ -1242,10 +1237,9 @@ class NodeTypeGenerator(ApiMethodGenerator):
         factories.addMayaType(self.mayaType)
 
         # first populate API methods.  they take precedence.
-        attrs, methods = self.getAPIData(attrs, methods)
+        self.getAPIData()
         # next, populate MEL methods
-        attrs, methods = self.getMELData(attrs, methods)
-        return attrs, methods
+        self.getMELData()
 
         # FIXME:
         # PyNodeType = super(ApiMethodGenerator, self).render()
@@ -1254,7 +1248,7 @@ class NodeTypeGenerator(ApiMethodGenerator):
         # factories.addPyNodeType(PyNodeType, ParentPyNode)
         # return PyNodeType
 
-    def getMelCmd(self, attrs):
+    def getMelCmd(self):
         """
         Retrieves the name of the mel command for the node that the generated class wraps,
         and whether it is an info command.
@@ -1276,26 +1270,24 @@ class NodeTypeGenerator(ApiMethodGenerator):
 
 class ApiUnitsGenerator(ApiDataTypeGenerator):
 
-    def getTemplateData(self, attrs, methods):
+    def getTemplateData(self):
         classInfo = factories.apiClassInfo[self.apicls.__name__]
-        self.addEnums(classInfo, attrs)
-        return attrs, methods
+        self.addEnums(classInfo)
 
 
 class ApiTypeGenerator(ApiMethodGenerator):
     """
     MFn* classes which do not correspond to a node type
     """
-    def getTemplateData(self, attrs, methods):
-        self.setDefault('__slots__', (), attrs)
+    def getTemplateData(self):
+        self.setDefault('__slots__', ())
 
         if self.apicls is not None and self.apicls is not self.parentApicls:
             self.setDefault('__apicls__',
-                            Literal('_api.' + self.apicls.__name__), attrs)
+                            Literal('_api.' + self.apicls.__name__))
 
         # first populate API methods.  they take precedence.
-        attrs, methods = self.getAPIData(attrs, methods)
-        return attrs, methods
+        self.getAPIData()
 
 
 class UITypeGenerator(MelMethodGenerator):
@@ -1304,19 +1296,18 @@ class UITypeGenerator(MelMethodGenerator):
     A metaclass for creating classes based on on a maya UI type/command.
     """
 
-    def getTemplateData(self, attrs, methods):
-        self.setDefault('__slots__', (), attrs)
+    def getTemplateData(self):
+        self.setDefault('__slots__', ())
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        attrs.setdefault('__melui__', util.uncapitalize(self.classname))
+        self.attrs.setdefault('__melui__', util.uncapitalize(self.classname))
 
         # TODO: implement a option at the cmdlist level that triggers listForNone
         # TODO: create labelArray for *Grp ui elements, which passes to the correct arg ( labelArray3, labelArray4, etc ) based on length of passed array
-        attrs, methods = self.getMELData(attrs, methods)
-        return attrs, methods
+        self.getMELData()
 
-    def getMelCmd(self, attrs):
-        return attrs['__melui__'], False
+    def getMelCmd(self):
+        return self.attrs['__melui__'], False
 
 
 def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods, parentApicls):
