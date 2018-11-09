@@ -709,16 +709,33 @@ class MelMethodGenerator(object):
                 return repr(v)
 
         attrs = [{'name': k, 'value': toStr(k, self.attrs[k])} for k in sorted(self.attrs)]
-        methods = [self.methods[methodName] for methodName in sorted(self.methods)]
+
+        allMethodLines = []
+        for methodName in sorted(self.methods):
+            allMethodLines.append(self.getMethodLines(methodName))
+        print "{}: found {} methods".format(self.classname, len(allMethodLines))
 
         template = env.get_template('nodeclass.py')
-        text = template.render(methods=methods, attrs=attrs,
+        text = template.render(methods=allMethodLines, attrs=attrs,
                                classname=self.classname,
                                parents=self.parentClassname,
                                existing=self.existingClass is not None,
                                prefixLines=self.prefixLines)
 
         return text, methodNames
+
+    def getMethodLines(self, methodName):
+        methodInfo = self.methods[methodName]
+        templateName = {
+            'query': 'querymethod.py',
+            'edit': 'editmethod.py',
+            'getattribute': 'getattribute.py',
+            'api': 'apimethod.py',
+        }[methodInfo['type']]
+        template = env.get_template(templateName)
+        text = template.render(method=methodInfo,
+                               classname=self.classname)
+        return text.splitlines()
 
     def getMELData(self):
         """
