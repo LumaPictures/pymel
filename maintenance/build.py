@@ -49,6 +49,14 @@ env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
 
 
+def underscoreSortKey(val):
+    '''Sort key to make underscores come before numbers / letters'''
+    if isinstance(val, basestring):
+        # 07 is the "bell" character - shouldn't generally be in strings!
+        return val.replace('_', '\x07')
+    return val
+
+
 class Literal(object):
     def __init__(self, value):
         self.value = value
@@ -954,15 +962,10 @@ class MelMethodGenerator(object):
                 name for name, obj in self.existingClass.__dict__.items()
                 if inspect.isfunction(obj))
 
-        # this is just to maintain "old" sort order for now... will update
-        # with something that makes more sense later
-        def attrSortKey(val):
-            if val == '__setattr__':
-                return (0, val)
-            return (1, val)
-
-        attrs = [self.attrs[k] for k in sorted(self.attrs, key=attrSortKey)]
-        methods = [self.methods[k] for k in sorted(self.methods)]
+        attrs = [self.attrs[k] for k in sorted(self.attrs,
+                                               key=underscoreSortKey)]
+        methods = [self.methods[k] for k in sorted(self.methods,
+                                                   key=underscoreSortKey)]
         template = env.get_template('nodeclass.py')
         text = template.render(methods=methods, attrs=attrs,
                                classname=self.classname,
