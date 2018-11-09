@@ -747,6 +747,11 @@ class ApiCache(startup.SubItemCache):
 
     DEFAULT_API_TYPE = 'kDependencyNode'
 
+    @classmethod
+    def allVersions(cls, allowEmpty=False):
+        return [x for x in super(ApiCache, cls).allVersions(allowEmpty=allowEmpty)
+                if x != 'MelBridge']
+
     def __init__(self, docLocation=None):
         super(ApiCache, self).__init__()
         for name in self.EXTRA_GLOBAL_NAMES:

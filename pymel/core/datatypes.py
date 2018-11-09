@@ -12,6 +12,7 @@ import colorsys
 
 import pymel.util as util
 import pymel.api as _api
+import pymel.versions as versions
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import pymel.internal.factories as _factories

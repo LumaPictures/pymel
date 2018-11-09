@@ -10,7 +10,7 @@ import maya
 import maya.OpenMaya as om
 import maya.utils
 
-from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron, namedtuple
+from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron, namedtuple, universalmethod
 import pymel.versions as versions
 from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName
@@ -552,9 +552,12 @@ class PymelCache(object):
         except Exception, e:
             self._errorMsg('write', 'to', newPath, e)
 
-    def path(self):
+    @universalmethod
+    def path(self, version=None):
         if self.USE_VERSION:
-            if hasattr(self, 'version'):
+            if version is not None:
+                short_version = str(version)
+            elif hasattr(self, 'version'):
                 short_version = str(self.version)
             else:
                 short_version = shortName()
@@ -567,6 +570,35 @@ class PymelCache(object):
         else:
             newPath += '.bin'
         return newPath
+
+    @classmethod
+    def allVersions(cls, allowEmpty=False):
+        import itertools
+        import re
+
+        # unlikely they'll have a path with PLACEHOLDER, but better safe than
+        # sorry...
+        placeholderBase = 'PLACEHOLDER'
+        i = 0
+        for i in itertools.count():
+            placeholder = placeholderBase + str(i)
+            fullPath = cls.path(placeholder)
+            if fullPath.count(placeholder) == 1:
+                break
+        dirname, filePattern = os.path.split(fullPath)
+        filePattern = re.escape(filePattern)
+        filePattern = filePattern.replace(placeholder, '(.*)')
+        filePatternRe = re.compile('^' + filePattern + '$')
+        versions = []
+        for filename in os.listdir(dirname):
+            if not os.path.isfile(os.path.join(dirname, filename)):
+                continue
+            match = filePatternRe.match(filename)
+            if match:
+                version = match.group(1)
+                if allowEmpty or version != '':
+                    versions.append(version)
+        return sorted(versions)
 
     @classmethod
     def _actionMessage(cls, action, direction, location):

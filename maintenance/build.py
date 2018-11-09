@@ -9,15 +9,17 @@ import os.path
 import re
 import sys
 import types
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 from jinja2 import Environment, PackageLoader
 
 import pymel.util as util
+import pymel.versions as versions
 from pymel.util.conditions import Always
 from pymel.internal import factories
 from pymel.internal import plogging
 from pymel.internal import pmcmds
+from pymel.internal import apicache
 
 if False:
     from typing import *
@@ -246,6 +248,291 @@ def _getSourceStartEndLines(object):
     srclines, startline = inspect.getsourcelines(object)
     endline = startline + len(srclines) - 1
     return startline, endline
+
+
+# right now, we only support versioning for Enums, because that's the only
+# thing that really "needs" it - other things (classes, methods, and flags) will
+# just raise an error if someone tries to use them from a version that doesn't
+# have them.  Enums change between versions, and will potentially silently
+# have the "wrong" info.
+class VersionedCaches(object):
+    _symbolicVersions = None
+
+    def __init__(self):
+        self.allStrVersions = apicache.ApiCache.allVersions()
+        self.strVersionsToApiVersions = {}
+        self.apiVersionsToStrVersions = {}
+        for strVersion in self.allStrVersions:
+            apiVersion = self.strVersionToApi(strVersion)
+            self.strVersionsToApiVersions[strVersion] = apiVersion
+            self.apiVersionsToStrVersions[apiVersion] = strVersion
+        self.allApiVersions = sorted(self.apiVersionsToStrVersions)
+        self.apiCachesByVersion = OrderedDict()
+        # insert None's just to get the order right
+        for apiVersion in self.allApiVersions:
+            self.apiCachesByVersion[apiVersion] = None
+
+    @classmethod
+    def strVersionToApi(cls, strVersion):
+        mainVersion = int(strVersion.split('.')[0])
+        if mainVersion < 2018:
+            return mainVersion * 100
+        else:
+            return mainVersion * 10000
+
+    @classmethod
+    def apiVersion(cls, version):
+        if isinstance(version, basestring):
+            return cls.strVersionToApi(version)
+        elif isinstance(version, int) and version > 200000:
+            return version
+        else:
+            raise ValueError(version)
+
+    def _getApiSubCache(self, version, subcacheName):
+        apiCache = self.getApiCache(version)
+        return getattr(apiCache, subcacheName)
+
+    # def getApiClassInfo(self, version):
+    #     return self._getApiSubCache(version, 'apiClassInfo')
+
+    def getApiCache(self, version):
+        apiVersion = self.apiVersion(version)
+        cacheInst = self.apiCachesByVersion[apiVersion]
+        if cacheInst is None:
+            strVersion = self.apiVersionsToStrVersions[apiVersion]
+            cacheInst = apicache.ApiCache()
+            cacheInst.version = strVersion
+            cacheInst.build()
+            self.apiCachesByVersion[apiVersion] = cacheInst
+        return cacheInst
+
+    def _getAllApiSubCaches(self, subcacheName):
+        result = OrderedDict()
+        for version in self.allApiVersions:
+            result[version] = self._getApiSubCache(version, subcacheName)
+        return result
+
+    def getAllApiClassInfos(self):
+        return self._getAllApiSubCaches('apiClassInfo')
+
+    def getVersionedClassInfo(self, apiClsName):
+        verClassInfo = OrderedDict()
+        for version, classInfo in self.getAllApiClassInfos().items():
+            verClassInfo[version] = classInfo.get(apiClsName)
+        return verClassInfo
+
+
+    @classmethod
+    def assignmentFromVersionDict(cls, name, byVersion):
+        # check if the enum exists and is the same for all versions...
+        allVariations = set(byVersion.values())
+        if len(allVariations) == 1:
+            # make sure that value isn't None, indicating it didn't exist
+            value = allVariations.pop()
+            if value is None:
+                raise ValueError("must exist in at least one version")
+            # easy case...
+            return Assignment(name, value)
+
+        # ok, things differ. first check to see which versions it exists in
+        if None in allVariations:
+            # it was missing in at least some variations. make a conditional
+            # for the versions it exists in, and a subconditional for assigning
+            # the value
+            existsVersions = []
+            missingVersions = []
+            for version, val in byVersion.items():
+                if val is None:
+                    missingVersions.append(version)
+                else:
+                    existsVersions.append(version)
+            existsCondition = Conditional.conditionFromVersions(
+                    existsVersions, missingVersions)
+            existsByVersion = {ver : byVersion[ver]
+                               for ver in existsVersions}
+            return Conditional(
+                [(existsCondition,
+                  cls.assignmentFromVersionDict(name, existsByVersion))])
+
+        # ok, it exists in all versions... now create branching conditional,
+        # based on version...
+        conditionPairs = []
+        remainingVersions = sorted(byVersion)
+        print byVersion
+        print remainingVersions
+        while remainingVersions:
+            ver = remainingVersions.pop()
+            currentValue = byVersion[ver]
+            print ver, currentValue
+            allVariations.remove(currentValue)
+            if not allVariations:
+                # this was the last value, can use an 'else' statement
+                conditionPairs.append((True, Assignment(name, currentValue)))
+                break
+
+            trueVersions = [ver]
+            # remove other versions with this value
+            for i in xrange(len(remainingVersions) - 1, -1, -1):
+                ver = remainingVersions[i]
+                if byVersion[ver] == currentValue:
+                    trueVersions.append(ver)
+                    del remainingVersions[i]
+            if allVariations and not remainingVersions:
+                raise RuntimeError("oh noes - remainingVersions :{}".format(remainingVersions))
+            conditionExpr = Conditional.conditionFromVersions(
+                trueVersions, remainingVersions)
+            assignment = Assignment(name, currentValue)
+            conditionPairs.append((conditionExpr, assignment))
+        return Conditional(conditionPairs)
+
+    @classmethod
+    def symbolicVersionName(cls, versionNum):
+        if cls._symbolicVersions is None:
+            cls._symbolicVersions = {}
+            for name, val in inspect.getmembers(versions):
+                if name.startswith('v') and isinstance(val, int):
+                    cls._symbolicVersions[val] = name
+        name = cls._symbolicVersions.get(versionNum)
+        if name is not None:
+            return 'versions.{}'.format(name)
+        return versionNum
+
+
+versionedCaches = VersionedCaches()
+
+
+class Statement(object):
+    indent = ' ' * 4
+    def getLines(self):
+        raise NotImplementedError
+
+
+class Assignment(Statement):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def getLines(self):
+        if self.name == '__melcmd__':
+            return ['{} = staticmethod({})'.format(self.name, self.value)]
+        else:
+            return ['{} = {!r}'.format(self.name, self.value)]
+
+
+class Method(object):
+    def __init__(self, classname, pymelname, data=None, **kwargs):
+        self.classname = classname
+        self.pymelname = pymelname
+        if data is None:
+            self.data = {}
+        else:
+            self.data = dict(data)
+        self.data.update(kwargs)
+        if 'name' not in data:
+            self.data['name'] = self.pymelname
+        self.data['classname'] = self.classname
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def getLines(self):
+        templateName = {
+            'query': 'querymethod.py',
+            'edit': 'editmethod.py',
+            'getattribute': 'getattribute.py',
+            'api': 'apimethod.py',
+        }[self['type']]
+        template = env.get_template(templateName)
+        text = template.render(method=self.data,
+                               classname=self.classname)
+        return text.splitlines()
+
+
+class Conditional(Statement):
+    def __init__(self, conditionValuePairs):
+        assert all(len(x) == 2 for x in conditionValuePairs)
+        self.conditionValuePairs = list(conditionValuePairs)
+
+    def getLines(self):
+        for i, (conditionExpr, value) in enumerate(self.conditionValuePairs):
+            # first yield the if / elif
+            if conditionExpr is True:
+                # we allow this only as the final element, ie, as an "else"
+                if i != len(self.conditionValuePairs) - 1:
+                    raise ValueError(
+                        "unconditional 'True' only allowed as last condition")
+                if i == 0:
+                    raise ValueError(
+                        "unconditional 'True' not allowed as first condition")
+                yield 'else:'
+            elif i == 0:
+                yield 'if {}:'.format(conditionExpr)
+            else:
+                yield 'elif {}:'.format(conditionExpr)
+
+            # then yield the indented substatement
+            if isinstance(value, Statement):
+                for line in value.getLines():
+                    yield self.indent + line
+            else:
+                yield self.indent + repr(value)
+
+    @classmethod
+    def conditionFromVersions(cls, versionsTrue, versionsFalse):
+        versionsTrue = sorted(versionsTrue)
+        versionsFalse = sorted(versionsFalse)
+        if not versionsTrue:
+            raise ValueError("must have at least one true version")
+        if not versionsFalse:
+            raise ValueError("must have at least one false version")
+        if versionsTrue[-1] < versionsFalse[0]:
+            # versionsTrue < versionsFalse
+            # note that if
+            #    versionsTrue = [201600, 201700]
+            #    versionsFalse = [20180000]
+            # we want 201703 to be True,  and 20180100 to be False,
+            # so we compare < minFalse
+            minFalse = VersionedCaches.symbolicVersionName(versionsFalse[0])
+            return 'versions.current() < {}'.format(minFalse)
+        elif versionsFalse[-1] < versionsTrue[0]:
+            # versionsTrue > versionsFalse
+            # note that if
+            #    versionsTrue = [201700, 20180000]
+            #    versionsFalse = [201600]
+            # we want 201703 to be True,  and 201603 to be False,
+            # so we compare >= minTrue
+            minTrue = VersionedCaches.symbolicVersionName(versionsTrue[0])
+            return 'versions.current() >= {}'.format(minTrue)
+        elif all(x < versionsTrue[0] or x > versionsTrue[-1]
+                 for x in versionsFalse):
+            # now see if trueVersions forms a "continuous range", not interruped
+            # by any false versions
+            lowerBound = VersionedCaches.symbolicVersionName(versionsTrue[0])
+            # since versionsFalse is sorted, the first one we find > maxTrue
+            # is the one we want for comparison
+            for val in versionsFalse:
+                if val > versionsTrue[-1]:
+                    upperBound = val
+                    break
+            return '{} <= versions.current() < {}'.format(
+                lowerBound, upperBound)
+        elif all(x < versionsFalse[0] or x > versionsFalse[-1]
+                 for x in versionsTrue):
+            # now see if falseVersions forms a "continuous range", not interruped
+            # by any true versions
+            lowerBound = VersionedCaches.symbolicVersionName(versionsFalse[0])
+            # since versionsTrue is sorted, the first one we find > maxFalse
+            # is the one we want for comparison
+            for val in versionsTrue:
+                if val > versionsFalse[-1]:
+                    upperBound = val
+                    break
+            return 'versions.current() < {} or versions.current() >= {}'.format(
+                lowerBound, upperBound)
+        else:
+            # this is unlikely, so I'll code it when / if it comes up...
+            raise ValueError("haven't implemented interspersed versions yet")
 
 
 class ModuleGenerator(object):
@@ -620,53 +907,6 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         'properties': properties,  # property aliases
     }
 
-    wrappedApiFunc.__name__ = newName
-
-    _addApiDocs(wrappedApiFunc, apiClass, apiMethodName, overloadIndex, undoable)
-
-    if defaults:
-        pass
-        #_logger.debug("defaults: %s" % defaults)
-
-    wrappedApiFunc = util.interface_wrapper(wrappedApiFunc, ['self'] + inArgs, defaults=defaults)
-    wrappedApiFunc._argHelper = argHelper
-
-    global _DEBUG_API_WRAPS
-    if _DEBUG_API_WRAPS:
-        import weakref
-        global _apiMethodWraps
-        classWraps = _apiMethodWraps.setdefault(apiClassName, {})
-        methodWraps = classWraps.setdefault(apiMethodName, [])
-        methodWraps.append({'index': argHelper.methodIndex,
-                            'funcRef': weakref.ref(wrappedApiFunc),
-                            })
-
-    # do the debug stuff before turning into a classmethod, because you
-    # can't create weakrefs of classmethods (don't ask me why...)
-    if argHelper.isStatic():
-        wrappedApiFunc = classmethod(wrappedApiFunc)
-
-    if argHelper.isDeprecated():
-        argDescriptions = []
-        for arg in argList:
-            argName = arg[0]
-            argType = arg[1]
-            if isinstance(argType, apicache.ApiEnum):
-                argType = argType[0]
-            elif inspect.isclass(argType):
-                argType = argType.__name__
-            argDescriptions.append('{} {}'.format(argType, argName))
-        argStr = ', '.join(argDescriptions)
-        methodDesc = "{}.{}({})".format(apiClassName, apiMethodName, argStr)
-        beforeDeprecationGenerator = wrappedApiFunc
-
-        def wrappedApiFunc(*args, **kwargs):
-            import warnings
-            warnings.warn("{} is deprecated".format(methodDesc),
-                          DeprecationWarning, stacklevel=2)
-            return beforeDeprecationGenerator(*args, **kwargs)
-    return wrappedApiFunc
-
 
 class MelMethodGenerator(object):
 
@@ -687,15 +927,20 @@ class MelMethodGenerator(object):
         self.existingClass = existingClass
         self.attrs = {}
         self.methods = {}
-        self.prefixLines = []
 
     def setDefault(self, key, value, directParentOnly=True):
         if directParentOnly:
             if self.existingClass is None or key not in self.existingClass.__dict__:
-                self.attrs.setdefault(key, value)
+                self.attrs.setdefault(key, Assignment(key, value))
         else:
             if self.existingClass is None or not hasattr(self.existingClass, key):
-                self.attrs.setdefault(key, value)
+                self.attrs.setdefault(key, Assignment(key, value))
+
+    def assign(self, name, value):
+        self.attrs[name] = Assignment(name, value)
+
+    def addMethod(self, name, data=None, **kwargs):
+        self.methods[name] = Method(self.classname, name, data=data, **kwargs)
 
     def render(self):
         self.getTemplateData()
@@ -709,40 +954,22 @@ class MelMethodGenerator(object):
                 name for name, obj in self.existingClass.__dict__.items()
                 if inspect.isfunction(obj))
 
-        def toStr(k, v):
-            if k == '__melcmd__':
-                return 'staticmethod(%s)' % v
-            else:
-                return repr(v)
+        # this is just to maintain "old" sort order for now... will update
+        # with something that makes more sense later
+        def attrSortKey(val):
+            if val == '__setattr__':
+                return (0, val)
+            return (1, val)
 
-        attrs = [{'name': k, 'value': toStr(k, self.attrs[k])} for k in sorted(self.attrs)]
-
-        allMethodLines = []
-        for methodName in sorted(self.methods):
-            allMethodLines.append(self.getMethodLines(methodName))
-        print "{}: found {} methods".format(self.classname, len(allMethodLines))
-
+        attrs = [self.attrs[k] for k in sorted(self.attrs, key=attrSortKey)]
+        methods = [self.methods[k] for k in sorted(self.methods)]
         template = env.get_template('nodeclass.py')
-        text = template.render(methods=allMethodLines, attrs=attrs,
+        text = template.render(methods=methods, attrs=attrs,
                                classname=self.classname,
                                parents=self.parentClassname,
-                               existing=self.existingClass is not None,
-                               prefixLines=self.prefixLines)
+                               existing=self.existingClass is not None)
 
         return text, methodNames
-
-    def getMethodLines(self, methodName):
-        methodInfo = self.methods[methodName]
-        templateName = {
-            'query': 'querymethod.py',
-            'edit': 'editmethod.py',
-            'getattribute': 'getattribute.py',
-            'api': 'apimethod.py',
-        }[methodInfo['type']]
-        template = env.get_template(templateName)
-        text = template.render(method=methodInfo,
-                               classname=self.classname)
-        return text.splitlines()
 
     def getMELData(self):
         """
@@ -777,9 +1004,9 @@ class MelMethodGenerator(object):
             # FIXME: add documentation
             # classdict['__doc__'] = util.LazyDocString((newcls, self.docstring, (melCmdName,), {}))
 
-            self.attrs['__melcmd__'] = cmdPath
-            self.attrs['__melcmdname__'] = melCmdName
-            self.attrs['__melcmd_isinfo__'] = infoCmd
+            self.assign('__melcmd__', cmdPath)
+            self.assign('__melcmdname__', melCmdName)
+            self.assign('__melcmd_isinfo__', infoCmd)
 
             # base set of disallowed methods (for MEL)
             filterAttrs = {'name', 'getName', 'setName'}
@@ -823,14 +1050,13 @@ class MelMethodGenerator(object):
                                     returnFunc = flagInfo['args']
 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                self.methods[methodName] = {
-                                    'name': methodName,
+                                self.addMethod(methodName, {
                                     'command': melCmdName,
                                     'type': 'query',
                                     'flag': flag,
                                     'returnFunc': importableName(returnFunc) if returnFunc else None,
                                     'func': cmdPath,
-                                }
+                                })
                             # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
                         # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
                     # edit command:
@@ -856,13 +1082,12 @@ class MelMethodGenerator(object):
                                 # fixedFunc = fixCallbacks(func, melCmdName)
 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                self.methods[methodName] = {
-                                    'name': methodName,
+                                self.addMethod(methodName, {
                                     'command': melCmdName,
                                     'type': 'edit',
                                     'flag': flag,
                                     'func': cmdPath,
-                                }
+                                })
                             # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
                         # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
 
@@ -947,11 +1172,27 @@ class ApiMethodGenerator(MelMethodGenerator):
             except KeyError:
                 pass
 
-    def addEnums(self, classInfo):
-        if 'pymelEnums' in classInfo:
-            # Enumerators
-            for enumName, enum in classInfo['pymelEnums'].items():
-                self.attrs[enumName] = enum
+    def addEnums(self):
+        versionedEnums = {}
+        allEnumNames = set()
+        for version, classInfo in \
+                versionedCaches.getVersionedClassInfo(self.apicls.__name__).items():
+            if classInfo is None:
+                enums = {}
+            else:
+                enums = classInfo.get('pymelEnums', {})
+            versionedEnums[version] = enums
+            allEnumNames.update(enums)
+
+        allEnumNames = sorted(allEnumNames)
+
+        for enumName in allEnumNames:
+            byVersion = OrderedDict()
+            for version, verEnums in versionedEnums.items():
+                byVersion[version] = verEnums.get(enumName)
+
+            self.attrs[enumName] = VersionedCaches.assignmentFromVersionDict(
+                enumName, byVersion)
 
     def getAPIData(self):
         """
@@ -1087,12 +1328,12 @@ class ApiMethodGenerator(MelMethodGenerator):
                                             deprecated=deprecated, aliases=aliases,
                                             properties=properties)
                         if doc:
-                            self.methods[pymelName] = doc
+                            self.addMethod(pymelName, doc)
                         #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
                     #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
                 #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
 
-            self.addEnums(classInfo)
+            self.addEnums()
 
 
 class ApiDataTypeGenerator(ApiMethodGenerator):
@@ -1128,10 +1369,10 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         if self.removeAttrs:
             # because datatype classes inherit from their API classes, if a
             # method is renamed, we must also remove the inherited API method.
-            self.methods['__getattribute__'] = {
+            self.addMethod('__getattribute__', {
                 'type': 'getattribute',
                 'removeAttrs': _setRepr(self.removeAttrs),
-            }
+            })
 
         # if we imported using old, non-template-generated maya, then
         # it may have fixed the setattr bug on the OpenMaya class itself - undo
@@ -1148,10 +1389,9 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
                 # we should only see this in windows - if we see it elsewhere,
                 # raise an error so we can decide what to do
                 raise ValueError("saw setattr bug on non-windows!")
-            self.prefixLines.extend([
-                r"""if os.name == 'nt':""",
-                r"""    __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug""",
-            ])
+            self.attrs['__setattr__'] = Conditional(
+                [("os.name == 'nt'",
+                  Assignment('__setattr__', Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')))])
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
@@ -1169,7 +1409,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
             # convert them to own class
             if isinstance(attr, self.apicls):
                 if name not in constant:
-                    constant[name] = makeClassConstant(attr)
+                    constant[name] = Assignment(name, makeClassConstant(attr))
         # we'll need the api class dict to automate some of the wrapping
         # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping
         # defining class properties on the created class
@@ -1178,7 +1418,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
             # convert them to own class
             if isinstance(attr, self.apicls):
                 if name not in constant:
-                    constant[name] = makeClassConstant(attr)
+                    constant[name] = Assignment(name, makeClassConstant(attr))
         # FIXME:
         # update the constant dict with herited constants
         # mro = inspect.getmro(self.existingClass)
@@ -1226,7 +1466,7 @@ class NodeTypeGenerator(ApiMethodGenerator):
     def getTemplateData(self):
         self.setDefault('__slots__', ())
 
-        self.attrs['__melnode__'] = self.mayaType
+        self.assign('__melnode__', self.mayaType)
 
         if self.apicls is not None and self.apicls is not self.parentApicls:
             self.setDefault('__apicls__',
@@ -1248,7 +1488,7 @@ class NodeTypeGenerator(ApiMethodGenerator):
         #     else:
         #         # not a virtual class, just use the classname
         #         nodeType = util.uncapitalize(self.classname)
-        #     self.attrs['__melnode__'] = nodeType
+        #     self.assign('__melnode__', nodeType)
 
         from pymel.core.nodetypes import mayaTypeNameToPymelTypeName, \
             pymelTypeNameToMayaTypeName
@@ -1314,8 +1554,7 @@ class NodeTypeGenerator(ApiMethodGenerator):
 class ApiUnitsGenerator(ApiDataTypeGenerator):
 
     def getTemplateData(self):
-        classInfo = factories.apiClassInfo[self.apicls.__name__]
-        self.addEnums(classInfo)
+        self.addEnums()
 
 
 class ApiTypeGenerator(ApiMethodGenerator):
@@ -1343,14 +1582,19 @@ class UITypeGenerator(MelMethodGenerator):
         self.setDefault('__slots__', ())
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        self.attrs.setdefault('__melui__', util.uncapitalize(self.classname))
+        self.setDefault('__melui__', util.uncapitalize(self.classname))
 
         # TODO: implement a option at the cmdlist level that triggers listForNone
         # TODO: create labelArray for *Grp ui elements, which passes to the correct arg ( labelArray3, labelArray4, etc ) based on length of passed array
         self.getMELData()
 
     def getMelCmd(self):
-        return self.attrs['__melui__'], False
+        cmd = getattr(self.existingClass, '__melui__', None)
+        if not cmd:
+            # we're assuming that __melui__ isn't a conditional... for now, only
+            # enums should be conditional.
+            cmd = self.attrs['__melui__'].value
+        return cmd, False
 
 
 def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods, parentApicls):
@@ -1592,9 +1836,9 @@ def generateAll(allowNonWindows=False):
         raise ValueError("must build on windows - for testing, set allowNonWindows=True")
 
     factories.building = True
-    factories.loadCmdCache()
-
     try:
+
+        factories.loadCmdCache()
         # FIXME: save this into the caches
 
         # these don't exist on the API classes, as '__rmult__' or '__rmul__'
