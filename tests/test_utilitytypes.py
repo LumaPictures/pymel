@@ -1,5 +1,7 @@
+import unittest
 from pymel.util.testing import TestCaseExtended, setupUnittestModule, TestCase
 from pymel.util import utilitytypes
+from pymel.util.enum import Enum
 
 aDict = {'A':1, 'a':2}
 bDict = {'B':3, 'b':4}
@@ -60,6 +62,79 @@ class TestDictSingleton(__AbstractTestDict):
         self.assertEqual(self.theClass()['a'], "foobar")
         self.theClass()['fuzzy'] = "bear"
         self.assertEqual(self.theClass()['a'], "foobar")
+
+
+class TestEnum(unittest.TestCase):
+    def testEquality(self):
+        enum1 = Enum('enum', {'foo': 1, 'bar':7})
+        enum2 = Enum('enum', {'foo': 1, 'bar': 7})
+        enum3 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'bar'})
+        enum4 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'bar'})
+        enum5 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'baz'})
+        enum6 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'baz'})
+
+        self.assertEqual(enum1, enum2)
+        self.assertIsNot(enum1, enum2)
+        self.assertEqual(enum1, enum1)
+        self.assertNotEqual(enum1, enum3)
+        self.assertNotEqual(enum1, enum4)
+        self.assertNotEqual(enum1, enum5)
+        self.assertNotEqual(enum1, enum6)
+
+        self.assertEqual(enum3, enum4)
+        self.assertIsNot(enum3, enum4)
+        self.assertNotEqual(enum3, enum1)
+        self.assertNotEqual(enum3, enum2)
+        self.assertNotEqual(enum3, enum5)
+        self.assertNotEqual(enum3, enum6)
+
+        self.assertEqual(enum5, enum6)
+        self.assertIsNot(enum5, enum6)
+        self.assertNotEqual(enum5, enum1)
+        self.assertNotEqual(enum5, enum2)
+        self.assertNotEqual(enum5, enum3)
+        self.assertNotEqual(enum5, enum4)
+
+    def testHash(self):
+        enum1 = Enum('enum', {'foo': 1, 'bar':7})
+        enum2 = Enum('enum', {'foo': 1, 'bar': 7})
+        enum3 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'bar'})
+        enum4 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'bar'})
+        enum5 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'baz'})
+        enum6 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'baz'})
+
+        self.assertEqual(hash(enum1), hash(enum2))
+        self.assertIsNot(enum1, enum2)
+        self.assertEqual(hash(enum1), hash(enum1))
+        self.assertNotEqual(hash(enum1), hash(enum3))
+        self.assertNotEqual(hash(enum1), hash(enum4))
+        self.assertNotEqual(hash(enum1), hash(enum5))
+        self.assertNotEqual(hash(enum1), hash(enum6))
+
+        self.assertEqual(hash(enum3), hash(enum4))
+        self.assertIsNot(enum3, enum4)
+        self.assertNotEqual(hash(enum3), hash(enum1))
+        self.assertNotEqual(hash(enum3), hash(enum2))
+        self.assertNotEqual(hash(enum3), hash(enum5))
+        self.assertNotEqual(hash(enum3), hash(enum6))
+
+        self.assertEqual(hash(enum5), hash(enum6))
+        self.assertIsNot(enum5, enum6)
+        self.assertNotEqual(hash(enum5), hash(enum1))
+        self.assertNotEqual(hash(enum5), hash(enum2))
+        self.assertNotEqual(hash(enum5), hash(enum3))
+        self.assertNotEqual(hash(enum5), hash(enum4))
+
+        self.assertEqual(len({enum1, enum2, enum3, enum4, enum5, enum6}), 3)
+
 
 class TestFrozenDict(__AbstractTestDict):
     # In the case of static classes, need to create a new class
