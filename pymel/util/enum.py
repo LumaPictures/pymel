@@ -297,6 +297,10 @@ class Enum(object):
     def name(self):
         return self._name
 
+    def _valTuples(self):
+        return tuple((key, val._asTuple())
+            for (key, val) in self._values.iteritems())
+
     def __eq__(self, other):
         if not isinstance(other, Enum):
             return False
@@ -306,11 +310,11 @@ class Enum(object):
         # contain a ref to this Enum class, and THEIR compare compares the
         # Enum class - which would result in a recursive cycle
         # Instead, compare the values' _asTuple
+        return self._valTuples() == other._valTuples()
 
-        def valTuples(enum):
-            return dict((key, val._asTuple()) for (key, val)
-                        in enum._values.iteritems())
-        return valTuples(self) == valTuples(other)
+    def __hash__(self):
+        keyTuples = tuple((k, self._keys[k]) for k in sorted(self._keys))
+        return hash((keyTuples, self._valTuples()))
 
     def __ne__(self, other):
         return not self == other
