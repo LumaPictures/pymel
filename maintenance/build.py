@@ -1,3 +1,7 @@
+'''
+Regenerate the core modules using parsed data and templates
+'''
+
 import compileall
 import inspect
 import keyword
@@ -17,6 +21,9 @@ from pymel.internal import pmcmds
 
 if False:
     from typing import *
+
+THIS_FILE = os.path.normpath(os.path.abspath(inspect.getsourcefile(lambda: None)))
+THIS_DIR = os.path.dirname(THIS_FILE)
 
 _logger = plogging.getLogger(__name__)
 
@@ -1655,3 +1662,30 @@ def generateAll(allowNonWindows=False):
                                force=True)
     finally:
         factories.building = False
+
+
+def getParser():
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--non-windows', action='store_true',
+                        help='Set to allow running on non-windows boxes; final'
+                             ' generation should always be done on windows')
+    return parser
+
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
+
+    print "Only use this for testing - for final generation, use a GUI maya"
+    pymeldir = os.path.dirname(THIS_DIR)
+    sys.path.insert(0, pymeldir)
+
+    parser = getParser()
+    args = parser.parse_args(argv)
+
+    import maya.standalone
+    maya.standalone.initialize()
+    generateAll(allowNonWindows=args.non_windows)
+
+if __name__ == '__main__':
+    main()
