@@ -2734,7 +2734,6 @@ class CommandMenuItem(PyUI):
     __melcmd__ = staticmethod(windows.menuItem)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'menuItem'
-    __melui__ = 'menuItem'
     __slots__ = ()
 
     @_f.addMelDocs('menuItem', 'allowOptionBoxes')

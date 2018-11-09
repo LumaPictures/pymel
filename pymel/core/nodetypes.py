@@ -4350,6 +4350,8 @@ class Joint(Transform):
         disconnect = animation.disconnectJoint
         insert = animation.insertJoint
 # ------ Do not edit below this line --------
+    if versions.current() >= versions.v2019:
+        Axis = Enum('Axis', {'kXAxis': 0, 'XAxis': 0, 'YAxis': 1, 'kYAxis': 1, 'kZAxis': 2, 'ZAxis': 2, 'none': 3, 'kNone': 3}, multiKeys=True, defaultKeys={0: 'XAxis', 1: 'YAxis', 2: 'ZAxis', 3: 'none'})
     __apicls__ = _api.MFnIkJoint
     __melcmd__ = staticmethod(animation.joint)
     __melcmd_isinfo__ = False
@@ -8902,7 +8904,10 @@ class AnimCurve(DependNode):
 # ------ Do not edit below this line --------
     AnimCurveType = Enum('AnimCurveType', {'kAnimCurveTA': 0, 'TA': 0, 'TL': 1, 'kAnimCurveTL': 1, 'kAnimCurveTT': 2, 'TT': 2, 'kAnimCurveTU': 3, 'TU': 3, 'kAnimCurveUA': 4, 'UA': 4, 'UL': 5, 'kAnimCurveUL': 5, 'UT': 6, 'kAnimCurveUT': 6, 'UU': 7, 'kAnimCurveUU': 7, 'kAnimCurveUnknown': 8, 'unknown': 8}, multiKeys=True, defaultKeys={0: 'TA', 1: 'TL', 2: 'TT', 3: 'TU', 4: 'UA', 5: 'UL', 6: 'UT', 7: 'UU', 8: 'unknown'})
     InfinityType = Enum('InfinityType', {'constant': 0, 'kConstant': 0, 'linear': 1, 'kLinear': 1, 'kCycle': 3, 'cycle': 3, 'kCycleRelative': 4, 'cycleRelative': 4, 'oscillate': 5, 'kOscillate': 5}, multiKeys=True, defaultKeys={0: 'constant', 1: 'linear', 3: 'cycle', 4: 'cycleRelative', 5: 'oscillate'})
-    TangentType = Enum('TangentType', {'kTangentGlobal': 0, 'global_': 0, 'kTangentFixed': 1, 'fixed': 1, 'linear': 2, 'kTangentLinear': 2, 'kTangentFlat': 3, 'flat': 3, 'smooth': 4, 'kTangentSmooth': 4, 'kTangentStep': 5, 'step': 5, 'slow': 6, 'kTangentSlow': 6, 'kTangentFast': 7, 'fast': 7, 'clamped': 8, 'kTangentClamped': 8, 'plateau': 9, 'kTangentPlateau': 9, 'stepNext': 10, 'kTangentStepNext': 10, 'kTangentAuto': 11, 'auto': 11}, multiKeys=True, defaultKeys={0: 'global_', 1: 'fixed', 2: 'linear', 3: 'flat', 4: 'smooth', 5: 'step', 6: 'slow', 7: 'fast', 8: 'clamped', 9: 'plateau', 10: 'stepNext', 11: 'auto'})
+    if versions.current() >= versions.v2019:
+        TangentType = Enum('TangentType', {'kTangentGlobal': 0, 'global_': 0, 'kTangentFixed': 1, 'fixed': 1, 'linear': 2, 'kTangentLinear': 2, 'kTangentFlat': 3, 'flat': 3, 'smooth': 4, 'kTangentSmooth': 4, 'kTangentStep': 5, 'step': 5, 'slow': 6, 'kTangentSlow': 6, 'kTangentFast': 7, 'fast': 7, 'clamped': 8, 'kTangentClamped': 8, 'plateau': 9, 'kTangentPlateau': 9, 'stepNext': 10, 'kTangentStepNext': 10, 'kTangentAuto': 11, 'auto': 11, 'kTangentShared1': 19, 'shared1': 19, 'kTangentShared2': 20, 'shared2': 20, 'shared3': 21, 'kTangentShared3': 21, 'kTangentShared4': 22, 'shared4': 22, 'kTangentShared5': 23, 'shared5': 23, 'kTangentShared6': 24, 'shared6': 24, 'kTangentShared7': 25, 'shared7': 25, 'kTangentShared8': 26, 'shared8': 26, 'customStart': 64, 'kTangentCustomStart': 64, 'customEnd': 32767, 'kTangentCustomEnd': 32767, 'typeCount': 32768, 'kTangentTypeCount': 32768}, multiKeys=True, defaultKeys={32768: 'typeCount', 1: 'fixed', 2: 'linear', 3: 'flat', 4: 'smooth', 5: 'step', 6: 'slow', 7: 'fast', 8: 'clamped', 9: 'plateau', 10: 'stepNext', 11: 'auto', 19: 'shared1', 20: 'shared2', 21: 'shared3', 22: 'shared4', 23: 'shared5', 24: 'shared6', 25: 'shared7', 26: 'shared8', 0: 'global_', 64: 'customStart', 32767: 'customEnd'})
+    else:
+        TangentType = Enum('TangentType', {'kTangentGlobal': 0, 'global_': 0, 'kTangentFixed': 1, 'fixed': 1, 'linear': 2, 'kTangentLinear': 2, 'kTangentFlat': 3, 'flat': 3, 'smooth': 4, 'kTangentSmooth': 4, 'kTangentStep': 5, 'step': 5, 'slow': 6, 'kTangentSlow': 6, 'kTangentFast': 7, 'fast': 7, 'clamped': 8, 'kTangentClamped': 8, 'plateau': 9, 'kTangentPlateau': 9, 'stepNext': 10, 'kTangentStepNext': 10, 'kTangentAuto': 11, 'auto': 11}, multiKeys=True, defaultKeys={0: 'global_', 1: 'fixed', 2: 'linear', 3: 'flat', 4: 'smooth', 5: 'step', 6: 'slow', 7: 'fast', 8: 'clamped', 9: 'plateau', 10: 'stepNext', 11: 'auto'})
     __apicls__ = _api.MFnAnimCurve
     __melnode__ = u'animCurve'
     __slots__ = ()
@@ -23982,6 +23987,8 @@ class CreaseSet(ObjectSet):
 
 
 class Partition(Entity):
+    if versions.current() >= versions.v2019:
+        Restriction = Enum('Restriction', {'none': 0, 'kNone': 0, 'verticesOnly': 1, 'kVerticesOnly': 1, 'kEdgesOnly': 2, 'edgesOnly': 2, 'facetsOnly': 3, 'kFacetsOnly': 3, 'editPointsOnly': 4, 'kEditPointsOnly': 4, 'renderableOnly': 5, 'kRenderableOnly': 5}, multiKeys=True, defaultKeys={0: 'none', 1: 'verticesOnly', 2: 'edgesOnly', 3: 'facetsOnly', 4: 'editPointsOnly', 5: 'renderableOnly'})
     __apicls__ = _api.MFnPartition
     __melcmd__ = staticmethod(general.partition)
     __melcmd_isinfo__ = False
