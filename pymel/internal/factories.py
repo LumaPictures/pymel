@@ -1780,6 +1780,78 @@ class ApiArgUtil(object):
                 proto += ' --> (%s)' % ', '.join([str(x) for x in results])
         return proto
 
+    def getTypeComment(self):
+        inArgs = self.inArgs()
+        outArgs = self.outArgs()
+        returnType = self.getReturnType()
+        types = self.methodInfo['types']
+        args = []
+
+        pymelClass = apiClassNamesToPymelTypes.get(self.apiClassName)
+        if pymelClass is None:
+            currentModule = 'pymel.core.nodetypes'
+        else:
+            currentModule = pymelClass.__module__
+        print self.apiClassName, currentModule
+
+        def toPymelType(apiName):
+            try:
+                pymelName = ApiTypeRegister.types[apiName]
+            except KeyError:
+                match = re.match('^(?:(MIt)|(MFn)|(M))([A-Z]+.*)', apiName)
+                assert match is not None, apiName
+                isIter, isNode, isData, pymelName = match.groups()
+
+                if pymelName == 'Attribute' and currentModule != 'pymel.core.general':
+                    return 'nt.' + pymelName
+                if isNode and currentModule != 'pymel.core.nodetypes':
+                    return 'nt.' + pymelName
+                if isData and currentModule != 'pymel.core.datatypes':
+                    return 'datatypes.' + pymelName
+                if isIter and currentModule != 'pymel.core.general':
+                    return 'general.' + pymelName
+                return pymelName
+
+            if pymelName in {'PyNode', 'Attribute'}:
+                pymelName = 'general.' + pymelName
+
+            if isinstance(pymelName, tuple):
+                pymelName = 'Tuple[%s]' % ', '.join(pymelName)
+            return pymelName
+
+        def getType(apiName):
+            pymelName = apiClassNamesToPyNodeNames.get(apiName, None)
+            if pymelName is None:
+                arrayType = ApiTypeRegister.arrayItemTypes.get(apiName)
+                if arrayType:
+                    try:
+                        pymelName = toPymelType(arrayType.__name__)
+                    except AssertionError:
+                        pymelName = arrayType.__name__
+                    return 'List[%s]' % pymelName
+                else:
+                    pymelName = toPymelType(str(apiName))
+            return pymelName
+
+        for x in inArgs:
+            args.append(getType(types[x]))
+
+        comment = '# type: (%s)' % ', '.join(args)
+
+        results = []
+        if returnType:
+            results.append(getType(returnType))
+        for x in outArgs:
+            results.append(getType(types[x]))
+
+        if len(results) == 1:
+            result = results[0]
+        elif len(results):
+            result = 'Tuple[%s]' % ', '.join(results)
+        else:
+            result = 'None'
+        return comment + ' -> ' + result
+
     def castInput(self, argName, input):
         # type: (str, Any) -> Any
         """

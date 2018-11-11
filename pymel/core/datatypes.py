@@ -18,6 +18,9 @@ from pymel.util.arrays import _toCompOrArrayInstance
 import pymel.internal.factories as _factories
 from pymel.util.enum import Enum
 
+if False:
+    from typing import *
+
 _f = _factories
 
 
@@ -1534,6 +1537,7 @@ class Color(Vector):
 
     @_f.addApiDocs(_api.MColor, 'set')
     def set(self, colorModel, c1, c2, c3, alpha=1.0):
+        # type: (Color.MColorType, float, float, float, float) -> bool
         do, final_do, outTypes = _f.getDoArgs([colorModel, c1, c2, c3, alpha], [('colorModel', ('MColor', 'MColorType'), 'in', None), ('c1', 'float', 'in', None), ('c2', 'float', 'in', None), ('c3', 'float', 'in', None), ('alpha', 'float', 'in', None)])
         res = _api.MColor.set(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -2465,51 +2469,60 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'addRotation')
     def addRotation(self, rot, order, space):
+        # type: (Tuple[float, float, float], TransformationMatrix.RotationOrder, Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([rot, order, space], [('rot', 'double__array3', 'in', None), ('order', ('MTransformationMatrix', 'RotationOrder'), 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.addRotation(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'addRotationQuaternion')
     def addRotationQuaternion(self, x, y, z, w, space):
+        # type: (float, float, float, float, Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.addRotationQuaternion(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'addScale')
     def addScale(self, scale, space):
+        # type: (Tuple[float, float, float], Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([scale, space], [('scale', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.addScale(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'addShear')
     def addShear(self, shear, space):
+        # type: (Tuple[float, float, float], Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([shear, space], [('shear', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.addShear(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'addTranslation')
     def addTranslation(self, vector, space):
+        # type: (Vector, Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.addTranslation(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'asMatrixInverse')
     def asMatrixInverse(self):
+        # type: () -> Matrix
         res = _api.MTransformationMatrix.asMatrixInverse(self)
         return _f.ApiArgUtil._castResult(self, res, 'MMatrix', None)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'asRotateMatrix')
     def asRotateMatrix(self):
+        # type: () -> Matrix
         res = _api.MTransformationMatrix.asRotateMatrix(self)
         return _f.ApiArgUtil._castResult(self, res, 'MMatrix', None)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'asScaleMatrix')
     def asScaleMatrix(self):
+        # type: () -> Matrix
         res = _api.MTransformationMatrix.asScaleMatrix(self)
         return _f.ApiArgUtil._castResult(self, res, 'MMatrix', None)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'rotatePivot')
     def getRotatePivot(self, space):
+        # type: (Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.rotatePivot(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -2517,6 +2530,7 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'rotatePivotTranslation')
     def getRotatePivotTranslation(self, space):
+        # type: (Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.rotatePivotTranslation(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -2524,23 +2538,27 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'rotationOrientation')
     def getRotationOrientation(self):
+        # type: () -> Quaternion
         res = _api.MTransformationMatrix.rotationOrientation(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'getRotationQuaternion')
     def getRotationQuaternion(self):
+        # type: () -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None)])
         res = _api.MTransformationMatrix.getRotationQuaternion(self, *final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'getScale')
     def getScale(self, space):
+        # type: (Space.Space) -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('scale', 'double__array3', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.getScale(self, *final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'scalePivot')
     def getScalePivot(self, space):
+        # type: (Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.scalePivot(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -2548,6 +2566,7 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'scalePivotTranslation')
     def getScalePivotTranslation(self, space):
+        # type: (Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.scalePivotTranslation(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -2555,12 +2574,14 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'getShear')
     def getShear(self, space):
+        # type: (Space.Space) -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('shear', 'double__array3', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.getShear(self, *final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'getTranslation')
     def getTranslation(self, space):
+        # type: (Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.getTranslation(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -2568,12 +2589,14 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'reorderRotation')
     def reorderRotation(self, order):
+        # type: (TransformationMatrix.RotationOrder) -> None
         do, final_do, outTypes = _f.getDoArgs([order], [('order', ('MTransformationMatrix', 'RotationOrder'), 'in', None)])
         res = _api.MTransformationMatrix.reorderRotation(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'rotateBy')
     def rotateBy(self, q, space):
+        # type: (Quaternion, Space.Space) -> TransformationMatrix
         do, final_do, outTypes = _f.getDoArgs([q, space], [('q', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _api.MTransformationMatrix.rotateBy(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MTransformationMatrix', None)
@@ -2581,23 +2604,27 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'rotationOrder')
     def rotationOrder(self):
+        # type: () -> TransformationMatrix.RotationOrder
         res = _api.MTransformationMatrix.rotationOrder(self)
         return _f.ApiArgUtil._castResult(self, res, ('MTransformationMatrix', 'RotationOrder'), None)
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotatePivot')
     def setRotatePivot(self, point, space, balance):
+        # type: (Point, Space.Space, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self.getRotatePivot, self.setRotatePivot, ['space'])
         res = _api.MTransformationMatrix.setRotatePivot(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotatePivotTranslation')
     def setRotatePivotTranslation(self, vector, space):
+        # type: (Vector, Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotatePivotTranslation, self.setRotatePivotTranslation, ['space'])
         res = _api.MTransformationMatrix.setRotatePivotTranslation(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotationOrientation')
     def setRotationOrientation(self, q):
+        # type: (Quaternion) -> TransformationMatrix
         do, final_do, outTypes = _f.processApiArgs([q], [('q', 'MQuaternion', 'in', None)], self.getRotationOrientation, self.setRotationOrientation, [])
         res = _api.MTransformationMatrix.setRotationOrientation(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MTransformationMatrix', None)
@@ -2605,42 +2632,49 @@ class TransformationMatrix(Matrix):
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotationQuaternion')
     def setRotationQuaternion(self, x, y, z, w):
+        # type: (float, float, float, float) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, [])
         res = _api.MTransformationMatrix.setRotationQuaternion(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setScale')
     def setScale(self, scale, space):
+        # type: (Tuple[float, float, float], Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([scale, space], [('scale', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getScale, self.setScale, ['space'])
         res = _api.MTransformationMatrix.setScale(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setScalePivot')
     def setScalePivot(self, point, space, balance):
+        # type: (Point, Space.Space, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self.getScalePivot, self.setScalePivot, ['space'])
         res = _api.MTransformationMatrix.setScalePivot(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setScalePivotTranslation')
     def setScalePivotTranslation(self, vector, space):
+        # type: (Vector, Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getScalePivotTranslation, self.setScalePivotTranslation, ['space'])
         res = _api.MTransformationMatrix.setScalePivotTranslation(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setShear')
     def setShear(self, shear, space):
+        # type: (Tuple[float, float, float], Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([shear, space], [('shear', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getShear, self.setShear, ['space'])
         res = _api.MTransformationMatrix.setShear(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setToRotationAxis')
     def setToRotationAxis(self, axis, rotation):
+        # type: (Vector, float) -> None
         do, final_do, outTypes = _f.getDoArgs([axis, rotation], [('axis', 'MVector', 'in', None), ('rotation', 'double', 'in', None)])
         res = _api.MTransformationMatrix.setToRotationAxis(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setTranslation')
     def setTranslation(self, vector, space):
+        # type: (Vector, Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getTranslation, self.setTranslation, ['space'])
         res = _api.MTransformationMatrix.setTranslation(self, *final_do)
         return res
@@ -3049,6 +3083,7 @@ class EulerRotation(Array):
     @classmethod
     @_f.addApiDocs(_api.MEulerRotation, 'decompose')
     def decompose(self, matrix, ord):
+        # type: (Matrix, EulerRotation.RotationOrder) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([matrix, ord], [('matrix', 'MMatrix', 'in', None), ('ord', ('MEulerRotation', 'RotationOrder'), 'in', None)])
         res = _api.MEulerRotation.decompose(*final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3056,6 +3091,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'incrementalRotateBy')
     def incrementalRotateBy(self, axis, angle):
+        # type: (Vector, float) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([axis, angle], [('axis', 'MVector', 'in', None), ('angle', 'double', 'in', None)])
         res = _api.MEulerRotation.incrementalRotateBy(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3063,16 +3099,19 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'inverse')
     def inverse(self):
+        # type: () -> EulerRotation
         res = _api.MEulerRotation.inverse(self)
         return _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
 
     @_f.addApiDocs(_api.MEulerRotation, 'invertIt')
     def invertIt(self):
+        # type: () -> EulerRotation
         res = _api.MEulerRotation.invertIt(self)
         return _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
 
     @_f.addApiDocs(_api.MEulerRotation, 'isZero')
     def isZero(self, tolerance=1e-10):
+        # type: (float) -> bool
         do, final_do, outTypes = _f.getDoArgs([tolerance], [('tolerance', 'double', 'in', None)])
         res = _api.MEulerRotation.isZero(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -3080,6 +3119,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'reorder')
     def reorder(self, ord):
+        # type: (EulerRotation.RotationOrder) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([ord], [('ord', ('MEulerRotation', 'RotationOrder'), 'in', None)])
         res = _api.MEulerRotation.reorder(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3087,6 +3127,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'reorderIt')
     def reorderIt(self, ord):
+        # type: (EulerRotation.RotationOrder) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([ord], [('ord', ('MEulerRotation', 'RotationOrder'), 'in', None)])
         res = _api.MEulerRotation.reorderIt(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3094,6 +3135,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'setToAlternateSolution')
     def setToAlternateSolution(self, src):
+        # type: (EulerRotation) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([src], [('src', 'MEulerRotation', 'in', None)])
         res = _api.MEulerRotation.setToAlternateSolution(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3101,6 +3143,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'setToClosestCut')
     def setToClosestCut(self, src, dst):
+        # type: (EulerRotation, EulerRotation) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([src, dst], [('src', 'MEulerRotation', 'in', None), ('dst', 'MEulerRotation', 'in', None)])
         res = _api.MEulerRotation.setToClosestCut(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3108,6 +3151,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'setToClosestSolution')
     def setToClosestSolution(self, src, dst):
+        # type: (EulerRotation, EulerRotation) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([src, dst], [('src', 'MEulerRotation', 'in', None), ('dst', 'MEulerRotation', 'in', None)])
         res = _api.MEulerRotation.setToClosestSolution(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3115,6 +3159,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'setValue')
     def setValue(self, v, ord='XYZ'):
+        # type: (Vector, EulerRotation.RotationOrder) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([v, ord], [('v', 'MVector', 'in', None), ('ord', ('MEulerRotation', 'RotationOrder'), 'in', None)])
         res = _api.MEulerRotation.setValue(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3427,16 +3472,19 @@ class BoundingBox(_api.MBoundingBox):
 
     @_f.addApiDocs(_api.MBoundingBox, 'center')
     def center(self):
+        # type: () -> Point
         res = _api.MBoundingBox.center(self)
         return _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
 
     @_f.addApiDocs(_api.MBoundingBox, 'clear')
     def clear(self):
+        # type: () -> None
         res = _api.MBoundingBox.clear(self)
         return res
 
     @_f.addApiDocs(_api.MBoundingBox, 'contains')
     def contains(self, point):
+        # type: (Point) -> bool
         do, final_do, outTypes = _f.getDoArgs([point], [('point', 'MPoint', 'in', None)])
         res = _api.MBoundingBox.contains(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -3444,22 +3492,26 @@ class BoundingBox(_api.MBoundingBox):
 
     @_f.addApiDocs(_api.MBoundingBox, 'depth')
     def depth(self):
+        # type: () -> float
         res = _api.MBoundingBox.depth(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MBoundingBox, 'expand')
     def expand(self, point):
+        # type: (Point) -> None
         do, final_do, outTypes = _f.getDoArgs([point], [('point', 'MPoint', 'in', None)])
         res = _api.MBoundingBox.expand(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MBoundingBox, 'height')
     def height(self):
+        # type: () -> float
         res = _api.MBoundingBox.height(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MBoundingBox, 'intersects')
     def intersects(self, box, tol=0.0):
+        # type: (BoundingBox, float) -> bool
         do, final_do, outTypes = _f.getDoArgs([box, tol], [('box', 'MBoundingBox', 'in', None), ('tol', 'double', 'in', None)])
         res = _api.MBoundingBox.intersects(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -3467,22 +3519,26 @@ class BoundingBox(_api.MBoundingBox):
 
     @_f.addApiDocs(_api.MBoundingBox, 'max')
     def max(self):
+        # type: () -> Point
         res = _api.MBoundingBox.max(self)
         return _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
 
     @_f.addApiDocs(_api.MBoundingBox, 'min')
     def min(self):
+        # type: () -> Point
         res = _api.MBoundingBox.min(self)
         return _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
 
     @_f.addApiDocs(_api.MBoundingBox, 'transformUsing')
     def transformUsing(self, matrix):
+        # type: (Matrix) -> None
         do, final_do, outTypes = _f.getDoArgs([matrix], [('matrix', 'MMatrix', 'in', None)])
         res = _api.MBoundingBox.transformUsing(self, *final_do)
         return res
 
     @_f.addApiDocs(_api.MBoundingBox, 'width')
     def width(self):
+        # type: () -> float
         res = _api.MBoundingBox.width(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 # ------ Do not edit above this line --------

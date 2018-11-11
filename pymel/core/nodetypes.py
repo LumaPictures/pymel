@@ -860,6 +860,7 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def addAttribute(self, attr):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
@@ -867,6 +868,7 @@ class DependNode(general.PyNode):
     @classmethod
     @_f.deprecated
     def allocateFlag(self, pluginName):
+        # type: (unicode) -> int
         do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
         res = _api.MFnDependencyNode.allocateFlag(*final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -874,6 +876,7 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def attribute(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -881,6 +884,7 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def attributeClass(self, attribute):
+        # type: (general.PyNode) -> DependencyNode.MAttrClass
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attributeClass', final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MAttrClass'), None)
@@ -888,17 +892,20 @@ class DependNode(general.PyNode):
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'attributeCount')
     def attributeCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attributeCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'canBeWritten')
     def canBeWritten(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'canBeWritten')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @classmethod
     @_f.deprecated
     def deallocateAllFlags(self, pluginName):
+        # type: (unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
         res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
         return res
@@ -906,18 +913,21 @@ class DependNode(general.PyNode):
     @classmethod
     @_f.deprecated
     def deallocateFlag(self, pluginName, flag):
+        # type: (unicode, int) -> None
         do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
         res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
     def dgCallbacks(self, timerType, callbackName, value):
+        # type: (DependencyNode.MdgTimerType, List[unicode], List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([timerType, callbackName, value], [('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None), ('callbackName', 'MStringArray', 'in', None), ('value', 'MDoubleArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgCallbacks', final_do)
         return res
 
     @_f.deprecated
     def dgTimer(self, timerMetric, timerType):
+        # type: (DependencyNode.MdgTimerMetric, DependencyNode.MdgTimerType) -> float
         do, final_do, outTypes = _f.getDoArgs([timerMetric, timerType], [('timerMetric', ('MFnDependencyNode', 'MdgTimerMetric'), 'in', None), ('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimer', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -925,33 +935,39 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def dgTimerOff(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOff')
         return res
 
     @_f.deprecated
     def dgTimerOn(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOn')
         return res
 
     @_f.deprecated
     def dgTimerQueryState(self):
+        # type: () -> DependencyNode.MdgTimerState
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerQueryState')
         return _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MdgTimerState'), None)
 
     @_f.deprecated
     def dgTimerReset(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerReset')
         return res
 
     @classmethod
     @_f.addApiDocs(_api.MFnDependencyNode, 'enableDGTiming')
     def enableDGTiming(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([enable], [('enable', 'bool', 'in', None)])
         res = _api.MFnDependencyNode.enableDGTiming(*final_do)
         return res
 
     @_f.deprecated
     def findAlias(self, alias):
+        # type: (unicode) -> Tuple[bool, general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([alias], [('alias', 'MString', 'in', None), ('attrObj', 'MObject', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -959,6 +975,7 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def findPlug(self, attr, wantNetworkedPlug):
+        # type: (general.PyNode, bool) -> Attribute
         do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
@@ -966,18 +983,21 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
+        # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def getAffectedByAttributes(self, attr):
+        # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def getAliasAttr(self, force):
+        # type: (bool) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([force], [('force', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasAttr', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -985,6 +1005,7 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def getAliasList(self):
+        # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasList', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -992,22 +1013,26 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def getConnections(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'icon')
     def getIcon(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'icon')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'name')
     def getName(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'name')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.deprecated
     def hasAttribute(self, attrName):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'hasAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -1015,16 +1040,19 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def hasUniqueName(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'hasUniqueName')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isDefaultNode')
     def isDefaultNode(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isDefaultNode')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isFlagSet')
     def isFlagSet(self, flag):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([flag], [('flag', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isFlagSet', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -1032,16 +1060,19 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def isFromReferencedFile(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isFromReferencedFile')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isLocked')
     def isLocked(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isLocked')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.deprecated
     def isNewAttribute(self, attr):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isNewAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -1049,37 +1080,44 @@ class DependNode(general.PyNode):
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isFromReferencedFile')
     def isReferenced(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isFromReferencedFile')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
     isReadOnly = isReferenced
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isShared')
     def isShared(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isShared')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isTrackingEdits')
     def isTrackingEdits(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isTrackingEdits')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'hasUniqueName')
     def isUniquelyNamed(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'hasUniqueName')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'parentNamespace')
     def parentNamespace(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'parentNamespace')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'pluginName')
     def pluginName(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'pluginName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.deprecated
     def plugsAlias(self, plug):
+        # type: (Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -1087,12 +1125,14 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def removeAttribute(self, attribute):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
     def reorderedAttribute(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -1100,6 +1140,7 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
+        # type: (unicode, unicode, Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -1107,30 +1148,35 @@ class DependNode(general.PyNode):
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'setDoNotWrite')
     def setDoNotWrite(self, flag):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([flag], [('flag', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setDoNotWrite', final_do)
         return res
 
     @_f.deprecated
     def setFlag(self, flag, state):
+        # type: (int, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([flag, state], [('flag', 'uint', 'in', None), ('state', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setFlag', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'setIcon')
     def setIcon(self, filename):
+        # type: (unicode) -> None
         do, final_do, outTypes = _f.processApiArgs([filename], [('filename', 'MString', 'in', None)], self.getIcon, self.setIcon, [])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setIcon', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'setLocked')
     def setLocked(self, lock):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([lock], [('lock', 'bool', 'in', None)], self.isLocked, self.setLocked, [])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setLocked', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'setName')
     def setName(self, name, createNamespace=False):
+        # type: (unicode, bool) -> unicode
         do, final_do, outTypes = _f.processApiArgs([name, createNamespace], [('name', 'MString', 'in', None), ('createNamespace', 'bool', 'in', None)], self.getName, self.setName, [])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -1138,6 +1184,7 @@ class DependNode(general.PyNode):
 
     @_f.deprecated
     def typeName(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
@@ -1153,42 +1200,49 @@ class ContainerBase(DependNode):
 
     @_f.addApiDocs(_api.MFnContainerNode, 'getMembers')
     def getMembers(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('members', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnContainerNode, 'getMembers', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnContainerNode, 'getParentContainer')
     def getParentContainer(self):
+        # type: () -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([], [('parent', 'MObject', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnContainerNode, 'getParentContainer', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedNames')
     def getPublishedNames(self, unboundOnly):
+        # type: (bool) -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([unboundOnly], [('publishedNames', 'MStringArray', 'out', None), ('unboundOnly', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedNames', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedNodes')
     def getPublishedNodes(self, type):
+        # type: (ContainerNode.MPublishNodeType) -> Tuple[List[unicode], List[general.PyNode]]
         do, final_do, outTypes = _f.getDoArgs([type], [('type', ('MFnContainerNode', 'MPublishNodeType'), 'in', None), ('publishedNames', 'MStringArray', 'out', None), ('nodes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedNodes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedPlugs')
     def getPublishedPlugs(self):
+        # type: () -> Tuple[List[general.PyNode], List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('publishedPlugs', 'MPlugArray', 'out', None), ('publishedNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedPlugs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnContainerNode, 'getRootTransform')
     def getRootTransform(self):
+        # type: () -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([], [('root', 'MObject', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnContainerNode, 'getRootTransform', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnContainerNode, 'getSubcontainers')
     def getSubcontainers(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('subcontainers', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnContainerNode, 'getSubcontainers', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -2351,16 +2405,19 @@ class DagNode(Entity):
 
     @_f.addApiDocs(_api.MFnDagNode, 'activeColor')
     def activeColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnDagNode, 'activeColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'boundingBox')
     def boundingBox(self):
+        # type: () -> BoundingBox
         res = _f.getProxyResult(self, _api.MFnDagNode, 'boundingBox')
         return _f.ApiArgUtil._castResult(self, res, 'MBoundingBox', None)
 
     @_f.deprecated
     def child(self, i):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([i], [('i', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'child', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -2368,6 +2425,7 @@ class DagNode(Entity):
 
     @_f.addApiDocs(_api.MFnDagNode, 'child')
     def childAtIndex(self, i):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([i], [('i', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'child', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -2375,26 +2433,31 @@ class DagNode(Entity):
 
     @_f.deprecated
     def childCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'childCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
     def dagPath(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnDagNode, 'dagPath')
         return _f.ApiArgUtil._castResult(self, res, 'MDagPath', None)
 
     @_f.deprecated
     def dagRoot(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnDagNode, 'dagRoot')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'dormantColor')
     def dormantColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnDagNode, 'dormantColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'drawOverrideColor')
     def drawOverrideColor(self):
+        # type: () -> Tuple[bool, Color]
         do, final_do, outTypes = _f.getDoArgs([], [('color', 'MColor', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'drawOverrideColor', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -2402,69 +2465,82 @@ class DagNode(Entity):
 
     @_f.addApiDocs(_api.MFnDagNode, 'drawOverrideEnabled')
     def drawOverrideEnabled(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'drawOverrideEnabled')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'drawOverrideIsReference')
     def drawOverrideIsReference(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'drawOverrideIsReference')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'drawOverrideIsTemplate')
     def drawOverrideIsTemplate(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'drawOverrideIsTemplate')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.deprecated
     def fullPathName(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDagNode, 'fullPathName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.deprecated
     def getAllPaths(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'getAllPaths', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnDagNode, 'getConnectedSetsAndMembers')
     def getConnectedSetsAndMembers(self, instanceNumber, renderableSetsOnly):
+        # type: (int, bool) -> Tuple[List[general.PyNode], List[general.PyNode]]
         do, final_do, outTypes = _f.getDoArgs([instanceNumber, renderableSetsOnly], [('instanceNumber', 'uint', 'in', None), ('sets', 'MObjectArray', 'out', None), ('comps', 'MObjectArray', 'out', None), ('renderableSetsOnly', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'getConnectedSetsAndMembers', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def getObjectColor(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'objectColor')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'objectColorType')
     def getObjectColorType(self):
+        # type: () -> DagNode.MObjectColorType
         res = _f.getProxyResult(self, _api.MFnDagNode, 'objectColorType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnDagNode', 'MObjectColorType'), None)
 
     @_f.deprecated
     def getPath(self):
+        # type: () -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([], [('path', 'MDagPath', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'getPath', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnDagNode, 'hiliteColor')
     def hiliteColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnDagNode, 'hiliteColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'inModel')
     def inModel(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'inModel')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'inUnderWorld')
     def inUnderWorld(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'inUnderWorld')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'instanceCount')
     def instanceCount(self, total=True):
+        # type: (bool) -> int
         do, final_do, outTypes = _f.getDoArgs([total], [('total', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'instanceCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -2472,11 +2548,13 @@ class DagNode(Entity):
 
     @_f.addApiDocs(_api.MFnDagNode, 'isInstanceable')
     def isInstanceable(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'isInstanceable')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'isInstanced')
     def isInstanced(self, indirect=True):
+        # type: (bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([indirect], [('indirect', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'isInstanced', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -2484,6 +2562,7 @@ class DagNode(Entity):
 
     @_f.deprecated
     def isInstancedAttribute(self, attribute):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'isInstancedAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -2491,41 +2570,49 @@ class DagNode(Entity):
 
     @_f.addApiDocs(_api.MFnDagNode, 'isIntermediateObject')
     def isIntermediate(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'isIntermediateObject')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.deprecated
     def isIntermediateObject(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'isIntermediateObject')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.deprecated
     def isUsingObjectColor(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'usingObjectColor')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.deprecated
     def model(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnDagNode, 'model')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'childCount')
     def numChildren(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'childCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'objectColorIndex')
     def objectColorIndex(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'objectColorIndex')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'objectColorRGB')
     def objectColorRGB(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnDagNode, 'objectColorRGB')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.deprecated
     def parent(self, i):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([i], [('i', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'parent', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -2533,6 +2620,7 @@ class DagNode(Entity):
 
     @_f.addApiDocs(_api.MFnDagNode, 'parent')
     def parentAtIndex(self, i):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([i], [('i', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'parent', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -2540,74 +2628,87 @@ class DagNode(Entity):
 
     @_f.addApiDocs(_api.MFnDagNode, 'parentCount')
     def parentCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'parentCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
     def partialPathName(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDagNode, 'partialPathName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.deprecated
     def removeChild(self, child):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([child], [('child', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChild', final_do)
         return res
 
     @_f.deprecated
     def removeChildAt(self, index):
+        # type: (int) -> None
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChildAt', final_do)
         return res
 
     @_f.deprecated
     def setInstanceable(self, how):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([how], [('how', 'bool', 'in', None)], self.isInstanceable, self.setInstanceable, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setInstanceable', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDagNode, 'setIntermediateObject')
     def setIntermediate(self, isIntermediate):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([isIntermediate], [('isIntermediate', 'bool', 'in', None)], self.isIntermediate, self.setIntermediate, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setIntermediateObject', final_do)
         return res
 
     @_f.deprecated
     def setIntermediateObject(self, isIntermediate):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([isIntermediate], [('isIntermediate', 'bool', 'in', None)], self.isIntermediate, self.setIntermediateObject, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setIntermediateObject', final_do)
         return res
 
     @_f.deprecated
     def setObject(self, objectPath):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([objectPath], [('objectPath', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setObject', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDagNode, 'setObjectColorType')
     def setObjectColorType(self, type):
+        # type: (DagNode.MObjectColorType) -> None
         do, final_do, outTypes = _f.processApiArgs([type], [('type', ('MFnDagNode', 'MObjectColorType'), 'in', None)], self.getObjectColorType, self.setObjectColorType, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setObjectColorType', final_do)
         return res
 
     @_f.deprecated
     def setUseObjectColor(self, useObjectColor):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([useObjectColor], [('useObjectColor', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setUseObjectColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDagNode, 'transformationMatrix')
     def transformationMatrix(self):
+        # type: () -> Matrix
         res = _f.getProxyResult(self, _api.MFnDagNode, 'transformationMatrix')
         return _f.ApiArgUtil._castResult(self, res, 'MMatrix', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'usingHiliteColor')
     def usingHiliteColor(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'usingHiliteColor')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.deprecated
     def usingObjectColor(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'usingObjectColor')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 # ------ Do not edit above this line --------
@@ -2706,38 +2807,45 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'computeDepthOfField')
     def computeDepthOfField(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnCamera, 'computeDepthOfField')
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'copyViewFrom')
     def copyViewFrom(self, otherCamera):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([otherCamera], [('otherCamera', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'copyViewFrom', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'aspectRatio')
     def getAspectRatio(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'aspectRatio')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'getAspectRatioLimits')
     def getAspectRatioLimits(self):
+        # type: () -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('min', 'double', 'out', None), ('max', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getAspectRatioLimits', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'cameraScale')
     def getCameraScale(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'cameraScale')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'centerOfInterest')
     def getCenterOfInterest(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'centerOfInterest')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnCamera, 'centerOfInterestPoint')
     def getCenterOfInterestPoint(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'centerOfInterestPoint', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -2780,6 +2888,7 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'eyePoint')
     def getEyePoint(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'eyePoint', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -2787,74 +2896,88 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'fStop')
     def getFStop(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'fStop')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'farClippingPlane')
     def getFarClipPlane(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'farClippingPlane')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnCamera, 'farFocusDistance')
     def getFarFocusDistance(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'farFocusDistance')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnCamera, 'getFilmApertureLimits')
     def getFilmApertureLimits(self):
+        # type: () -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('min', 'double', 'out', None), ('max', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getFilmApertureLimits', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'filmFit')
     def getFilmFit(self):
+        # type: () -> Camera.FilmFit
         res = _f.getProxyResult(self, _api.MFnCamera, 'filmFit')
         return _f.ApiArgUtil._castResult(self, res, ('MFnCamera', 'FilmFit'), None)
 
     @_f.addApiDocs(_api.MFnCamera, 'filmFitOffset')
     def getFilmFitOffset(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'filmFitOffset')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'getFilmFrustum')
     def getFilmFrustum(self, distance, applyPanZoom=False):
+        # type: (float, bool) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([distance, applyPanZoom], [('distance', 'double', 'in', u'linear'), ('hSize', 'double', 'out', None), ('vSize', 'double', 'out', None), ('hOffset', 'double', 'out', None), ('vOffset', 'double', 'out', None), ('applyPanZoom', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getFilmFrustum', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'filmRollOrder')
     def getFilmRollOrder(self):
+        # type: () -> Camera.RollOrder
         res = _f.getProxyResult(self, _api.MFnCamera, 'filmRollOrder')
         return _f.ApiArgUtil._castResult(self, res, ('MFnCamera', 'RollOrder'), None)
 
     @_f.addApiDocs(_api.MFnCamera, 'filmRollValue')
     def getFilmRollValue(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'filmRollValue')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'filmTranslateH')
     def getFilmTranslateH(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'filmTranslateH')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'filmTranslateV')
     def getFilmTranslateV(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'filmTranslateV')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'focalLength')
     def getFocalLength(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'focalLength')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'getFocalLengthLimits')
     def getFocalLengthLimits(self):
+        # type: () -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('min', 'double', 'out', None), ('max', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getFocalLengthLimits', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'focusDistance')
     def getFocusDistance(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'focusDistance')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
@@ -2865,31 +2988,37 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'horizontalFieldOfView')
     def getHorizontalFieldOfView(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'horizontalFieldOfView')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'angular')
 
     @_f.addApiDocs(_api.MFnCamera, 'horizontalFilmAperture')
     def getHorizontalFilmAperture(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'horizontalFilmAperture')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'horizontalFilmOffset')
     def getHorizontalFilmOffset(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'horizontalFilmOffset')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'horizontalPan')
     def getHorizontalPan(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'horizontalPan')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'horizontalRollPivot')
     def getHorizontalRollPivot(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'horizontalRollPivot')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnCamera, 'horizontalShake')
     def getHorizontalShake(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'horizontalShake')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -2900,6 +3029,7 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'lensSqueezeRatio')
     def getLensSqueezeRatio(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'lensSqueezeRatio')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -2910,73 +3040,87 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'nearClippingPlane')
     def getNearClipPlane(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'nearClippingPlane')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnCamera, 'nearFocusDistance')
     def getNearFocusDistance(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'nearFocusDistance')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnCamera, 'orthoWidth')
     def getOrthoWidth(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'orthoWidth')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'overscan')
     def getOverscan(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'overscan')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'panZoomEnabled')
     def getPanZoomEnabled(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'panZoomEnabled')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'getPortFieldOfView')
     def getPortFieldOfView(self, width, height):
+        # type: (int, int) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([width, height], [('width', 'int', 'in', None), ('height', 'int', 'in', None), ('horizontalFOV', 'double', 'out', u'angular'), ('verticalFOV', 'double', 'out', u'angular')])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getPortFieldOfView', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'postScale')
     def getPostScale(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'postScale')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'preScale')
     def getPreScale(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'preScale')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'renderPanZoom')
     def getRenderPanZoom(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'renderPanZoom')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'getRenderingFrustum')
     def getRenderingFrustum(self, windowAspect):
+        # type: (float) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([windowAspect], [('windowAspect', 'double', 'in', None), ('left', 'double', 'out', None), ('right', 'double', 'out', None), ('bottom', 'double', 'out', None), ('top', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getRenderingFrustum', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'shakeEnabled')
     def getShakeEnabled(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'shakeEnabled')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'shakeOverscan')
     def getShakeOverscan(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'shakeOverscan')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'shakeOverscanEnabled')
     def getShakeOverscanEnabled(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'shakeOverscanEnabled')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'shutterAngle')
     def getShutterAngle(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'shutterAngle')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'angular')
 
@@ -2987,62 +3131,74 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'stereoHIT')
     def getStereoHIT(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'stereoHIT')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'stereoHITEnabled')
     def getStereoHITEnabled(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'stereoHITEnabled')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'tumblePivot')
     def getTumblePivot(self):
+        # type: () -> Point
         res = _f.getProxyResult(self, _api.MFnCamera, 'tumblePivot')
         return _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'usePivotAsLocalSpace')
     def getUsePivotAsLocalSpace(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'usePivotAsLocalSpace')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'verticalFieldOfView')
     def getVerticalFieldOfView(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'verticalFieldOfView')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'angular')
 
     @_f.addApiDocs(_api.MFnCamera, 'verticalFilmAperture')
     def getVerticalFilmAperture(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'verticalFilmAperture')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'verticalFilmOffset')
     def getVerticalFilmOffset(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'verticalFilmOffset')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'verticalPan')
     def getVerticalPan(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'verticalPan')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'verticalRollPivot')
     def getVerticalRollPivot(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'verticalRollPivot')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnCamera, 'verticalShake')
     def getVerticalShake(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'verticalShake')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'getViewParameters')
     def getViewParameters(self, windowAspect, applyOverscan=False, applySqueeze=False, applyPanZoom=False):
+        # type: (float, bool, bool, bool) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([windowAspect, applyOverscan, applySqueeze, applyPanZoom], [('windowAspect', 'double', 'in', None), ('apertureX', 'double', 'out', None), ('apertureY', 'double', 'out', None), ('offsetX', 'double', 'out', None), ('offsetY', 'double', 'out', None), ('applyOverscan', 'bool', 'in', None), ('applySqueeze', 'bool', 'in', None), ('applyPanZoom', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getViewParameters', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCamera, 'getViewingFrustum')
     def getViewingFrustum(self, windowAspect, applyOverscan=False, applySqueeze=False, applyPanZoom=False):
+        # type: (float, bool, bool, bool) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([windowAspect, applyOverscan, applySqueeze, applyPanZoom], [('windowAspect', 'double', 'in', None), ('left', 'double', 'out', None), ('right', 'double', 'out', None), ('bottom', 'double', 'out', None), ('top', 'double', 'out', None), ('applyOverscan', 'bool', 'in', None), ('applySqueeze', 'bool', 'in', None), ('applyPanZoom', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getViewingFrustum', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -3059,11 +3215,13 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'zoom')
     def getZoom(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'zoom')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'hasSamePerspective')
     def hasSamePerspective(self, otherCamera):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([otherCamera], [('otherCamera', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'hasSamePerspective', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -3071,56 +3229,67 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'isClippingPlanes')
     def isClippingPlanes(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isClippingPlanes')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'isDepthOfField')
     def isDepthOfField(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isDepthOfField')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'isDisplayFilmGate')
     def isDisplayFilmGate(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isDisplayFilmGate')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'isDisplayGateMask')
     def isDisplayGateMask(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isDisplayGateMask')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.deprecated
     def isMotionBlur(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isMotionBlur')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'isMotionBlur')
     def isMotionBlurred(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isMotionBlur')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'isOrtho')
     def isOrtho(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isOrtho')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'isVerticalLock')
     def isVerticalLock(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnCamera, 'isVerticalLock')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'postProjectionMatrix')
     def postProjectionMatrix(self):
+        # type: () -> FloatMatrix
         res = _f.getProxyResult(self, _api.MFnCamera, 'postProjectionMatrix')
         return _f.ApiArgUtil._castResult(self, res, 'MFloatMatrix', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'projectionMatrix')
     def projectionMatrix(self):
+        # type: () -> FloatMatrix
         res = _f.getProxyResult(self, _api.MFnCamera, 'projectionMatrix')
         return _f.ApiArgUtil._castResult(self, res, 'MFloatMatrix', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'rightDirection')
     def rightDirection(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'rightDirection', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -3128,42 +3297,49 @@ class Camera(Shape):
 
     @_f.deprecated
     def set(self, wsEyeLocation, wsViewDirection, wsUpDirection, horizFieldOfView, aspectRatio):
+        # type: (Point, Vector, Vector, float, float) -> None
         do, final_do, outTypes = _f.getDoArgs([wsEyeLocation, wsViewDirection, wsUpDirection, horizFieldOfView, aspectRatio], [('wsEyeLocation', 'MPoint', 'in', None), ('wsViewDirection', 'MVector', 'in', None), ('wsUpDirection', 'MVector', 'in', None), ('horizFieldOfView', 'double', 'in', None), ('aspectRatio', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'set', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setAspectRatio')
     def setAspectRatio(self, aspectRatio):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([aspectRatio], [('aspectRatio', 'double', 'in', None)], self.getAspectRatio, self.setAspectRatio, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setAspectRatio', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setCameraScale')
     def setCameraScale(self, scale):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([scale], [('scale', 'double', 'in', None)], self.getCameraScale, self.setCameraScale, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setCameraScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setCenterOfInterest')
     def setCenterOfInterest(self, dist):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfInterest, self.setCenterOfInterest, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setCenterOfInterest', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setCenterOfInterestPoint')
     def setCenterOfInterestPoint(self, centerOfInterest, space='preTransform'):
+        # type: (Point, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([centerOfInterest, space], [('centerOfInterest', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCenterOfInterestPoint, self.setCenterOfInterestPoint, ['space'])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setCenterOfInterestPoint', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setClippingPlanes')
     def setClippingPlanes(self, ClippingPlanes):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([ClippingPlanes], [('ClippingPlanes', 'bool', 'in', None)], self.isClippingPlanes, self.setClippingPlanes, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setClippingPlanes', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setDepthOfField')
     def setDepthOfField(self, depthOfField):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([depthOfField], [('depthOfField', 'bool', 'in', None)], self.isDepthOfField, self.setDepthOfField, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setDepthOfField', final_do)
         return res
@@ -3174,6 +3350,7 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'setDisplayFilmGate')
     def setDisplayFilmGate(self, displayFilmGate):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([displayFilmGate], [('displayFilmGate', 'bool', 'in', None)], self.isDisplayFilmGate, self.setDisplayFilmGate, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setDisplayFilmGate', final_do)
         return res
@@ -3188,6 +3365,7 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'setDisplayGateMask')
     def setDisplayGateMask(self, displayGateMask):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([displayGateMask], [('displayGateMask', 'bool', 'in', None)], self.isDisplayGateMask, self.setDisplayGateMask, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setDisplayGateMask', final_do)
         return res
@@ -3206,72 +3384,84 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'setEyePoint')
     def setEyePoint(self, eyeLocation, space='preTransform'):
+        # type: (Point, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([eyeLocation, space], [('eyeLocation', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getEyePoint, self.setEyePoint, ['space'])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setEyePoint', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFStop')
     def setFStop(self, fStop):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([fStop], [('fStop', 'double', 'in', None)], self.getFStop, self.setFStop, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFStop', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFarClippingPlane')
     def setFarClipPlane(self, dFar):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([dFar], [('dFar', 'double', 'in', u'linear')], self.getFarClipPlane, self.setFarClipPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFarClippingPlane', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFarFocusDistance')
     def setFarFocusDistance(self, farFocusDistance):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([farFocusDistance], [('farFocusDistance', 'double', 'in', u'linear')], self.getFarFocusDistance, self.setFarFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFarFocusDistance', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFilmFit')
     def setFilmFit(self, filmFit):
+        # type: (Camera.FilmFit) -> None
         do, final_do, outTypes = _f.processApiArgs([filmFit], [('filmFit', ('MFnCamera', 'FilmFit'), 'in', None)], self.getFilmFit, self.setFilmFit, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmFit', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFilmFitOffset')
     def setFilmFitOffset(self, filmFitOffset):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([filmFitOffset], [('filmFitOffset', 'double', 'in', None)], self.getFilmFitOffset, self.setFilmFitOffset, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmFitOffset', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFilmRollOrder')
     def setFilmRollOrder(self, filmRollOrder):
+        # type: (Camera.RollOrder) -> None
         do, final_do, outTypes = _f.processApiArgs([filmRollOrder], [('filmRollOrder', ('MFnCamera', 'RollOrder'), 'in', None)], self.getFilmRollOrder, self.setFilmRollOrder, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmRollOrder', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFilmRollValue')
     def setFilmRollValue(self, filmRollValue):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([filmRollValue], [('filmRollValue', 'double', 'in', None)], self.getFilmRollValue, self.setFilmRollValue, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmRollValue', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFilmTranslateH')
     def setFilmTranslateH(self, translate):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([translate], [('translate', 'double', 'in', None)], self.getFilmTranslateH, self.setFilmTranslateH, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmTranslateH', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFilmTranslateV')
     def setFilmTranslateV(self, translate):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([translate], [('translate', 'double', 'in', None)], self.getFilmTranslateV, self.setFilmTranslateV, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmTranslateV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFocalLength')
     def setFocalLength(self, focalLength):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([focalLength], [('focalLength', 'double', 'in', None)], self.getFocalLength, self.setFocalLength, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFocalLength', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFocusDistance')
     def setFocusDistance(self, distance):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([distance], [('distance', 'double', 'in', u'linear')], self.getFocusDistance, self.setFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFocusDistance', final_do)
         return res
@@ -3282,36 +3472,42 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalFieldOfView')
     def setHorizontalFieldOfView(self, fov):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([fov], [('fov', 'double', 'in', u'angular')], self.getHorizontalFieldOfView, self.setHorizontalFieldOfView, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalFieldOfView', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalFilmAperture')
     def setHorizontalFilmAperture(self, hFilmAperture):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([hFilmAperture], [('hFilmAperture', 'double', 'in', None)], self.getHorizontalFilmAperture, self.setHorizontalFilmAperture, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalFilmAperture', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalFilmOffset')
     def setHorizontalFilmOffset(self, hOffset):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([hOffset], [('hOffset', 'double', 'in', None)], self.getHorizontalFilmOffset, self.setHorizontalFilmOffset, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalFilmOffset', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalPan')
     def setHorizontalPan(self, hPan):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([hPan], [('hPan', 'double', 'in', None)], self.getHorizontalPan, self.setHorizontalPan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalPan', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalRollPivot')
     def setHorizontalRollPivot(self, horizontalRollPivot):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([horizontalRollPivot], [('horizontalRollPivot', 'double', 'in', u'linear')], self.getHorizontalRollPivot, self.setHorizontalRollPivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalRollPivot', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalShake')
     def setHorizontalShake(self, hOffset):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([hOffset], [('hOffset', 'double', 'in', None)], self.getHorizontalShake, self.setHorizontalShake, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalShake', final_do)
         return res
@@ -3322,6 +3518,7 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'setLensSqueezeRatio')
     def setLensSqueezeRatio(self, aspectRatio):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([aspectRatio], [('aspectRatio', 'double', 'in', None)], self.getLensSqueezeRatio, self.setLensSqueezeRatio, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setLensSqueezeRatio', final_do)
         return res
@@ -3332,96 +3529,112 @@ class Camera(Shape):
 
     @_f.deprecated
     def setMotionBlur(self, motionBlur):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([motionBlur], [('motionBlur', 'bool', 'in', None)], self.isMotionBlurred, self.setMotionBlur, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setMotionBlur', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setMotionBlur')
     def setMotionBlurred(self, motionBlur):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([motionBlur], [('motionBlur', 'bool', 'in', None)], self.isMotionBlurred, self.setMotionBlurred, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setMotionBlur', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setNearClippingPlane')
     def setNearClipPlane(self, dNear):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClipPlane, self.setNearClipPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearClippingPlane', final_do)
         return res
 
     @_f.deprecated
     def setNearFarClippingPlanes(self, dNear, dFar):
+        # type: (float, float) -> None
         do, final_do, outTypes = _f.getDoArgs([dNear, dFar], [('dNear', 'double', 'in', u'linear'), ('dFar', 'double', 'in', u'linear')])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFarClippingPlanes', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setNearFocusDistance')
     def setNearFocusDistance(self, nearFocusDistance):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([nearFocusDistance], [('nearFocusDistance', 'double', 'in', u'linear')], self.getNearFocusDistance, self.setNearFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFocusDistance', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setIsOrtho')
     def setOrtho(self, orthoState):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([orthoState], [('orthoState', 'bool', 'in', None)], self.isOrtho, self.setOrtho, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setIsOrtho', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setOrthoWidth')
     def setOrthoWidth(self, orthoWidth):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([orthoWidth], [('orthoWidth', 'double', 'in', None)], self.getOrthoWidth, self.setOrthoWidth, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setOrthoWidth', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setOverscan')
     def setOverscan(self, overscan):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([overscan], [('overscan', 'double', 'in', None)], self.getOverscan, self.setOverscan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setOverscan', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setPanZoomEnabled')
     def setPanZoomEnabled(self, enabled):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getPanZoomEnabled, self.setPanZoomEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setPanZoomEnabled', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setPostScale')
     def setPostScale(self, sf):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([sf], [('sf', 'double', 'in', None)], self.getPostScale, self.setPostScale, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setPostScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setPreScale')
     def setPreScale(self, sf):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([sf], [('sf', 'double', 'in', None)], self.getPreScale, self.setPreScale, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setPreScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setRenderPanZoom')
     def setRenderPanZoom(self, render):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([render], [('render', 'bool', 'in', None)], self.getRenderPanZoom, self.setRenderPanZoom, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setRenderPanZoom', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setShakeEnabled')
     def setShakeEnabled(self, enabled):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getShakeEnabled, self.setShakeEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShakeEnabled', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setShakeOverscan')
     def setShakeOverscan(self, overscan):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([overscan], [('overscan', 'double', 'in', None)], self.getShakeOverscan, self.setShakeOverscan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShakeOverscan', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setShakeOverscanEnabled')
     def setShakeOverscanEnabled(self, enabled):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getShakeOverscanEnabled, self.setShakeOverscanEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShakeOverscanEnabled', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setShutterAngle')
     def setShutterAngle(self, shutterAngle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([shutterAngle], [('shutterAngle', 'double', 'in', u'angular')], self.getShutterAngle, self.setShutterAngle, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShutterAngle', final_do)
         return res
@@ -3432,66 +3645,77 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'setStereoHIT')
     def setStereoHIT(self, hit):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([hit], [('hit', 'double', 'in', None)], self.getStereoHIT, self.setStereoHIT, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setStereoHIT', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setStereoHITEnabled')
     def setStereoHITEnabled(self, enabled):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getStereoHITEnabled, self.setStereoHITEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setStereoHITEnabled', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setTumblePivot')
     def setTumblePivot(self, point):
+        # type: (Point) -> None
         do, final_do, outTypes = _f.processApiArgs([point], [('point', 'MPoint', 'in', None)], self.getTumblePivot, self.setTumblePivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setTumblePivot', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setUsePivotAsLocalSpace')
     def setUsePivotAsLocalSpace(self, how):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([how], [('how', 'bool', 'in', None)], self.getUsePivotAsLocalSpace, self.setUsePivotAsLocalSpace, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setUsePivotAsLocalSpace', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalFieldOfView')
     def setVerticalFieldOfView(self, fov):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([fov], [('fov', 'double', 'in', u'angular')], self.getVerticalFieldOfView, self.setVerticalFieldOfView, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalFieldOfView', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalFilmAperture')
     def setVerticalFilmAperture(self, vFilmAperture):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([vFilmAperture], [('vFilmAperture', 'double', 'in', None)], self.getVerticalFilmAperture, self.setVerticalFilmAperture, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalFilmAperture', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalFilmOffset')
     def setVerticalFilmOffset(self, vOffset):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([vOffset], [('vOffset', 'double', 'in', None)], self.getVerticalFilmOffset, self.setVerticalFilmOffset, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalFilmOffset', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalLock')
     def setVerticalLock(self, lockFlag):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([lockFlag], [('lockFlag', 'bool', 'in', None)], self.isVerticalLock, self.setVerticalLock, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalLock', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalPan')
     def setVerticalPan(self, vPan):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([vPan], [('vPan', 'double', 'in', None)], self.getVerticalPan, self.setVerticalPan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalPan', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalRollPivot')
     def setVerticalRollPivot(self, verticalRollPivot):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([verticalRollPivot], [('verticalRollPivot', 'double', 'in', u'linear')], self.getVerticalRollPivot, self.setVerticalRollPivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalRollPivot', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalShake')
     def setVerticalShake(self, vOffset):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([vOffset], [('vOffset', 'double', 'in', None)], self.getVerticalShake, self.setVerticalShake, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalShake', final_do)
         return res
@@ -3506,18 +3730,21 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'setZoom')
     def setZoom(self, zoom):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([zoom], [('zoom', 'double', 'in', None)], self.getZoom, self.setZoom, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setZoom', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'set')
     def setupCamera(self, wsEyeLocation, wsViewDirection, wsUpDirection, horizFieldOfView, aspectRatio):
+        # type: (Point, Vector, Vector, float, float) -> None
         do, final_do, outTypes = _f.getDoArgs([wsEyeLocation, wsViewDirection, wsUpDirection, horizFieldOfView, aspectRatio], [('wsEyeLocation', 'MPoint', 'in', None), ('wsViewDirection', 'MVector', 'in', None), ('wsUpDirection', 'MVector', 'in', None), ('horizFieldOfView', 'double', 'in', None), ('aspectRatio', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'set', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'upDirection')
     def upDirection(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'upDirection', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -3525,6 +3752,7 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'viewDirection')
     def viewDirection(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'viewDirection', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -4030,6 +4258,7 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'rotatePivot')
     def _getRotatePivot(self, space):
+        # type: (datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotatePivot', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -4037,6 +4266,7 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'rotatePivotTranslation')
     def _getRotatePivotTranslation(self, space):
+        # type: (datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotatePivotTranslation', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', 'linear')
@@ -4044,12 +4274,14 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'getRotation')
     def _getRotation(self, space='transform'):
+        # type: (datatypes.Space.Space) -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([space], [('quaternion', 'MQuaternion', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotation', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnTransform, 'scalePivot')
     def _getScalePivot(self, space):
+        # type: (datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'scalePivot', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -4057,6 +4289,7 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'scalePivotTranslation')
     def _getScalePivotTranslation(self, space):
+        # type: (datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'scalePivotTranslation', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', 'linear')
@@ -4064,6 +4297,7 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'getTranslation')
     def _getTranslation(self, space):
+        # type: (datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getTranslation', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', 'linear')
@@ -4071,72 +4305,84 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'rotateBy')
     def _rotateBy(self, rotation, space='transform'):
+        # type: (EulerRotation, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([rotation, space], [('rotation', 'MEulerRotation', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateBy', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'scaleBy')
     def _scaleBy(self, scale):
+        # type: (Tuple[float, float, float]) -> None
         do, final_do, outTypes = _f.getDoArgs([scale], [('scale', 'double__array3', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'scaleBy', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setRotatePivot')
     def _setRotatePivot(self, point, space, balance=True):
+        # type: (Point, datatypes.Space.Space, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotatePivot, self._setRotatePivot, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotatePivot', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setRotatePivotTranslation')
     def _setRotatePivotTranslation(self, vector, space):
+        # type: (Vector, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotatePivotTranslation, self._setRotatePivotTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotatePivotTranslation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setRotation')
     def _setRotation(self, quaternion, space='transform'):
+        # type: (Quaternion, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([quaternion, space], [('quaternion', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotation, self._setRotation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setScale')
     def _setScale(self, scale):
+        # type: (Tuple[float, float, float]) -> None
         do, final_do, outTypes = _f.processApiArgs([scale], [('scale', 'double__array3', 'in', None)], self.getScale, self._setScale, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setScalePivot')
     def _setScalePivot(self, point, space, balance=True):
+        # type: (Point, datatypes.Space.Space, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getScalePivot, self._setScalePivot, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setScalePivot', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setScalePivotTranslation')
     def _setScalePivotTranslation(self, vector, space):
+        # type: (Vector, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getScalePivotTranslation, self._setScalePivotTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setScalePivotTranslation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setShear')
     def _setShear(self, shear):
+        # type: (Tuple[float, float, float]) -> None
         do, final_do, outTypes = _f.processApiArgs([shear], [('shear', 'double__array3', 'in', None)], self.getShear, self._setShear, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setShear', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setTranslation')
     def _setTranslation(self, vector, space):
+        # type: (Vector, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getTranslation, self._setTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setTranslation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'shearBy')
     def _shearBy(self, shear):
+        # type: (Tuple[float, float, float]) -> None
         do, final_do, outTypes = _f.getDoArgs([shear], [('shear', 'double__array3', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'shearBy', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'translateBy')
     def _translateBy(self, vector, space):
+        # type: (Vector, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'translateBy', final_do)
         return res
@@ -4151,6 +4397,7 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'clearRestPosition')
     def clearRestPosition(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnTransform, 'clearRestPosition')
         return res
 
@@ -4160,6 +4407,7 @@ class Transform(DagNode):
 
     @_f.deprecated
     def enableLimit(self, type, flag):
+        # type: (Transform.LimitType, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([type, flag], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('flag', 'bool', 'in', None)], self.isLimited, self.enableLimit, ['type'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'enableLimit', final_do)
         return res
@@ -4171,6 +4419,7 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'limitValue')
     def getLimit(self, type):
+        # type: (Transform.LimitType) -> float
         do, final_do, outTypes = _f.getDoArgs([type], [('type', ('MFnTransform', 'LimitType'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'limitValue', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -4178,39 +4427,46 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'restPosition')
     def getRestPosition(self):
+        # type: () -> TransformationMatrix
         res = _f.getProxyResult(self, _api.MFnTransform, 'restPosition')
         return _f.ApiArgUtil._castResult(self, res, 'MTransformationMatrix', None)
 
     @_f.addApiDocs(_api.MFnTransform, 'rotationOrder')
     def getRotationOrder(self):
+        # type: () -> datatypes.TransformationMatrix.RotationOrder
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotationOrder')
         return _f.ApiArgUtil._castResult(self, res, ('MTransformationMatrix', 'RotationOrder'), None)
 
     @_f.deprecated
     def getRotationQuaternion(self, space='transform'):
+        # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnTransform, 'getScale')
     def getScale(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('scale', 'double__array3', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getScale', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnTransform, 'getShear')
     def getShear(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('shear', 'double__array3', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getShear', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnTransform, 'transformation')
     def getTransformation(self):
+        # type: () -> TransformationMatrix
         res = _f.getProxyResult(self, _api.MFnTransform, 'transformation')
         return _f.ApiArgUtil._castResult(self, res, 'MTransformationMatrix', None)
 
     @_f.addApiDocs(_api.MFnTransform, 'isLimited')
     def isLimited(self, type):
+        # type: (Transform.LimitType) -> bool
         do, final_do, outTypes = _f.getDoArgs([type], [('type', ('MFnTransform', 'LimitType'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'isLimited', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -4218,6 +4474,7 @@ class Transform(DagNode):
 
     @_f.deprecated
     def limitValue(self, type):
+        # type: (Transform.LimitType) -> float
         do, final_do, outTypes = _f.getDoArgs([type], [('type', ('MFnTransform', 'LimitType'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'limitValue', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -4257,29 +4514,34 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'resetFromRestPosition')
     def resetFromRestPosition(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnTransform, 'resetFromRestPosition')
         return res
 
     @_f.deprecated
     def rotateByQuaternion(self, x, y, z, w, space='transform'):
+        # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
     @_f.deprecated
     def set(self, transform):
+        # type: (TransformationMatrix) -> None
         do, final_do, outTypes = _f.processApiArgs([transform], [('transform', 'MTransformationMatrix', 'in', None)], self.getTransformation, self.set, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'set', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setLimit')
     def setLimit(self, type, value):
+        # type: (Transform.LimitType, float) -> None
         do, final_do, outTypes = _f.processApiArgs([type, value], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('value', 'double', 'in', u'linear')], self.getLimit, self.setLimit, ['type'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setLimit', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'enableLimit')
     def setLimited(self, type, flag):
+        # type: (Transform.LimitType, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([type, flag], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('flag', 'bool', 'in', None)], self.isLimited, self.setLimited, ['type'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'enableLimit', final_do)
         return res
@@ -4290,6 +4552,7 @@ class Transform(DagNode):
 
     @_f.addApiDocs(_api.MFnTransform, 'setRestPosition')
     def setRestPosition(self, matrix):
+        # type: (TransformationMatrix) -> None
         do, final_do, outTypes = _f.processApiArgs([matrix], [('matrix', 'MTransformationMatrix', 'in', None)], self.getRestPosition, self.setRestPosition, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRestPosition', final_do)
         return res
@@ -4300,30 +4563,35 @@ class Transform(DagNode):
 
     @_f.deprecated
     def setRotateOrientation(self, quat, space, balance=True):
+        # type: (Quaternion, datatypes.Space.Space, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([quat, space, balance], [('quat', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotateOrientation, self.setRotateOrientation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotateOrientation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'setRotationOrder')
     def setRotationOrder(self, order, reorder):
+        # type: (datatypes.TransformationMatrix.RotationOrder, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([order, reorder], [('order', ('MTransformationMatrix', 'RotationOrder'), 'in', None), ('reorder', 'bool', 'in', None)], self.getRotationOrder, self.setRotationOrder, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationOrder', final_do)
         return res
 
     @_f.deprecated
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
+        # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'set')
     def setTransformation(self, transform):
+        # type: (TransformationMatrix) -> None
         do, final_do, outTypes = _f.processApiArgs([transform], [('transform', 'MTransformationMatrix', 'in', None)], self.getTransformation, self.setTransformation, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'set', final_do)
         return res
 
     @_f.deprecated
     def transformation(self):
+        # type: () -> TransformationMatrix
         res = _f.getProxyResult(self, _api.MFnTransform, 'transformation')
         return _f.ApiArgUtil._castResult(self, res, 'MTransformationMatrix', None)
 
@@ -4393,6 +4661,7 @@ class Joint(Transform):
 
     @_f.addApiDocs(_api.MFnIkJoint, 'getDegreesOfFreedom')
     def getDegreesOfFreedom(self):
+        # type: () -> Tuple[bool, bool, bool]
         do, final_do, outTypes = _f.getDoArgs([], [('freeInX', 'bool', 'out', None), ('freeInY', 'bool', 'out', None), ('freeInZ', 'bool', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'getDegreesOfFreedom', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -4434,66 +4703,79 @@ class Joint(Transform):
 
     @_f.addApiDocs(_api.MFnIkJoint, 'maxRotateDampXRange')
     def getMaxRotateDampXRange(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'maxRotateDampXRange')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'maxRotateDampXStrength')
     def getMaxRotateDampXStrength(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'maxRotateDampXStrength')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'maxRotateDampYRange')
     def getMaxRotateDampYRange(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'maxRotateDampYRange')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'maxRotateDampYStrength')
     def getMaxRotateDampYStrength(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'maxRotateDampYStrength')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'maxRotateDampZRange')
     def getMaxRotateDampZRange(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'maxRotateDampZRange')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'maxRotateDampZStrength')
     def getMaxRotateDampZStrength(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'maxRotateDampZStrength')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'minRotateDampXRange')
     def getMinRotateDampXRange(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'minRotateDampXRange')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'minRotateDampXStrength')
     def getMinRotateDampXStrength(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'minRotateDampXStrength')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'minRotateDampYRange')
     def getMinRotateDampYRange(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'minRotateDampYRange')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'minRotateDampYStrength')
     def getMinRotateDampYStrength(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'minRotateDampYStrength')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'minRotateDampZRange')
     def getMinRotateDampZRange(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'minRotateDampZRange')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'minRotateDampZStrength')
     def getMinRotateDampZStrength(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'minRotateDampZStrength')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'getOrientation')
     def getOrientation(self):
+        # type: () -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([], [('quaternion', 'MQuaternion', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'getOrientation', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -4510,18 +4792,21 @@ class Joint(Transform):
 
     @_f.addApiDocs(_api.MFnIkJoint, 'getScaleOrientation')
     def getScaleOrientation(self):
+        # type: () -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([], [('quaternion', 'MQuaternion', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'getScaleOrientation', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'getSegmentScale')
     def getSegmentScale(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('scale', 'double__array3', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'getSegmentScale', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'getStiffness')
     def getStiffness(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('stiffness', 'double__array3', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'getStiffness', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -4543,6 +4828,7 @@ class Joint(Transform):
 
     @_f.addApiDocs(_api.MFnIkJoint, 'hikJointName')
     def hikJointName(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'hikJointName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
@@ -4572,6 +4858,7 @@ class Joint(Transform):
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setDegreesOfFreedom')
     def setDegreesOfFreedom(self, freeInX, freeInY, freeInZ):
+        # type: (bool, bool, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([freeInX, freeInY, freeInZ], [('freeInX', 'bool', 'in', None), ('freeInY', 'bool', 'in', None), ('freeInZ', 'bool', 'in', None)], self.getDegreesOfFreedom, self.setDegreesOfFreedom, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setDegreesOfFreedom', final_do)
         return res
@@ -4602,78 +4889,91 @@ class Joint(Transform):
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampXRange')
     def setMaxRotateDampXRange(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampXRange, self.setMaxRotateDampXRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampXRange', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampXStrength')
     def setMaxRotateDampXStrength(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampXStrength, self.setMaxRotateDampXStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampXStrength', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampYRange')
     def setMaxRotateDampYRange(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampYRange, self.setMaxRotateDampYRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampYRange', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampYStrength')
     def setMaxRotateDampYStrength(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampYStrength, self.setMaxRotateDampYStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampYStrength', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampZRange')
     def setMaxRotateDampZRange(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampZRange, self.setMaxRotateDampZRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampZRange', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampZStrength')
     def setMaxRotateDampZStrength(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampZStrength, self.setMaxRotateDampZStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampZStrength', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampXRange')
     def setMinRotateDampXRange(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampXRange, self.setMinRotateDampXRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampXRange', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampXStrength')
     def setMinRotateDampXStrength(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampXStrength, self.setMinRotateDampXStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampXStrength', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampYRange')
     def setMinRotateDampYRange(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampYRange, self.setMinRotateDampYRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampYRange', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampYStrength')
     def setMinRotateDampYStrength(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampYStrength, self.setMinRotateDampYStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampYStrength', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampZRange')
     def setMinRotateDampZRange(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampZRange, self.setMinRotateDampZRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampZRange', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampZStrength')
     def setMinRotateDampZStrength(self, angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampZStrength, self.setMinRotateDampZStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampZStrength', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setOrientation')
     def setOrientation(self, quaternion):
+        # type: (Quaternion) -> None
         do, final_do, outTypes = _f.processApiArgs([quaternion], [('quaternion', 'MQuaternion', 'in', None)], self.getOrientation, self.setOrientation, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setOrientation', final_do)
         return res
@@ -4692,18 +4992,21 @@ class Joint(Transform):
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setScaleOrientation')
     def setScaleOrientation(self, quaternion):
+        # type: (Quaternion) -> None
         do, final_do, outTypes = _f.processApiArgs([quaternion], [(u'quaternion', 'MQuaternion', u'in', None)], self.getScaleOrientation, self.setScaleOrientation, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setScaleOrientation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setSegmentScale')
     def setSegmentScale(self, scale):
+        # type: (Tuple[float, float, float]) -> None
         do, final_do, outTypes = _f.processApiArgs([scale], [('scale', 'double__array3', 'in', None)], self.getSegmentScale, self.setSegmentScale, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setSegmentScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkJoint, 'setStiffness')
     def setStiffness(self, stiffness):
+        # type: (Tuple[float, float, float]) -> None
         do, final_do, outTypes = _f.processApiArgs([stiffness], [('stiffness', 'double__array3', 'in', None)], self.getStiffness, self.setStiffness, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setStiffness', final_do)
         return res
@@ -4777,6 +5080,7 @@ class RenderLayer(DependNode):
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'adjustmentPlug')
     def adjustmentPlug(self, scenePlug):
+        # type: (Attribute) -> Attribute
         do, final_do, outTypes = _f.getDoArgs([scenePlug], [('scenePlug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'adjustmentPlug', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
@@ -4785,17 +5089,20 @@ class RenderLayer(DependNode):
     @classmethod
     @_f.addApiDocs(_api.MFnRenderLayer, 'currentLayer')
     def currentLayer(self):
+        # type: () -> general.PyNode
         res = _api.MFnRenderLayer.currentLayer()
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @classmethod
     @_f.addApiDocs(_api.MFnRenderLayer, 'defaultRenderLayer')
     def defaultRenderLayer(self):
+        # type: () -> general.PyNode
         res = _api.MFnRenderLayer.defaultRenderLayer()
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'externalRenderPasses')
     def externalRenderPasses(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [(u'renderPassArray', 'MObjectArray', u'out', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'externalRenderPasses', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -4803,6 +5110,7 @@ class RenderLayer(DependNode):
     @classmethod
     @_f.addApiDocs(_api.MFnRenderLayer, 'findLayerByName')
     def findLayerByName(self, renderLayer):
+        # type: (unicode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([renderLayer], [('renderLayer', 'MString', 'in', None)])
         res = _api.MFnRenderLayer.findLayerByName(*final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -4810,6 +5118,7 @@ class RenderLayer(DependNode):
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'inCurrentRenderLayer')
     def inCurrentRenderLayer(self, objectPath):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([objectPath], [('objectPath', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'inCurrentRenderLayer', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -4817,6 +5126,7 @@ class RenderLayer(DependNode):
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'inLayer')
     def inLayer(self, transform):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([transform], [('transform', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'inLayer', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -4824,6 +5134,7 @@ class RenderLayer(DependNode):
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'isPlugAdjusted')
     def isPlugAdjusted(self, scenePlug):
+        # type: (Attribute) -> bool
         do, final_do, outTypes = _f.getDoArgs([scenePlug], [('scenePlug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'isPlugAdjusted', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -4831,6 +5142,7 @@ class RenderLayer(DependNode):
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'layerChildren')
     def layerChildren(self, recurse=False):
+        # type: (bool) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([recurse], [(u'array', 'MObjectArray', u'out', None), (u'recurse', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'layerChildren', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -4838,12 +5150,14 @@ class RenderLayer(DependNode):
     @classmethod
     @_f.addApiDocs(_api.MFnRenderLayer, 'listAllRenderLayers')
     def listAllRenderLayers(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [(u'array', 'MObjectArray', u'out', None)])
         res = _api.MFnRenderLayer.listAllRenderLayers(*final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'passHasLight')
     def passHasLight(self, renderPass, light):
+        # type: (general.PyNode, general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([renderPass, light], [('renderPass', 'MObject', 'in', None), ('light', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'passHasLight', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -4851,6 +5165,7 @@ class RenderLayer(DependNode):
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'passHasObject')
     def passHasObject(self, renderPass, objectInstance):
+        # type: (general.PyNode, general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([renderPass, objectInstance], [('renderPass', 'MObject', 'in', None), ('objectInstance', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'passHasObject', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5012,11 +5327,13 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'numCVs')
     def _numCVsApi(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'numCVs')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'area')
     def area(self, tolerance=0.001):
+        # type: (float) -> float
         do, final_do, outTypes = _f.getDoArgs([tolerance], [('tolerance', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'area', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5024,6 +5341,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'closestPoint')
     def closestPoint(self, toThisPoint, param=None, tolerance=0.001, space='preTransform'):
+        # type: (Point, float, float, datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([toThisPoint, param, tolerance, space], [('toThisPoint', 'MPoint', 'in', None), ('param', 'double', 'in', None), ('tolerance', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'closestPoint', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -5031,6 +5349,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'copy')
     def copy(self, source, parentOrOwner='MObject::kNullObj'):
+        # type: (general.PyNode, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([source, parentOrOwner], [('source', 'MObject', 'in', None), ('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'copy', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -5038,6 +5357,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'createWithEditPoints')
     def createWithEditPoints(self, editPoints, degree, form, create2D, createRational, uniformParam, parentOrOwner='MObject::kNullObj'):
+        # type: (List[Point], int, NurbsCurve.Form, bool, bool, bool, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([editPoints, degree, form, create2D, createRational, uniformParam, parentOrOwner], [('editPoints', 'MPointArray', 'in', None), ('degree', 'uint', 'in', None), ('form', ('MFnNurbsCurve', 'Form'), 'in', None), ('create2D', 'bool', 'in', None), ('createRational', 'bool', 'in', None), ('uniformParam', 'bool', 'in', None), ('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'createWithEditPoints', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -5045,6 +5365,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'cvs')
     def cvs(self, startIndex, endIndex):
+        # type: (int, int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([startIndex, endIndex], [('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'cvs', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -5052,11 +5373,13 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'degree')
     def degree(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'degree')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'distanceToPoint')
     def distanceToPoint(self, pt, space='preTransform'):
+        # type: (Point, datatypes.Space.Space) -> float
         do, final_do, outTypes = _f.getDoArgs([pt, space], [('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'distanceToPoint', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5064,6 +5387,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'findParamFromLength')
     def findParamFromLength(self, partLength):
+        # type: (float) -> float
         do, final_do, outTypes = _f.getDoArgs([partLength], [('partLength', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'findParamFromLength', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5071,29 +5395,34 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'form')
     def form(self):
+        # type: () -> NurbsCurve.Form
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'form')
         return _f.ApiArgUtil._castResult(self, res, ('MFnNurbsCurve', 'Form'), None)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'getCV')
     def getCV(self, index, space='preTransform'):
+        # type: (int, datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([index, space], [('index', 'uint', 'in', None), ('pt', 'MPoint', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'getCV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'getCVs')
     def getCVs(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> List[Point]
         do, final_do, outTypes = _f.getDoArgs([space], [('array', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'getCVs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'getDerivativesAtParm')
     def getDerivativesAtParm(self, param, space):
+        # type: (float, datatypes.Space.Space) -> Tuple[Point, Vector, Vector]
         do, final_do, outTypes = _f.getDoArgs([param, space], [('param', 'double', 'in', None), ('pos', 'MPoint', 'out', None), ('dU', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('dUU', 'MVector', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'getDerivativesAtParm', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'knot')
     def getKnot(self, index):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'knot', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5101,35 +5430,41 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'getKnotDomain')
     def getKnotDomain(self):
+        # type: () -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('start', 'double', 'out', None), ('end', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'getKnotDomain', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'getKnots')
     def getKnots(self):
+        # type: () -> List[float]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MDoubleArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'getKnots', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'getParamAtPoint')
     def getParamAtPoint(self, atThisPoint, space='preTransform'):
+        # type: (Point, datatypes.Space.Space) -> float
         do, final_do, outTypes = _f.getDoArgs([atThisPoint, space], [('atThisPoint', 'MPoint', 'in', None), ('param', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'getParamAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'getPointAtParam')
     def getPointAtParam(self, param, space='preTransform'):
+        # type: (float, datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([param, space], [('param', 'double', 'in', None), ('point', 'MPoint', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'getPointAtParam', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'hasHistoryOnCreate')
     def hasHistoryOnCreate(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'hasHistoryOnCreate')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'isParamOnCurve')
     def isParamOnCurve(self, param):
+        # type: (float) -> bool
         do, final_do, outTypes = _f.getDoArgs([param], [('param', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'isParamOnCurve', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5137,6 +5472,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'isPlanar')
     def isPlanar(self, planeNormal=None):
+        # type: (Vector) -> bool
         do, final_do, outTypes = _f.getDoArgs([planeNormal], [('planeNormal', 'MVector', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'isPlanar', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5144,6 +5480,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'isPointOnCurve')
     def isPointOnCurve(self, point, tolerance=0.001, space='preTransform'):
+        # type: (Point, float, datatypes.Space.Space) -> bool
         do, final_do, outTypes = _f.getDoArgs([point, tolerance, space], [('point', 'MPoint', 'in', None), ('tolerance', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'isPointOnCurve', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5151,6 +5488,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'length')
     def length(self, tolerance=0.001):
+        # type: (float) -> float
         do, final_do, outTypes = _f.getDoArgs([tolerance], [('tolerance', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'length', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5158,11 +5496,13 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'makeMultipleEndKnots')
     def makeMultipleEndKnots(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'makeMultipleEndKnots')
         return res
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'normal')
     def normal(self, param, space='preTransform'):
+        # type: (float, datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([param, space], [('param', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'normal', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -5170,57 +5510,67 @@ class NurbsCurve(CurveShape):
 
     @_f.deprecated
     def numCVs(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'numCVs')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'numKnots')
     def numKnots(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'numKnots')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'numSpans')
     def numSpans(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'numSpans')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'removeKnot')
     def removeKnot(self, atThisParam, removeAll=False):
+        # type: (float, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([atThisParam, removeAll], [('atThisParam', 'double', 'in', None), ('removeAll', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'removeKnot', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'reverse')
     def reverse(self, constructionHistory=False):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([constructionHistory], [('constructionHistory', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'reverse', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setCV')
     def setCV(self, index, pt, space='preTransform'):
+        # type: (int, Point, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([index, pt, space], [('index', 'uint', 'in', None), ('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCV, self.setCV, ['index', 'space'])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setCV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setCVs')
     def setCVs(self, array, space='preTransform'):
+        # type: (List[Point], datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([array, space], [('array', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCVs, self.setCVs, ['space'])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setCVs', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setKnot')
     def setKnot(self, index, param):
+        # type: (int, float) -> None
         do, final_do, outTypes = _f.processApiArgs([index, param], [('index', 'uint', 'in', None), ('param', 'double', 'in', None)], self.getKnot, self.setKnot, ['index'])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setKnot', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setKnots')
     def setKnots(self, array, startIndex, endIndex):
+        # type: (List[float], int, int) -> None
         do, final_do, outTypes = _f.processApiArgs([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnots, self.setKnots, [])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setKnots', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'tangent')
     def tangent(self, param, space='preTransform'):
+        # type: (float, datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([param, space], [('param', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'tangent', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -5228,6 +5578,7 @@ class NurbsCurve(CurveShape):
 
     @_f.addApiDocs(_api.MFnNurbsCurve, 'updateCurve')
     def updateCurve(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'updateCurve')
         return res
 # ------ Do not edit above this line --------
@@ -5349,16 +5700,19 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numCVsInU')
     def _numCVsInUApi(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numCVsInU')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numCVsInV')
     def _numCVsInVApi(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numCVsInV')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'area')
     def area(self, tolerance=0.001):
+        # type: (float) -> float
         do, final_do, outTypes = _f.getDoArgs([tolerance], [('tolerance', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'area', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5366,18 +5720,21 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'assignUV')
     def assignUV(self, patchId, cornerIndex, uvId):
+        # type: (int, int, int) -> None
         do, final_do, outTypes = _f.getDoArgs([patchId, cornerIndex, uvId], [('patchId', 'int', 'in', None), ('cornerIndex', 'int', 'in', None), ('uvId', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'assignUV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'assignUVs')
     def assignUVs(self, uvCounts, uvIds):
+        # type: (List[int], List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([uvCounts, uvIds], [('uvCounts', 'MIntArray', 'in', None), ('uvIds', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'assignUVs', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'boundaryType')
     def boundaryType(self, region, boundary):
+        # type: (int, int) -> NurbsSurface.BoundaryType
         do, final_do, outTypes = _f.getDoArgs([region, boundary], [('region', 'uint', 'in', None), ('boundary', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'boundaryType', final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFnNurbsSurface', 'BoundaryType'), None)
@@ -5385,11 +5742,13 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'clearUVs')
     def clearUVs(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'clearUVs')
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'closestPoint')
     def closestPoint(self, toThisPoint, ignoreTrimBoundaries=False, tolerance=0.001, space='preTransform'):
+        # type: (Point, bool, float, datatypes.Space.Space) -> Tuple[Point, float, float]
         do, final_do, outTypes = _f.getDoArgs([toThisPoint, ignoreTrimBoundaries, tolerance, space], [('toThisPoint', 'MPoint', 'in', None), ('paramU', 'double', 'out', None), ('paramV', 'double', 'out', None), ('ignoreTrimBoundaries', 'bool', 'in', None), ('tolerance', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'closestPoint', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -5397,6 +5756,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'copy')
     def copy(self, source, parentOrOwner='MObject::kNullObj'):
+        # type: (general.PyNode, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([source, parentOrOwner], [('source', 'MObject', 'in', None), ('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'copy', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -5404,6 +5764,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'cvsInU')
     def cvsInU(self, startIndex, endIndex, rowIndex):
+        # type: (int, int, int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([startIndex, endIndex, rowIndex], [('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None), ('rowIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'cvsInU', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -5411,6 +5772,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'cvsInV')
     def cvsInV(self, startIndex, endIndex, rowIndex):
+        # type: (int, int, int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([startIndex, endIndex, rowIndex], [('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None), ('rowIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'cvsInV', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -5418,16 +5780,19 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'degreeU')
     def degreeU(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'degreeU')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'degreeV')
     def degreeV(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'degreeV')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'distanceToPoint')
     def distanceToPoint(self, pt, space='preTransform'):
+        # type: (Point, datatypes.Space.Space) -> float
         do, final_do, outTypes = _f.getDoArgs([pt, space], [('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'distanceToPoint', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5435,6 +5800,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'edge')
     def edge(self, region, boundary, edge, paramEdge=False):
+        # type: (int, int, int, bool) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([region, boundary, edge, paramEdge], [('region', 'uint', 'in', None), ('boundary', 'uint', 'in', None), ('edge', 'uint', 'in', None), ('paramEdge', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'edge', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObjectArray', None)
@@ -5442,57 +5808,67 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'formInU')
     def formInU(self):
+        # type: () -> NurbsSurface.Form
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'formInU')
         return _f.ApiArgUtil._castResult(self, res, ('MFnNurbsSurface', 'Form'), None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'formInV')
     def formInV(self):
+        # type: () -> NurbsSurface.Form
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'formInV')
         return _f.ApiArgUtil._castResult(self, res, ('MFnNurbsSurface', 'Form'), None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getAssignedUVs')
     def getAssignedUVs(self):
+        # type: () -> Tuple[List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [('uvCounts', 'MIntArray', 'out', None), ('uvIds', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getAssignedUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getCV')
     def getCV(self, indexU, indexV, space='preTransform'):
+        # type: (int, int, datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([indexU, indexV, space], [('indexU', 'uint', 'in', None), ('indexV', 'uint', 'in', None), ('pnt', 'MPoint', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getCV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getCVs')
     def getCVs(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> List[Point]
         do, final_do, outTypes = _f.getDoArgs([space], [('array', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getCVs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getConnectedShaders')
     def getConnectedShaders(self, instanceNumber):
+        # type: (int) -> Tuple[List[general.PyNode], List[int]]
         do, final_do, outTypes = _f.getDoArgs([instanceNumber], [('instanceNumber', 'uint', 'in', None), ('shaders', 'MObjectArray', 'out', None), ('indices', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getConnectedShaders', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getDataObject')
     def getDataObject(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getDataObject')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getDerivativesAtParm')
     def getDerivativesAtParm(self, paramInU, paramInV, space):
+        # type: (float, float, datatypes.Space.Space) -> Tuple[Point, Vector, Vector, Vector, Vector, Vector]
         do, final_do, outTypes = _f.getDoArgs([paramInU, paramInV, space], [('paramInU', 'double', 'in', None), ('paramInV', 'double', 'in', None), ('pos', 'MPoint', 'out', None), ('dU', 'MVector', 'out', None), ('dV', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('dUU', 'MVector', 'out', None), ('dVV', 'MVector', 'out', None), ('dUV', 'MVector', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getDerivativesAtParm', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getKnotDomain')
     def getKnotDomain(self):
+        # type: () -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('startU', 'double', 'out', None), ('endU', 'double', 'out', None), ('startV', 'double', 'out', None), ('endV', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getKnotDomain', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'knotInU')
     def getKnotInU(self, index):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'knotInU', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5500,6 +5876,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'knotInV')
     def getKnotInV(self, index):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'knotInV', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -5507,59 +5884,69 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getKnotsInU')
     def getKnotsInU(self):
+        # type: () -> List[float]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MDoubleArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getKnotsInU', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getKnotsInV')
     def getKnotsInV(self):
+        # type: () -> List[float]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MDoubleArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getKnotsInV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def getParamAtPoint(self, atThisPoint, space='preTransform'):
+        # type: (Point, datatypes.Space.Space) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([atThisPoint, space], [('atThisPoint', 'MPoint', 'in', None), ('paramU', 'double', 'out', None), ('paramV', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getParamAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getPatchUV')
     def getPatchUV(self, patchId, cornerIndex):
+        # type: (int, int) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([patchId, cornerIndex], [('patchId', 'int', 'in', None), ('cornerIndex', 'int', 'in', None), ('u', 'float', 'out', None), ('v', 'float', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getPatchUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getPatchUVid')
     def getPatchUVid(self, patchId, cornerIndex):
+        # type: (int, int) -> int
         do, final_do, outTypes = _f.getDoArgs([patchId, cornerIndex], [('patchId', 'int', 'in', None), ('cornerIndex', 'int', 'in', None), ('uvId', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getPatchUVid', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getPatchUVs')
     def getPatchUVs(self, patchId):
+        # type: (int) -> Tuple[List[float], List[float]]
         do, final_do, outTypes = _f.getDoArgs([patchId], [('patchId', 'int', 'in', None), ('uArray', 'MFloatArray', 'out', None), ('vArray', 'MFloatArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getPatchUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getPointAtParam')
     def getPointAtParam(self, paramU, paramV, space='preTransform'):
+        # type: (float, float, datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([paramU, paramV, space], [('paramU', 'double', 'in', None), ('paramV', 'double', 'in', None), ('point', 'MPoint', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getPointAtParam', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'getTangents')
     def getTangents(self, paramInU, paramInV, space='preTransform'):
+        # type: (float, float, datatypes.Space.Space) -> Tuple[Vector, Vector]
         do, final_do, outTypes = _f.getDoArgs([paramInU, paramInV, space], [('paramInU', 'double', 'in', None), ('paramInV', 'double', 'in', None), ('vectorInU', 'MVector', 'out', None), ('vectorInV', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getTangents', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'hasHistoryOnCreate')
     def hasHistoryOnCreate(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'hasHistoryOnCreate')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'intersect')
     def intersect(self, rayStartingPoint, alongThisDirection, tolerance=0.001, space='preTransform', calculateDistance=False, calculateExactHit=False):
+        # type: (Point, Vector, float, datatypes.Space.Space, bool, bool) -> Tuple[bool, float, float, Point, float, bool]
         do, final_do, outTypes = _f.getDoArgs([rayStartingPoint, alongThisDirection, tolerance, space, calculateDistance, calculateExactHit], [('rayStartingPoint', 'MPoint', 'in', None), ('alongThisDirection', 'MVector', 'in', None), ('u', 'double', 'out', None), ('v', 'double', 'out', None), ('pntOfIntersection', 'MPoint', 'out', None), ('tolerance', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('calculateDistance', 'bool', 'in', None), ('distance', 'double', 'out', None), ('calculateExactHit', 'bool', 'in', None), ('wasExactHit', 'bool', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'intersect', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5567,11 +5954,13 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isBezier')
     def isBezier(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isBezier')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isFlipNorm')
     def isFlipNorm(self, region):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([region], [('region', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isFlipNorm', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5579,11 +5968,13 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isFoldedOnBispan')
     def isFoldedOnBispan(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isFoldedOnBispan')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isKnotU')
     def isKnotU(self, param):
+        # type: (float) -> bool
         do, final_do, outTypes = _f.getDoArgs([param], [('param', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isKnotU', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5591,6 +5982,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isKnotV')
     def isKnotV(self, param):
+        # type: (float) -> bool
         do, final_do, outTypes = _f.getDoArgs([param], [('param', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isKnotV', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5598,6 +5990,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isParamOnSurface')
     def isParamOnSurface(self, paramU, paramV):
+        # type: (float, float) -> bool
         do, final_do, outTypes = _f.getDoArgs([paramU, paramV], [('paramU', 'double', 'in', None), ('paramV', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isParamOnSurface', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5605,6 +5998,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isPointInTrimmedRegion')
     def isPointInTrimmedRegion(self, u, v):
+        # type: (float, float) -> bool
         do, final_do, outTypes = _f.getDoArgs([u, v], [('u', 'double', 'in', None), ('v', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isPointInTrimmedRegion', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5612,6 +6006,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isPointOnSurface')
     def isPointOnSurface(self, point, tolerance=0.001, space='preTransform'):
+        # type: (Point, float, datatypes.Space.Space) -> bool
         do, final_do, outTypes = _f.getDoArgs([point, tolerance, space], [('point', 'MPoint', 'in', None), ('tolerance', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isPointOnSurface', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -5619,16 +6014,19 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isTrimmedSurface')
     def isTrimmedSurface(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isTrimmedSurface')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'isUniform')
     def isUniform(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'isUniform')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'normal')
     def normal(self, paramInU, paramInV, space='preTransform'):
+        # type: (float, float, datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([paramInU, paramInV, space], [('paramInU', 'double', 'in', None), ('paramInV', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'normal', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MVector', None)
@@ -5636,6 +6034,7 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numBoundaries')
     def numBoundaries(self, region):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([region], [('region', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numBoundaries', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -5643,16 +6042,19 @@ class NurbsSurface(SurfaceShape):
 
     @_f.deprecated
     def numCVsInU(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numCVsInU')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
     def numCVsInV(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numCVsInV')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numEdges')
     def numEdges(self, region, boundary):
+        # type: (int, int) -> int
         do, final_do, outTypes = _f.getDoArgs([region, boundary], [('region', 'uint', 'in', None), ('boundary', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numEdges', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -5660,127 +6062,150 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numKnotsInU')
     def numKnotsInU(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numKnotsInU')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numKnotsInV')
     def numKnotsInV(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numKnotsInV')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numNonZeroSpansInU')
     def numNonZeroSpansInU(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numNonZeroSpansInU')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numNonZeroSpansInV')
     def numNonZeroSpansInV(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numNonZeroSpansInV')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numPatches')
     def numPatches(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numPatches')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numPatchesInU')
     def numPatchesInU(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numPatchesInU')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numPatchesInV')
     def numPatchesInV(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numPatchesInV')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numRegions')
     def numRegions(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numRegions')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numSpansInU')
     def numSpansInU(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numSpansInU')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numSpansInV')
     def numSpansInV(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numSpansInV')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numUVs')
     def numUVs(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numUVs')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'projectCurve')
     def projectCurve(self, curve, direction=None, constructionHistory=False):
+        # type: (general.PyNode, Vector, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([curve, direction, constructionHistory], [('curve', 'MDagPath', 'in', None), ('direction', 'MVector', 'in', None), ('constructionHistory', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'projectCurve', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'removeKnotInU')
     def removeKnotInU(self, atThisParam, removeAll=False):
+        # type: (float, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([atThisParam, removeAll], [('atThisParam', 'double', 'in', None), ('removeAll', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'removeKnotInU', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'removeKnotInV')
     def removeKnotInV(self, atThisParam, removeAll=False):
+        # type: (float, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([atThisParam, removeAll], [('atThisParam', 'double', 'in', None), ('removeAll', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'removeKnotInV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'removeOneKnotInU')
     def removeOneKnotInU(self, atThisParam):
+        # type: (float) -> None
         do, final_do, outTypes = _f.getDoArgs([atThisParam], [('atThisParam', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'removeOneKnotInU', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'removeOneKnotInV')
     def removeOneKnotInV(self, atThisParam):
+        # type: (float) -> None
         do, final_do, outTypes = _f.getDoArgs([atThisParam], [('atThisParam', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'removeOneKnotInV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setCV')
     def setCV(self, indexU, indexV, pt, space='preTransform'):
+        # type: (int, int, Point, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([indexU, indexV, pt, space], [('indexU', 'uint', 'in', None), ('indexV', 'uint', 'in', None), ('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCV, self.setCV, ['indexU', 'indexV', 'space'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setCV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setCVs')
     def setCVs(self, array, space='preTransform'):
+        # type: (List[Point], datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([array, space], [('array', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCVs, self.setCVs, ['space'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setCVs', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotInU')
     def setKnotInU(self, index, param):
+        # type: (int, float) -> None
         do, final_do, outTypes = _f.processApiArgs([index, param], [(u'index', 'int', 'in', None), (u'param', 'double', u'in', None)], self.getKnotInU, self.setKnotInU, ['index'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotInU', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotInV')
     def setKnotInV(self, index, param):
+        # type: (int, float) -> None
         do, final_do, outTypes = _f.processApiArgs([index, param], [('index', 'uint', 'in', None), ('param', 'double', 'in', None)], self.getKnotInV, self.setKnotInV, ['index'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotInV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotsInU')
     def setKnotsInU(self, array, startIndex, endIndex):
+        # type: (List[float], int, int) -> None
         do, final_do, outTypes = _f.processApiArgs([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnotsInU, self.setKnotsInU, [])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotsInU', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotsInV')
     def setKnotsInV(self, array, startIndex, endIndex):
+        # type: (List[float], int, int) -> None
         do, final_do, outTypes = _f.processApiArgs([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnotsInV, self.setKnotsInV, [])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotsInV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'tesselate')
     def tesselate(self, parms='MTesselationParams::fsDefaultTesselationParams', parentOrOwner='MObject::kNullObj'):
+        # type: (datatypes.TesselationParams, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([parms, parentOrOwner], [('parms', 'MTesselationParams', 'in', None), ('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'tesselate', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -5788,12 +6213,14 @@ class NurbsSurface(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'trim')
     def trim(self, locatorU, locatorV, constructionHistory=False):
+        # type: (List[float], List[float], bool) -> None
         do, final_do, outTypes = _f.getDoArgs([locatorU, locatorV, constructionHistory], [('locatorU', 'MDoubleArray', 'in', None), ('locatorV', 'MDoubleArray', 'in', None), ('constructionHistory', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'trim', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'updateSurface')
     def updateSurface(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'updateSurface')
         return res
 # ------ Do not edit above this line --------
@@ -6151,29 +6578,34 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'getAssociatedColorSetInstances')
     def _getAssociatedColorSetInstances(self, colorSetName):
+        # type: (unicode) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorSetName', 'MString', 'in', None), ('instances', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getAssociatedColorSetInstances', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getAssociatedUVSetInstances')
     def _getAssociatedUVSetInstances(self, uvSetName):
+        # type: (unicode) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([uvSetName], [('uvSetName', 'MString', 'in', None), ('instances', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getAssociatedUVSetInstances', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUVAtPoint')
     def _getUVAtPoint(self, pt, space='preTransform', uvSet=None):
+        # type: (Point, datatypes.Space.Space, unicode) -> Tuple[Tuple[float, float], int]
         do, final_do, outTypes = _f.getDoArgs([pt, space, uvSet], [('pt', 'MPoint', 'in', None), ('uvPoint', 'float2', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('closestPolygon', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUVAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'numColorSets')
     def _numColorSets(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numColorSets')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'numColors')
     def _numColors(self, colorSet):
+        # type: (unicode) -> int
         do, final_do, outTypes = _f.getDoArgs([colorSet], [('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'numColors', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -6181,88 +6613,104 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'numEdges')
     def _numEdges(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numEdges')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'numFaceVertices')
     def _numFaceVertices(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numFaceVertices')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'numNormals')
     def _numNormals(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numNormals')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'numPolygons')
     def _numPolygons(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numPolygons')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'numUVSets')
     def _numUVSets(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numUVSets')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'numUVs')
     def _numUVs(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numUVs')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'numVertices')
     def _numVertices(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numVertices')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'addHoles')
     def addHoles(self, faceIndex, vertexArray, loopCounts, mergeVertices=True, pointTolerance=1e-10):
+        # type: (int, List[Point], List[int], bool, float) -> None
         do, final_do, outTypes = _f.getDoArgs([faceIndex, vertexArray, loopCounts, mergeVertices, pointTolerance], [('faceIndex', 'int', 'in', None), ('vertexArray', 'MPointArray', 'in', None), ('loopCounts', 'MIntArray', 'in', None), ('mergeVertices', 'bool', 'in', None), ('pointTolerance', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'addHoles', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'assignColor')
     def assignColor(self, polygonId, vertexIndex, colorId, colorSet=None):
+        # type: (int, int, int, unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([polygonId, vertexIndex, colorId, colorSet], [('polygonId', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('colorId', 'int', 'in', None), ('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'assignColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'assignColors')
     def assignColors(self, colorIds, colorSet=None):
+        # type: (List[int], unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([colorIds, colorSet], [('colorIds', 'MIntArray', 'in', None), ('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'assignColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'assignUV')
     def assignUV(self, polygonId, vertexIndex, uvId, uvSet=None):
+        # type: (int, int, int, unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([polygonId, vertexIndex, uvId, uvSet], [('polygonId', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('uvId', 'int', 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'assignUV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'assignUVs')
     def assignUVs(self, uvCounts, uvIds, uvSet=None):
+        # type: (List[int], List[int], unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([uvCounts, uvIds, uvSet], [('uvCounts', 'MIntArray', 'in', None), ('uvIds', 'MIntArray', 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'assignUVs', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'booleanOps')
     def booleanOps(self, op, meshes):
+        # type: (Mesh.BoolOperation, List[general.PyNode]) -> bool
         do, final_do, outTypes = _f.getDoArgs([op, meshes], [('op', ('MFnMesh', 'BoolOperation'), 'in', None), ('meshes', 'MObjectArray', 'in', None), ('useLegacy', 'bool', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'booleanOps', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'cleanupEdgeSmoothing')
     def cleanupEdgeSmoothing(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnMesh, 'cleanupEdgeSmoothing')
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'clearColors')
     def clearColors(self, colorSet=None):
+        # type: (unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([colorSet], [('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'clearColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'clearUVs')
     def clearUVs(self, uvSet=None):
+        # type: (unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'clearUVs', final_do)
         return res
@@ -6270,6 +6718,7 @@ class Mesh(SurfaceShape):
     @classmethod
     @_f.addApiDocs(_api.MFnMesh, 'componentTypeFromName')
     def componentTypeFromName(self, assocName):
+        # type: (unicode) -> datatypes.Fn.Type
         do, final_do, outTypes = _f.getDoArgs([assocName], [('assocName', 'MString', 'in', None)])
         res = _api.MFnMesh.componentTypeFromName(*final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFn', 'Type'), None)
@@ -6278,6 +6727,7 @@ class Mesh(SurfaceShape):
     @classmethod
     @_f.addApiDocs(_api.MFnMesh, 'componentTypeName')
     def componentTypeName(self, compType):
+        # type: (datatypes.Fn.Type) -> unicode
         do, final_do, outTypes = _f.getDoArgs([compType], [('compType', ('MFn', 'Type'), 'in', None)])
         res = _api.MFnMesh.componentTypeName(*final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -6285,6 +6735,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'createColorSetWithName')
     def createColorSet(self, colorSetName, modifier=None, instances=None):
+        # type: (unicode, datatypes.DGModifier, datatypes.UintArray) -> unicode
         do, final_do, outTypes = _f.getDoArgs([colorSetName, modifier, instances], [('colorSetName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('instances', 'MUintArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'createColorSetWithName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -6292,6 +6743,7 @@ class Mesh(SurfaceShape):
 
     @_f.deprecated
     def createColorSetWithName(self, colorSetName, modifier=None, instances=None):
+        # type: (unicode, datatypes.DGModifier, datatypes.UintArray) -> unicode
         do, final_do, outTypes = _f.getDoArgs([colorSetName, modifier, instances], [('colorSetName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('instances', 'MUintArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'createColorSetWithName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -6299,6 +6751,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'createUVSetWithName')
     def createUVSet(self, uvSetName, modifier=None, instances=None):
+        # type: (unicode, datatypes.DGModifier, datatypes.UintArray) -> unicode
         do, final_do, outTypes = _f.getDoArgs([uvSetName, modifier, instances], [('uvSetName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('instances', 'MUintArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'createUVSetWithName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -6306,6 +6759,7 @@ class Mesh(SurfaceShape):
 
     @_f.deprecated
     def createUVSetWithName(self, uvSetName, modifier=None, instances=None):
+        # type: (unicode, datatypes.DGModifier, datatypes.UintArray) -> unicode
         do, final_do, outTypes = _f.getDoArgs([uvSetName, modifier, instances], [('uvSetName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('instances', 'MUintArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'createUVSetWithName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -6313,83 +6767,97 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'deleteColorSet')
     def deleteColorSet(self, colorSetName, modifier=None, currentSelection=None):
+        # type: (unicode, datatypes.DGModifier, SelectionSet) -> None
         do, final_do, outTypes = _f.getDoArgs([colorSetName, modifier, currentSelection], [('colorSetName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'deleteColorSet', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'deleteUVSet')
     def deleteUVSet(self, setName, modifier=None, currentSelection=None):
+        # type: (unicode, datatypes.DGModifier, SelectionSet) -> None
         do, final_do, outTypes = _f.getDoArgs([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'deleteUVSet', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'getAssignedUVs')
     def getAssignedUVs(self, uvSet=None):
+        # type: (unicode) -> Tuple[List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvCounts', 'MIntArray', 'out', None), ('uvIds', 'MIntArray', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getAssignedUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def getAssociatedColorSetInstances(self, colorSetName):
+        # type: (unicode) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorSetName', 'MString', 'in', None), ('instances', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getAssociatedColorSetInstances', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def getAssociatedUVSetInstances(self, uvSetName):
+        # type: (unicode) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([uvSetName], [('uvSetName', 'MString', 'in', None), ('instances', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getAssociatedUVSetInstances', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getAssociatedUVSetTextures')
     def getAssociatedUVSetTextures(self, uvSetName):
+        # type: (unicode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([uvSetName], [('uvSetName', 'MString', 'in', None), ('textures', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getAssociatedUVSetTextures', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getAxisAtPoint')
     def getAxisAtPoint(self, pt, space='preTransform', uvSet=None):
+        # type: (Point, datatypes.Space.Space, unicode) -> Tuple[Vector, Vector, Vector, int]
         do, final_do, outTypes = _f.getDoArgs([pt, space, uvSet], [('pt', 'MPoint', 'in', None), ('normal', 'MVector', 'out', None), ('uTangent', 'MVector', 'out', None), ('vTangent', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('closestPolygon', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getAxisAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getBinormals')
     def getBinormals(self, space='preTransform', uvSet=None):
+        # type: (datatypes.Space.Space, unicode) -> List[FloatVector]
         do, final_do, outTypes = _f.getDoArgs([space, uvSet], [('binormals', 'MFloatVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getBinormals', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getCheckSamePointTwice')
     def getCheckSamePointTwice(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnMesh, 'getCheckSamePointTwice')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'getClosestNormal')
     def getClosestNormal(self, toThisPoint, space='preTransform', accelParams=None):
+        # type: (Point, datatypes.Space.Space, datatypes.MeshIsectAccelParams) -> Tuple[Vector, int]
         do, final_do, outTypes = _f.getDoArgs([toThisPoint, space, accelParams], [('toThisPoint', 'MPoint', 'in', None), ('theNormal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('closestPolygon', 'int', 'out', None), ('accelParams', 'MMeshIsectAccelParams', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getClosestNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getClosestPoint')
     def getClosestPoint(self, toThisPoint, space='preTransform', accelParams=None):
+        # type: (Point, datatypes.Space.Space, datatypes.MeshIsectAccelParams) -> Tuple[Point, int]
         do, final_do, outTypes = _f.getDoArgs([toThisPoint, space, accelParams], [('toThisPoint', 'MPoint', 'in', None), ('theClosestPoint', 'MPoint', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('closestPolygon', 'int', 'out', None), ('accelParams', 'MMeshIsectAccelParams', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getClosestPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getClosestPointAndNormal')
     def getClosestPointAndNormal(self, toThisPoint, space='preTransform', accelParams=None):
+        # type: (Point, datatypes.Space.Space, datatypes.MeshIsectAccelParams) -> Tuple[Point, Vector, int]
         do, final_do, outTypes = _f.getDoArgs([toThisPoint, space, accelParams], [('toThisPoint', 'MPoint', 'in', None), ('theClosestPoint', 'MPoint', 'out', None), ('theNormal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('closestPolygon', 'int', 'out', None), ('accelParams', 'MMeshIsectAccelParams', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getClosestPointAndNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getColor')
     def getColor(self, colorId, colorSet=None, defaultUnsetColor=None):
+        # type: (int, unicode, Color) -> Color
         do, final_do, outTypes = _f.getDoArgs([colorId, colorSet, defaultUnsetColor], [('colorId', 'int', 'in', None), ('color', 'MColor', 'out', None), ('colorSet', 'MString', 'in', None), ('defaultUnsetColor', 'MColor', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getColor', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getColorRepresentation')
     def getColorRepresentation(self, colorSet):
+        # type: (unicode) -> Mesh.MColorRepresentation
         do, final_do, outTypes = _f.getDoArgs([colorSet], [('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getColorRepresentation', final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFnMesh', 'MColorRepresentation'), None)
@@ -6397,89 +6865,104 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'getColorSetFamilyNames')
     def getColorSetFamilyNames(self):
+        # type: () -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([], [('familyNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getColorSetFamilyNames', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getColorSetNames')
     def getColorSetNames(self):
+        # type: () -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([], [('setNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getColorSetNames', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getColors')
     def getColors(self, colorSet=None, defaultUnsetColor=None):
+        # type: (unicode, Color) -> List[Color]
         do, final_do, outTypes = _f.getDoArgs([colorSet, defaultUnsetColor], [('colorArray', 'MColorArray', 'out', None), ('colorSet', 'MString', 'in', None), ('defaultUnsetColor', 'MColor', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getColors', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'displayColors')
     def getDisplayColors(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnMesh, 'displayColors')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'getEdgeVertices')
     def getEdgeVertices(self, edgeId):
+        # type: (int) -> Tuple[int, int]
         do, final_do, outTypes = _f.getDoArgs([edgeId], [('edgeId', 'int', 'in', None), ('vertexList', 'int2', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getEdgeVertices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceNormalIds')
     def getFaceNormalIds(self, faceIndex):
+        # type: (int) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([faceIndex], [('faceIndex', 'int', 'in', None), ('normals', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceNormalIds', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceUVSetNames')
     def getFaceUVSetNames(self, polygonId):
+        # type: (int) -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([polygonId], [('polygonId', 'int', 'in', None), ('setNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceUVSetNames', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexBinormal')
     def getFaceVertexBinormal(self, faceIndex, vertexIndex, space='preTransform', uvSet=None):
+        # type: (int, int, datatypes.Space.Space, unicode) -> Vector
         do, final_do, outTypes = _f.getDoArgs([faceIndex, vertexIndex, space, uvSet], [('faceIndex', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('binormal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexBinormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexBinormals')
     def getFaceVertexBinormals(self, faceIndex, space='preTransform', uvSet=None):
+        # type: (int, datatypes.Space.Space, unicode) -> List[FloatVector]
         do, final_do, outTypes = _f.getDoArgs([faceIndex, space, uvSet], [('faceIndex', 'int', 'in', None), ('binormals', 'MFloatVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexBinormals', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexColorIndex')
     def getFaceVertexColorIndex(self, faceIndex, localVertexIndex, colorSet=None):
+        # type: (int, int, unicode) -> int
         do, final_do, outTypes = _f.getDoArgs([faceIndex, localVertexIndex, colorSet], [('faceIndex', 'int', 'in', None), ('localVertexIndex', 'int', 'in', None), ('colorIndex', 'int', 'out', None), ('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexColorIndex', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexColors')
     def getFaceVertexColors(self, colorSet=None, defaultUnsetColor=None):
+        # type: (unicode, Color) -> List[Color]
         do, final_do, outTypes = _f.getDoArgs([colorSet, defaultUnsetColor], [('colors', 'MColorArray', 'out', None), ('colorSet', 'MString', 'in', None), ('defaultUnsetColor', 'MColor', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexColors', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexNormal')
     def getFaceVertexNormal(self, faceIndex, vertexIndex, space='preTransform'):
+        # type: (int, int, datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([faceIndex, vertexIndex, space], [('faceIndex', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('normal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexTangent')
     def getFaceVertexTangent(self, faceIndex, vertexIndex, space='preTransform', uvSet=None):
+        # type: (int, int, datatypes.Space.Space, unicode) -> Vector
         do, final_do, outTypes = _f.getDoArgs([faceIndex, vertexIndex, space, uvSet], [('faceIndex', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('tangent', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexTangent', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexTangents')
     def getFaceVertexTangents(self, faceIndex, space='preTransform', uvSet=None):
+        # type: (int, datatypes.Space.Space, unicode) -> List[FloatVector]
         do, final_do, outTypes = _f.getDoArgs([faceIndex, space, uvSet], [('faceIndex', 'int', 'in', None), ('tangents', 'MFloatVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexTangents', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getHoles')
     def getHoles(self):
+        # type: () -> Tuple[int, List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [('holeInfoArray', 'MIntArray', 'out', None), ('holeVertexArray', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getHoles', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -6487,66 +6970,77 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'getNormalIds')
     def getNormalIds(self):
+        # type: () -> Tuple[List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [('normalCounts', 'MIntArray', 'out', None), ('normals', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getNormalIds', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getNormals')
     def getNormals(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> List[FloatVector]
         do, final_do, outTypes = _f.getDoArgs([space], [('normals', 'MFloatVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getNormals', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPoint')
     def getPoint(self, vertexId, space='preTransform'):
+        # type: (int, datatypes.Space.Space) -> Point
         do, final_do, outTypes = _f.getDoArgs([vertexId, space], [('vertexId', 'int', 'in', None), ('pos', 'MPoint', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPointAtUV')
     def getPointAtUV(self, polygonId, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
+        # type: (int, Tuple[float, float], datatypes.Space.Space, unicode, float) -> Point
         do, final_do, outTypes = _f.getDoArgs([polygonId, uvPoint, space, uvSet, tolerance], [('polygonId', 'int', 'in', None), ('toThisPoint', 'MPoint', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPointAtUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPoints')
     def getPoints(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> List[Point]
         do, final_do, outTypes = _f.getDoArgs([space], [('vertexArray', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPoints', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPolygonNormal')
     def getPolygonNormal(self, polygonId, space='preTransform'):
+        # type: (int, datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([polygonId, space], [('polygonId', 'int', 'in', None), ('normal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPolygonNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPolygonTriangleVertices')
     def getPolygonTriangleVertices(self, polygonId, triangleId):
+        # type: (int, int) -> Tuple[int, int, int]
         do, final_do, outTypes = _f.getDoArgs([polygonId, triangleId], [('polygonId', 'int', 'in', None), ('triangleId', 'int', 'in', None), ('vertexList', 'int__array3', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPolygonTriangleVertices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPolygonUV')
     def getPolygonUV(self, polygonId, vertexIndex, uvSet=None):
+        # type: (int, int, unicode) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([polygonId, vertexIndex, uvSet], [('polygonId', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('u', 'float', 'out', None), ('v', 'float', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPolygonUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPolygonUVid')
     def getPolygonUVid(self, polygonId, vertexIndex, uvSet=None):
+        # type: (int, int, unicode) -> int
         do, final_do, outTypes = _f.getDoArgs([polygonId, vertexIndex, uvSet], [('polygonId', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('uvId', 'int', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPolygonUVid', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPolygonVertices')
     def getPolygonVertices(self, polygonId):
+        # type: (int) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([polygonId], [('polygonId', 'int', 'in', None), ('vertexList', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPolygonVertices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getTangentId')
     def getTangentId(self, faceIndex, vertexIndex):
+        # type: (int, int) -> int
         do, final_do, outTypes = _f.getDoArgs([faceIndex, vertexIndex], [('faceIndex', 'int', 'in', None), ('vertexIndex', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getTangentId', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -6554,72 +7048,84 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'getTangents')
     def getTangents(self, space='preTransform', uvSet=None):
+        # type: (datatypes.Space.Space, unicode) -> List[FloatVector]
         do, final_do, outTypes = _f.getDoArgs([space, uvSet], [('tangents', 'MFloatVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getTangents', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getTriangleOffsets')
     def getTriangleOffsets(self):
+        # type: () -> Tuple[List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [('triangleCounts', 'MIntArray', 'out', None), ('triangleIndices', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getTriangleOffsets', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getTriangles')
     def getTriangles(self):
+        # type: () -> Tuple[List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [('triangleCounts', 'MIntArray', 'out', None), ('triangleVertices', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getTriangles', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUV')
     def getUV(self, uvId, uvSet=None):
+        # type: (int, unicode) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([uvId, uvSet], [('uvId', 'int', 'in', None), ('u', 'float', 'out', None), ('v', 'float', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUVSetFamilyNames')
     def getUVSetFamilyNames(self):
+        # type: () -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([], [('familyNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUVSetFamilyNames', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUVSetNames')
     def getUVSetNames(self):
+        # type: () -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([], [('setNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUVSetNames', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUVSetsInFamily')
     def getUVSetsInFamily(self, familyName):
+        # type: (unicode) -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([familyName], [('familyName', 'MString', 'in', None), ('setNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUVSetsInFamily', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUVs')
     def getUVs(self, uvSet=None):
+        # type: (unicode) -> Tuple[List[float], List[float]]
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uArray', 'MFloatArray', 'out', None), ('vArray', 'MFloatArray', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUvShellsIds')
     def getUvShellsIds(self, uvSet=None):
+        # type: (unicode) -> Tuple[List[int], int]
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvShellIds', 'MIntArray', 'out', None), ('nbUvShells', 'uint', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUvShellsIds', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getVertexNormal')
     def getVertexNormal(self, vertexId, angleWeighted, space='preTransform'):
+        # type: (int, bool, datatypes.Space.Space) -> Vector
         do, final_do, outTypes = _f.getDoArgs([vertexId, angleWeighted, space], [('vertexId', 'int', 'in', None), ('angleWeighted', 'bool', 'in', None), ('normal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getVertexNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getVertices')
     def getVertices(self):
+        # type: () -> Tuple[List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [('vertexCount', 'MIntArray', 'out', None), ('vertexList', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getVertices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'hasAlphaChannels')
     def hasAlphaChannels(self, colorSet):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([colorSet], [('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'hasAlphaChannels', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6627,6 +7133,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'hasColorChannels')
     def hasColorChannels(self, colorSet):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([colorSet], [('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'hasColorChannels', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6634,6 +7141,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'intersect')
     def intersect(self, raySource, rayDirection, tolerance=1e-10, space='preTransform'):
+        # type: (Point, Vector, float, datatypes.Space.Space) -> Tuple[bool, List[Point], List[int]]
         do, final_do, outTypes = _f.getDoArgs([raySource, rayDirection, tolerance, space], [('raySource', 'MPoint', 'in', None), ('rayDirection', 'MVector', 'in', None), ('points', 'MPointArray', 'out', None), ('tolerance', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('polygonIds', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'intersect', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6641,6 +7149,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'isColorClamped')
     def isColorClamped(self, colorSet):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([colorSet], [('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'isColorClamped', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6648,6 +7157,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'isColorSetPerInstance')
     def isColorSetPerInstance(self, name):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([name], [('name', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'isColorSetPerInstance', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6655,6 +7165,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'isEdgeSmooth')
     def isEdgeSmooth(self, edgeId):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([edgeId], [('edgeId', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'isEdgeSmooth', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6662,6 +7173,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'isNormalLocked')
     def isNormalLocked(self, normalId):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([normalId], [('normalId', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'isNormalLocked', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6669,6 +7181,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'isPolygonConvex')
     def isPolygonConvex(self, faceIndex):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([faceIndex], [('faceIndex', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'isPolygonConvex', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6676,6 +7189,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'isRightHandedTangent')
     def isRightHandedTangent(self, tangentId, uvSetName=None):
+        # type: (int, unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([tangentId, uvSetName], [('tangentId', 'int', 'in', None), ('uvSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'isRightHandedTangent', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6683,6 +7197,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'isUVSetPerInstance')
     def isUVSetPerInstance(self, name):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([name], [('name', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'isUVSetPerInstance', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6690,33 +7205,39 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'lockFaceVertexNormals')
     def lockFaceVertexNormals(self, faceList, vertexList):
+        # type: (List[int], List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([faceList, vertexList], [('faceList', 'MIntArray', 'in', None), ('vertexList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'lockFaceVertexNormals', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'lockVertexNormals')
     def lockVertexNormals(self, vertexList):
+        # type: (List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([vertexList], [('vertexList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'lockVertexNormals', final_do)
         return res
 
     @_f.deprecated
     def numColorSets(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numColorSets')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
     def numFaceVertices(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numFaceVertices')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
     def numNormals(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numNormals')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'polygonVertexCount')
     def numPolygonVertices(self, polygonId):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([polygonId], [('polygonId', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'polygonVertexCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -6724,21 +7245,25 @@ class Mesh(SurfaceShape):
 
     @_f.deprecated
     def numPolygons(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numPolygons')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
     def numUVSets(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numUVSets')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
     def numUVs(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMesh, 'numUVs')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMesh, 'onBoundary')
     def onBoundary(self, polygonId):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([polygonId], [('polygonId', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'onBoundary', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6747,12 +7272,14 @@ class Mesh(SurfaceShape):
     @classmethod
     @_f.addApiDocs(_api.MFnMesh, 'polyTriangulate')
     def polyTriangulate(self, pointsAndHoles, pointsCount, outerPointsCount, holesCount, considerNormal, normals):
+        # type: (float, int, int, int, bool, float) -> Tuple[int, int]
         do, final_do, outTypes = _f.getDoArgs([pointsAndHoles, pointsCount, outerPointsCount, holesCount, considerNormal, normals], [('pointsAndHoles', 'float', 'in', None), ('pointsCount', 'uint', 'in', None), ('outerPointsCount', 'uint', 'in', None), ('holesCount', 'uint', 'in', None), ('considerNormal', 'bool', 'in', None), ('normals', 'float', 'in', None), ('triangles', 'short', 'out', None), ('trianglesCount', 'int', 'out', None)])
         res = _api.MFnMesh.polyTriangulate(*final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def polygonVertexCount(self, polygonId):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([polygonId], [('polygonId', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'polygonVertexCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -6760,173 +7287,202 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'removeFaceColors')
     def removeFaceColors(self, faceList):
+        # type: (List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([faceList], [('faceList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'removeFaceColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'removeFaceVertexColors')
     def removeFaceVertexColors(self, faceList, vertexList):
+        # type: (List[int], List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([faceList, vertexList], [('faceList', 'MIntArray', 'in', None), ('vertexList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'removeFaceVertexColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'removeVertexColors')
     def removeVertexColors(self, vertexList):
+        # type: (List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([vertexList], [('vertexList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'removeVertexColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'renameUVSet')
     def renameUVSet(self, origName, newName, modifier=None):
+        # type: (unicode, unicode, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.getDoArgs([origName, newName, modifier], [('origName', 'MString', 'in', None), ('newName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'renameUVSet', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setCheckSamePointTwice')
     def setCheckSamePointTwice(self, check=True):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([check], [('check', 'bool', 'in', None)], self.getCheckSamePointTwice, self.setCheckSamePointTwice, [])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setCheckSamePointTwice', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setColor')
     def setColor(self, colorId, color, colorSet=None):
+        # type: (int, Color, unicode) -> None
         do, final_do, outTypes = _f.processApiArgs([colorId, color, colorSet], [('colorId', 'int', 'in', None), ('color', 'MColor', 'in', None), ('colorSet', 'MString', 'in', None)], self.getColor, self.setColor, ['colorId', 'colorSet', 'defaultUnsetColor'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setIsColorClamped')
     def setColorClamped(self, colorSet, clamped):
+        # type: (unicode, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([colorSet, clamped], [('colorSet', 'MString', 'in', None), ('clamped', 'bool', 'in', None)], self.isColorClamped, self.setColorClamped, ['colorSet'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setIsColorClamped', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setColors')
     def setColors(self, colorArray, colorSet=None):
+        # type: (List[Color], unicode) -> None
         do, final_do, outTypes = _f.processApiArgs([colorArray, colorSet], [('colorArray', 'MColorArray', 'in', None), ('colorSet', 'MString', 'in', None)], self.getColors, self.setColors, ['colorSet', 'defaultUnsetColor'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setCurrentColorSetName')
     def setCurrentColorSetName(self, setName, modifier=None, currentSelection=None):
+        # type: (unicode, datatypes.DGModifier, SelectionSet) -> None
         do, final_do, outTypes = _f.processApiArgs([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)], self.getCurrentColorSetName, self.setCurrentColorSetName, ['instance'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setCurrentColorSetName', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setCurrentUVSetName')
     def setCurrentUVSetName(self, setName, modifier=None, currentSelection=None):
+        # type: (unicode, datatypes.DGModifier, SelectionSet) -> None
         do, final_do, outTypes = _f.processApiArgs([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)], self.getCurrentUVSetName, self.setCurrentUVSetName, ['instance'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setCurrentUVSetName', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setDisplayColors')
     def setDisplayColors(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getDisplayColors, self.setDisplayColors, [])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setDisplayColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setEdgeSmoothing')
     def setEdgeSmoothing(self, edgeId, smooth=True):
+        # type: (int, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([edgeId, smooth], [('edgeId', 'int', 'in', None), ('smooth', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setEdgeSmoothing', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setFaceColor')
     def setFaceColor(self, color, faceIndex):
+        # type: (Color, int) -> None
         do, final_do, outTypes = _f.getDoArgs([color, faceIndex], [('color', 'MColor', 'in', None), ('faceIndex', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setFaceColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setFaceColors')
     def setFaceColors(self, colors, faceList):
+        # type: (List[Color], List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([colors, faceList], [('colors', 'MColorArray', 'in', None), ('faceList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setFaceColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setFaceVertexColor')
     def setFaceVertexColor(self, color, faceIndex, vertexIndex, modifier=None):
+        # type: (Color, int, int, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.getDoArgs([color, faceIndex, vertexIndex, modifier], [('color', 'MColor', 'in', None), ('faceIndex', 'int', 'in', None), ('vertexIndex', 'int', 'in', None), ('modifier', 'MDGModifier', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setFaceVertexColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setFaceVertexNormal')
     def setFaceVertexNormal(self, normalIn, faceId, vertexId, space='preTransform', modifier=None):
+        # type: (Vector, int, int, datatypes.Space.Space, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.getDoArgs([normalIn, faceId, vertexId, space, modifier], [('normalIn', 'MVector', 'in', None), ('faceId', 'int', 'in', None), ('vertexId', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('modifier', 'MDGModifier', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setFaceVertexNormal', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setNormals')
     def setNormals(self, normals, space='preTransform'):
+        # type: (List[FloatVector], datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([normals, space], [('normals', 'MFloatVectorArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getNormals, self.setNormals, ['space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setNormals', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setPoint')
     def setPoint(self, vertexId, pos, space='preTransform'):
+        # type: (int, Point, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vertexId, pos, space], [('vertexId', 'int', 'in', None), ('pos', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['vertexId', 'space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setPoint', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setPoints')
     def setPoints(self, vertexArray, space='preTransform'):
+        # type: (List[Point], datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([vertexArray, space], [(u'vertexArray', 'MPointArray', u'in', None), (u'space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setPoints', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setSomeColors')
     def setSomeColors(self, colorIds, colorArray, colorSet=None):
+        # type: (List[int], List[Color], unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([colorIds, colorArray, colorSet], [('colorIds', 'MIntArray', 'in', None), ('colorArray', 'MColorArray', 'in', None), ('colorSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setSomeColors', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setSomeUVs')
     def setSomeUVs(self, uvIds, uArray, vArray, uvSet=None):
+        # type: (List[int], List[float], List[float], unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([uvIds, uArray, vArray, uvSet], [('uvIds', 'MIntArray', 'in', None), ('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setSomeUVs', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setUV')
     def setUV(self, uvId, u, v, uvSet=None):
+        # type: (int, float, float, unicode) -> None
         do, final_do, outTypes = _f.processApiArgs([uvId, u, v, uvSet], [('uvId', 'int', 'in', None), ('u', 'float', 'in', None), ('v', 'float', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['uvId', 'uvSet'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setUV', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setUVs')
     def setUVs(self, uArray, vArray, uvSet=None):
+        # type: (List[float], List[float], unicode) -> None
         do, final_do, outTypes = _f.processApiArgs([uArray, vArray, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setUVs', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setVertexColor')
     def setVertexColor(self, color, vertexIndex, modifier=None):
+        # type: (Color, int, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.getDoArgs([color, vertexIndex, modifier], [('color', 'MColor', 'in', None), ('vertexIndex', 'int', 'in', None), ('modifier', 'MDGModifier', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setVertexColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'setVertexNormal')
     def setVertexNormal(self, normalIn, vertexId, space='preTransform', modifier=None):
+        # type: (Vector, int, datatypes.Space.Space, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([normalIn, vertexId, space, modifier], [('normalIn', 'MVector', 'in', None), ('vertexId', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getVertexNormal, self.setVertexNormal, ['vertexId', 'space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setVertexNormal', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'syncObject')
     def syncObject(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnMesh, 'syncObject')
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'unlockFaceVertexNormals')
     def unlockFaceVertexNormals(self, faceList, vertexList):
+        # type: (List[int], List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([faceList, vertexList], [('faceList', 'MIntArray', 'in', None), ('vertexList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'unlockFaceVertexNormals', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'unlockVertexNormals')
     def unlockVertexNormals(self, vertexList):
+        # type: (List[int]) -> None
         do, final_do, outTypes = _f.getDoArgs([vertexList], [('vertexList', 'MIntArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'unlockVertexNormals', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'updateSurface')
     def updateSurface(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnMesh, 'updateSurface')
         return res
 # ------ Do not edit above this line --------
@@ -7006,6 +7562,7 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'collapse')
     def collapse(self, level, makeNewNodeInvisible):
+        # type: (int, bool) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([level, makeNewNodeInvisible], [('level', 'int', 'in', None), ('makeNewNodeInvisible', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'collapse', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -7013,12 +7570,14 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'convertToNurbs')
     def convertToNurbs(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('newNurbsSurfaces', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'convertToNurbs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnSubd, 'copy')
     def copy(self, source, parentOrOwner='MObject::kNullObj'):
+        # type: (general.PyNode, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([source, parentOrOwner], [('source', 'MObject', 'in', None), ('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'copy', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -7026,11 +7585,13 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'creasesClearAll')
     def creasesClearAll(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnSubd, 'creasesClearAll')
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'createBaseMesh')
     def createBaseMesh(self, reverseNormal, numVertices, numPolygons, vertexArray, polygonCounts, polygonConnects, parentOrOwner='MObject::kNullObj'):
+        # type: (bool, int, int, List[Point], List[int], List[int], general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([reverseNormal, numVertices, numPolygons, vertexArray, polygonCounts, polygonConnects, parentOrOwner], [('reverseNormal', 'bool', 'in', None), ('numVertices', 'int', 'in', None), ('numPolygons', 'int', 'in', None), ('vertexArray', 'MPointArray', 'in', None), ('polygonCounts', 'MIntArray', 'in', None), ('polygonConnects', 'MIntArray', 'in', None), ('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'createBaseMesh', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -7038,6 +7599,7 @@ class Subdiv(SurfaceShape):
 
     @_f.deprecated
     def edgeCount(self, level=0):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'edgeCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7045,11 +7607,13 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'editsPending')
     def editsPending(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnSubd, 'editsPending')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnSubd, 'editsUpdateAll')
     def editsUpdateAll(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnSubd, 'editsUpdateAll')
         return res
 
@@ -7100,22 +7664,26 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'levelFullySubdivideTo')
     def levelFullySubdivideTo(self, level):
+        # type: (int) -> None
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'levelFullySubdivideTo', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'levelMaxAllowed')
     def levelMaxAllowed(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnSubd, 'levelMaxAllowed')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnSubd, 'levelMaxCurrent')
     def levelMaxCurrent(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnSubd, 'levelMaxCurrent')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnSubd, 'edgeCount')
     def numEdges(self, level=0):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'edgeCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7123,6 +7691,7 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'polygonCount')
     def numFaces(self, level=0):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'polygonCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7130,6 +7699,7 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexCount')
     def numVertices(self, level=0):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7137,6 +7707,7 @@ class Subdiv(SurfaceShape):
 
     @_f.deprecated
     def polygonCount(self, level=0):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'polygonCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7144,6 +7715,7 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'polygonCountMaxWithGivenBaseMesh')
     def polygonCountMaxWithGivenBaseMesh(self, level=1):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'polygonCountMaxWithGivenBaseMesh', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7151,6 +7723,7 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'tesselate')
     def tesselate(self, uniform, depth, sample, parentOrOwner='MObject::kNullObj'):
+        # type: (bool, int, int, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([uniform, depth, sample, parentOrOwner], [('uniform', 'bool', 'in', None), ('depth', 'int', 'in', None), ('sample', 'int', 'in', None), ('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'tesselate', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -7158,6 +7731,7 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'tessellateViaNurbs')
     def tessellateViaNurbs(self, parentOrOwner='MObject::kNullObj'):
+        # type: (general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([parentOrOwner], [('parentOrOwner', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'tessellateViaNurbs', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -7165,16 +7739,19 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'updateAllEditsAndCreases')
     def updateAllEditsAndCreases(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnSubd, 'updateAllEditsAndCreases')
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'updateSubdSurface')
     def updateSubdSurface(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnSubd, 'updateSubdSurface')
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexBaseMeshAdd')
     def vertexBaseMeshAdd(self, x, y, z):
+        # type: (float, float, float) -> int
         do, final_do, outTypes = _f.getDoArgs([x, y, z], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexBaseMeshAdd', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7182,24 +7759,28 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexBaseMeshAddWithIndex')
     def vertexBaseMeshAddWithIndex(self, x, y, z, index):
+        # type: (float, float, float, int) -> None
         do, final_do, outTypes = _f.getDoArgs([x, y, z, index], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('index', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexBaseMeshAddWithIndex', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexBaseMeshGet')
     def vertexBaseMeshGet(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> List[Point]
         do, final_do, outTypes = _f.getDoArgs([space], [('positions', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexBaseMeshGet', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexBaseMeshSet')
     def vertexBaseMeshSet(self, space='preTransform'):
+        # type: (datatypes.Space.Space) -> List[Point]
         do, final_do, outTypes = _f.getDoArgs([space], [('positions', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexBaseMeshSet', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def vertexCount(self, level=0):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexCount', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7207,6 +7788,7 @@ class Subdiv(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexEditsClearAllNonBase')
     def vertexEditsClearAllNonBase(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexEditsClearAllNonBase')
         return res
 # ------ Do not edit above this line --------
@@ -7246,6 +7828,7 @@ class Lattice(ControlPoint):
 
     @_f.addApiDocs(_api.MFnLattice, 'getDivisions')
     def getDivisions(self):
+        # type: () -> Tuple[int, int, int]
         do, final_do, outTypes = _f.getDoArgs([], [('s', 'uint', 'out', None), ('t', 'uint', 'out', None), ('u', 'uint', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnLattice, 'getDivisions', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -7285,6 +7868,7 @@ class Lattice(ControlPoint):
 
     @_f.addApiDocs(_api.MFnLattice, 'point')
     def point(self, s, t, u):
+        # type: (int, int, int) -> Point
         do, final_do, outTypes = _f.getDoArgs([s, t, u], [('s', 'uint', 'in', None), ('t', 'uint', 'in', None), ('u', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLattice, 'point', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -7304,12 +7888,14 @@ class Lattice(ControlPoint):
 
     @_f.addApiDocs(_api.MFnLattice, 'reset')
     def reset(self, sSize=1.0, tSize=1.0, uSize=1.0):
+        # type: (float, float, float) -> None
         do, final_do, outTypes = _f.getDoArgs([sSize, tSize, uSize], [('sSize', 'double', 'in', None), ('tSize', 'double', 'in', None), ('uSize', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLattice, 'reset', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLattice, 'setDivisions')
     def setDivisions(self, s, t, u):
+        # type: (int, int, int) -> None
         do, final_do, outTypes = _f.processApiArgs([s, t, u], [('s', 'uint', 'in', None), ('t', 'uint', 'in', None), ('u', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
         res = _f.getProxyResult(self, _api.MFnLattice, 'setDivisions', final_do)
         return res
@@ -7350,56 +7936,66 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'acceleration')
     def acceleration(self):
+        # type: () -> List[Vector]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MVectorArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'acceleration', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'age')
     def age(self, ages):
+        # type: (List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([ages], [('ages', 'MDoubleArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'age', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'betterIllum')
     def betterIllum(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'betterIllum')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'castsShadows')
     def castsShadows(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'castsShadows')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'deformedParticleShape')
     def deformedParticleShape(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'deformedParticleShape')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'disableCloudAxis')
     def disableCloudAxis(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'disableCloudAxis')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'emission')
     def emission(self, emissions):
+        # type: (List[Vector]) -> None
         do, final_do, outTypes = _f.getDoArgs([emissions], [('emissions', 'MVectorArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'emission', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'emit')
     def emit(self, v):
+        # type: (Point) -> None
         do, final_do, outTypes = _f.getDoArgs([v], [('v', 'MPoint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'emit', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'evaluateDynamics')
     def evaluateDynamics(self, to, runupFromStart):
+        # type: (Time, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([to, runupFromStart], [('to', 'MTime', 'in', None), ('runupFromStart', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'evaluateDynamics', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'flatShaded')
     def flatShaded(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'flatShaded')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
@@ -7424,6 +8020,7 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'count')
     def getCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'count')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -7474,6 +8071,7 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'getPerParticleAttribute')
     def getPerParticleAttribute(self, attrName):
+        # type: (unicode) -> Tuple[int, List[int]]
         do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None), ('array', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'getPerParticleAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -7501,31 +8099,37 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'hasEmission')
     def hasEmission(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'hasEmission')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'hasLifespan')
     def hasLifespan(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'hasLifespan')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'hasOpacity')
     def hasOpacity(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'hasOpacity')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'hasRgb')
     def hasRgb(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'hasRgb')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'isDeformedParticleShape')
     def isDeformedParticleShape(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'isDeformedParticleShape')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'isPerParticleDoubleAttribute')
     def isPerParticleDoubleAttribute(self, attrName):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'isPerParticleDoubleAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -7533,6 +8137,7 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'isPerParticleIntAttribute')
     def isPerParticleIntAttribute(self, attrName):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'isPerParticleIntAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -7540,6 +8145,7 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'isPerParticleVectorAttribute')
     def isPerParticleVectorAttribute(self, attrName):
+        # type: (unicode) -> bool
         do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'isPerParticleVectorAttribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -7547,102 +8153,120 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'isValid')
     def isValid(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'isValid')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'lifespan')
     def lifespan(self, lifespans):
+        # type: (List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([lifespans], [('lifespans', 'MDoubleArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'lifespan', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'mass')
     def mass(self):
+        # type: () -> List[float]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MDoubleArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'mass', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'opacity')
     def opacity(self, opacities):
+        # type: (List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([opacities], [('opacities', 'MDoubleArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'opacity', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'originalParticleShape')
     def originalParticleShape(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'originalParticleShape')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'particleIds')
     def particleIds(self):
+        # type: () -> List[int]
         do, final_do, outTypes = _f.getDoArgs([], [('ids', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'particleIds', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'particleName')
     def particleName(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'particleName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'position')
     def position(self, positions):
+        # type: (List[Vector]) -> None
         do, final_do, outTypes = _f.getDoArgs([positions], [('positions', 'MVectorArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'position', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'position0')
     def position0(self, positions):
+        # type: (List[Vector]) -> None
         do, final_do, outTypes = _f.getDoArgs([positions], [('positions', 'MVectorArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'position0', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'position1')
     def position1(self, positions):
+        # type: (List[Vector]) -> None
         do, final_do, outTypes = _f.getDoArgs([positions], [('positions', 'MVectorArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'position1', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'primaryVisibility')
     def primaryVisibility(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'primaryVisibility')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'radius')
     def radius(self, radii):
+        # type: (List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([radii], [('radii', 'MDoubleArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'radius', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'radius0')
     def radius0(self, radii):
+        # type: (List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([radii], [('radii', 'MDoubleArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'radius0', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'radius1')
     def radius1(self, radii):
+        # type: (List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([radii], [('radii', 'MDoubleArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'radius1', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'receiveShadows')
     def receiveShadows(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'receiveShadows')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'renderType')
     def renderType(self):
+        # type: () -> ParticleSystem.RenderType
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'renderType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnParticleSystem', 'RenderType'), None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'rgb')
     def rgb(self, colors):
+        # type: (List[Vector]) -> None
         do, final_do, outTypes = _f.getDoArgs([colors], [('colors', 'MVectorArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'rgb', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'saveInitialState')
     def saveInitialState(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'saveInitialState')
         return res
 
@@ -7660,6 +8284,7 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'setCount')
     def setCount(self, count):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([count], [('count', 'uint', 'in', None)], self.getCount, self.setCount, [])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'setCount', final_do)
         return res
@@ -7678,6 +8303,7 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'setPerParticleAttribute')
     def setPerParticleAttribute(self, attrName, array):
+        # type: (unicode, List[Vector]) -> None
         do, final_do, outTypes = _f.processApiArgs([attrName, array], [('attrName', 'MString', 'in', None), ('array', 'MVectorArray', 'in', None)], self.getPerParticleAttribute, self.setPerParticleAttribute, ['attrName'])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'setPerParticleAttribute', final_do)
         return res
@@ -7688,16 +8314,19 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'surfaceShading')
     def surfaceShading(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'surfaceShading')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'tailSize')
     def tailSize(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'tailSize')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'threshold')
     def threshold(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'threshold')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -7707,17 +8336,20 @@ class Particle(DeformableShape):
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'velocity')
     def velocity(self):
+        # type: () -> List[Vector]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MVectorArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'velocity', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'visibleInReflections')
     def visibleInReflections(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'visibleInReflections')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnParticleSystem, 'visibleInRefractions')
     def visibleInRefractions(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'visibleInRefractions')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 # ------ Do not edit above this line --------
@@ -8459,51 +9091,60 @@ class ObjectSet(Entity):
 
     @_f.addApiDocs(_api.MFnSet, 'getIntersection')
     def _getIntersection(self, withSet):
+        # type: (general.PyNode) -> SelectionSet
         do, final_do, outTypes = _f.getDoArgs([withSet], [('withSet', 'MObject', 'in', None), ('result', 'MSelectionList', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'getIntersection', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnSet, 'getUnion')
     def _getUnion(self, withSet):
+        # type: (general.PyNode) -> SelectionSet
         do, final_do, outTypes = _f.getDoArgs([withSet], [('withSet', 'MObject', 'in', None), ('result', 'MSelectionList', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'getUnion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
     def addMember(self, obj):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'addMember', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSet, 'addMembers')
     def addMembers(self, list):
+        # type: (SelectionSet) -> None
         do, final_do, outTypes = _f.getDoArgs([list], [('list', 'MSelectionList', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'addMembers', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSet, 'getMembers')
     def asSelectionSet(self, flatten=False):
+        # type: (bool) -> SelectionSet
         do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnSet, 'clear')
     def clear(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnSet, 'clear')
         return res
 
     @_f.addApiDocs(_api.MFnSet, 'annotation')
     def getAnnotation(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnSet, 'annotation')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.addApiDocs(_api.MFnSet, 'hasRestrictions')
     def hasRestrictions(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnSet, 'hasRestrictions')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnSet, 'intersectsWith')
     def intersectsWith(self, otherSet):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([otherSet], [('otherSet', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'intersectsWith', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -8511,6 +9152,7 @@ class ObjectSet(Entity):
 
     @_f.deprecated
     def isMember(self, object):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'isMember', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -8518,23 +9160,27 @@ class ObjectSet(Entity):
 
     @_f.deprecated
     def removeMember(self, obj):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'removeMember', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSet, 'removeMembers')
     def removeMembers(self, list):
+        # type: (SelectionSet) -> None
         do, final_do, outTypes = _f.getDoArgs([list], [('list', 'MSelectionList', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'removeMembers', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSet, 'restriction')
     def restriction(self):
+        # type: () -> Set.Restriction
         res = _f.getProxyResult(self, _api.MFnSet, 'restriction')
         return _f.ApiArgUtil._castResult(self, res, ('MFnSet', 'Restriction'), None)
 
     @_f.addApiDocs(_api.MFnSet, 'setAnnotation')
     def setAnnotation(self, annotation):
+        # type: (unicode) -> None
         do, final_do, outTypes = _f.processApiArgs([annotation], [('annotation', 'MString', 'in', None)], self.getAnnotation, self.setAnnotation, [])
         res = _f.getProxyResult(self, _api.MFnSet, 'setAnnotation', final_do)
         return res
@@ -8914,6 +9560,7 @@ class AnimCurve(DependNode):
 
     @_f.deprecated
     def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
+        # type: (Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
         do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -8921,17 +9568,20 @@ class AnimCurve(DependNode):
 
     @_f.deprecated
     def addKeyframe(self, time, value, change=None):
+        # type: (Time, float, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'animCurveType')
     def animCurveType(self):
+        # type: () -> AnimCurve.AnimCurveType
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'animCurveType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
 
     @_f.deprecated
     def evaluate(self, atTime):
+        # type: (Time) -> float
         do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -8939,6 +9589,7 @@ class AnimCurve(DependNode):
 
     @_f.deprecated
     def findClosest(self, time):
+        # type: (Time) -> int
         do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -8946,6 +9597,7 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'inTangentType')
     def getInTangentType(self, index):
+        # type: (int) -> AnimCurve.TangentType
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'inTangentType', final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'TangentType'), None)
@@ -8953,6 +9605,7 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'outTangentType')
     def getOutTangentType(self, index):
+        # type: (int) -> AnimCurve.TangentType
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'outTangentType', final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'TangentType'), None)
@@ -8960,16 +9613,19 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'postInfinityType')
     def getPostInfinityType(self):
+        # type: () -> AnimCurve.InfinityType
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'postInfinityType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'InfinityType'), None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'preInfinityType')
     def getPreInfinityType(self):
+        # type: () -> AnimCurve.InfinityType
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'preInfinityType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'InfinityType'), None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'tangentsLocked')
     def getTangentsLocked(self, index):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'tangentsLocked', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -8977,6 +9633,7 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'time')
     def getTime(self, index):
+        # type: (int) -> Time
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'time', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MTime', None)
@@ -8984,6 +9641,7 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'unitlessInput')
     def getUnitlessInput(self, index):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessInput', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -8991,6 +9649,7 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'value')
     def getValue(self, index):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'value', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -8998,6 +9657,7 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'weightsLocked')
     def getWeightsLocked(self, index):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'weightsLocked', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -9005,6 +9665,7 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'isBreakdown')
     def isBreakdown(self, index):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'isBreakdown', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -9012,121 +9673,142 @@ class AnimCurve(DependNode):
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'isStatic')
     def isStatic(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'isStatic')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'isTimeInput')
     def isTimeInput(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'isTimeInput')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'isUnitlessInput')
     def isUnitlessInput(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'isUnitlessInput')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'isWeighted')
     def isWeighted(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'isWeighted')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'numKeys')
     def numKeys(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'numKeys')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'remove')
     def remove(self, index, change=None):
+        # type: (int, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.getDoArgs([index, change], [('index', 'uint', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'remove', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setAngle')
     def setAngle(self, index, angle, inTangent, change=None):
+        # type: (int, Angle, bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.getDoArgs([index, angle, inTangent, change], [('index', 'uint', 'in', None), ('angle', 'MAngle', 'in', None), ('inTangent', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setAngle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setIsBreakdown')
     def setBreakdown(self, index, isBreakdown, change=None):
+        # type: (int, bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, isBreakdown, change], [('index', 'uint', 'in', None), ('isBreakdown', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isBreakdown, self.setBreakdown, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setIsBreakdown', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setInTangentType')
     def setInTangentType(self, index, tangentType, change=None):
+        # type: (int, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getInTangentType, self.setInTangentType, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setInTangentType', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setOutTangentType')
     def setOutTangentType(self, index, tangentType, change=None):
+        # type: (int, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getOutTangentType, self.setOutTangentType, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setOutTangentType', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setPostInfinityType')
     def setPostInfinityType(self, infinityType, change=None):
+        # type: (AnimCurve.InfinityType, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPostInfinityType, self.setPostInfinityType, [])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setPostInfinityType', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setPreInfinityType')
     def setPreInfinityType(self, infinityType, change=None):
+        # type: (AnimCurve.InfinityType, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPreInfinityType, self.setPreInfinityType, [])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setPreInfinityType', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTangentTypes')
     def setTangentTypes(self, indexArray, inTangentType='global_', outTangentType='global_', change=None):
+        # type: (List[int], AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.getDoArgs([indexArray, inTangentType, outTangentType, change], [('indexArray', 'MIntArray', 'in', None), ('inTangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('outTangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTangentTypes', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTangentsLocked')
     def setTangentsLocked(self, index, locked, change=None):
+        # type: (int, bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTangentsLocked, self.setTangentsLocked, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTangentsLocked', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTime')
     def setTime(self, index, time, change=None):
+        # type: (int, Time, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, time, change], [('index', 'uint', 'in', None), ('time', 'MTime', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTime, self.setTime, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTime', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setUnitlessInput')
     def setUnitlessInput(self, index, unitlessInput, change=None):
+        # type: (int, float, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, unitlessInput, change], [('index', 'uint', 'in', None), ('unitlessInput', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getUnitlessInput, self.setUnitlessInput, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setUnitlessInput', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setValue')
     def setValue(self, index, value, change=None):
+        # type: (int, float, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, value, change], [('index', 'uint', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getValue, self.setValue, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setValue', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setWeight')
     def setWeight(self, index, weight, inTangent, change=None):
+        # type: (int, float, bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.getDoArgs([index, weight, inTangent, change], [('index', 'uint', 'in', None), ('weight', 'double', 'in', None), ('inTangent', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeight', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setIsWeighted')
     def setWeighted(self, isWeighted, change=None):
+        # type: (bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([isWeighted, change], [('isWeighted', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isWeighted, self.setWeighted, [])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setIsWeighted', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setWeightsLocked')
     def setWeightsLocked(self, index, locked, change=None):
+        # type: (int, bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getWeightsLocked, self.setWeightsLocked, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeightsLocked', final_do)
         return res
 
     @_f.deprecated
     def timedAnimCurveTypeForPlug(self, plug):
+        # type: (Attribute) -> AnimCurve.AnimCurveType
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
@@ -9134,6 +9816,7 @@ class AnimCurve(DependNode):
 
     @_f.deprecated
     def unitlessAnimCurveTypeForPlug(self, plug):
+        # type: (Attribute) -> AnimCurve.AnimCurveType
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
         res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
@@ -9150,34 +9833,40 @@ class GeometryFilter(DependNode):
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'deformerSet')
     def deformerSet(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'deformerSet')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'envelope')
     def getEnvelope(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'envelope')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'getInputGeometry')
     def getInputGeometry(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('geomList', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'getInputGeometry', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'getOutputGeometry')
     def getOutputGeometry(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('geomList', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'getOutputGeometry', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'getPathAtIndex')
     def getPathAtIndex(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None), ('dagPath', 'MDagPath', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'getPathAtIndex', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'groupIdAtIndex')
     def groupIdAtIndex(self, index):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'groupIdAtIndex', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -9185,6 +9874,7 @@ class GeometryFilter(DependNode):
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'indexForGroupId')
     def indexForGroupId(self, groupId):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([groupId], [('groupId', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'indexForGroupId', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -9192,6 +9882,7 @@ class GeometryFilter(DependNode):
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'indexForOutputConnection')
     def indexForOutputConnection(self, connectionIndex):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([connectionIndex], [('connectionIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'indexForOutputConnection', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -9199,6 +9890,7 @@ class GeometryFilter(DependNode):
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'indexForOutputShape')
     def indexForOutputShape(self, shape):
+        # type: (general.PyNode) -> int
         do, final_do, outTypes = _f.getDoArgs([shape], [('shape', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'indexForOutputShape', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -9206,6 +9898,7 @@ class GeometryFilter(DependNode):
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'inputShapeAtIndex')
     def inputShapeAtIndex(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'inputShapeAtIndex', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -9213,11 +9906,13 @@ class GeometryFilter(DependNode):
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'numOutputConnections')
     def numOutputConnections(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'numOutputConnections')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'outputShapeAtIndex')
     def outputShapeAtIndex(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'outputShapeAtIndex', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -9225,6 +9920,7 @@ class GeometryFilter(DependNode):
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'setEnvelope')
     def setEnvelope(self, envelope):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'setEnvelope', final_do)
         return res
@@ -9316,6 +10012,7 @@ class SkinCluster(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnSkinCluster, 'influenceObjects')
     def _influenceObjects(self):
+        # type: () -> Tuple[int, List[general.PyNode]]
         do, final_do, outTypes = _f.getDoArgs([], [(u'paths', 'MDagPathArray', u'out', None)])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'influenceObjects', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -9360,6 +10057,7 @@ class SkinCluster(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnSkinCluster, 'getBlendWeights')
     def getBlendWeights(self, path, components):
+        # type: (general.PyNode, general.PyNode) -> List[float]
         do, final_do, outTypes = _f.getDoArgs([path, components], [('path', 'MDagPath', 'in', None), ('components', 'MObject', 'in', None), ('weights', 'MDoubleArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'getBlendWeights', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -9421,6 +10119,7 @@ class SkinCluster(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnSkinCluster, 'getPointsAffectedByInfluence')
     def getPointsAffectedByInfluence(self, path):
+        # type: (general.PyNode) -> Tuple[SelectionSet, List[float]]
         do, final_do, outTypes = _f.getDoArgs([path], [('path', 'MDagPath', 'in', None), ('result', 'MSelectionList', 'out', None), ('weights', 'MDoubleArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'getPointsAffectedByInfluence', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -9446,6 +10145,7 @@ class SkinCluster(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnSkinCluster, 'indexForInfluenceObject')
     def indexForInfluenceObject(self, mpath):
+        # type: (general.PyNode) -> int
         do, final_do, outTypes = _f.getDoArgs([mpath], [('mpath', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'indexForInfluenceObject', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -9493,6 +10193,7 @@ class SkinCluster(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnSkinCluster, 'setBlendWeights')
     def setBlendWeights(self, path, components, weights):
+        # type: (general.PyNode, general.PyNode, List[float]) -> None
         do, final_do, outTypes = _f.processApiArgs([path, components, weights], [(u'path', 'MDagPath', 'in', None), (u'components', 'MObject', 'in', None), (u'weights', 'MDoubleArray', u'in', None)], self.getBlendWeights, self.setBlendWeights, ['path', 'components'])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'setBlendWeights', final_do)
         return res
@@ -9591,6 +10292,7 @@ class HikHandle(Transform):
 
     @_f.addApiDocs(_api.MFnTransform, 'rotateOrientation')
     def getRotateOrientation(self, space):
+        # type: (datatypes.Space.Space) -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateOrientation', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
@@ -10614,24 +11316,28 @@ class WeightGeometryFilter(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnWeightGeometryFilter, 'getWeightPlugStrings')
     def getWeightPlugStrings(self, list):
+        # type: (SelectionSet) -> List[unicode]
         do, final_do, outTypes = _f.getDoArgs([list], [('list', 'MSelectionList', 'in', None), ('plugStringArray', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnWeightGeometryFilter, 'getWeightPlugStrings', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnWeightGeometryFilter, 'getWeights')
     def getWeights(self, index):
+        # type: (int) -> Tuple[general.PyNode, List[float]]
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None), ('components', 'MObject', 'out', None), ('weights', 'MFloatArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnWeightGeometryFilter, 'getWeights', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnWeightGeometryFilter, 'setWeight')
     def setWeight(self, path, index, components, weight, oldValues=None):
+        # type: (general.PyNode, int, general.PyNode, float, List[float]) -> None
         do, final_do, outTypes = _f.getDoArgs([path, index, components, weight, oldValues], [('path', 'MDagPath', 'in', None), ('index', 'uint', 'in', None), ('components', 'MObject', 'in', None), ('weight', 'float', 'in', None), ('oldValues', 'MFloatArray', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWeightGeometryFilter, 'setWeight', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnWeightGeometryFilter, 'weightPlugStrings')
     def weightPlugStrings(self, list):
+        # type: (SelectionSet) -> unicode
         do, final_do, outTypes = _f.getDoArgs([list], [('list', 'MSelectionList', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWeightGeometryFilter, 'weightPlugStrings', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -11060,46 +11766,54 @@ class Ffd(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'addGeometry')
     def addGeometry(self, object):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'addGeometry', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'baseLattice')
     def baseLattice(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'baseLattice')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'deformLattice')
     def deformLattice(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'deformLattice')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'getAffectedGeometry')
     def getAffectedGeometry(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('objects', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'getAffectedGeometry', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'getDivisions')
     def getDivisions(self):
+        # type: () -> Tuple[int, int, int]
         do, final_do, outTypes = _f.getDoArgs([], [('x', 'uint', 'out', None), ('y', 'uint', 'out', None), ('z', 'uint', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'getDivisions', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'removeGeometry')
     def removeGeometry(self, object):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'removeGeometry', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'resetLattice')
     def resetLattice(self, centerLattice=False):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([centerLattice], [('centerLattice', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'resetLattice', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'setDivisions')
     def setDivisions(self, x, y, z):
+        # type: (int, int, int) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z], [('x', 'uint', 'in', None), ('y', 'uint', 'in', None), ('z', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'setDivisions', final_do)
         return res
@@ -11120,12 +11834,14 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'addGeometry')
     def addGeometry(self, object):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'addGeometry', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'addWire')
     def addWire(self, object):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'addWire', final_do)
         return res
@@ -11148,12 +11864,14 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'getAffectedGeometry')
     def getAffectedGeometry(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('objects', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'getAffectedGeometry', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'crossingEffect')
     def getCrossingEffect(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'crossingEffect')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
@@ -11189,6 +11907,7 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'holdingShape')
     def getHoldingShape(self, wireIndex):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([wireIndex], [('wireIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'holdingShape', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -11201,11 +11920,13 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'localIntensity')
     def getLocalIntensity(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'localIntensity')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'rotation')
     def getRotation(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'rotation')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
@@ -11221,6 +11942,7 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'wireDropOffDistance')
     def getWireDropOffDistance(self, wireIndex):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([wireIndex], [('wireIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'wireDropOffDistance', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'float', None)
@@ -11228,6 +11950,7 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'wireScale')
     def getWireScale(self, wireIndex):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([wireIndex], [('wireIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'wireScale', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'float', None)
@@ -11235,6 +11958,7 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'numDropoffLocators')
     def numDropoffLocators(self, wireIndex):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([wireIndex], [('wireIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'numDropoffLocators', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -11242,6 +11966,7 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'numWires')
     def numWires(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'numWires')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -11259,12 +11984,14 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'removeGeometry')
     def removeGeometry(self, object):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'removeGeometry', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'setCrossingEffect')
     def setCrossingEffect(self, crossingEffect):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([crossingEffect], [('crossingEffect', 'float', 'in', None)], self.getCrossingEffect, self.setCrossingEffect, [])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setCrossingEffect', final_do)
         return res
@@ -11283,6 +12010,7 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'setHoldingShape')
     def setHoldingShape(self, wireIndex, holdingShape):
+        # type: (int, general.PyNode) -> None
         do, final_do, outTypes = _f.processApiArgs([wireIndex, holdingShape], [('wireIndex', 'uint', 'in', None), ('holdingShape', 'MObject', 'in', None)], self.getHoldingShape, self.setHoldingShape, ['wireIndex'])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setHoldingShape', final_do)
         return res
@@ -11293,12 +12021,14 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'setLocalIntensity')
     def setLocalIntensity(self, localIntensity):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([localIntensity], [('localIntensity', 'float', 'in', None)], self.getLocalIntensity, self.setLocalIntensity, [])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setLocalIntensity', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'setRotation')
     def setRotation(self, rotation):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([rotation], [('rotation', 'float', 'in', None)], self.getRotation, self.setRotation, [])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setRotation', final_do)
         return res
@@ -11313,18 +12043,21 @@ class Wire(WeightGeometryFilter):
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'setWireDropOffDistance')
     def setWireDropOffDistance(self, wireIndex, dropOff):
+        # type: (int, float) -> None
         do, final_do, outTypes = _f.processApiArgs([wireIndex, dropOff], [('wireIndex', 'uint', 'in', None), ('dropOff', 'float', 'in', None)], self.getWireDropOffDistance, self.setWireDropOffDistance, ['wireIndex'])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setWireDropOffDistance', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'setWireScale')
     def setWireScale(self, wireIndex, scale):
+        # type: (int, float) -> None
         do, final_do, outTypes = _f.processApiArgs([wireIndex, scale], [('wireIndex', 'uint', 'in', None), ('scale', 'float', 'in', None)], self.getWireScale, self.setWireScale, ['wireIndex'])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setWireScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'wire')
     def wire(self, wireIndex):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([wireIndex], [('wireIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'wire', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -11487,12 +12220,14 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'addBaseObject')
     def addBaseObject(self, object):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'addBaseObject', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'addTarget')
     def addTarget(self, baseObject, weightIndex, newTarget, fullWeight, targetType='object'):
+        # type: (general.PyNode, int, general.PyNode, float, BlendShapeDeformer.TargetType) -> None
         do, final_do, outTypes = _f.getDoArgs([baseObject, weightIndex, newTarget, fullWeight, targetType], [('baseObject', 'MObject', 'in', None), ('weightIndex', 'int', 'in', None), ('newTarget', 'MObject', 'in', None), ('fullWeight', 'double', 'in', None), ('targetType', ('MFnBlendShapeDeformer', 'TargetType'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'addTarget', final_do)
         return res
@@ -11539,6 +12274,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'getBaseObjects')
     def getBaseObjects(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('objects', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'getBaseObjects', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -11570,6 +12306,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'origin')
     def getOrigin(self):
+        # type: () -> BlendShapeDeformer.Origin
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'origin')
         return _f.ApiArgUtil._castResult(self, res, ('MFnBlendShapeDeformer', 'Origin'), None)
 
@@ -11595,6 +12332,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'getTargets')
     def getTargets(self, baseObject, weightIndex):
+        # type: (general.PyNode, int) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([baseObject, weightIndex], [('baseObject', 'MObject', 'in', None), ('weightIndex', 'int', 'in', None), ('targetObjects', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'getTargets', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -11606,6 +12344,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'weight')
     def getWeight(self, index):
+        # type: (int) -> float
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'weight', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'float', None)
@@ -11650,6 +12389,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'numWeights')
     def numWeights(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'numWeights')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -11667,6 +12407,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'removeTarget')
     def removeTarget(self, baseObject, weightIndex, target, fullWeight):
+        # type: (general.PyNode, int, general.PyNode, float) -> None
         do, final_do, outTypes = _f.getDoArgs([baseObject, weightIndex, target, fullWeight], [('baseObject', 'MObject', 'in', None), ('weightIndex', 'int', 'in', None), ('target', 'MObject', 'in', None), ('fullWeight', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'removeTarget', final_do)
         return res
@@ -11681,6 +12422,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'setOrigin')
     def setOrigin(self, space):
+        # type: (BlendShapeDeformer.Origin) -> None
         do, final_do, outTypes = _f.processApiArgs([space], [('space', ('MFnBlendShapeDeformer', 'Origin'), 'in', None)], self.getOrigin, self.setOrigin, [])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'setOrigin', final_do)
         return res
@@ -11707,6 +12449,7 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'setWeight')
     def setWeight(self, index, weight):
+        # type: (int, float) -> None
         do, final_do, outTypes = _f.processApiArgs([index, weight], [('index', 'uint', 'in', None), ('weight', 'float', 'in', None)], self.getWeight, self.setWeight, ['index'])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'setWeight', final_do)
         return res
@@ -11721,12 +12464,14 @@ class BlendShape(GeometryFilter):
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'targetItemIndexList')
     def targetItemIndexList(self, weightIndex, baseObject):
+        # type: (int, general.PyNode) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([weightIndex, baseObject], [('weightIndex', 'uint', 'in', None), ('baseObject', 'MObject', 'in', None), ('targetItemIndices', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'targetItemIndexList', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'weightIndexList')
     def weightIndexList(self):
+        # type: () -> List[int]
         do, final_do, outTypes = _f.getDoArgs([], [('indexList', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'weightIndexList', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -12024,21 +12769,25 @@ class RenderPass(ImageSource):
 
     @_f.addApiDocs(_api.MFnRenderPass, 'customTokenString')
     def customTokenString(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnRenderPass, 'customTokenString')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.addApiDocs(_api.MFnRenderPass, 'frameBufferChannels')
     def frameBufferChannels(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnRenderPass, 'frameBufferChannels')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnRenderPass, 'passID')
     def passID(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnRenderPass, 'passID')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
     @_f.addApiDocs(_api.MFnRenderPass, 'usesFiltering')
     def usesFiltering(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnRenderPass, 'usesFiltering')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
@@ -18236,6 +18985,7 @@ class LayeredShader(ShadingDependNode):
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'color')
     def getColor(self, lIndex=0):
+        # type: (int) -> Color
         do, final_do, outTypes = _f.getDoArgs([lIndex], [('lIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'color', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MColor', None)
@@ -18243,11 +18993,13 @@ class LayeredShader(ShadingDependNode):
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'compositingFlag')
     def getCompositingFlag(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'compositingFlag')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'glowColor')
     def getGlowColor(self, lIndex=0):
+        # type: (int) -> Color
         do, final_do, outTypes = _f.getDoArgs([lIndex], [('lIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'glowColor', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MColor', None)
@@ -18255,16 +19007,19 @@ class LayeredShader(ShadingDependNode):
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'hardwareColor')
     def getHardwareColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'hardwareColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'hardwareShader')
     def getHardwareShader(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'hardwareShader')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'transparency')
     def getTransparency(self, lIndex=0):
+        # type: (int) -> Color
         do, final_do, outTypes = _f.getDoArgs([lIndex], [('lIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'transparency', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MColor', None)
@@ -18272,36 +19027,42 @@ class LayeredShader(ShadingDependNode):
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'setColor')
     def setColor(self, col, lIndex=0):
+        # type: (Color, int) -> None
         do, final_do, outTypes = _f.processApiArgs([col, lIndex], [('col', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getColor, self.setColor, ['lIndex'])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'setCompositingFlag')
     def setCompositingFlag(self, cflag):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([cflag], [('cflag', 'short', 'in', None)], self.getCompositingFlag, self.setCompositingFlag, [])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setCompositingFlag', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'setGlowColor')
     def setGlowColor(self, glow_color, lIndex=0):
+        # type: (Color, int) -> None
         do, final_do, outTypes = _f.processApiArgs([glow_color, lIndex], [('glow_color', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getGlowColor, self.setGlowColor, ['lIndex'])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setGlowColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'setHardwareColor')
     def setHardwareColor(self, hardware_color):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([hardware_color], [('hardware_color', 'MColor', 'in', None)], self.getHardwareColor, self.setHardwareColor, [])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setHardwareColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'setHardwareShader')
     def setHardwareShader(self, hardware_shader):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([hardware_shader], [('hardware_shader', 'MColor', 'in', None)], self.getHardwareShader, self.setHardwareShader, [])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setHardwareShader', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'setTransparency')
     def setTransparency(self, transp, lIndex=0):
+        # type: (Color, int) -> None
         do, final_do, outTypes = _f.processApiArgs([transp, lIndex], [('transp', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getTransparency, self.setTransparency, ['lIndex'])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setTransparency', final_do)
         return res
@@ -18329,121 +19090,143 @@ class Lambert(ShadingDependNode):
 
     @_f.addApiDocs(_api.MFnLambertShader, 'ambientColor')
     def getAmbientColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'ambientColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'color')
     def getColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'color')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'diffuseCoeff')
     def getDiffuseCoeff(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'diffuseCoeff')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'glowIntensity')
     def getGlowIntensity(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'glowIntensity')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'hideSource')
     def getHideSource(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'hideSource')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'incandescence')
     def getIncandescence(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'incandescence')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'refractedRayDepthLimit')
     def getRefractedRayDepthLimit(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'refractedRayDepthLimit')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'refractiveIndex')
     def getRefractiveIndex(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'refractiveIndex')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'rtRefractedColor')
     def getRtRefractedColor(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'rtRefractedColor')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'translucenceCoeff')
     def getTranslucenceCoeff(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'translucenceCoeff')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'transparency')
     def getTransparency(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'transparency')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setAmbientColor')
     def setAmbientColor(self, ambient_color):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([ambient_color], [('ambient_color', 'MColor', 'in', None)], self.getAmbientColor, self.setAmbientColor, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setAmbientColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setColor')
     def setColor(self, col):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([col], [('col', 'MColor', 'in', None)], self.getColor, self.setColor, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setDiffuseCoeff')
     def setDiffuseCoeff(self, diffuse_coeff):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([diffuse_coeff], [('diffuse_coeff', 'float', 'in', None)], self.getDiffuseCoeff, self.setDiffuseCoeff, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setDiffuseCoeff', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setGlowIntensity')
     def setGlowIntensity(self, glow_intensity):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([glow_intensity], [('glow_intensity', 'float', 'in', None)], self.getGlowIntensity, self.setGlowIntensity, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setGlowIntensity', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setHideSource')
     def setHideSource(self, hide_source):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([hide_source], [('hide_source', 'bool', 'in', None)], self.getHideSource, self.setHideSource, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setHideSource', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setIncandescence')
     def setIncandescence(self, incand):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([incand], [('incand', 'MColor', 'in', None)], self.getIncandescence, self.setIncandescence, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setIncandescence', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setRefractedRayDepthLimit')
     def setRefractedRayDepthLimit(self, refracted_ray_depth_limit):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([refracted_ray_depth_limit], [('refracted_ray_depth_limit', 'short', 'in', None)], self.getRefractedRayDepthLimit, self.setRefractedRayDepthLimit, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setRefractedRayDepthLimit', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setRefractiveIndex')
     def setRefractiveIndex(self, refractive_index):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([refractive_index], [('refractive_index', 'float', 'in', None)], self.getRefractiveIndex, self.setRefractiveIndex, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setRefractiveIndex', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setRtRefractedColor')
     def setRtRefractedColor(self, rt_refracted_color):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([rt_refracted_color], [('rt_refracted_color', 'bool', 'in', None)], self.getRtRefractedColor, self.setRtRefractedColor, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setRtRefractedColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setTranslucenceCoeff')
     def setTranslucenceCoeff(self, translucence_coeff):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([translucence_coeff], [('translucence_coeff', 'float', 'in', None)], self.getTranslucenceCoeff, self.setTranslucenceCoeff, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setTranslucenceCoeff', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLambertShader, 'setTransparency')
     def setTransparency(self, transp):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([transp], [('transp', 'MColor', 'in', None)], self.getTransparency, self.setTransparency, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setTransparency', final_do)
         return res
@@ -18456,44 +19239,52 @@ class Reflect(Lambert):
 
     @_f.addApiDocs(_api.MFnReflectShader, 'reflectedColor')
     def getReflectedColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'reflectedColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnReflectShader, 'reflectedRayDepthLimit')
     def getReflectedRayDepthLimit(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'reflectedRayDepthLimit')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnReflectShader, 'reflectivity')
     def getReflectivity(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'reflectivity')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnReflectShader, 'specularColor')
     def getSpecularColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'specularColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnReflectShader, 'setReflectedColor')
     def setReflectedColor(self, reflected_color):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([reflected_color], [('reflected_color', 'MColor', 'in', None)], self.getReflectedColor, self.setReflectedColor, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setReflectedColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnReflectShader, 'setReflectedRayDepthLimit')
     def setReflectedRayDepthLimit(self, reflected_ray_depth_limit):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([reflected_ray_depth_limit], [('reflected_ray_depth_limit', 'short', 'in', None)], self.getReflectedRayDepthLimit, self.setReflectedRayDepthLimit, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setReflectedRayDepthLimit', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnReflectShader, 'setReflectivity')
     def setReflectivity(self, reflect):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([reflect], [('reflect', 'float', 'in', None)], self.getReflectivity, self.setReflectivity, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setReflectivity', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnReflectShader, 'setSpecularColor')
     def setSpecularColor(self, specular_color):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([specular_color], [('specular_color', 'MColor', 'in', None)], self.getSpecularColor, self.setSpecularColor, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setSpecularColor', final_do)
         return res
@@ -18506,11 +19297,13 @@ class Phong(Reflect):
 
     @_f.addApiDocs(_api.MFnPhongShader, 'cosPower')
     def getCosPower(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnPhongShader, 'cosPower')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnPhongShader, 'setCosPower')
     def setCosPower(self, cos_power):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([cos_power], [('cos_power', 'float', 'in', None)], self.getCosPower, self.setCosPower, [])
         res = _f.getProxyResult(self, _api.MFnPhongShader, 'setCosPower', final_do)
         return res
@@ -18523,22 +19316,26 @@ class Blinn(Reflect):
 
     @_f.addApiDocs(_api.MFnBlinnShader, 'eccentricity')
     def getEccentricity(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnBlinnShader, 'eccentricity')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnBlinnShader, 'specularRollOff')
     def getSpecularRollOff(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnBlinnShader, 'specularRollOff')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnBlinnShader, 'setEccentricity')
     def setEccentricity(self, eccentr):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([eccentr], [('eccentr', 'float', 'in', None)], self.getEccentricity, self.setEccentricity, [])
         res = _f.getProxyResult(self, _api.MFnBlinnShader, 'setEccentricity', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnBlinnShader, 'setSpecularRollOff')
     def setSpecularRollOff(self, specular_rolloff):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([specular_rolloff], [('specular_rolloff', 'float', 'in', None)], self.getSpecularRollOff, self.setSpecularRollOff, [])
         res = _f.getProxyResult(self, _api.MFnBlinnShader, 'setSpecularRollOff', final_do)
         return res
@@ -18551,77 +19348,91 @@ class Anisotropic(Reflect):
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'anisotropicReflectivity')
     def getAnisotropicReflectivity(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'anisotropicReflectivity')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'correlationX')
     def getCorrelationX(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'correlationX')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'correlationY')
     def getCorrelationY(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'correlationY')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'rotateAngle')
     def getRotateAngle(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'rotateAngle')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'roughness')
     def getRoughness(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'roughness')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'tangentUCamera')
     def getTangentUCamera(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'tangentUCamera')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'tangentVCamera')
     def getTangentVCamera(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'tangentVCamera')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setAnisotropicReflectivity')
     def setAnisotropicReflectivity(self, anisotropic_reflectivity):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([anisotropic_reflectivity], [('anisotropic_reflectivity', 'bool', 'in', None)], self.getAnisotropicReflectivity, self.setAnisotropicReflectivity, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setAnisotropicReflectivity', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setCorrelationX')
     def setCorrelationX(self, correl_x):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([correl_x], [('correl_x', 'float', 'in', None)], self.getCorrelationX, self.setCorrelationX, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setCorrelationX', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setCorrelationY')
     def setCorrelationY(self, correl_y):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([correl_y], [('correl_y', 'float', 'in', None)], self.getCorrelationY, self.setCorrelationY, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setCorrelationY', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setRotateAngle')
     def setRotateAngle(self, rotate_angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([rotate_angle], [('rotate_angle', 'float', 'in', None)], self.getRotateAngle, self.setRotateAngle, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setRotateAngle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setRoughness')
     def setRoughness(self, roughness):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([roughness], [('roughness', 'float', 'in', None)], self.getRoughness, self.setRoughness, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setRoughness', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setTangentUCamera')
     def setTangentUCamera(self, tangu_camera):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([tangu_camera], [('tangu_camera', 'MColor', 'in', None)], self.getTangentUCamera, self.setTangentUCamera, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setTangentUCamera', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setTangentVCamera')
     def setTangentVCamera(self, tangv_camera):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([tangv_camera], [('tangv_camera', 'MColor', 'in', None)], self.getTangentVCamera, self.setTangentVCamera, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setTangentVCamera', final_do)
         return res
@@ -18634,33 +19445,39 @@ class PhongE(Reflect):
 
     @_f.addApiDocs(_api.MFnPhongEShader, 'highlightSize')
     def getHighlightSize(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'highlightSize')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnPhongEShader, 'roughness')
     def getRoughness(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'roughness')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnPhongEShader, 'whiteness')
     def getWhiteness(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'whiteness')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnPhongEShader, 'setHighlightSize')
     def setHighlightSize(self, highlight_size):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([highlight_size], [('highlight_size', 'float', 'in', None)], self.getHighlightSize, self.setHighlightSize, [])
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'setHighlightSize', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnPhongEShader, 'setRoughness')
     def setRoughness(self, roughness):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([roughness], [('roughness', 'float', 'in', None)], self.getRoughness, self.setRoughness, [])
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'setRoughness', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnPhongEShader, 'setWhiteness')
     def setWhiteness(self, whiteness):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([whiteness], [('whiteness', 'MColor', 'in', None)], self.getWhiteness, self.setWhiteness, [])
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'setWhiteness', final_do)
         return res
@@ -19141,6 +19958,7 @@ class CameraSet(DependNode):
 
     @_f.addApiDocs(_api.MFnCameraSet, 'appendLayer')
     def appendLayer(self, camera, set):
+        # type: (general.PyNode, general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([camera, set], [('camera', 'MDagPath', 'in', None), ('set', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'appendLayer', final_do)
         return res
@@ -19151,6 +19969,7 @@ class CameraSet(DependNode):
 
     @_f.addApiDocs(_api.MFnCameraSet, 'clear')
     def clear(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'clear')
         return res
 
@@ -19160,6 +19979,7 @@ class CameraSet(DependNode):
 
     @_f.addApiDocs(_api.MFnCameraSet, 'deleteLayer')
     def deleteLayer(self, index):
+        # type: (int) -> None
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'deleteLayer', final_do)
         return res
@@ -19186,30 +20006,35 @@ class CameraSet(DependNode):
 
     @_f.addApiDocs(_api.MFnCameraSet, 'getLayerCamera')
     def getLayerCamera(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None), ('camera', 'MDagPath', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'getLayerCamera', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCameraSet, 'getLayerClearDepthValue')
     def getLayerClearDepthValue(self, index):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None), ('depth', 'bool', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'getLayerClearDepthValue', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCameraSet, 'getLayerOrder')
     def getLayerOrder(self, index):
+        # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None), ('order', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'getLayerOrder', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCameraSet, 'getLayerSceneData')
     def getLayerSceneData(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None), ('set', 'MObject', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'getLayerSceneData', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCameraSet, 'getNumLayers')
     def getNumLayers(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'getNumLayers')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -19229,12 +20054,14 @@ class CameraSet(DependNode):
 
     @_f.addApiDocs(_api.MFnCameraSet, 'insertLayer')
     def insertLayer(self, index, camera, set):
+        # type: (int, general.PyNode, general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([index, camera, set], [('index', 'uint', 'in', None), ('camera', 'MDagPath', 'in', None), ('set', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'insertLayer', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCameraSet, 'isLayerActive')
     def isLayerActive(self, index):
+        # type: (int) -> bool
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'isLayerActive', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -19258,30 +20085,35 @@ class CameraSet(DependNode):
 
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerActive')
     def setLayerActive(self, index, isActive):
+        # type: (int, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([index, isActive], [('index', 'uint', 'in', None), ('isActive', 'bool', 'in', None)], self.isLayerActive, self.setLayerActive, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerActive', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerCamera')
     def setLayerCamera(self, index, camera):
+        # type: (int, general.PyNode) -> None
         do, final_do, outTypes = _f.processApiArgs([index, camera], [('index', 'uint', 'in', None), ('camera', 'MDagPath', 'in', None)], self.getLayerCamera, self.setLayerCamera, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerCamera', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerClearDepthValue')
     def setLayerClearDepthValue(self, index, depth):
+        # type: (int, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([index, depth], [('index', 'uint', 'in', None), ('depth', 'bool', 'in', None)], self.getLayerClearDepthValue, self.setLayerClearDepthValue, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerClearDepthValue', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerOrder')
     def setLayerOrder(self, index, order):
+        # type: (int, int) -> None
         do, final_do, outTypes = _f.processApiArgs([index, order], [('index', 'uint', 'in', None), ('order', 'int', 'in', None)], self.getLayerOrder, self.setLayerOrder, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerOrder', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerSceneData')
     def setLayerSceneData(self, index, set):
+        # type: (int, general.PyNode) -> None
         do, final_do, outTypes = _f.processApiArgs([index, set], [('index', 'uint', 'in', None), ('set', 'MObject', 'in', None)], self.getLayerSceneData, self.setLayerSceneData, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerSceneData', final_do)
         return res
@@ -19480,56 +20312,67 @@ class Light(Shape):
 
     @_f.addApiDocs(_api.MFnLight, 'centerOfIllumination')
     def getCenterOfIllumination(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnLight, 'centerOfIllumination')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnLight, 'color')
     def getColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLight, 'color')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLight, 'intensity')
     def getIntensity(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnLight, 'intensity')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnLight, 'numShadowSamples')
     def getNumShadowSamples(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnLight, 'numShadowSamples')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnLight, 'opticalFXvisibility')
     def getOpticalFXvisibility(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLight, 'opticalFXvisibility')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLight, 'rayDepthLimit')
     def getRayDepthLimit(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnLight, 'rayDepthLimit')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnLight, 'shadowColor')
     def getShadowColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLight, 'shadowColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLight, 'useRayTraceShadows')
     def getUseRayTraceShadows(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnLight, 'useRayTraceShadows')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnLight, 'lightAmbient')
     def lightAmbient(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnLight, 'lightAmbient')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnLight, 'lightDiffuse')
     def lightDiffuse(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnLight, 'lightDiffuse')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnLight, 'lightDirection')
     def lightDirection(self, instance, space='world'):
+        # type: (int, datatypes.Space.Space) -> FloatVector
         do, final_do, outTypes = _f.getDoArgs([instance, space], [('instance', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnLight, 'lightDirection', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MFloatVector', None)
@@ -19537,58 +20380,68 @@ class Light(Shape):
 
     @_f.addApiDocs(_api.MFnLight, 'lightIntensity')
     def lightIntensity(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnLight, 'lightIntensity')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnLight, 'lightSpecular')
     def lightSpecular(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnLight, 'lightSpecular')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnLight, 'setCenterOfIllumination')
     def setCenterOfIllumination(self, dist):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfIllumination, self.setCenterOfIllumination, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setCenterOfIllumination', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLight, 'setColor')
     def setColor(self, col):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([col], [('col', 'MColor', 'in', None)], self.getColor, self.setColor, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLight, 'setIntensity')
     def setIntensity(self, intens):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([intens], [('intens', 'float', 'in', None)], self.getIntensity, self.setIntensity, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setIntensity', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLight, 'setNumShadowSamples')
     def setNumShadowSamples(self, num_shadow_samples):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([num_shadow_samples], [('num_shadow_samples', 'short', 'in', None)], self.getNumShadowSamples, self.setNumShadowSamples, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setNumShadowSamples', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLight, 'setOpticalFXvisibility')
     def setOpticalFXvisibility(self, visibility):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([visibility], [('visibility', 'MColor', 'in', None)], self.getOpticalFXvisibility, self.setOpticalFXvisibility, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setOpticalFXvisibility', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLight, 'setRayDepthLimit')
     def setRayDepthLimit(self, ray_depth_limit):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([ray_depth_limit], [('ray_depth_limit', 'short', 'in', None)], self.getRayDepthLimit, self.setRayDepthLimit, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setRayDepthLimit', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLight, 'setShadowColor')
     def setShadowColor(self, shadow_color):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([shadow_color], [('shadow_color', 'MColor', 'in', None)], self.getShadowColor, self.setShadowColor, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setShadowColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnLight, 'setUseRayTraceShadows')
     def setUseRayTraceShadows(self, useRayTraceShadows):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([useRayTraceShadows], [('useRayTraceShadows', 'bool', 'in', None)], self.getUseRayTraceShadows, self.setUseRayTraceShadows, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setUseRayTraceShadows', final_do)
         return res
@@ -19611,11 +20464,13 @@ class NonAmbientLightShapeNode(RenderLight):
 
     @_f.addApiDocs(_api.MFnNonAmbientLight, 'decayRate')
     def getDecayRate(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNonAmbientLight, 'decayRate')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnNonAmbientLight, 'setDecayRate')
     def setDecayRate(self, decay_rate):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([decay_rate], [('decay_rate', 'short', 'in', None)], self.getDecayRate, self.setDecayRate, [])
         res = _f.getProxyResult(self, _api.MFnNonAmbientLight, 'setDecayRate', final_do)
         return res
@@ -19628,99 +20483,117 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'castSoftShadows')
     def getCastSoftShadows(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'castSoftShadows')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'depthMapBias')
     def getDepthMapBias(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'depthMapBias')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'depthMapFilterSize')
     def getDepthMapFilterSize(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'depthMapFilterSize')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'depthMapFocus')
     def getDepthMapFocus(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'depthMapFocus')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'depthMapResolution')
     def getDepthMapResolution(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'depthMapResolution')
         return _f.ApiArgUtil._castResult(self, res, 'short', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'depthMapWidthFocus')
     def getDepthMapWidthFocus(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'depthMapWidthFocus')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'shadowRadius')
     def getShadowRadius(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'shadowRadius')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'useDepthMapAutoFocus')
     def getUseDepthMapAutoFocus(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'useDepthMapAutoFocus')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'useDepthMapShadows')
     def getUseDepthMapShadows(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'useDepthMapShadows')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setCastSoftShadows')
     def setCastSoftShadows(self, cast_soft_shadows):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([cast_soft_shadows], [('cast_soft_shadows', 'bool', 'in', None)], self.getCastSoftShadows, self.setCastSoftShadows, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setCastSoftShadows', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapBias')
     def setDepthMapBias(self, depth_map_bias):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([depth_map_bias], [('depth_map_bias', 'float', 'in', None)], self.getDepthMapBias, self.setDepthMapBias, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapBias', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapFilterSize')
     def setDepthMapFilterSize(self, depth_map_filter_size):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([depth_map_filter_size], [('depth_map_filter_size', 'short', 'in', None)], self.getDepthMapFilterSize, self.setDepthMapFilterSize, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapFilterSize', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapFocus')
     def setDepthMapFocus(self, depth_map_focus):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([depth_map_focus], [('depth_map_focus', 'float', 'in', None)], self.getDepthMapFocus, self.setDepthMapFocus, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapFocus', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapResolution')
     def setDepthMapResolution(self, depth_map_resolution):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([depth_map_resolution], [('depth_map_resolution', 'short', 'in', None)], self.getDepthMapResolution, self.setDepthMapResolution, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapResolution', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapWidthFocus')
     def setDepthMapWidthFocus(self, depth_map_width_focus):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([depth_map_width_focus], [('depth_map_width_focus', 'float', 'in', None)], self.getDepthMapWidthFocus, self.setDepthMapWidthFocus, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapWidthFocus', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setShadowRadius')
     def setShadowRadius(self, shadow_radius):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([shadow_radius], [('shadow_radius', 'float', 'in', None)], self.getShadowRadius, self.setShadowRadius, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setShadowRadius', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setUseDepthMapAutoFocus')
     def setUseDepthMapAutoFocus(self, use_depth_map_auto_focus):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([use_depth_map_auto_focus], [('use_depth_map_auto_focus', 'bool', 'in', None)], self.getUseDepthMapAutoFocus, self.setUseDepthMapAutoFocus, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setUseDepthMapAutoFocus', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setUseDepthMapShadows')
     def setUseDepthMapShadows(self, use_depth_map):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([use_depth_map], [('use_depth_map', 'bool', 'in', None)], self.getUseDepthMapShadows, self.setUseDepthMapShadows, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setUseDepthMapShadows', final_do)
         return res
@@ -19804,66 +20677,78 @@ class VolumeLight(PointLight):
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'arc')
     def getArc(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'arc')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'coneEndRadius')
     def getConeEndRadius(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'coneEndRadius')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'emitAmbient')
     def getEmitAmbient(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'emitAmbient')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'lightShape')
     def getLightShape(self):
+        # type: () -> VolumeLight.MLightShape
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'lightShape')
         return _f.ApiArgUtil._castResult(self, res, ('MFnVolumeLight', 'MLightShape'), None)
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'shadowAngle')
     def getShadowAngle(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'shadowAngle')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'volumeLightDirection')
     def getVolumeLightDirection(self):
+        # type: () -> VolumeLight.MLightDirection
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'volumeLightDirection')
         return _f.ApiArgUtil._castResult(self, res, ('MFnVolumeLight', 'MLightDirection'), None)
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'setArc')
     def setArc(self, arc):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([arc], [('arc', 'float', 'in', None)], self.getArc, self.setArc, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setArc', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'setConeEndRadius')
     def setConeEndRadius(self, cone_end_radius):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([cone_end_radius], [('cone_end_radius', 'float', 'in', None)], self.getConeEndRadius, self.setConeEndRadius, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setConeEndRadius', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'setEmitAmbient')
     def setEmitAmbient(self, emit_ambient):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([emit_ambient], [('emit_ambient', 'bool', 'in', None)], self.getEmitAmbient, self.setEmitAmbient, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setEmitAmbient', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'setLightShape')
     def setLightShape(self, light_shape):
+        # type: (VolumeLight.MLightShape) -> None
         do, final_do, outTypes = _f.processApiArgs([light_shape], [('light_shape', ('MFnVolumeLight', 'MLightShape'), 'in', None)], self.getLightShape, self.setLightShape, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setLightShape', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'setShadowAngle')
     def setShadowAngle(self, shadow_angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([shadow_angle], [('shadow_angle', 'float', 'in', None)], self.getShadowAngle, self.setShadowAngle, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setShadowAngle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeLight, 'setVolumeLightDirection')
     def setVolumeLightDirection(self, volume_light_direction):
+        # type: (VolumeLight.MLightDirection) -> None
         do, final_do, outTypes = _f.processApiArgs([volume_light_direction], [('volume_light_direction', ('MFnVolumeLight', 'MLightDirection'), 'in', None)], self.getVolumeLightDirection, self.setVolumeLightDirection, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setVolumeLightDirection', final_do)
         return res
@@ -19881,6 +20766,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'barnDoorAngle')
     def getBarnDoorAngle(self, which_door):
+        # type: (SpotLight.MBarnDoor) -> float
         do, final_do, outTypes = _f.getDoArgs([which_door], [('which_door', ('MFnSpotLight', 'MBarnDoor'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'barnDoorAngle', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', 'angular')
@@ -19888,6 +20774,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'barnDoors')
     def getBarnDoors(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'barnDoors')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
@@ -19898,6 +20785,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'coneAngle')
     def getConeAngle(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'coneAngle')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'angular')
 
@@ -19908,11 +20796,13 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'dropOff')
     def getDropOff(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'dropOff')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnSpotLight, 'endDistance')
     def getEndDistance(self, which_region):
+        # type: (SpotLight.MDecayRegion) -> float
         do, final_do, outTypes = _f.getDoArgs([which_region], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'endDistance', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'float', None)
@@ -19930,6 +20820,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'penumbraAngle')
     def getPenumbra(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'penumbraAngle')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'angular')
 
@@ -19960,6 +20851,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'startDistance')
     def getStartDistance(self, which_region):
+        # type: (SpotLight.MDecayRegion) -> float
         do, final_do, outTypes = _f.getDoArgs([which_region], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'startDistance', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'float', None)
@@ -19972,17 +20864,20 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'useDecayRegions')
     def getUseDecayRegions(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'useDecayRegions')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setBarnDoorAngle')
     def setBarnDoorAngle(self, which_door, barn_door_angle):
+        # type: (SpotLight.MBarnDoor, float) -> None
         do, final_do, outTypes = _f.processApiArgs([which_door, barn_door_angle], [('which_door', ('MFnSpotLight', 'MBarnDoor'), 'in', None), ('barn_door_angle', 'double', 'in', u'angular')], self.getBarnDoorAngle, self.setBarnDoorAngle, ['which_door'])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setBarnDoorAngle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setBarnDoors')
     def setBarnDoors(self, barn_doors):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([barn_doors], [('barn_doors', 'bool', 'in', None)], self.getBarnDoors, self.setBarnDoors, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setBarnDoors', final_do)
         return res
@@ -19993,18 +20888,21 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setConeAngle')
     def setConeAngle(self, cone_angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([cone_angle], [('cone_angle', 'double', 'in', u'angular')], self.getConeAngle, self.setConeAngle, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setConeAngle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setDropOff')
     def setDropOff(self, drop_off):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([drop_off], [('drop_off', 'double', 'in', None)], self.getDropOff, self.setDropOff, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setDropOff', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setEndDistance')
     def setEndDistance(self, which_region, end_distance):
+        # type: (SpotLight.MDecayRegion, float) -> None
         do, final_do, outTypes = _f.processApiArgs([which_region, end_distance], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None), ('end_distance', 'float', 'in', None)], self.getEndDistance, self.setEndDistance, ['which_region'])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setEndDistance', final_do)
         return res
@@ -20015,6 +20913,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setPenumbraAngle')
     def setPenumbra(self, penumbra_angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([penumbra_angle], [('penumbra_angle', 'double', 'in', u'angular')], self.getPenumbra, self.setPenumbra, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setPenumbraAngle', final_do)
         return res
@@ -20025,6 +20924,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setStartDistance')
     def setStartDistance(self, which_region, start_distance):
+        # type: (SpotLight.MDecayRegion, float) -> None
         do, final_do, outTypes = _f.processApiArgs([which_region, start_distance], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None), ('start_distance', 'float', 'in', None)], self.getStartDistance, self.setStartDistance, ['which_region'])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setStartDistance', final_do)
         return res
@@ -20035,6 +20935,7 @@ class SpotLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnSpotLight, 'setUseDecayRegions')
     def setUseDecayRegions(self, use_decay_regions):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([use_decay_regions], [('use_decay_regions', 'bool', 'in', None)], self.getUseDecayRegions, self.setUseDecayRegions, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setUseDecayRegions', final_do)
         return res
@@ -20065,6 +20966,7 @@ class DirectionalLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnDirectionalLight, 'shadowAngle')
     def getShadowAngle(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnDirectionalLight, 'shadowAngle')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
@@ -20085,17 +20987,20 @@ class DirectionalLight(NonExtendedLightShapeNode):
 
     @_f.addApiDocs(_api.MFnDirectionalLight, 'useLightPosition')
     def getUseLightPosition(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDirectionalLight, 'useLightPosition')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnDirectionalLight, 'setShadowAngle')
     def setShadowAngle(self, shadow_angle):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([shadow_angle], [('shadow_angle', 'float', 'in', None)], self.getShadowAngle, self.setShadowAngle, [])
         res = _f.getProxyResult(self, _api.MFnDirectionalLight, 'setShadowAngle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDirectionalLight, 'setUseLightPosition')
     def setUseLightPosition(self, use_light_position):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([use_light_position], [('use_light_position', 'bool', 'in', None)], self.getUseLightPosition, self.setUseLightPosition, [])
         res = _f.getProxyResult(self, _api.MFnDirectionalLight, 'setUseLightPosition', final_do)
         return res
@@ -20111,11 +21016,13 @@ class AmbientLight(RenderLight):
 
     @_f.addApiDocs(_api.MFnAmbientLight, 'ambientShade')
     def getAmbientShade(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'ambientShade')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnAmbientLight, 'castSoftShadows')
     def getCastSoftShadows(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'castSoftShadows')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
@@ -20151,6 +21058,7 @@ class AmbientLight(RenderLight):
 
     @_f.addApiDocs(_api.MFnAmbientLight, 'shadowRadius')
     def getShadowRadius(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'shadowRadius')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
@@ -20166,12 +21074,14 @@ class AmbientLight(RenderLight):
 
     @_f.addApiDocs(_api.MFnAmbientLight, 'setAmbientShade')
     def setAmbientShade(self, ambient_shade):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([ambient_shade], [('ambient_shade', 'float', 'in', None)], self.getAmbientShade, self.setAmbientShade, [])
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'setAmbientShade', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAmbientLight, 'setCastSoftShadows')
     def setCastSoftShadows(self, cast_soft_shadows):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([cast_soft_shadows], [('cast_soft_shadows', 'bool', 'in', None)], self.getCastSoftShadows, self.setCastSoftShadows, [])
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'setCastSoftShadows', final_do)
         return res
@@ -20186,6 +21096,7 @@ class AmbientLight(RenderLight):
 
     @_f.addApiDocs(_api.MFnAmbientLight, 'setShadowRadius')
     def setShadowRadius(self, shadow_radius):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([shadow_radius], [('shadow_radius', 'float', 'in', None)], self.getShadowRadius, self.setShadowRadius, [])
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'setShadowRadius', final_do)
         return res
@@ -20302,6 +21213,7 @@ class FluidShape(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnFluid, 'create2D')
     def create2D(self, Xres, Yres, Xdim, Ydim, parent='MObject::kNullObj'):
+        # type: (int, int, float, float, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([Xres, Yres, Xdim, Ydim, parent], [('Xres', 'uint', 'in', None), ('Yres', 'uint', 'in', None), ('Xdim', 'double', 'in', None), ('Ydim', 'double', 'in', None), ('parent', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'create2D', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -20309,6 +21221,7 @@ class FluidShape(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnFluid, 'create3D')
     def create3D(self, Xres, Yres, Zres, Xdim, Ydim, Zdim, parent='MObject::kNullObj'):
+        # type: (int, int, int, float, float, float, general.PyNode) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([Xres, Yres, Zres, Xdim, Ydim, Zdim, parent], [('Xres', 'uint', 'in', None), ('Yres', 'uint', 'in', None), ('Zres', 'uint', 'in', None), ('Xdim', 'double', 'in', None), ('Ydim', 'double', 'in', None), ('Zdim', 'double', 'in', None), ('parent', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'create3D', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -20316,184 +21229,216 @@ class FluidShape(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnFluid, 'density')
     def density(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnFluid, 'density')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'emitIntoArrays')
     def emitIntoArrays(self, val, x, y, z, density, heat, fuel, doColor, emitColor):
+        # type: (float, int, int, int, float, float, float, bool, Color) -> None
         do, final_do, outTypes = _f.getDoArgs([val, x, y, z, density, heat, fuel, doColor, emitColor], [('val', 'float', 'in', None), ('x', 'int', 'in', None), ('y', 'int', 'in', None), ('z', 'int', 'in', None), ('density', 'float', 'in', None), ('heat', 'float', 'in', None), ('fuel', 'float', 'in', None), ('doColor', 'bool', 'in', None), ('emitColor', 'MColor', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'emitIntoArrays', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'expandToInclude')
     def expandToInclude(self, min, max):
+        # type: (Point, Point) -> None
         do, final_do, outTypes = _f.getDoArgs([min, max], [('min', 'MPoint', 'in', None), ('max', 'MPoint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'expandToInclude', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'falloff')
     def falloff(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnFluid, 'falloff')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'fuel')
     def fuel(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnFluid, 'fuel')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'getColorMode')
     def getColorMode(self):
+        # type: () -> Fluid.ColorMethod
         do, final_do, outTypes = _f.getDoArgs([], [('method', ('MFnFluid', 'ColorMethod'), 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getColorMode', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getColors')
     def getColors(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('r', 'float', 'out', None), ('g', 'float', 'out', None), ('b', 'float', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getColors', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getCoordinateMode')
     def getCoordinateMode(self):
+        # type: () -> Fluid.CoordinateMethod
         do, final_do, outTypes = _f.getDoArgs([], [('method', ('MFnFluid', 'CoordinateMethod'), 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getCoordinateMode', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getCoordinates')
     def getCoordinates(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('u', 'float', 'out', None), ('v', 'float', 'out', None), ('w', 'float', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getCoordinates', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getDensityMode')
     def getDensityMode(self):
+        # type: () -> Tuple[Fluid.FluidMethod, Fluid.FluidGradient]
         do, final_do, outTypes = _f.getDoArgs([], [('method', ('MFnFluid', 'FluidMethod'), 'out', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getDensityMode', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getDimensions')
     def getDimensions(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('Xdim', 'double', 'out', None), ('Ydim', 'double', 'out', None), ('Zdim', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getDimensions', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getFalloffMode')
     def getFalloffMode(self):
+        # type: () -> Fluid.FalloffMethod
         do, final_do, outTypes = _f.getDoArgs([], [('method', ('MFnFluid', 'FalloffMethod'), 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getFalloffMode', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getForceAtPoint')
     def getForceAtPoint(self, point, velocity, mass, deltaTime=0.041666666666666664):
+        # type: (List[Point], List[Vector], List[float], float) -> List[Vector]
         do, final_do, outTypes = _f.getDoArgs([point, velocity, mass, deltaTime], [('point', 'MPointArray', 'in', None), ('velocity', 'MVectorArray', 'in', None), ('mass', 'MDoubleArray', 'in', None), ('force', 'MVectorArray', 'out', None), ('deltaTime', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getForceAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getFuelMode')
     def getFuelMode(self):
+        # type: () -> Tuple[Fluid.FluidMethod, Fluid.FluidGradient]
         do, final_do, outTypes = _f.getDoArgs([], [('method', ('MFnFluid', 'FluidMethod'), 'out', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getFuelMode', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getResolution')
     def getResolution(self):
+        # type: () -> Tuple[int, int, int]
         do, final_do, outTypes = _f.getDoArgs([], [('Xres', 'uint', 'out', None), ('Yres', 'uint', 'out', None), ('Zres', 'uint', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getResolution', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getTemperatureMode')
     def getTemperatureMode(self):
+        # type: () -> Tuple[Fluid.FluidMethod, Fluid.FluidGradient]
         do, final_do, outTypes = _f.getDoArgs([], [('method', ('MFnFluid', 'FluidMethod'), 'out', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getTemperatureMode', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getVelocity')
     def getVelocity(self):
+        # type: () -> Tuple[float, float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('Xvel', 'float', 'out', None), ('Yvel', 'float', 'out', None), ('Zvel', 'float', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getVelocity', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'getVelocityMode')
     def getVelocityMode(self):
+        # type: () -> Tuple[Fluid.FluidMethod, Fluid.FluidGradient]
         do, final_do, outTypes = _f.getDoArgs([], [('method', ('MFnFluid', 'FluidMethod'), 'out', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'getVelocityMode', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'gridSize')
     def gridSize(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnFluid, 'gridSize')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'isAutoResize')
     def isAutoResize(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnFluid, 'isAutoResize')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'isResizeToEmitter')
     def isResizeToEmitter(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnFluid, 'isResizeToEmitter')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'pressure')
     def pressure(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnFluid, 'pressure')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'setColorMode')
     def setColorMode(self, method):
+        # type: (Fluid.ColorMethod) -> None
         do, final_do, outTypes = _f.processApiArgs([method], [('method', ('MFnFluid', 'ColorMethod'), 'in', None)], self.getColorMode, self.setColorMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setColorMode', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'setCoordinateMode')
     def setCoordinateMode(self, method):
+        # type: (Fluid.CoordinateMethod) -> None
         do, final_do, outTypes = _f.processApiArgs([method], [('method', ('MFnFluid', 'CoordinateMethod'), 'in', None)], self.getCoordinateMode, self.setCoordinateMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setCoordinateMode', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'setDensityMode')
     def setDensityMode(self, method, gradient):
+        # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
         do, final_do, outTypes = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getDensityMode, self.setDensityMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setDensityMode', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'setFalloffMode')
     def setFalloffMode(self, method):
+        # type: (Fluid.FalloffMethod) -> None
         do, final_do, outTypes = _f.processApiArgs([method], [('method', ('MFnFluid', 'FalloffMethod'), 'in', None)], self.getFalloffMode, self.setFalloffMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setFalloffMode', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'setFuelMode')
     def setFuelMode(self, method, gradient):
+        # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
         do, final_do, outTypes = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getFuelMode, self.setFuelMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setFuelMode', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'setSize')
     def setSize(self, Xres, Yres, Zres, Xdim, Ydim, Zdim, resample):
+        # type: (int, int, int, float, float, float, bool) -> None
         do, final_do, outTypes = _f.getDoArgs([Xres, Yres, Zres, Xdim, Ydim, Zdim, resample], [('Xres', 'uint', 'in', None), ('Yres', 'uint', 'in', None), ('Zres', 'uint', 'in', None), ('Xdim', 'double', 'in', None), ('Ydim', 'double', 'in', None), ('Zdim', 'double', 'in', None), ('resample', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setSize', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'setTemperatureMode')
     def setTemperatureMode(self, method, gradient):
+        # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
         do, final_do, outTypes = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getTemperatureMode, self.setTemperatureMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setTemperatureMode', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'setVelocityMode')
     def setVelocityMode(self, method, gradient):
+        # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
         do, final_do, outTypes = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getVelocityMode, self.setVelocityMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setVelocityMode', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'temperature')
     def temperature(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnFluid, 'temperature')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'toGridIndex')
     def toGridIndex(self, objectSpacePoint):
+        # type: (Point) -> Tuple[bool, Tuple[int, int, int]]
         do, final_do, outTypes = _f.getDoArgs([objectSpacePoint], [('objectSpacePoint', 'MPoint', 'in', None), ('gridCoords', 'int3', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'toGridIndex', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -20501,17 +21446,20 @@ class FluidShape(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnFluid, 'updateGrid')
     def updateGrid(self):
+        # type: () -> None
         res = _f.getProxyResult(self, _api.MFnFluid, 'updateGrid')
         return res
 
     @_f.addApiDocs(_api.MFnFluid, 'velocityGridSizes')
     def velocityGridSizes(self):
+        # type: () -> Tuple[int, int, int]
         do, final_do, outTypes = _f.getDoArgs([], [('xsize', 'int', 'out', None), ('ysize', 'int', 'out', None), ('zsize', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'velocityGridSizes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnFluid, 'voxelCenterPosition')
     def voxelCenterPosition(self, xi, yi, zi):
+        # type: (int, int, int) -> Point
         do, final_do, outTypes = _f.getDoArgs([xi, yi, zi], [('xi', 'int', 'in', None), ('yi', 'int', 'in', None), ('zi', 'int', 'in', None), ('objectSpacePoint', 'MPoint', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnFluid, 'voxelCenterPosition', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -21151,6 +22099,7 @@ class PfxGeometry(Shape):
 
     @_f.addApiDocs(_api.MFnPfxGeometry, 'getBoundingBox')
     def getBoundingBox(self):
+        # type: () -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([], [('min', 'double', 'out', None), ('max', 'double', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnPfxGeometry, 'getBoundingBox', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -21505,6 +22454,7 @@ class Instancer(Transform):
 
     @_f.addApiDocs(_api.MFnInstancer, 'allInstances')
     def allInstances(self):
+        # type: () -> Tuple[List[general.PyNode], List[Matrix], List[int], List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None), ('matrices', 'MMatrixArray', 'out', None), ('particlePathStartIndices', 'MIntArray', 'out', None), ('pathIndices', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnInstancer, 'allInstances', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -21571,6 +22521,7 @@ class Instancer(Transform):
 
     @_f.addApiDocs(_api.MFnInstancer, 'instancesForParticle')
     def instancesForParticle(self, p):
+        # type: (int) -> Tuple[int, List[general.PyNode], Matrix]
         do, final_do, outTypes = _f.getDoArgs([p], [('p', 'int', 'in', None), ('paths', 'MDagPathArray', 'out', None), ('instancerMatrix', 'MMatrix', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnInstancer, 'instancesForParticle', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
@@ -21578,6 +22529,7 @@ class Instancer(Transform):
 
     @_f.addApiDocs(_api.MFnInstancer, 'particleCount')
     def particleCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnInstancer, 'particleCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -21832,6 +22784,7 @@ class Field(DynBase):
 
     @_f.addApiDocs(_api.MFnField, 'falloffCurve')
     def falloffCurve(self, param):
+        # type: (float) -> float
         do, final_do, outTypes = _f.getDoArgs([param], [('param', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnField, 'falloffCurve', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'double', None)
@@ -21839,66 +22792,78 @@ class Field(DynBase):
 
     @_f.addApiDocs(_api.MFnField, 'attenuation')
     def getAttenuation(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnField, 'attenuation')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnField, 'getForceAtPoint')
     def getForceAtPoint(self, point, velocity, mass, deltaTime=0.041666666666666664):
+        # type: (List[Point], List[Vector], List[float], float) -> List[Vector]
         do, final_do, outTypes = _f.getDoArgs([point, velocity, mass, deltaTime], [('point', 'MPointArray', 'in', None), ('velocity', 'MVectorArray', 'in', None), ('mass', 'MDoubleArray', 'in', None), ('force', 'MVectorArray', 'out', None), ('deltaTime', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnField, 'getForceAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnField, 'magnitude')
     def getMagnitude(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnField, 'magnitude')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnField, 'maxDistance')
     def getMaxDistance(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnField, 'maxDistance')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
 
     @_f.addApiDocs(_api.MFnField, 'perVertex')
     def getPerVertex(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnField, 'perVertex')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnField, 'useMaxDistance')
     def getUseMaxDistance(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnField, 'useMaxDistance')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnField, 'isFalloffCurveConstantOne')
     def isFalloffCurveConstantOne(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnField, 'isFalloffCurveConstantOne')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnField, 'setAttenuation')
     def setAttenuation(self, atten):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([atten], [('atten', 'double', 'in', None)], self.getAttenuation, self.setAttenuation, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setAttenuation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnField, 'setMagnitude')
     def setMagnitude(self, mag):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([mag], [('mag', 'double', 'in', None)], self.getMagnitude, self.setMagnitude, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setMagnitude', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnField, 'setMaxDistance')
     def setMaxDistance(self, dist):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([dist], [('dist', 'double', 'in', u'linear')], self.getMaxDistance, self.setMaxDistance, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setMaxDistance', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnField, 'setPerVertex')
     def setPerVertex(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getPerVertex, self.setPerVertex, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setPerVertex', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnField, 'setUseMaxDistance')
     def setUseMaxDistance(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getUseMaxDistance, self.setUseMaxDistance, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setUseMaxDistance', final_do)
         return res
@@ -21914,6 +22879,7 @@ class VortexField(Field):
 
     @_f.addApiDocs(_api.MFnVortexField, 'axis')
     def getAxis(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnVortexField, 'axis')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -21959,6 +22925,7 @@ class VortexField(Field):
 
     @_f.addApiDocs(_api.MFnVortexField, 'setAxis')
     def setAxis(self, axisVector):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([axisVector], [('axisVector', 'MVector', 'in', None)], self.getAxis, self.setAxis, [])
         res = _f.getProxyResult(self, _api.MFnVortexField, 'setAxis', final_do)
         return res
@@ -22006,6 +22973,7 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'detailTurbulence')
     def detailTurbulence(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'detailTurbulence')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -22016,6 +22984,7 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'direction')
     def getDirection(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'direction')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -22036,31 +23005,37 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'directionalSpeed')
     def getDirectionalSpeed(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'directionalSpeed')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'invertAttenuation')
     def getInvertAttenuation(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'invertAttenuation')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'speedAlongAxis')
     def getSpeedAlongAxis(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'speedAlongAxis')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'speedAroundAxis')
     def getSpeedAroundAxis(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'speedAroundAxis')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'speedAwayFromAxis')
     def getSpeedAwayFromAxis(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'speedAwayFromAxis')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'speedAwayFromCenter')
     def getSpeedAwayFromCenter(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'speedAwayFromCenter')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -22071,11 +23046,13 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'turbulence')
     def getTurbulence(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'turbulence')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'turbulenceFrequency')
     def getTurbulenceFrequency(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'turbulenceFrequency')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -22096,6 +23073,7 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'turbulenceOffset')
     def getTurbulenceOffset(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'turbulenceOffset')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -22116,6 +23094,7 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'turbulenceSpeed')
     def getTurbulenceSpeed(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'turbulenceSpeed')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -22145,6 +23124,7 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setDirection')
     def setDirection(self, direction):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([direction], [('direction', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setDirection', final_do)
         return res
@@ -22163,36 +23143,42 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setDirectionalSpeed')
     def setDirectionalSpeed(self, speed):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getDirectionalSpeed, self.setDirectionalSpeed, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setDirectionalSpeed', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setInvertAttenuation')
     def setInvertAttenuation(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getInvertAttenuation, self.setInvertAttenuation, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setInvertAttenuation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAlongAxis')
     def setSpeedAlongAxis(self, speed):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAlongAxis, self.setSpeedAlongAxis, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAlongAxis', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAroundAxis')
     def setSpeedAroundAxis(self, speed):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAroundAxis, self.setSpeedAroundAxis, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAroundAxis', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAwayFromAxis')
     def setSpeedAwayFromAxis(self, speed):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAwayFromAxis, self.setSpeedAwayFromAxis, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAwayFromAxis', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAwayFromCenter')
     def setSpeedAwayFromCenter(self, speed):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAwayFromCenter, self.setSpeedAwayFromCenter, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAwayFromCenter', final_do)
         return res
@@ -22203,12 +23189,14 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulence')
     def setTurbulence(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getTurbulence, self.setTurbulence, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulence', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulenceFrequency')
     def setTurbulenceFrequency(self, value):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'MVector', 'in', None)], self.getTurbulenceFrequency, self.setTurbulenceFrequency, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulenceFrequency', final_do)
         return res
@@ -22227,6 +23215,7 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulenceOffset')
     def setTurbulenceOffset(self, value):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'MVector', 'in', None)], self.getTurbulenceOffset, self.setTurbulenceOffset, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulenceOffset', final_do)
         return res
@@ -22245,6 +23234,7 @@ class VolumeAxisField(Field):
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulenceSpeed')
     def setTurbulenceSpeed(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getTurbulenceSpeed, self.setTurbulenceSpeed, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulenceSpeed', final_do)
         return res
@@ -22273,11 +23263,13 @@ class NewtonField(Field):
 
     @_f.addApiDocs(_api.MFnNewtonField, 'minDistance')
     def getMinDistance(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnNewtonField, 'minDistance')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnNewtonField, 'setMinDistance')
     def setMinDistance(self, distance):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([distance], [('distance', 'double', 'in', None)], self.getMinDistance, self.setMinDistance, [])
         res = _f.getProxyResult(self, _api.MFnNewtonField, 'setMinDistance', final_do)
         return res
@@ -22293,6 +23285,7 @@ class GravityField(Field):
 
     @_f.addApiDocs(_api.MFnGravityField, 'direction')
     def getDirection(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnGravityField, 'direction')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -22338,6 +23331,7 @@ class GravityField(Field):
 
     @_f.addApiDocs(_api.MFnGravityField, 'setDirection')
     def setDirection(self, gravityDirection):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([gravityDirection], [('gravityDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnGravityField, 'setDirection', final_do)
         return res
@@ -22385,6 +23379,7 @@ class UniformField(Field):
 
     @_f.addApiDocs(_api.MFnUniformField, 'direction')
     def getDirection(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnUniformField, 'direction')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -22430,6 +23425,7 @@ class UniformField(Field):
 
     @_f.addApiDocs(_api.MFnUniformField, 'setDirection')
     def setDirection(self, uniformDirection):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([uniformDirection], [('uniformDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnUniformField, 'setDirection', final_do)
         return res
@@ -22481,11 +23477,13 @@ class AirField(Field):
 
     @_f.addApiDocs(_api.MFnAirField, 'componentOnly')
     def getComponentOnly(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAirField, 'componentOnly')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAirField, 'direction')
     def getDirection(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnAirField, 'direction')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -22506,16 +23504,19 @@ class AirField(Field):
 
     @_f.addApiDocs(_api.MFnAirField, 'enableSpread')
     def getEnableSpread(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAirField, 'enableSpread')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAirField, 'inheritRotation')
     def getInheritRotation(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnAirField, 'inheritRotation')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnAirField, 'inheritVelocity')
     def getInheritVelocity(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAirField, 'inheritVelocity')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -22526,11 +23527,13 @@ class AirField(Field):
 
     @_f.addApiDocs(_api.MFnAirField, 'speed')
     def getSpeed(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAirField, 'speed')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnAirField, 'spread')
     def getSpread(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnAirField, 'spread')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'angular')
 
@@ -22566,12 +23569,14 @@ class AirField(Field):
 
     @_f.addApiDocs(_api.MFnAirField, 'setComponentOnly')
     def setComponentOnly(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getComponentOnly, self.setComponentOnly, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setComponentOnly', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAirField, 'setDirection')
     def setDirection(self, airDirection):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([airDirection], [('airDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setDirection', final_do)
         return res
@@ -22590,18 +23595,21 @@ class AirField(Field):
 
     @_f.addApiDocs(_api.MFnAirField, 'setEnableSpread')
     def setEnableSpread(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getEnableSpread, self.setEnableSpread, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setEnableSpread', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAirField, 'setInheritRotation')
     def setInheritRotation(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getInheritRotation, self.setInheritRotation, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setInheritRotation', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAirField, 'setInheritVelocity')
     def setInheritVelocity(self, velocity):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([velocity], [('velocity', 'double', 'in', None)], self.getInheritVelocity, self.setInheritVelocity, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setInheritVelocity', final_do)
         return res
@@ -22612,12 +23620,14 @@ class AirField(Field):
 
     @_f.addApiDocs(_api.MFnAirField, 'setSpeed')
     def setSpeed(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getSpeed, self.setSpeed, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setSpeed', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAirField, 'setSpread')
     def setSpread(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', u'angular')], self.getSpread, self.setSpread, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setSpread', final_do)
         return res
@@ -22665,6 +23675,7 @@ class TurbulenceField(Field):
 
     @_f.addApiDocs(_api.MFnTurbulenceField, 'frequency')
     def getFrequency(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnTurbulenceField, 'frequency')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -22681,6 +23692,7 @@ class TurbulenceField(Field):
 
     @_f.addApiDocs(_api.MFnTurbulenceField, 'phase')
     def getPhase(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnTurbulenceField, 'phase')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -22726,6 +23738,7 @@ class TurbulenceField(Field):
 
     @_f.addApiDocs(_api.MFnTurbulenceField, 'setFrequency')
     def setFrequency(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getFrequency, self.setFrequency, [])
         res = _f.getProxyResult(self, _api.MFnTurbulenceField, 'setFrequency', final_do)
         return res
@@ -22740,6 +23753,7 @@ class TurbulenceField(Field):
 
     @_f.addApiDocs(_api.MFnTurbulenceField, 'setPhase')
     def setPhase(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getPhase, self.setPhase, [])
         res = _f.getProxyResult(self, _api.MFnTurbulenceField, 'setPhase', final_do)
         return res
@@ -22784,22 +23798,26 @@ class RadialField(Field):
 
     @_f.addApiDocs(_api.MFnRadialField, 'radialType')
     def getRadialType(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnRadialField, 'radialType')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.deprecated
     def radialType(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnRadialField, 'radialType')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnRadialField, 'setType')
     def setRadialType(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getRadialType, self.setRadialType, [])
         res = _f.getProxyResult(self, _api.MFnRadialField, 'setType', final_do)
         return res
 
     @_f.deprecated
     def setType(self, value):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getRadialType, self.setType, [])
         res = _f.getProxyResult(self, _api.MFnRadialField, 'setType', final_do)
         return res
@@ -22815,6 +23833,7 @@ class DragField(Field):
 
     @_f.addApiDocs(_api.MFnDragField, 'direction')
     def getDirection(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnDragField, 'direction')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
@@ -22840,6 +23859,7 @@ class DragField(Field):
 
     @_f.addApiDocs(_api.MFnDragField, 'useDirection')
     def getUseDirection(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDragField, 'useDirection')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
@@ -22865,6 +23885,7 @@ class DragField(Field):
 
     @_f.addApiDocs(_api.MFnDragField, 'setDirection')
     def setDirection(self, dragDirection):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([dragDirection], [('dragDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnDragField, 'setDirection', final_do)
         return res
@@ -22887,6 +23908,7 @@ class DragField(Field):
 
     @_f.addApiDocs(_api.MFnDragField, 'setUseDirection')
     def setUseDirection(self, enable):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getUseDirection, self.setUseDirection, [])
         res = _f.getProxyResult(self, _api.MFnDragField, 'setUseDirection', final_do)
         return res
@@ -22949,6 +23971,7 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'getEffector')
     def getEffector(self):
+        # type: () -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([], [('effectorPath', 'MDagPath', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'getEffector', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -22975,6 +23998,7 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'priority')
     def getPriority(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'priority')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -22995,17 +24019,20 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'solver')
     def getSolver(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'solver')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnIkHandle, 'getStartJoint')
     def getStartJoint(self):
+        # type: () -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([], [('jointPath', 'MDagPath', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'getStartJoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnIkHandle, 'stickiness')
     def getStickiness(self):
+        # type: () -> IkHandle.Stickiness
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'stickiness')
         return _f.ApiArgUtil._castResult(self, res, ('MFnIkHandle', 'Stickiness'), None)
 
@@ -23021,11 +24048,13 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'weight')
     def getWeight(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'weight')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnIkHandle, 'poWeight')
     def poWeight(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'poWeight')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -23035,6 +24064,7 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setEffector')
     def setEffector(self, effectorPath):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.processApiArgs([effectorPath], [('effectorPath', 'MDagPath', 'in', None)], self.getEffector, self.setEffector, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setEffector', final_do)
         return res
@@ -23049,6 +24079,7 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setPOWeight')
     def setPOWeight(self, poWeight):
+        # type: (float) -> None
         do, final_do, outTypes = _f.getDoArgs([poWeight], [('poWeight', 'double', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setPOWeight', final_do)
         return res
@@ -23059,6 +24090,7 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setPriority')
     def setPriority(self, priority):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([priority], [('priority', 'uint', 'in', None)], self.getPriority, self.setPriority, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setPriority', final_do)
         return res
@@ -23077,24 +24109,28 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setSolver')
     def setSolver(self, solver):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.processApiArgs([solver], [('solver', 'MObject', 'in', None)], self.getSolver, self.setSolver, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setSolver', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setStartJoint')
     def setStartJoint(self, jointPath):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.processApiArgs([jointPath], [('jointPath', 'MDagPath', 'in', None)], self.getStartJoint, self.setStartJoint, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setStartJoint', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setStartJointAndEffector')
     def setStartJointAndEffector(self, jointPath, effectorPath):
+        # type: (general.PyNode, general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([jointPath, effectorPath], [('jointPath', 'MDagPath', 'in', None), ('effectorPath', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setStartJointAndEffector', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setStickiness')
     def setStickiness(self, stickiness):
+        # type: (IkHandle.Stickiness) -> None
         do, final_do, outTypes = _f.processApiArgs([stickiness], [('stickiness', ('MFnIkHandle', 'Stickiness'), 'in', None)], self.getStickiness, self.setStickiness, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setStickiness', final_do)
         return res
@@ -23109,6 +24145,7 @@ class IkHandle(Transform):
 
     @_f.addApiDocs(_api.MFnIkHandle, 'setWeight')
     def setWeight(self, weight):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([weight], [('weight', 'double', 'in', None)], self.getWeight, self.setWeight, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setWeight', final_do)
         return res
@@ -23651,28 +24688,33 @@ class HikEffector(Transform):
 
     @_f.addApiDocs(_api.MFnHikEffector, 'getAuxiliaryEffectors')
     def getAuxiliaryEffectors(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('effs', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnHikEffector, 'getAuxiliaryEffectors', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnHikEffector, 'getEffColor')
     def getEffColor(self):
+        # type: () -> Color
         res = _f.getProxyResult(self, _api.MFnHikEffector, 'getEffColor')
         return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
 
     @_f.addApiDocs(_api.MFnHikEffector, 'getPivotOffset')
     def getPivotOffset(self):
+        # type: () -> Vector
         res = _f.getProxyResult(self, _api.MFnHikEffector, 'getPivotOffset')
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
     @_f.addApiDocs(_api.MFnHikEffector, 'setEffColor')
     def setEffColor(self, color):
+        # type: (Color) -> None
         do, final_do, outTypes = _f.processApiArgs([color], [('color', 'MColor', 'in', None)], self.getEffColor, self.setEffColor, [])
         res = _f.getProxyResult(self, _api.MFnHikEffector, 'setEffColor', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnHikEffector, 'setPivotOffset')
     def setPivotOffset(self, vector):
+        # type: (Vector) -> None
         do, final_do, outTypes = _f.processApiArgs([vector], [('vector', 'MVector', 'in', None)], self.getPivotOffset, self.setPivotOffset, [])
         res = _f.getProxyResult(self, _api.MFnHikEffector, 'setPivotOffset', final_do)
         return res
@@ -23824,6 +24866,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'blendExists')
     def blendExists(self, instancedClip1, instancedClip2, blendResult):
+        # type: (general.PyNode, general.PyNode, general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([instancedClip1, instancedClip2, blendResult], [('instancedClip1', 'MObject', 'in', None), ('instancedClip2', 'MObject', 'in', None), ('blendResult', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'blendExists', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -23840,6 +24883,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getBlend')
     def getBlend(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getBlend', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -23847,12 +24891,14 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getBlendClips')
     def getBlendClips(self, index):
+        # type: (int) -> Tuple[general.PyNode, general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None), ('clip1', 'MObject', 'out', None), ('clip2', 'MObject', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getBlendClips', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnCharacter, 'getBlendCount')
     def getBlendCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getBlendCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -23863,6 +24909,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getCharacterThatOwnsPlug')
     def getCharacterThatOwnsPlug(self, plug, result):
+        # type: (Attribute, general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([plug, result], [('plug', 'MPlug', 'in', None), ('result', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getCharacterThatOwnsPlug', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -23870,6 +24917,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getClipScheduler')
     def getClipScheduler(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getClipScheduler')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
@@ -23895,6 +24943,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getMemberPlugs')
     def getMemberPlugs(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('result', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getMemberPlugs', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -23911,6 +24960,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getScheduledClip')
     def getScheduledClip(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getScheduledClip', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -23918,6 +24968,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getScheduledClipCount')
     def getScheduledClipCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getScheduledClipCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -23928,6 +24979,7 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getSourceClip')
     def getSourceClip(self, index):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getSourceClip', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -23935,11 +24987,13 @@ class Character(ObjectSet):
 
     @_f.addApiDocs(_api.MFnCharacter, 'getSourceClipCount')
     def getSourceClipCount(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getSourceClipCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnCharacter, 'getSubCharacters')
     def getSubCharacters(self):
+        # type: () -> SelectionSet
         do, final_do, outTypes = _f.getDoArgs([], [('result', 'MSelectionList', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnCharacter, 'getSubCharacters', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -23998,6 +25052,7 @@ class Partition(Entity):
 
     @_f.addApiDocs(_api.MFnPartition, 'addMember')
     def addMember(self, set):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([set], [('set', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnPartition, 'addMember', final_do)
         return res
@@ -24009,11 +25064,13 @@ class Partition(Entity):
 
     @_f.addApiDocs(_api.MFnPartition, 'isRenderPartition')
     def isRenderPartition(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnPartition, 'isRenderPartition')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnPartition, 'removeMember')
     def removeMember(self, set):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([set], [('set', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnPartition, 'removeMember', final_do)
         return res
@@ -25002,6 +26059,7 @@ class Reference(DependNode):
 
     @_f.addApiDocs(_api.MFnReference, 'associatedNamespace')
     def associatedNamespace(self, baseName):
+        # type: (bool) -> unicode
         do, final_do, outTypes = _f.getDoArgs([baseName], [('baseName', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnReference, 'associatedNamespace', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -25009,6 +26067,7 @@ class Reference(DependNode):
 
     @_f.addApiDocs(_api.MFnReference, 'containsNode')
     def containsNode(self, node):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([node], [('node', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnReference, 'containsNode', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -25016,6 +26075,7 @@ class Reference(DependNode):
 
     @_f.addApiDocs(_api.MFnReference, 'containsNodeExactly')
     def containsNodeExactly(self, node):
+        # type: (general.PyNode) -> bool
         do, final_do, outTypes = _f.getDoArgs([node], [('node', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnReference, 'containsNodeExactly', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -25023,6 +26083,7 @@ class Reference(DependNode):
 
     @_f.addApiDocs(_api.MFnReference, 'fileName')
     def fileName(self, resolvedName, includePath, includeCopyNumber):
+        # type: (bool, bool, bool) -> unicode
         do, final_do, outTypes = _f.getDoArgs([resolvedName, includePath, includeCopyNumber], [('resolvedName', 'bool', 'in', None), ('includePath', 'bool', 'in', None), ('includeCopyNumber', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnReference, 'fileName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -25030,27 +26091,32 @@ class Reference(DependNode):
 
     @_f.addApiDocs(_api.MFnReference, 'isExportEditsFile')
     def isExportEditsFile(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnReference, 'isExportEditsFile')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnReference, 'isLoaded')
     def isLoaded(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnReference, 'isLoaded')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnReference, 'nodes')
     def nodes(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('nodeList', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnReference, 'nodes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnReference, 'parentAssembly')
     def parentAssembly(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnReference, 'parentAssembly')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnReference, 'parentFileName')
     def parentFileName(self, resolveName, includePath, includeCopyNumber):
+        # type: (bool, bool, bool) -> unicode
         do, final_do, outTypes = _f.getDoArgs([resolveName, includePath, includeCopyNumber], [('resolveName', 'bool', 'in', None), ('includePath', 'bool', 'in', None), ('includeCopyNumber', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnReference, 'parentFileName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -25058,6 +26124,7 @@ class Reference(DependNode):
 
     @_f.addApiDocs(_api.MFnReference, 'parentReference')
     def parentReference(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnReference, 'parentReference')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
@@ -25358,6 +26425,7 @@ class Expression(DependNode):
 
     @_f.addApiDocs(_api.MFnExpression, 'evaluate')
     def evaluate(self):
+        # type: () -> List[float]
         do, final_do, outTypes = _f.getDoArgs([], [('result', 'MDoubleArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnExpression, 'evaluate', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -25379,12 +26447,14 @@ class Expression(DependNode):
 
     @_f.addApiDocs(_api.MFnExpression, 'getDefaultObject')
     def getDefaultObject(self):
+        # type: () -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([], [('object', 'MObject', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnExpression, 'getDefaultObject', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnExpression, 'expression')
     def getExpression(self):
+        # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnExpression, 'expression')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
@@ -25415,11 +26485,13 @@ class Expression(DependNode):
 
     @_f.addApiDocs(_api.MFnExpression, 'unitConversion')
     def getUnitConversion(self):
+        # type: () -> Expression.UnitConversion
         res = _f.getProxyResult(self, _api.MFnExpression, 'unitConversion')
         return _f.ApiArgUtil._castResult(self, res, ('MFnExpression', 'UnitConversion'), None)
 
     @_f.addApiDocs(_api.MFnExpression, 'isAnimated')
     def isAnimated(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnExpression, 'isAnimated')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
@@ -25429,6 +26501,7 @@ class Expression(DependNode):
 
     @_f.addApiDocs(_api.MFnExpression, 'setAnimated')
     def setAnimated(self, value=False):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'bool', 'in', None)], self.isAnimated, self.setAnimated, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setAnimated', final_do)
         return res
@@ -25439,12 +26512,14 @@ class Expression(DependNode):
 
     @_f.addApiDocs(_api.MFnExpression, 'setDefaultObject')
     def setDefaultObject(self, object):
+        # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.processApiArgs([object], [('object', 'MObject', 'in', None)], self.getDefaultObject, self.setDefaultObject, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setDefaultObject', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnExpression, 'setExpression')
     def setExpression(self, expression):
+        # type: (unicode) -> None
         do, final_do, outTypes = _f.processApiArgs([expression], [('expression', 'MString', 'in', None)], self.getExpression, self.setExpression, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setExpression', final_do)
         return res
@@ -25463,6 +26538,7 @@ class Expression(DependNode):
 
     @_f.addApiDocs(_api.MFnExpression, 'setUnitConversion')
     def setUnitConversion(self, conversion):
+        # type: (Expression.UnitConversion) -> None
         do, final_do, outTypes = _f.processApiArgs([conversion], [('conversion', ('MFnExpression', 'UnitConversion'), 'in', None)], self.getUnitConversion, self.setUnitConversion, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setUnitConversion', final_do)
         return res
@@ -25716,48 +26792,57 @@ class MotionPath(DependNode):
 
     @_f.addApiDocs(_api.MFnMotionPath, 'addAnimatedObject')
     def addAnimatedObject(self, objectToAnimate, modifier=None):
+        # type: (general.PyNode, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.getDoArgs([objectToAnimate, modifier], [('objectToAnimate', 'MDagPath', 'in', None), ('modifier', 'MDGModifier', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'addAnimatedObject', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'getAnimatedObjects')
     def getAnimatedObjects(self):
+        # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MDagPathArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'getAnimatedObjects', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'bank')
     def getBank(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'bank')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'bankScale')
     def getBankScale(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'bankScale')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'bankThreshold')
     def getBankThreshold(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'bankThreshold')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'follow')
     def getFollow(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'follow')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'followAxis')
     def getFollowAxis(self):
+        # type: () -> MotionPath.Axis
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'followAxis')
         return _f.ApiArgUtil._castResult(self, res, ('MFnMotionPath', 'Axis'), None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'inverseNormal')
     def getInverseNormal(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'inverseNormal')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'getOrientationMarker')
     def getOrientationMarker(self, markerNum):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([markerNum], [('markerNum', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'getOrientationMarker', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -25765,11 +26850,13 @@ class MotionPath(DependNode):
 
     @_f.addApiDocs(_api.MFnMotionPath, 'pathObject')
     def getPathObject(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'pathObject')
         return _f.ApiArgUtil._castResult(self, res, 'MDagPath', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'getPositionMarker')
     def getPositionMarker(self, markerNum):
+        # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([markerNum], [('markerNum', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'getPositionMarker', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
@@ -25777,118 +26864,139 @@ class MotionPath(DependNode):
 
     @_f.addApiDocs(_api.MFnMotionPath, 'uEnd')
     def getUEnd(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'uEnd')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'uStart')
     def getUStart(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'uStart')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'uTimeEnd')
     def getUTimeEnd(self):
+        # type: () -> Time
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'uTimeEnd')
         return _f.ApiArgUtil._castResult(self, res, 'MTime', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'uTimeStart')
     def getUTimeStart(self):
+        # type: () -> Time
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'uTimeStart')
         return _f.ApiArgUtil._castResult(self, res, 'MTime', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'upAxis')
     def getUpAxis(self):
+        # type: () -> MotionPath.Axis
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'upAxis')
         return _f.ApiArgUtil._castResult(self, res, ('MFnMotionPath', 'Axis'), None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'useNormal')
     def getUseNormal(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'useNormal')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'numOrientationMarkers')
     def numOrientationMarkers(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'numOrientationMarkers')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'numPositionMarkers')
     def numPositionMarkers(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'numPositionMarkers')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setBank')
     def setBank(self, bank):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([bank], [('bank', 'bool', 'in', None)], self.getBank, self.setBank, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setBank', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setBankScale')
     def setBankScale(self, bankScale):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([bankScale], [('bankScale', 'double', 'in', None)], self.getBankScale, self.setBankScale, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setBankScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setBankThreshold')
     def setBankThreshold(self, bankThreshold):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([bankThreshold], [('bankThreshold', 'double', 'in', None)], self.getBankThreshold, self.setBankThreshold, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setBankThreshold', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setFollow')
     def setFollow(self, on, modifier=None):
+        # type: (bool, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([on, modifier], [('on', 'bool', 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getFollow, self.setFollow, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setFollow', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setFollowAxis')
     def setFollowAxis(self, axis):
+        # type: (MotionPath.Axis) -> None
         do, final_do, outTypes = _f.processApiArgs([axis], [('axis', ('MFnMotionPath', 'Axis'), 'in', None)], self.getFollowAxis, self.setFollowAxis, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setFollowAxis', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setInverseNormal')
     def setInverseNormal(self, invert):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([invert], [('invert', 'bool', 'in', None)], self.getInverseNormal, self.setInverseNormal, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setInverseNormal', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setPathObject')
     def setPathObject(self, pathObject, modifier=None):
+        # type: (general.PyNode, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([pathObject, modifier], [('pathObject', 'MDagPath', 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getPathObject, self.setPathObject, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setPathObject', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setUEnd')
     def setUEnd(self, end):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([end], [('end', 'double', 'in', None)], self.getUEnd, self.setUEnd, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUEnd', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setUStart')
     def setUStart(self, start):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([start], [('start', 'double', 'in', None)], self.getUStart, self.setUStart, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUStart', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setUTimeEnd')
     def setUTimeEnd(self, end):
+        # type: (Time) -> None
         do, final_do, outTypes = _f.processApiArgs([end], [('end', 'MTime', 'in', None)], self.getUTimeEnd, self.setUTimeEnd, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUTimeEnd', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setUTimeStart')
     def setUTimeStart(self, start):
+        # type: (Time) -> None
         do, final_do, outTypes = _f.processApiArgs([start], [('start', 'MTime', 'in', None)], self.getUTimeStart, self.setUTimeStart, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUTimeStart', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setUpAxis')
     def setUpAxis(self, axis):
+        # type: (MotionPath.Axis) -> None
         do, final_do, outTypes = _f.processApiArgs([axis], [('axis', ('MFnMotionPath', 'Axis'), 'in', None)], self.getUpAxis, self.setUpAxis, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUpAxis', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setUseNormal')
     def setUseNormal(self, use):
+        # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([use], [('use', 'bool', 'in', None)], self.getUseNormal, self.setUseNormal, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUseNormal', final_do)
         return res
@@ -26225,6 +27333,7 @@ class IkSolver(DependNode):
 
     @_f.addApiDocs(_api.MFnIkSolver, 'maxIterations')
     def getMaxIterations(self):
+        # type: () -> int
         res = _f.getProxyResult(self, _api.MFnIkSolver, 'maxIterations')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
@@ -26235,6 +27344,7 @@ class IkSolver(DependNode):
 
     @_f.addApiDocs(_api.MFnIkSolver, 'tolerance')
     def getTolerance(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnIkSolver, 'tolerance')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
@@ -26244,6 +27354,7 @@ class IkSolver(DependNode):
 
     @_f.addApiDocs(_api.MFnIkSolver, 'setMaxIterations')
     def setMaxIterations(self, maxIters):
+        # type: (int) -> None
         do, final_do, outTypes = _f.processApiArgs([maxIters], [('maxIters', 'uint', 'in', None)], self.getMaxIterations, self.setMaxIterations, [])
         res = _f.getProxyResult(self, _api.MFnIkSolver, 'setMaxIterations', final_do)
         return res
@@ -26254,6 +27365,7 @@ class IkSolver(DependNode):
 
     @_f.addApiDocs(_api.MFnIkSolver, 'setTolerance')
     def setTolerance(self, tolerance):
+        # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([tolerance], [('tolerance', 'double', 'in', None)], self.getTolerance, self.setTolerance, [])
         res = _f.getProxyResult(self, _api.MFnIkSolver, 'setTolerance', final_do)
         return res
@@ -26306,122 +27418,144 @@ class AnimClip(DependNode):
 
     @_f.addApiDocs(_api.MFnClip, 'getAbsoluteChannelSettings')
     def getAbsoluteChannelSettings(self):
+        # type: () -> List[int]
         do, final_do, outTypes = _f.getDoArgs([], [('absoluteChannels', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnClip, 'getAbsoluteChannelSettings', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnClip, 'getEnabled')
     def getEnabled(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnClip, 'getEnabled')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnClip, 'getMemberAnimCurves')
     def getMemberAnimCurves(self):
+        # type: () -> Tuple[List[general.PyNode], List[general.PyNode]]
         do, final_do, outTypes = _f.getDoArgs([], [('curves', 'MObjectArray', 'out', None), ('associatedAttrs', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnClip, 'getMemberAnimCurves', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnClip, 'getPostCycle')
     def getPostCycle(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnClip, 'getPostCycle')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnClip, 'getPreCycle')
     def getPreCycle(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnClip, 'getPreCycle')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnClip, 'getScale')
     def getScale(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnClip, 'getScale')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnClip, 'getSourceDuration')
     def getSourceDuration(self):
+        # type: () -> Time
         res = _f.getProxyResult(self, _api.MFnClip, 'getSourceDuration')
         return _f.ApiArgUtil._castResult(self, res, 'MTime', None)
 
     @_f.addApiDocs(_api.MFnClip, 'getSourceStart')
     def getSourceStart(self):
+        # type: () -> Time
         res = _f.getProxyResult(self, _api.MFnClip, 'getSourceStart')
         return _f.ApiArgUtil._castResult(self, res, 'MTime', None)
 
     @_f.addApiDocs(_api.MFnClip, 'getStartFrame')
     def getStartFrame(self):
+        # type: () -> Time
         res = _f.getProxyResult(self, _api.MFnClip, 'getStartFrame')
         return _f.ApiArgUtil._castResult(self, res, 'MTime', None)
 
     @_f.addApiDocs(_api.MFnClip, 'getWeight')
     def getWeight(self):
+        # type: () -> float
         res = _f.getProxyResult(self, _api.MFnClip, 'getWeight')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnClip, 'isInstancedClip')
     def isInstancedClip(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnClip, 'isInstancedClip')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnClip, 'isPose')
     def isPose(self):
+        # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnClip, 'isPose')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnClip, 'setAbsoluteChannelSettings')
     def setAbsoluteChannelSettings(self, absoluteChannels, mod=None):
+        # type: (List[int], datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([absoluteChannels, mod], [('absoluteChannels', 'MIntArray', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getAbsoluteChannelSettings, self.setAbsoluteChannelSettings, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setAbsoluteChannelSettings', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setEnabled')
     def setEnabled(self, val, mod=None):
+        # type: (bool, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([val, mod], [('val', 'bool', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getEnabled, self.setEnabled, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setEnabled', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setPoseClip')
     def setPoseClip(self, state, mod=None):
+        # type: (bool, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.getDoArgs([state, mod], [('state', 'bool', 'in', None), ('mod', 'MDGModifier', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnClip, 'setPoseClip', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setPostCycle')
     def setPostCycle(self, cycle, mod=None):
+        # type: (float, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([cycle, mod], [('cycle', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getPostCycle, self.setPostCycle, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setPostCycle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setPreCycle')
     def setPreCycle(self, cycle, mod=None):
+        # type: (float, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([cycle, mod], [('cycle', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getPreCycle, self.setPreCycle, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setPreCycle', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setScale')
     def setScale(self, scale, mod=None):
+        # type: (float, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([scale, mod], [('scale', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getScale, self.setScale, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setScale', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setSourceData')
     def setSourceData(self, start, duration, mod=None):
+        # type: (Time, Time, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.getDoArgs([start, duration, mod], [('start', 'MTime', 'in', None), ('duration', 'MTime', 'in', None), ('mod', 'MDGModifier', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnClip, 'setSourceData', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setStartFrame')
     def setStartFrame(self, start, mod=None):
+        # type: (Time, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([start, mod], [('start', 'MTime', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getStartFrame, self.setStartFrame, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setStartFrame', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'setWeight')
     def setWeight(self, wt, mod=None):
+        # type: (float, datatypes.DGModifier) -> None
         do, final_do, outTypes = _f.processApiArgs([wt, mod], [('wt', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getWeight, self.setWeight, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setWeight', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnClip, 'sourceClip')
     def sourceClip(self):
+        # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnClip, 'sourceClip')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 

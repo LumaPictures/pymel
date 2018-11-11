@@ -7,6 +7,7 @@
 @_f.addApiDocs(_api.{{ method.apiClass }}, '{{ method.apiName }}')
 {% endif %}
 def {{ method.name }}({{ method.signature }}):
+    {{ method.typeComment }}
 {% if method.argList %}
   {% if method.undoable %}
     do, final_do, outTypes = _f.processApiArgs([{{ method.inArgs }}], {{ method.argList }}, self.{{ method.getter }}, self.{{ method.name }}, {{ method.getterInArgs}})

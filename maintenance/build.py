@@ -783,6 +783,7 @@ class ModuleGenerator(object):
         with open(source, 'w') as f:
             f.write(text)
 
+
 def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
                   overloadIndex=None, deprecated=False, aliases=(),
                   properties=()):
@@ -911,6 +912,7 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         'unitType': repr(str(unitType)) if unitType else None,
         'deprecated': deprecated,
         'signature': signature,
+        'typeComment': argHelper.getTypeComment(),
         'aliases': aliases,
         'properties': properties,  # property aliases
     }
