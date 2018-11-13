@@ -5037,7 +5037,15 @@ class Joint(Transform):
 # ------ Do not edit above this line --------
 
 
-class FluidEmitter(Transform):
+class DynBase(Transform):
+    pass
+
+
+class PointEmitter(DynBase):
+    pass
+
+
+class FluidEmitter(PointEmitter):
     if not _factories.building:
         fluidVoxelInfo = effects.fluidVoxelInfo
         loadFluid = effects.loadFluid
@@ -22461,18 +22469,8 @@ class CurveVarGroup(BaseGeometryVarGroup):
     __slots__ = ()
 
 
-class DynBase(Transform):
-    __melnode__ = u'dynBase'
-    __slots__ = ()
-
-
 class CollisionModel(DynBase):
     __melnode__ = u'collisionModel'
-    __slots__ = ()
-
-
-class PointEmitter(DynBase):
-    __melnode__ = u'pointEmitter'
     __slots__ = ()
 
 
