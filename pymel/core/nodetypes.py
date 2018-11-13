@@ -5037,15 +5037,14 @@ class Joint(Transform):
 # ------ Do not edit above this line --------
 
 
-if versions.isUnlimited():
-    class FluidEmitter(Transform):
-        if not _factories.building:
-            fluidVoxelInfo = effects.fluidVoxelInfo
-            loadFluid = effects.loadFluid
-            resampleFluid = effects.resampleFluid
-            saveFluid = effects.saveFluid
-            setFluidAttr = effects.setFluidAttr
-            getFluidAttr = effects.getFluidAttr
+class FluidEmitter(Transform):
+    if not _factories.building:
+        fluidVoxelInfo = effects.fluidVoxelInfo
+        loadFluid = effects.loadFluid
+        resampleFluid = effects.resampleFluid
+        saveFluid = effects.saveFluid
+        setFluidAttr = effects.setFluidAttr
+        getFluidAttr = effects.getFluidAttr
 
 
 class RenderLayer(DependNode):
