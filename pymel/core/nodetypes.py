@@ -2425,15 +2425,14 @@ class Joint(Transform):
     disconnect = _factories.functionFactory(cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory(cmds.insertJoint, rename='insert')
 
-if versions.isUnlimited():
-    class FluidEmitter(Transform):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
-        fluidVoxelInfo = _factories.functionFactory(cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
-        loadFluid = _factories.functionFactory(cmds.loadFluid, rename='loadFluid')
-        resampleFluid = _factories.functionFactory(cmds.resampleFluid, rename='resampleFluid')
-        saveFluid = _factories.functionFactory(cmds.saveFluid, rename='saveFluid')
-        setFluidAttr = _factories.functionFactory(cmds.setFluidAttr, rename='setFluidAttr')
-        getFluidAttr = _factories.functionFactory(cmds.getFluidAttr, rename='getFluidAttr')
+class FluidEmitter(Transform):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    fluidVoxelInfo = _factories.functionFactory(cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
+    loadFluid = _factories.functionFactory(cmds.loadFluid, rename='loadFluid')
+    resampleFluid = _factories.functionFactory(cmds.resampleFluid, rename='resampleFluid')
+    saveFluid = _factories.functionFactory(cmds.saveFluid, rename='saveFluid')
+    setFluidAttr = _factories.functionFactory(cmds.setFluidAttr, rename='setFluidAttr')
+    getFluidAttr = _factories.functionFactory(cmds.getFluidAttr, rename='getFluidAttr')
 
 class RenderLayer(DependNode):
 
