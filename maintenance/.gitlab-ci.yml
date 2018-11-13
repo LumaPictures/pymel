@@ -1,0 +1,37 @@
+
+stages:
+- test
+- release
+
+test_2018.1_batch:
+  stage : test
+  script :
+  tags: [internal]
+  script:
+  - setpkg pyexternal
+  - export MAYA_LOCATION=/usr/autodesk/maya2018.1-x64
+  - export PATH=$PATH:$MAYA_LOCATION/bin
+  - cd tests
+  - ./pymel_test_output.bash
+
+release_la:
+  stage: release
+  variables:
+    GIT_STRATEGY: fetch
+  tags: [internal, la]
+  only:
+  - master
+  - develop
+  script:
+  - /luma/pipe/shell/cron/gitlab_release.sh
+
+release_mel:
+  stage: release
+  variables:
+    GIT_STRATEGY: fetch
+  tags: [internal, mel]
+  only:
+  - master
+  - develop
+  script:
+  - /luma/pipe/shell/cron/gitlab_release.sh
