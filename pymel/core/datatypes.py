@@ -1123,6 +1123,7 @@ class FloatPoint(Point):
 
     @_f.addApiDocs(_api.MFloatPoint, '__rmult__')
     def __rmult__(self, right):
+        # type: (FloatMatrix) -> FloatPoint
         do, final_do, outTypes = _f.getDoArgs([right], [('right', 'MFloatMatrix', 'in', None)])
         res = _api.MFloatPoint.__rmult__(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MFloatPoint', None)
@@ -1130,6 +1131,7 @@ class FloatPoint(Point):
 
     @_f.addApiDocs(_api.MFloatPoint, 'setCast')
     def setCast(self, srcpt):
+        # type: (Point) -> None
         do, final_do, outTypes = _f.getDoArgs([srcpt], [('srcpt', 'MPoint', 'in', None)])
         res = _api.MFloatPoint.setCast(self, *final_do)
         return res
@@ -2330,41 +2332,49 @@ class Quaternion(Matrix):
 
     @_f.addApiDocs(_api.MQuaternion, 'asEulerRotation')
     def asEulerRotation(self):
+        # type: () -> EulerRotation
         res = _api.MQuaternion.asEulerRotation(self)
         return _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
 
     @_f.addApiDocs(_api.MQuaternion, 'conjugateIt')
     def conjugateIt(self):
+        # type: () -> Quaternion
         res = _api.MQuaternion.conjugateIt(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MQuaternion, 'exp')
     def exp(self):
+        # type: () -> Quaternion
         res = _api.MQuaternion.exp(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MQuaternion, 'invertIt')
     def invertIt(self):
+        # type: () -> Quaternion
         res = _api.MQuaternion.invertIt(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MQuaternion, 'log')
     def log(self):
+        # type: () -> Quaternion
         res = _api.MQuaternion.log(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MQuaternion, 'negateIt')
     def negateIt(self):
+        # type: () -> Quaternion
         res = _api.MQuaternion.negateIt(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MQuaternion, 'normalizeIt')
     def normalizeIt(self):
+        # type: () -> Quaternion
         res = _api.MQuaternion.normalizeIt(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MQuaternion, 'scaleIt')
     def scaleIt(self, scale):
+        # type: (float) -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([scale], [('scale', 'double', 'in', None)])
         res = _api.MQuaternion.scaleIt(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
@@ -2372,6 +2382,7 @@ class Quaternion(Matrix):
 
     @_f.addApiDocs(_api.MQuaternion, 'setToXAxis')
     def setToXAxis(self, theta):
+        # type: (float) -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([theta], [('theta', 'double', 'in', None)])
         res = _api.MQuaternion.setToXAxis(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
@@ -2379,6 +2390,7 @@ class Quaternion(Matrix):
 
     @_f.addApiDocs(_api.MQuaternion, 'setToYAxis')
     def setToYAxis(self, theta):
+        # type: (float) -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([theta], [('theta', 'double', 'in', None)])
         res = _api.MQuaternion.setToYAxis(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
@@ -2386,6 +2398,7 @@ class Quaternion(Matrix):
 
     @_f.addApiDocs(_api.MQuaternion, 'setToZAxis')
     def setToZAxis(self, theta):
+        # type: (float) -> Quaternion
         do, final_do, outTypes = _f.getDoArgs([theta], [('theta', 'double', 'in', None)])
         res = _api.MQuaternion.setToZAxis(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
@@ -3036,31 +3049,37 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'alternateSolution')
     def alternateSolution(self):
+        # type: () -> EulerRotation
         res = _api.MEulerRotation.alternateSolution(self)
         return _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
 
     @_f.addApiDocs(_api.MEulerRotation, 'asMatrix')
     def asMatrix(self):
+        # type: () -> Matrix
         res = _api.MEulerRotation.asMatrix(self)
         return _f.ApiArgUtil._castResult(self, res, 'MMatrix', None)
 
     @_f.addApiDocs(_api.MEulerRotation, 'asQuaternion')
     def asQuaternion(self):
+        # type: () -> Quaternion
         res = _api.MEulerRotation.asQuaternion(self)
         return _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
 
     @_f.addApiDocs(_api.MEulerRotation, 'asVector')
     def asVector(self):
+        # type: () -> Vector
         res = _api.MEulerRotation.asVector(self)
         return _f.ApiArgUtil._castResult(self, res, 'MVector', None)
 
     @_f.addApiDocs(_api.MEulerRotation, 'bound')
     def bound(self):
+        # type: () -> EulerRotation
         res = _api.MEulerRotation.bound(self)
         return _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
 
     @_f.addApiDocs(_api.MEulerRotation, 'boundIt')
     def boundIt(self, src):
+        # type: (EulerRotation) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([src], [('src', 'MEulerRotation', 'in', None)])
         res = _api.MEulerRotation.boundIt(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3068,6 +3087,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'closestCut')
     def closestCut(self, dst):
+        # type: (EulerRotation) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([dst], [('dst', 'MEulerRotation', 'in', None)])
         res = _api.MEulerRotation.closestCut(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
@@ -3075,6 +3095,7 @@ class EulerRotation(Array):
 
     @_f.addApiDocs(_api.MEulerRotation, 'closestSolution')
     def closestSolution(self, dst):
+        # type: (EulerRotation) -> EulerRotation
         do, final_do, outTypes = _f.getDoArgs([dst], [('dst', 'MEulerRotation', 'in', None)])
         res = _api.MEulerRotation.closestSolution(self, *final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)

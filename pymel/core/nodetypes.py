@@ -5039,10 +5039,18 @@ class Joint(Transform):
 
 class DynBase(Transform):
     pass
+# ------ Do not edit below this line --------
+    __melnode__ = u'dynBase'
+    __slots__ = ()
+# ------ Do not edit above this line --------
 
 
 class PointEmitter(DynBase):
     pass
+# ------ Do not edit below this line --------
+    __melnode__ = u'pointEmitter'
+    __slots__ = ()
+# ------ Do not edit above this line --------
 
 
 class FluidEmitter(PointEmitter):
@@ -5053,6 +5061,148 @@ class FluidEmitter(PointEmitter):
         saveFluid = effects.saveFluid
         setFluidAttr = effects.setFluidAttr
         getFluidAttr = effects.getFluidAttr
+# ------ Do not edit below this line --------
+    __melcmd__ = staticmethod(effects.fluidEmitter)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = u'fluidEmitter'
+    __melnode__ = u'fluidEmitter'
+    __slots__ = ()
+
+    @_f.addMelDocs('fluidEmitter', 'cycleEmission')
+    def getCycleEmission(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'cycleEmission')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'cycleInterval')
+    def getCycleInterval(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'cycleInterval')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'densityEmissionRate')
+    def getDensityEmissionRate(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'densityEmissionRate')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'fluidDropoff')
+    def getFluidDropoff(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'fluidDropoff')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'fuelEmissionRate')
+    def getFuelEmissionRate(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'fuelEmissionRate')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'heatEmissionRate')
+    def getHeatEmissionRate(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'heatEmissionRate')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'maxDistance')
+    def getMaxDistance(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'maxDistance')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'minDistance')
+    def getMinDistance(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'minDistance')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'position')
+    def getPosition(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'position')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'rate')
+    def getRate(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'rate')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'torusSectionRadius')
+    def getTorusSectionRadius(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'torusSectionRadius')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'type')
+    def getType(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'type')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'volumeOffset')
+    def getVolumeOffset(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'volumeOffset')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'volumeShape')
+    def getVolumeShape(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'volumeShape')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'volumeSweep')
+    def getVolumeSweep(self, **kwargs):
+        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'volumeSweep')
+        return res
+
+    @_f.addMelDocs('fluidEmitter', 'cycleEmission')
+    def setCycleEmission(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'cycleEmission', val)
+
+    @_f.addMelDocs('fluidEmitter', 'cycleInterval')
+    def setCycleInterval(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'cycleInterval', val)
+
+    @_f.addMelDocs('fluidEmitter', 'densityEmissionRate')
+    def setDensityEmissionRate(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'densityEmissionRate', val)
+
+    @_f.addMelDocs('fluidEmitter', 'fluidDropoff')
+    def setFluidDropoff(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'fluidDropoff', val)
+
+    @_f.addMelDocs('fluidEmitter', 'fuelEmissionRate')
+    def setFuelEmissionRate(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'fuelEmissionRate', val)
+
+    @_f.addMelDocs('fluidEmitter', 'heatEmissionRate')
+    def setHeatEmissionRate(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'heatEmissionRate', val)
+
+    @_f.addMelDocs('fluidEmitter', 'maxDistance')
+    def setMaxDistance(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'maxDistance', val)
+
+    @_f.addMelDocs('fluidEmitter', 'minDistance')
+    def setMinDistance(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'minDistance', val)
+
+    @_f.addMelDocs('fluidEmitter', 'position')
+    def setPosition(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'position', val)
+
+    @_f.addMelDocs('fluidEmitter', 'rate')
+    def setRate(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'rate', val)
+
+    @_f.addMelDocs('fluidEmitter', 'torusSectionRadius')
+    def setTorusSectionRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'torusSectionRadius', val)
+
+    @_f.addMelDocs('fluidEmitter', 'type')
+    def setType(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'type', val)
+
+    @_f.addMelDocs('fluidEmitter', 'volumeOffset')
+    def setVolumeOffset(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'volumeOffset', val)
+
+    @_f.addMelDocs('fluidEmitter', 'volumeShape')
+    def setVolumeShape(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'volumeShape', val)
+
+    @_f.addMelDocs('fluidEmitter', 'volumeSweep')
+    def setVolumeSweep(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'volumeSweep', val)
+# ------ Do not edit above this line --------
 
 
 class RenderLayer(DependNode):
@@ -11677,6 +11827,129 @@ class Ffd(WeightGeometryFilter):
         do, final_do, outTypes = _f.processApiArgs([x, y, z], [('x', 'uint', 'in', None), ('y', 'uint', 'in', None), ('z', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'setDivisions', final_do)
         return res
+
+
+class JointFfd(Ffd):
+    __apicls__ = _api.MFnDependencyNode
+    __melnode__ = u'jointFfd'
+    __slots__ = ()
+    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'kLocalDynamicAttr': 1, 'kNormalAttr': 2, 'normalAttr': 2, 'kExtensionAttr': 3, 'extensionAttr': 3, 'kInvalidAttr': 4, 'invalidAttr': 4}, multiKeys=True, defaultKeys={1: 'localDynamicAttr', 2: 'normalAttr', 3: 'extensionAttr', 4: 'invalidAttr'})
+    MdgTimerMetric = Enum('MdgTimerMetric', {'kTimerMetric_callback': 0, 'metric_callback': 0, 'metric_compute': 1, 'kTimerMetric_compute': 1, 'kTimerMetric_dirty': 2, 'metric_dirty': 2, 'metric_draw': 3, 'kTimerMetric_draw': 3, 'kTimerMetric_fetch': 4, 'metric_fetch': 4, 'kTimerMetric_callbackViaAPI': 5, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'kTimerMetric_callbackNotViaAPI': 6, 'kTimerMetric_computeDuringCallback': 7, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'kTimerMetric_computeNotDuringCallback': 8, 'kTimerMetrics': 9, 'metrics': 9}, multiKeys=True, defaultKeys={0: 'metric_callback', 1: 'metric_compute', 2: 'metric_dirty', 3: 'metric_draw', 4: 'metric_fetch', 5: 'metric_callbackViaAPI', 6: 'metric_callbackNotViaAPI', 7: 'metric_computeDuringCallback', 8: 'metric_computeNotDuringCallback', 9: 'metrics'})
+    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'kTimerOff': 0, 'on': 1, 'kTimerOn': 1, 'uninitialized': 2, 'kTimerUninitialized': 2, 'invalidState': 3, 'kTimerInvalidState': 3}, multiKeys=True, defaultKeys={0: 'off', 1: 'on', 2: 'uninitialized', 3: 'invalidState'})
+    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'kTimerType_self': 0, 'type_inclusive': 1, 'kTimerType_inclusive': 1, 'type_count': 2, 'kTimerType_count': 2, 'kTimerTypes': 3, 'types': 3}, multiKeys=True, defaultKeys={0: 'type_self', 1: 'type_inclusive', 2: 'type_count', 3: 'types'})
+
+
+class TransferAttributes(WeightGeometryFilter):
+    __apicls__ = _api.MFnDependencyNode
+    __melcmd__ = staticmethod(modeling.transferAttributes)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = u'transferAttributes'
+    __melnode__ = u'transferAttributes'
+    __slots__ = ()
+    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'kLocalDynamicAttr': 1, 'kNormalAttr': 2, 'normalAttr': 2, 'kExtensionAttr': 3, 'extensionAttr': 3, 'kInvalidAttr': 4, 'invalidAttr': 4}, multiKeys=True, defaultKeys={1: 'localDynamicAttr', 2: 'normalAttr', 3: 'extensionAttr', 4: 'invalidAttr'})
+    MdgTimerMetric = Enum('MdgTimerMetric', {'kTimerMetric_callback': 0, 'metric_callback': 0, 'metric_compute': 1, 'kTimerMetric_compute': 1, 'kTimerMetric_dirty': 2, 'metric_dirty': 2, 'metric_draw': 3, 'kTimerMetric_draw': 3, 'kTimerMetric_fetch': 4, 'metric_fetch': 4, 'kTimerMetric_callbackViaAPI': 5, 'metric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'kTimerMetric_callbackNotViaAPI': 6, 'kTimerMetric_computeDuringCallback': 7, 'metric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'kTimerMetric_computeNotDuringCallback': 8, 'kTimerMetrics': 9, 'metrics': 9}, multiKeys=True, defaultKeys={0: 'metric_callback', 1: 'metric_compute', 2: 'metric_dirty', 3: 'metric_draw', 4: 'metric_fetch', 5: 'metric_callbackViaAPI', 6: 'metric_callbackNotViaAPI', 7: 'metric_computeDuringCallback', 8: 'metric_computeNotDuringCallback', 9: 'metrics'})
+    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'kTimerOff': 0, 'on': 1, 'kTimerOn': 1, 'uninitialized': 2, 'kTimerUninitialized': 2, 'invalidState': 3, 'kTimerInvalidState': 3}, multiKeys=True, defaultKeys={0: 'off', 1: 'on', 2: 'uninitialized', 3: 'invalidState'})
+    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'kTimerType_self': 0, 'type_inclusive': 1, 'kTimerType_inclusive': 1, 'type_count': 2, 'kTimerType_count': 2, 'kTimerTypes': 3, 'types': 3}, multiKeys=True, defaultKeys={0: 'type_self', 1: 'type_inclusive', 2: 'type_count', 3: 'types'})
+
+    @_f.addMelDocs('transferAttributes', 'after')
+    def after(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'after', val)
+
+    @_f.addMelDocs('transferAttributes', 'afterReference')
+    def afterReference(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'afterReference', val)
+
+    @_f.addMelDocs('transferAttributes', 'before')
+    def before(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'before', val)
+
+    @_f.addMelDocs('transferAttributes', 'colorBorders')
+    def colorBorders(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'colorBorders', val)
+
+    @_f.addMelDocs('transferAttributes', 'flipUVs')
+    def flipUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'flipUVs', val)
+
+    @_f.addMelDocs('transferAttributes', 'frontOfChain')
+    def frontOfChain(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'frontOfChain', val)
+
+    @_f.addMelDocs('transferAttributes', 'deformerTools')
+    def getDeformerTools(self, **kwargs):
+        res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'deformerTools')
+        return res
+
+    @_f.addMelDocs('transferAttributes', 'exclusive')
+    def getExclusive(self, **kwargs):
+        res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'exclusive')
+        return res
+
+    @_f.addMelDocs('transferAttributes', 'geometry')
+    def getGeometry(self, **kwargs):
+        res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'geometry')
+        return res
+
+    @_f.addMelDocs('transferAttributes', 'geometryIndices')
+    def getGeometryIndices(self, **kwargs):
+        res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'geometryIndices')
+        return res
+
+    @_f.addMelDocs('transferAttributes', 'matchChoice')
+    def matchChoice(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'matchChoice', val)
+
+    @_f.addMelDocs('transferAttributes', 'parallel')
+    def parallel(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'parallel', val)
+
+    @_f.addMelDocs('transferAttributes', 'prune')
+    def prune(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'prune', val)
+
+    @_f.addMelDocs('transferAttributes', 'remove')
+    def remove(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'remove', val)
+
+    @_f.addMelDocs('transferAttributes', 'sampleSpace')
+    def sampleSpace(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'sampleSpace', val)
+
+    @_f.addMelDocs('transferAttributes', 'searchMethod')
+    def searchMethod(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'searchMethod', val)
+
+    @_f.addMelDocs('transferAttributes', 'searchScaleX')
+    def searchScaleX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'searchScaleX', val)
+
+    @_f.addMelDocs('transferAttributes', 'searchScaleY')
+    def searchScaleY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'searchScaleY', val)
+
+    @_f.addMelDocs('transferAttributes', 'searchScaleZ')
+    def searchScaleZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'searchScaleZ', val)
+
+    @_f.addMelDocs('transferAttributes', 'geometry')
+    def setGeometry(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'geometry', val)
+
+    @_f.addMelDocs('transferAttributes', 'transferColors')
+    def transferColors(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'transferColors', val)
+
+    @_f.addMelDocs('transferAttributes', 'transferNormals')
+    def transferNormals(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'transferNormals', val)
+
+    @_f.addMelDocs('transferAttributes', 'transferPositions')
+    def transferPositions(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'transferPositions', val)
+
+    @_f.addMelDocs('transferAttributes', 'transferUVs')
+    def transferUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.transferAttributes, kwargs, 'transferUVs', val)
 
 
 class ShrinkWrap(WeightGeometryFilter):
@@ -22474,149 +22747,6 @@ class CollisionModel(DynBase):
     __slots__ = ()
 
 
-class FluidEmitter(PointEmitter):
-    __melcmd__ = staticmethod(effects.fluidEmitter)
-    __melcmd_isinfo__ = False
-    __melcmdname__ = u'fluidEmitter'
-    __melnode__ = u'fluidEmitter'
-    __slots__ = ()
-
-    @_f.addMelDocs('fluidEmitter', 'cycleEmission')
-    def getCycleEmission(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'cycleEmission')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'cycleInterval')
-    def getCycleInterval(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'cycleInterval')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'densityEmissionRate')
-    def getDensityEmissionRate(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'densityEmissionRate')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'fluidDropoff')
-    def getFluidDropoff(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'fluidDropoff')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'fuelEmissionRate')
-    def getFuelEmissionRate(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'fuelEmissionRate')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'heatEmissionRate')
-    def getHeatEmissionRate(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'heatEmissionRate')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'maxDistance')
-    def getMaxDistance(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'maxDistance')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'minDistance')
-    def getMinDistance(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'minDistance')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'position')
-    def getPosition(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'position')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'rate')
-    def getRate(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'rate')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'torusSectionRadius')
-    def getTorusSectionRadius(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'torusSectionRadius')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'type')
-    def getType(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'type')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'volumeOffset')
-    def getVolumeOffset(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'volumeOffset')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'volumeShape')
-    def getVolumeShape(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'volumeShape')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'volumeSweep')
-    def getVolumeSweep(self, **kwargs):
-        res = _f.asQuery(self, effects.fluidEmitter, kwargs, 'volumeSweep')
-        return res
-
-    @_f.addMelDocs('fluidEmitter', 'cycleEmission')
-    def setCycleEmission(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'cycleEmission', val)
-
-    @_f.addMelDocs('fluidEmitter', 'cycleInterval')
-    def setCycleInterval(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'cycleInterval', val)
-
-    @_f.addMelDocs('fluidEmitter', 'densityEmissionRate')
-    def setDensityEmissionRate(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'densityEmissionRate', val)
-
-    @_f.addMelDocs('fluidEmitter', 'fluidDropoff')
-    def setFluidDropoff(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'fluidDropoff', val)
-
-    @_f.addMelDocs('fluidEmitter', 'fuelEmissionRate')
-    def setFuelEmissionRate(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'fuelEmissionRate', val)
-
-    @_f.addMelDocs('fluidEmitter', 'heatEmissionRate')
-    def setHeatEmissionRate(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'heatEmissionRate', val)
-
-    @_f.addMelDocs('fluidEmitter', 'maxDistance')
-    def setMaxDistance(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'maxDistance', val)
-
-    @_f.addMelDocs('fluidEmitter', 'minDistance')
-    def setMinDistance(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'minDistance', val)
-
-    @_f.addMelDocs('fluidEmitter', 'position')
-    def setPosition(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'position', val)
-
-    @_f.addMelDocs('fluidEmitter', 'rate')
-    def setRate(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'rate', val)
-
-    @_f.addMelDocs('fluidEmitter', 'torusSectionRadius')
-    def setTorusSectionRadius(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'torusSectionRadius', val)
-
-    @_f.addMelDocs('fluidEmitter', 'type')
-    def setType(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'type', val)
-
-    @_f.addMelDocs('fluidEmitter', 'volumeOffset')
-    def setVolumeOffset(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'volumeOffset', val)
-
-    @_f.addMelDocs('fluidEmitter', 'volumeShape')
-    def setVolumeShape(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'volumeShape', val)
-
-    @_f.addMelDocs('fluidEmitter', 'volumeSweep')
-    def setVolumeSweep(self, val=True, **kwargs):
-        return _f.asEdit(self, effects.fluidEmitter, kwargs, 'volumeSweep', val)
-
-
 class THfluidEmitter(FluidEmitter):
     __melnode__ = u'THfluidEmitter'
     __slots__ = ()
@@ -32522,12 +32652,14 @@ class InsertKnotSurface(AbstractBaseCreate):
     def setParameter(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.insertKnotSurface, kwargs, 'parameter', val)
 
+
 class BezierCurveToNurbs(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.bezierCurveToNurbs)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'bezierCurveToNurbs'
     __melnode__ = u'bezierCurveToNurbs'
     __slots__ = ()
+
 
 class PointOnSurfaceInfo(AbstractBaseCreate):
     __melnode__ = u'pointOnSurfaceInfo'
