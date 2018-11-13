@@ -3837,12 +3837,6 @@ if _apicache.SYMMETRY_CONSTRAINT_MFNDAG_BUG:
 class HikHandle(Transform):
     __metaclass__ = _factories.MetaMayaNodeWrapper
 
-class JointFfd(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
-
-class TransferAttributes(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
-
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
 class NodetypesLazyLoadModule(_util.LazyLoadModule):
