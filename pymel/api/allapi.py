@@ -323,12 +323,9 @@ def toApiObject(nodeName, dagPlugs=True):
                         dag = MDagPath()
                         sel.getDagPath(1, dag)
 
-                        # TODO: if nucleus/symmetryConstraint bug ever fixed:
-                        #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
-                        #   - remove hard-code setting of Nucleus's parent to DependNode
-                        #   - remove 2 checks in allapi.toApiObject for objects which
-                        #     can have an MDagPath but can't use MFnDagNode
-
+                        # used to be a bug with some types that inherited from DagNode,
+                        # but were not compatibile w/ MFnDagNode... these have been
+                        # fixed, but we leave check in case another one crops up
                         if not dag.node().hasFn(MFn.kDagNode):
                             obj = MObject()
                             sel.getDependNode(1, obj)
@@ -383,12 +380,9 @@ def toApiObject(nodeName, dagPlugs=True):
                 sel.getDagPath(0, dag)
                 # if not isValidMDagPath(dag) : return
 
-                # TODO: if nucleus/symmetryConstraint bug ever fixed:
-                #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
-                #   - remove hard-code setting of Nucleus's parent to DependNode
-                #   - remove 2 checks in allapi.toApiObject for objects which
-                #     can have an MDagPath but can't use MFnDagNode
-
+                # used to be a bug with some types that inherited from DagNode,
+                # but were not compatibile w/ MFnDagNode... these have been
+                # fixed, but we leave check in case another one crops up
                 if not dag.node().hasFn(MFn.kDagNode):
                     raise RuntimeError
                 return dag

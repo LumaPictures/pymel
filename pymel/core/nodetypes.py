@@ -10259,25 +10259,6 @@ class SkinCluster(GeometryFilter):
 # ------ Do not edit above this line --------
 
 
-# TODO: if nucleus/symmetryConstraint bug ever fixed:
-#   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
-#   - remove hard-code setting of Nucleus's parent to DependNode
-#   - remove 2 checks in allapi.toApiObject for objects which can have an MDagPath
-#     but can't use MFnDagNode
-
-if _apicache.NUCLEUS_MFNDAG_BUG:
-    # nucleus has a weird bug where, even though it inherits from transform, and
-    # can be parented in the dag, etc, you can't create an MFnTransform or
-    # MFnDagNode for it... therefore, hardcode it's PyNode to inherit from
-    # DependNode
-    class Nucleus(DependNode):
-        pass
-
-if _apicache.SYMMETRY_CONSTRAINT_MFNDAG_BUG:
-    class SymmetryConstraint(DependNode):
-        pass
-
-
 # TODO: if hikHandle bug ever fixed:
 #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
 #   - remove hard-code setting of HikHandle's parent to Transform
@@ -32542,7 +32523,6 @@ class InsertKnotSurface(AbstractBaseCreate):
     @_f.addMelDocs('insertKnotSurface', 'parameter')
     def setParameter(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.insertKnotSurface, kwargs, 'parameter', val)
-
 
 class BezierCurveToNurbs(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.bezierCurveToNurbs)
