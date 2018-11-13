@@ -2425,7 +2425,16 @@ class Joint(Transform):
     disconnect = _factories.functionFactory(cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory(cmds.insertJoint, rename='insert')
 
-class FluidEmitter(Transform):
+
+class DynBase(Transform):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+
+
+class PointEmitter(DynBase):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+
+
+class FluidEmitter(PointEmitter):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     fluidVoxelInfo = _factories.functionFactory(cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
     loadFluid = _factories.functionFactory(cmds.loadFluid, rename='loadFluid')
