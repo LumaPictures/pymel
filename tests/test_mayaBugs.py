@@ -479,50 +479,89 @@ class TestFluidMFnCreation(unittest.TestCase):
 
 # nucleus node fixed in 2014
 # symmetryConstraint fixed in 2015
+# jointFFd / transferAttributes fixed <= 2016.5
 class TestMFnCompatibility(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
 
-    def _assertInheritMFnConistency(self, nodeType, parentNodeType, mfnType):
+    def assertInheritMFn(self, nodeType, parentNodeType, mfnEnumName, mfnType):
+        if parentNodeType:
+            if isinstance(parentNodeType, tuple):
+                parentNodeType, concreteParentType = parentNodeType
+            else:
+                concreteParentType = parentNodeType
+            self.assertTrue(
+                parentNodeType in cmds.nodeType(nodeType, isTypeName=1,
+                                                inherited=True),
+                "{} did not have parent {}".format(nodeType, parentNodeType))
+            self.assertInheritMFn(concreteParentType, None, mfnEnumName,
+                                  mfnType)
+
+        mfnEnum = getattr(om.MFn, mfnEnumName)
+
         nodeInstName = cmds.createNode(nodeType)
         selList = om.MSelectionList()
         selList.add(nodeInstName)
         mobj = om.MObject()
         selList.getDependNode(0, mobj)
 
-        self.assertTrue(parentNodeType in cmds.nodeType(nodeInstName, inherited=True))
+        self.assertTrue(mobj.hasFn(mfnEnum),
+                        "{} did not have {}".format(nodeType, mfnEnumName))
+
         try:
             mfnType(mobj)
         except Exception, e:
-            raise self.fail("Error creating %s even though %s inherits from %s: %s" %
-                            (mfnType.__name__, nodeType, parentNodeType, e))
+            self.fail("{} did not support {}".format(nodeType,
+                                                     mfnType.__name__))
+
+    def assertNotInheritMFn(self, nodeType, parentNodeType, mfnEnumName,
+                            mfnType):
+        try:
+            self.assertInheritMFn(nodeType, parentNodeType, mfnEnumName,
+                                  mfnType)
+        except AssertionError as e:
+            # this is expected... swallow it
+            pass
+        else:
+            self.fail("{} passed inheritance test (for {} / {}), when it was"
+                      " expceted to fail".format(nodeType, mfnEnumName,
+                                                 mfnType.__name__))
 
     def test_nucleus_MFnDagNode(self):
-        self._assertInheritMFnConistency('nucleus', 'dagNode', om.MFnDagNode)
+        self.assertInheritMFn('nucleus', ('dagNode', 'transform'), 'kDagNode',
+                              om.MFnDagNode)
 
     def test_nucleus_MFnTransform(self):
-        self._assertInheritMFnConistency('nucleus', 'transform', om.MFnTransform)
+        self.assertInheritMFn('nucleus', 'transform', 'kTransform',
+                              om.MFnTransform)
 
     def test_symmetryConstraint_MFnDagNode(self):
-        self._assertInheritMFnConistency('symmetryConstraint', 'dagNode', om.MFnDagNode)
+        self.assertInheritMFn('symmetryConstraint', ('dagNode', 'transform'),
+                              'kDagNode', om.MFnDagNode)
 
     def test_symmetryConstraint_MFnTransform(self):
-        self._assertInheritMFnConistency('symmetryConstraint', 'transform',
-                                         om.MFnTransform)
+        self.assertInheritMFn('symmetryConstraint', 'transform', 'kTransform',
+                              om.MFnTransform)
+
+    def test_jointFfd_ffd(self):
+        self.assertInheritMFn('jointFfd', 'ffd', 'kFFD', oma.MFnLatticeDeformer)
+
+
+    def test_transferAttributes_weightGeometryFilter(self):
+        self.assertInheritMFn(
+            'transferAttributes', ('weightGeometryFilter', 'softMod'),
+            'kWeightGeometryFilt', oma.MFnWeightGeometryFilter)
+
+    def test_transferAttributes_geometryFilter(self):
+        self.assertInheritMFn(
+            'transferAttributes', ('geometryFilter', 'softMod'),
+            'kGeometryFilt', oma.MFnGeometryFilter)
 
     # These probably aren't strictly considered "bugs" by autodesk, though I
     # think they should be...
-#    def test_hikHandle_MFnIkHandle(self):
-#        self._assertInheritMFnConistency('hikHandle', 'ikHandle', oma.MFnIkHandle)
-#
-#    def test_jointFfd_MFnLatticeDeformer(self):
-#        self._assertInheritMFnConistency('jointFfd', 'ffd', oma.MFnLatticeDeformer)
-#
-#    def test_transferAttributes_MFnWeightGeometryFilter(self):
-#        self._assertInheritMFnConistency('transferAttributes', 'weightGeometryFilter', oma.MFnWeightGeometryFilter)
-#
-#    def test_transferAttributes_MFnGeometryFilter(self):
-#        self._assertInheritMFnConistency('transferAttributes', 'geometryFilter', oma.MFnGeometryFilter)
+    def test_hikHandle_ikHandle(self):
+        self.assertNotInheritMFn('hikHandle', 'ikHandle', 'kIkHandle',
+                                 oma.MFnIkHandle)
 
 
 # Fixed in 2014! yay!
