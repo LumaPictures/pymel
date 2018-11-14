@@ -45,6 +45,7 @@ CORE_CMD_MODULES = [
     ('pymel.core.system', None),
 ]
 
+
 env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
 
@@ -916,6 +917,7 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
 
 
 class MelMethodGenerator(object):
+    classToMethodTypes = util.defaultdict(dict)
 
     def __init__(self, classname, existingClass, parentClasses, parentMethods):
         # type: (str, Type, Iterable[str], Iterable[str]) -> None
@@ -946,8 +948,15 @@ class MelMethodGenerator(object):
     def assign(self, name, value):
         self.attrs[name] = Assignment(name, value)
 
-    def addMethod(self, name, data=None, **kwargs):
+    def addMethod(self, name, methodType, data=None, **kwargs):
+        self.classToMethodTypes[self.classname][name] = methodType
         self.methods[name] = Method(self.classname, name, data=data, **kwargs)
+
+    def addMelMethod(self, name, data=None, **kwargs):
+        return self.addMethod(name, 'mel', data=data, **kwargs)
+
+    def addApiMethod(self, name, data=None, **kwargs):
+        return self.addMethod(name, 'api', data=data, **kwargs)
 
     def render(self):
         self.getTemplateData()
@@ -1016,8 +1025,16 @@ class MelMethodGenerator(object):
             filterAttrs.update(self.attrs.keys())
             # already created methods for this class:
             filterAttrs.update(self.methods.keys())
-            # methods on parent classes:
-            filterAttrs.update(self.herited)
+            # filter methods on parent classes, if they're not from MEL
+            #   we always override mel-generated flags, as there's no guarantee
+            #   that, ie, rowLayout -dragCallback won't have
+            #   some extra functionality as compared to layout -dragCallback.
+            filterAttrs.update(x for x in self.herited
+                               if not self.isMelMethod(x))
+            # # instead, we only filter out a specific set of methods, if they're
+            # # implemented on ancestors
+            # filterAttrs.update({'getParent'}.intersection(self.herited))
+
             filterAttrs.update(factories.overrideMethods.get(self.parentClassname, []))
 
             for flag, flagInfo in cmdInfo['flags'].items():
@@ -1035,8 +1052,6 @@ class MelMethodGenerator(object):
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
 
-                        factories.classToMelMap[self.classname].append(methodName)
-
                         if methodName not in filterAttrs and \
                                 (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
 
@@ -1052,7 +1067,7 @@ class MelMethodGenerator(object):
                                     returnFunc = flagInfo['args']
 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                self.addMethod(methodName, {
+                                self.addMelMethod(methodName, {
                                     'command': melCmdName,
                                     'type': 'query',
                                     'flag': flag,
@@ -1070,8 +1085,6 @@ class MelMethodGenerator(object):
                         else:
                             methodName = flag
 
-                        factories.classToMelMap[self.classname].append(methodName)
-
                         if methodName not in filterAttrs and \
                                 (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
                             bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
@@ -1084,7 +1097,7 @@ class MelMethodGenerator(object):
                                 # fixedFunc = fixCallbacks(func, melCmdName)
 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                self.addMethod(methodName, {
+                                self.addMelMethod(methodName, {
                                     'command': melCmdName,
                                     'type': 'edit',
                                     'flag': flag,
@@ -1102,14 +1115,23 @@ class MelMethodGenerator(object):
         raise NotImplementedError
         # return util.uncapitalize(self.classname), False
 
+    def classnameMRO(self):
+        yield self.classname
+        for parent in self.parentClasses:
+            yield parent
+
+    def methodType(self, methodName):
+        for classname in self.classnameMRO():
+            methodType = self.classToMethodTypes[classname].get(methodName)
+            if methodType is not None:
+                return methodType
+        return None
+
     def isMelMethod(self, methodName):
         """
         Determine if the passed method name exists on a parent class as a mel method
         """
-        for classname in self.parentClasses:
-            if methodName in factories.classToMelMap.get(classname, ()):
-                return True
-        return False
+        return self.methodType(methodName) == 'mel'
 
     def docstring(self, melCmdName):
         try:
@@ -1330,7 +1352,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                                             deprecated=deprecated, aliases=aliases,
                                             properties=properties)
                         if doc:
-                            self.addMethod(pymelName, doc)
+                            self.addApiMethod(pymelName, doc)
                         #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
                     #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
                 #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
@@ -1371,7 +1393,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         if self.removeAttrs:
             # because datatype classes inherit from their API classes, if a
             # method is renamed, we must also remove the inherited API method.
-            self.addMethod('__getattribute__', {
+            self.addApiMethod('__getattribute__', {
                 'type': 'getattribute',
                 'removeAttrs': _setRepr(self.removeAttrs),
             })

@@ -498,11 +498,6 @@ if docstringMode == 'html':
             pass
 
 
-# FIXME
-#: stores a dictionary of pymel classnames to mel method names
-classToMelMap = util.defaultdict(list)
-
-
 def _getApiOverrideNameAndData(classname, pymelName):
     explicitRename = False
     if apiToMelData.has_key((classname, pymelName)):
@@ -3275,16 +3270,6 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         Intended to be overridden in derived metaclasses.
         """
         return util.uncapitalize(cls.__name__), False
-
-    @classmethod
-    def isMelMethod(cls, methodName, parentClassList):
-        """
-        Deteremine if the passed method name exists on a parent class as a mel method
-        """
-        for classname in parentClassList:
-            if methodName in classToMelMap[classname]:
-                return True
-        return False
 
     @classmethod
     def docstring(cls, melCmdName):

@@ -16519,6 +16519,122 @@ class NParticle(NBase):
     __melnode__ = u'nParticle'
     __slots__ = ()
 
+    @_f.addMelDocs('nParticle', 'floatValue')
+    def floatValue(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'floatValue', val)
+
+    @_f.addMelDocs('nParticle', 'attribute')
+    def getAttribute(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'attribute')
+        return res
+
+    @_f.addMelDocs('nParticle', 'cache')
+    def getCache(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'cache')
+        return res
+
+    @_f.addMelDocs('nParticle', 'conserve')
+    def getConserve(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'conserve')
+        return res
+
+    @_f.addMelDocs('nParticle', 'dynamicAttrList')
+    def getDynamicAttrList(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'dynamicAttrList')
+        return res
+
+    @_f.addMelDocs('nParticle', 'gridSpacing')
+    def getGridSpacing(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'gridSpacing')
+        return res
+
+    @_f.addMelDocs('nParticle', 'inherit')
+    def getInherit(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'inherit')
+        return res
+
+    @_f.addMelDocs('nParticle', 'jitterBasePoint')
+    def getJitterBasePoint(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'jitterBasePoint')
+        return res
+
+    @_f.addMelDocs('nParticle', 'jitterRadius')
+    def getJitterRadius(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'jitterRadius')
+        return res
+
+    @_f.addMelDocs('nParticle', 'lowerLeft')
+    def getLowerLeft(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'lowerLeft')
+        return res
+
+    @_f.addMelDocs('nParticle', 'numJitters')
+    def getNumJitters(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'numJitters')
+        return res
+
+    @_f.addMelDocs('nParticle', 'order')
+    def getOrder(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'order')
+        return res
+
+    @_f.addMelDocs('nParticle', 'particleId')
+    def getParticleId(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'particleId')
+        return res
+
+    @_f.addMelDocs('nParticle', 'perParticleDouble')
+    def getPerParticleDouble(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'perParticleDouble')
+        return res
+
+    @_f.addMelDocs('nParticle', 'perParticleVector')
+    def getPerParticleVector(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'perParticleVector')
+        return res
+
+    @_f.addMelDocs('nParticle', 'shapeName')
+    def getShapeName(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'shapeName')
+        return res
+
+    @_f.addMelDocs('nParticle', 'upperRight')
+    def getUpperRight(self, **kwargs):
+        res = _f.asQuery(self, effects.nParticle, kwargs, 'upperRight')
+        return res
+
+    @_f.addMelDocs('nParticle', 'attribute')
+    def setAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'attribute', val)
+
+    @_f.addMelDocs('nParticle', 'cache')
+    def setCache(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'cache', val)
+
+    @_f.addMelDocs('nParticle', 'conserve')
+    def setConserve(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'conserve', val)
+
+    @_f.addMelDocs('nParticle', 'inherit')
+    def setInherit(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'inherit', val)
+
+    @_f.addMelDocs('nParticle', 'order')
+    def setOrder(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'order', val)
+
+    @_f.addMelDocs('nParticle', 'particleId')
+    def setParticleId(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'particleId', val)
+
+    @_f.addMelDocs('nParticle', 'shapeName')
+    def setShapeName(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'shapeName', val)
+
+    @_f.addMelDocs('nParticle', 'vectorValue')
+    def vectorValue(self, val=True, **kwargs):
+        return _f.asEdit(self, effects.nParticle, kwargs, 'vectorValue', val)
+
 
 class NRigid(NBase):
     __melnode__ = u'nRigid'
@@ -18390,6 +18506,24 @@ class PoleVectorConstraint(PointConstraint):
     __melcmdname__ = u'poleVectorConstraint'
     __melnode__ = u'poleVectorConstraint'
     __slots__ = ()
+
+    @_f.addMelDocs('poleVectorConstraint', 'targetList')
+    def getTargetList(self, **kwargs):
+        res = _f.asQuery(self, animation.poleVectorConstraint, kwargs, 'targetList')
+        return res
+
+    @_f.addMelDocs('poleVectorConstraint', 'weightAliasList')
+    def getWeightAliasList(self, **kwargs):
+        res = _f.asQuery(self, animation.poleVectorConstraint, kwargs, 'weightAliasList')
+        return res
+
+    @_f.addMelDocs('poleVectorConstraint', 'layer')
+    def layer(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.poleVectorConstraint, kwargs, 'layer', val)
+
+    @_f.addMelDocs('poleVectorConstraint', 'remove')
+    def remove(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.poleVectorConstraint, kwargs, 'remove', val)
 
 
 class PointOnPolyConstraint(Constraint):
@@ -22140,6 +22274,11 @@ class JointCluster(Cluster):
         res = _f.asQuery(self, animation.jointCluster, kwargs, 'belowValue')
         return res
 
+    @_f.addMelDocs('jointCluster', 'deformerTools')
+    def getDeformerTools(self, **kwargs):
+        res = _f.asQuery(self, animation.jointCluster, kwargs, 'deformerTools')
+        return res
+
     @_f.addMelDocs('jointCluster', 'aboveBound')
     def setAboveBound(self, val=True, **kwargs):
         return _f.asEdit(self, animation.jointCluster, kwargs, 'aboveBound', val)
@@ -23875,9 +24014,47 @@ class PolyCone(PolyPrimitive):
     __melnode__ = u'polyCone'
     __slots__ = ()
 
+    @_f.addMelDocs('polyCone', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyCone', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyCone', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyCone', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'createUVs')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyCone', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'frozen')
+        return res
+
     @_f.addMelDocs('polyCone', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCone, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('polyCone', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyCone', 'radius')
+    def getRadius(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'radius')
         return res
 
     @_f.addMelDocs('polyCone', 'roundCap')
@@ -23922,9 +24099,39 @@ class PolyCone(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyCone', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'texture')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyCone', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyCone', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyCone', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'createUVs', val)
+
+    @_f.addMelDocs('polyCone', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'frozen', val)
+
     @_f.addMelDocs('polyCone', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCone, kwargs, 'height', val)
+
+    @_f.addMelDocs('polyCone', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyCone', 'radius')
+    def setRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'radius', val)
 
     @_f.addMelDocs('polyCone', 'roundCap')
     def setRoundCap(self, val=True, **kwargs):
@@ -23954,6 +24161,10 @@ class PolyCone(PolyPrimitive):
     def setSubdivisionsZ(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCone, kwargs, 'subdivisionsZ', val)
 
+    @_f.addMelDocs('polyCone', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'texture', val)
+
 
 class PolyCube(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyCube)
@@ -23962,14 +24173,47 @@ class PolyCube(PolyPrimitive):
     __melnode__ = u'polyCube'
     __slots__ = ()
 
+    @_f.addMelDocs('polyCube', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyCube', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyCube', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyCube', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'createUVs')
+        res = int(res)
+        return res
+
     @_f.addMelDocs('polyCube', 'depth')
     def getDepth(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCube, kwargs, 'depth')
         return res
 
+    @_f.addMelDocs('polyCube', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'frozen')
+        return res
+
     @_f.addMelDocs('polyCube', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCube, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('polyCube', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'nodeState')
+        res = int(res)
         return res
 
     @_f.addMelDocs('polyCube', 'subdivisionsDepth')
@@ -24008,18 +24252,44 @@ class PolyCube(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyCube', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'texture')
+        res = int(res)
+        return res
+
     @_f.addMelDocs('polyCube', 'width')
     def getWidth(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCube, kwargs, 'width')
         return res
 
+    @_f.addMelDocs('polyCube', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyCube', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyCube', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'createUVs', val)
+
     @_f.addMelDocs('polyCube', 'depth')
     def setDepth(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'depth', val)
 
+    @_f.addMelDocs('polyCube', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'frozen', val)
+
     @_f.addMelDocs('polyCube', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'height', val)
+
+    @_f.addMelDocs('polyCube', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'nodeState', val)
 
     @_f.addMelDocs('polyCube', 'subdivisionsDepth')
     def setSubdivisionsDepth(self, val=True, **kwargs):
@@ -24045,6 +24315,10 @@ class PolyCube(PolyPrimitive):
     def setSubdivisionsZ(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'subdivisionsZ', val)
 
+    @_f.addMelDocs('polyCube', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'texture', val)
+
     @_f.addMelDocs('polyCube', 'width')
     def setWidth(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'width', val)
@@ -24057,9 +24331,47 @@ class PolyCylinder(PolyPrimitive):
     __melnode__ = u'polyCylinder'
     __slots__ = ()
 
+    @_f.addMelDocs('polyCylinder', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'createUVs')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'frozen')
+        return res
+
     @_f.addMelDocs('polyCylinder', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'radius')
+    def getRadius(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'radius')
         return res
 
     @_f.addMelDocs('polyCylinder', 'roundCap')
@@ -24104,9 +24416,39 @@ class PolyCylinder(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyCylinder', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'texture')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyCylinder', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyCylinder', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'createUVs', val)
+
+    @_f.addMelDocs('polyCylinder', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'frozen', val)
+
     @_f.addMelDocs('polyCylinder', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCylinder, kwargs, 'height', val)
+
+    @_f.addMelDocs('polyCylinder', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyCylinder', 'radius')
+    def setRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'radius', val)
 
     @_f.addMelDocs('polyCylinder', 'roundCap')
     def setRoundCap(self, val=True, **kwargs):
@@ -24136,6 +24478,10 @@ class PolyCylinder(PolyPrimitive):
     def setSubdivisionsZ(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCylinder, kwargs, 'subdivisionsZ', val)
 
+    @_f.addMelDocs('polyCylinder', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'texture', val)
+
 
 class PolyHelix(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyHelix)
@@ -24144,9 +24490,31 @@ class PolyHelix(PolyPrimitive):
     __melnode__ = u'polyHelix'
     __slots__ = ()
 
+    @_f.addMelDocs('polyHelix', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyHelix', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'caching')
+        res = bool(res)
+        return res
+
     @_f.addMelDocs('polyHelix', 'coils')
     def getCoils(self, **kwargs):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'coils')
+        return res
+
+    @_f.addMelDocs('polyHelix', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyHelix', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'createUVs')
+        res = int(res)
         return res
 
     @_f.addMelDocs('polyHelix', 'direction')
@@ -24155,9 +24523,25 @@ class PolyHelix(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyHelix', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'frozen')
+        return res
+
     @_f.addMelDocs('polyHelix', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('polyHelix', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyHelix', 'radius')
+    def getRadius(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'radius')
         return res
 
     @_f.addMelDocs('polyHelix', 'roundCap')
@@ -24184,6 +24568,12 @@ class PolyHelix(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyHelix', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'texture')
+        res = int(res)
+        return res
+
     @_f.addMelDocs('polyHelix', 'useOldInitBehaviour')
     def getUseOldInitBehaviour(self, **kwargs):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'useOldInitBehaviour')
@@ -24195,17 +24585,41 @@ class PolyHelix(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'width')
         return res
 
+    @_f.addMelDocs('polyHelix', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyHelix', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'caching', val)
+
     @_f.addMelDocs('polyHelix', 'coils')
     def setCoils(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'coils', val)
+
+    @_f.addMelDocs('polyHelix', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'createUVs', val)
 
     @_f.addMelDocs('polyHelix', 'direction')
     def setDirection(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'direction', val)
 
+    @_f.addMelDocs('polyHelix', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'frozen', val)
+
     @_f.addMelDocs('polyHelix', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'height', val)
+
+    @_f.addMelDocs('polyHelix', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyHelix', 'radius')
+    def setRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'radius', val)
 
     @_f.addMelDocs('polyHelix', 'roundCap')
     def setRoundCap(self, val=True, **kwargs):
@@ -24223,6 +24637,10 @@ class PolyHelix(PolyPrimitive):
     def setSubdivisionsCoil(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'subdivisionsCoil', val)
 
+    @_f.addMelDocs('polyHelix', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'texture', val)
+
     @_f.addMelDocs('polyHelix', 'useOldInitBehaviour')
     def setUseOldInitBehaviour(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'useOldInitBehaviour', val)
@@ -24239,9 +24657,47 @@ class PolyPipe(PolyPrimitive):
     __melnode__ = u'polyPipe'
     __slots__ = ()
 
+    @_f.addMelDocs('polyPipe', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyPipe', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyPipe', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyPipe', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'createUVs')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyPipe', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'frozen')
+        return res
+
     @_f.addMelDocs('polyPipe', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPipe, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('polyPipe', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyPipe', 'radius')
+    def getRadius(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'radius')
         return res
 
     @_f.addMelDocs('polyPipe', 'roundCap')
@@ -24268,14 +24724,44 @@ class PolyPipe(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyPipe', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'texture')
+        res = bool(res)
+        return res
+
     @_f.addMelDocs('polyPipe', 'thickness')
     def getThickness(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPipe, kwargs, 'thickness')
         return res
 
+    @_f.addMelDocs('polyPipe', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyPipe', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyPipe', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'createUVs', val)
+
+    @_f.addMelDocs('polyPipe', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'frozen', val)
+
     @_f.addMelDocs('polyPipe', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPipe, kwargs, 'height', val)
+
+    @_f.addMelDocs('polyPipe', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyPipe', 'radius')
+    def setRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'radius', val)
 
     @_f.addMelDocs('polyPipe', 'roundCap')
     def setRoundCap(self, val=True, **kwargs):
@@ -24293,6 +24779,10 @@ class PolyPipe(PolyPrimitive):
     def setSubdivisionsHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPipe, kwargs, 'subdivisionsHeight', val)
 
+    @_f.addMelDocs('polyPipe', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'texture', val)
+
     @_f.addMelDocs('polyPipe', 'thickness')
     def setThickness(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPipe, kwargs, 'thickness', val)
@@ -24305,9 +24795,42 @@ class PolyPlane(PolyPrimitive):
     __melnode__ = u'polyPlane'
     __slots__ = ()
 
+    @_f.addMelDocs('polyPlane', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyPlane', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyPlane', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyPlane', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'createUVs')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyPlane', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'frozen')
+        return res
+
     @_f.addMelDocs('polyPlane', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlane, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('polyPlane', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'nodeState')
+        res = int(res)
         return res
 
     @_f.addMelDocs('polyPlane', 'subdivisionsHeight')
@@ -24334,14 +24857,40 @@ class PolyPlane(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyPlane', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'texture')
+        res = int(res)
+        return res
+
     @_f.addMelDocs('polyPlane', 'width')
     def getWidth(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlane, kwargs, 'width')
         return res
 
+    @_f.addMelDocs('polyPlane', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyPlane', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyPlane', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'createUVs', val)
+
+    @_f.addMelDocs('polyPlane', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'frozen', val)
+
     @_f.addMelDocs('polyPlane', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'height', val)
+
+    @_f.addMelDocs('polyPlane', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'nodeState', val)
 
     @_f.addMelDocs('polyPlane', 'subdivisionsHeight')
     def setSubdivisionsHeight(self, val=True, **kwargs):
@@ -24359,6 +24908,10 @@ class PolyPlane(PolyPrimitive):
     def setSubdivisionsY(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'subdivisionsY', val)
 
+    @_f.addMelDocs('polyPlane', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'texture', val)
+
     @_f.addMelDocs('polyPlane', 'width')
     def setWidth(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'width', val)
@@ -24370,6 +24923,67 @@ class PolyPlatonicSolid(PolyPrimitive):
     __melcmdname__ = u'polyPlatonicSolid'
     __melnode__ = u'polyPlatonicSolid'
     __slots__ = ()
+
+    @_f.addMelDocs('polyPlatonicSolid', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyPlatonicSolid', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyPlatonicSolid', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyPlatonicSolid', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polyPlatonicSolid', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyPlatonicSolid', 'radius')
+    def getRadius(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'radius')
+        return res
+
+    @_f.addMelDocs('polyPlatonicSolid', 'sideLength')
+    def getSideLength(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'sideLength')
+        return res
+
+    @_f.addMelDocs('polyPlatonicSolid', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyPlatonicSolid', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyPlatonicSolid', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyPlatonicSolid', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyPlatonicSolid', 'radius')
+    def setRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'radius', val)
+
+    @_f.addMelDocs('polyPlatonicSolid', 'sideLength')
+    def setSideLength(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'sideLength', val)
 
 
 class PolyPrimitiveMisc(PolyPrimitive):
@@ -24387,9 +25001,36 @@ class PolyPrism(PolyPrimitive):
     __melnode__ = u'polyPrism'
     __slots__ = ()
 
+    @_f.addMelDocs('polyPrism', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyPrism', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyPrism', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyPrism', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'frozen')
+        return res
+
     @_f.addMelDocs('polyPrism', 'length')
     def getLength(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrism, kwargs, 'length')
+        return res
+
+    @_f.addMelDocs('polyPrism', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'nodeState')
+        res = int(res)
         return res
 
     @_f.addMelDocs('polyPrism', 'numberOfSides')
@@ -24404,6 +25045,11 @@ class PolyPrism(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyPrism', 'sideLength')
+    def getSideLength(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'sideLength')
+        return res
+
     @_f.addMelDocs('polyPrism', 'subdivisionsCaps')
     def getSubdivisionsCaps(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrism, kwargs, 'subdivisionsCaps')
@@ -24416,9 +25062,25 @@ class PolyPrism(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyPrism', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrism, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyPrism', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrism, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyPrism', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrism, kwargs, 'frozen', val)
+
     @_f.addMelDocs('polyPrism', 'length')
     def setLength(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrism, kwargs, 'length', val)
+
+    @_f.addMelDocs('polyPrism', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrism, kwargs, 'nodeState', val)
 
     @_f.addMelDocs('polyPrism', 'numberOfSides')
     def setNumberOfSides(self, val=True, **kwargs):
@@ -24427,6 +25089,10 @@ class PolyPrism(PolyPrimitive):
     @_f.addMelDocs('polyPrism', 'numderOfSides')
     def setNumderOfSides(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrism, kwargs, 'numderOfSides', val)
+
+    @_f.addMelDocs('polyPrism', 'sideLength')
+    def setSideLength(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrism, kwargs, 'sideLength', val)
 
     @_f.addMelDocs('polyPrism', 'subdivisionsCaps')
     def setSubdivisionsCaps(self, val=True, **kwargs):
@@ -24444,6 +25110,39 @@ class PolyPyramid(PolyPrimitive):
     __melnode__ = u'polyPyramid'
     __slots__ = ()
 
+    @_f.addMelDocs('polyPyramid', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyPyramid', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyPyramid', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyPyramid', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'createUVs')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyPyramid', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polyPyramid', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
     @_f.addMelDocs('polyPyramid', 'numberOfSides')
     def getNumberOfSides(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'numberOfSides')
@@ -24454,6 +25153,11 @@ class PolyPyramid(PolyPrimitive):
     def getNumderOfSides(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'numderOfSides')
         res = int(res)
+        return res
+
+    @_f.addMelDocs('polyPyramid', 'sideLength')
+    def getSideLength(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'sideLength')
         return res
 
     @_f.addMelDocs('polyPyramid', 'subdivisionsCaps')
@@ -24468,6 +25172,32 @@ class PolyPyramid(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyPyramid', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'texture')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyPyramid', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyPyramid', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyPyramid', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'createUVs', val)
+
+    @_f.addMelDocs('polyPyramid', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyPyramid', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'nodeState', val)
+
     @_f.addMelDocs('polyPyramid', 'numberOfSides')
     def setNumberOfSides(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPyramid, kwargs, 'numberOfSides', val)
@@ -24475,6 +25205,10 @@ class PolyPyramid(PolyPrimitive):
     @_f.addMelDocs('polyPyramid', 'numderOfSides')
     def setNumderOfSides(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPyramid, kwargs, 'numderOfSides', val)
+
+    @_f.addMelDocs('polyPyramid', 'sideLength')
+    def setSideLength(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'sideLength', val)
 
     @_f.addMelDocs('polyPyramid', 'subdivisionsCaps')
     def setSubdivisionsCaps(self, val=True, **kwargs):
@@ -24484,6 +25218,10 @@ class PolyPyramid(PolyPrimitive):
     def setSubdivisionsHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPyramid, kwargs, 'subdivisionsHeight', val)
 
+    @_f.addMelDocs('polyPyramid', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'texture', val)
+
 
 class PolySphere(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polySphere)
@@ -24491,6 +25229,38 @@ class PolySphere(PolyPrimitive):
     __melcmdname__ = u'polySphere'
     __melnode__ = u'polySphere'
     __slots__ = ()
+
+    @_f.addMelDocs('polySphere', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polySphere', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polySphere', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polySphere', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polySphere', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polySphere', 'radius')
+    def getRadius(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'radius')
+        return res
 
     @_f.addMelDocs('polySphere', 'subdivisionsAxis')
     def getSubdivisionsAxis(self, **kwargs):
@@ -24516,6 +25286,26 @@ class PolySphere(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polySphere', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polySphere, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polySphere', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polySphere, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polySphere', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polySphere, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polySphere', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polySphere, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polySphere', 'radius')
+    def setRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polySphere, kwargs, 'radius', val)
+
     @_f.addMelDocs('polySphere', 'subdivisionsAxis')
     def setSubdivisionsAxis(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polySphere, kwargs, 'subdivisionsAxis', val)
@@ -24539,6 +25329,44 @@ class PolyTorus(PolyPrimitive):
     __melcmdname__ = u'polyTorus'
     __melnode__ = u'polyTorus'
     __slots__ = ()
+
+    @_f.addMelDocs('polyTorus', 'axis')
+    def getAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'axis')
+        return res
+
+    @_f.addMelDocs('polyTorus', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'caching')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyTorus', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyTorus', 'createUVs')
+    def getCreateUVs(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'createUVs')
+        res = bool(res)
+        return res
+
+    @_f.addMelDocs('polyTorus', 'frozen')
+    def getFrozen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polyTorus', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'nodeState')
+        res = int(res)
+        return res
+
+    @_f.addMelDocs('polyTorus', 'radius')
+    def getRadius(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'radius')
+        return res
 
     @_f.addMelDocs('polyTorus', 'sectionRadius')
     def getSectionRadius(self, **kwargs):
@@ -24569,10 +25397,40 @@ class PolyTorus(PolyPrimitive):
         res = int(res)
         return res
 
+    @_f.addMelDocs('polyTorus', 'texture')
+    def getTexture(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'texture')
+        res = bool(res)
+        return res
+
     @_f.addMelDocs('polyTorus', 'twist')
     def getTwist(self, **kwargs):
         res = _f.asQuery(self, modeling.polyTorus, kwargs, 'twist')
         return res
+
+    @_f.addMelDocs('polyTorus', 'axis')
+    def setAxis(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'axis', val)
+
+    @_f.addMelDocs('polyTorus', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyTorus', 'createUVs')
+    def setCreateUVs(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'createUVs', val)
+
+    @_f.addMelDocs('polyTorus', 'frozen')
+    def setFrozen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyTorus', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyTorus', 'radius')
+    def setRadius(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'radius', val)
 
     @_f.addMelDocs('polyTorus', 'sectionRadius')
     def setSectionRadius(self, val=True, **kwargs):
@@ -24593,6 +25451,10 @@ class PolyTorus(PolyPrimitive):
     @_f.addMelDocs('polyTorus', 'subdivisionsY')
     def setSubdivisionsY(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyTorus, kwargs, 'subdivisionsY', val)
+
+    @_f.addMelDocs('polyTorus', 'texture')
+    def setTexture(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'texture', val)
 
     @_f.addMelDocs('polyTorus', 'twist')
     def setTwist(self, val=True, **kwargs):
@@ -24632,6 +25494,11 @@ class PolyBoolOp(PolyUnite):
     __melnode__ = u'polyBoolOp'
     __slots__ = ()
 
+    @_f.addMelDocs('polyBoolOp', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyBoolOp, kwargs, 'caching')
+        return res
+
     @_f.addMelDocs('polyBoolOp', 'faceAreaThreshold')
     def getFaceAreaThreshold(self, **kwargs):
         res = _f.asQuery(self, modeling.polyBoolOp, kwargs, 'faceAreaThreshold')
@@ -24640,6 +25507,11 @@ class PolyBoolOp(PolyUnite):
     @_f.addMelDocs('polyBoolOp', 'mergeUVSets')
     def getMergeUVSets(self, **kwargs):
         res = _f.asQuery(self, modeling.polyBoolOp, kwargs, 'mergeUVSets')
+        return res
+
+    @_f.addMelDocs('polyBoolOp', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyBoolOp, kwargs, 'nodeState')
         return res
 
     @_f.addMelDocs('polyBoolOp', 'operation')
@@ -24662,6 +25534,10 @@ class PolyBoolOp(PolyUnite):
         res = _f.asQuery(self, modeling.polyBoolOp, kwargs, 'vertexDistanceThreshold')
         return res
 
+    @_f.addMelDocs('polyBoolOp', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyBoolOp, kwargs, 'caching', val)
+
     @_f.addMelDocs('polyBoolOp', 'faceAreaThreshold')
     def setFaceAreaThreshold(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBoolOp, kwargs, 'faceAreaThreshold', val)
@@ -24669,6 +25545,10 @@ class PolyBoolOp(PolyUnite):
     @_f.addMelDocs('polyBoolOp', 'mergeUVSets')
     def setMergeUVSets(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBoolOp, kwargs, 'mergeUVSets', val)
+
+    @_f.addMelDocs('polyBoolOp', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyBoolOp, kwargs, 'nodeState', val)
 
     @_f.addMelDocs('polyBoolOp', 'operation')
     def setOperation(self, val=True, **kwargs):
@@ -24694,9 +25574,39 @@ class PolyCBoolOp(PolyBoolOp):
     __melnode__ = u'polyCBoolOp'
     __slots__ = ()
 
+    @_f.addMelDocs('polyCBoolOp', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'caching')
+        return res
+
     @_f.addMelDocs('polyCBoolOp', 'classification')
     def getClassification(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'classification')
+        return res
+
+    @_f.addMelDocs('polyCBoolOp', 'faceAreaThreshold')
+    def getFaceAreaThreshold(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'faceAreaThreshold')
+        return res
+
+    @_f.addMelDocs('polyCBoolOp', 'mergeUVSets')
+    def getMergeUVSets(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'mergeUVSets')
+        return res
+
+    @_f.addMelDocs('polyCBoolOp', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'nodeState')
+        return res
+
+    @_f.addMelDocs('polyCBoolOp', 'operation')
+    def getOperation(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'operation')
+        return res
+
+    @_f.addMelDocs('polyCBoolOp', 'preserveColor')
+    def getPreserveColor(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'preserveColor')
         return res
 
     @_f.addMelDocs('polyCBoolOp', 'useCarveBooleans')
@@ -24704,13 +25614,55 @@ class PolyCBoolOp(PolyBoolOp):
         res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'useCarveBooleans')
         return res
 
+    @_f.addMelDocs('polyCBoolOp', 'useThresholds')
+    def getUseThresholds(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'useThresholds')
+        return res
+
+    @_f.addMelDocs('polyCBoolOp', 'vertexDistanceThreshold')
+    def getVertexDistanceThreshold(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'vertexDistanceThreshold')
+        return res
+
+    @_f.addMelDocs('polyCBoolOp', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'caching', val)
+
     @_f.addMelDocs('polyCBoolOp', 'classification')
     def setClassification(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'classification', val)
 
+    @_f.addMelDocs('polyCBoolOp', 'faceAreaThreshold')
+    def setFaceAreaThreshold(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'faceAreaThreshold', val)
+
+    @_f.addMelDocs('polyCBoolOp', 'mergeUVSets')
+    def setMergeUVSets(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'mergeUVSets', val)
+
+    @_f.addMelDocs('polyCBoolOp', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyCBoolOp', 'operation')
+    def setOperation(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'operation', val)
+
+    @_f.addMelDocs('polyCBoolOp', 'preserveColor')
+    def setPreserveColor(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'preserveColor', val)
+
     @_f.addMelDocs('polyCBoolOp', 'useCarveBooleans')
     def setUseCarveBooleans(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'useCarveBooleans', val)
+
+    @_f.addMelDocs('polyCBoolOp', 'useThresholds')
+    def setUseThresholds(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'useThresholds', val)
+
+    @_f.addMelDocs('polyCBoolOp', 'vertexDistanceThreshold')
+    def setVertexDistanceThreshold(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'vertexDistanceThreshold', val)
 
 
 class PolyModifier(PolyBase):
@@ -27566,9 +28518,44 @@ class PolyMoveEdge(PolyMoveVertex):
     __melnode__ = u'polyMoveEdge'
     __slots__ = ()
 
+    @_f.addMelDocs('polyMoveEdge', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'caching')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'gain')
+    def getGain(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'gain')
+        return res
+
     @_f.addMelDocs('polyMoveEdge', 'localCenter')
     def getLocalCenter(self, **kwargs):
         res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localCenter')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirection')
+    def getLocalDirection(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localDirection')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirectionX')
+    def getLocalDirectionX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localDirectionX')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirectionY')
+    def getLocalDirectionY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localDirectionY')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirectionZ')
+    def getLocalDirectionZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localDirectionZ')
         return res
 
     @_f.addMelDocs('polyMoveEdge', 'localRotate')
@@ -27611,9 +28598,148 @@ class PolyMoveEdge(PolyMoveVertex):
         res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localScaleZ')
         return res
 
+    @_f.addMelDocs('polyMoveEdge', 'localTranslate')
+    def getLocalTranslate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localTranslate')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'localTranslateX')
+    def getLocalTranslateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localTranslateX')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'localTranslateY')
+    def getLocalTranslateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localTranslateY')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'localTranslateZ')
+    def getLocalTranslateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'localTranslateZ')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'nodeState')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'pivot')
+    def getPivot(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'pivot')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'pivotX')
+    def getPivotX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'pivotX')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'pivotY')
+    def getPivotY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'pivotY')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'pivotZ')
+    def getPivotZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'pivotZ')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'random')
+    def getRandom(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'random')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'rotate')
+    def getRotate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'rotate')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'rotateX')
+    def getRotateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'rotateX')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'rotateY')
+    def getRotateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'rotateY')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'rotateZ')
+    def getRotateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'rotateZ')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'scale')
+    def getScale(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'scale')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'scaleX')
+    def getScaleX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'scaleX')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'scaleY')
+    def getScaleY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'scaleY')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'scaleZ')
+    def getScaleZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'scaleZ')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'translate')
+    def getTranslate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'translate')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'translateX')
+    def getTranslateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'translateX')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'translateY')
+    def getTranslateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'translateY')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'translateZ')
+    def getTranslateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'translateZ')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'worldSpace')
+    def getWorldSpace(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveEdge, kwargs, 'worldSpace')
+        return res
+
+    @_f.addMelDocs('polyMoveEdge', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'gain')
+    def setGain(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'gain', val)
+
     @_f.addMelDocs('polyMoveEdge', 'localCenter')
     def setLocalCenter(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localCenter', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirection')
+    def setLocalDirection(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localDirection', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirectionX')
+    def setLocalDirectionX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localDirectionX', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirectionY')
+    def setLocalDirectionY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localDirectionY', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'localDirectionZ')
+    def setLocalDirectionZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localDirectionZ', val)
 
     @_f.addMelDocs('polyMoveEdge', 'localRotate')
     def setLocalRotate(self, val=True, **kwargs):
@@ -27647,6 +28773,98 @@ class PolyMoveEdge(PolyMoveVertex):
     def setLocalScaleZ(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localScaleZ', val)
 
+    @_f.addMelDocs('polyMoveEdge', 'localTranslate')
+    def setLocalTranslate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localTranslate', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'localTranslateX')
+    def setLocalTranslateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localTranslateX', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'localTranslateY')
+    def setLocalTranslateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localTranslateY', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'localTranslateZ')
+    def setLocalTranslateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'localTranslateZ', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'pivot')
+    def setPivot(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'pivot', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'pivotX')
+    def setPivotX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'pivotX', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'pivotY')
+    def setPivotY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'pivotY', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'pivotZ')
+    def setPivotZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'pivotZ', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'random')
+    def setRandom(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'random', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'rotate')
+    def setRotate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'rotate', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'rotateX')
+    def setRotateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'rotateX', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'rotateY')
+    def setRotateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'rotateY', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'rotateZ')
+    def setRotateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'rotateZ', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'scale')
+    def setScale(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'scale', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'scaleX')
+    def setScaleX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'scaleX', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'scaleY')
+    def setScaleY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'scaleY', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'scaleZ')
+    def setScaleZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'scaleZ', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'translate')
+    def setTranslate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'translate', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'translateX')
+    def setTranslateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'translateX', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'translateY')
+    def setTranslateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'translateY', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'translateZ')
+    def setTranslateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'translateZ', val)
+
+    @_f.addMelDocs('polyMoveEdge', 'worldSpace')
+    def setWorldSpace(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveEdge, kwargs, 'worldSpace', val)
+
 
 class PolyExtrudeEdge(PolyMoveEdge):
     __melcmd__ = staticmethod(modeling.polyExtrudeEdge)
@@ -27655,9 +28873,24 @@ class PolyExtrudeEdge(PolyMoveEdge):
     __melnode__ = u'polyExtrudeEdge'
     __slots__ = ()
 
+    @_f.addMelDocs('polyExtrudeEdge', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'caching')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'constructionHistory')
+        return res
+
     @_f.addMelDocs('polyExtrudeEdge', 'divisions')
     def getDivisions(self, **kwargs):
         res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'divisions')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'gain')
+    def getGain(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'gain')
         return res
 
     @_f.addMelDocs('polyExtrudeEdge', 'keepFacesTogether')
@@ -27665,9 +28898,164 @@ class PolyExtrudeEdge(PolyMoveEdge):
         res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'keepFacesTogether')
         return res
 
+    @_f.addMelDocs('polyExtrudeEdge', 'localCenter')
+    def getLocalCenter(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localCenter')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirection')
+    def getLocalDirection(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localDirection')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirectionX')
+    def getLocalDirectionX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localDirectionX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirectionY')
+    def getLocalDirectionY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localDirectionY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirectionZ')
+    def getLocalDirectionZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localDirectionZ')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotate')
+    def getLocalRotate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localRotate')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotateX')
+    def getLocalRotateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localRotateX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotateY')
+    def getLocalRotateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localRotateY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotateZ')
+    def getLocalRotateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localRotateZ')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScale')
+    def getLocalScale(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localScale')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScaleX')
+    def getLocalScaleX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localScaleX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScaleY')
+    def getLocalScaleY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localScaleY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScaleZ')
+    def getLocalScaleZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localScaleZ')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslate')
+    def getLocalTranslate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localTranslate')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslateX')
+    def getLocalTranslateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localTranslateX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslateY')
+    def getLocalTranslateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localTranslateY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslateZ')
+    def getLocalTranslateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'localTranslateZ')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'nodeState')
+        return res
+
     @_f.addMelDocs('polyExtrudeEdge', 'offset')
     def getOffset(self, **kwargs):
         res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'offset')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivot')
+    def getPivot(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'pivot')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivotX')
+    def getPivotX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'pivotX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivotY')
+    def getPivotY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'pivotY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivotZ')
+    def getPivotZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'pivotZ')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'random')
+    def getRandom(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'random')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotate')
+    def getRotate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'rotate')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotateX')
+    def getRotateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'rotateX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotateY')
+    def getRotateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'rotateY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotateZ')
+    def getRotateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'rotateZ')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scale')
+    def getScale(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'scale')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scaleX')
+    def getScaleX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'scaleX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scaleY')
+    def getScaleY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'scaleY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scaleZ')
+    def getScaleZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'scaleZ')
         return res
 
     @_f.addMelDocs('polyExtrudeEdge', 'smoothingAngle')
@@ -27700,22 +29088,179 @@ class PolyExtrudeEdge(PolyMoveEdge):
         res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'thickness')
         return res
 
+    @_f.addMelDocs('polyExtrudeEdge', 'translate')
+    def getTranslate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'translate')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'translateX')
+    def getTranslateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'translateX')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'translateY')
+    def getTranslateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'translateY')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'translateZ')
+    def getTranslateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'translateZ')
+        return res
+
     @_f.addMelDocs('polyExtrudeEdge', 'twist')
     def getTwist(self, **kwargs):
         res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'twist')
         return res
 
+    @_f.addMelDocs('polyExtrudeEdge', 'worldSpace')
+    def getWorldSpace(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyExtrudeEdge, kwargs, 'worldSpace')
+        return res
+
+    @_f.addMelDocs('polyExtrudeEdge', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'caching', val)
+
     @_f.addMelDocs('polyExtrudeEdge', 'divisions')
     def setDivisions(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'divisions', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'gain')
+    def setGain(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'gain', val)
 
     @_f.addMelDocs('polyExtrudeEdge', 'keepFacesTogether')
     def setKeepFacesTogether(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'keepFacesTogether', val)
 
+    @_f.addMelDocs('polyExtrudeEdge', 'localCenter')
+    def setLocalCenter(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localCenter', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirection')
+    def setLocalDirection(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localDirection', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirectionX')
+    def setLocalDirectionX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localDirectionX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirectionY')
+    def setLocalDirectionY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localDirectionY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localDirectionZ')
+    def setLocalDirectionZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localDirectionZ', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotate')
+    def setLocalRotate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localRotate', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotateX')
+    def setLocalRotateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localRotateX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotateY')
+    def setLocalRotateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localRotateY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localRotateZ')
+    def setLocalRotateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localRotateZ', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScale')
+    def setLocalScale(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localScale', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScaleX')
+    def setLocalScaleX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localScaleX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScaleY')
+    def setLocalScaleY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localScaleY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localScaleZ')
+    def setLocalScaleZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localScaleZ', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslate')
+    def setLocalTranslate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localTranslate', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslateX')
+    def setLocalTranslateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localTranslateX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslateY')
+    def setLocalTranslateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localTranslateY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'localTranslateZ')
+    def setLocalTranslateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'localTranslateZ', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'nodeState', val)
+
     @_f.addMelDocs('polyExtrudeEdge', 'offset')
     def setOffset(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'offset', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivot')
+    def setPivot(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'pivot', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivotX')
+    def setPivotX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'pivotX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivotY')
+    def setPivotY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'pivotY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'pivotZ')
+    def setPivotZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'pivotZ', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'random')
+    def setRandom(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'random', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotate')
+    def setRotate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'rotate', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotateX')
+    def setRotateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'rotateX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotateY')
+    def setRotateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'rotateY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'rotateZ')
+    def setRotateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'rotateZ', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scale')
+    def setScale(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'scale', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scaleX')
+    def setScaleX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'scaleX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scaleY')
+    def setScaleY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'scaleY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'scaleZ')
+    def setScaleZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'scaleZ', val)
 
     @_f.addMelDocs('polyExtrudeEdge', 'smoothingAngle')
     def setSmoothingAngle(self, val=True, **kwargs):
@@ -27741,9 +29286,29 @@ class PolyExtrudeEdge(PolyMoveEdge):
     def setThickness(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'thickness', val)
 
+    @_f.addMelDocs('polyExtrudeEdge', 'translate')
+    def setTranslate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'translate', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'translateX')
+    def setTranslateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'translateX', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'translateY')
+    def setTranslateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'translateY', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'translateZ')
+    def setTranslateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'translateZ', val)
+
     @_f.addMelDocs('polyExtrudeEdge', 'twist')
     def setTwist(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'twist', val)
+
+    @_f.addMelDocs('polyExtrudeEdge', 'worldSpace')
+    def setWorldSpace(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyExtrudeEdge, kwargs, 'worldSpace', val)
 
 
 class PolyMoveFace(PolyMoveEdge):
@@ -27763,9 +29328,24 @@ class PolyChipOff(PolyMoveFace):
         res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'attraction')
         return res
 
+    @_f.addMelDocs('polyChipOff', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'caching')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'constructionHistory')
+        return res
+
     @_f.addMelDocs('polyChipOff', 'duplicate')
     def getDuplicate(self, **kwargs):
         res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'duplicate')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'gain')
+    def getGain(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'gain')
         return res
 
     @_f.addMelDocs('polyChipOff', 'gravity')
@@ -27798,6 +29378,91 @@ class PolyChipOff(PolyMoveFace):
         res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'keepFacetTogether')
         return res
 
+    @_f.addMelDocs('polyChipOff', 'localCenter')
+    def getLocalCenter(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localCenter')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localDirection')
+    def getLocalDirection(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localDirection')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localDirectionX')
+    def getLocalDirectionX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localDirectionX')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localDirectionY')
+    def getLocalDirectionY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localDirectionY')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localDirectionZ')
+    def getLocalDirectionZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localDirectionZ')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localRotate')
+    def getLocalRotate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localRotate')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localRotateX')
+    def getLocalRotateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localRotateX')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localRotateY')
+    def getLocalRotateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localRotateY')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localRotateZ')
+    def getLocalRotateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localRotateZ')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localScale')
+    def getLocalScale(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localScale')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localScaleX')
+    def getLocalScaleX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localScaleX')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localScaleY')
+    def getLocalScaleY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localScaleY')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localScaleZ')
+    def getLocalScaleZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localScaleZ')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localTranslate')
+    def getLocalTranslate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localTranslate')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localTranslateX')
+    def getLocalTranslateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localTranslateX')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localTranslateY')
+    def getLocalTranslateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localTranslateY')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'localTranslateZ')
+    def getLocalTranslateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'localTranslateZ')
+        return res
+
     @_f.addMelDocs('polyChipOff', 'magnX')
     def getMagnX(self, **kwargs):
         res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'magnX')
@@ -27818,9 +29483,79 @@ class PolyChipOff(PolyMoveFace):
         res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'magnet')
         return res
 
+    @_f.addMelDocs('polyChipOff', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'nodeState')
+        return res
+
     @_f.addMelDocs('polyChipOff', 'offset')
     def getOffset(self, **kwargs):
         res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'offset')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'pivot')
+    def getPivot(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'pivot')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'pivotX')
+    def getPivotX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'pivotX')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'pivotY')
+    def getPivotY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'pivotY')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'pivotZ')
+    def getPivotZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'pivotZ')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'random')
+    def getRandom(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'random')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'scale')
+    def getScale(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'scale')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'scaleX')
+    def getScaleX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'scaleX')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'scaleY')
+    def getScaleY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'scaleY')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'scaleZ')
+    def getScaleZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'scaleZ')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'translate')
+    def getTranslate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'translate')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'translateX')
+    def getTranslateX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'translateX')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'translateY')
+    def getTranslateY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'translateY')
+        return res
+
+    @_f.addMelDocs('polyChipOff', 'translateZ')
+    def getTranslateZ(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'translateZ')
         return res
 
     @_f.addMelDocs('polyChipOff', 'weight')
@@ -27828,13 +29563,26 @@ class PolyChipOff(PolyMoveFace):
         res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'weight')
         return res
 
+    @_f.addMelDocs('polyChipOff', 'worldSpace')
+    def getWorldSpace(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyChipOff, kwargs, 'worldSpace')
+        return res
+
     @_f.addMelDocs('polyChipOff', 'attraction')
     def setAttraction(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyChipOff, kwargs, 'attraction', val)
 
+    @_f.addMelDocs('polyChipOff', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'caching', val)
+
     @_f.addMelDocs('polyChipOff', 'duplicate')
     def setDuplicate(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyChipOff, kwargs, 'duplicate', val)
+
+    @_f.addMelDocs('polyChipOff', 'gain')
+    def setGain(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'gain', val)
 
     @_f.addMelDocs('polyChipOff', 'gravity')
     def setGravity(self, val=True, **kwargs):
@@ -27860,6 +29608,74 @@ class PolyChipOff(PolyMoveFace):
     def setKeepFacetTogether(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyChipOff, kwargs, 'keepFacetTogether', val)
 
+    @_f.addMelDocs('polyChipOff', 'localCenter')
+    def setLocalCenter(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localCenter', val)
+
+    @_f.addMelDocs('polyChipOff', 'localDirection')
+    def setLocalDirection(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localDirection', val)
+
+    @_f.addMelDocs('polyChipOff', 'localDirectionX')
+    def setLocalDirectionX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localDirectionX', val)
+
+    @_f.addMelDocs('polyChipOff', 'localDirectionY')
+    def setLocalDirectionY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localDirectionY', val)
+
+    @_f.addMelDocs('polyChipOff', 'localDirectionZ')
+    def setLocalDirectionZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localDirectionZ', val)
+
+    @_f.addMelDocs('polyChipOff', 'localRotate')
+    def setLocalRotate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localRotate', val)
+
+    @_f.addMelDocs('polyChipOff', 'localRotateX')
+    def setLocalRotateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localRotateX', val)
+
+    @_f.addMelDocs('polyChipOff', 'localRotateY')
+    def setLocalRotateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localRotateY', val)
+
+    @_f.addMelDocs('polyChipOff', 'localRotateZ')
+    def setLocalRotateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localRotateZ', val)
+
+    @_f.addMelDocs('polyChipOff', 'localScale')
+    def setLocalScale(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localScale', val)
+
+    @_f.addMelDocs('polyChipOff', 'localScaleX')
+    def setLocalScaleX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localScaleX', val)
+
+    @_f.addMelDocs('polyChipOff', 'localScaleY')
+    def setLocalScaleY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localScaleY', val)
+
+    @_f.addMelDocs('polyChipOff', 'localScaleZ')
+    def setLocalScaleZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localScaleZ', val)
+
+    @_f.addMelDocs('polyChipOff', 'localTranslate')
+    def setLocalTranslate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localTranslate', val)
+
+    @_f.addMelDocs('polyChipOff', 'localTranslateX')
+    def setLocalTranslateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localTranslateX', val)
+
+    @_f.addMelDocs('polyChipOff', 'localTranslateY')
+    def setLocalTranslateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localTranslateY', val)
+
+    @_f.addMelDocs('polyChipOff', 'localTranslateZ')
+    def setLocalTranslateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'localTranslateZ', val)
+
     @_f.addMelDocs('polyChipOff', 'magnX')
     def setMagnX(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyChipOff, kwargs, 'magnX', val)
@@ -27876,13 +29692,73 @@ class PolyChipOff(PolyMoveFace):
     def setMagnet(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyChipOff, kwargs, 'magnet', val)
 
+    @_f.addMelDocs('polyChipOff', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'nodeState', val)
+
     @_f.addMelDocs('polyChipOff', 'offset')
     def setOffset(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyChipOff, kwargs, 'offset', val)
 
+    @_f.addMelDocs('polyChipOff', 'pivot')
+    def setPivot(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'pivot', val)
+
+    @_f.addMelDocs('polyChipOff', 'pivotX')
+    def setPivotX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'pivotX', val)
+
+    @_f.addMelDocs('polyChipOff', 'pivotY')
+    def setPivotY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'pivotY', val)
+
+    @_f.addMelDocs('polyChipOff', 'pivotZ')
+    def setPivotZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'pivotZ', val)
+
+    @_f.addMelDocs('polyChipOff', 'random')
+    def setRandom(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'random', val)
+
+    @_f.addMelDocs('polyChipOff', 'scale')
+    def setScale(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'scale', val)
+
+    @_f.addMelDocs('polyChipOff', 'scaleX')
+    def setScaleX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'scaleX', val)
+
+    @_f.addMelDocs('polyChipOff', 'scaleY')
+    def setScaleY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'scaleY', val)
+
+    @_f.addMelDocs('polyChipOff', 'scaleZ')
+    def setScaleZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'scaleZ', val)
+
+    @_f.addMelDocs('polyChipOff', 'translate')
+    def setTranslate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'translate', val)
+
+    @_f.addMelDocs('polyChipOff', 'translateX')
+    def setTranslateX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'translateX', val)
+
+    @_f.addMelDocs('polyChipOff', 'translateY')
+    def setTranslateY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'translateY', val)
+
+    @_f.addMelDocs('polyChipOff', 'translateZ')
+    def setTranslateZ(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'translateZ', val)
+
     @_f.addMelDocs('polyChipOff', 'weight')
     def setWeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyChipOff, kwargs, 'weight', val)
+
+    @_f.addMelDocs('polyChipOff', 'worldSpace')
+    def setWorldSpace(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyChipOff, kwargs, 'worldSpace', val)
 
 
 class PolyExtrudeFace(PolyMoveFace):
@@ -28615,6 +30491,155 @@ class PolyMoveFacetUV(PolyMoveUV):
     __melcmdname__ = u'polyMoveFacetUV'
     __melnode__ = u'polyMoveFacetUV'
     __slots__ = ()
+
+    @_f.addMelDocs('polyMoveFacetUV', 'axisLen')
+    def getAxisLen(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'axisLen')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'axisLenX')
+    def getAxisLenX(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'axisLenX')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'axisLenY')
+    def getAxisLenY(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'axisLenY')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'caching')
+    def getCaching(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'caching')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'constructionHistory')
+    def getConstructionHistory(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'constructionHistory')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'nodeState')
+    def getNodeState(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'nodeState')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'pivot')
+    def getPivot(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'pivot')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'pivotU')
+    def getPivotU(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'pivotU')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'pivotV')
+    def getPivotV(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'pivotV')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'random')
+    def getRandom(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'random')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'rotationAngle')
+    def getRotationAngle(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'rotationAngle')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'scale')
+    def getScale(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'scale')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'scaleU')
+    def getScaleU(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'scaleU')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'scaleV')
+    def getScaleV(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'scaleV')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'translate')
+    def getTranslate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'translate')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'translateU')
+    def getTranslateU(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'translateU')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'translateV')
+    def getTranslateV(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyMoveFacetUV, kwargs, 'translateV')
+        return res
+
+    @_f.addMelDocs('polyMoveFacetUV', 'axisLen')
+    def setAxisLen(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'axisLen', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'axisLenX')
+    def setAxisLenX(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'axisLenX', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'axisLenY')
+    def setAxisLenY(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'axisLenY', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'caching')
+    def setCaching(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'nodeState')
+    def setNodeState(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'nodeState', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'pivot')
+    def setPivot(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'pivot', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'pivotU')
+    def setPivotU(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'pivotU', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'pivotV')
+    def setPivotV(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'pivotV', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'random')
+    def setRandom(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'random', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'rotationAngle')
+    def setRotationAngle(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'rotationAngle', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'scale')
+    def setScale(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'scale', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'scaleU')
+    def setScaleU(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'scaleU', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'scaleV')
+    def setScaleV(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'scaleV', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'translate')
+    def setTranslate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'translate', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'translateU')
+    def setTranslateU(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'translateU', val)
+
+    @_f.addMelDocs('polyMoveFacetUV', 'translateV')
+    def setTranslateV(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyMoveFacetUV, kwargs, 'translateV', val)
 
 
 class PolyNormal(PolyModifier):

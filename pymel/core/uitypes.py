@@ -1562,14 +1562,168 @@ class RowLayout(Layout):
     def columnWidth(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowLayout, kwargs, 'columnWidth', val)
 
+    @_f.addMelDocs('rowLayout', 'dragCallback')
+    def dragCallback(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'dragCallback', val)
+
+    @_f.addMelDocs('rowLayout', 'dropCallback')
+    def dropCallback(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('rowLayout', 'annotation')
+    def getAnnotation(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'annotation')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'backgroundColor')
+    def getBackgroundColor(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'backgroundColor')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'childArray')
+    def getChildArray(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'childArray')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'enable')
+    def getEnable(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'enable')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'enableBackground')
+    def getEnableBackground(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'fullPathName')
+    def getFullPathName(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'fullPathName')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'height')
+    def getHeight(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'highlightColor')
+    def getHighlightColor(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'highlightColor')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'isObscured')
+    def getIsObscured(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'isObscured')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'manage')
+    def getManage(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'manage')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'numberOfChildren')
+    def getNumberOfChildren(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'numberOfChildren')
+        return res
+
     @_f.addMelDocs('rowLayout', 'numberOfColumns')
     def getNumberOfColumns(self, **kwargs):
         res = _f.asQuery(self, windows.rowLayout, kwargs, 'numberOfColumns')
         return res
 
+    @_f.addMelDocs('rowLayout', 'numberOfPopupMenus')
+    def getNumberOfPopupMenus(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'numberOfPopupMenus')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'popupMenuArray')
+    def getPopupMenuArray(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'popupMenuArray')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'preventOverride')
+    def getPreventOverride(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'preventOverride')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'visible')
+    def getVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'visible')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'visibleChangeCommand')
+    def getVisibleChangeCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'visibleChangeCommand')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'width')
+    def getWidth(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'width')
+        return res
+
+    @_f.addMelDocs('rowLayout', 'noBackground')
+    def noBackground(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'noBackground', val)
+
     @_f.addMelDocs('rowLayout', 'rowAttach')
     def rowAttach(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowLayout, kwargs, 'rowAttach', val)
+
+    @_f.addMelDocs('rowLayout', 'annotation')
+    def setAnnotation(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'annotation', val)
+
+    @_f.addMelDocs('rowLayout', 'backgroundColor')
+    def setBackgroundColor(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'backgroundColor', val)
+
+    @_f.addMelDocs('rowLayout', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('rowLayout', 'enable')
+    def setEnable(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'enable', val)
+
+    @_f.addMelDocs('rowLayout', 'enableBackground')
+    def setEnableBackground(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('rowLayout', 'height')
+    def setHeight(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'height', val)
+
+    @_f.addMelDocs('rowLayout', 'highlightColor')
+    def setHighlightColor(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'highlightColor', val)
+
+    @_f.addMelDocs('rowLayout', 'manage')
+    def setManage(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'manage', val)
+
+    @_f.addMelDocs('rowLayout', 'preventOverride')
+    def setPreventOverride(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'preventOverride', val)
+
+    @_f.addMelDocs('rowLayout', 'visible')
+    def setVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'visible', val)
+
+    @_f.addMelDocs('rowLayout', 'visibleChangeCommand')
+    def setVisibleChangeCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'visibleChangeCommand', val)
+
+    @_f.addMelDocs('rowLayout', 'width')
+    def setWidth(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'width', val)
+
+    @_f.addMelDocs('rowLayout', 'statusBarMessage')
+    def statusBarMessage(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'statusBarMessage', val)
 # ------ Do not edit above this line --------
 
 
@@ -15731,10 +15885,111 @@ class BlendShapePanel(Panel):
     __melui__ = 'blendShapePanel'
     __slots__ = ()
 
+    @_f.addMelDocs('blendShapePanel', 'copy')
+    def copy(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'copy', val)
+
+    @_f.addMelDocs('blendShapePanel', 'createString')
+    def createString(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'createString', val)
+
+    @_f.addMelDocs('blendShapePanel', 'editString')
+    def editString(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'editString', val)
+
     @_f.addMelDocs('blendShapePanel', 'blendShapeEditor')
     def getBlendShapeEditor(self, **kwargs):
         res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'blendShapeEditor')
         return res
+
+    @_f.addMelDocs('blendShapePanel', 'control')
+    def getControl(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'control')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'isUnique')
+    def getIsUnique(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'isUnique')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'menuBarRepeatLast')
+    def getMenuBarRepeatLast(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'menuBarRepeatLast')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'menuBarVisible')
+    def getMenuBarVisible(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'menuBarVisible')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'needsInit')
+    def getNeedsInit(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'needsInit')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'popupMenuProcedure')
+    def getPopupMenuProcedure(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'popupMenuProcedure')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShapePanel, kwargs, 'tearOff')
+        return res
+
+    @_f.addMelDocs('blendShapePanel', 'init')
+    def init(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'init', val)
+
+    @_f.addMelDocs('blendShapePanel', 'replacePanel')
+    def replacePanel(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'replacePanel', val)
+
+    @_f.addMelDocs('blendShapePanel', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('blendShapePanel', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'label', val)
+
+    @_f.addMelDocs('blendShapePanel', 'menuBarRepeatLast')
+    def setMenuBarRepeatLast(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'menuBarRepeatLast', val)
+
+    @_f.addMelDocs('blendShapePanel', 'menuBarVisible')
+    def setMenuBarVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'menuBarVisible', val)
+
+    @_f.addMelDocs('blendShapePanel', 'needsInit')
+    def setNeedsInit(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'needsInit', val)
+
+    @_f.addMelDocs('blendShapePanel', 'popupMenuProcedure')
+    def setPopupMenuProcedure(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'popupMenuProcedure', val)
+
+    @_f.addMelDocs('blendShapePanel', 'tearOff')
+    def setTearOff(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'tearOff', val)
+
+    @_f.addMelDocs('blendShapePanel', 'tearOffRestore')
+    def tearOffRestore(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'tearOffRestore', val)
+
+    @_f.addMelDocs('blendShapePanel', 'unParent')
+    def unParent(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShapePanel, kwargs, 'unParent', val)
 
 
 class Button(PyUI):
@@ -17741,10 +17996,111 @@ class ScriptedPanel(Panel):
     __melui__ = 'scriptedPanel'
     __slots__ = ()
 
+    @_f.addMelDocs('scriptedPanel', 'copy')
+    def copy(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'copy', val)
+
+    @_f.addMelDocs('scriptedPanel', 'createString')
+    def createString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'createString', val)
+
+    @_f.addMelDocs('scriptedPanel', 'editString')
+    def editString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'editString', val)
+
+    @_f.addMelDocs('scriptedPanel', 'control')
+    def getControl(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'control')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'isUnique')
+    def getIsUnique(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'isUnique')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'menuBarRepeatLast')
+    def getMenuBarRepeatLast(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'menuBarRepeatLast')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'menuBarVisible')
+    def getMenuBarVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'menuBarVisible')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'needsInit')
+    def getNeedsInit(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'needsInit')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'popupMenuProcedure')
+    def getPopupMenuProcedure(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'popupMenuProcedure')
+        return res
+
+    @_f.addMelDocs('scriptedPanel', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'tearOff')
+        return res
+
     @_f.addMelDocs('scriptedPanel', 'type')
     def getType(self, **kwargs):
         res = _f.asQuery(self, windows.scriptedPanel, kwargs, 'type')
         return res
+
+    @_f.addMelDocs('scriptedPanel', 'init')
+    def init(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'init', val)
+
+    @_f.addMelDocs('scriptedPanel', 'replacePanel')
+    def replacePanel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'replacePanel', val)
+
+    @_f.addMelDocs('scriptedPanel', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('scriptedPanel', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'label', val)
+
+    @_f.addMelDocs('scriptedPanel', 'menuBarRepeatLast')
+    def setMenuBarRepeatLast(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'menuBarRepeatLast', val)
+
+    @_f.addMelDocs('scriptedPanel', 'menuBarVisible')
+    def setMenuBarVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'menuBarVisible', val)
+
+    @_f.addMelDocs('scriptedPanel', 'needsInit')
+    def setNeedsInit(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'needsInit', val)
+
+    @_f.addMelDocs('scriptedPanel', 'popupMenuProcedure')
+    def setPopupMenuProcedure(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'popupMenuProcedure', val)
+
+    @_f.addMelDocs('scriptedPanel', 'tearOff')
+    def setTearOff(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'tearOff', val)
+
+    @_f.addMelDocs('scriptedPanel', 'tearOffRestore')
+    def tearOffRestore(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'tearOffRestore', val)
+
+    @_f.addMelDocs('scriptedPanel', 'unParent')
+    def unParent(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptedPanel, kwargs, 'unParent', val)
 
 
 class ScriptedPanelType(PyUI):
@@ -19976,10 +20332,111 @@ class OutlinerPanel(Panel):
     __melui__ = 'outlinerPanel'
     __slots__ = ()
 
+    @_f.addMelDocs('outlinerPanel', 'copy')
+    def copy(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'copy', val)
+
+    @_f.addMelDocs('outlinerPanel', 'createString')
+    def createString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'createString', val)
+
+    @_f.addMelDocs('outlinerPanel', 'editString')
+    def editString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'editString', val)
+
+    @_f.addMelDocs('outlinerPanel', 'control')
+    def getControl(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'control')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'isUnique')
+    def getIsUnique(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'isUnique')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'menuBarRepeatLast')
+    def getMenuBarRepeatLast(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'menuBarRepeatLast')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'menuBarVisible')
+    def getMenuBarVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'menuBarVisible')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'needsInit')
+    def getNeedsInit(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'needsInit')
+        return res
+
     @_f.addMelDocs('outlinerPanel', 'outlinerEditor')
     def getOutlinerEditor(self, **kwargs):
         res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'outlinerEditor')
         return res
+
+    @_f.addMelDocs('outlinerPanel', 'popupMenuProcedure')
+    def getPopupMenuProcedure(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'popupMenuProcedure')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'tearOff')
+        return res
+
+    @_f.addMelDocs('outlinerPanel', 'init')
+    def init(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'init', val)
+
+    @_f.addMelDocs('outlinerPanel', 'replacePanel')
+    def replacePanel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'replacePanel', val)
+
+    @_f.addMelDocs('outlinerPanel', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('outlinerPanel', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'label', val)
+
+    @_f.addMelDocs('outlinerPanel', 'menuBarRepeatLast')
+    def setMenuBarRepeatLast(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'menuBarRepeatLast', val)
+
+    @_f.addMelDocs('outlinerPanel', 'menuBarVisible')
+    def setMenuBarVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'menuBarVisible', val)
+
+    @_f.addMelDocs('outlinerPanel', 'needsInit')
+    def setNeedsInit(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'needsInit', val)
+
+    @_f.addMelDocs('outlinerPanel', 'popupMenuProcedure')
+    def setPopupMenuProcedure(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'popupMenuProcedure', val)
+
+    @_f.addMelDocs('outlinerPanel', 'tearOff')
+    def setTearOff(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'tearOff', val)
+
+    @_f.addMelDocs('outlinerPanel', 'tearOffRestore')
+    def tearOffRestore(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'tearOffRestore', val)
+
+    @_f.addMelDocs('outlinerPanel', 'unParent')
+    def unParent(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'unParent', val)
 
 
 class AnimCurveEditor(PyUI):
@@ -21712,10 +22169,111 @@ class HyperPanel(Panel):
     __melui__ = 'hyperPanel'
     __slots__ = ()
 
+    @_f.addMelDocs('hyperPanel', 'copy')
+    def copy(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'copy', val)
+
+    @_f.addMelDocs('hyperPanel', 'createString')
+    def createString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'createString', val)
+
+    @_f.addMelDocs('hyperPanel', 'editString')
+    def editString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'editString', val)
+
+    @_f.addMelDocs('hyperPanel', 'control')
+    def getControl(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'control')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'docTag')
+        return res
+
     @_f.addMelDocs('hyperPanel', 'hyperEditor')
     def getHyperEditor(self, **kwargs):
         res = _f.asQuery(self, windows.hyperPanel, kwargs, 'hyperEditor')
         return res
+
+    @_f.addMelDocs('hyperPanel', 'isUnique')
+    def getIsUnique(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'isUnique')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'menuBarRepeatLast')
+    def getMenuBarRepeatLast(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'menuBarRepeatLast')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'menuBarVisible')
+    def getMenuBarVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'menuBarVisible')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'needsInit')
+    def getNeedsInit(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'needsInit')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'popupMenuProcedure')
+    def getPopupMenuProcedure(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'popupMenuProcedure')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, windows.hyperPanel, kwargs, 'tearOff')
+        return res
+
+    @_f.addMelDocs('hyperPanel', 'init')
+    def init(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'init', val)
+
+    @_f.addMelDocs('hyperPanel', 'replacePanel')
+    def replacePanel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'replacePanel', val)
+
+    @_f.addMelDocs('hyperPanel', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('hyperPanel', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'label', val)
+
+    @_f.addMelDocs('hyperPanel', 'menuBarRepeatLast')
+    def setMenuBarRepeatLast(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'menuBarRepeatLast', val)
+
+    @_f.addMelDocs('hyperPanel', 'menuBarVisible')
+    def setMenuBarVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'menuBarVisible', val)
+
+    @_f.addMelDocs('hyperPanel', 'needsInit')
+    def setNeedsInit(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'needsInit', val)
+
+    @_f.addMelDocs('hyperPanel', 'popupMenuProcedure')
+    def setPopupMenuProcedure(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'popupMenuProcedure', val)
+
+    @_f.addMelDocs('hyperPanel', 'tearOff')
+    def setTearOff(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'tearOff', val)
+
+    @_f.addMelDocs('hyperPanel', 'tearOffRestore')
+    def tearOffRestore(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'tearOffRestore', val)
+
+    @_f.addMelDocs('hyperPanel', 'unParent')
+    def unParent(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hyperPanel, kwargs, 'unParent', val)
 
 
 class HyperShade(PyUI):
@@ -21757,15 +22315,117 @@ class RowColumnLayout(Layout):
     def columnWidth(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'columnWidth', val)
 
+    @_f.addMelDocs('rowColumnLayout', 'dragCallback')
+    def dragCallback(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'dragCallback', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'dropCallback')
+    def dropCallback(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'annotation')
+    def getAnnotation(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'annotation')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'backgroundColor')
+    def getBackgroundColor(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'backgroundColor')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'childArray')
+    def getChildArray(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'childArray')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'enable')
+    def getEnable(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'enable')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'enableBackground')
+    def getEnableBackground(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'fullPathName')
+    def getFullPathName(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'fullPathName')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'height')
+    def getHeight(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'highlightColor')
+    def getHighlightColor(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'highlightColor')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'isObscured')
+    def getIsObscured(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'isObscured')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'manage')
+    def getManage(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'manage')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'numberOfChildren')
+    def getNumberOfChildren(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfChildren')
+        return res
+
     @_f.addMelDocs('rowColumnLayout', 'numberOfColumns')
     def getNumberOfColumns(self, **kwargs):
         res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfColumns')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'numberOfPopupMenus')
+    def getNumberOfPopupMenus(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfPopupMenus')
         return res
 
     @_f.addMelDocs('rowColumnLayout', 'numberOfRows')
     def getNumberOfRows(self, **kwargs):
         res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'numberOfRows')
         return res
+
+    @_f.addMelDocs('rowColumnLayout', 'popupMenuArray')
+    def getPopupMenuArray(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'popupMenuArray')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'preventOverride')
+    def getPreventOverride(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'preventOverride')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'visible')
+    def getVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'visible')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'visibleChangeCommand')
+    def getVisibleChangeCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'visibleChangeCommand')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'width')
+    def getWidth(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'width')
+        return res
+
+    @_f.addMelDocs('rowColumnLayout', 'noBackground')
+    def noBackground(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'noBackground', val)
 
     @_f.addMelDocs('rowColumnLayout', 'rowAlign')
     def rowAlign(self, val=True, **kwargs):
@@ -21786,6 +22446,58 @@ class RowColumnLayout(Layout):
     @_f.addMelDocs('rowColumnLayout', 'rowSpacing')
     def rowSpacing(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'rowSpacing', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'annotation')
+    def setAnnotation(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'annotation', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'backgroundColor')
+    def setBackgroundColor(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'backgroundColor', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'enable')
+    def setEnable(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'enable', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'enableBackground')
+    def setEnableBackground(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'height')
+    def setHeight(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'height', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'highlightColor')
+    def setHighlightColor(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'highlightColor', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'manage')
+    def setManage(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'manage', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'preventOverride')
+    def setPreventOverride(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'preventOverride', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'visible')
+    def setVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'visible', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'visibleChangeCommand')
+    def setVisibleChangeCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'visibleChangeCommand', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'width')
+    def setWidth(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'width', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'statusBarMessage')
+    def statusBarMessage(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'statusBarMessage', val)
 
 
 class RenderLayerButton(PyUI):
@@ -24276,14 +24988,32 @@ class GridLayout(Layout):
     def cellWidthHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'cellWidthHeight', val)
 
+    @_f.addMelDocs('gridLayout', 'dragCallback')
+    def dragCallback(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'dragCallback', val)
+
+    @_f.addMelDocs('gridLayout', 'dropCallback')
+    def dropCallback(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'dropCallback', val)
+
     @_f.addMelDocs('gridLayout', 'allowEmptyCells')
     def getAllowEmptyCells(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'allowEmptyCells')
         return res
 
+    @_f.addMelDocs('gridLayout', 'annotation')
+    def getAnnotation(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'annotation')
+        return res
+
     @_f.addMelDocs('gridLayout', 'autoGrow')
     def getAutoGrow(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'autoGrow')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'backgroundColor')
+    def getBackgroundColor(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'backgroundColor')
         return res
 
     @_f.addMelDocs('gridLayout', 'cellHeight')
@@ -24296,9 +25026,34 @@ class GridLayout(Layout):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'cellWidth')
         return res
 
+    @_f.addMelDocs('gridLayout', 'childArray')
+    def getChildArray(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'childArray')
+        return res
+
     @_f.addMelDocs('gridLayout', 'columnsResizable')
     def getColumnsResizable(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'columnsResizable')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'enable')
+    def getEnable(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'enable')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'enableBackground')
+    def getEnableBackground(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'fullPathName')
+    def getFullPathName(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'fullPathName')
         return res
 
     @_f.addMelDocs('gridLayout', 'gridOrder')
@@ -24306,15 +25061,74 @@ class GridLayout(Layout):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'gridOrder')
         return res
 
+    @_f.addMelDocs('gridLayout', 'height')
+    def getHeight(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'height')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'highlightColor')
+    def getHighlightColor(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'highlightColor')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'isObscured')
+    def getIsObscured(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'isObscured')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'manage')
+    def getManage(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'manage')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'numberOfChildren')
+    def getNumberOfChildren(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfChildren')
+        return res
+
     @_f.addMelDocs('gridLayout', 'numberOfColumns')
     def getNumberOfColumns(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfColumns')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'numberOfPopupMenus')
+    def getNumberOfPopupMenus(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfPopupMenus')
         return res
 
     @_f.addMelDocs('gridLayout', 'numberOfRows')
     def getNumberOfRows(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'numberOfRows')
         return res
+
+    @_f.addMelDocs('gridLayout', 'popupMenuArray')
+    def getPopupMenuArray(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'popupMenuArray')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'preventOverride')
+    def getPreventOverride(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'preventOverride')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'visible')
+    def getVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'visible')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'visibleChangeCommand')
+    def getVisibleChangeCommand(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'visibleChangeCommand')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'width')
+    def getWidth(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'width')
+        return res
+
+    @_f.addMelDocs('gridLayout', 'noBackground')
+    def noBackground(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'noBackground', val)
 
     @_f.addMelDocs('gridLayout', 'numberOfRowsColumns')
     def numberOfRowsColumns(self, val=True, **kwargs):
@@ -24324,6 +25138,14 @@ class GridLayout(Layout):
     def position(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'position', val)
 
+    @_f.addMelDocs('gridLayout', 'annotation')
+    def setAnnotation(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'annotation', val)
+
+    @_f.addMelDocs('gridLayout', 'backgroundColor')
+    def setBackgroundColor(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'backgroundColor', val)
+
     @_f.addMelDocs('gridLayout', 'cellHeight')
     def setCellHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'cellHeight', val)
@@ -24332,6 +25154,30 @@ class GridLayout(Layout):
     def setCellWidth(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'cellWidth', val)
 
+    @_f.addMelDocs('gridLayout', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('gridLayout', 'enable')
+    def setEnable(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'enable', val)
+
+    @_f.addMelDocs('gridLayout', 'enableBackground')
+    def setEnableBackground(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('gridLayout', 'height')
+    def setHeight(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'height', val)
+
+    @_f.addMelDocs('gridLayout', 'highlightColor')
+    def setHighlightColor(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'highlightColor', val)
+
+    @_f.addMelDocs('gridLayout', 'manage')
+    def setManage(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'manage', val)
+
     @_f.addMelDocs('gridLayout', 'numberOfColumns')
     def setNumberOfColumns(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'numberOfColumns', val)
@@ -24339,6 +25185,26 @@ class GridLayout(Layout):
     @_f.addMelDocs('gridLayout', 'numberOfRows')
     def setNumberOfRows(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'numberOfRows', val)
+
+    @_f.addMelDocs('gridLayout', 'preventOverride')
+    def setPreventOverride(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'preventOverride', val)
+
+    @_f.addMelDocs('gridLayout', 'visible')
+    def setVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'visible', val)
+
+    @_f.addMelDocs('gridLayout', 'visibleChangeCommand')
+    def setVisibleChangeCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'visibleChangeCommand', val)
+
+    @_f.addMelDocs('gridLayout', 'width')
+    def setWidth(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'width', val)
+
+    @_f.addMelDocs('gridLayout', 'statusBarMessage')
+    def statusBarMessage(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'statusBarMessage', val)
 
 
 class MessageLine(PyUI):
@@ -25751,6 +26617,18 @@ class ModelPanel(Panel):
     def addTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'addTab', val)
 
+    @_f.addMelDocs('modelPanel', 'copy')
+    def copy(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'copy', val)
+
+    @_f.addMelDocs('modelPanel', 'createString')
+    def createString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'createString', val)
+
+    @_f.addMelDocs('modelPanel', 'editString')
+    def editString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'editString', val)
+
     @_f.addMelDocs('modelPanel', 'barLayout')
     def getBarLayout(self, **kwargs):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'barLayout')
@@ -25761,9 +26639,49 @@ class ModelPanel(Panel):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'camera')
         return res
 
+    @_f.addMelDocs('modelPanel', 'control')
+    def getControl(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'control')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'isUnique')
+    def getIsUnique(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'isUnique')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'menuBarRepeatLast')
+    def getMenuBarRepeatLast(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'menuBarRepeatLast')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'menuBarVisible')
+    def getMenuBarVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'menuBarVisible')
+        return res
+
     @_f.addMelDocs('modelPanel', 'modelEditor')
     def getModelEditor(self, **kwargs):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'modelEditor')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'needsInit')
+    def getNeedsInit(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'needsInit')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'popupMenuProcedure')
+    def getPopupMenuProcedure(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'popupMenuProcedure')
         return res
 
     @_f.addMelDocs('modelPanel', 'selectTab')
@@ -25771,21 +26689,70 @@ class ModelPanel(Panel):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'selectTab')
         return res
 
+    @_f.addMelDocs('modelPanel', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, windows.modelPanel, kwargs, 'tearOff')
+        return res
+
+    @_f.addMelDocs('modelPanel', 'init')
+    def init(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'init', val)
+
     @_f.addMelDocs('modelPanel', 'removeTab')
     def removeTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'removeTab', val)
+
+    @_f.addMelDocs('modelPanel', 'replacePanel')
+    def replacePanel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'replacePanel', val)
 
     @_f.addMelDocs('modelPanel', 'camera')
     def setCamera(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'camera', val)
 
+    @_f.addMelDocs('modelPanel', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('modelPanel', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'label', val)
+
+    @_f.addMelDocs('modelPanel', 'menuBarRepeatLast')
+    def setMenuBarRepeatLast(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'menuBarRepeatLast', val)
+
+    @_f.addMelDocs('modelPanel', 'menuBarVisible')
+    def setMenuBarVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'menuBarVisible', val)
+
+    @_f.addMelDocs('modelPanel', 'needsInit')
+    def setNeedsInit(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'needsInit', val)
+
+    @_f.addMelDocs('modelPanel', 'popupMenuProcedure')
+    def setPopupMenuProcedure(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'popupMenuProcedure', val)
+
     @_f.addMelDocs('modelPanel', 'selectTab')
     def setSelectTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'selectTab', val)
 
+    @_f.addMelDocs('modelPanel', 'tearOff')
+    def setTearOff(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'tearOff', val)
+
     @_f.addMelDocs('modelPanel', 'tabCommand')
     def tabCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'tabCommand', val)
+
+    @_f.addMelDocs('modelPanel', 'tearOffRestore')
+    def tearOffRestore(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'tearOffRestore', val)
+
+    @_f.addMelDocs('modelPanel', 'unParent')
+    def unParent(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.modelPanel, kwargs, 'unParent', val)
 
 
 class HelpLine(PyUI):
@@ -25947,9 +26914,31 @@ class HardwareRenderPanel(Panel):
     __melui__ = 'hardwareRenderPanel'
     __slots__ = ()
 
+    @_f.addMelDocs('hardwareRenderPanel', 'copy')
+    def copy(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'copy', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'createString')
+    def createString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'createString', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'editString')
+    def editString(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'editString', val)
+
     @_f.addMelDocs('hardwareRenderPanel', 'camera')
     def getCamera(self, **kwargs):
         res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'camera')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'control')
+    def getControl(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'control')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'docTag')
         return res
 
     @_f.addMelDocs('hardwareRenderPanel', 'glRenderEditor')
@@ -25957,9 +26946,88 @@ class HardwareRenderPanel(Panel):
         res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'glRenderEditor')
         return res
 
+    @_f.addMelDocs('hardwareRenderPanel', 'isUnique')
+    def getIsUnique(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'isUnique')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'menuBarRepeatLast')
+    def getMenuBarRepeatLast(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'menuBarRepeatLast')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'menuBarVisible')
+    def getMenuBarVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'menuBarVisible')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'needsInit')
+    def getNeedsInit(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'needsInit')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'popupMenuProcedure')
+    def getPopupMenuProcedure(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'popupMenuProcedure')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, windows.hardwareRenderPanel, kwargs, 'tearOff')
+        return res
+
+    @_f.addMelDocs('hardwareRenderPanel', 'init')
+    def init(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'init', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'replacePanel')
+    def replacePanel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'replacePanel', val)
+
     @_f.addMelDocs('hardwareRenderPanel', 'camera')
     def setCamera(self, val=True, **kwargs):
         return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'camera', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'label', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'menuBarRepeatLast')
+    def setMenuBarRepeatLast(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'menuBarRepeatLast', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'menuBarVisible')
+    def setMenuBarVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'menuBarVisible', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'needsInit')
+    def setNeedsInit(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'needsInit', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'popupMenuProcedure')
+    def setPopupMenuProcedure(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'popupMenuProcedure', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'tearOff')
+    def setTearOff(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'tearOff', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'tearOffRestore')
+    def tearOffRestore(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'tearOffRestore', val)
+
+    @_f.addMelDocs('hardwareRenderPanel', 'unParent')
+    def unParent(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.hardwareRenderPanel, kwargs, 'unParent', val)
 
 
 class Image(PyUI):
@@ -27508,6 +28576,107 @@ class DevicePanel(Panel):
     __melcmdname__ = 'devicePanel'
     __melui__ = 'devicePanel'
     __slots__ = ()
+
+    @_f.addMelDocs('devicePanel', 'copy')
+    def copy(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'copy', val)
+
+    @_f.addMelDocs('devicePanel', 'createString')
+    def createString(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'createString', val)
+
+    @_f.addMelDocs('devicePanel', 'editString')
+    def editString(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'editString', val)
+
+    @_f.addMelDocs('devicePanel', 'control')
+    def getControl(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'control')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'docTag')
+    def getDocTag(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'isUnique')
+    def getIsUnique(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'isUnique')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'label')
+    def getLabel(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'label')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'menuBarRepeatLast')
+    def getMenuBarRepeatLast(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'menuBarRepeatLast')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'menuBarVisible')
+    def getMenuBarVisible(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'menuBarVisible')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'needsInit')
+    def getNeedsInit(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'needsInit')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'popupMenuProcedure')
+    def getPopupMenuProcedure(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'popupMenuProcedure')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'tearOff')
+    def getTearOff(self, **kwargs):
+        res = _f.asQuery(self, system.devicePanel, kwargs, 'tearOff')
+        return res
+
+    @_f.addMelDocs('devicePanel', 'init')
+    def init(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'init', val)
+
+    @_f.addMelDocs('devicePanel', 'replacePanel')
+    def replacePanel(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'replacePanel', val)
+
+    @_f.addMelDocs('devicePanel', 'docTag')
+    def setDocTag(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'docTag', val)
+
+    @_f.addMelDocs('devicePanel', 'label')
+    def setLabel(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'label', val)
+
+    @_f.addMelDocs('devicePanel', 'menuBarRepeatLast')
+    def setMenuBarRepeatLast(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'menuBarRepeatLast', val)
+
+    @_f.addMelDocs('devicePanel', 'menuBarVisible')
+    def setMenuBarVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'menuBarVisible', val)
+
+    @_f.addMelDocs('devicePanel', 'needsInit')
+    def setNeedsInit(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'needsInit', val)
+
+    @_f.addMelDocs('devicePanel', 'popupMenuProcedure')
+    def setPopupMenuProcedure(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'popupMenuProcedure', val)
+
+    @_f.addMelDocs('devicePanel', 'tearOff')
+    def setTearOff(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'tearOff', val)
+
+    @_f.addMelDocs('devicePanel', 'tearOffRestore')
+    def tearOffRestore(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'tearOffRestore', val)
+
+    @_f.addMelDocs('devicePanel', 'unParent')
+    def unParent(self, val=True, **kwargs):
+        return _f.asEdit(self, system.devicePanel, kwargs, 'unParent', val)
 
 
 class DynRelEdPanel(Panel):
