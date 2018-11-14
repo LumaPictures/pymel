@@ -548,11 +548,11 @@ def loadCmdDocCache():
 
 
 def getCmdFunc(cmdName):
-    # type: (Optional[str]) -> Callable
+    # type: (str) -> Callable
     """
     Parameters
     ----------
-    cmdName : Optional[str]
+    cmdName : str
 
     Returns
     -------
@@ -560,8 +560,18 @@ def getCmdFunc(cmdName):
     """
     func = getattr(pmcmds, cmdName, None)
     if func is None:
-        # assume UI command
-        return None
+        def nonExistantFunc(*args, **kwargs):
+            '''Just gives the same attribute error you would get if you
+            tried to access the module from the func, for consistency
+
+            Also clearer than returning None, and getting an error about
+            None not having a given attribute.
+
+            This should generally only happen if using an "old" maya version
+            that doesn't have a command found in newer maya versions
+            '''
+            getattr(pmcmds, cmdName)
+        return nonExistantFunc
     return addCmdDocs(func)
 
 
