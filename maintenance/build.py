@@ -367,12 +367,9 @@ class VersionedCaches(object):
         # based on version...
         conditionPairs = []
         remainingVersions = sorted(byVersion)
-        print byVersion
-        print remainingVersions
         while remainingVersions:
             ver = remainingVersions.pop()
             currentValue = byVersion[ver]
-            print ver, currentValue
             allVariations.remove(currentValue)
             if not allVariations:
                 # this was the last value, can use an 'else' statement
