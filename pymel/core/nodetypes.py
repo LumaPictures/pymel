@@ -2729,10 +2729,6 @@ class Shape(DagNode):
 # ------ Do not edit above this line --------
 
 
-# class Joint(Transform):
-#    pass
-
-
 class Camera(Shape):
     # FIXME: the functionFactory is causing these methods to have their docs doubled-up,  in both pymel.track, and pymel.Camera.track
     if not _factories.building:
