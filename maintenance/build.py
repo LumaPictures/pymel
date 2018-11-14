@@ -1722,8 +1722,9 @@ def iterApiDataTypeText():
             if hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes':
                 yield obj
 
-    classes = [obj for name, obj in inspect.getmembers(pymel.core.datatypes)
-               if inspect.isclass(obj)]
+    classes = [obj for name, obj in sorted(
+                    inspect.getmembers(pymel.core.datatypes,
+                                       inspect.isclass))]
     for obj in dependentOrder(classes, set()):
         # we check for type registry metaclass because some datatypes (Time, Distance)
         # don't have a metaclass (and never did).  I'm not sure if that was a
@@ -1813,6 +1814,7 @@ def iterPyNodeText():
 
 def iterUIText():
     import pymel.core.uitypes
+    import pymel.util.trees as trees
 
     heritedMethods = {
         'PyUI': methodNames(pymel.core.uitypes.PyUI),
@@ -1820,20 +1822,33 @@ def iterUIText():
         'Panel': methodNames(pymel.core.uitypes.Panel),
     }
 
+    parentDict = {}
     for funcName in factories.uiClassList:
-        # Create Class
         classname = util.capitalize(funcName)
-        if classname == 'MenuItem':
-            existingClass = pymel.core.uitypes.CommandMenuItem
-        else:
-            existingClass = getattr(pymel.core.uitypes, classname, None)
-
-        if classname.endswith(('Layout', 'Grp')):
+        if classname in ('Layout', 'Panel'):
+            parentType = 'PyUI'
+        elif classname.endswith(('Layout', 'Grp')):
             parentType = 'Layout'
         elif classname.endswith('Panel'):
             parentType = 'Panel'
         else:
             parentType = 'PyUI'
+        parentDict[classname] = parentType
+
+    uiTypeTree = trees.treeFromDict(parentDict)
+    uiTypeTree.sort()
+
+    for uiNode in uiTypeTree.preorder():
+        classname = uiNode.value
+        if classname == 'PyUI':
+            continue
+        parentType = uiNode.parent.value
+
+        # Create Class
+        if classname == 'MenuItem':
+            existingClass = pymel.core.uitypes.CommandMenuItem
+        else:
+            existingClass = getattr(pymel.core.uitypes, classname, None)
 
         parentMethods = heritedMethods[parentType]
         template = UITypeGenerator(classname, existingClass, [parentType], parentMethods)
