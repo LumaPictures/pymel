@@ -173,6 +173,10 @@ dynSelectCtx = _factories.getCmdFunc('dynSelectCtx')
 
 dynWireCtx = _factories.getCmdFunc('dynWireCtx')
 
+filterButterworthCtx = _factories.getCmdFunc('filterButterworthCtx')
+
+filterKeyReducerCtx = _factories.getCmdFunc('filterKeyReducerCtx')
+
 graphDollyCtx = _factories.getCmdFunc('graphDollyCtx')
 
 graphSelectContext = _factories.getCmdFunc('graphSelectContext')
@@ -298,6 +302,8 @@ polyCutUVCtx = _factories.getCmdFunc('polyCutUVCtx')
 polyMergeEdgeCtx = _factories.getCmdFunc('polyMergeEdgeCtx')
 
 polyMergeFacetCtx = _factories.getCmdFunc('polyMergeFacetCtx')
+
+polyRetopoCtx = _factories.getCmdFunc('polyRetopoCtx')
 
 polySelectCtx = _factories.getCmdFunc('polySelectCtx')
 

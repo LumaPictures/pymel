@@ -204,9 +204,21 @@ applyTake = _factories.getCmdFunc('applyTake')
 
 autoKeyframe = _factories.getCmdFunc('autoKeyframe')
 
+backgroundEvaluationManager = _factories.getCmdFunc('backgroundEvaluationManager')
+
 bakeClip = _factories.getCmdFunc('bakeClip')
 
-bakeDeformer = _factories.getCmdFunc('bakeDeformer')
+@_factories.addCmdDocs
+def bakeDeformer(*args, **kwargs):
+    for flag in ['customRangeOfMotion', 'rom']:
+        try:
+            rawVal = kwargs[flag]
+        except KeyError:
+            continue
+        else:
+            kwargs[flag] = _factories.convertTimeValues(rawVal)
+    res = cmds.bakeDeformer(*args, **kwargs)
+    return res
 
 @_factories.addCmdDocs
 def bakeResults(*args, **kwargs):
@@ -800,6 +812,22 @@ def posePanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.posePanel(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def proxWrap(*args, **kwargs):
+    res = cmds.proxWrap(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    if isinstance(res, list) and len(res) == 1:
+        if kwargs.get('query', kwargs.get('q', False)):
+            # unpack for specific query flags
+            unpackFlags = {'en', 'envelope'}
+            if not unpackFlags.isdisjoint(kwargs):
+                res = res[0]
+        else:
+            # unpack create/edit result
+            res = res[0]
     return res
 
 readTake = _factories.getCmdFunc('readTake')

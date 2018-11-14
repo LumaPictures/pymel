@@ -802,6 +802,11 @@ class Layout(PyUI):
         res = _f.asQuery(self, windows.layout, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('layout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.layout, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('layout', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.layout, kwargs, 'fullPathName')
@@ -885,6 +890,10 @@ class Layout(PyUI):
     @_f.addMelDocs('layout', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.layout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('layout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.layout, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('layout', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -1398,6 +1407,11 @@ class FormLayout(Layout):
         res = _f.asQuery(self, windows.formLayout, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('formLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.formLayout, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('formLayout', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.formLayout, kwargs, 'fullPathName')
@@ -1486,6 +1500,10 @@ class FormLayout(Layout):
     @_f.addMelDocs('formLayout', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.formLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('formLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.formLayout, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('formLayout', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -1600,6 +1618,11 @@ class RowLayout(Layout):
         res = _f.asQuery(self, windows.rowLayout, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('rowLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.rowLayout, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('rowLayout', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.rowLayout, kwargs, 'fullPathName')
@@ -1692,6 +1715,10 @@ class RowLayout(Layout):
     @_f.addMelDocs('rowLayout', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('rowLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('rowLayout', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -1830,6 +1857,11 @@ class TextScrollList(PyUI):
     @_f.addMelDocs('textScrollList', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.textScrollList, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('textScrollList', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.textScrollList, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('textScrollList', 'font')
@@ -1973,6 +2005,10 @@ class TextScrollList(PyUI):
     @_f.addMelDocs('textScrollList', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.textScrollList, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('textScrollList', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.textScrollList, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('textScrollList', 'font')
     def setFont(self, val=True, **kwargs):
@@ -2352,6 +2388,11 @@ class OptionMenu(PopupMenu):
         res = _f.asQuery(self, windows.optionMenu, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('optionMenu', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.optionMenu, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('optionMenu', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.optionMenu, kwargs, 'fullPathName')
@@ -2465,6 +2506,10 @@ class OptionMenu(PopupMenu):
     @_f.addMelDocs('optionMenu', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenu, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('optionMenu', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenu, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('optionMenu', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -2696,6 +2741,11 @@ class OptionMenuGrp(RowLayout):
         res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('optionMenuGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('optionMenuGrp', 'extraLabel')
     def getExtraLabel(self, **kwargs):
         res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'extraLabel')
@@ -2814,6 +2864,10 @@ class OptionMenuGrp(RowLayout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('optionMenuGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('optionMenuGrp', 'extraLabel')
     def setExtraLabel(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'extraLabel', val)
@@ -2895,11 +2949,6 @@ class CommandMenuItem(PyUI):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'allowOptionBoxes')
         return res
 
-    @_f.addMelDocs('menuItem', 'altModifier')
-    def getAltModifier(self, **kwargs):
-        res = _f.asQuery(self, windows.menuItem, kwargs, 'altModifier')
-        return res
-
     @_f.addMelDocs('menuItem', 'annotation')
     def getAnnotation(self, **kwargs):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'annotation')
@@ -2923,16 +2972,6 @@ class CommandMenuItem(PyUI):
     @_f.addMelDocs('menuItem', 'command')
     def getCommand(self, **kwargs):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'command')
-        return res
-
-    @_f.addMelDocs('menuItem', 'commandModifier')
-    def getCommandModifier(self, **kwargs):
-        res = _f.asQuery(self, windows.menuItem, kwargs, 'commandModifier')
-        return res
-
-    @_f.addMelDocs('menuItem', 'ctrlModifier')
-    def getCtrlModifier(self, **kwargs):
-        res = _f.asQuery(self, windows.menuItem, kwargs, 'ctrlModifier')
         return res
 
     @_f.addMelDocs('menuItem', 'data')
@@ -3015,11 +3054,6 @@ class CommandMenuItem(PyUI):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'italicized')
         return res
 
-    @_f.addMelDocs('menuItem', 'keyEquivalent')
-    def getKeyEquivalent(self, **kwargs):
-        res = _f.asQuery(self, windows.menuItem, kwargs, 'keyEquivalent')
-        return res
-
     @_f.addMelDocs('menuItem', 'label')
     def getLabel(self, **kwargs):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'label')
@@ -3045,11 +3079,6 @@ class CommandMenuItem(PyUI):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'optionBoxIcon')
         return res
 
-    @_f.addMelDocs('menuItem', 'optionModifier')
-    def getOptionModifier(self, **kwargs):
-        res = _f.asQuery(self, windows.menuItem, kwargs, 'optionModifier')
-        return res
-
     @_f.addMelDocs('menuItem', 'postMenuCommand')
     def getPostMenuCommand(self, **kwargs):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'postMenuCommand')
@@ -3068,11 +3097,6 @@ class CommandMenuItem(PyUI):
     @_f.addMelDocs('menuItem', 'radioButton')
     def getRadioButton(self, **kwargs):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'radioButton')
-        return res
-
-    @_f.addMelDocs('menuItem', 'shiftModifier')
-    def getShiftModifier(self, **kwargs):
-        res = _f.asQuery(self, windows.menuItem, kwargs, 'shiftModifier')
         return res
 
     @_f.addMelDocs('menuItem', 'sourceType')
@@ -3095,9 +3119,9 @@ class CommandMenuItem(PyUI):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'version')
         return res
 
-    @_f.addMelDocs('menuItem', 'altModifier')
-    def setAltModifier(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.menuItem, kwargs, 'altModifier', val)
+    @_f.addMelDocs('menuItem', 'runTimeCommand')
+    def runTimeCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'runTimeCommand', val)
 
     @_f.addMelDocs('menuItem', 'annotation')
     def setAnnotation(self, val=True, **kwargs):
@@ -3110,14 +3134,6 @@ class CommandMenuItem(PyUI):
     @_f.addMelDocs('menuItem', 'command')
     def setCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'command', val)
-
-    @_f.addMelDocs('menuItem', 'commandModifier')
-    def setCommandModifier(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.menuItem, kwargs, 'commandModifier', val)
-
-    @_f.addMelDocs('menuItem', 'ctrlModifier')
-    def setCtrlModifier(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.menuItem, kwargs, 'ctrlModifier', val)
 
     @_f.addMelDocs('menuItem', 'data')
     def setData(self, val=True, **kwargs):
@@ -3159,10 +3175,6 @@ class CommandMenuItem(PyUI):
     def setImageOverlayLabel(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'imageOverlayLabel', val)
 
-    @_f.addMelDocs('menuItem', 'keyEquivalent')
-    def setKeyEquivalent(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.menuItem, kwargs, 'keyEquivalent', val)
-
     @_f.addMelDocs('menuItem', 'label')
     def setLabel(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'label', val)
@@ -3179,10 +3191,6 @@ class CommandMenuItem(PyUI):
     def setOptionBoxIcon(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'optionBoxIcon', val)
 
-    @_f.addMelDocs('menuItem', 'optionModifier')
-    def setOptionModifier(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.menuItem, kwargs, 'optionModifier', val)
-
     @_f.addMelDocs('menuItem', 'postMenuCommand')
     def setPostMenuCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'postMenuCommand', val)
@@ -3198,10 +3206,6 @@ class CommandMenuItem(PyUI):
     @_f.addMelDocs('menuItem', 'radioButton')
     def setRadioButton(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'radioButton', val)
-
-    @_f.addMelDocs('menuItem', 'shiftModifier')
-    def setShiftModifier(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.menuItem, kwargs, 'shiftModifier', val)
 
     @_f.addMelDocs('menuItem', 'sourceType')
     def setSourceType(self, val=True, **kwargs):
@@ -3702,6 +3706,11 @@ class FloatFieldGrp(Layout):
         res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('floatFieldGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('floatFieldGrp', 'extraLabel')
     def getExtraLabel(self, **kwargs):
         res = _f.asQuery(self, windows.floatFieldGrp, kwargs, 'extraLabel')
@@ -3844,6 +3853,10 @@ class FloatFieldGrp(Layout):
     @_f.addMelDocs('floatFieldGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatFieldGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('floatFieldGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.floatFieldGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('floatFieldGrp', 'extraLabel')
     def setExtraLabel(self, val=True, **kwargs):
@@ -4104,6 +4117,11 @@ class TextFieldButtonGrp(Layout):
         res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'enableButton')
         return res
 
+    @_f.addMelDocs('textFieldButtonGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('textFieldButtonGrp', 'fileName')
     def getFileName(self, **kwargs):
         res = _f.asQuery(self, windows.textFieldButtonGrp, kwargs, 'fileName')
@@ -4228,6 +4246,10 @@ class TextFieldButtonGrp(Layout):
     def setEnableButton(self, val=True, **kwargs):
         return _f.asEdit(self, windows.textFieldButtonGrp, kwargs, 'enableButton', val)
 
+    @_f.addMelDocs('textFieldButtonGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.textFieldButtonGrp, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('textFieldButtonGrp', 'fileName')
     def setFileName(self, val=True, **kwargs):
         return _f.asEdit(self, windows.textFieldButtonGrp, kwargs, 'fileName', val)
@@ -4334,6 +4356,11 @@ class ProgressBar(PyUI):
     @_f.addMelDocs('progressBar', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.progressBar, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('progressBar', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.progressBar, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('progressBar', 'fullPathName')
@@ -4449,6 +4476,10 @@ class ProgressBar(PyUI):
     @_f.addMelDocs('progressBar', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.progressBar, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('progressBar', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.progressBar, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('progressBar', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -4686,6 +4717,11 @@ class AnimCurveEditor(PyUI):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'autoFit')
         return res
 
+    @_f.addMelDocs('animCurveEditor', 'autoFitTime')
+    def getAutoFitTime(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'autoFitTime')
+        return res
+
     @_f.addMelDocs('animCurveEditor', 'classicMode')
     def getClassicMode(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'classicMode')
@@ -4870,6 +4906,10 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'autoFit')
     def setAutoFit(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'autoFit', val)
+
+    @_f.addMelDocs('animCurveEditor', 'autoFitTime')
+    def setAutoFitTime(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'autoFitTime', val)
 
     @_f.addMelDocs('animCurveEditor', 'classicMode')
     def setClassicMode(self, val=True, **kwargs):
@@ -5092,6 +5132,11 @@ class AttrEnumOptionMenu(PyUI):
         res = _f.asQuery(self, windows.attrEnumOptionMenu, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('attrEnumOptionMenu', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.attrEnumOptionMenu, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('attrEnumOptionMenu', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.attrEnumOptionMenu, kwargs, 'fullPathName')
@@ -5175,6 +5220,10 @@ class AttrEnumOptionMenu(PyUI):
     @_f.addMelDocs('attrEnumOptionMenu', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrEnumOptionMenu, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('attrEnumOptionMenu', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.attrEnumOptionMenu, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('attrEnumOptionMenu', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -5397,6 +5446,11 @@ class Button(PyUI):
         res = _f.asQuery(self, windows.button, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('button', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.button, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('button', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.button, kwargs, 'fullPathName')
@@ -5502,6 +5556,10 @@ class Button(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.button, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('button', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.button, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('button', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.button, kwargs, 'height', val)
@@ -5581,6 +5639,11 @@ class Canvas(PyUI):
     @_f.addMelDocs('canvas', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.canvas, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('canvas', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.canvas, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('canvas', 'fullPathName')
@@ -5675,6 +5738,10 @@ class Canvas(PyUI):
     @_f.addMelDocs('canvas', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.canvas, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('canvas', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.canvas, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('canvas', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -5789,6 +5856,11 @@ class ChannelBox(PyUI):
     @_f.addMelDocs('channelBox', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.channelBox, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('channelBox', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.channelBox, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('channelBox', 'enableLabelSelection')
@@ -6033,6 +6105,10 @@ class ChannelBox(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.channelBox, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('channelBox', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.channelBox, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('channelBox', 'enableLabelSelection')
     def setEnableLabelSelection(self, val=True, **kwargs):
         return _f.asEdit(self, windows.channelBox, kwargs, 'enableLabelSelection', val)
@@ -6193,6 +6269,11 @@ class CheckBox(PyUI):
         res = _f.asQuery(self, windows.checkBox, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('checkBox', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.checkBox, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('checkBox', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.checkBox, kwargs, 'fullPathName')
@@ -6309,6 +6390,10 @@ class CheckBox(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.checkBox, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('checkBox', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.checkBox, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('checkBox', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.checkBox, kwargs, 'height', val)
@@ -6412,6 +6497,11 @@ class ClipEditor(PyUI):
     @_f.addMelDocs('clipEditor', 'autoFit')
     def getAutoFit(self, **kwargs):
         res = _f.asQuery(self, animation.clipEditor, kwargs, 'autoFit')
+        return res
+
+    @_f.addMelDocs('clipEditor', 'autoFitTime')
+    def getAutoFitTime(self, **kwargs):
+        res = _f.asQuery(self, animation.clipEditor, kwargs, 'autoFitTime')
         return res
 
     @_f.addMelDocs('clipEditor', 'clipStyle')
@@ -6534,6 +6624,10 @@ class ClipEditor(PyUI):
     def setAutoFit(self, val=True, **kwargs):
         return _f.asEdit(self, animation.clipEditor, kwargs, 'autoFit', val)
 
+    @_f.addMelDocs('clipEditor', 'autoFitTime')
+    def setAutoFitTime(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.clipEditor, kwargs, 'autoFitTime', val)
+
     @_f.addMelDocs('clipEditor', 'clipStyle')
     def setClipStyle(self, val=True, **kwargs):
         return _f.asEdit(self, animation.clipEditor, kwargs, 'clipStyle', val)
@@ -6647,6 +6741,11 @@ class ClipSchedulerOutliner(PyUI):
         res = _f.asQuery(self, animation.clipSchedulerOutliner, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('clipSchedulerOutliner', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, animation.clipSchedulerOutliner, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('clipSchedulerOutliner', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, animation.clipSchedulerOutliner, kwargs, 'fullPathName')
@@ -6725,6 +6824,10 @@ class ClipSchedulerOutliner(PyUI):
     @_f.addMelDocs('clipSchedulerOutliner', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, animation.clipSchedulerOutliner, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('clipSchedulerOutliner', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.clipSchedulerOutliner, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('clipSchedulerOutliner', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -6840,6 +6943,11 @@ class CmdScrollFieldExecuter(PyUI):
     @_f.addMelDocs('cmdScrollFieldExecuter', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.cmdScrollFieldExecuter, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('cmdScrollFieldExecuter', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.cmdScrollFieldExecuter, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('cmdScrollFieldExecuter', 'filename')
@@ -7089,6 +7197,10 @@ class CmdScrollFieldExecuter(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.cmdScrollFieldExecuter, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('cmdScrollFieldExecuter', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.cmdScrollFieldExecuter, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('cmdScrollFieldExecuter', 'filterKeyPress')
     def setFilterKeyPress(self, val=True, **kwargs):
         return _f.asEdit(self, windows.cmdScrollFieldExecuter, kwargs, 'filterKeyPress', val)
@@ -7237,6 +7349,11 @@ class CmdScrollFieldReporter(PyUI):
     @_f.addMelDocs('cmdScrollFieldReporter', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.cmdScrollFieldReporter, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('cmdScrollFieldReporter', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.cmdScrollFieldReporter, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('cmdScrollFieldReporter', 'filterSourceType')
@@ -7401,6 +7518,10 @@ class CmdScrollFieldReporter(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.cmdScrollFieldReporter, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('cmdScrollFieldReporter', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.cmdScrollFieldReporter, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('cmdScrollFieldReporter', 'filterSourceType')
     def setFilterSourceType(self, val=True, **kwargs):
         return _f.asEdit(self, windows.cmdScrollFieldReporter, kwargs, 'filterSourceType', val)
@@ -7515,6 +7636,11 @@ class CmdShell(PyUI):
         res = _f.asQuery(self, windows.cmdShell, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('cmdShell', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.cmdShell, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('cmdShell', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.cmdShell, kwargs, 'fullPathName')
@@ -7612,6 +7738,10 @@ class CmdShell(PyUI):
     @_f.addMelDocs('cmdShell', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.cmdShell, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('cmdShell', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.cmdShell, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('cmdShell', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -7734,6 +7864,11 @@ class CommandLine(PyUI):
         res = _f.asQuery(self, windows.commandLine, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('commandLine', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.commandLine, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('commandLine', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.commandLine, kwargs, 'fullPathName')
@@ -7838,6 +7973,10 @@ class CommandLine(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.commandLine, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('commandLine', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.commandLine, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('commandLine', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.commandLine, kwargs, 'height', val)
@@ -7939,6 +8078,11 @@ class DefaultLightListCheckBox(PyUI):
         res = _f.asQuery(self, rendering.defaultLightListCheckBox, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('defaultLightListCheckBox', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, rendering.defaultLightListCheckBox, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('defaultLightListCheckBox', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, rendering.defaultLightListCheckBox, kwargs, 'fullPathName')
@@ -8021,6 +8165,10 @@ class DefaultLightListCheckBox(PyUI):
     @_f.addMelDocs('defaultLightListCheckBox', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.defaultLightListCheckBox, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('defaultLightListCheckBox', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, rendering.defaultLightListCheckBox, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('defaultLightListCheckBox', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -8598,6 +8746,11 @@ class ExclusiveLightCheckBox(PyUI):
         res = _f.asQuery(self, rendering.exclusiveLightCheckBox, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('exclusiveLightCheckBox', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, rendering.exclusiveLightCheckBox, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('exclusiveLightCheckBox', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, rendering.exclusiveLightCheckBox, kwargs, 'fullPathName')
@@ -8680,6 +8833,10 @@ class ExclusiveLightCheckBox(PyUI):
     @_f.addMelDocs('exclusiveLightCheckBox', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.exclusiveLightCheckBox, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('exclusiveLightCheckBox', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, rendering.exclusiveLightCheckBox, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('exclusiveLightCheckBox', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -8769,6 +8926,11 @@ class FloatField(PyUI):
     @_f.addMelDocs('floatField', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.floatField, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('floatField', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.floatField, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('floatField', 'fullPathName')
@@ -8888,6 +9050,10 @@ class FloatField(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatField, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('floatField', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.floatField, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('floatField', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatField, kwargs, 'height', val)
@@ -8991,6 +9157,11 @@ class FloatScrollBar(PyUI):
     @_f.addMelDocs('floatScrollBar', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.floatScrollBar, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('floatScrollBar', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.floatScrollBar, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('floatScrollBar', 'fullPathName')
@@ -9102,6 +9273,10 @@ class FloatScrollBar(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatScrollBar, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('floatScrollBar', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.floatScrollBar, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('floatScrollBar', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatScrollBar, kwargs, 'height', val)
@@ -9201,6 +9376,11 @@ class FloatSlider(PyUI):
     @_f.addMelDocs('floatSlider', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.floatSlider, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('floatSlider', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.floatSlider, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('floatSlider', 'fullPathName')
@@ -9307,6 +9487,10 @@ class FloatSlider(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatSlider, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('floatSlider', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.floatSlider, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('floatSlider', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatSlider, kwargs, 'height', val)
@@ -9402,6 +9586,11 @@ class FloatSlider2(PyUI):
     @_f.addMelDocs('floatSlider2', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.floatSlider2, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('floatSlider2', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.floatSlider2, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('floatSlider2', 'fullPathName')
@@ -9515,6 +9704,10 @@ class FloatSlider2(PyUI):
     @_f.addMelDocs('floatSlider2', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatSlider2, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('floatSlider2', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.floatSlider2, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('floatSlider2', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -9737,6 +9930,11 @@ class GradientControl(PyUI):
         res = _f.asQuery(self, windows.gradientControl, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('gradientControl', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.gradientControl, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('gradientControl', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.gradientControl, kwargs, 'fullPathName')
@@ -9861,6 +10059,10 @@ class GradientControl(PyUI):
     @_f.addMelDocs('gradientControl', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gradientControl, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('gradientControl', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gradientControl, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('gradientControl', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -9992,6 +10194,11 @@ class GradientControlNoAttr(PyUI):
         res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('gradientControlNoAttr', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('gradientControlNoAttr', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'fullPathName')
@@ -10106,6 +10313,10 @@ class GradientControlNoAttr(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('gradientControlNoAttr', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('gradientControlNoAttr', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'height', val)
@@ -10187,6 +10398,11 @@ class HelpLine(PyUI):
         res = _f.asQuery(self, windows.helpLine, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('helpLine', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.helpLine, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('helpLine', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.helpLine, kwargs, 'fullPathName')
@@ -10265,6 +10481,10 @@ class HelpLine(PyUI):
     @_f.addMelDocs('helpLine', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.helpLine, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('helpLine', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.helpLine, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('helpLine', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -11089,6 +11309,11 @@ class IconTextButton(PyUI):
         res = _f.asQuery(self, windows.iconTextButton, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('iconTextButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.iconTextButton, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('iconTextButton', 'flat')
     def getFlat(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextButton, kwargs, 'flat')
@@ -11315,6 +11540,10 @@ class IconTextButton(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextButton, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('iconTextButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.iconTextButton, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('iconTextButton', 'flat')
     def setFlat(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextButton, kwargs, 'flat', val)
@@ -11493,6 +11722,11 @@ class IconTextCheckBox(PyUI):
     @_f.addMelDocs('iconTextCheckBox', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextCheckBox, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('iconTextCheckBox', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.iconTextCheckBox, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('iconTextCheckBox', 'flat')
@@ -11716,6 +11950,10 @@ class IconTextCheckBox(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextCheckBox, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('iconTextCheckBox', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.iconTextCheckBox, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('iconTextCheckBox', 'flat')
     def setFlat(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextCheckBox, kwargs, 'flat', val)
@@ -11906,6 +12144,11 @@ class IconTextRadioButton(PyUI):
     @_f.addMelDocs('iconTextRadioButton', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextRadioButton, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('iconTextRadioButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.iconTextRadioButton, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('iconTextRadioButton', 'flat')
@@ -12128,6 +12371,10 @@ class IconTextRadioButton(PyUI):
     @_f.addMelDocs('iconTextRadioButton', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextRadioButton, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('iconTextRadioButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.iconTextRadioButton, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('iconTextRadioButton', 'flat')
     def setFlat(self, val=True, **kwargs):
@@ -12379,6 +12626,11 @@ class IconTextScrollList(PyUI):
         res = _f.asQuery(self, windows.iconTextScrollList, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('iconTextScrollList', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.iconTextScrollList, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('iconTextScrollList', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextScrollList, kwargs, 'fullPathName')
@@ -12504,6 +12756,10 @@ class IconTextScrollList(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextScrollList, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('iconTextScrollList', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.iconTextScrollList, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('iconTextScrollList', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextScrollList, kwargs, 'height', val)
@@ -12593,6 +12849,11 @@ class IconTextStaticLabel(PyUI):
     @_f.addMelDocs('iconTextStaticLabel', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.iconTextStaticLabel, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('iconTextStaticLabel', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.iconTextStaticLabel, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('iconTextStaticLabel', 'flipX')
@@ -12777,6 +13038,10 @@ class IconTextStaticLabel(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextStaticLabel, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('iconTextStaticLabel', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.iconTextStaticLabel, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('iconTextStaticLabel', 'flipX')
     def setFlipX(self, val=True, **kwargs):
         return _f.asEdit(self, windows.iconTextStaticLabel, kwargs, 'flipX', val)
@@ -12926,6 +13191,11 @@ class Image(PyUI):
         res = _f.asQuery(self, windows.image, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('image', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.image, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('image', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.image, kwargs, 'fullPathName')
@@ -13009,6 +13279,10 @@ class Image(PyUI):
     @_f.addMelDocs('image', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.image, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('image', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.image, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('image', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -13102,6 +13376,11 @@ class IntField(PyUI):
     @_f.addMelDocs('intField', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.intField, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('intField', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.intField, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('intField', 'fullPathName')
@@ -13211,6 +13490,10 @@ class IntField(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intField, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('intField', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.intField, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('intField', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intField, kwargs, 'height', val)
@@ -13306,6 +13589,11 @@ class IntScrollBar(PyUI):
     @_f.addMelDocs('intScrollBar', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.intScrollBar, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('intScrollBar', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.intScrollBar, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('intScrollBar', 'fullPathName')
@@ -13417,6 +13705,10 @@ class IntScrollBar(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intScrollBar, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('intScrollBar', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.intScrollBar, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('intScrollBar', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intScrollBar, kwargs, 'height', val)
@@ -13516,6 +13808,11 @@ class IntSlider(PyUI):
     @_f.addMelDocs('intSlider', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.intSlider, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('intSlider', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.intSlider, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('intSlider', 'fullPathName')
@@ -13622,6 +13919,10 @@ class IntSlider(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intSlider, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('intSlider', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.intSlider, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('intSlider', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intSlider, kwargs, 'height', val)
@@ -13720,6 +14021,11 @@ class KeyframeOutliner(PyUI):
         res = _f.asQuery(self, animation.keyframeOutliner, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('keyframeOutliner', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, animation.keyframeOutliner, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('keyframeOutliner', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, animation.keyframeOutliner, kwargs, 'fullPathName')
@@ -13802,6 +14108,10 @@ class KeyframeOutliner(PyUI):
     @_f.addMelDocs('keyframeOutliner', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyframeOutliner, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('keyframeOutliner', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.keyframeOutliner, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('keyframeOutliner', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -14006,6 +14316,11 @@ class KeyframeStats(PyUI):
         res = _f.asQuery(self, animation.keyframeStats, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('keyframeStats', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, animation.keyframeStats, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('keyframeStats', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, animation.keyframeStats, kwargs, 'fullPathName')
@@ -14112,6 +14427,10 @@ class KeyframeStats(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyframeStats, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('keyframeStats', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.keyframeStats, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('keyframeStats', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyframeStats, kwargs, 'height', val)
@@ -14215,6 +14534,11 @@ class LayerButton(PyUI):
     @_f.addMelDocs('layerButton', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.layerButton, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('layerButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.layerButton, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('layerButton', 'fullPathName')
@@ -14343,6 +14667,10 @@ class LayerButton(PyUI):
     @_f.addMelDocs('layerButton', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.layerButton, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('layerButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.layerButton, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('layerButton', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -14583,6 +14911,11 @@ class AttrColorSliderGrp(Layout):
         res = _f.asQuery(self, windows.attrColorSliderGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('attrColorSliderGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.attrColorSliderGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('attrColorSliderGrp', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.attrColorSliderGrp, kwargs, 'fullPathName')
@@ -14694,6 +15027,10 @@ class AttrColorSliderGrp(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrColorSliderGrp, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('attrColorSliderGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.attrColorSliderGrp, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('attrColorSliderGrp', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrColorSliderGrp, kwargs, 'height', val)
@@ -14770,6 +15107,11 @@ class AttrControlGrp(Layout):
         res = _f.asQuery(self, windows.attrControlGrp, kwargs, 'enable')
         return res
 
+    @_f.addMelDocs('attrControlGrp', 'exists')
+    def getExists(self, **kwargs):
+        res = _f.asQuery(self, windows.attrControlGrp, kwargs, 'exists')
+        return res
+
     @_f.addMelDocs('attrControlGrp', 'handlesAttribute')
     def getHandlesAttribute(self, **kwargs):
         res = _f.asQuery(self, windows.attrControlGrp, kwargs, 'handlesAttribute')
@@ -14805,6 +15147,10 @@ class AttrControlGrp(Layout):
     @_f.addMelDocs('attrControlGrp', 'enable')
     def setEnable(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrControlGrp, kwargs, 'enable', val)
+
+    @_f.addMelDocs('attrControlGrp', 'exists')
+    def setExists(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.attrControlGrp, kwargs, 'exists', val)
 
     @_f.addMelDocs('attrControlGrp', 'handlesAttribute')
     def setHandlesAttribute(self, val=True, **kwargs):
@@ -14987,6 +15333,11 @@ class AttrEnumOptionMenuGrp(Layout):
         res = _f.asQuery(self, windows.attrEnumOptionMenuGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('attrEnumOptionMenuGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.attrEnumOptionMenuGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('attrEnumOptionMenuGrp', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.attrEnumOptionMenuGrp, kwargs, 'fullPathName')
@@ -15074,6 +15425,10 @@ class AttrEnumOptionMenuGrp(Layout):
     @_f.addMelDocs('attrEnumOptionMenuGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrEnumOptionMenuGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('attrEnumOptionMenuGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.attrEnumOptionMenuGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('attrEnumOptionMenuGrp', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -15285,6 +15640,11 @@ class AttrFieldGrp(Layout):
         res = _f.asQuery(self, windows.attrFieldGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('attrFieldGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.attrFieldGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('attrFieldGrp', 'extraButtonIcon')
     def getExtraButtonIcon(self, **kwargs):
         res = _f.asQuery(self, windows.attrFieldGrp, kwargs, 'extraButtonIcon')
@@ -15405,6 +15765,10 @@ class AttrFieldGrp(Layout):
     @_f.addMelDocs('attrFieldGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrFieldGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('attrFieldGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.attrFieldGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('attrFieldGrp', 'extraButtonIcon')
     def setExtraButtonIcon(self, val=True, **kwargs):
@@ -15636,6 +16000,11 @@ class AttrFieldSliderGrp(Layout):
         res = _f.asQuery(self, windows.attrFieldSliderGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('attrFieldSliderGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.attrFieldSliderGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('attrFieldSliderGrp', 'extraButtonIcon')
     def getExtraButtonIcon(self, **kwargs):
         res = _f.asQuery(self, windows.attrFieldSliderGrp, kwargs, 'extraButtonIcon')
@@ -15786,6 +16155,10 @@ class AttrFieldSliderGrp(Layout):
     @_f.addMelDocs('attrFieldSliderGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrFieldSliderGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('attrFieldSliderGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.attrFieldSliderGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('attrFieldSliderGrp', 'extraButtonIcon')
     def setExtraButtonIcon(self, val=True, **kwargs):
@@ -16073,6 +16446,11 @@ class AttrNavigationControlGrp(Layout):
         res = _f.asQuery(self, windows.attrNavigationControlGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('attrNavigationControlGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.attrNavigationControlGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('attrNavigationControlGrp', 'extraButtonIcon')
     def getExtraButtonIcon(self, **kwargs):
         res = _f.asQuery(self, windows.attrNavigationControlGrp, kwargs, 'extraButtonIcon')
@@ -16224,6 +16602,10 @@ class AttrNavigationControlGrp(Layout):
     @_f.addMelDocs('attrNavigationControlGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.attrNavigationControlGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('attrNavigationControlGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.attrNavigationControlGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('attrNavigationControlGrp', 'extraButtonIcon')
     def setExtraButtonIcon(self, val=True, **kwargs):
@@ -16483,6 +16865,11 @@ class CheckBoxGrp(Layout):
         res = _f.asQuery(self, windows.checkBoxGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('checkBoxGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.checkBoxGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('checkBoxGrp', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.checkBoxGrp, kwargs, 'fullPathName')
@@ -16705,6 +17092,10 @@ class CheckBoxGrp(Layout):
     @_f.addMelDocs('checkBoxGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.checkBoxGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('checkBoxGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.checkBoxGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('checkBoxGrp', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -16967,6 +17358,11 @@ class ColorIndexSliderGrp(Layout):
         res = _f.asQuery(self, windows.colorIndexSliderGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('colorIndexSliderGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.colorIndexSliderGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('colorIndexSliderGrp', 'extraLabel')
     def getExtraLabel(self, **kwargs):
         res = _f.asQuery(self, windows.colorIndexSliderGrp, kwargs, 'extraLabel')
@@ -17084,6 +17480,10 @@ class ColorIndexSliderGrp(Layout):
     @_f.addMelDocs('colorIndexSliderGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.colorIndexSliderGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('colorIndexSliderGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.colorIndexSliderGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('colorIndexSliderGrp', 'extraLabel')
     def setExtraLabel(self, val=True, **kwargs):
@@ -17323,6 +17723,11 @@ class ColorSliderButtonGrp(Layout):
         res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('colorSliderButtonGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('colorSliderButtonGrp', 'forceDragRefresh')
     def getForceDragRefresh(self, **kwargs):
         res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'forceDragRefresh')
@@ -17439,6 +17844,10 @@ class ColorSliderButtonGrp(Layout):
     @_f.addMelDocs('colorSliderButtonGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('colorSliderButtonGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('colorSliderButtonGrp', 'forceDragRefresh')
     def setForceDragRefresh(self, val=True, **kwargs):
@@ -17669,6 +18078,11 @@ class ColorSliderGrp(Layout):
         res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('colorSliderGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('colorSliderGrp', 'forceDragRefresh')
     def getForceDragRefresh(self, **kwargs):
         res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'forceDragRefresh')
@@ -17771,6 +18185,10 @@ class ColorSliderGrp(Layout):
     @_f.addMelDocs('colorSliderGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('colorSliderGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('colorSliderGrp', 'forceDragRefresh')
     def setForceDragRefresh(self, val=True, **kwargs):
@@ -17887,6 +18305,11 @@ class ColumnLayout(Layout):
         res = _f.asQuery(self, windows.columnLayout, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('columnLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.columnLayout, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('columnLayout', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.columnLayout, kwargs, 'fullPathName')
@@ -17979,6 +18402,10 @@ class ColumnLayout(Layout):
     @_f.addMelDocs('columnLayout', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.columnLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('columnLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.columnLayout, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('columnLayout', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -18194,6 +18621,11 @@ class FloatSliderButtonGrp(Layout):
         res = _f.asQuery(self, windows.floatSliderButtonGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('floatSliderButtonGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.floatSliderButtonGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('floatSliderButtonGrp', 'extraLabel')
     def getExtraLabel(self, **kwargs):
         res = _f.asQuery(self, windows.floatSliderButtonGrp, kwargs, 'extraLabel')
@@ -18344,6 +18776,10 @@ class FloatSliderButtonGrp(Layout):
     @_f.addMelDocs('floatSliderButtonGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatSliderButtonGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('floatSliderButtonGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.floatSliderButtonGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('floatSliderButtonGrp', 'extraLabel')
     def setExtraLabel(self, val=True, **kwargs):
@@ -18598,6 +19034,11 @@ class FloatSliderGrp(Layout):
         res = _f.asQuery(self, windows.floatSliderGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('floatSliderGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.floatSliderGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('floatSliderGrp', 'extraLabel')
     def getExtraLabel(self, **kwargs):
         res = _f.asQuery(self, windows.floatSliderGrp, kwargs, 'extraLabel')
@@ -18734,6 +19175,10 @@ class FloatSliderGrp(Layout):
     @_f.addMelDocs('floatSliderGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.floatSliderGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('floatSliderGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.floatSliderGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('floatSliderGrp', 'extraLabel')
     def setExtraLabel(self, val=True, **kwargs):
@@ -18884,6 +19329,11 @@ class FrameLayout(Layout):
     @_f.addMelDocs('frameLayout', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.frameLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('frameLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.frameLayout, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('frameLayout', 'font')
@@ -19038,6 +19488,10 @@ class FrameLayout(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.frameLayout, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('frameLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.frameLayout, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('frameLayout', 'font')
     def setFont(self, val=True, **kwargs):
         return _f.asEdit(self, windows.frameLayout, kwargs, 'font', val)
@@ -19177,6 +19631,11 @@ class GridLayout(Layout):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('gridLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.gridLayout, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('gridLayout', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'fullPathName')
@@ -19291,6 +19750,10 @@ class GridLayout(Layout):
     @_f.addMelDocs('gridLayout', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.gridLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('gridLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('gridLayout', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -19521,6 +19984,11 @@ class IntFieldGrp(Layout):
         res = _f.asQuery(self, windows.intFieldGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('intFieldGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.intFieldGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('intFieldGrp', 'extraLabel')
     def getExtraLabel(self, **kwargs):
         res = _f.asQuery(self, windows.intFieldGrp, kwargs, 'extraLabel')
@@ -19654,6 +20122,10 @@ class IntFieldGrp(Layout):
     @_f.addMelDocs('intFieldGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intFieldGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('intFieldGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.intFieldGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('intFieldGrp', 'extraLabel')
     def setExtraLabel(self, val=True, **kwargs):
@@ -19884,6 +20356,11 @@ class IntSliderGrp(Layout):
         res = _f.asQuery(self, windows.intSliderGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('intSliderGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.intSliderGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('intSliderGrp', 'extraLabel')
     def getExtraLabel(self, **kwargs):
         res = _f.asQuery(self, windows.intSliderGrp, kwargs, 'extraLabel')
@@ -20017,6 +20494,10 @@ class IntSliderGrp(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intSliderGrp, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('intSliderGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.intSliderGrp, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('intSliderGrp', 'extraLabel')
     def setExtraLabel(self, val=True, **kwargs):
         return _f.asEdit(self, windows.intSliderGrp, kwargs, 'extraLabel', val)
@@ -20135,6 +20616,11 @@ class MenuBarLayout(Layout):
         res = _f.asQuery(self, windows.menuBarLayout, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('menuBarLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.menuBarLayout, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('menuBarLayout', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.menuBarLayout, kwargs, 'fullPathName')
@@ -20238,6 +20724,10 @@ class MenuBarLayout(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuBarLayout, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('menuBarLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuBarLayout, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('menuBarLayout', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuBarLayout, kwargs, 'height', val)
@@ -20338,6 +20828,11 @@ class PaneLayout(Layout):
     @_f.addMelDocs('paneLayout', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.paneLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('paneLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.paneLayout, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('paneLayout', 'fullPathName')
@@ -20483,6 +20978,10 @@ class PaneLayout(Layout):
     @_f.addMelDocs('paneLayout', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.paneLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('paneLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.paneLayout, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('paneLayout', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -20782,6 +21281,11 @@ class RadioButtonGrp(Layout):
         res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('radioButtonGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('radioButtonGrp', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'fullPathName')
@@ -21012,6 +21516,10 @@ class RadioButtonGrp(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.radioButtonGrp, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('radioButtonGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.radioButtonGrp, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('radioButtonGrp', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.radioButtonGrp, kwargs, 'height', val)
@@ -21154,6 +21662,11 @@ class RowColumnLayout(Layout):
         res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('rowColumnLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('rowColumnLayout', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'fullPathName')
@@ -21268,6 +21781,10 @@ class RowColumnLayout(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('rowColumnLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('rowColumnLayout', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'height', val)
@@ -21354,6 +21871,11 @@ class ScrollLayout(Layout):
     @_f.addMelDocs('scrollLayout', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.scrollLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('scrollLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.scrollLayout, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('scrollLayout', 'fullPathName')
@@ -21485,6 +22007,10 @@ class ScrollLayout(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.scrollLayout, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('scrollLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scrollLayout, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('scrollLayout', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.scrollLayout, kwargs, 'height', val)
@@ -21589,6 +22115,11 @@ class ShelfLayout(Layout):
     @_f.addMelDocs('shelfLayout', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.shelfLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('shelfLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.shelfLayout, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('shelfLayout', 'fullPathName')
@@ -21720,6 +22251,10 @@ class ShelfLayout(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfLayout, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('shelfLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfLayout, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('shelfLayout', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfLayout, kwargs, 'height', val)
@@ -21834,6 +22369,11 @@ class ShelfTabLayout(Layout):
     @_f.addMelDocs('shelfTabLayout', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('shelfTabLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('shelfTabLayout', 'fullPathName')
@@ -22030,6 +22570,10 @@ class ShelfTabLayout(Layout):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('shelfTabLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('shelfTabLayout', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'height', val)
@@ -22180,6 +22724,11 @@ class TabLayout(Layout):
     @_f.addMelDocs('tabLayout', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.tabLayout, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('tabLayout', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.tabLayout, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('tabLayout', 'fullPathName')
@@ -22375,6 +22924,10 @@ class TabLayout(Layout):
     @_f.addMelDocs('tabLayout', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.tabLayout, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('tabLayout', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('tabLayout', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -22638,6 +23191,11 @@ class TextFieldGrp(Layout):
         res = _f.asQuery(self, windows.textFieldGrp, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('textFieldGrp', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.textFieldGrp, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('textFieldGrp', 'fileName')
     def getFileName(self, **kwargs):
         res = _f.asQuery(self, windows.textFieldGrp, kwargs, 'fileName')
@@ -22753,6 +23311,10 @@ class TextFieldGrp(Layout):
     @_f.addMelDocs('textFieldGrp', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.textFieldGrp, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('textFieldGrp', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.textFieldGrp, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('textFieldGrp', 'fileName')
     def setFileName(self, val=True, **kwargs):
@@ -22891,6 +23453,11 @@ class MenuEditor(PyUI):
     @_f.addMelDocs('menuEditor', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.menuEditor, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('menuEditor', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.menuEditor, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('menuEditor', 'fullPathName')
@@ -23051,6 +23618,10 @@ class MenuEditor(PyUI):
     @_f.addMelDocs('menuEditor', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuEditor, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('menuEditor', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuEditor, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('menuEditor', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -23226,6 +23797,11 @@ class MessageLine(PyUI):
         res = _f.asQuery(self, windows.messageLine, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('messageLine', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.messageLine, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('messageLine', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.messageLine, kwargs, 'fullPathName')
@@ -23304,6 +23880,10 @@ class MessageLine(PyUI):
     @_f.addMelDocs('messageLine', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.messageLine, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('messageLine', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.messageLine, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('messageLine', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -24635,6 +25215,11 @@ class NameField(PyUI):
         res = _f.asQuery(self, windows.nameField, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('nameField', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.nameField, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('nameField', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.nameField, kwargs, 'fullPathName')
@@ -24737,6 +25322,10 @@ class NameField(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.nameField, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('nameField', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.nameField, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('nameField', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.nameField, kwargs, 'height', val)
@@ -24835,6 +25424,11 @@ class NodeIconButton(PyUI):
     @_f.addMelDocs('nodeIconButton', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, rendering.nodeIconButton, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('nodeIconButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, rendering.nodeIconButton, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('nodeIconButton', 'flipX')
@@ -25022,6 +25616,10 @@ class NodeIconButton(PyUI):
     @_f.addMelDocs('nodeIconButton', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.nodeIconButton, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('nodeIconButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, rendering.nodeIconButton, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('nodeIconButton', 'flipX')
     def setFlipX(self, val=True, **kwargs):
@@ -25925,6 +26523,11 @@ class PalettePort(PyUI):
         res = _f.asQuery(self, windows.palettePort, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('palettePort', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.palettePort, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('palettePort', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.palettePort, kwargs, 'fullPathName')
@@ -26035,6 +26638,10 @@ class PalettePort(PyUI):
     @_f.addMelDocs('palettePort', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.palettePort, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('palettePort', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.palettePort, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('palettePort', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -26557,10 +27164,6 @@ class ModelPanel(Panel):
     __melui__ = 'modelPanel'
     __slots__ = ()
 
-    @_f.addMelDocs('modelPanel', 'addTab')
-    def addTab(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'addTab', val)
-
     @_f.addMelDocs('modelPanel', 'copy')
     def copy(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'copy', val)
@@ -26628,11 +27231,6 @@ class ModelPanel(Panel):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'popupMenuProcedure')
         return res
 
-    @_f.addMelDocs('modelPanel', 'selectTab')
-    def getSelectTab(self, **kwargs):
-        res = _f.asQuery(self, windows.modelPanel, kwargs, 'selectTab')
-        return res
-
     @_f.addMelDocs('modelPanel', 'tearOff')
     def getTearOff(self, **kwargs):
         res = _f.asQuery(self, windows.modelPanel, kwargs, 'tearOff')
@@ -26641,10 +27239,6 @@ class ModelPanel(Panel):
     @_f.addMelDocs('modelPanel', 'init')
     def init(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'init', val)
-
-    @_f.addMelDocs('modelPanel', 'removeTab')
-    def removeTab(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'removeTab', val)
 
     @_f.addMelDocs('modelPanel', 'replacePanel')
     def replacePanel(self, val=True, **kwargs):
@@ -26678,17 +27272,9 @@ class ModelPanel(Panel):
     def setPopupMenuProcedure(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'popupMenuProcedure', val)
 
-    @_f.addMelDocs('modelPanel', 'selectTab')
-    def setSelectTab(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'selectTab', val)
-
     @_f.addMelDocs('modelPanel', 'tearOff')
     def setTearOff(self, val=True, **kwargs):
         return _f.asEdit(self, windows.modelPanel, kwargs, 'tearOff', val)
-
-    @_f.addMelDocs('modelPanel', 'tabCommand')
-    def tabCommand(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.modelPanel, kwargs, 'tabCommand', val)
 
     @_f.addMelDocs('modelPanel', 'tearOffRestore')
     def tearOffRestore(self, val=True, **kwargs):
@@ -26999,6 +27585,11 @@ class RadioButton(PyUI):
         res = _f.asQuery(self, windows.radioButton, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('radioButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.radioButton, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('radioButton', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.radioButton, kwargs, 'fullPathName')
@@ -27112,6 +27703,10 @@ class RadioButton(PyUI):
     @_f.addMelDocs('radioButton', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.radioButton, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('radioButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.radioButton, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('radioButton', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -27775,6 +28370,11 @@ class ScriptTable(PyUI):
         res = _f.asQuery(self, windows.scriptTable, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('scriptTable', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.scriptTable, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('scriptTable', 'excludingHeaders')
     def getExcludingHeaders(self, **kwargs):
         res = _f.asQuery(self, windows.scriptTable, kwargs, 'excludingHeaders')
@@ -27959,6 +28559,10 @@ class ScriptTable(PyUI):
     @_f.addMelDocs('scriptTable', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.scriptTable, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('scriptTable', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scriptTable, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('scriptTable', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -28219,6 +28823,11 @@ class ScrollField(PyUI):
         res = _f.asQuery(self, windows.scrollField, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('scrollField', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.scrollField, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('scrollField', 'font')
     def getFont(self, **kwargs):
         res = _f.asQuery(self, windows.scrollField, kwargs, 'font')
@@ -28345,6 +28954,10 @@ class ScrollField(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.scrollField, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('scrollField', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.scrollField, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('scrollField', 'font')
     def setFont(self, val=True, **kwargs):
         return _f.asEdit(self, windows.scrollField, kwargs, 'font', val)
@@ -28438,6 +29051,11 @@ class Separator(PyUI):
         res = _f.asQuery(self, windows.separator, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('separator', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.separator, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('separator', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.separator, kwargs, 'fullPathName')
@@ -28526,6 +29144,10 @@ class Separator(PyUI):
     @_f.addMelDocs('separator', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.separator, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('separator', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.separator, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('separator', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -28634,9 +29256,24 @@ class ShelfButton(PyUI):
         res = _f.asQuery(self, windows.shelfButton, kwargs, 'enableCommandRepeat')
         return res
 
+    @_f.addMelDocs('shelfButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.shelfButton, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('shelfButton', 'flat')
     def getFlat(self, **kwargs):
         res = _f.asQuery(self, windows.shelfButton, kwargs, 'flat')
+        return res
+
+    @_f.addMelDocs('shelfButton', 'flexibleWidthType')
+    def getFlexibleWidthType(self, **kwargs):
+        res = _f.asQuery(self, windows.shelfButton, kwargs, 'flexibleWidthType')
+        return res
+
+    @_f.addMelDocs('shelfButton', 'flexibleWidthValue')
+    def getFlexibleWidthValue(self, **kwargs):
+        res = _f.asQuery(self, windows.shelfButton, kwargs, 'flexibleWidthValue')
         return res
 
     @_f.addMelDocs('shelfButton', 'flipX')
@@ -28872,9 +29509,21 @@ class ShelfButton(PyUI):
     def setEnableCommandRepeat(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfButton, kwargs, 'enableCommandRepeat', val)
 
+    @_f.addMelDocs('shelfButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfButton, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('shelfButton', 'flat')
     def setFlat(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfButton, kwargs, 'flat', val)
+
+    @_f.addMelDocs('shelfButton', 'flexibleWidthType')
+    def setFlexibleWidthType(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfButton, kwargs, 'flexibleWidthType', val)
+
+    @_f.addMelDocs('shelfButton', 'flexibleWidthValue')
+    def setFlexibleWidthValue(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfButton, kwargs, 'flexibleWidthValue', val)
 
     @_f.addMelDocs('shelfButton', 'flipX')
     def setFlipX(self, val=True, **kwargs):
@@ -29047,6 +29696,11 @@ class SymbolButton(PyUI):
         res = _f.asQuery(self, windows.symbolButton, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('symbolButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.symbolButton, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('symbolButton', 'fullPathName')
     def getFullPathName(self, **kwargs):
         res = _f.asQuery(self, windows.symbolButton, kwargs, 'fullPathName')
@@ -29134,6 +29788,10 @@ class SymbolButton(PyUI):
     @_f.addMelDocs('symbolButton', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.symbolButton, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('symbolButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.symbolButton, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('symbolButton', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -29224,6 +29882,11 @@ class SymbolCheckBox(PyUI):
     @_f.addMelDocs('symbolCheckBox', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.symbolCheckBox, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('symbolCheckBox', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.symbolCheckBox, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('symbolCheckBox', 'fullPathName')
@@ -29356,6 +30019,10 @@ class SymbolCheckBox(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.symbolCheckBox, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('symbolCheckBox', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.symbolCheckBox, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('symbolCheckBox', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, windows.symbolCheckBox, kwargs, 'height', val)
@@ -29466,6 +30133,11 @@ class Text(PyUI):
         res = _f.asQuery(self, windows.text, kwargs, 'enableBackground')
         return res
 
+    @_f.addMelDocs('text', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.text, kwargs, 'enableKeyboardFocus')
+        return res
+
     @_f.addMelDocs('text', 'font')
     def getFont(self, **kwargs):
         res = _f.asQuery(self, windows.text, kwargs, 'font')
@@ -29573,6 +30245,10 @@ class Text(PyUI):
     @_f.addMelDocs('text', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.text, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('text', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.text, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('text', 'font')
     def setFont(self, val=True, **kwargs):
@@ -29707,6 +30383,11 @@ class TextField(PyUI):
     @_f.addMelDocs('textField', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.textField, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('textField', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.textField, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('textField', 'fileName')
@@ -29845,6 +30526,10 @@ class TextField(PyUI):
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.textField, kwargs, 'enableBackground', val)
 
+    @_f.addMelDocs('textField', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.textField, kwargs, 'enableKeyboardFocus', val)
+
     @_f.addMelDocs('textField', 'fileName')
     def setFileName(self, val=True, **kwargs):
         return _f.asEdit(self, windows.textField, kwargs, 'fileName', val)
@@ -29957,6 +30642,11 @@ class ToolButton(PyUI):
     @_f.addMelDocs('toolButton', 'enableBackground')
     def getEnableBackground(self, **kwargs):
         res = _f.asQuery(self, windows.toolButton, kwargs, 'enableBackground')
+        return res
+
+    @_f.addMelDocs('toolButton', 'enableKeyboardFocus')
+    def getEnableKeyboardFocus(self, **kwargs):
+        res = _f.asQuery(self, windows.toolButton, kwargs, 'enableKeyboardFocus')
         return res
 
     @_f.addMelDocs('toolButton', 'fullPathName')
@@ -30114,6 +30804,10 @@ class ToolButton(PyUI):
     @_f.addMelDocs('toolButton', 'enableBackground')
     def setEnableBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.toolButton, kwargs, 'enableBackground', val)
+
+    @_f.addMelDocs('toolButton', 'enableKeyboardFocus')
+    def setEnableKeyboardFocus(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.toolButton, kwargs, 'enableKeyboardFocus', val)
 
     @_f.addMelDocs('toolButton', 'height')
     def setHeight(self, val=True, **kwargs):

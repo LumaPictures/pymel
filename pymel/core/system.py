@@ -2224,6 +2224,8 @@ def devicePanel(*args, **kwargs):
 
 dgInfo = _factories.getCmdFunc('dgInfo')
 
+dgValidateCurve = _factories.getCmdFunc('dgValidateCurve')
+
 dgdirty = _factories.getCmdFunc('dgdirty')
 
 dgeval = _factories.getCmdFunc('dgeval')

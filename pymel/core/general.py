@@ -4468,7 +4468,7 @@ class Attribute(PyNode):
         # type: () -> Tuple[int, List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [(u'indices', 'MIntArray', u'out', None)])
         res = _f.getProxyResult(self, _api.MPlug, 'getExistingArrayAttributeIndices', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MPlug, 'setLocked')
@@ -4499,21 +4499,21 @@ class Attribute(PyNode):
     def evaluateNumElements(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'evaluateNumElements')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.deprecated
     def getExistingArrayAttributeIndices(self):
         # type: () -> Tuple[int, List[int]]
         do, final_do, outTypes = _f.getDoArgs([], [(u'indices', 'MIntArray', u'out', None)])
         res = _f.getProxyResult(self, _api.MPlug, 'getExistingArrayAttributeIndices', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MPlug, 'numElements')
     def getNumElements(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'numElements')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MPlug, 'getSetAttrCmds')
     def getSetAttrCmds(self, valueSelector='all', useLongNames=False):
@@ -4655,7 +4655,7 @@ class Attribute(PyNode):
     def logicalIndex(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'logicalIndex')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
     item = logicalIndex
     index = logicalIndex
 
@@ -4663,19 +4663,19 @@ class Attribute(PyNode):
     def numChildren(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'numChildren')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MPlug, 'numConnectedChildren')
     def numConnectedChildren(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'numConnectedChildren')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MPlug, 'numConnectedElements')
     def numConnectedElements(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'numConnectedElements')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MPlug, 'setCaching')
     def setCaching(self, isCaching):
@@ -6899,7 +6899,7 @@ class MeshFace(MItComponent1D):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([localVertexIndex], [('localVertexIndex', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'normalIndex', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'numColors')
@@ -6940,7 +6940,7 @@ class MeshFace(MItComponent1D):
     def polygonVertexCount(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'polygonVertexCount')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setPoint')
     def setPoint(self, point, index, space='preTransform'):
@@ -8289,6 +8289,8 @@ editDisplayLayerMembers = _factories.getCmdFunc('editDisplayLayerMembers')
 
 exactWorldBoundingBox = _factories.getCmdFunc('exactWorldBoundingBox')
 
+expandedSelection = _factories.getCmdFunc('expandedSelection')
+
 getAttr = _factories.addCmdDocs(getAttr)
 
 getClassification = _factories.addCmdDocs(getClassification)
@@ -8425,6 +8427,8 @@ saveToolSettings = _factories.getCmdFunc('saveToolSettings')
 scale = _factories.addCmdDocs(scale)
 
 scaleComponents = _factories.getCmdFunc('scaleComponents')
+
+sceneLint = _factories.getCmdFunc('sceneLint')
 
 sculptMeshCacheChangeCloneSource = _factories.getCmdFunc('sculptMeshCacheChangeCloneSource')
 

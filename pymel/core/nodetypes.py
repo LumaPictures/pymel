@@ -871,7 +871,7 @@ class DependNode(general.PyNode):
         # type: (unicode) -> int
         do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
         res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.deprecated
@@ -894,7 +894,7 @@ class DependNode(general.PyNode):
     def attributeCount(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attributeCount')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'canBeWritten')
     def canBeWritten(self):
@@ -2435,7 +2435,7 @@ class DagNode(Entity):
     def childCount(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'childCount')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.deprecated
     def dagPath(self):
@@ -2543,7 +2543,7 @@ class DagNode(Entity):
         # type: (bool) -> int
         do, final_do, outTypes = _f.getDoArgs([total], [('total', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'instanceCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnDagNode, 'isInstanceable')
@@ -2596,7 +2596,7 @@ class DagNode(Entity):
     def numChildren(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'childCount')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'objectColorIndex')
     def objectColorIndex(self):
@@ -2630,7 +2630,7 @@ class DagNode(Entity):
     def parentCount(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'parentCount')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.deprecated
     def partialPathName(self):
@@ -4780,6 +4780,13 @@ class Joint(Transform):
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'getOrientation', final_do)
         return _f.processApiResult(res, outTypes, do)
 
+    @_f.addApiDocs(_api.MFnIkJoint, 'getPreferedAngle')
+    def getPreferedAngle(self, rotation):
+        # type: (Tuple[float, float, float]) -> None
+        do, final_do, outTypes = _f.getDoArgs([rotation], [('rotation', 'double__array3', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnIkJoint, 'getPreferedAngle', final_do)
+        return res
+
     @_f.addMelDocs('joint', 'radius')
     def getRadius(self, **kwargs):
         res = _f.asQuery(self, animation.joint, kwargs, 'radius')
@@ -4976,6 +4983,13 @@ class Joint(Transform):
         # type: (Quaternion) -> None
         do, final_do, outTypes = _f.processApiArgs([quaternion], [('quaternion', 'MQuaternion', 'in', None)], self.getOrientation, self.setOrientation, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setOrientation', final_do)
+        return res
+
+    @_f.addApiDocs(_api.MFnIkJoint, 'setPreferedAngle')
+    def setPreferedAngle(self, rotation):
+        # type: (Tuple[float, float, float]) -> None
+        do, final_do, outTypes = _f.processApiArgs([rotation], [('rotation', 'double__array3', 'in', None)], self.getPreferedAngle, self.setPreferedAngle, ['rotation'])
+        res = _f.getProxyResult(self, _api.MFnIkJoint, 'setPreferedAngle', final_do)
         return res
 
     @_f.addMelDocs('joint', 'setPreferredAngles')
@@ -6194,7 +6208,7 @@ class NurbsSurface(SurfaceShape):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([region], [('region', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numBoundaries', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.deprecated
@@ -6214,7 +6228,7 @@ class NurbsSurface(SurfaceShape):
         # type: (int, int) -> int
         do, final_do, outTypes = _f.getDoArgs([region, boundary], [('region', 'uint', 'in', None), ('boundary', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numEdges', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numKnotsInU')
@@ -6245,25 +6259,25 @@ class NurbsSurface(SurfaceShape):
     def numPatches(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numPatches')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numPatchesInU')
     def numPatchesInU(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numPatchesInU')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numPatchesInV')
     def numPatchesInV(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numPatchesInV')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numRegions')
     def numRegions(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numRegions')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numSpansInU')
     def numSpansInU(self):
@@ -7759,7 +7773,7 @@ class Subdiv(SurfaceShape):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'edgeCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'editsPending')
@@ -7830,20 +7844,20 @@ class Subdiv(SurfaceShape):
     def levelMaxAllowed(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnSubd, 'levelMaxAllowed')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnSubd, 'levelMaxCurrent')
     def levelMaxCurrent(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnSubd, 'levelMaxCurrent')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnSubd, 'edgeCount')
     def numEdges(self, level=0):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'edgeCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'polygonCount')
@@ -7851,7 +7865,7 @@ class Subdiv(SurfaceShape):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'polygonCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexCount')
@@ -7859,7 +7873,7 @@ class Subdiv(SurfaceShape):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.deprecated
@@ -7867,7 +7881,7 @@ class Subdiv(SurfaceShape):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'polygonCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'polygonCountMaxWithGivenBaseMesh')
@@ -7940,7 +7954,7 @@ class Subdiv(SurfaceShape):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexEditsClearAllNonBase')
@@ -8179,7 +8193,7 @@ class Particle(DeformableShape):
     def getCount(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'count')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addMelDocs('particle', 'dynamicAttrList')
     def getDynamicAttrList(self, **kwargs):
@@ -8231,7 +8245,7 @@ class Particle(DeformableShape):
         # type: (unicode) -> Tuple[int, List[int]]
         do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None), ('array', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'getPerParticleAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('particle', 'perParticleDouble')
@@ -9720,7 +9734,7 @@ class AnimCurve(DependNode):
         # type: (Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
         do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.deprecated
@@ -9749,7 +9763,7 @@ class AnimCurve(DependNode):
         # type: (Time) -> int
         do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'inTangentType')
@@ -9856,7 +9870,7 @@ class AnimCurve(DependNode):
     def numKeys(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'numKeys')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'remove')
     def remove(self, index, change=None):
@@ -10026,7 +10040,7 @@ class GeometryFilter(DependNode):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'groupIdAtIndex', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'indexForGroupId')
@@ -10034,7 +10048,7 @@ class GeometryFilter(DependNode):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([groupId], [('groupId', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'indexForGroupId', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'indexForOutputConnection')
@@ -10042,7 +10056,7 @@ class GeometryFilter(DependNode):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([connectionIndex], [('connectionIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'indexForOutputConnection', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'indexForOutputShape')
@@ -10050,7 +10064,7 @@ class GeometryFilter(DependNode):
         # type: (general.PyNode) -> int
         do, final_do, outTypes = _f.getDoArgs([shape], [('shape', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'indexForOutputShape', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'inputShapeAtIndex')
@@ -10065,7 +10079,7 @@ class GeometryFilter(DependNode):
     def numOutputConnections(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'numOutputConnections')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'outputShapeAtIndex')
     def outputShapeAtIndex(self, index):
@@ -10172,7 +10186,7 @@ class SkinCluster(GeometryFilter):
         # type: () -> Tuple[int, List[general.PyNode]]
         do, final_do, outTypes = _f.getDoArgs([], [(u'paths', 'MDagPathArray', u'out', None)])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'influenceObjects', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('skinCluster', 'addInfluence')
@@ -10305,7 +10319,7 @@ class SkinCluster(GeometryFilter):
         # type: (general.PyNode) -> int
         do, final_do, outTypes = _f.getDoArgs([mpath], [('mpath', 'MDagPath', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'indexForInfluenceObject', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addMelDocs('skinCluster', 'moveJointsMode')
@@ -15590,7 +15604,7 @@ class CameraSet(DependNode):
     def getNumLayers(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'getNumLayers')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addMelDocs('cameraSet', 'objectSet')
     def getObjectSet(self, **kwargs):
@@ -16352,7 +16366,7 @@ class FluidShape(SurfaceShape):
     def gridSize(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnFluid, 'gridSize')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnFluid, 'isAutoResize')
     def isAutoResize(self):
@@ -20154,7 +20168,7 @@ class IkHandle(Transform):
     def getPriority(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'priority')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addMelDocs('ikHandle', 'rootOnCurve')
     def getRootOnCurve(self, **kwargs):
@@ -20458,6 +20472,11 @@ class RigidConstraint(Transform):
 
 class TextureDeformerHandle(Transform):
     __melnode__ = u'textureDeformerHandle'
+    __slots__ = ()
+
+
+class UfeProxyTransform(Transform):
+    __melnode__ = u'ufeProxyTransform'
     __slots__ = ()
 
 
@@ -21662,7 +21681,7 @@ class BlendShape(GeometryFilter):
     def numWeights(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'numWeights')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addMelDocs('blendShape', 'parallel')
     def parallel(self, val=True, **kwargs):
@@ -21728,6 +21747,10 @@ class BlendShape(GeometryFilter):
     @_f.addMelDocs('blendShape', 'weightCount')
     def setWeightCount(self, val=True, **kwargs):
         return _f.asEdit(self, animation.blendShape, kwargs, 'weightCount', val)
+
+    @_f.addMelDocs('blendShape', 'suppressDialog')
+    def suppressDialog(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.blendShape, kwargs, 'suppressDialog', val)
 
     @_f.addMelDocs('blendShape', 'tangentSpace')
     def tangentSpace(self, val=True, **kwargs):
@@ -22544,6 +22567,66 @@ class NonLinear(WeightGeometryFilter):
         return _f.asEdit(self, animation.nonLinear, kwargs, 'geometry', val)
 
 
+class ProxWrap(WeightGeometryFilter):
+    __melcmd__ = staticmethod(animation.proxWrap)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = u'proxWrap'
+    __melnode__ = u'proxWrap'
+    __slots__ = ()
+
+    @_f.addMelDocs('proxWrap', 'after')
+    def after(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'after', val)
+
+    @_f.addMelDocs('proxWrap', 'afterReference')
+    def afterReference(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'afterReference', val)
+
+    @_f.addMelDocs('proxWrap', 'before')
+    def before(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'before', val)
+
+    @_f.addMelDocs('proxWrap', 'frontOfChain')
+    def frontOfChain(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'frontOfChain', val)
+
+    @_f.addMelDocs('proxWrap', 'deformerTools')
+    def getDeformerTools(self, **kwargs):
+        res = _f.asQuery(self, animation.proxWrap, kwargs, 'deformerTools')
+        return res
+
+    @_f.addMelDocs('proxWrap', 'exclusive')
+    def getExclusive(self, **kwargs):
+        res = _f.asQuery(self, animation.proxWrap, kwargs, 'exclusive')
+        return res
+
+    @_f.addMelDocs('proxWrap', 'geometry')
+    def getGeometry(self, **kwargs):
+        res = _f.asQuery(self, animation.proxWrap, kwargs, 'geometry')
+        return res
+
+    @_f.addMelDocs('proxWrap', 'geometryIndices')
+    def getGeometryIndices(self, **kwargs):
+        res = _f.asQuery(self, animation.proxWrap, kwargs, 'geometryIndices')
+        return res
+
+    @_f.addMelDocs('proxWrap', 'parallel')
+    def parallel(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'parallel', val)
+
+    @_f.addMelDocs('proxWrap', 'prune')
+    def prune(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'prune', val)
+
+    @_f.addMelDocs('proxWrap', 'remove')
+    def remove(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'remove', val)
+
+    @_f.addMelDocs('proxWrap', 'geometry')
+    def setGeometry(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.proxWrap, kwargs, 'geometry', val)
+
+
 class ShrinkWrap(WeightGeometryFilter):
     __melnode__ = u'shrinkWrap'
     __slots__ = ()
@@ -23037,14 +23120,14 @@ class Wire(WeightGeometryFilter):
         # type: (int) -> int
         do, final_do, outTypes = _f.getDoArgs([wireIndex], [('wireIndex', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'numDropoffLocators', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'numWires')
     def numWires(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'numWires')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addMelDocs('wire', 'parallel')
     def parallel(self, val=True, **kwargs):
@@ -23303,7 +23386,7 @@ class IkSolver(DependNode):
     def getMaxIterations(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnIkSolver, 'maxIterations')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addMelDocs('ikSolver', 'solverType')
     def getSolverType(self, **kwargs):
@@ -23456,7 +23539,7 @@ class RenderPass(ImageSource):
     def frameBufferChannels(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnRenderPass, 'frameBufferChannels')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnRenderPass, 'passID')
     def passID(self):
@@ -23642,13 +23725,13 @@ class MotionPath(DependNode):
     def numOrientationMarkers(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'numOrientationMarkers')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'numPositionMarkers')
     def numPositionMarkers(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'numPositionMarkers')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnMotionPath, 'setBank')
     def setBank(self, bank):
@@ -23895,6 +23978,16 @@ class PassContributionMap(DependNode):
 
 class PassMatrix(DependNode):
     __melnode__ = u'passMatrix'
+    __slots__ = ()
+
+
+class PinToGeometryProx(DependNode):
+    __melnode__ = u'pinToGeometryProx'
+    __slots__ = ()
+
+
+class PinToGeometryUV(DependNode):
+    __melnode__ = u'pinToGeometryUV'
     __slots__ = ()
 
 
@@ -31138,6 +31231,14 @@ class PolyReduce(PolyModifier):
     @_f.addMelDocs('polyReduce', 'weightCoefficient')
     def setWeightCoefficient(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyReduce, kwargs, 'weightCoefficient', val)
+
+
+class PolyRetopo(PolyModifier):
+    __melcmd__ = staticmethod(modeling.polyRetopo)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = u'polyRetopo'
+    __melnode__ = u'polyRetopo'
+    __slots__ = ()
 
 
 class PolySmooth(PolyModifier):
