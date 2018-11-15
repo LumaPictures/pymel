@@ -46,13 +46,13 @@ _logger = plogging.getLogger(__name__)
 # are set inside loadApi/CmdCache
 
 # ApiCache
-apiTypesToApiEnums = None
-apiEnumsToApiTypes = None
-mayaTypesToApiTypes = None
-apiTypesToApiClasses = None
+apiTypesToApiEnums = None  # type: Dict[str, int]
+apiEnumsToApiTypes = None  # type: Dict[int, str]
+mayaTypesToApiTypes = None  # type: Dict[str, str]
+apiTypesToApiClasses = None  # type: Dict[str, Type]
 apiClassInfo = None
 
-mayaTypesToApiEnums = None
+mayaTypesToApiEnums = None  # type: Dict[str, int]
 
 # ApiMelBridgeCache
 apiToMelData = None
@@ -165,12 +165,12 @@ EXCLUDE_METHODS = ['type', 'className', 'create', 'name']
 docstringMode = os.environ.get('PYMEL_DOCSTRINGS_MODE', 'pydoc')
 
 # Lookup from PyNode type name as a string to PyNode type as a class
-pyNodeNamesToPyNodes = {}
+pyNodeNamesToPyNodes = {}  # type: Dict[str, Type]
 
 # Lookup from MFn name to Pymel name
-apiClassNamesToPyNodeNames = {}
+apiClassNamesToPyNodeNames = {}  # type: Dict[str, str]
 # Lookup from MFn name to Pymel class
-apiClassNamesToPymelTypes = {}
+apiClassNamesToPymelTypes = {}  # type: Dict[str, Type]
 
 # Lookup from Api Enums to Pymel Component Classes
 #
@@ -1399,15 +1399,9 @@ class ApiTypeRegister(object):
             #_logger.debug("getting %s from dict" % apiType)
             return cls.types[apiType]
         except KeyError:
-            try:
-                # convert to pymel naming convetion  MTime -> Time,  MVector -> Vector
-                #_logger.debug("getting pymelName %s" % apiType)
-                buf = re.split('(?:MIt)|(?:MFn)|(?:M)', apiType)
-                #_logger.debug(buf)
-                assert buf[1]
-                return buf[1]
-            except IndexError:
-                raise
+            m = re.match('^((MIt)|(MFn)|(M))([A-Z]+.*)', apiType)
+            assert m is not None, apiType
+            return m.groups()[-1]
 
     @classmethod
     def isRegistered(cls, apiTypeName):
@@ -1576,7 +1570,8 @@ class ApiArgUtil(object):
             try:
                 methodInfoList = apiClassInfo[apiClassName]['methods'][methodName]
             except KeyError:
-                raise TypeError, "method %s of %s cannot be found" % (methodName, apiClassName)
+                raise TypeError("method %s of %s cannot be found" %
+                                (methodName, apiClassName))
             else:
                 for i, methodInfo in enumerate(methodInfoList):
 
@@ -1751,7 +1746,8 @@ class ApiArgUtil(object):
     def getMethodDocs(self):
         return self.methodInfo['doc']
 
-    def getPrototype(self, className=True, methodName=True, outputs=False, defaults=False):
+    def getPrototype(self, className=True, methodName=True, outputs=False,
+                     defaults=False):
         inArgs = self.inArgs()
         outArgs = self.outArgs()
         returnType = self.getReturnType()
@@ -1970,7 +1966,8 @@ class ApiArgUtil(object):
                     # convert int result into pymel string name.
                     return getattr(apiClassNamesToPymelTypes[apiClassName], enumName)[result]
                 except KeyError:
-                    raise ValueError, "expected an enum of type %s.%s" % (apiClassName, enumName)
+                    raise ValueError("expected an enum of type %s.%s" %
+                                     (apiClassName, enumName))
 
             else:
                 # try:
@@ -2345,8 +2342,8 @@ def getUndoArgs(args, argList, getter, getterInArgs):
         _logger.error("the arguments at time of error were %r" % getterArgs)
         raise
 
-    # when a command returns results normally and passes additional outputs by reference, the result is returned as a tuple
-    # otherwise, always as a list
+    # when a command returns results normally and passes additional outputs by
+    # reference, the result is returned as a tuple otherwise, always as a list
     if not isinstance(getterResult, tuple):
         getterResult = (getterResult,)
 
@@ -2582,7 +2579,8 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
     def wrappedApiFunc(self, *args):
 
         if len(args) != len(inArgs):
-            raise TypeError, "%s() takes exactly %s arguments (%s given)" % (methodName, len(inArgs), len(args))
+            raise TypeError("%s() takes exactly %s arguments (%s given)" %
+                            (methodName, len(inArgs), len(args)))
 
         undoEnabled = getterArgHelper is not None and cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
 
@@ -2601,8 +2599,10 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         if argHelper.isStatic():
             result = method(*final_do_args)
         elif proxy:
-            # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a
-            # subclass of the api class being wrapped, however, the api object can still be used with this mfn explicitly.
+            # due to the discrepancies between the API and Maya node
+            # hierarchies, our __apimfn__ might not be a subclass of the api
+            # class being wrapped, however, the api object can still be used
+            # with this mfn explicitly.
             mfn = self.__apimfn__()
             if not isinstance(mfn, apiClass):
                 mfn = apiClass(self.__apiobject__())
@@ -2629,7 +2629,8 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         pass
         #_logger.debug("defaults: %s" % defaults)
 
-    wrappedApiFunc = util.interface_wrapper(wrappedApiFunc, ['self'] + inArgs, defaults=defaults)
+    wrappedApiFunc = util.interface_wrapper(
+        wrappedApiFunc, ['self'] + inArgs, defaults=defaults)
     wrappedApiFunc._argHelper = argHelper
 
     global _DEBUG_API_WRAPS
@@ -2678,13 +2679,17 @@ def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
     return doc_decorator
 
 
-def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoable=True):
+def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None,
+                undoable=True):
 
-    util.addLazyDocString(wrappedApiFunc, addApiDocsCallback, apiClass, methodName, overloadIndex, undoable, wrappedApiFunc.__doc__)
+    util.addLazyDocString(wrappedApiFunc, addApiDocsCallback, apiClass,
+                          methodName, overloadIndex, undoable,
+                          wrappedApiFunc.__doc__)
     return wrappedApiFunc
 
 
-def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, origDocstring=''):
+def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
+                       origDocstring=''):
     apiClassName = apiClass.__name__
 
     argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
@@ -2732,7 +2737,9 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
             if isinstance(typ, apicache.ApiEnum):
                 apiClassName, enumName = typ
                 enumValues = apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
-                docstring += '\n' + S + 'values: %s\n' % ', '.join(['%r' % x for x in enumValues if x not in ['invalid', 'last']])
+                docstring += '\n' + S + 'values: %s\n' % ', '.join(
+                    ['%r' % x for x in enumValues
+                     if x not in ['invalid', 'last']])
 
     # Results doc strings
     results = []
@@ -2754,7 +2761,8 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True, 
     if resultsStr:
         docstring += '\n\n' + docBuilderCls.section('Returns') + resultsStr + '\n'
 
-    docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName)
+    docstring += '\nDerived from api method `%s.%s.%s`\n' % (
+        apiClass.__module__, apiClassName, methodName)
     if not undoable:
         docstring += '\n**Undo is not currently supported for this method**\n'
 
@@ -2823,7 +2831,9 @@ class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
 
         if proxy:
             parentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
-            assert len(parentPyNode), "%s did not have exactly one parent PyNode: %s (%s)" % (classname, parentPyNode, bases)
+            assert len(parentPyNode), \
+                "%s did not have exactly one parent PyNode: %s (%s)" % \
+                (classname, parentPyNode, bases)
             addPyNodeType(newcls, parentPyNode)
 
         if apicls is not None and apicls.__name__ not in apiClassNamesToPyNodeNames:
@@ -3826,6 +3836,17 @@ def isValidPyNodeName(arg):
 
 
 def toApiTypeStr(obj, default=None):
+    # type: (Union[int, str, util.ProxyUnicode], Optional[str]) -> Optional[str]
+    """
+    Parameters
+    ----------
+    obj : Union[int, str, util.ProxyUnicode]
+    default : Optional[str]
+
+    Returns
+    -------
+    Optional[str]
+    """
     if isinstance(obj, int):
         return apiEnumsToApiTypes.get(obj, default)
     elif isinstance(obj, basestring):
@@ -3836,6 +3857,17 @@ def toApiTypeStr(obj, default=None):
 
 
 def toApiTypeEnum(obj, default=None):
+    # type: (Union[str, util.ProxyUnicode], Optional[int]) -> Optional[int]
+    """
+    Parameters
+    ----------
+    obj : Union[str, util.ProxyUnicode]
+    default : Optional[int]
+
+    Returns
+    -------
+    int
+    """
     if isinstance(obj, util.ProxyUnicode):
         obj = getattr(obj, '__melnode__', default)
     try:
@@ -3845,6 +3877,16 @@ def toApiTypeEnum(obj, default=None):
 
 
 def toApiFunctionSet(obj):
+    # type: (Union[str, int]) -> Optional[Type]
+    """
+    Parameters
+    ----------
+    obj : Union[str, int]
+
+    Returns
+    -------
+    Optional[Type]
+    """
     if isinstance(obj, basestring):
         try:
             return apiTypesToApiClasses[obj]
@@ -3893,8 +3935,17 @@ def apiClassNameToPymelClassName(apiName, allowGuess=True):
 
 
 def mayaTypeToApiType(mayaType):
+    # type: (str) -> str
     """
     Get the Maya API type from the name of a Maya type
+
+    Parameters
+    ----------
+    mayaType : str
+
+    Returns
+    -------
+    str
     """
     try:
         return mayaTypesToApiTypes[mayaType]
@@ -3923,8 +3974,18 @@ def mayaTypeToApiType(mayaType):
 
 
 def isMayaType(mayaType):
-    '''Whether the given type is a currently-defined maya node name
-    '''
+    # type: (str) -> bool
+    """
+    Whether the given type is a currently-defined maya node name
+
+    Parameters
+    ----------
+    str
+
+    Returns
+    -------
+    bool
+    """
     # use nodeType(isTypeName) preferentially, because it returns results
     # for some objects that objectType(tagFromType) returns 0 for
     # (like TadskAssetInstanceNode_TdependNode, which is a parent of

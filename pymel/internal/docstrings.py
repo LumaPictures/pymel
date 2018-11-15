@@ -74,8 +74,18 @@ class DocstringBuilder(object):
         return typ
 
     def build(self, docstring):
+        # type: (str) -> str
         """
         Add the generated docstrings to the existing docstring
+
+        Parameters
+        ----------
+        docstring : str
+            original docstring
+
+        Returns
+        -------
+        str
         """
         if docstring:
             docstring = inspect.cleandoc(docstring)

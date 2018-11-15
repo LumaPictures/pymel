@@ -4202,12 +4202,12 @@ class Transform(DagNode):
 
     # TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with _api.
     def getBoundingBox(self, invisible=False, space='object'):
-        # type: (Any, Any) -> BoundingBox
+        # type: (Any, Any) -> dt.BoundingBox
         """xform -boundingBox and xform -boundingBoxInvisible
 
         Returns
         -------
-        BoundingBox
+        dt.BoundingBox
         """
         kwargs = {'query': True}
         if invisible:
@@ -4226,21 +4226,21 @@ class Transform(DagNode):
         return datatypes.BoundingBox(res[:3], res[3:])
 
     def getBoundingBoxMin(self, invisible=False, space='object'):
-        # type: (Any, Any) -> Vector
+        # type: (Any, Any) -> dt.Vector
         """
         Returns
         -------
-        Vector
+        dt.Vector
         """
         return self.getBoundingBox(invisible, space)[0]
         # return self.getBoundingBox(invisible).min()
 
     def getBoundingBoxMax(self, invisible=False, space='object'):
-        # type: (Any, Any) -> Vector
+        # type: (Any, Any) -> dt.Vector
         """
         Returns
         -------
-        Vector
+        dt.Vector
         """
         return self.getBoundingBox(invisible, space)[1]
 # ------ Do not edit below this line --------
