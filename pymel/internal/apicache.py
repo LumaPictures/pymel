@@ -615,7 +615,6 @@ apiSuffixes = ['', 'node', 'shape', 'shapenode']
 class ApiMelBridgeCache(startup.SubItemCache):
     NAME = 'mayaApiMelBridge'
     DESC = 'the API-MEL bridge'
-    COMPRESSED = True
     USE_VERSION = False
     _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
 
@@ -626,7 +625,6 @@ class ApiMelBridgeCache(startup.SubItemCache):
 class ApiCache(startup.SubItemCache):
     NAME = 'mayaApi'
     DESC = 'the API cache'
-    COMPRESSED = True
     USE_VERSION = True
     _CACHE_NAMES = '''apiTypesToApiEnums apiEnumsToApiTypes mayaTypesToApiTypes
                    apiTypesToApiClasses apiClassInfo'''.split()

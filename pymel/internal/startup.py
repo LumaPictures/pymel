@@ -6,6 +6,7 @@ import os.path
 import sys
 import glob
 import inspect
+import json
 import maya
 import maya.OpenMaya as om
 import maya.utils
@@ -492,53 +493,78 @@ def encodeFix():
 # Cache utilities
 #===============================================================================
 
-def _dump(data, filename, protocol=-1):
+def _pickledump(data, filename, protocol=-1):
     with open(filename, mode='wb') as file:
         pickle.dump(data, file, protocol)
 
-def _load(filename):
+
+def _pickleload(filename):
     with open(filename, mode='rb') as file:
         res = pickle.load(file)
         return res
+
+
+def _jsondump(data, filename):
+    with open(filename, mode='wb') as file:
+        json.dump(data, file)
+
+
+def _jsonload(filename):
+    with open(filename, mode='rb') as file:
+        res = json.load(file)
+        return res
+
+
+CacheFormat = namedtuple('CacheFormat', ['ext', 'reader', 'writer'])
+
 
 class PymelCache(object):
     # override these
     NAME = ''   # ie, 'mayaApi'
     DESC = ''   # ie, 'the API cache' - used in error messages, etc
-    COMPRESSED = True
+
+    FORMATS = [
+        CacheFormat('.json', _jsonload, _jsondump),
+        CacheFormat('.bin', _pickleload, _pickledump),
+        CacheFormat('.zip', picklezip.load, picklezip.dump),
+    ]
+    EXTENSIONS = {x.ext: x for x in FORMATS}
+    DEFAULT_EXT = '.zip'
 
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
 
     def read(self):
-        newPath = self.path()
-        if self.COMPRESSED:
-            func = picklezip.load
-        else:
-            func = _load
+        tried = []
+        for format in self.FORMATS:
+            newPath = self.path(ext=format.ext)
+            tried.append(newPath)
+            if not os.path.isfile(newPath):
+                continue
 
-        _logger.debug(self._actionMessage('Loading', 'from', newPath))
+            func = format.reader
+            _logger.debug(self._actionMessage('Loading', 'from', newPath))
+            try:
+                return func(newPath)
+            except Exception, e:
+                self._errorMsg('read', 'from', newPath, e)
 
-        try:
-            return func(newPath)
-        except Exception, e:
-            self._errorMsg('read', 'from', newPath, e)
-
-    def write(self, data):
-        newPath = self.path()
-        if self.COMPRESSED:
-            func = picklezip.dump
-        else:
-            func = _dump
-
+    def write(self, data, ext=None):
+        if ext is None:
+            ext = self.DEFAULT_EXT
+        newPath = self.path(ext=ext)
+        format = self.EXTENSIONS[ext]
+        func = format.writer
         _logger.info(self._actionMessage('Saving', 'to', newPath))
 
         try:
-            func(data, newPath, 2)
+            func(data, newPath)
         except Exception, e:
             self._errorMsg('write', 'to', newPath, e)
 
-    def path(self):
+    def path(self, ext=None):
+        if ext is None:
+            ext = self.DEFAULT_EXT
         if self.USE_VERSION:
             if hasattr(self, 'version'):
                 short_version = str(self.version)
@@ -548,11 +574,7 @@ class PymelCache(object):
             short_version = ''
 
         newPath = _moduleJoin('cache', self.NAME + short_version)
-        if self.COMPRESSED:
-            newPath += '.zip'
-        else:
-            newPath += '.bin'
-        return newPath
+        return newPath + ext
 
     @classmethod
     def _actionMessage(cls, action, direction, location):
@@ -597,7 +619,6 @@ class SubItemCache(PymelCache):
     >>> class NodeCache(SubItemCache):
     ...     NAME = 'mayaNodes'
     ...     DESC = 'the maya nodes cache'
-    ...     COMPRESSED = False
     ...     _CACHE_NAMES = ['nodeTypes']
     ...     AUTO_SAVE = False
     ...     def rebuild(self):
@@ -707,7 +728,7 @@ class SubItemCache(PymelCache):
             self.update(data, cacheNames=self._CACHE_NAMES)
         return data
 
-    def save(self, obj=None):
+    def save(self, obj=None, ext=None):
         '''Saves the cache
 
         Will optionally update the caches from the given object (which may be
@@ -725,7 +746,7 @@ class SubItemCache(PymelCache):
                 newData.append(val)
             data = tuple(newData)
 
-        self.write(data)
+        self.write(data, ext=ext)
 
     # was called 'caches'
     def contents(self):
