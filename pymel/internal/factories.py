@@ -1334,7 +1334,7 @@ class ApiTypeRegister(object):
 
     @staticmethod
     def _makeRefFunc(capitalizedApiType, size=1, **kwargs):
-        # type: (Any, int, **Any) -> None
+        # type: (Any, int, **Any) -> Callable[[], api.SafeApiPtr]
         """
         Returns a function which will return a SafeApiPtr object of the given
         type.
@@ -1347,6 +1347,10 @@ class ApiTypeRegister(object):
         size : `int`
             If other then 1, the returned function will initialize storage for
             an array of the given size.
+
+        Returns
+        -------
+        Callable[[], api.SafeApiPtr]
         """
         def makeRef():
             return api.SafeApiPtr(capitalizedApiType, size=size, **kwargs)
@@ -1387,21 +1391,28 @@ class ApiTypeRegister(object):
         return getArray
 
     @classmethod
-    def getPymelType(cls, apiType):
+    def getPymelType(cls, apiType, allowGuess=True):
+        # type: (Any, Any) -> Optional[str]
         """
         Map from api name to pymelName.
 
         we start by looking up types which are registered and then fall back
         to naming convention for types that haven't been registered yet.
         Perhaps pre-register the names?
+
+        Returns
+        -------
+        Optional[str]
         """
-        try:
-            #_logger.debug("getting %s from dict" % apiType)
-            return cls.types[apiType]
-        except KeyError:
+        pymelType = cls.types.get(apiType)
+        if pymelType is not None:
+            # strip the module
+            return pymelType.rsplit('.', 1)[-1]
+
+        elif allowGuess:
             m = re.match('^((MIt)|(MFn)|(M))([A-Z]+.*)', apiType)
-            assert m is not None, apiType
-            return m.groups()[-1]
+            if m:
+                return m.groups()[-1]
 
     @classmethod
     def isRegistered(cls, apiTypeName):
@@ -1430,7 +1441,11 @@ class ApiTypeRegister(object):
         capType = util.capitalize(apiTypeName)
 
         # register type
-        cls.types[apiTypeName] = pymelType.__name__
+        fullTypeName = pymelType.__name__
+        moduleName = getattr(pymelType, '__module__', None)
+        if moduleName:
+            fullTypeName = moduleName + '.' + fullTypeName
+        cls.types[apiTypeName] = fullTypeName
 
         if apiArrayItemType:
             cls.arrayItemTypes[apiTypeName] = apiArrayItemType
@@ -1794,45 +1809,56 @@ class ApiArgUtil(object):
             currentModule = 'pymel.core.nodetypes'
         else:
             currentModule = pymelClass.__module__
-        print self.apiClassName, currentModule
+        print "current", self.apiClassName, currentModule
 
         def toPymelType(apiName):
-            try:
-                pymelName = ApiTypeRegister.types[apiName]
-            except KeyError:
-                match = re.match('^(?:(MIt)|(MFn)|(M))([A-Z]+.*)', apiName)
-                assert match is not None, apiName
-                isIter, isNode, isData, pymelName = match.groups()
+            moduleName = None
 
-                if pymelName == 'Attribute' and currentModule != 'pymel.core.general':
-                    return 'nt.' + pymelName
-                if isNode and currentModule != 'pymel.core.nodetypes':
-                    return 'nt.' + pymelName
-                if isData and currentModule != 'pymel.core.datatypes':
-                    return 'datatypes.' + pymelName
-                if isIter and currentModule != 'pymel.core.general':
-                    return 'general.' + pymelName
-                return pymelName
+            pymelType = apiClassNamesToPymelTypes.get(apiName, None)
+            if pymelType is not None:
+                moduleName = pymelType.__module__
+                pymelName = pymelType.__name__
+            else:
+                try:
+                    pymelName = ApiTypeRegister.types[apiName]
+                except KeyError:
+                    match = re.match('^(?:(MIt)|(MFn)|(M))([A-Z]+.*)', apiName)
+                    assert match is not None, apiName
+                    isGeneral, isNode, isData, pymelName = match.groups()
 
-            if pymelName in {'PyNode', 'Attribute'}:
-                pymelName = 'general.' + pymelName
+                    if pymelName == 'Attribute':
+                        moduleName = 'pymel.core.general'
+                    elif isGeneral:
+                        moduleName = 'pymel.core.general'
+                    elif isNode:
+                        moduleName = 'pymel.core.nodetypes'
+                    elif isData:
+                        moduleName = 'pymel.core.datatypes'
+                else:
+                    if isinstance(pymelName, tuple):
+                        pymelName = 'Tuple[%s]' % ', '.join(pymelName)
+                    else:
+                        moduleName, pymelName = pymelName.rsplit('.', 1)
 
-            if isinstance(pymelName, tuple):
-                pymelName = 'Tuple[%s]' % ', '.join(pymelName)
+            if moduleName == 'pymel.core.nodetypes' and currentModule != 'pymel.core.nodetypes':
+                return 'nt.' + pymelName
+            if moduleName == 'pymel.core.datatypes' and currentModule != 'pymel.core.datatypes':
+                return 'datatypes.' + pymelName
+            if moduleName == 'pymel.core.general' and currentModule != 'pymel.core.general':
+                return 'general.' + pymelName
             return pymelName
 
         def getType(apiName):
-            pymelName = apiClassNamesToPyNodeNames.get(apiName, None)
-            if pymelName is None:
-                arrayType = ApiTypeRegister.arrayItemTypes.get(apiName)
-                if arrayType:
-                    try:
-                        pymelName = toPymelType(arrayType.__name__)
-                    except AssertionError:
-                        pymelName = arrayType.__name__
-                    return 'List[%s]' % pymelName
-                else:
-                    pymelName = toPymelType(str(apiName))
+
+            arrayType = ApiTypeRegister.arrayItemTypes.get(apiName)
+            if arrayType:
+                try:
+                    pymelName = toPymelType(arrayType.__name__)
+                except AssertionError:
+                    pymelName = arrayType.__name__
+                return 'List[%s]' % pymelName
+            else:
+                pymelName = toPymelType(str(apiName))
             return pymelName
 
         for x in inArgs:
@@ -2706,7 +2732,9 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
         "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
         """
         if not isinstance(typ, list):
-            pymelType = ApiTypeRegister.types.get(typ, typ)
+            pymelType = ApiTypeRegister.getPymelType(typ, allowGuess=False)
+            if pymelType is None:
+                pymelType = typ
         else:
             pymelType = typ
 
@@ -3924,13 +3952,7 @@ def apiClassNameToPymelClassName(apiName, allowGuess=True):
     """
     pymelName = apiClassNamesToPyNodeNames.get(apiName, None)
     if pymelName is None:
-        if allowGuess:
-            try:
-                pymelName = ApiTypeRegister.getPymelType(apiName)
-            except Exception:
-                pass
-        else:
-            pymelName = ApiTypeRegister.types.get(apiName, None)
+        pymelName = ApiTypeRegister.getPymelType(apiName, allowGuess=allowGuess)
     return pymelName
 
 
