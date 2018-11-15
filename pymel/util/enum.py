@@ -334,10 +334,10 @@ class Enum(object):
             keysFlat = [(ev.key, ev.index) for ev in self.itervalues()]
             multiKeyInfo = ''
 
-        return '%s(%r, {\n    %s\n}%s)' % (
+        return '%s(%r, {%s}%s)' % (
             self.__class__.__name__,
             self.name,
-            ',\n    '.join('%r: %r' % item for item in keysFlat),
+            ', '.join('%r: %r' % item for item in keysFlat),
             multiKeyInfo,
         )
 
