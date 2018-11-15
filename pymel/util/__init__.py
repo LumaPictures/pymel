@@ -11,9 +11,6 @@ import platform
 
 from collections import *
 
-# If we're using python < 2.6, collections doesn't have namedtuple
-if 'namedtuple' not in globals():
-    from namedtuple import namedtuple
 from common import *
 from arguments import *
 from utilitytypes import *

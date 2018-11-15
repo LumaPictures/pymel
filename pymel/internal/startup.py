@@ -10,7 +10,8 @@ import maya
 import maya.OpenMaya as om
 import maya.utils
 
-from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron, namedtuple
+from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron
+from collections import namedtuple
 import pymel.versions as versions
 from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName

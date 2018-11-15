@@ -27,7 +27,6 @@ except ImportError:
     import ply.lex as lex
     import ply.yacc as yacc
 
-#from namedtuple import namedtuple
 from common import capitalize, uncapitalize
 import warnings
 from arguments import *
