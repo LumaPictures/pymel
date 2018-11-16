@@ -4,9 +4,10 @@ that maya is initialized in standalone mode.
 """
 import os.path
 import sys
+import gzip
 import glob
 import inspect
-import json
+import pprint
 import maya
 import maya.OpenMaya as om
 import maya.utils
@@ -514,18 +515,26 @@ def _pickledump(data, filename, protocol=-1):
 def _pickleload(filename):
     with open(filename, mode='rb') as file:
         res = pickle.load(file)
-        return res
+    return res
 
 
-def _jsondump(data, filename):
-    with open(filename, mode='wb') as file:
-        json.dump(data, file)
+def _pydump(data, filename, opener=open):
+    with opener(filename, mode='wb') as file:
+        file.write(pprint.pformat(data))
 
 
-def _jsonload(filename):
-    with open(filename, mode='rb') as file:
-        res = json.load(file)
-        return res
+def _pyload(filename, opener=open):
+    with opener(filename, mode='rb') as file:
+        text = file.read()
+    return eval(text)
+
+
+def _pyzipdump(data, filename):
+    return _pydump(data, filename, opener=gzip.open)
+
+
+def _pyzipload(filename):
+    return _pyload(filename, opener=gzip.open)
 
 
 CacheFormat = namedtuple('CacheFormat', ['ext', 'reader', 'writer'])
@@ -537,7 +546,8 @@ class PymelCache(object):
     DESC = ''   # ie, 'the API cache' - used in error messages, etc
 
     FORMATS = [
-        CacheFormat('.json', _jsonload, _jsondump),
+        CacheFormat('.py', _pyload, _pydump),
+        CacheFormat('.py.zip', _pyzipload, _pyzipdump),
         CacheFormat('.bin', _pickleload, _pickledump),
         CacheFormat('.zip', picklezip.load, picklezip.dump),
     ]
@@ -547,9 +557,24 @@ class PymelCache(object):
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
 
-    def read(self):
+    def fromRawData(self, rawData):
+        '''If a subclass needs to modify data as it is read from the cache
+        on disk, do it here'''
+        return rawData
+
+    def toRawData(self, data):
+        '''If a subclass needs to modify data before it is written to the cache
+        on disk, do it here'''
+        return data
+
+    def read(self, ext=None):
         tried = []
-        for format in self.FORMATS:
+
+        if ext is not None:
+            formats = [self.EXTENSIONS[ext]]
+        else:
+            formats = self.FORMATS
+        for format in formats:
             newPath = self.path(ext=format.ext)
             tried.append(newPath)
             if not os.path.isfile(newPath):
@@ -558,11 +583,16 @@ class PymelCache(object):
             func = format.reader
             _logger.debug(self._actionMessage('Loading', 'from', newPath))
             try:
-                return func(newPath)
+                return self.fromRawData(func(newPath))
             except Exception, e:
                 self._errorMsg('read', 'from', newPath, e)
 
     def write(self, data, ext=None):
+        import copy
+        # when writing data, we dont' actually want to modify the passed in
+        # data, as it may be in use... so we make a deepcopy
+        data = copy.deepcopy(data)
+
         if ext is None:
             ext = self.DEFAULT_EXT
         newPath = self.path(ext=ext)
@@ -571,7 +601,7 @@ class PymelCache(object):
         _logger.info(self._actionMessage('Saving', 'to', newPath))
 
         try:
-            func(data, newPath)
+            func(self.toRawData(data), newPath)
         except Exception, e:
             self._errorMsg('write', 'to', newPath, e)
 
@@ -686,12 +716,9 @@ class SubItemCache(PymelCache):
     # used
     # These are the types that the contents will 'appear' to be to the end user
     # (ie, the types returned by contents).
-    # If the value needs to be converted before pickling, specify an entry
-    # in STORAGE_TYPES
-    # Both should be constructors which can either take no arguments, or
+    # Should be constructors which can either take no arguments, or
     # a single argument to initialize an instance.
     ITEM_TYPES = {}
-    STORAGE_TYPES = {}
     DEFAULT_TYPE = dict
     AUTO_SAVE = True
 
@@ -712,6 +739,9 @@ class SubItemCache(PymelCache):
 
     def itemType(self, name):
         return self.ITEM_TYPES.get(name, self.DEFAULT_TYPE)
+
+    def itemIndex(self, name):
+        return self._CACHE_NAMES.index(name)
 
     def build(self):
         """
@@ -760,15 +790,6 @@ class SubItemCache(PymelCache):
         '''
         data = self.read()
         if data is not None:
-            data = list(data)
-            # if STORAGE_TYPES, need to convert back from the storage type to
-            # the 'normal' type
-            if self.STORAGE_TYPES:
-                for name in self.STORAGE_TYPES:
-                    index = self._CACHE_NAMES.index(name)
-                    val = data[index]
-                    val = self.itemType(name)(val)
-                    data[index] = val
             data = tuple(data)
             self.update(data, cacheNames=self._CACHE_NAMES)
         return data
@@ -783,14 +804,6 @@ class SubItemCache(PymelCache):
         if obj is not None:
             self.update(obj)
         data = self.contents()
-        if self.STORAGE_TYPES:
-            newData = []
-            for name, val in zip(self._CACHE_NAMES, data):
-                if name in self.STORAGE_TYPES:
-                    val = self.STORAGE_TYPES[name](val)
-                newData.append(val)
-            data = tuple(newData)
-
         self.write(data, ext=ext)
 
     # was called 'caches'

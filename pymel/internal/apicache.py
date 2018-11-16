@@ -35,13 +35,6 @@ class ApiEnum(tuple):
             parts[0] = pymelName
         return '.'.join([str(x) for x in parts])
 
-if versions.current() < versions.v2012:
-    # Before 2012, api had Enum, and when we unpickle the caches, it will
-    # need to be there... could rebuild the caches (like I had to do with
-    # mayaApiMelBridge) but don't really want to...
-    api.Enum = ApiEnum
-    Enum = ApiEnum
-
 
 def _defaultdictdict(cls, val=None):
     if val is None:
@@ -636,9 +629,6 @@ class ApiMelBridgeCache(startup.SubItemCache):
     USE_VERSION = False
     _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
 
-    CACHE_TYPES = {'apiToMelData': _defaultdictdict}
-    STORAGE_TYPES = {'apiToMelData': dict}
-
 
 class ApiCache(startup.SubItemCache):
     NAME = 'mayaApi'
@@ -736,6 +726,124 @@ class ApiCache(startup.SubItemCache):
         for name in self.EXTRA_GLOBAL_NAMES:
             setattr(self, name, {})
         self.docLocation = docLocation
+
+    def _modifyApiTypes(self, data, predicate, converter):
+        '''convert apiTypesToApiClasses between class names and class objects'''
+        enumsToTypes = data[self.itemIndex('apiTypesToApiClasses')]
+        for key, val in enumsToTypes.viewitems():
+            if predicate(val):
+                enumsToTypes[key] = converter(val)
+
+    def _modifyEnums(self, data, predicate, converter):
+        '''Convert between Enum reprs and actual Enum objects'''
+        apiClassInfo = data[self.itemIndex('apiClassInfo')]
+        for classname, classInfo in apiClassInfo.viewitems():
+            enums = classInfo.get('enums')
+            if enums:
+                for enumdata in enums.viewvalues():
+                    valdata = enumdata.get('values')
+                    if predicate(valdata):
+                        enumdata['values'] = converter(valdata)
+            pymelEnums = classInfo.get('pymelEnums')
+            if pymelEnums:
+                for name, enumdata in pymelEnums.viewitems():
+                    if predicate(enumdata):
+                        pymelEnums[name] = converter(enumdata)
+
+    def _modifyApiEnums(self, data, predicate, converter):
+        apiClassInfo = data[self.itemIndex('apiClassInfo')]
+        for classname, classInfo in apiClassInfo.viewitems():
+            methods = classInfo.get('methods')
+            if not methods:
+                continue
+            for overrides in methods.viewvalues():
+                for methodInfo in overrides:
+                    returnInfo = methodInfo.get('returnInfo')
+                    if returnInfo:
+                        returnType = returnInfo.get('type')
+                        if returnType and predicate(returnType):
+                            returnInfo['type'] = converter(returnType)
+                    returnType = methodInfo.get('returnType')
+                    if returnType and predicate(returnType):
+                        methodInfo['returnType'] = converter(returnType)
+                    argInfo = methodInfo.get('argInfo')
+                    if argInfo:
+                        for singleArgInfo in argInfo.viewvalues():
+                            argType = singleArgInfo.get('type')
+                            if argType and predicate(argType):
+                                singleArgInfo['type'] = converter(argType)
+                    args = methodInfo.get('args')
+                    if args:
+                        for i, arg in enumerate(args):
+                            if predicate(arg[1]):
+                                arg = list(arg)
+                                arg[1] = converter(arg[1])
+                                args[i] = tuple(arg)
+                    defaults = methodInfo.get('defaults')
+                    if defaults:
+                        for name, val in defaults.viewitems():
+                            if predicate(val):
+                                defaults[name] = converter(val)
+                    types = methodInfo.get('types')
+                    if types:
+                        for name, val in types.viewitems():
+                            if predicate(val):
+                                types[name] = converter(val)
+
+    def fromRawData(self, data):
+        import importlib
+
+        # convert from string class names to class objects
+        def isString(x):
+            return isinstance(x, basestring)
+
+        def getClass(fullClassname):
+            assert '.' in fullClassname
+            modulename, classname = fullClassname.rsplit('.', 1)
+            moduleobj = importlib.import_module(modulename)
+            return getattr(moduleobj, classname)
+
+        self._modifyApiTypes(data, isString, getClass)
+
+        # convert from string enum reprs to Enum objects
+        def makeEnumFromRepr(enumRepr):
+            return eval(enumRepr, {'Enum': _util.Enum})
+
+        self._modifyEnums(data, isString, makeEnumFromRepr)
+
+        # json automatically converts integer dict keys to strings...
+        # we only need to undo this on read
+        apiEnumsToApiTypes = data[self.itemIndex('apiEnumsToApiTypes')]
+        if any(isinstance(k, basestring) for k in apiEnumsToApiTypes):
+            # want to modify the dict in place, so make a copy
+            newDict = {int(key): val
+                       for key, val in apiEnumsToApiTypes.viewitems()}
+            apiEnumsToApiTypes.clear()
+            apiEnumsToApiTypes.update(newDict)
+
+        # convert from tuples to ApiEnum tuples
+        self._modifyApiEnums(data, lambda x: isinstance(x, tuple),
+                             ApiEnum)
+
+        return data
+
+    def toRawData(self, data):
+
+        # convert from class objects to string class names
+        def getFullClassname(classObj):
+            return '{}.{}'.format(
+                inspect.getmodule(classObj).__name__, classObj.__name__)
+
+        self._modifyApiTypes(data, inspect.isclass, getFullClassname)
+
+        # convert from Enum objects to string enum reprs
+        self._modifyEnums(data, lambda x: isinstance(x, _util.Enum), repr)
+
+        # convert from ApiEnum tuples to tuples
+        self._modifyApiEnums(data, lambda x: isinstance(x, ApiEnum),
+                             tuple)
+
+        return data
 
     def _buildMayaToApiInfo(self, reservedOnly=False):
 
@@ -1119,19 +1227,6 @@ class ApiCache(startup.SubItemCache):
         """
         self.mayaTypesToApiEnums.pop(mayaType, None)
         self.mayaTypesToApiTypes.pop(mayaType, None)
-
-    def read(self, raw=False):
-        data = super(ApiCache, self).read()
-        if not raw:
-            # Before 2012, we cached reservedMayaTypes and reservedApiTypes,
-            # even though they weren't used...
-            if data is not None and len(data) != len(self._CACHE_NAMES):
-                if len(data) == 8 and versions.current() < versions.v2012:
-                    data = data[2:6] + data[7:]
-                else:
-                    # we need to rebuild, return None
-                    data = None
-        return data
 
     def rebuild(self):
         """Rebuild the api cache from scratch
