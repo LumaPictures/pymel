@@ -100,9 +100,8 @@ def _constraint(func):
                 res = _factories.toPyNodeList(res)
         return res
 
-    constraint = constraintWithWeightSyntax
-    constraint.__name__ = func.__name__
-    return constraint
+    constraintWithWeightSyntax.__name__ = func.__name__
+    return constraintWithWeightSyntax
 
 
 for contstraintCmdName in ('''aimConstraint geometryConstraint normalConstraint

@@ -447,13 +447,6 @@ def menu(*args, **kwargs):
     Modifications
       - added ability to query parent
     """
-    if _versions.current() < _versions.v2011:
-        # on create only
-        if not ( kwargs.get('query', False) or kwargs.get('q', False) ) \
-                and not ( kwargs.get('edit', False) or kwargs.get('e', False) ) \
-                and not (kwargs.get('parent', False) or kwargs.get('p', False)):
-            kwargs['parent'] = cmds.setParent(q=1)
-
     if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
             and (kwargs.get('parent', False) or kwargs.get('p', False)):
         name = unicode(args[0])

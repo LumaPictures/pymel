@@ -46,19 +46,6 @@ _mayaExitCallbackId = None
 _mayaUninitialized = False
 _atExitCallbackInstalled = False
 
-# tells whether this maya package has been modified to work with pymel
-pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
-
-# used to test by using hasattr(maya.standalone, 'uninitialize')...
-# but that requires importing maya.standalone, and pymel actually checks for
-# it's existence in maya.cmds
-# would like to remove that check, but could potentially break backward compat -
-# ie, if someone does:
-#    import maya.standalone
-#    import pymel
-#    import maya.standalone.initialize()
-_hasUninitialize = versions.current() >= versions.v2016
-
 
 def _moduleJoin(*args):
     """
@@ -198,10 +185,6 @@ def _mayaInit(forversion=None):
                 _logger.debug("startup.mayaInit: running standalone.initialize")
                 import maya.standalone  # @UnresolvedImport
                 maya.standalone.initialize(name="python")
-
-                if versions.current() < versions.v2009:
-                    refreshEnviron()
-
             except ImportError, e:
                 raise ImportError(str(e) + ": pymel was unable to intialize maya.standalone")
 
@@ -330,7 +313,7 @@ def finalize():
     _finalizeCalled = True
 
     global isInitializing
-    if pymelMayaPackage and isInitializing:
+    if isInitializing:
         # this module is not encapsulated into functions, but it should already
         # be imported, so it won't run again
         assert 'maya.app.startup.basic' in sys.modules, \
@@ -408,72 +391,70 @@ def fixMayapySegFault():
 # Have all the checks inside here, in case people want to insert this in their
 # userSetup... it's currently not always on
 def fixMayapy2011SegFault():
-    currentVer = versions.current()
-    # this was fixed in 2014, but in 2014, it will crash consistently if you use
-    # the sceneAseembly plugin, and inconsistently even if you don't...
-    if versions.v2011 <= currentVer < versions.v2013 or currentVer >= versions.v2014:
-        import platform
-        if platform.system() == 'Linux':
-            if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp:  # mayapy only
-                # In linux maya 2011, once maya has been initialized, if you try
-                # to do a 'normal' sys.exit, it will crash with a segmentation
-                # fault..
-                # do a 'hard' os._exit to avoid this
+    # this bug showed up in 2011 + 2012, was apparently fixed in 2013, then
+    # showed up again in 2014...
+    import platform
+    if platform.system() == 'Linux':
+        if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp:  # mayapy only
+            # In linux maya 2011, once maya has been initialized, if you try
+            # to do a 'normal' sys.exit, it will crash with a segmentation
+            # fault..
+            # do a 'hard' os._exit to avoid this
 
-                # note that, since there is no built-in support to tell from
-                # within atexit functions what the exit code is, we cannot
-                # guarantee returning the "correct" exit code... for instance,
-                # if someone does:
-                #    raise SystemExit(300)
-                # we will instead return a 'normal' exit code of 0
-                # ... but in general, the return code is a LOT more reliable now,
-                # since it used to ALWAYS return non-zero...
+            # note that, since there is no built-in support to tell from
+            # within atexit functions what the exit code is, we cannot
+            # guarantee returning the "correct" exit code... for instance,
+            # if someone does:
+            #    raise SystemExit(300)
+            # we will instead return a 'normal' exit code of 0
+            # ... but in general, the return code is a LOT more reliable now,
+            # since it used to ALWAYS return non-zero...
 
+            import sys
+            import atexit
+
+            # First, wrap sys.exit to store the exit code...
+            _orig_exit = sys.exit
+
+            # This is just in case anybody else needs to access the
+            # original exit function...
+            if not hasattr(sys, '_orig_exit'):
+                sys._orig_exit = _orig_exit
+
+            def exit(status):
+                sys._exit_status = status
+                _orig_exit(status)
+            sys.exit = exit
+
+            def hardExit():
+                # run all the other exit handlers registered with
+                # atexit, then hard exit... this is easy, because
+                # atexit._run_exitfuncs pops funcs off the stack as it goes...
+                # so all we need to do is call it again
                 import sys
-                import atexit
+                atexit._run_exitfuncs()
+                try:
+                    print "pymel: hard exiting to avoid mayapy crash..."
+                except Exception:
+                    pass
+                import os
+                import sys
 
-                # First, wrap sys.exit to store the exit code...
-                _orig_exit = sys.exit
-
-                # This is just in case anybody else needs to access the
-                # original exit function...
-                if not hasattr(sys, '_orig_exit'):
-                    sys._orig_exit = _orig_exit
-
-                def exit(status):
-                    sys._exit_status = status
-                    _orig_exit(status)
-                sys.exit = exit
-
-                def hardExit():
-                    # run all the other exit handlers registered with
-                    # atexit, then hard exit... this is easy, because
-                    # atexit._run_exitfuncs pops funcs off the stack as it goes...
-                    # so all we need to do is call it again
-                    import sys
-                    atexit._run_exitfuncs()
-                    try:
-                        print "pymel: hard exiting to avoid mayapy crash..."
-                    except Exception:
-                        pass
-                    import os
-                    import sys
-
-                    exitStatus = getattr(sys, '_exit_status', None)
-                    if exitStatus is None:
-                        last_value = getattr(sys, 'last_value', None)
-                        if last_value is not None:
-                            if isinstance(last_value, SystemExit):
-                                try:
-                                    exitStatus = last_value.args[0]
-                                except Exception:
-                                    pass
-                            if exitStatus is None:
-                                exitStatus = 1
-                    if exitStatus is None:
-                        exitStatus = 0
-                    os._exit(exitStatus)
-                atexit.register(hardExit)
+                exitStatus = getattr(sys, '_exit_status', None)
+                if exitStatus is None:
+                    last_value = getattr(sys, 'last_value', None)
+                    if last_value is not None:
+                        if isinstance(last_value, SystemExit):
+                            try:
+                                exitStatus = last_value.args[0]
+                            except Exception:
+                                pass
+                        if exitStatus is None:
+                            exitStatus = 1
+                if exitStatus is None:
+                    exitStatus = 0
+                os._exit(exitStatus)
+            atexit.register(hardExit)
 
 # Fix for non US encodings in Maya
 
@@ -832,10 +813,10 @@ def parsePymelConfig():
         'skip_mel_init': 'off',
         'check_attr_before_lock': 'off',
         'preferred_python_qt_binding': 'pyqt',
-        # want to use the "better" fix_mayapy_segfault if uninitialize is
+        # want to use the "better" fix_mayapy_segfault now that uninitialize is
         # available
-        'fix_mayapy_segfault': 'on' if _hasUninitialize else 'off',
-        'fix_linux_mayapy_segfault': 'off' if _hasUninitialize else 'on',
+        'fix_mayapy_segfault': 'on',
+        'fix_linux_mayapy_segfault': 'off',
         'deleted_pynode_name_access': 'warn_deprecated',
     }
 

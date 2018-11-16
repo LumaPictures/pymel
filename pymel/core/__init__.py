@@ -248,9 +248,8 @@ def _pluginLoaded(*args):
 
         # Detect if we are currently opening/importing a file and load as a callback versus execute now
         if (_api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile() or
-                (_versions.current() >= _versions.v2012
-                 and _api.MFileIO.isReferencingFile())):
-            if _versions.current() >= _versions.v2012 and _api.MFileIO.isReferencingFile():
+                _api.MFileIO.isReferencingFile()):
+            if _api.MFileIO.isReferencingFile():
                 _logger.debug("Installing temporary plugin-loaded nodes callback - PostSceneRead")
                 id = _api.MEventMessage.addEventCallback('PostSceneRead', addPluginPyNodes)
             elif _api.MFileIO.isImportingFile():
@@ -331,13 +330,9 @@ def _installCallbacks():
         _logger.debug("Adding pluginLoaded callback")
         #_pluginLoadedCB = pluginLoadedCallback(module)
 
-        if _versions.current() >= _versions.v2009:
-            id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginLoad, _pluginLoaded)
-            if hasattr(id, 'disown'):
-                id.disown()
-        else:
-            # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down
-            cmds.loadPlugin(addCallback='import pymel.core; pymel.core._pluginLoaded("%s")')
+        id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginLoad, _pluginLoaded)
+        if hasattr(id, 'disown'):
+            id.disown()
     else:
         _logger.debug("PluginLoaded callback already exists")
 

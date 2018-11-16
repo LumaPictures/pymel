@@ -374,12 +374,11 @@ def objectTypeUI(name, **kwargs):
             uiType = None
             typesToCheck = 'checkBox floatField button floatSlider intSlider ' \
                 'floatField textField intField optionMenu radioButton'.split()
-            if _versions.current() >= _versions.v2012_SP2:
-                # 2012 SP2 introducted a bug where doing:
-                # win = cmds.window(menuBar=True)
-                # cmds.objectTypeUI(win)
-                # would error...
-                typesToCheck.append('window')
+            # 2012 SP2 introducted a bug where doing:
+            # win = cmds.window(menuBar=True)
+            # cmds.objectTypeUI(win)
+            # would error...
+            typesToCheck.append('window')
             for cmdName in typesToCheck:
                 if getattr(cmds, cmdName)(name, ex=1, q=1):
                     uiType = cmdName

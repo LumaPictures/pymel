@@ -515,36 +515,16 @@ def setAttr(attr, *args, **kwargs):
                 args = tuple([len(arg)] + arg)
 
             elif datatype in ['vectorArray', 'pointArray']:
-                if _versions.current() < _versions.v2011:
-                    # vector arrays:
-                    #    first arg must be the length of the array being set
-                    #    empty values are placed between vectors
-                    # ex:
-                    #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )
-                    # becomes:
-                    #     cmds.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')
-                    arg = list(arg)
-                    size = len(arg)
-                    try:
-                        tmpArgs = [arg.pop(0)]
-                        for filler, real in zip([""] * (size - 1), arg):
-                            tmpArgs.append(filler)
-                            tmpArgs.append(real)
-                    except IndexError:
-                        tmpArgs = []
-
-                    args = tuple([size] + tmpArgs)
-                else:
-                    # vector arrays:
-                    #    first arg must be the length of the array being set
-                    #    empty values are placed between vectors
-                    # ex:
-                    #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )
-                    # becomes:
-                    #     cmds.setAttr('loc.vecArray',3,[1,2,3],[4,5,6],[7,8,9],type='vectorArray')
-                    arg = list(arg)
-                    size = len(arg)
-                    args = tuple([size] + arg)
+                # vector arrays:
+                #    first arg must be the length of the array being set
+                #    empty values are placed between vectors
+                # ex:
+                #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )
+                # becomes:
+                #     cmds.setAttr('loc.vecArray',3,[1,2,3],[4,5,6],[7,8,9],type='vectorArray')
+                arg = list(arg)
+                size = len(arg)
+                args = tuple([size] + arg)
 
                 # print args
 
@@ -1865,27 +1845,26 @@ def duplicate(*args, **kwargs):
                     # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
                     # Connection not made: 'singleShapePolyShape2.instObjGroups[1]' -> 'initialShadingGroup.dagSetMembers[2]'. Destination attribute must be writable.
 
-                if _versions.current() >= _versions.v2014:
-                    # Would like to check that the dupe is due to the above bug,
-                    # but sometimes the error string is the one above, about
-                    # connections, and sometimes it's the more generic "Maya
-                    # command error"... and this isn't very safe for
-                    # international translations anyway...
-                    # ...so, we just ASSUME that the runtime error was due to
-                    # the above bug... if there was an error that caused it to
-                    # not duplicate, we will fail to find the new shape, and
-                    # we will re-raise the error...
+                # Would like to check that the dupe is due to the above bug,
+                # but sometimes the error string is the one above, about
+                # connections, and sometimes it's the more generic "Maya
+                # command error"... and this isn't very safe for
+                # international translations anyway...
+                # ...so, we just ASSUME that the runtime error was due to
+                # the above bug... if there was an error that caused it to
+                # not duplicate, we will fail to find the new shape, and
+                # we will re-raise the error...
 
-                    # we should still be able to figure out which the newShape
-                    # is, since there should only be two instances of it, and it
-                    # should be the one under the old parent...
-                    shapes = origParent.getShapes()
-                    for shape in shapes:
-                        if shape.isInstanceOf(dupeShape):
-                            newShape = shape
-                            break
-                    else:
-                        raise
+                # we should still be able to figure out which the newShape
+                # is, since there should only be two instances of it, and it
+                # should be the one under the old parent...
+                shapes = origParent.getShapes()
+                for shape in shapes:
+                    if shape.isInstanceOf(dupeShape):
+                        newShape = shape
+                        break
+                else:
+                    raise
 
             # 6) delete the extra transform (delete dupeTransform2)
             delete(dupeTransform2)

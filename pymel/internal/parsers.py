@@ -379,18 +379,7 @@ class NodeHierarchyDocParser(HTMLParser):
         finally:
             f.close()
 
-        if versions.v2011 <= versions.current() < versions.v2012:
-            # The maya 2011 doc doesn't parse correctly with HTMLParser - the
-            # '< < <' lines get left out.  Use beautiful soup instead.
-            soup = BeautifulSoup(rawdata, convertEntities='html')
-            for tag in soup.findAll(['tt', 'a']):
-                # piggypack on current handle_starttag / handle_data
-                self.handle_starttag(tag.name, tag.attrs)
-                data = tag.string
-                if data is not None:
-                    self.handle_data(data)
-        else:
-            self.feed(rawdata)
+        self.feed(rawdata)
         return self.tree
 
     def __init__(self, version=None):
