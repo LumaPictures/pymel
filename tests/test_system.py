@@ -679,8 +679,6 @@ class testCase_fileInfo(unittest.TestCase):
 
 
 class testCase_namespaces(unittest.TestCase):
-    recurseAvailable= ( pm.versions.current() >= pm.versions.v2011 )
-
     def setUp(self):
         cmds.file(f=1, new=1)
         cmds.namespace( add='FOO' )
@@ -700,32 +698,28 @@ class testCase_namespaces(unittest.TestCase):
                               pm.PyNode('FOO:sphere2'),
                               pm.PyNode('FOO:sphere2Shape'),
                               ]))
-
-        if self.recurseAvailable:
-            self.assertEqual( set(pm.Namespace('FOO').listNodes(recursive=False)),
-                              set([pm.PyNode('FOO:sphere1'),
-                                   pm.PyNode('FOO:sphere1Shape'),
-                                   pm.PyNode('FOO:sphere2'),
-                                   pm.PyNode('FOO:sphere2Shape'),
-                                   ]))
-            self.assertEqual( set(pm.Namespace('FOO').listNodes(recursive=True)),
-                              set([pm.PyNode('FOO:sphere1'),
-                                   pm.PyNode('FOO:sphere1Shape'),
-                                   pm.PyNode('FOO:sphere2'),
-                                   pm.PyNode('FOO:sphere2Shape'),
-                                   pm.PyNode('FOO:BAR:sphere1'),
-                                   pm.PyNode('FOO:BAR:sphere1Shape'),
-                              ]))
+        self.assertEqual( set(pm.Namespace('FOO').listNodes(recursive=False)),
+                          set([pm.PyNode('FOO:sphere1'),
+                               pm.PyNode('FOO:sphere1Shape'),
+                               pm.PyNode('FOO:sphere2'),
+                               pm.PyNode('FOO:sphere2Shape'),
+                               ]))
+        self.assertEqual( set(pm.Namespace('FOO').listNodes(recursive=True)),
+                          set([pm.PyNode('FOO:sphere1'),
+                               pm.PyNode('FOO:sphere1Shape'),
+                               pm.PyNode('FOO:sphere2'),
+                               pm.PyNode('FOO:sphere2Shape'),
+                               pm.PyNode('FOO:BAR:sphere1'),
+                               pm.PyNode('FOO:BAR:sphere1Shape'),
+                          ]))
     def test_listNamespaces(self):
         self.assertEqual(set(pm.Namespace('FOO').listNamespaces()),
                          set([pm.Namespace('FOO:BAR'),
                               ]))
-
-        if self.recurseAvailable:
-            self.assertEqual(set(pm.Namespace('FOO').listNamespaces(recursive=False)),
-                             set([pm.Namespace('FOO:BAR'),
-                                  ]))
-            self.assertEqual(set(pm.Namespace('FOO').listNamespaces(recursive=True)),
-                             set([pm.Namespace('FOO:BAR'),
-                                  pm.Namespace('FOO:BAR:CALVIN')
-                                  ]))
+        self.assertEqual(set(pm.Namespace('FOO').listNamespaces(recursive=False)),
+                         set([pm.Namespace('FOO:BAR'),
+                              ]))
+        self.assertEqual(set(pm.Namespace('FOO').listNamespaces(recursive=True)),
+                         set([pm.Namespace('FOO:BAR'),
+                              pm.Namespace('FOO:BAR:CALVIN')
+                              ]))

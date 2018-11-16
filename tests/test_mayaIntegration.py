@@ -95,40 +95,39 @@ errorCodes = [
 
 
 class TestMayaIntegration(unittest.TestCase):
-    if pymel.versions.current() >= pymel.versions.v2011:
-        import pymel.core
-        def test_guiExceptionFormatting(self):
-            for codeStr, messages in errorCodes:
-                try:
-                    eval(codeStr)
-                except Exception, e:
-                    type, value, traceback = sys.exc_info()
-                    for level in range(3):
-                        res = maya.utils.formatGuiException(type, value, traceback, level)
-                        rawres = res
-                        res = fileLineRe1.sub(fileLineReplacer1, res)
-                        res = fileLineRe2.sub(fileLineReplacer2, res)
-                        res = res.replace('test_guiExceptionFormatting', '<module>')
-                        res = res.replace('<py_dir>/test_mayaIntegration.py', '<maya console>')
-                        res = res.replace('#     eval(codeStr)\n', '')
+    import pymel.core
+    def test_guiExceptionFormatting(self):
+        for codeStr, messages in errorCodes:
+            try:
+                eval(codeStr)
+            except Exception, e:
+                type, value, traceback = sys.exc_info()
+                for level in range(3):
+                    res = maya.utils.formatGuiException(type, value, traceback, level)
+                    rawres = res
+                    res = fileLineRe1.sub(fileLineReplacer1, res)
+                    res = fileLineRe2.sub(fileLineReplacer2, res)
+                    res = res.replace('test_guiExceptionFormatting', '<module>')
+                    res = res.replace('<py_dir>/test_mayaIntegration.py', '<maya console>')
+                    res = res.replace('#     eval(codeStr)\n', '')
 
-                        expected = messages[level]
-                        if res != expected:
-                            print 'level: %d' % level
-                            print '*' * 60
-                            print "raw res:"
-                            print rawres
-                            print '*' * 60
+                    expected = messages[level]
+                    if res != expected:
+                        print 'level: %d' % level
+                        print '*' * 60
+                        print "raw res:"
+                        print rawres
+                        print '*' * 60
 
-                            print '*' * 60
-                            print "res:"
-                            print res
-                            print '*' * 60
+                        print '*' * 60
+                        print "res:"
+                        print res
+                        print '*' * 60
 
-                            print '*' * 60
-                            print "expected:"
-                            print expected
-                            print '*' * 60
-                        self.assertEqual( res, expected )
-                finally:
-                    del traceback
+                        print '*' * 60
+                        print "expected:"
+                        print expected
+                        print '*' * 60
+                    self.assertEqual( res, expected )
+            finally:
+                del traceback

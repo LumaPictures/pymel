@@ -248,9 +248,8 @@ class DependNode(general.PyNode):
     def __unicode__(self):
         return u"%s" % self.name()
 
-    if versions.current() >= versions.v2009:
-        def __hash__(self):
-            return self.__apihandle__().hashCode()
+    def __hash__(self):
+        return self.__apihandle__().hashCode()
 
     def node(self):
         """for compatibility with Attribute class
@@ -757,19 +756,14 @@ class DependNode(general.PyNode):
 
 #}
 
-if versions.current() >= versions.v2011:
-    class ContainerBase(DependNode):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
-        pass
+class ContainerBase(DependNode):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass
 
-    class Entity(ContainerBase):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
-        pass
+class Entity(ContainerBase):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    pass
 
-else:
-    class Entity(DependNode):
-        __metaclass__ = _factories.MetaMayaNodeWrapper
-        pass
 
 class DagNode(Entity):
 
@@ -2982,31 +2976,20 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'area')
     worldArea = _factories.makeCreateFlagMethod(cmds.polyEvaluate, 'worldArea')
 
-    if versions.current() >= versions.v2016:
-        @_factories.addApiDocs(_api.MFnMesh, 'getUVAtPoint')
-        def getUVAtPoint(self, uvPoint, space=_api.MSpace.kObject, uvSet=None, returnClosestPolygon=False):
-            result = self._getUVAtPoint(uvPoint, space, uvSet)
-            if returnClosestPolygon:
-                return result
-            return result[0]
+    @_factories.addApiDocs(_api.MFnMesh, 'getUVAtPoint')
+    def getUVAtPoint(self, uvPoint, space=_api.MSpace.kObject, uvSet=None, returnClosestPolygon=False):
+        result = self._getUVAtPoint(uvPoint, space, uvSet)
+        if returnClosestPolygon:
+            return result
+        return result[0]
 
-    if versions.current() >= versions.v2009:
-        @_factories.addApiDocs(_api.MFnMesh, 'currentUVSetName')
-        def getCurrentUVSetName(self):
-            return self.__apimfn__().currentUVSetName(self.instanceNumber())
+    @_factories.addApiDocs(_api.MFnMesh, 'currentUVSetName')
+    def getCurrentUVSetName(self):
+        return self.__apimfn__().currentUVSetName(self.instanceNumber())
 
-        @_factories.addApiDocs(_api.MFnMesh, 'currentColorSetName')
-        def getCurrentColorSetName(self):
-            return self.__apimfn__().currentColorSetName(self.instanceNumber())
-
-    else:
-        @_factories.addApiDocs(_api.MFnMesh, 'currentUVSetName')
-        def getCurrentUVSetName(self):
-            return self.__apimfn__().currentUVSetName()
-
-        @_factories.addApiDocs(_api.MFnMesh, 'currentColorSetName')
-        def getCurrentColorSetName(self):
-            return self.__apimfn__().currentColorSetName()
+    @_factories.addApiDocs(_api.MFnMesh, 'currentColorSetName')
+    def getCurrentColorSetName(self):
+        return self.__apimfn__().currentColorSetName(self.instanceNumber())
 
     @_factories.addApiDocs(_api.MFnMesh, 'numColors')
     def numColors(self, colorSet=None):

@@ -950,40 +950,35 @@ def _getNodeHierarchy(version=None):
     import pymel.util.trees as trees
     import pymel.internal.apicache as apicache
 
-    if versions.current() >= versions.v2012:
-        # We now have nodeType(isTypeName)! yay!
-        inheritances = {}
-        for nodeType in apicache._getAllMayaTypes():
-            try:
-                inheritances[nodeType] = apicache.getInheritance(nodeType)
-            except apicache.ManipNodeTypeError:
-                continue
-            except Exception:
-                print "Error getting inheritance: %s" % nodeType
-                raise
+    # We now have nodeType(isTypeName)! yay!
+    inheritances = {}
+    for nodeType in apicache._getAllMayaTypes():
+        try:
+            inheritances[nodeType] = apicache.getInheritance(nodeType)
+        except apicache.ManipNodeTypeError:
+            continue
+        except Exception:
+            print "Error getting inheritance: %s" % nodeType
+            raise
 
-        parentTree = {}
-        # Convert inheritance lists node=>parent dict
-        for nodeType, inheritance in inheritances.iteritems():
-            for i in xrange(len(inheritance)):
-                child = inheritance[i]
-                if i == 0:
-                    if child == 'dependNode':
-                        continue
-                    else:
-                        parent = 'dependNode'
+    parentTree = {}
+    # Convert inheritance lists node=>parent dict
+    for nodeType, inheritance in inheritances.iteritems():
+        for i in xrange(len(inheritance)):
+            child = inheritance[i]
+            if i == 0:
+                if child == 'dependNode':
+                    continue
                 else:
-                    parent = inheritance[i - 1]
+                    parent = 'dependNode'
+            else:
+                parent = inheritance[i - 1]
 
-                if child in parentTree:
-                    assert parentTree[child] == parent, "conflicting parents: node type '%s' previously determined parent was '%s'. now '%s'" % (child, parentTree[child], parent)
-                else:
-                    parentTree[child] = parent
-        nodeHierarchyTree = trees.treeFromDict(parentTree)
-    else:
-        from .parsers import NodeHierarchyDocParser
-        parser = NodeHierarchyDocParser(version)
-        nodeHierarchyTree = trees.IndexedTree(parser.parse())
+            if child in parentTree:
+                assert parentTree[child] == parent, "conflicting parents: node type '%s' previously determined parent was '%s'. now '%s'" % (child, parentTree[child], parent)
+            else:
+                parentTree[child] = parent
+    nodeHierarchyTree = trees.treeFromDict(parentTree)
     return [(x.value, tuple(y.value for y in x.parents()), tuple(y.value for y in x.childs()))
             for x in nodeHierarchyTree.preorder()]
 

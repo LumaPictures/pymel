@@ -746,15 +746,6 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
         return inFunc
 
     argCorrector = None
-    if versions.current() < versions.v2011:
-        # wrap ui callback commands to ensure that the correct types are returned.
-        # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
-        if funcName.startswith('float'):
-            argCorrector = float
-        elif funcName.startswith('int'):
-            argCorrector = int
-        elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
-            argCorrector = lambda x: x == 'true'
 
     # need to define a seperate var here to hold
     # the old value of newFunc, b/c 'return newFunc'
@@ -3471,18 +3462,17 @@ def mayaTypeToApiType(mayaType):
         return mayaTypesToApiTypes[mayaType]
     except KeyError:
         apiType = None
-        if versions.current() >= versions.v2012:
-            import pymel.api.plugins as plugins
-            try:
-                inheritance = apicache.getInheritance(mayaType,
-                                                      checkManip3D=False)
-            except Exception:
-                inheritance = None
-            if inheritance:
-                for mayaType in reversed(inheritance[:-1]):
-                    apiType = mayaTypesToApiTypes.get(mayaType)
-                    if apiType:
-                        break
+        import pymel.api.plugins as plugins
+        try:
+            inheritance = apicache.getInheritance(mayaType,
+                                                  checkManip3D=False)
+        except Exception:
+            inheritance = None
+        if inheritance:
+            for mayaType in reversed(inheritance[:-1]):
+                apiType = mayaTypesToApiTypes.get(mayaType)
+                if apiType:
+                    break
 
         if not apiType:
             apiType = 'kInvalid'
@@ -3496,19 +3486,16 @@ def mayaTypeToApiType(mayaType):
 def isMayaType(mayaType):
     '''Whether the given type is a currently-defined maya node name
     '''
-    if versions.current() >= versions.v2012:
-        # use nodeType(isTypeName) preferentially, because it returns results
-        # for some objects that objectType(tagFromType) returns 0 for
-        # (like TadskAssetInstanceNode_TdependNode, which is a parent of
-        # adskMaterial
-        try:
-            cmds.nodeType(mayaType, isTypeName=True)
-        except RuntimeError:
-            return False
-        else:
-            return True
+    # use nodeType(isTypeName) preferentially, because it returns results
+    # for some objects that objectType(tagFromType) returns 0 for
+    # (like TadskAssetInstanceNode_TdependNode, which is a parent of
+    # adskMaterial
+    try:
+        cmds.nodeType(mayaType, isTypeName=True)
+    except RuntimeError:
+        return False
     else:
-        return bool(cmds.objectType(tagFromType=mayaType))
+        return True
 
 # Keep around for debugging/info gathering...
 def getComponentTypes():

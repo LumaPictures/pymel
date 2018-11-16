@@ -35,11 +35,7 @@ class testCaseClassWrap(unittest.TestCase):
 
     def assertMelError(self, cmd):
         # in maya 2014, a RuntimeError is raised... yay!
-        if versions.current() >= versions.v2014:
-            self.assertRaises(RuntimeError, mel.eval, cmd)
-        else:
-            # tried catch/catchQuiet, but they always return 0...
-            self.assertEqual(mel.eval(cmd), None)
+        self.assertRaises(RuntimeError, mel.eval, cmd)
 
     def test_autoName(self):
         self.wrapClass(MyClassNoArgs, None)

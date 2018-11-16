@@ -60,15 +60,14 @@ class GhostObjsOkHere(object):
         type(self)._OK = self.oldOK
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
-    if versions.current() >= versions.v2012:
-        # only time post-2012 when we should have to call this func is when
-        # rebuilding caches - ie, running from inside ApiCache
-        if not GhostObjsOkHere.OK():
-            _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be '
-                                              'unnecessary in maya versions '
-                                              'past 2012 (except when '
-                                              'rebuilding cache)  - was making '
-                                              'a {!r} object'.format(mayaType))
+    # only time post-2012 when we should have to call this func is when
+    # rebuilding caches - ie, running from inside ApiCache
+    if not GhostObjsOkHere.OK():
+        _logger.raiseLog(_logger.WARNING, '_makeDgModGhostObject should be '
+                                          'unnecessary in maya versions '
+                                          'past 2012 (except when '
+                                          'rebuilding cache)  - was making '
+                                          'a {!r} object'.format(mayaType))
 
     _logger.debug("Creating ghost node: %s" % mayaType)
 
@@ -440,40 +439,19 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
 
     import maya.cmds as cmds
     lineage = None
-    if versions.current() >= versions.v2012:
-        # We now have nodeType(isTypeName)! yay!
-        try:
-            lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
-        except RuntimeError:
-            pass
-    else:
-        with _GhostObjMaker(mayaType) as obj:
-            if obj is not None:
-                if obj.hasFn(api.MFn.kDagNode):
-                    name = api.MFnDagNode(obj).partialPathName()
-                else:
-                    name = api.MFnDependencyNode(obj).name()
-                if not obj.isNull() and not obj.hasFn(api.MFn.kManipulator3D) and not obj.hasFn(api.MFn.kManipulator2D):
-                    lineage = cmds.nodeType(name, inherited=1)
+    # We now have nodeType(isTypeName)! yay!
+    try:
+        lineage = cmds.nodeType(mayaType, isTypeName=True, inherited=True)
+    except RuntimeError:
+        pass
     if lineage is None:
         global _fixedLineages
         if not _fixedLineages:
-            if versions.current() >= versions.v2012:
-                controlPoint = cmds.nodeType('controlPoint', isTypeName=True,
-                                             inherited=True)
-            else:
-                controlPoint = [u'containerBase',
-                                u'entity',
-                                u'dagNode',
-                                u'shape',
-                                u'geometryShape',
-                                u'deformableShape',
-                                u'controlPoint']
+            controlPoint = cmds.nodeType('controlPoint', isTypeName=True,
+                                         inherited=True)
             # maya2013 introduced shadingDependNode...
-            if versions.current() >= versions.v2013:
-                texture2d = ['shadingDependNode', 'texture2d']
-            else:
-                texture2d = ['texture2d']
+            texture2d = ['shadingDependNode', 'texture2d']
+
             # For whatever reason, nodeType(isTypeName) returns
             # None for the following mayaTypes:
             _fixedLineages = {
@@ -642,27 +620,6 @@ class ApiCache(startup.SubItemCache):
         'xformManip': 'kXformManip',
         'moveVertexManip': 'kMoveVertexManip',
     }
-
-    # For some reason, a bunch of nodes crashed Maya 2016 Ext1, but they
-    # apparently worked with 2016.5 / 2016 Ext2 (since it didn't crash when I
-    # built it's cache - though it was a pre-release, so perhaps it didn't have
-    # all plugins?)
-    if versions.v2016_EXT1 <= versions.current() < versions.v2016_EXT2:
-        CRASH_TYPES.update({
-            'type': 'kPluginDependNode',
-            'vectorExtrude': 'kPluginDependNode',
-            'shellDeformer': 'kPluginDependNode',
-            'displayPoints': 'kPluginLocatorNode',
-            'svgToPoly': 'kPluginDependNode',
-            'objectGrpToComp': 'kPluginDependNode',
-            'vectorAdjust': 'kPluginDeformerNode',
-            'objectGrpToComp': 'kPluginDependNode',
-            'objectGrpToComp': 'kPluginDependNode',
-            'objectGrpToComp': 'kPluginDependNode',
-            'objectGrpToComp': 'kPluginDependNode',
-            'objectGrpToComp': 'kPluginDependNode',
-            'objectGrpToComp': 'kPluginDependNode',
-        })
 
     # hold any overrides for mayaTypesToApiTypes...
     # ie, for cases where the name guess is wrong, or for weird plugin types

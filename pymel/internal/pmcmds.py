@@ -29,16 +29,10 @@ import warnings
 __all__ = ['getMelRepresentation']
 _thisModule = sys.modules[__name__]
 
-# In Maya <= 2011, the error would be:
-#   TypeError: Object foo.bar is invalid
-# In Maya 2012, it is:
+# In Maya 2012+, the error is:
 #   ValueError: No object matches name: foo.bar
-if versions.current() < versions.v2012:
-    objectErrorType = TypeError
-    objectErrorReg = re.compile(',?Object (.*) is invalid,?$')
-else:
-    objectErrorType = ValueError
-    objectErrorReg = re.compile(',?No object matches name: ,?(.*)$')
+objectErrorType = ValueError
+objectErrorReg = re.compile(',?No object matches name: ,?(.*)$')
 
 def _testDecorator(function):
     def newFunc(*args, **kwargs):

@@ -30,295 +30,294 @@ def _resolveUIFunc(name):
 
     raise ValueError, "%r is not a known ui type" % name
 
-if _versions.current() >= _versions.v2011:
 
-    def toPyQtObject(mayaName):
-        """
-        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
-        If the object does not exist, returns None
+def toPyQtObject(mayaName):
+    """
+    Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
+    If the object does not exist, returns None
 
-        When using this function you don't need to specify whether UI type is a control, layout,
-        window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
-        this should always be correct, however, if you only have the short name of the UI object,
-        consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
+    When using this function you don't need to specify whether UI type is a control, layout,
+    window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
+    this should always be correct, however, if you only have the short name of the UI object,
+    consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
 
-        .. note:: Requires PyQt
-        """
-        import maya.OpenMayaUI as mui
-        import sip
-        import PyQt4.QtCore as qtcore
-        import PyQt4.QtGui as qtgui
-        ptr = mui.MQtUtil.findControl(mayaName)
-        if ptr is None:
-            ptr = mui.MQtUtil.findLayout(mayaName)
-            if ptr is None:
-                ptr = mui.MQtUtil.findMenuItem(mayaName)
-        if ptr is not None:
-            return sip.wrapinstance(long(ptr), qtcore.QObject)
-
-    def toPyQtControl(mayaName):
-        """
-        Given the name of a May UI control, return the corresponding QWidget.
-        If the object does not exist, returns None
-
-        .. note:: Requires PyQt
-        """
-        import maya.OpenMayaUI as mui
-        import sip
-        import PyQt4.QtCore as qtcore
-        import PyQt4.QtGui as qtgui
-        ptr = mui.MQtUtil.findControl(mayaName)
-        if ptr is not None:
-            return sip.wrapinstance(long(ptr), qtgui.QWidget)
-
-    def toPyQtLayout(mayaName):
-        """
-        Given the name of a May UI control, return the corresponding QWidget.
-        If the object does not exist, returns None
-
-        .. note:: Requires PyQt
-        """
-        import maya.OpenMayaUI as mui
-        import sip
-        import PyQt4.QtCore as qtcore
-        import PyQt4.QtGui as qtgui
+    .. note:: Requires PyQt
+    """
+    import maya.OpenMayaUI as mui
+    import sip
+    import PyQt4.QtCore as qtcore
+    import PyQt4.QtGui as qtgui
+    ptr = mui.MQtUtil.findControl(mayaName)
+    if ptr is None:
         ptr = mui.MQtUtil.findLayout(mayaName)
-        if ptr is not None:
-            return sip.wrapinstance(long(ptr), qtgui.QWidget)
-
-    def toPyQtWindow(mayaName):
-        """
-        Given the name of a May UI control, return the corresponding QWidget.
-        If the object does not exist, returns None
-
-        .. note:: Requires PyQt
-        """
-        import maya.OpenMayaUI as mui
-        import sip
-        import PyQt4.QtCore as qtcore
-        import PyQt4.QtGui as qtgui
-        ptr = mui.MQtUtil.findWindow(mayaName)
-        if ptr is not None:
-            return sip.wrapinstance(long(ptr), qtgui.QWidget)
-
-    def toPyQtMenuItem(mayaName):
-        """
-        Given the name of a May UI menuItem, return the corresponding QAction.
-        If the object does not exist, returns None
-
-        This only works for menu items. for Menus, use toQtControl or toQtObject
-
-        .. note:: Requires PyQt
-        """
-        import maya.OpenMayaUI as mui
-        import sip
-        import PyQt4.QtCore as qtcore
-        import PyQt4.QtGui as qtgui
-        ptr = mui.MQtUtil.findMenuItem(mayaName)
-        if ptr is not None:
-            return sip.wrapinstance(long(ptr), qtgui.QAction)
-
-    # PYSIDE VERSIONS
-    def pysideWrapInstance(ptr, base=None):
-        '''Utility to convert a point to a Qt Class and produce the same result
-        as sip.wrapinstance using shiboken.wrapInstance.
-
-        Note: This is modeled after nathanhorne.com/?p=486. The base arg isn't
-        currently used, and defaults to QObject. The way that base arg was used
-        seems like it would give a different result than the sip version. It would
-        skip the checking for attribute and just use base as base, however the sip
-        version will still return QMainWindow even if QObject is passed in.
-        '''
         if ptr is None:
-            return
+            ptr = mui.MQtUtil.findMenuItem(mayaName)
+    if ptr is not None:
+        return sip.wrapinstance(long(ptr), qtcore.QObject)
 
-        try:
-            import PySide2.QtCore as qtcore
-            import PySide2.QtGui as qtgui
-            import PySide2.QtWidgets as qtwidgets
-            from shiboken2 import wrapInstance
-        except ImportError:
-            import shiboken
-            import PySide.QtCore as qtcore
-            import PySide.QtGui as qtgui
-            import PySide.QtGui as qtwidgets
-            from shiboken import wrapInstance
+def toPyQtControl(mayaName):
+    """
+    Given the name of a May UI control, return the corresponding QWidget.
+    If the object does not exist, returns None
 
-        qObj = wrapInstance(long(ptr), qtcore.QObject)
+    .. note:: Requires PyQt
+    """
+    import maya.OpenMayaUI as mui
+    import sip
+    import PyQt4.QtCore as qtcore
+    import PyQt4.QtGui as qtgui
+    ptr = mui.MQtUtil.findControl(mayaName)
+    if ptr is not None:
+        return sip.wrapinstance(long(ptr), qtgui.QWidget)
 
-        metaObj = qObj.metaObject()
-        cls = metaObj.className()
-        superCls = metaObj.superClass().className()
-        if hasattr(qtgui, cls):
-            base = getattr(qtgui, cls)
-        elif hasattr(qtgui, superCls):
-            base = getattr(qtgui, superCls)
-        elif hasattr(qtwidgets, cls):
-            base = getattr(qtwidgets, cls)
-        elif hasattr(qtwidgets, superCls):
-            base = getattr(qtwidgets, superCls)
-        else:
-            base = qtwidgets.QWidget
-        return wrapInstance(long(ptr), base)
+def toPyQtLayout(mayaName):
+    """
+    Given the name of a May UI control, return the corresponding QWidget.
+    If the object does not exist, returns None
 
-    def toPySideObject(mayaName):
-        """
-        Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
-        If the object does not exist, returns None
+    .. note:: Requires PyQt
+    """
+    import maya.OpenMayaUI as mui
+    import sip
+    import PyQt4.QtCore as qtcore
+    import PyQt4.QtGui as qtgui
+    ptr = mui.MQtUtil.findLayout(mayaName)
+    if ptr is not None:
+        return sip.wrapinstance(long(ptr), qtgui.QWidget)
 
-        When using this function you don't need to specify whether UI type is a control, layout,
-        window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
-        this should always be correct, however, if you only have the short name of the UI object,
-        consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
+def toPyQtWindow(mayaName):
+    """
+    Given the name of a May UI control, return the corresponding QWidget.
+    If the object does not exist, returns None
 
-        .. note:: Requires PySide
-        """
-        import maya.OpenMayaUI as mui
+    .. note:: Requires PyQt
+    """
+    import maya.OpenMayaUI as mui
+    import sip
+    import PyQt4.QtCore as qtcore
+    import PyQt4.QtGui as qtgui
+    ptr = mui.MQtUtil.findWindow(mayaName)
+    if ptr is not None:
+        return sip.wrapinstance(long(ptr), qtgui.QWidget)
 
-        try:
-            import PySide2.QtCore as qtcore
-        except ImportError:
-            import PySide.QtCore as qtcore
+def toPyQtMenuItem(mayaName):
+    """
+    Given the name of a May UI menuItem, return the corresponding QAction.
+    If the object does not exist, returns None
 
-        ptr = mui.MQtUtil.findControl(mayaName)
-        if ptr is None:
-            ptr = mui.MQtUtil.findLayout(mayaName)
-            if ptr is None:
-                ptr = mui.MQtUtil.findMenuItem(mayaName)
-        if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtcore.QObject)
+    This only works for menu items. for Menus, use toQtControl or toQtObject
 
-    def toPySideControl(mayaName):
-        """
-        Given the name of a May UI control, return the corresponding QWidget.
-        If the object does not exist, returns None
+    .. note:: Requires PyQt
+    """
+    import maya.OpenMayaUI as mui
+    import sip
+    import PyQt4.QtCore as qtcore
+    import PyQt4.QtGui as qtgui
+    ptr = mui.MQtUtil.findMenuItem(mayaName)
+    if ptr is not None:
+        return sip.wrapinstance(long(ptr), qtgui.QAction)
 
-        .. note:: Requires PySide
-        """
-        import maya.OpenMayaUI as mui
+# PYSIDE VERSIONS
+def pysideWrapInstance(ptr, base=None):
+    '''Utility to convert a point to a Qt Class and produce the same result
+    as sip.wrapinstance using shiboken.wrapInstance.
 
-        try:
-            import shiboken2
-            import PySide2.QtCore as qtcore
-            import PySide2.QtWidgets as qtwidgets
-        except ImportError:
-            import shiboken
-            import PySide.QtCore as qtcore
-            import PySide.QtGui as qtwidgets
+    Note: This is modeled after nathanhorne.com/?p=486. The base arg isn't
+    currently used, and defaults to QObject. The way that base arg was used
+    seems like it would give a different result than the sip version. It would
+    skip the checking for attribute and just use base as base, however the sip
+    version will still return QMainWindow even if QObject is passed in.
+    '''
+    if ptr is None:
+        return
 
-        ptr = mui.MQtUtil.findControl(mayaName)
-        if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
-
-    def toPySideLayout(mayaName):
-        """
-        Given the name of a May UI control, return the corresponding QWidget.
-        If the object does not exist, returns None
-
-        .. note:: Requires PySide
-        """
-        import maya.OpenMayaUI as mui
-
-        try:
-            import shiboken2
-            import PySide2.QtCore as qtcore
-            import PySide2.QtWidgets as qtwidgets
-        except ImportError:
-            import shiboken
-            import PySide.QtCore as qtcore
-            import PySide.QtGui as qtwidgets
-
-        ptr = mui.MQtUtil.findLayout(mayaName)
-        if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
-
-    def toPySideWindow(mayaName):
-        """
-        Given the name of a May UI control, return the corresponding QWidget.
-        If the object does not exist, returns None
-
-        .. note:: Requires PySide
-        """
-        import maya.OpenMayaUI as mui
-
-        try:
-            import shiboken2
-            import PySide2.QtCore as qtcore
-            import PySide2.QtWidgets as qtwidgets
-        except ImportError:
-            import shiboken
-            import PySide.QtCore as qtcore
-            import PySide.QtGui as qtwidgets
-        ptr = mui.MQtUtil.findWindow(mayaName)
-        if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
-
-    def toPySideMenuItem(mayaName):
-        """
-        Given the name of a Maya UI menuItem, return the corresponding QAction.
-        If the object does not exist, returns None
-
-        This only works for menu items. for Menus, use toQtControl or toQtObject
-
-        .. note:: Requires PySide
-        """
-        import maya.OpenMayaUI as mui
-        try:
-            import shiboken2
-            import PySide2.QtCore as qtcore
-            import PySide2.QtWidgets as qtwidgets
-        except ImportError:
-            import shiboken
-            import PySide.QtCore as qtcore
-            import PySide.QtGui as qtwidgets
-
-        ptr = mui.MQtUtil.findMenuItem(mayaName)
-        if ptr is not None:
-            return pysideWrapInstance(long(ptr), qtwidgets.QAction)
-
-    # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
     try:
-        import sip
-        import PyQt4
-        pyQtAvailable = True
+        import PySide2.QtCore as qtcore
+        import PySide2.QtGui as qtgui
+        import PySide2.QtWidgets as qtwidgets
+        from shiboken2 import wrapInstance
     except ImportError:
-        pyQtAvailable = False
+        import shiboken
+        import PySide.QtCore as qtcore
+        import PySide.QtGui as qtgui
+        import PySide.QtGui as qtwidgets
+        from shiboken import wrapInstance
+
+    qObj = wrapInstance(long(ptr), qtcore.QObject)
+
+    metaObj = qObj.metaObject()
+    cls = metaObj.className()
+    superCls = metaObj.superClass().className()
+    if hasattr(qtgui, cls):
+        base = getattr(qtgui, cls)
+    elif hasattr(qtgui, superCls):
+        base = getattr(qtgui, superCls)
+    elif hasattr(qtwidgets, cls):
+        base = getattr(qtwidgets, cls)
+    elif hasattr(qtwidgets, superCls):
+        base = getattr(qtwidgets, superCls)
+    else:
+        base = qtwidgets.QWidget
+    return wrapInstance(long(ptr), base)
+
+def toPySideObject(mayaName):
+    """
+    Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
+    If the object does not exist, returns None
+
+    When using this function you don't need to specify whether UI type is a control, layout,
+    window, or menuItem, the first match -- in that order -- will be returned. If you have the full path to a UI object
+    this should always be correct, however, if you only have the short name of the UI object,
+    consider using one of the more specific variants: `toQtControl`, `toQtLayout`, `toQtWindow`, or `toQtMenuItem`.
+
+    .. note:: Requires PySide
+    """
+    import maya.OpenMayaUI as mui
 
     try:
+        import PySide2.QtCore as qtcore
+    except ImportError:
+        import PySide.QtCore as qtcore
+
+    ptr = mui.MQtUtil.findControl(mayaName)
+    if ptr is None:
+        ptr = mui.MQtUtil.findLayout(mayaName)
+        if ptr is None:
+            ptr = mui.MQtUtil.findMenuItem(mayaName)
+    if ptr is not None:
+        return pysideWrapInstance(long(ptr), qtcore.QObject)
+
+def toPySideControl(mayaName):
+    """
+    Given the name of a May UI control, return the corresponding QWidget.
+    If the object does not exist, returns None
+
+    .. note:: Requires PySide
+    """
+    import maya.OpenMayaUI as mui
+
+    try:
+        import shiboken2
+        import PySide2.QtCore as qtcore
+        import PySide2.QtWidgets as qtwidgets
+    except ImportError:
         import shiboken
-        import PySide
+        import PySide.QtCore as qtcore
+        import PySide.QtGui as qtwidgets
+
+    ptr = mui.MQtUtil.findControl(mayaName)
+    if ptr is not None:
+        return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+
+def toPySideLayout(mayaName):
+    """
+    Given the name of a May UI control, return the corresponding QWidget.
+    If the object does not exist, returns None
+
+    .. note:: Requires PySide
+    """
+    import maya.OpenMayaUI as mui
+
+    try:
+        import shiboken2
+        import PySide2.QtCore as qtcore
+        import PySide2.QtWidgets as qtwidgets
+    except ImportError:
+        import shiboken
+        import PySide.QtCore as qtcore
+        import PySide.QtGui as qtwidgets
+
+    ptr = mui.MQtUtil.findLayout(mayaName)
+    if ptr is not None:
+        return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+
+def toPySideWindow(mayaName):
+    """
+    Given the name of a May UI control, return the corresponding QWidget.
+    If the object does not exist, returns None
+
+    .. note:: Requires PySide
+    """
+    import maya.OpenMayaUI as mui
+
+    try:
+        import shiboken2
+        import PySide2.QtCore as qtcore
+        import PySide2.QtWidgets as qtwidgets
+    except ImportError:
+        import shiboken
+        import PySide.QtCore as qtcore
+        import PySide.QtGui as qtwidgets
+    ptr = mui.MQtUtil.findWindow(mayaName)
+    if ptr is not None:
+        return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+
+def toPySideMenuItem(mayaName):
+    """
+    Given the name of a Maya UI menuItem, return the corresponding QAction.
+    If the object does not exist, returns None
+
+    This only works for menu items. for Menus, use toQtControl or toQtObject
+
+    .. note:: Requires PySide
+    """
+    import maya.OpenMayaUI as mui
+    try:
+        import shiboken2
+        import PySide2.QtCore as qtcore
+        import PySide2.QtWidgets as qtwidgets
+    except ImportError:
+        import shiboken
+        import PySide.QtCore as qtcore
+        import PySide.QtGui as qtwidgets
+
+    ptr = mui.MQtUtil.findMenuItem(mayaName)
+    if ptr is not None:
+        return pysideWrapInstance(long(ptr), qtwidgets.QAction)
+
+# Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
+try:
+    import sip
+    import PyQt4
+    pyQtAvailable = True
+except ImportError:
+    pyQtAvailable = False
+
+try:
+    import shiboken
+    import PySide
+    pySideAvailable = True
+except ImportError:
+    pySideAvailable = False
+    try:
+        import shiboken2
+        import PySide2
         pySideAvailable = True
     except ImportError:
         pySideAvailable = False
-        try:
-            import shiboken2
-            import PySide2
-            pySideAvailable = True
-        except ImportError:
-            pySideAvailable = False
 
-    if pyQtAvailable and not pySideAvailable:
-        qtBinding = 'pyqt'
-    elif pySideAvailable and not pyQtAvailable:
-        qtBinding = 'pyside'
-    else:
-        qtBinding = _startup.pymel_options['preferred_python_qt_binding']
+if pyQtAvailable and not pySideAvailable:
+    qtBinding = 'pyqt'
+elif pySideAvailable and not pyQtAvailable:
+    qtBinding = 'pyside'
+else:
+    qtBinding = _startup.pymel_options['preferred_python_qt_binding']
 
-    if qtBinding == 'pyqt':
-        toQtObject = toPyQtObject
-        toQtControl = toPyQtControl
-        toQtLayout = toPyQtLayout
-        toQtWindow = toPyQtWindow
-        toQtMenuItem = toPyQtMenuItem
-    elif qtBinding == 'pyside':
-        toQtObject = toPySideObject
-        toQtControl = toPySideControl
-        toQtLayout = toPySideLayout
-        toQtWindow = toPySideWindow
-        toQtMenuItem = toPySideMenuItem
-    else:
-        raise ValueError('preferred_python_qt_binding must be set to either'
-                         ' pyside or pyqt')
+if qtBinding == 'pyqt':
+    toQtObject = toPyQtObject
+    toQtControl = toPyQtControl
+    toQtLayout = toPyQtLayout
+    toQtWindow = toPyQtWindow
+    toQtMenuItem = toPyQtMenuItem
+elif qtBinding == 'pyside':
+    toQtObject = toPySideObject
+    toQtControl = toPySideControl
+    toQtLayout = toPySideLayout
+    toQtWindow = toPySideWindow
+    toQtMenuItem = toPySideMenuItem
+else:
+    raise ValueError('preferred_python_qt_binding must be set to either'
+                     ' pyside or pyqt')
 
 # really, this should be in core.windows; but, due to that fact that this module
 # is "higher" in the import hierarchy than core.windows, and we need this function
@@ -336,12 +335,11 @@ def objectTypeUI(name, **kwargs):
             uiType = None
             typesToCheck = 'checkBox floatField button floatSlider intSlider ' \
                 'floatField textField intField optionMenu radioButton'.split()
-            if _versions.current() >= _versions.v2012_SP2:
-                # 2012 SP2 introducted a bug where doing:
-                # win = cmds.window(menuBar=True)
-                # cmds.objectTypeUI(win)
-                # would error...
-                typesToCheck.append('window')
+            # 2012 SP2 introducted a bug where doing:
+            # win = cmds.window(menuBar=True)
+            # cmds.objectTypeUI(win)
+            # would error...
+            typesToCheck.append('window')
             for cmdName in typesToCheck:
                 if getattr(cmds, cmdName)(name, ex=1, q=1):
                     uiType = cmdName
@@ -436,10 +434,6 @@ class PyUI(unicode):
 
     def parent(self):
         buf = unicode(self).split('|')[:-1]
-        if len(buf) == 2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
-            # pre-2011, windows with menus can have a strange name:
-            # ex.  window1|window1|menu1
-            buf = buf[:1]
         if not buf:
             return None
         return PyUI('|'.join(buf))
@@ -462,8 +456,7 @@ class PyUI(unicode):
     def exists(cls, name):
         return cls.__melcmd__(name, exists=True)
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtControl
+    asQtObject = toQtControl
 
 class Panel(PyUI):
 
@@ -563,8 +556,7 @@ class Layout(PyUI):
             for child in self.getChildArray():
                 cmds.deleteUI(child)
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtLayout
+    asQtObject = toQtLayout
 
 # customized ui classes
 class Window(Layout):
@@ -613,8 +605,7 @@ class Window(Layout):
         return None
     getParent = parent
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtWindow
+    asQtObject = toQtWindow
 
 class FormLayout(Layout):
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -850,8 +841,7 @@ class SubMenuItem(Menu):
     def getItalicized(self):
         return cmds.menuItem(self, query=True, italicized=True)
 
-    if _versions.current() >= _versions.v2011:
-        asQtObject = toQtMenuItem
+    asQtObject = toQtMenuItem
 
 class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper

@@ -290,7 +290,7 @@ class Namespace(unicode):
 
         self.setCurrent()
         try:
-            if not internal or versions.current() < versions.v2011:
+            if not internal:
                 # Default for recursive is false
                 nodes = namespaceInfo(listOnlyDependencyNodes=True, dagPath=True)
                 if recursive:

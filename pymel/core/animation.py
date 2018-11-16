@@ -93,31 +93,8 @@ Modifications:
                 res = _factories.toPyNodeList(res)
         return res
 
-    constraint = constraintWithWeightSyntax
-    if versions.current() < versions.v2009:
-        def constraintWithVectorFix(*args, **kwargs):
-            """
-    Maya Bug Fix:
-      - when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
-
-            """
-            if kwargs.get('query', kwargs.get('q', False) and len(args) == 1):
-
-                # Fix the big with upVector, worldUpVector, and aimVector
-                attrs = [
-                    'upVector', 'u',
-                    'worldUpVector', 'wu',
-                    'aimVector', 'a']
-
-                for attr in attrs:
-                    if attr in kwargs:
-                        return _general.datatypes.Vector(_general.getAttr(str(args[0]) + "." + attr))
-            return constraintWithWeightSyntax(*args, **kwargs)
-        constraintWithVectorFix.__doc__ += constraintWithWeightSyntax.__doc__
-        constraint = constraintWithVectorFix
-
-    constraint.__name__ = func.__name__
-    return constraint
+    constraintWithWeightSyntax.__name__ = func.__name__
+    return constraintWithWeightSyntax
 
 for contstraintCmdName in ('''aimConstraint geometryConstraint normalConstraint
                               orientConstraint parentConstraint pointConstraint

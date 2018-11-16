@@ -176,21 +176,12 @@ class testCase_mayaSetAttr(unittest.TestCase):
         assert cmds.getAttr( 'node.doubleArrayAttr' )   == [1.0, 2.0, 3.0, 4.0]
 
     def test_pointArray(self):
-        if versions.current() < versions.v2011:
-            # complex array
-            cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), "", (1,2,3,4), type='pointArray' )
-            assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
-        else:
-            cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), (1,2,3,4), type='pointArray' )
-            assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
+        cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), (1,2,3,4), type='pointArray' )
+        assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
 
     def test_vectorArray(self):
-        if versions.current() < versions.v2011:
-            cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), "", (1,2,3), type='vectorArray' )
-            assert cmds.getAttr( 'node.vectorArrayAttr' )   == [1.0, 2.0, 3.0, 1.0, 2.0, 3.0]
-        else:
-            cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), (1,2,3), type='vectorArray' )
-            assert cmds.getAttr( 'node.vectorArrayAttr' )   == [(1.0, 2.0, 3.0), (1.0, 2.0, 3.0)]
+        cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), (1,2,3), type='vectorArray' )
+        assert cmds.getAttr( 'node.vectorArrayAttr' )   == [(1.0, 2.0, 3.0), (1.0, 2.0, 3.0)]
 
     def test_stringArray(self):
         # string array
@@ -201,12 +192,11 @@ class testCase_mayaSetAttr(unittest.TestCase):
         cmds.setAttr( 'node.stringAttr', 'one', type='string' )
         assert cmds.getAttr( 'node.stringAttr' )        == u'one'
 
-    if versions.current() >= versions.v2011:
-        def test_matrix(self):
-            # matrix
-            # Fails in versions < 2011
-            cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
-            assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    def test_matrix(self):
+        # matrix
+        # Fails in versions < 2011
+        cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
+        assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
     def test_sphere(self):
         # non-numeric: can't get
