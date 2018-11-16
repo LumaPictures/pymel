@@ -4,6 +4,7 @@ that maya is initialized in standalone mode.
 """
 import os.path
 import sys
+import gzip
 import glob
 import inspect
 import json
@@ -501,18 +502,26 @@ def _pickledump(data, filename, protocol=-1):
 def _pickleload(filename):
     with open(filename, mode='rb') as file:
         res = pickle.load(file)
-        return res
+    return res
 
 
-def _jsondump(data, filename):
-    with open(filename, mode='wb') as file:
-        json.dump(data, file)
+def _jsondump(data, filename, opener=open):
+    with opener(filename, mode='wb') as file:
+        json.dump(data, file, separators=(',', ': '), indent=2, sort_keys=True,
+                  encoding='latin1')
 
 
-def _jsonload(filename):
-    with open(filename, mode='rb') as file:
-        res = json.load(file)
-        return res
+def _jsonload(filename, opener=open):
+    with opener(filename, mode='rb') as file:
+        return json.load(file, encoding='latin1')
+
+
+def _jsonzipdump(data, filename):
+    return _jsondump(data, filename, opener=gzip.open)
+
+
+def _jsonzipload(filename):
+    return _jsonload(filename, opener=gzip.open)
 
 
 CacheFormat = namedtuple('CacheFormat', ['ext', 'reader', 'writer'])
@@ -525,6 +534,7 @@ class PymelCache(object):
 
     FORMATS = [
         CacheFormat('.json', _jsonload, _jsondump),
+        CacheFormat('.json.zip', _jsonzipload, _jsonzipdump),
         CacheFormat('.bin', _pickleload, _pickledump),
         CacheFormat('.zip', picklezip.load, picklezip.dump),
     ]
@@ -534,9 +544,24 @@ class PymelCache(object):
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
 
-    def read(self):
+    def fromRawData(self, rawData):
+        '''If a subclass needs to modify data as it is read from the cache
+        on disk, do it here'''
+        return rawData
+
+    def toRawData(self, data):
+        '''If a subclass needs to modify data before it is written to the cache
+        on disk, do it here'''
+        return data
+
+    def read(self, ext=None):
         tried = []
-        for format in self.FORMATS:
+
+        if ext is not None:
+            formats = [self.EXTENSIONS[ext]]
+        else:
+            formats = self.FORMATS
+        for format in formats:
             newPath = self.path(ext=format.ext)
             tried.append(newPath)
             if not os.path.isfile(newPath):
@@ -545,7 +570,7 @@ class PymelCache(object):
             func = format.reader
             _logger.debug(self._actionMessage('Loading', 'from', newPath))
             try:
-                return func(newPath)
+                return self.fromRawData(func(newPath))
             except Exception, e:
                 self._errorMsg('read', 'from', newPath, e)
 
@@ -558,7 +583,7 @@ class PymelCache(object):
         _logger.info(self._actionMessage('Saving', 'to', newPath))
 
         try:
-            func(data, newPath)
+            func(self.toRawData(data), newPath)
         except Exception, e:
             self._errorMsg('write', 'to', newPath, e)
 
@@ -664,6 +689,9 @@ class SubItemCache(PymelCache):
 
     def itemType(self, name):
         return self.ITEM_TYPES.get(name, self.DEFAULT_TYPE)
+
+    def itemIndex(self, name):
+        return self._CACHE_NAMES.index(name)
 
     def build(self):
         """
