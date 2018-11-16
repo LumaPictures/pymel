@@ -4460,8 +4460,8 @@ class Attribute(PyNode):
 
     parent = getParent
 # ------ Do not edit below this line --------
-    FreeToChangeState = Enum('FreeToChangeState', {'freeToChange': 0, 'kFreeToChange': 0, 'notFreeToChange': 1, 'kNotFreeToChange': 1, 'kChildrenNotFreeToChange': 2, 'childrenNotFreeToChange': 2}, multiKeys=True, defaultKeys={0: 'freeToChange', 1: 'notFreeToChange', 2: 'childrenNotFreeToChange'})
-    MValueSelector = Enum('MValueSelector', {'all': 0, 'kAll': 0, 'nonDefault': 1, 'kNonDefault': 1, 'changed': 2, 'kChanged': 2, 'kLastAttrSelector': 3, 'lastAttrSelector': 3}, multiKeys=True, defaultKeys={0: 'all', 1: 'nonDefault', 2: 'changed', 3: 'lastAttrSelector'})
+    FreeToChangeState = Enum('FreeToChangeState', {'freeToChange': 0, 'kFreeToChange': 0, 'notFreeToChange': 1, 'kNotFreeToChange': 1, 'childrenNotFreeToChange': 2, 'kChildrenNotFreeToChange': 2}, multiKeys=True, defaultKeys={0: 'freeToChange', 1: 'notFreeToChange', 2: 'childrenNotFreeToChange'})
+    MValueSelector = Enum('MValueSelector', {'all': 0, 'kAll': 0, 'nonDefault': 1, 'kNonDefault': 1, 'changed': 2, 'kChanged': 2, 'lastAttrSelector': 3, 'kLastAttrSelector': 3}, multiKeys=True, defaultKeys={0: 'all', 1: 'nonDefault', 2: 'changed', 3: 'lastAttrSelector'})
 
     @_f.addApiDocs(_api.MPlug, 'getExistingArrayAttributeIndices')
     def _getArrayIndices(self):
@@ -7721,7 +7721,7 @@ class AttributeDefaults(PyNode):
         # type: () -> unicode
         return self.__apimfn__().name()
 # ------ Do not edit below this line --------
-    DisconnectBehavior = Enum('DisconnectBehavior', {'kDelete': 0, 'delete': 0, 'reset': 1, 'kReset': 1, 'kNothing': 2, 'nothing': 2}, multiKeys=True, defaultKeys={0: 'delete', 1: 'reset', 2: 'nothing'})
+    DisconnectBehavior = Enum('DisconnectBehavior', {'delete': 0, 'kDelete': 0, 'reset': 1, 'kReset': 1, 'nothing': 2, 'kNothing': 2}, multiKeys=True, defaultKeys={0: 'delete', 1: 'reset', 2: 'nothing'})
 
     @_f.addApiDocs(_api.MFnAttribute, 'accepts')
     def accepts(self, type):
