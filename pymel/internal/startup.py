@@ -520,7 +520,7 @@ class PymelCache(object):
         CacheFormat('.zip', picklezip.load, picklezip.dump),
     ]
     EXTENSIONS = {x.ext: x for x in FORMATS}
-    DEFAULT_EXT = '.zip'
+    DEFAULT_EXT = '.py'
 
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
