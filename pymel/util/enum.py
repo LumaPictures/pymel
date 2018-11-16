@@ -326,8 +326,15 @@ class Enum(object):
                     defaults[index] = self._values[index].key
                 keysForIndex.append(key)
             keysFlat = []
+
+            # within each index, sort so that default value is always first,
+            # and other keys are sorted alphabetically
+            def sortKey(enumName):
+                return (0 if enumName == default else 1, enumName)
+
             for enumValue in self.itervalues():
-                for key in indexDict[enumValue.index]:
+                default = defaults.get(enumValue.index)
+                for key in sorted(indexDict[enumValue.index], key=sortKey):
                     keysFlat.append((key, enumValue.index))
             multiKeyInfo = ', multiKeys=True, defaultKeys=%r' % defaults
         else:
