@@ -618,9 +618,6 @@ class ApiMelBridgeCache(startup.SubItemCache):
     USE_VERSION = False
     _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
 
-    CACHE_TYPES = {'apiToMelData': _defaultdictdict}
-    STORAGE_TYPES = {'apiToMelData': dict}
-
 
 class ApiCache(startup.SubItemCache):
     NAME = 'mayaApi'

@@ -641,12 +641,9 @@ class SubItemCache(PymelCache):
     # used
     # These are the types that the contents will 'appear' to be to the end user
     # (ie, the types returned by contents).
-    # If the value needs to be converted before pickling, specify an entry
-    # in STORAGE_TYPES
-    # Both should be constructors which can either take no arguments, or
+    # Should be constructors which can either take no arguments, or
     # a single argument to initialize an instance.
     ITEM_TYPES = {}
-    STORAGE_TYPES = {}
     DEFAULT_TYPE = dict
     AUTO_SAVE = True
 
@@ -715,15 +712,6 @@ class SubItemCache(PymelCache):
         '''
         data = self.read()
         if data is not None:
-            data = list(data)
-            # if STORAGE_TYPES, need to convert back from the storage type to
-            # the 'normal' type
-            if self.STORAGE_TYPES:
-                for name in self.STORAGE_TYPES:
-                    index = self._CACHE_NAMES.index(name)
-                    val = data[index]
-                    val = self.itemType(name)(val)
-                    data[index] = val
             data = tuple(data)
             self.update(data, cacheNames=self._CACHE_NAMES)
         return data
@@ -738,14 +726,6 @@ class SubItemCache(PymelCache):
         if obj is not None:
             self.update(obj)
         data = self.contents()
-        if self.STORAGE_TYPES:
-            newData = []
-            for name, val in zip(self._CACHE_NAMES, data):
-                if name in self.STORAGE_TYPES:
-                    val = self.STORAGE_TYPES[name](val)
-                newData.append(val)
-            data = tuple(newData)
-
         self.write(data, ext=ext)
 
     # was called 'caches'
