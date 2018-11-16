@@ -7,7 +7,7 @@ import sys
 import gzip
 import glob
 import inspect
-import json
+import pprint
 import maya
 import maya.OpenMaya as om
 import maya.utils
@@ -505,23 +505,23 @@ def _pickleload(filename):
     return res
 
 
-def _jsondump(data, filename, opener=open):
+def _pydump(data, filename, opener=open):
     with opener(filename, mode='wb') as file:
-        json.dump(data, file, separators=(',', ': '), indent=2, sort_keys=True,
-                  encoding='latin1')
+        file.write(pprint.pformat(data))
 
 
-def _jsonload(filename, opener=open):
+def _pyload(filename, opener=open):
     with opener(filename, mode='rb') as file:
-        return json.load(file, encoding='latin1')
+        text = file.read()
+    return eval(text)
 
 
-def _jsonzipdump(data, filename):
-    return _jsondump(data, filename, opener=gzip.open)
+def _pyzipdump(data, filename):
+    return _pydump(data, filename, opener=gzip.open)
 
 
-def _jsonzipload(filename):
-    return _jsonload(filename, opener=gzip.open)
+def _pyzipload(filename):
+    return _pyload(filename, opener=gzip.open)
 
 
 CacheFormat = namedtuple('CacheFormat', ['ext', 'reader', 'writer'])
@@ -533,8 +533,8 @@ class PymelCache(object):
     DESC = ''   # ie, 'the API cache' - used in error messages, etc
 
     FORMATS = [
-        CacheFormat('.json', _jsonload, _jsondump),
-        CacheFormat('.json.zip', _jsonzipload, _jsonzipdump),
+        CacheFormat('.py', _pyload, _pydump),
+        CacheFormat('.py.zip', _pyzipload, _pyzipdump),
         CacheFormat('.bin', _pickleload, _pickledump),
         CacheFormat('.zip', picklezip.load, picklezip.dump),
     ]
@@ -575,6 +575,11 @@ class PymelCache(object):
                 self._errorMsg('read', 'from', newPath, e)
 
     def write(self, data, ext=None):
+        import copy
+        # when writing data, we dont' actually want to modify the passed in
+        # data, as it may be in use... so we make a deepcopy
+        data = copy.deepcopy(data)
+
         if ext is None:
             ext = self.DEFAULT_EXT
         newPath = self.path(ext=ext)

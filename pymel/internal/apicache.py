@@ -34,13 +34,6 @@ class ApiEnum(tuple):
             parts[0] = pymelName
         return '.'.join([str(x) for x in parts])
 
-if versions.current() < versions.v2012:
-    # Before 2012, api had Enum, and when we unpickle the caches, it will
-    # need to be there... could rebuild the caches (like I had to do with
-    # mayaApiMelBridge) but don't really want to...
-    api.Enum = ApiEnum
-    Enum = ApiEnum
-
 def _defaultdictdict(cls, val=None):
     if val is None:
         return _util.defaultdict(dict)
@@ -734,6 +727,46 @@ class ApiCache(startup.SubItemCache):
                     if predicate(enumdata):
                         pymelEnums[name] = converter(enumdata)
 
+    def _modifyApiEnums(self, data, predicate, converter):
+        apiClassInfo = data[self.itemIndex('apiClassInfo')]
+        for classname, classInfo in apiClassInfo.viewitems():
+            methods = classInfo.get('methods')
+            if not methods:
+                continue
+            for overrides in methods.viewvalues():
+                for methodInfo in overrides:
+                    returnInfo = methodInfo.get('returnInfo')
+                    if returnInfo:
+                        returnType = returnInfo.get('type')
+                        if returnType and predicate(returnType):
+                            returnInfo['type'] = converter(returnType)
+                    returnType = methodInfo.get('returnType')
+                    if returnType and predicate(returnType):
+                        methodInfo['returnType'] = converter(returnType)
+                    argInfo = methodInfo.get('argInfo')
+                    if argInfo:
+                        for singleArgInfo in argInfo.viewvalues():
+                            argType = singleArgInfo.get('type')
+                            if argType and predicate(argType):
+                                singleArgInfo['type'] = converter(argType)
+                    args = methodInfo.get('args')
+                    if args:
+                        for i, arg in enumerate(args):
+                            if predicate(arg[1]):
+                                arg = list(arg)
+                                arg[1] = converter(arg[1])
+                                args[i] = tuple(arg)
+                    defaults = methodInfo.get('defaults')
+                    if defaults:
+                        for name, val in defaults.viewitems():
+                            if predicate(val):
+                                defaults[name] = converter(val)
+                    types = methodInfo.get('types')
+                    if types:
+                        for name, val in types.viewitems():
+                            if predicate(val):
+                                types[name] = converter(val)
+
     def fromRawData(self, data):
         import importlib
 
@@ -765,6 +798,10 @@ class ApiCache(startup.SubItemCache):
             apiEnumsToApiTypes.clear()
             apiEnumsToApiTypes.update(newDict)
 
+        # convert from tuples to ApiEnum tuples
+        self._modifyApiEnums(data, lambda x: isinstance(x, tuple),
+                             ApiEnum)
+
         return data
 
     def toRawData(self, data):
@@ -778,6 +815,11 @@ class ApiCache(startup.SubItemCache):
 
         # convert from Enum objects to string enum reprs
         self._modifyEnums(data, lambda x: isinstance(x, _util.Enum), repr)
+
+        # convert from ApiEnum tuples to tuples
+        self._modifyApiEnums(data, lambda x: isinstance(x, ApiEnum),
+                             tuple)
+
         return data
 
     def _buildMayaToApiInfo(self, reservedOnly=False):
