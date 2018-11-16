@@ -536,16 +536,14 @@ class PymelCache(object):
         return data
 
     def read(self, ext=None):
-        tried = []
-
         if ext is not None:
             formats = [self.EXTENSIONS[ext]]
         else:
             formats = self.FORMATS
         for format in formats:
             newPath = self.path(ext=format.ext)
-            tried.append(newPath)
             if not os.path.isfile(newPath):
+                _logger.debug(self._actionMessage('Unable to open', 'from nonexistant path', newPath))
                 continue
 
             func = format.reader
