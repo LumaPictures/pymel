@@ -336,7 +336,12 @@ class Enum(object):
                 default = defaults.get(enumValue.index)
                 for key in sorted(indexDict[enumValue.index], key=sortKey):
                     keysFlat.append((key, enumValue.index))
-            multiKeyInfo = ', multiKeys=True, defaultKeys=%r' % defaults
+            # can't rely on repr(defaults), as it won't have a consistent
+            # sorting of keys...
+            defaults = ['{!r}:{!r}'.format(key, defaults[key])
+                        for key in sorted(defaults)]
+            defaults = '{' + ', '.join(defaults) + '}'
+            multiKeyInfo = ', multiKeys=True, defaultKeys={}'.format(defaults)
         else:
             keysFlat = [(ev.key, ev.index) for ev in self.itervalues()]
             multiKeyInfo = ''
