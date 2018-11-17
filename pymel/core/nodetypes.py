@@ -10421,6 +10421,12 @@ class HikHandle(Transform):
         return res
 # ------ Do not edit above this line --------
 
+# TODO: if jointFfd bug ever fixed:
+#   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+#   - remove hard-code setting of JointFfd's parent to DependNode
+class JointFfd(DependNode):
+    pass
+
 
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 

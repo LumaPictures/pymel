@@ -488,6 +488,20 @@ def encodeFix():
 # Cache utilities
 #===============================================================================
 
+
+def getImportableObject(importableName):
+    import importlib
+    assert '.' in importableName
+    modulename, objName = importableName.rsplit('.', 1)
+    moduleobj = importlib.import_module(modulename)
+    return getattr(moduleobj, objName)
+
+
+def getImportableName(obj):
+    return '{}.{}'.format(
+        inspect.getmodule(obj).__name__, obj.__name__)
+
+
 def _pickledump(data, filename, protocol=-1):
     with open(filename, mode='wb') as file:
         pickle.dump(data, file, protocol)
@@ -533,7 +547,7 @@ class PymelCache(object):
         CacheFormat('.zip', picklezip.load, picklezip.dump),
     ]
     EXTENSIONS = {x.ext: x for x in FORMATS}
-    DEFAULT_EXT = '.zip'
+    DEFAULT_EXT = '.py'
 
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
@@ -549,16 +563,14 @@ class PymelCache(object):
         return data
 
     def read(self, ext=None):
-        tried = []
-
         if ext is not None:
             formats = [self.EXTENSIONS[ext]]
         else:
             formats = self.FORMATS
         for format in formats:
             newPath = self.path(ext=format.ext)
-            tried.append(newPath)
             if not os.path.isfile(newPath):
+                _logger.debug(self._actionMessage('Unable to open', 'from nonexistant path', newPath))
                 continue
 
             func = format.reader

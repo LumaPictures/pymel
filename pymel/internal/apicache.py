@@ -601,19 +601,120 @@ apiSuffixes = ['', 'node', 'shape', 'shapenode']
 #===============================================================================
 
 
-class ApiMelBridgeCache(startup.SubItemCache):
+class BaseApiClassInfoCache(startup.SubItemCache):
+    CLASSINFO_SUBCACHE_NAME = None
+
+    def _modifyEnums(self, data, predicate, converter):
+        '''Convert between Enum reprs and actual Enum objects'''
+        apiClassInfo = data[self.itemIndex(self.CLASSINFO_SUBCACHE_NAME)]
+        for classname, classInfo in apiClassInfo.viewitems():
+            enums = classInfo.get('enums')
+            if enums:
+                for enumdata in enums.viewvalues():
+                    valdata = enumdata.get('values')
+                    if predicate(valdata):
+                        enumdata['values'] = converter(valdata)
+            pymelEnums = classInfo.get('pymelEnums')
+            if pymelEnums:
+                for name, enumdata in pymelEnums.viewitems():
+                    if predicate(enumdata):
+                        pymelEnums[name] = converter(enumdata)
+
+    def _modifyApiEnums(self, data, predicate, converter):
+        apiClassInfo = data[self.itemIndex(self.CLASSINFO_SUBCACHE_NAME)]
+        for classname, classInfo in apiClassInfo.viewitems():
+            methods = classInfo.get('methods')
+            if not methods:
+                continue
+            for overrides in methods.viewvalues():
+                # if we have ApiCache.apiClassInfo, overrides will be a list,
+                # but if we have ApiMelBridgeCache.apiClassOverrides, it will
+                # be a dict (whose keys are indices into that list)
+                if isinstance(overrides, dict):
+                    methodInfos = overrides.viewvalues()
+                else:
+                    methodInfos = overrides
+                for methodInfo in methodInfos:
+                    returnInfo = methodInfo.get('returnInfo')
+                    if returnInfo:
+                        returnType = returnInfo.get('type')
+                        if returnType and predicate(returnType):
+                            returnInfo['type'] = converter(returnType)
+                    returnType = methodInfo.get('returnType')
+                    if returnType and predicate(returnType):
+                        methodInfo['returnType'] = converter(returnType)
+                    argInfo = methodInfo.get('argInfo')
+                    if argInfo:
+                        for singleArgInfo in argInfo.viewvalues():
+                            argType = singleArgInfo.get('type')
+                            if argType and predicate(argType):
+                                singleArgInfo['type'] = converter(argType)
+                    args = methodInfo.get('args')
+                    if args:
+                        # args may be list or dict, depending on which cache
+                        if isinstance(args, dict):
+                            iteritems = args.viewitems()
+                        else:
+                            iteritems = enumerate(args)
+                        for i, arg in iteritems:
+                            if predicate(arg[1]):
+                                arg = list(arg)
+                                arg[1] = converter(arg[1])
+                                args[i] = tuple(arg)
+                    defaults = methodInfo.get('defaults')
+                    if defaults:
+                        for name, val in defaults.viewitems():
+                            if predicate(val):
+                                defaults[name] = converter(val)
+                    types = methodInfo.get('types')
+                    if types:
+                        for name, val in types.viewitems():
+                            if predicate(val):
+                                types[name] = converter(val)
+
+    def fromRawData(self, data):
+        # Note that if we're doing "eval", we could just add Enum / ApiEnum to
+        # the locals dict... however, seems good practice to serialize /
+        # deserialize to basic types, and keeps the option open of going to a
+        # more generic format (ie, json)
+
+        # convert from string enum reprs to Enum objects
+        def makeEnumFromRepr(enumRepr):
+            return eval(enumRepr, {'Enum': _util.Enum})
+
+        self._modifyEnums(data, lambda x: isinstance(x, basestring),
+                          makeEnumFromRepr)
+
+        # convert from tuples to ApiEnum tuples
+        self._modifyApiEnums(data, lambda x: isinstance(x, tuple),
+                             ApiEnum)
+        return data
+
+    def toRawData(self, data):
+        # convert from Enum objects to string enum reprs
+        self._modifyEnums(data, lambda x: isinstance(x, _util.Enum), repr)
+
+        # convert from ApiEnum tuples to tuples
+        self._modifyApiEnums(data, lambda x: isinstance(x, ApiEnum),
+                             tuple)
+        return data
+
+
+class ApiMelBridgeCache(BaseApiClassInfoCache):
     NAME = 'mayaApiMelBridge'
     DESC = 'the API-MEL bridge'
     USE_VERSION = False
     _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
+    CLASSINFO_SUBCACHE_NAME = 'apiClassOverrides'
 
 
-class ApiCache(startup.SubItemCache):
+class ApiCache(BaseApiClassInfoCache):
     NAME = 'mayaApi'
     DESC = 'the API cache'
     USE_VERSION = True
     _CACHE_NAMES = '''apiTypesToApiEnums apiEnumsToApiTypes mayaTypesToApiTypes
                    apiTypesToApiClasses apiClassInfo'''.split()
+    CLASSINFO_SUBCACHE_NAME = 'apiClassInfo'
 
     EXTRA_GLOBAL_NAMES = tuple(['mayaTypesToApiEnums'])
 
@@ -665,10 +766,13 @@ class ApiCache(startup.SubItemCache):
     #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
     #   - remove hard-code setting of HikHandle's parent to Transform
 
+    # TODO: if jointFfd bug ever fixed:
+    #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+    #   - remove hard-code setting of JointFfd's parent to DependNode
+
     API_TO_MFN_OVERRIDES = {
         'kHikHandle': api.MFnTransform,  # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
-        'kFfdDualBase': api.MFnDependencyNode,  # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
-        'kTransferAttributes': api.MFnDependencyNode,  # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
+        'kFfdDualBase': api.MFnDependencyNode,  # jointFfd inherits from ffd, but is not compatible with MFnGeometryFilter
     }
 
     DEFAULT_API_TYPE = 'kDependencyNode'
@@ -691,82 +795,11 @@ class ApiCache(startup.SubItemCache):
             if predicate(val):
                 enumsToTypes[key] = converter(val)
 
-    def _modifyEnums(self, data, predicate, converter):
-        '''Convert between Enum reprs and actual Enum objects'''
-        apiClassInfo = data[self.itemIndex('apiClassInfo')]
-        for classname, classInfo in apiClassInfo.viewitems():
-            enums = classInfo.get('enums')
-            if enums:
-                for enumdata in enums.viewvalues():
-                    valdata = enumdata.get('values')
-                    if predicate(valdata):
-                        enumdata['values'] = converter(valdata)
-            pymelEnums = classInfo.get('pymelEnums')
-            if pymelEnums:
-                for name, enumdata in pymelEnums.viewitems():
-                    if predicate(enumdata):
-                        pymelEnums[name] = converter(enumdata)
-
-    def _modifyApiEnums(self, data, predicate, converter):
-        apiClassInfo = data[self.itemIndex('apiClassInfo')]
-        for classname, classInfo in apiClassInfo.viewitems():
-            methods = classInfo.get('methods')
-            if not methods:
-                continue
-            for overrides in methods.viewvalues():
-                for methodInfo in overrides:
-                    returnInfo = methodInfo.get('returnInfo')
-                    if returnInfo:
-                        returnType = returnInfo.get('type')
-                        if returnType and predicate(returnType):
-                            returnInfo['type'] = converter(returnType)
-                    returnType = methodInfo.get('returnType')
-                    if returnType and predicate(returnType):
-                        methodInfo['returnType'] = converter(returnType)
-                    argInfo = methodInfo.get('argInfo')
-                    if argInfo:
-                        for singleArgInfo in argInfo.viewvalues():
-                            argType = singleArgInfo.get('type')
-                            if argType and predicate(argType):
-                                singleArgInfo['type'] = converter(argType)
-                    args = methodInfo.get('args')
-                    if args:
-                        for i, arg in enumerate(args):
-                            if predicate(arg[1]):
-                                arg = list(arg)
-                                arg[1] = converter(arg[1])
-                                args[i] = tuple(arg)
-                    defaults = methodInfo.get('defaults')
-                    if defaults:
-                        for name, val in defaults.viewitems():
-                            if predicate(val):
-                                defaults[name] = converter(val)
-                    types = methodInfo.get('types')
-                    if types:
-                        for name, val in types.viewitems():
-                            if predicate(val):
-                                types[name] = converter(val)
 
     def fromRawData(self, data):
-        import importlib
-
         # convert from string class names to class objects
-        def isString(x):
-            return isinstance(x, basestring)
-
-        def getClass(fullClassname):
-            assert '.' in fullClassname
-            modulename, classname = fullClassname.rsplit('.', 1)
-            moduleobj = importlib.import_module(modulename)
-            return getattr(moduleobj, classname)
-
-        self._modifyApiTypes(data, isString, getClass)
-
-        # convert from string enum reprs to Enum objects
-        def makeEnumFromRepr(enumRepr):
-            return eval(enumRepr, {'Enum': _util.Enum})
-
-        self._modifyEnums(data, isString, makeEnumFromRepr)
+        self._modifyApiTypes(data, lambda x: isinstance(x, basestring),
+                             startup.getImportableObject)
 
         # json automatically converts integer dict keys to strings...
         # we only need to undo this on read
@@ -778,29 +811,12 @@ class ApiCache(startup.SubItemCache):
             apiEnumsToApiTypes.clear()
             apiEnumsToApiTypes.update(newDict)
 
-        # convert from tuples to ApiEnum tuples
-        self._modifyApiEnums(data, lambda x: isinstance(x, tuple),
-                             ApiEnum)
-
-        return data
+        return super(ApiCache, self).fromRawData(data)
 
     def toRawData(self, data):
-
         # convert from class objects to string class names
-        def getFullClassname(classObj):
-            return '{}.{}'.format(
-                inspect.getmodule(classObj).__name__, classObj.__name__)
-
-        self._modifyApiTypes(data, inspect.isclass, getFullClassname)
-
-        # convert from Enum objects to string enum reprs
-        self._modifyEnums(data, lambda x: isinstance(x, _util.Enum), repr)
-
-        # convert from ApiEnum tuples to tuples
-        self._modifyApiEnums(data, lambda x: isinstance(x, ApiEnum),
-                             tuple)
-
-        return data
+        self._modifyApiTypes(data, inspect.isclass, startup.getImportableName)
+        return super(ApiCache, self).toRawData(data)
 
     def _buildMayaToApiInfo(self, reservedOnly=False):
 
