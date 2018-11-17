@@ -3811,6 +3811,13 @@ class SkinCluster(GeometryFilter):
 class HikHandle(Transform):
     __metaclass__ = _factories.MetaMayaNodeWrapper
 
+# TODO: if jointFfd bug ever fixed:
+#   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+#   - remove hard-code setting of JointFfd's parent to DependNode
+class JointFfd(DependNode):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+
+
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
 class NodetypesLazyLoadModule(_util.LazyLoadModule):

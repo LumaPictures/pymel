@@ -748,10 +748,13 @@ class ApiCache(BaseApiClassInfoCache):
     #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
     #   - remove hard-code setting of HikHandle's parent to Transform
 
+    # TODO: if jointFfd bug ever fixed:
+    #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
+    #   - remove hard-code setting of JointFfd's parent to DependNode
+
     API_TO_MFN_OVERRIDES = {
         'kHikHandle': api.MFnTransform,  # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
-        'kFfdDualBase': api.MFnDependencyNode,  # jointFfd inherits from ffd, but is not compatible with MFnLatticeDeformer
-        'kTransferAttributes': api.MFnDependencyNode,  # transferAttributes inherits from weightGeometryFilter, but is not compatible with MFnWeightGeometryFilter or MFnGeometryFilter
+        'kFfdDualBase': api.MFnDependencyNode,  # jointFfd inherits from ffd, but is not compatible with MFnGeometryFilter
     }
 
     DEFAULT_API_TYPE = 'kDependencyNode'
