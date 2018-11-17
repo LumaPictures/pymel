@@ -44,6 +44,7 @@ EXCLUDE_TEST_NAMES = tuple('''testPa
 
 EXCLUDE_TEST_MODULES = tuple('''windows
     pymel/all.py
+    pymel/cache
     pymel/tools
     examples/example1.py
     pymel/util/testing.py
