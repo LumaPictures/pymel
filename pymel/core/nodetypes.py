@@ -9695,7 +9695,7 @@ class AnimCurve(DependNode):
     AnimCurveType = Enum('AnimCurveType', {'TA': 0, 'kAnimCurveTA': 0, 'TL': 1, 'kAnimCurveTL': 1, 'TT': 2, 'kAnimCurveTT': 2, 'TU': 3, 'kAnimCurveTU': 3, 'UA': 4, 'kAnimCurveUA': 4, 'UL': 5, 'kAnimCurveUL': 5, 'UT': 6, 'kAnimCurveUT': 6, 'UU': 7, 'kAnimCurveUU': 7, 'unknown': 8, 'kAnimCurveUnknown': 8}, multiKeys=True, defaultKeys={0: 'TA', 1: 'TL', 2: 'TT', 3: 'TU', 4: 'UA', 5: 'UL', 6: 'UT', 7: 'UU', 8: 'unknown'})
     InfinityType = Enum('InfinityType', {'constant': 0, 'kConstant': 0, 'linear': 1, 'kLinear': 1, 'cycle': 3, 'kCycle': 3, 'cycleRelative': 4, 'kCycleRelative': 4, 'oscillate': 5, 'kOscillate': 5}, multiKeys=True, defaultKeys={0: 'constant', 1: 'linear', 3: 'cycle', 4: 'cycleRelative', 5: 'oscillate'})
     if versions.current() >= versions.v2019:
-        TangentType = Enum('TangentType', {'global_': 0, 'kTangentGlobal': 0, 'fixed': 1, 'kTangentFixed': 1, 'linear': 2, 'kTangentLinear': 2, 'flat': 3, 'kTangentFlat': 3, 'smooth': 4, 'kTangentSmooth': 4, 'step': 5, 'kTangentStep': 5, 'slow': 6, 'kTangentSlow': 6, 'fast': 7, 'kTangentFast': 7, 'clamped': 8, 'kTangentClamped': 8, 'plateau': 9, 'kTangentPlateau': 9, 'stepNext': 10, 'kTangentStepNext': 10, 'auto': 11, 'kTangentAuto': 11, 'shared1': 19, 'kTangentShared1': 19, 'shared2': 20, 'kTangentShared2': 20, 'shared3': 21, 'kTangentShared3': 21, 'shared4': 22, 'kTangentShared4': 22, 'shared5': 23, 'kTangentShared5': 23, 'shared6': 24, 'kTangentShared6': 24, 'shared7': 25, 'kTangentShared7': 25, 'shared8': 26, 'kTangentShared8': 26, 'customStart': 64, 'kTangentCustomStart': 64, 'customEnd': 32767, 'kTangentCustomEnd': 32767, 'typeCount': 32768, 'kTangentTypeCount': 32768}, multiKeys=True, defaultKeys={32768: 'typeCount', 1: 'fixed', 2: 'linear', 3: 'flat', 4: 'smooth', 5: 'step', 6: 'slow', 7: 'fast', 8: 'clamped', 9: 'plateau', 10: 'stepNext', 11: 'auto', 19: 'shared1', 20: 'shared2', 21: 'shared3', 22: 'shared4', 23: 'shared5', 24: 'shared6', 25: 'shared7', 26: 'shared8', 0: 'global_', 64: 'customStart', 32767: 'customEnd'})
+        TangentType = Enum('TangentType', {'global_': 0, 'kTangentGlobal': 0, 'fixed': 1, 'kTangentFixed': 1, 'linear': 2, 'kTangentLinear': 2, 'flat': 3, 'kTangentFlat': 3, 'smooth': 4, 'kTangentSmooth': 4, 'step': 5, 'kTangentStep': 5, 'slow': 6, 'kTangentSlow': 6, 'fast': 7, 'kTangentFast': 7, 'clamped': 8, 'kTangentClamped': 8, 'plateau': 9, 'kTangentPlateau': 9, 'stepNext': 10, 'kTangentStepNext': 10, 'auto': 11, 'kTangentAuto': 11, 'shared1': 19, 'kTangentShared1': 19, 'shared2': 20, 'kTangentShared2': 20, 'shared3': 21, 'kTangentShared3': 21, 'shared4': 22, 'kTangentShared4': 22, 'shared5': 23, 'kTangentShared5': 23, 'shared6': 24, 'kTangentShared6': 24, 'shared7': 25, 'kTangentShared7': 25, 'shared8': 26, 'kTangentShared8': 26, 'customStart': 64, 'kTangentCustomStart': 64, 'customEnd': 32767, 'kTangentCustomEnd': 32767, 'typeCount': 32768, 'kTangentTypeCount': 32768}, multiKeys=True, defaultKeys={32768: 'typeCount', 0: 'global_', 2: 'linear', 3: 'flat', 4: 'smooth', 5: 'step', 6: 'slow', 7: 'fast', 8: 'clamped', 9: 'plateau', 10: 'stepNext', 11: 'auto', 19: 'shared1', 20: 'shared2', 21: 'shared3', 22: 'shared4', 23: 'shared5', 24: 'shared6', 25: 'shared7', 26: 'shared8', 1: 'fixed', 64: 'customStart', 32767: 'customEnd'})
     else:
         TangentType = Enum('TangentType', {'global_': 0, 'kTangentGlobal': 0, 'fixed': 1, 'kTangentFixed': 1, 'linear': 2, 'kTangentLinear': 2, 'flat': 3, 'kTangentFlat': 3, 'smooth': 4, 'kTangentSmooth': 4, 'step': 5, 'kTangentStep': 5, 'slow': 6, 'kTangentSlow': 6, 'fast': 7, 'kTangentFast': 7, 'clamped': 8, 'kTangentClamped': 8, 'plateau': 9, 'kTangentPlateau': 9, 'stepNext': 10, 'kTangentStepNext': 10, 'auto': 11, 'kTangentAuto': 11}, multiKeys=True, defaultKeys={0: 'global_', 1: 'fixed', 2: 'linear', 3: 'flat', 4: 'smooth', 5: 'step', 6: 'slow', 7: 'fast', 8: 'clamped', 9: 'plateau', 10: 'stepNext', 11: 'auto'})
 
@@ -10426,6 +10426,15 @@ class HikHandle(Transform):
 #   - remove hard-code setting of JointFfd's parent to DependNode
 class JointFfd(DependNode):
     pass
+# ------ Do not edit below this line --------
+    __apicls__ = _api.MFnDependencyNode
+    __melnode__ = u'jointFfd'
+    __slots__ = ()
+    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'kLocalDynamicAttr': 1, 'normalAttr': 2, 'kNormalAttr': 2, 'extensionAttr': 3, 'kExtensionAttr': 3, 'invalidAttr': 4, 'kInvalidAttr': 4}, multiKeys=True, defaultKeys={1: 'localDynamicAttr', 2: 'normalAttr', 3: 'extensionAttr', 4: 'invalidAttr'})
+    MdgTimerMetric = Enum('MdgTimerMetric', {'metric_callback': 0, 'kTimerMetric_callback': 0, 'metric_compute': 1, 'kTimerMetric_compute': 1, 'metric_dirty': 2, 'kTimerMetric_dirty': 2, 'metric_draw': 3, 'kTimerMetric_draw': 3, 'metric_fetch': 4, 'kTimerMetric_fetch': 4, 'metric_callbackViaAPI': 5, 'kTimerMetric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'kTimerMetric_callbackNotViaAPI': 6, 'metric_computeDuringCallback': 7, 'kTimerMetric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'kTimerMetric_computeNotDuringCallback': 8, 'metrics': 9, 'kTimerMetrics': 9}, multiKeys=True, defaultKeys={0: 'metric_callback', 1: 'metric_compute', 2: 'metric_dirty', 3: 'metric_draw', 4: 'metric_fetch', 5: 'metric_callbackViaAPI', 6: 'metric_callbackNotViaAPI', 7: 'metric_computeDuringCallback', 8: 'metric_computeNotDuringCallback', 9: 'metrics'})
+    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'kTimerOff': 0, 'on': 1, 'kTimerOn': 1, 'uninitialized': 2, 'kTimerUninitialized': 2, 'invalidState': 3, 'kTimerInvalidState': 3}, multiKeys=True, defaultKeys={0: 'off', 1: 'on', 2: 'uninitialized', 3: 'invalidState'})
+    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'kTimerType_self': 0, 'type_inclusive': 1, 'kTimerType_inclusive': 1, 'type_count': 2, 'kTimerType_count': 2, 'types': 3, 'kTimerTypes': 3}, multiKeys=True, defaultKeys={0: 'type_self', 1: 'type_inclusive', 2: 'type_count', 3: 'types'})
+# ------ Do not edit above this line --------
 
 
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
@@ -22457,16 +22466,6 @@ class Ffd(WeightGeometryFilter):
         do, final_do, outTypes = _f.processApiArgs([x, y, z], [('x', 'uint', 'in', None), ('y', 'uint', 'in', None), ('z', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'setDivisions', final_do)
         return res
-
-
-class JointFfd(Ffd):
-    __apicls__ = _api.MFnDependencyNode
-    __melnode__ = u'jointFfd'
-    __slots__ = ()
-    MAttrClass = Enum('MAttrClass', {'localDynamicAttr': 1, 'kLocalDynamicAttr': 1, 'normalAttr': 2, 'kNormalAttr': 2, 'extensionAttr': 3, 'kExtensionAttr': 3, 'invalidAttr': 4, 'kInvalidAttr': 4}, multiKeys=True, defaultKeys={1: 'localDynamicAttr', 2: 'normalAttr', 3: 'extensionAttr', 4: 'invalidAttr'})
-    MdgTimerMetric = Enum('MdgTimerMetric', {'metric_callback': 0, 'kTimerMetric_callback': 0, 'metric_compute': 1, 'kTimerMetric_compute': 1, 'metric_dirty': 2, 'kTimerMetric_dirty': 2, 'metric_draw': 3, 'kTimerMetric_draw': 3, 'metric_fetch': 4, 'kTimerMetric_fetch': 4, 'metric_callbackViaAPI': 5, 'kTimerMetric_callbackViaAPI': 5, 'metric_callbackNotViaAPI': 6, 'kTimerMetric_callbackNotViaAPI': 6, 'metric_computeDuringCallback': 7, 'kTimerMetric_computeDuringCallback': 7, 'metric_computeNotDuringCallback': 8, 'kTimerMetric_computeNotDuringCallback': 8, 'metrics': 9, 'kTimerMetrics': 9}, multiKeys=True, defaultKeys={0: 'metric_callback', 1: 'metric_compute', 2: 'metric_dirty', 3: 'metric_draw', 4: 'metric_fetch', 5: 'metric_callbackViaAPI', 6: 'metric_callbackNotViaAPI', 7: 'metric_computeDuringCallback', 8: 'metric_computeNotDuringCallback', 9: 'metrics'})
-    MdgTimerState = Enum('MdgTimerState', {'off': 0, 'kTimerOff': 0, 'on': 1, 'kTimerOn': 1, 'uninitialized': 2, 'kTimerUninitialized': 2, 'invalidState': 3, 'kTimerInvalidState': 3}, multiKeys=True, defaultKeys={0: 'off', 1: 'on', 2: 'uninitialized', 3: 'invalidState'})
-    MdgTimerType = Enum('MdgTimerType', {'type_self': 0, 'kTimerType_self': 0, 'type_inclusive': 1, 'kTimerType_inclusive': 1, 'type_count': 2, 'kTimerType_count': 2, 'types': 3, 'kTimerTypes': 3}, multiKeys=True, defaultKeys={0: 'type_self', 1: 'type_inclusive', 2: 'type_count', 3: 'types'})
 
 
 class Jiggle(WeightGeometryFilter):
