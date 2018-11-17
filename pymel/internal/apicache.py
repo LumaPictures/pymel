@@ -771,17 +771,9 @@ class ApiCache(BaseApiClassInfoCache):
 
 
     def fromRawData(self, data):
-        import importlib
-
         # convert from string class names to class objects
-        def getClass(fullClassname):
-            assert '.' in fullClassname
-            modulename, classname = fullClassname.rsplit('.', 1)
-            moduleobj = importlib.import_module(modulename)
-            return getattr(moduleobj, classname)
-
         self._modifyApiTypes(data, lambda x: isinstance(x, basestring),
-                             getClass)
+                             startup.getImportableObject)
 
         # json automatically converts integer dict keys to strings...
         # we only need to undo this on read
@@ -797,11 +789,7 @@ class ApiCache(BaseApiClassInfoCache):
 
     def toRawData(self, data):
         # convert from class objects to string class names
-        def getFullClassname(classObj):
-            return '{}.{}'.format(
-                inspect.getmodule(classObj).__name__, classObj.__name__)
-
-        self._modifyApiTypes(data, inspect.isclass, getFullClassname)
+        self._modifyApiTypes(data, inspect.isclass, startup.getImportableName)
         return super(ApiCache, self).toRawData(data)
 
     def _buildMayaToApiInfo(self, reservedOnly=False):

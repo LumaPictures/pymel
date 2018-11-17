@@ -1159,3 +1159,41 @@ class CmdCache(startup.SubItemCache):
                     self.moduleCmds[currModule].pop(id)
                     self.moduleCmds[module].append(funcName)
         return (self.cmdlist, self.nodeHierarchy, self.uiClassList, self.nodeCommandList, self.moduleCmds)
+
+    def _modifyTypes(self, data, predicate, converter):
+        '''convert between class names and class objects'''
+        cmdlist = data[self.itemIndex('cmdlist')]
+        for cmdinfo in cmdlist.viewvalues():
+            flags = cmdinfo.get('flags')
+            if not flags:
+                continue
+            for flaginfo in flags.viewvalues():
+                args = flaginfo.get('args')
+                if not args:
+                    continue
+                if predicate(args):
+                    flaginfo['args'] = converter(args)
+                elif isinstance(args, list):
+                    for i, arg in enumerate(args):
+                        if predicate(arg):
+                            args[i] = converter(arg)
+
+    def fromRawData(self, data):
+        # convert from string class names to class objects
+        def isTypeStr(obj):
+            return isinstance(obj, basestring) and obj.startswith('<type ') \
+                   and obj.endswith('>')
+
+        def fromTypeStr(typeStr):
+            return startup.getImportableObject(typeStr[len('<type '):-1])
+
+        self._modifyTypes(data, isTypeStr, fromTypeStr)
+        return data
+
+    def toRawData(self, data):
+        # convert from class objects to string class names
+        def toTypeStr(typeObj):
+            return '<type {}>'.format(startup.getImportableName(typeObj))
+
+        self._modifyTypes(data, callable, toTypeStr)
+        return data

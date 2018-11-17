@@ -475,6 +475,20 @@ def encodeFix():
 # Cache utilities
 #===============================================================================
 
+
+def getImportableObject(importableName):
+    import importlib
+    assert '.' in importableName
+    modulename, objName = importableName.rsplit('.', 1)
+    moduleobj = importlib.import_module(modulename)
+    return getattr(moduleobj, objName)
+
+
+def getImportableName(obj):
+    return '{}.{}'.format(
+        inspect.getmodule(obj).__name__, obj.__name__)
+
+
 def _pickledump(data, filename, protocol=-1):
     with open(filename, mode='wb') as file:
         pickle.dump(data, file, protocol)
