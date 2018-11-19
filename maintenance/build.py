@@ -1296,14 +1296,42 @@ class ApiMethodGenerator(MelMethodGenerator):
 
                     overloadIndex = overrideData.get('overloadIndex', None)
 
+                    if overloadIndex is None:
+                        #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                        continue
+
+                    # make sure we know how to deal with all args
+                    unknownType = False
+                    for argName, argType in info[overloadIndex]['types'].viewitems():
+                        if isinstance(argType, tuple):
+                            # it's an enum, check next arg
+                            continue
+                        if not factories.ApiTypeRegister.isRegistered(argType):
+                            # TODO: either handle or ignore optional args
+                            # we don't know how to handle
+
+                            # we currently wrap some functions where we don't
+                            # know how to handle the args (ie,
+                            # MFnMesh.createColorSetWithName - wrapped as
+                            # create colorSet - where we don't know how to
+                            # handle the MDGModifier arg, but it's optional.
+
+                            # we should handle this properly, by either dropping
+                            # the arg from our pymel wrap, or adding support
+                            # for that arg type, but for now, to avoid
+                            # backward compatibilities, I'm preserving old
+                            # behavior
+                            if argName not in info[overloadIndex].get('defaults', {}):
+                                unknownType = True
+                                break
+                    if unknownType:
+                        continue
+
                     aliases = overrideData.get('aliases', [])
                     properties = overrideData.get('properties', [])
                     yieldTuple = (methodName, self.classname, pymelName,
                                   overloadIndex, aliases, properties)
 
-                    if overloadIndex is None:
-                        #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
-                        continue
                     if not overrideData.get('enabled', True):
                         #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
                         # FIXME: add unique deprecation message
