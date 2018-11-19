@@ -200,17 +200,18 @@ class Enum(object):
 
         Parameters
         ----------
-        name : `str`
+        name : str
             The name of this enumeration
-        keys : Union[Dict[str, int], Iterable[str]]
+        keys : Union[Dict[str, int], Iterable[str], Iterable[Tuple[str, int]]]
             The keys for the enumeration; if this is a dict, it should map
             from key to it's value (ie, from string to int)
             Otherwise, it should be an iterable of keys, where their index
-            within the iterable is their value -ie, passing either of these
-            would give the same result:
+            within the iterable is their value, or an iterable of key/value
+            pairs - ie, passing any of these would give the same result:
                 {'Red':0,'Green':1,'Blue':2}
                 ('Red', 'Green', 'Blue')
-        multiKeys : `bool`
+                [('Green', 1), ('Blue', 2), ('Red', 0)]
+        multiKeys : bool
             Defaults to False
             If True, allows multiple keys per value - ie,
                 Enum('Names', {'Bob':0,'Charles':1,'Chuck':1}, multiKeys=True)
@@ -229,12 +230,14 @@ class Enum(object):
             mapping to it, and in this case, the specified default key must be
             present within keys (if not, a EnumBadDefaultKeyError is raised).
             If there are multiple keys for a given value, and no defaultKey is
-            provided, which one is used is undefined.
+            provided, the default key is whichever one is encountered first
+            when iterating through the `key` parameter (which is well-defined
+            for a list of pairs or an OrderedDict, and effectively random for
+            a normal dict)
         docs : Optional[Dict[int, str]]
             if given, should provide a map from keys to an associated docstring
             for that key; the dict need not provide an entry for every key
         """
-
         if not keys:
             raise EnumEmptyError()
 
@@ -245,13 +248,33 @@ class Enum(object):
         # Keys for which there are multiple keys mapping to the same
         # value, but are not the default key for that value
         extraKeys = {}
+        pairs = None
 
         if operator.isMappingType(keys):
+            pairs = keys.items()
+        else:
+            # could be an iterable of keys - in which case the "value" is it's
+            # index - or it could be an iterable of pairs, (key, value).
+            # Unfortunately, we don't know which until we start to iterate...
+            # ...and since keys may be an iterator, where iterating is
+            # "destructive", to simplify we just convert it to a new list
+            keys = list(keys)
+            if not keys:
+                # an iterable would evauluate to a True boolean even if empty -
+                # so redo our empty test
+                raise EnumEmptyError()
+            if isinstance(keys[0], basestring):
+                keygen = enumerate(keys)
+                values = [None] * len(keys)
+            else:
+                pairs = keys
+
+        if pairs is not None:
             if not multiKeys:
-                reverse = dict([(v, k) for k, v in keys.items()])
+                reverse = dict([(v, k) for k, v in pairs])
             else:
                 reverse = dict()
-                for key, val in keys.iteritems():
+                for key, val in pairs:
                     reverse.setdefault(val, []).append(key)
                 for val, keyList in reverse.iteritems():
                     if len(keyList) == 1:
@@ -269,12 +292,8 @@ class Enum(object):
                     reverse[val] = defaultKey
             keygen = [(v, reverse[v]) for v in sorted(reverse.keys())]
             values = {}
-        else:
-            keygen = enumerate(keys)
-            values = [None] * len(keys)
 
         value_type = kwargs.get('value_type', EnumValue)
-        #keys = tuple(keys)
 
         keyDict = {}
         for val, key in keygen:
@@ -350,17 +369,17 @@ class Enum(object):
                 default = defaults.get(enumValue.index)
                 for key in sorted(indexDict[enumValue.index], key=sortKey):
                     keysFlat.append((key, enumValue.index))
-            multiKeyInfo = ', multiKeys=True, defaultKeys=%r' % defaults
+            keysFlat = ['({!r}, {!r})'.format(key, index)
+                        for key, index in keysFlat]
+            keysRepr = '[{}], multiKeys=True'.format(', '.join(keysFlat))
         else:
             keysFlat = [(ev.key, ev.index) for ev in self.itervalues()]
-            multiKeyInfo = ''
+            keysFlat = ['{!r}: {!r}'.format(key, index)
+                        for key, index in keysFlat]
+            keysRepr = '{' + ', '.join(keysFlat) + '}'
 
-        return '%s(%r, {%s}%s)' % (
-            self.__class__.__name__,
-            self.name,
-            ', '.join('%r: %r' % item for item in keysFlat),
-            multiKeyInfo,
-        )
+        return '{}({!r}, {})'.format(
+            self.__class__.__name__, self.name, keysRepr)
 
     def __str__(self):
         return '%s%s' % (self.__class__.__name__, self.keys())

@@ -135,6 +135,55 @@ class TestEnum(unittest.TestCase):
 
         self.assertEqual(len({enum1, enum2, enum3, enum4, enum5, enum6}), 3)
 
+    def testConstructionMethods(self):
+        enum1 = Enum('enum', {'Red': 0, 'Green': 1, 'Blue': 2})
+        enum2 = Enum('enum', ('Red', 'Green', 'Blue'))
+        enum3 = Enum('enum', [('Green', 1), ('Blue', 2), ('Red', 0)])
+
+        self.assertEqual(enum1, enum2)
+        self.assertEqual(enum1, enum3)
+        self.assertEqual(enum2, enum3)
+
+    def testConstructionMultiKeys(self):
+        enum1 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'bar'})
+        enum2 = Enum('enum', [('foo', 1), ('bar', 7), ('baz', 7)],
+                     multiKeys=True)
+        enum3 = Enum('enum', [('foo', 1), ('baz', 7), ('bar', 7)],
+                     multiKeys=True)
+        self.assertEqual(enum1, enum2)
+        self.assertEqual(enum1[7], 'bar')
+        self.assertEqual(enum2[7], 'bar')
+        self.assertNotEqual(enum1, enum3)
+        self.assertNotEqual(enum2, enum3)
+        self.assertEqual(enum3[7], 'baz')
+
+    def testRepr(self):
+        enum1 = Enum('enum', {'foo': 1, 'bar': 7, 'baz': 7},
+                     multiKeys=True, defaultKeys={7:'bar'})
+        enum2 = Enum('enum', [('foo', 1), ('bar', 7), ('baz', 7)],
+                     multiKeys=True)
+        enum3 = Enum('enum', [('foo', 1), ('baz', 7), ('bar', 7)],
+                     multiKeys=True)
+        enum4 = Enum('enum', ['foo', 'bar', 'baz'])
+
+        # test that the reprs give us back the same thing
+        enum5 = eval(repr(enum1), {'Enum': Enum})
+        self.assertEqual(enum1, enum5)
+        self.assertEqual(enum5[7], 'bar')
+
+        enum6 = eval(repr(enum2), {'Enum': Enum})
+        self.assertEqual(enum2, enum6)
+        self.assertEqual(enum6[7], 'bar')
+
+        enum7 = eval(repr(enum3), {'Enum': Enum})
+        self.assertEqual(enum3, enum7)
+        self.assertEqual(enum7[7], 'baz')
+
+        enum8 = eval(repr(enum4), {'Enum': Enum})
+        self.assertEqual(enum4, enum8)
+        self.assertEqual(enum8[2], 'baz')
+
 
 class TestFrozenDict(__AbstractTestDict):
     # In the case of static classes, need to create a new class
