@@ -4457,6 +4457,22 @@ class Attribute(PyNode):
         res = _f.getProxyResult(self, _api.MPlug, 'setLocked', final_do)
         return res
 
+    @_f.addApiDocs(_api.MPlug, 'destinations')
+    def destinations(self, theDestinations):
+        # type: (List[general.PyNode]) -> bool
+        do, final_do, outTypes = _f.getDoArgs([theDestinations], [('theDestinations', 'MPlugArray', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'destinations', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
+    @_f.addApiDocs(_api.MPlug, 'destinationsWithConversions')
+    def destinationsWithConversions(self, theDestinations):
+        # type: (List[general.PyNode]) -> bool
+        do, final_do, outTypes = _f.getDoArgs([theDestinations], [('theDestinations', 'MPlugArray', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'destinationsWithConversions', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
     @_f.addApiDocs(_api.MPlug, 'elementByLogicalIndex')
     def elementByLogicalIndex(self, index):
         # type: (int) -> Attribute
@@ -4549,6 +4565,14 @@ class Attribute(PyNode):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MPlug, 'isConnected')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MPlug, 'isDefaultValue')
+    def isDefaultValue(self, forceEval=True):
+        # type: (bool) -> bool
+        do, final_do, outTypes = _f.getDoArgs([forceEval], [('forceEval', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'isDefaultValue', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
 
     @_f.addApiDocs(_api.MPlug, 'isDestination')
     def isDestination(self):
@@ -4690,6 +4714,18 @@ class Attribute(PyNode):
         do, final_do, outTypes = _f.processApiArgs([inChannelBox], [('inChannelBox', 'bool', 'in', None)], self.isInChannelBox, self.showInChannelBox, [])
         res = _f.getProxyResult(self, _api.MPlug, 'setChannelBox', final_do)
         return res
+
+    @_f.addApiDocs(_api.MPlug, 'source')
+    def source(self):
+        # type: () -> Attribute
+        res = _f.getProxyResult(self, _api.MPlug, 'source')
+        return _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
+
+    @_f.addApiDocs(_api.MPlug, 'sourceWithConversion')
+    def sourceWithConversion(self):
+        # type: () -> Attribute
+        res = _f.getProxyResult(self, _api.MPlug, 'sourceWithConversion')
+        return _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
 # ------ Do not edit above this line --------
 
 
@@ -6861,6 +6897,14 @@ class MeshFace(MItComponent1D):
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isStarlike')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MItMeshPolygon, 'isUVReversed')
+    def isUVReversed(self, uvSet=None):
+        # type: (unicode) -> bool
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isUVReversed', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
     @_f.addApiDocs(_api.MItMeshPolygon, 'zeroArea')
     def isZeroArea(self):
         # type: () -> bool
@@ -7830,6 +7874,12 @@ class AttributeDefaults(PyNode):
         res = _f.getProxyResult(self, _api.MFnAttribute, 'isKeyable')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MFnAttribute, 'isProxyAttribute')
+    def isProxyAttribute(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isProxyAttribute')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
     @_f.addApiDocs(_api.MFnAttribute, 'isReadable')
     def isReadable(self):
         # type: () -> bool
@@ -7974,6 +8024,13 @@ class AttributeDefaults(PyNode):
         # type: (unicode) -> None
         do, final_do, outTypes = _f.getDoArgs([localizedName], [('localizedName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setNiceNameOverride', final_do)
+        return res
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setProxyAttribute')
+    def setProxyAttribute(self, state):
+        # type: (bool) -> None
+        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isProxyAttribute, self.setProxyAttribute, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setProxyAttribute', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setReadable')
