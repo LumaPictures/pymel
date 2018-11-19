@@ -7267,12 +7267,6 @@ class Mesh(SurfaceShape):
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPolygonVertices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.addApiDocs(_api.MFnMesh, 'getRawDoublePoints')
-    def getRawDoublePoints(self):
-        # type: () -> float
-        res = _f.getProxyResult(self, _api.MFnMesh, 'getRawDoublePoints')
-        return _f.ApiArgUtil._castResult(self, res, 'double', None)
-
     @_f.addApiDocs(_api.MFnMesh, 'getTangentId')
     def getTangentId(self, faceIndex, vertexIndex):
         # type: (int, int) -> int

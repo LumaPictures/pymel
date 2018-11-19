@@ -4458,20 +4458,20 @@ class Attribute(PyNode):
         return res
 
     @_f.addApiDocs(_api.MPlug, 'destinations')
-    def destinations(self, theDestinations):
-        # type: (List[general.PyNode]) -> bool
-        do, final_do, outTypes = _f.getDoArgs([theDestinations], [('theDestinations', 'MPlugArray', 'in', None)])
+    def destinations(self):
+        # type: () -> Tuple[bool, List[general.PyNode]]
+        do, final_do, outTypes = _f.getDoArgs([], [('theDestinations', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MPlug, 'destinations', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MPlug, 'destinationsWithConversions')
-    def destinationsWithConversions(self, theDestinations):
-        # type: (List[general.PyNode]) -> bool
-        do, final_do, outTypes = _f.getDoArgs([theDestinations], [('theDestinations', 'MPlugArray', 'in', None)])
+    def destinationsWithConversions(self):
+        # type: () -> Tuple[bool, List[general.PyNode]]
+        do, final_do, outTypes = _f.getDoArgs([], [('theDestinations', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MPlug, 'destinationsWithConversions', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MPlug, 'elementByLogicalIndex')
     def elementByLogicalIndex(self, index):
