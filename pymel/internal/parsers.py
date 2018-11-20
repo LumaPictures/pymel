@@ -760,13 +760,13 @@ class ApiDocParser(object):
         else:
 
             methodName = {
-                '*=': '__rmult__',
+                '*=': '__imul__',
                 '*': '__mul__',
-                '+=': '__radd__',
+                '+=': '__iadd__',
                 '+': '__add__',
-                '-=': '__rsub__',
+                '-=': '__isub__',
                 '-': '__sub__',
-                '/=': '__rdiv__',
+                '/=': '__idiv__',
                 '/': '__div__',
                 '==': '__eq__',
                 '!=': '__neq__',
