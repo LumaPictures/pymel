@@ -3199,7 +3199,10 @@ class EulerRotation(Array):
 
 
 class Unit(float):
-    __slots__ = ['unit', 'data', 'value', '_unit']
+    __slots__ = ['unit', 'data', '_unit']
+
+    # TODO: implement proper equality comparison - currently,
+    # Distance(5, 'meters') == Distance(5, 'centimeters')
 
     @classmethod
     def getUIUnit(cls):
@@ -3221,7 +3224,7 @@ class Unit(float):
     @classmethod
     def getInternalUnit(cls):
         """
-        Returns the inernal units currently in use for that type
+        Returns the internal units currently in use for that type
         """
         return cls.sUnit(cls.apicls.internalUnit())
 
@@ -3243,7 +3246,7 @@ class Unit(float):
     @classmethod
     def sUnit(cls, unit=None):
         """
-        Converts an internal int unit enum representation tp the string unit name
+        Converts an internal int unit enum representation to the string unit name
         """
         if unit:
             return cls.Unit.getKey(unit)
@@ -3654,14 +3657,14 @@ def getPlugValue(plug):
         val = plug.asMAngle()
         unit = _api.MAngle.uiUnit()
         # as becomes a keyword in python 2.6
-        return Angle(val.asUnits, unit)
+        return Angle(val.asUnits(unit), unit)
 
     # Time
     elif apiType == _api.MFn.kTimeAttribute:
         val = plug.asMTime()
         unit = _api.MTime.uiUnit()
         # as becomes a keyword in python 2.6
-        return Time(val.asUnits, unit)
+        return Time(val.asUnits(unit), unit)
 
     elif apiType == _api.MFn.kNumericAttribute:
         nAttr = _api.MFnNumericAttribute(obj)

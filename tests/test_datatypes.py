@@ -1417,5 +1417,84 @@ class test_PMTypes(unittest.TestCase):
                 c, at = x.split('.')
                 val  = getattr( getattr( pm.datatypes, c ), at )
 
+
+class test_Units(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pm.newFile(f=1)
+        cls.transform = pm.createNode('transform', name='testTrans')
+
+    @classmethod
+    def tearDownClass(cls):
+        pm.newFile(f=1)
+
+    def testDistancePlug(self):
+        pm.dt.Distance.setUIUnit('centimeters')
+        self.assertEqual(pm.dt.Distance.getUIUnit(), 'centimeters')
+
+        tx = self.transform.attr('tx')
+        tx.set(10)
+
+        self.assertEqual(tx.get(), 10)
+        txDist = pm.dt.getPlugValue(tx.__apimplug__())
+        self.assertIsInstance(txDist, pm.dt.Distance)
+        self.assertEqual(txDist.unit, 'centimeters')
+        self.assertEqual(float(txDist), 10)
+
+        pm.dt.Distance.setUIUnit('meters')
+        self.assertEqual(pm.dt.Distance.getUIUnit(), 'meters')
+
+        self.assertEqual(tx.get(), .1)
+        txDist = pm.dt.getPlugValue(tx.__apimplug__())
+        self.assertIsInstance(txDist, pm.dt.Distance)
+        self.assertEqual(txDist.unit, 'meters')
+        self.assertEqual(float(txDist), .1)
+
+    def testAnglePlug(self):
+        from math import pi
+        pm.dt.Angle.setUIUnit('degrees')
+        self.assertEqual(pm.dt.Angle.getUIUnit(), 'degrees')
+
+        rx = self.transform.attr('rx')
+        rx.set(90)
+
+        self.assertEqual(rx.get(), 90)
+        rxAngle = pm.dt.getPlugValue(rx.__apimplug__())
+        self.assertIsInstance(rxAngle, pm.dt.Angle)
+        self.assertEqual(rxAngle.unit, 'degrees')
+        self.assertEqual(float(rxAngle), 90)
+
+        pm.dt.Angle.setUIUnit('radians')
+        self.assertEqual(pm.dt.Angle.getUIUnit(), 'radians')
+
+        self.assertAlmostEqual(rx.get(), pi / 2)
+        rxAngle = pm.dt.getPlugValue(rx.__apimplug__())
+        self.assertIsInstance(rxAngle, pm.dt.Angle)
+        self.assertEqual(rxAngle.unit, 'radians')
+        self.assertAlmostEqual(float(rxAngle), pi / 2)
+
+    def testTimePlug(self):
+        pm.dt.Time.setUIUnit('film')
+        self.assertEqual(pm.dt.Time.getUIUnit(), 'film')
+
+        gre = self.transform.attr('ghostRangeEnd')
+        gre.set(24)
+
+        self.assertEqual(gre.get(), 24)
+        greTime = pm.dt.getPlugValue(gre.__apimplug__())
+        self.assertIsInstance(greTime, pm.dt.Time)
+        self.assertEqual(greTime.unit, 'film')
+        self.assertEqual(float(greTime), 24)
+
+        pm.dt.Time.setUIUnit('k48FPS')
+        self.assertEqual(pm.dt.Time.getUIUnit(), 'k48FPS')
+
+        self.assertEqual(gre.get(), 48)
+        greTime = pm.dt.getPlugValue(gre.__apimplug__())
+        self.assertIsInstance(greTime, pm.dt.Time)
+        self.assertEqual(greTime.unit, 'k48FPS')
+        self.assertEqual(float(greTime), 48)
+
+
 if __name__ == '__main__':
     unittest.main()
