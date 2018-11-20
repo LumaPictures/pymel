@@ -762,6 +762,19 @@ class ApiCache(BaseApiClassInfoCache):
         'vectorRenderGlobals': 'kDependencyNode',
     }
 
+    # Sometimes, the results of doing MFnType.type() are "wrong", or, at the
+    # very least, inappropriate for determining which maya node types are
+    # compatible with which MFn classes.
+    # As an example, MFnContainerNode().type() will return MFn.kContainerBase;
+    # however, kContainerBase clearly corresponds to the containerBase maya
+    # type, which is the base type for entity, which in turn is the base for
+    # dagNode and objectSet.  This would imply that ANY dag node or object set
+    # should be compatible with MFnContainerNode, but that is not the case -
+    # only container nodes are.  So we "fix" that here.
+    MFN_TO_API_OVERRIDES = {
+        api.MFnContainerNode: api.MFn.kContainer,
+    }
+
     # TODO: if hikHandle bug ever fixed:
     #   - remove entry in apiCache.ApiCache.API_TO_MFN_OVERRIDES
     #   - remove hard-code setting of HikHandle's parent to Transform
@@ -1064,10 +1077,12 @@ class ApiCache(BaseApiClassInfoCache):
             if x == api.MFnBase:
                 return self.apiEnumsToApiTypes[1]  # 'kBase'
             else:
-                try:
-                    return self.apiEnumsToApiTypes[x().type()]
-                except:
-                    return self.apiEnumsToApiTypes[0]  # 'kInvalid'
+                enumInt = self.MFN_TO_API_OVERRIDES.get(x)
+                if enumInt is None:
+                    enumInt = x().type()
+                return self.apiEnumsToApiTypes.get(enumInt,
+                                                   # 'kInvalid'
+                                                   self.apiEnumsToApiTypes[0])
 
         # all of maya OpenMaya api is now imported in module api's namespace
         mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))

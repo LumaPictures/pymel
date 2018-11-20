@@ -1198,85 +1198,8 @@ class DependNode(general.PyNode):
 class ContainerBase(DependNode):
     pass
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnContainerNode
     __melnode__ = u'containerBase'
     __slots__ = ()
-    MPublishNodeType = Enum('MPublishNodeType', [('parentAnchor', 0), ('kParentAnchor', 0), ('childAnchor', 1), ('kChildAnchor', 1), ('generic', 2), ('kGeneric', 2)], multiKeys=True)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'clear')
-    def clear(self):
-        # type: () -> None
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'clear')
-        return res
-
-    @classmethod
-    @_f.addApiDocs(_api.MFnContainerNode, 'getCurrentAsMObject')
-    def getCurrentAsMObject(self):
-        # type: () -> general.PyNode
-        res = _api.MFnContainerNode.getCurrentAsMObject()
-        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'getMembers')
-    def getMembers(self):
-        # type: () -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([], [('members', 'MObjectArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getMembers', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'getParentContainer')
-    def getParentContainer(self):
-        # type: () -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([], [('parent', 'MObject', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getParentContainer', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedNames')
-    def getPublishedNames(self, unboundOnly):
-        # type: (bool) -> List[unicode]
-        do, final_do, outTypes = _f.getDoArgs([unboundOnly], [('publishedNames', 'MStringArray', 'out', None), ('unboundOnly', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedNames', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedNodes')
-    def getPublishedNodes(self, type):
-        # type: (ContainerNode.MPublishNodeType) -> Tuple[List[unicode], List[general.PyNode]]
-        do, final_do, outTypes = _f.getDoArgs([type], [('type', ('MFnContainerNode', 'MPublishNodeType'), 'in', None), ('publishedNames', 'MStringArray', 'out', None), ('nodes', 'MObjectArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedNodes', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedPlugs')
-    def getPublishedPlugs(self):
-        # type: () -> Tuple[List[general.PyNode], List[unicode]]
-        do, final_do, outTypes = _f.getDoArgs([], [('publishedPlugs', 'MPlugArray', 'out', None), ('publishedNames', 'MStringArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedPlugs', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'getRootTransform')
-    def getRootTransform(self):
-        # type: () -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([], [('root', 'MObject', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getRootTransform', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'getSubcontainers')
-    def getSubcontainers(self):
-        # type: () -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([], [('subcontainers', 'MObjectArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getSubcontainers', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'isCurrent')
-    def isCurrent(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'isCurrent')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
-    @_f.addApiDocs(_api.MFnContainerNode, 'makeCurrent')
-    def makeCurrent(self, isCurrent=True):
-        # type: (bool) -> None
-        do, final_do, outTypes = _f.getDoArgs([isCurrent], [('isCurrent', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnContainerNode, 'makeCurrent', final_do)
-        return res
 # ------ Do not edit above this line --------
 
 
@@ -9375,11 +9298,24 @@ class ObjectSet(Entity):
         res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
         return _f.processApiResult(res, outTypes, do)
 
+    @_f.addApiDocs(_api.MFnSet, 'clear')
+    def clear(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnSet, 'clear')
+        return res
+
     @_f.addApiDocs(_api.MFnSet, 'annotation')
     def getAnnotation(self):
         # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnSet, 'annotation')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
+
+    @_f.deprecated
+    def getMembers(self, flatten=False):
+        # type: (bool) -> SelectionSet
+        do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnSet, 'hasRestrictions')
     def hasRestrictions(self):
@@ -15965,15 +15901,23 @@ class Condition(DependNode):
 
 
 class Container(ContainerBase):
+    __apicls__ = _api.MFnContainerNode
     __melcmd__ = staticmethod(general.container)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'container'
     __melnode__ = u'container'
     __slots__ = ()
+    MPublishNodeType = Enum('MPublishNodeType', [('parentAnchor', 0), ('kParentAnchor', 0), ('childAnchor', 1), ('kChildAnchor', 1), ('generic', 2), ('kGeneric', 2)], multiKeys=True)
 
     @_f.addMelDocs('container', 'addNode')
     def addNode(self, val=True, **kwargs):
         return _f.asEdit(self, general.container, kwargs, 'addNode', val)
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'clear')
+    def clear(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'clear')
+        return res
 
     @_f.addMelDocs('container', 'force')
     def force(self, val=True, **kwargs):
@@ -15999,10 +15943,19 @@ class Container(ContainerBase):
         res = _f.asQuery(self, general.container, kwargs, 'connectionList')
         return res
 
-    @_f.addMelDocs('container', 'current')
-    def getCurrent(self, **kwargs):
-        res = _f.asQuery(self, general.container, kwargs, 'current')
-        return res
+    @classmethod
+    @_f.addApiDocs(_api.MFnContainerNode, 'getCurrentAsMObject')
+    def getCurrent(self):
+        # type: () -> general.PyNode
+        res = _api.MFnContainerNode.getCurrentAsMObject()
+        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+
+    @classmethod
+    @_f.deprecated
+    def getCurrentAsMObject(self):
+        # type: () -> general.PyNode
+        res = _api.MFnContainerNode.getCurrentAsMObject()
+        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addMelDocs('container', 'fileName')
     def getFileName(self, **kwargs):
@@ -16019,10 +15972,24 @@ class Container(ContainerBase):
         res = _f.asQuery(self, general.container, kwargs, 'isContainer')
         return res
 
+    @_f.addApiDocs(_api.MFnContainerNode, 'getMembers')
+    def getMembers(self):
+        # type: () -> List[general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([], [('members', 'MObjectArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getMembers', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
     @_f.addMelDocs('container', 'nodeList')
     def getNodeList(self, **kwargs):
         res = _f.asQuery(self, general.container, kwargs, 'nodeList')
         return res
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'getParentContainer')
+    def getParentContainer(self):
+        # type: () -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([], [('parent', 'MObject', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getParentContainer', final_do)
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('container', 'publishAsChild')
     def getPublishAsChild(self, **kwargs):
@@ -16048,6 +16015,41 @@ class Container(ContainerBase):
     def getPublishName(self, **kwargs):
         res = _f.asQuery(self, general.container, kwargs, 'publishName')
         return res
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedNames')
+    def getPublishedNames(self, unboundOnly):
+        # type: (bool) -> List[unicode]
+        do, final_do, outTypes = _f.getDoArgs([unboundOnly], [('publishedNames', 'MStringArray', 'out', None), ('unboundOnly', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedNames', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedNodes')
+    def getPublishedNodes(self, type):
+        # type: (ContainerNode.MPublishNodeType) -> Tuple[List[unicode], List[general.PyNode]]
+        do, final_do, outTypes = _f.getDoArgs([type], [('type', ('MFnContainerNode', 'MPublishNodeType'), 'in', None), ('publishedNames', 'MStringArray', 'out', None), ('nodes', 'MObjectArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedNodes', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'getPublishedPlugs')
+    def getPublishedPlugs(self):
+        # type: () -> Tuple[List[general.PyNode], List[unicode]]
+        do, final_do, outTypes = _f.getDoArgs([], [('publishedPlugs', 'MPlugArray', 'out', None), ('publishedNames', 'MStringArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getPublishedPlugs', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'getRootTransform')
+    def getRootTransform(self):
+        # type: () -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([], [('root', 'MObject', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getRootTransform', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'getSubcontainers')
+    def getSubcontainers(self):
+        # type: () -> List[general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([], [('subcontainers', 'MObjectArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'getSubcontainers', final_do)
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('container', 'type')
     def getType(self, **kwargs):
@@ -16091,6 +16093,19 @@ class Container(ContainerBase):
     @_f.addMelDocs('container', 'includeTransform')
     def includeTransform(self, val=True, **kwargs):
         return _f.asEdit(self, general.container, kwargs, 'includeTransform', val)
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'isCurrent')
+    def isCurrent(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'isCurrent')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnContainerNode, 'makeCurrent')
+    def makeCurrent(self, isCurrent=True):
+        # type: (bool) -> None
+        do, final_do, outTypes = _f.getDoArgs([isCurrent], [('isCurrent', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnContainerNode, 'makeCurrent', final_do)
+        return res
 
     @_f.addMelDocs('container', 'nodeNamePrefix')
     def nodeNamePrefix(self, val=True, **kwargs):
