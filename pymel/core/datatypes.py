@@ -2598,7 +2598,7 @@ class Unit(float):
     @classmethod
     def getInternalUnit(cls):
         """
-            Returns the inernal units currently in use for that type
+            Returns the internal units currently in use for that type
         """
         return cls.sUnit(cls.apicls.internalUnit())
 
@@ -2620,7 +2620,7 @@ class Unit(float):
     @classmethod
     def sUnit(cls, unit=None):
         """
-            Converts an internal int unit enum representation tp the string unit name
+            Converts an internal int unit enum representation to the string unit name
         """
         if unit:
             return cls.Unit.getKey(unit)
