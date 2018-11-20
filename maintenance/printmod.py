@@ -79,11 +79,12 @@ def writemods(branch, output, modules=None):
     git(['checkout', branch])
     hash = githash()
     if hash != branch:
-        commit = '{}-{}'.format(branch, hash)
+        commit = '{}@{}'.format(branch, hash)
     else:
         commit = hash
-    if not os.path.isdir(output):
-        os.makedirs(output)
+    outpath = os.path.join(output, commit)
+    if not os.path.isdir(outpath):
+        os.makedirs(outpath)
     if not modules:
         modules = DEFAULT_MODULES
     for modname in modules:
@@ -99,14 +100,14 @@ def writemods(branch, output, modules=None):
                                .format(*fullnames))
         mod = __import__(fullname, globals(), locals(), [''])
         print mod
-        path = os.path.join(output, '%s@%s.txt' % (fullname, commit))
+        path = os.path.join(outpath, '{}.txt'.format(fullname))
         with open(path, 'w') as f:
             printobj(fullname, mod, file=f)
 
 def getparser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-b', '--branch', default='master',
-        help='git branch to checkout (and add to output filenames)')
+        help='git branch to checkout')
     parser.add_argument('-o', '--output-dir', default='pymel_modules',
         help="Directory to which to write out pymel module information")
     parser.add_argument('-m', '--module', dest='modules', action='append',
