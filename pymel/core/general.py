@@ -4496,14 +4496,6 @@ class Attribute(PyNode):
         res = _f.getProxyResult(self, _api.MPlug, 'evaluateNumElements')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
-    @_f.deprecated
-    def getExistingArrayAttributeIndices(self):
-        # type: () -> Tuple[int, List[int]]
-        do, final_do, outTypes = _f.getDoArgs([], [(u'indices', 'MIntArray', u'out', None)])
-        res = _f.getProxyResult(self, _api.MPlug, 'getExistingArrayAttributeIndices', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return _f.processApiResult(res, outTypes, do)
-
     @_f.addApiDocs(_api.MPlug, 'numElements')
     def getNumElements(self):
         # type: () -> int
@@ -4534,18 +4526,6 @@ class Attribute(PyNode):
     def isCaching(self):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MPlug, 'isCachingFlagSet')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
-    @_f.deprecated
-    def isCachingFlagSet(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MPlug, 'isCachingFlagSet')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
-    @_f.deprecated
-    def isChannelBoxFlagSet(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MPlug, 'isChannelBoxFlagSet')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MPlug, 'isChild')
@@ -4685,13 +4665,6 @@ class Attribute(PyNode):
         # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([isCaching], [('isCaching', 'bool', 'in', None)], self.isCaching, self.setCaching, [])
         res = _f.getProxyResult(self, _api.MPlug, 'setCaching', final_do)
-        return res
-
-    @_f.deprecated
-    def setChannelBox(self, inChannelBox):
-        # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([inChannelBox], [('inChannelBox', 'bool', 'in', None)], self.isInChannelBox, self.setChannelBox, [])
-        res = _f.getProxyResult(self, _api.MPlug, 'setChannelBox', final_do)
         return res
 
     @_f.addApiDocs(_api.MPlug, 'setKeyable')
@@ -6262,22 +6235,6 @@ class MeshVertex(MItComponent1D):
         return datatypes.Color(color)
 # ------ Do not edit below this line --------
 
-    @_f.deprecated
-    def connectedToEdge(self, index):
-        # type: (int) -> bool
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
-        res = _f.getProxyResult(self, _api.MItMeshVertex, 'connectedToEdge', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
-    @_f.deprecated
-    def connectedToFace(self, index):
-        # type: (int) -> bool
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
-        res = _f.getProxyResult(self, _api.MItMeshVertex, 'connectedToFace', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
     @_f.addApiDocs(_api.MItMeshVertex, 'geomChanged')
     def geomChanged(self):
         # type: () -> None
@@ -6397,12 +6354,6 @@ class MeshVertex(MItComponent1D):
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'numUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def onBoundary(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MItMeshVertex, 'onBoundary')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
     @_f.addApiDocs(_api.MItMeshVertex, 'setPosition')
     def setPosition(self, point, space='preTransform'):
         # type: (Point, datatypes.Space.Space) -> None
@@ -6509,22 +6460,6 @@ class MeshEdge(MItComponent1D):
         raise TypeError, 'type %s is not supported' % type(component)
 # ------ Do not edit below this line --------
 
-    @_f.deprecated
-    def connectedToEdge(self, index):
-        # type: (int) -> bool
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
-        res = _f.getProxyResult(self, _api.MItMeshEdge, 'connectedToEdge', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
-    @_f.deprecated
-    def connectedToFace(self, index):
-        # type: (int) -> bool
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'int', 'in', None)])
-        res = _f.getProxyResult(self, _api.MItMeshEdge, 'connectedToFace', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
     @_f.addApiDocs(_api.MItMeshEdge, 'getLength')
     def getLength(self, space='preTransform'):
         # type: (datatypes.Space.Space) -> float
@@ -6581,12 +6516,6 @@ class MeshEdge(MItComponent1D):
         do, final_do, outTypes = _f.getDoArgs([], [('faceCount', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MItMeshEdge, 'numConnectedFaces', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def onBoundary(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MItMeshEdge, 'onBoundary')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MItMeshEdge, 'setPoint')
     def setPoint(self, point, index, space='preTransform'):
@@ -6953,12 +6882,6 @@ class MeshFace(MItComponent1D):
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'numTriangles', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def onBoundary(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'onBoundary')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
     @_f.addApiDocs(_api.MItMeshPolygon, 'polygonVertexCount')
     def polygonVertexCount(self):
         # type: () -> int
@@ -6998,18 +6921,6 @@ class MeshFace(MItComponent1D):
         # type: () -> None
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'updateSurface')
         return res
-
-    @_f.deprecated
-    def zeroArea(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'zeroArea')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
-    @_f.deprecated
-    def zeroUVArea(self):
-        # type: () -> bool
-        res = _f.getProxyResult(self, _api.MItMeshPolygon, 'zeroUVArea')
-        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 # ------ Do not edit above this line --------
 
 if not _factories.building:

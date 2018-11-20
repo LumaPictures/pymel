@@ -1351,7 +1351,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                     else:
                         yield yieldTuple + (False,)
 
-                    if renamed:
+                    if renamed and self.childClasses:
                         print "Adding renamed as deprecated", self.classname, methodName, pymelName
                         # FIXME: previous versions of pymel erroneously included
                         # renamed/remapped methods on child classes which possessed the same apicls as their parent.

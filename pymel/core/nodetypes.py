@@ -6189,18 +6189,6 @@ class NurbsSurface(SurfaceShape):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return res
 
-    @_f.deprecated
-    def numCVsInU(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numCVsInU')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
-    @_f.deprecated
-    def numCVsInV(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'numCVsInV')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
     @_f.addApiDocs(_api.MFnNurbsSurface, 'numEdges')
     def numEdges(self, region, boundary):
         # type: (int, int) -> int
@@ -7771,14 +7759,6 @@ class Subdiv(SurfaceShape):
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
-    @_f.deprecated
-    def edgeCount(self, level=0):
-        # type: (int) -> int
-        do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSubd, 'edgeCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.addApiDocs(_api.MFnSubd, 'editsPending')
     def editsPending(self):
         # type: () -> int
@@ -7879,14 +7859,6 @@ class Subdiv(SurfaceShape):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return res
 
-    @_f.deprecated
-    def polygonCount(self, level=0):
-        # type: (int) -> int
-        do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSubd, 'polygonCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.addApiDocs(_api.MFnSubd, 'polygonCountMaxWithGivenBaseMesh')
     def polygonCountMaxWithGivenBaseMesh(self, level=1):
         # type: (int) -> int
@@ -7951,14 +7923,6 @@ class Subdiv(SurfaceShape):
         do, final_do, outTypes = _f.getDoArgs([space], [('positions', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSubd, 'vertexBaseMeshSet', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def vertexCount(self, level=0):
-        # type: (int) -> int
-        do, final_do, outTypes = _f.getDoArgs([level], [('level', 'int', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSubd, 'vertexCount', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 
     @_f.addApiDocs(_api.MFnSubd, 'vertexEditsClearAllNonBase')
     def vertexEditsClearAllNonBase(self):
@@ -15950,13 +15914,6 @@ class Container(ContainerBase):
         res = _api.MFnContainerNode.getCurrentAsMObject()
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
-    @classmethod
-    @_f.deprecated
-    def getCurrentAsMObject(self):
-        # type: () -> general.PyNode
-        res = _api.MFnContainerNode.getCurrentAsMObject()
-        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-
     @_f.addMelDocs('container', 'fileName')
     def getFileName(self, **kwargs):
         res = _f.asQuery(self, general.container, kwargs, 'fileName')
@@ -19688,23 +19645,10 @@ class RadialField(Field):
         res = _f.getProxyResult(self, _api.MFnRadialField, 'radialType')
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
-    @_f.deprecated
-    def radialType(self):
-        # type: () -> float
-        res = _f.getProxyResult(self, _api.MFnRadialField, 'radialType')
-        return _f.ApiArgUtil._castResult(self, res, 'double', None)
-
     @_f.addApiDocs(_api.MFnRadialField, 'setType')
     def setRadialType(self, value):
         # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getRadialType, self.setRadialType, [])
-        res = _f.getProxyResult(self, _api.MFnRadialField, 'setType', final_do)
-        return res
-
-    @_f.deprecated
-    def setType(self, value):
-        # type: (float) -> None
-        do, final_do, outTypes = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getRadialType, self.setType, [])
         res = _f.getProxyResult(self, _api.MFnRadialField, 'setType', final_do)
         return res
 
