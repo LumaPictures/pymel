@@ -2562,18 +2562,18 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr):
                         classdict[enumName] = enum
 
             if not proxy:
-                # if removeAttrs:
-                #    #_logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
-                def __getattribute__(self, name):
-                    #_logger.debug(name )
-                    if name in removeAttrs and name not in EXCLUDE_METHODS:  # tmp fix
-                        #_logger.debug("raising error")
-                        raise AttributeError, "'" + classname + "' object has no attribute '" + name + "'"
-                    #_logger.debug("getting from %s" % bases[0])
-                    # newcls will be defined by the time this is called...
-                    return super(newcls, self).__getattribute__(name)
+                if removeAttrs:
+                    #_logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
+                    def __getattribute__(self, name):
+                        #_logger.debug(name )
+                        if name in removeAttrs and name not in EXCLUDE_METHODS:  # tmp fix
+                            #_logger.debug("raising error")
+                            raise AttributeError, "'" + classname + "' object has no attribute '" + name + "'"
+                        #_logger.debug("getting from %s" % bases[0])
+                        # newcls will be defined by the time this is called...
+                        return super(newcls, self).__getattribute__(name)
 
-                classdict['__getattribute__'] = __getattribute__
+                    classdict['__getattribute__'] = __getattribute__
 
                 if cls._hasApiSetAttrBug(apicls):
                     # correct the setAttr bug by wrapping the api's
