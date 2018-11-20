@@ -16,7 +16,24 @@ THIS_FILE = os.path.normpath(os.path.abspath(inspect.getsourcefile(lambda: None)
 THIS_DIR = os.path.dirname(THIS_FILE)
 PYMEL_ROOT = os.path.dirname(THIS_DIR)
 
-DEFAULT_MODULES = ('nodetypes', 'uitypes', 'datatypes', 'general')
+DEFAULT_MODULES = (
+    # core / class modules
+    'nodetypes',
+    'uitypes',
+    'datatypes',
+    'general',
+    # mostly function wrap modules
+    'animation',
+    'context',
+    'effects',
+    'language',
+    'modeling',
+    'other',
+    'rendering',
+    #'runtime',
+    'system',
+    'windows',
+)
 
 def git(arg, output=False):
     if isinstance(arg, basestring):
