@@ -182,8 +182,8 @@ def main(argv):
             newArgs = list(argv)
             newArgs.remove('--gui')
 
-            # assume that argv[0] is mayapy, and look for maya(.exe) relative to it
-            mayaBinDir = os.path.dirname(argv[0])
+            # assume that sys.executable is mayapy, and look for maya(.exe) relative to it
+            mayaBinDir = os.path.dirname(sys.executable)
             mayaBin = os.path.join(mayaBinDir, 'maya')
             if os.name == 'nt':
                 mayaBin += '.exe'
