@@ -5,6 +5,20 @@ What's New
 **********
 
 ==================================
+Version 1.1.0
+==================================
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+
+- datatypes.Quaternion.asEulerRotation now returns a datatypes.EulerRotation
+  as intended, instead of OpenMaya.MEulerRotation; since dt.EulerRotation
+  inherits from om.MEulerRotation, they should mostly be compatible, but if you
+  need a om.MEulerRotation, just cast directly - ie,
+  om.MEulerRotation(dt.Quaternion().asEulerRotation())
+
+==================================
 Version 1.0.10
 ==================================
 
