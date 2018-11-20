@@ -3535,13 +3535,13 @@ class Attribute(PyNode):
     def evaluate(self, **kwargs):
         cmds.dgeval(self, **kwargs)
 
-    def affects(self, **kwargs):
+    def affects(self):
         rawResult = cmds.affects(self.plugAttr(), self.node())
         if not rawResult:
             return []
         return [Attribute('%s.%s' % (self.node(), x)) for x in rawResult]
 
-    def affected(self, **kwargs):
+    def affected(self):
         rawResult = cmds.affects(self.plugAttr(), self.node(), by=True)
         if not rawResult:
             return []
