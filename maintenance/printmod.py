@@ -119,6 +119,9 @@ def getparser():
              " modules is: {}".format(', '.join(DEFAULT_MODULES)))
     parser.add_argument('--traceback', action='store_true',
         help="If given, will print full tracebacks on errors")
+    parser.add_argument('--no-gui', action='store_true',
+        help="By default, will run under a gui maya session, to get all"
+             " commands / etc.  Use this flag to disable this.")
     return parser
 
 def main(argv=None):
@@ -128,6 +131,27 @@ def main(argv=None):
         argv = sys.argv[1:]
     parser = getparser()
     args = parser.parse_args(argv)
+
+    if not args.no_gui:
+        import subprocess
+
+        newArgs = list(argv)
+        newArgs.insert(0, '--no-gui')
+
+        # assume that sys.executable is mayapy, and look for maya(.exe) relative to it
+        mayaBinDir = os.path.dirname(sys.executable)
+        mayaBin = os.path.join(mayaBinDir, 'maya')
+        if os.name == 'nt':
+            mayaBin += '.exe'
+        newArgs.insert(0, mayaBin)
+
+        pyCmd = 'import sys; sys.argv = {!r}; execfile({!r})'.format(newArgs,
+                                                                     THIS_FILE)
+        melCmd = 'python("{}")'.format(pyCmd.replace('\\', '\\\\')
+                                       .replace('"', r'\"'))
+        mayaArgs = [mayaBin, '-command', melCmd]
+        sys.exit(subprocess.call(mayaArgs))
+
     try:
         writemods(args.branch, args.output_dir, modules=args.modules)
     except Exception as e:
