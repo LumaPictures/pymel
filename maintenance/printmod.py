@@ -122,6 +122,8 @@ def getparser():
     return parser
 
 def main(argv=None):
+    sys.path.insert(0, PYMEL_ROOT)
+
     if argv is None:
         argv = sys.argv[1:]
     parser = getparser()
