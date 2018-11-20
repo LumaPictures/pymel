@@ -1121,14 +1121,6 @@ class FloatPoint(Point):
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
 
-    @_f.addApiDocs(_api.MFloatPoint, '__rmult__')
-    def __rmult__(self, right):
-        # type: (FloatMatrix) -> FloatPoint
-        do, final_do, outTypes = _f.getDoArgs([right], [('right', 'MFloatMatrix', 'in', None)])
-        res = _api.MFloatPoint.__rmult__(self, *final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MFloatPoint', None)
-        return res
-
     @_f.addApiDocs(_api.MFloatPoint, 'setCast')
     def setCast(self, srcpt):
         # type: (Point) -> None

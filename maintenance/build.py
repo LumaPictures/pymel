@@ -1922,16 +1922,6 @@ def generateAll(allowNonWindows=False):
         factories.loadCmdCache()
         # FIXME: save this into the caches
 
-        # these don't exist on the API classes, as '__rmult__' or '__rmul__'
-        factories.apiClassInfo['MEulerRotation']['methods'].pop('__rmult__', None)
-        factories.apiClassInfo['MMatrix']['methods'].pop('__rmult__', None)
-        factories.apiClassInfo['MFloatMatrix']['methods'].pop('__rmult__', None)
-        factories.apiClassInfo['MQuaternion']['methods'].pop('__rmult__', None)
-        factories.apiClassInfo['MVector']['methods'].pop('__rmult__', None)
-        factories.apiClassInfo['MFloatVector']['methods'].pop('__rmult__', None)
-        factories.apiClassInfo['MColor']['methods'].pop('__rmult__', None)
-        factories.apiClassInfo['MPoint']['methods'].pop('__rmult__', None)
-
         factories.apiToMelData[('DependNode', 'setName')] = {'enabled': True, 'overloadIndex': 0, 'useName': 'API'}
         factories.apiToMelData[('DependNode', 'getName')] = {'enabled': True, 'overloadIndex': 0, 'useName': 'API'}
         # this prevents NurbsCurve from growing a deprecated `cv` method,
