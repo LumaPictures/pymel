@@ -1439,9 +1439,13 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
                 # we should only see this in windows - if we see it elsewhere,
                 # raise an error so we can decide what to do
                 raise ValueError("saw setattr bug on non-windows!")
-            self.attrs['__setattr__'] = Conditional(
-                [("os.name == 'nt'",
-                  Assignment('__setattr__', Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')))])
+            # make sure we haven't already applied the fix on a parent class...
+            oldSetAttr = getattr(self.existingClass, '__setattr__', None)
+            oldSetAttr = getattr(oldSetAttr, 'im_func', oldSetAttr)
+            if oldSetAttr != factories.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug:
+                self.attrs['__setattr__'] = Conditional(
+                    [("os.name == 'nt'",
+                      Assignment('__setattr__', Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')))])
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
