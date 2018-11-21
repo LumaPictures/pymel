@@ -6250,14 +6250,14 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getColors')
     def getColors(self, colorSetName=None):
-        # type: (unicode) -> List[Color]
+        # type: (unicode) -> List[datatypes.Color]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colors', 'MColorArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getColors', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getNormal')
     def getNormal(self, space='preTransform'):
-        # type: (datatypes.Space.Space) -> Vector
+        # type: (datatypes.Space.Space) -> datatypes.Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('vector', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6271,14 +6271,14 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getNormals')
     def getNormals(self, space='preTransform'):
-        # type: (datatypes.Space.Space) -> List[Vector]
+        # type: (datatypes.Space.Space) -> List[datatypes.Vector]
         do, final_do, outTypes = _f.getDoArgs([space], [('normalArray', 'MVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getNormals', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshVertex, 'position')
     def getPosition(self, space='preTransform'):
-        # type: (datatypes.Space.Space) -> Point
+        # type: (datatypes.Space.Space) -> datatypes.Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'position', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -6356,7 +6356,7 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'setPosition')
     def setPosition(self, point, space='preTransform'):
-        # type: (Point, datatypes.Space.Space) -> None
+        # type: (datatypes.Point, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([point, space], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'setPosition', final_do)
         return res
@@ -6377,7 +6377,7 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'translateBy')
     def translateBy(self, vector, space='preTransform'):
-        # type: (Vector, datatypes.Space.Space) -> None
+        # type: (datatypes.Vector, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'translateBy', final_do)
         return res
@@ -6469,7 +6469,7 @@ class MeshEdge(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshEdge, 'point')
     def getPoint(self, index, space='preTransform'):
-        # type: (int, datatypes.Space.Space) -> Point
+        # type: (int, datatypes.Space.Space) -> datatypes.Point
         do, final_do, outTypes = _f.getDoArgs([index, space], [('index', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshEdge, 'point', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -6519,7 +6519,7 @@ class MeshEdge(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshEdge, 'setPoint')
     def setPoint(self, point, index, space='preTransform'):
-        # type: (Point, int, datatypes.Space.Space) -> None
+        # type: (datatypes.Point, int, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
         res = _f.getProxyResult(self, _api.MItMeshEdge, 'setPoint', final_do)
         return res
@@ -6623,14 +6623,14 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getAxisAtUV')
     def getAxisAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
-        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> Tuple[Vector, Vector, Vector]
+        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> Tuple[datatypes.Vector, datatypes.Vector, datatypes.Vector]
         do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('normal', 'MVector', 'out', None), ('uTangent', 'MVector', 'out', None), ('vTangent', 'MVector', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getAxisAtUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getColor')
     def getColor(self, colorSetName=None):
-        # type: (unicode) -> Color
+        # type: (unicode) -> datatypes.Color
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('color', 'MColor', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColor', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6651,7 +6651,7 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getColors')
     def getColors(self, colorSetName=None):
-        # type: (unicode) -> List[Color]
+        # type: (unicode) -> List[datatypes.Color]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colors', 'MColorArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColors', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6665,21 +6665,21 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getNormal')
     def getNormal(self, space='preTransform'):
-        # type: (datatypes.Space.Space) -> Vector
+        # type: (datatypes.Space.Space) -> datatypes.Vector
         do, final_do, outTypes = _f.getDoArgs([space], [('normal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getNormals')
     def getNormals(self, space='preTransform'):
-        # type: (datatypes.Space.Space) -> List[Vector]
+        # type: (datatypes.Space.Space) -> List[datatypes.Vector]
         do, final_do, outTypes = _f.getDoArgs([space], [('normalArray', 'MVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getNormals', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'point')
     def getPoint(self, index, space='preTransform'):
-        # type: (int, datatypes.Space.Space) -> Point
+        # type: (int, datatypes.Space.Space) -> datatypes.Point
         do, final_do, outTypes = _f.getDoArgs([index, space], [('index', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'point', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -6687,14 +6687,14 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getPointAtUV')
     def getPointAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
-        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> Point
+        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> datatypes.Point
         do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('pt', 'MPoint', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getPointAtUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getPoints')
     def getPoints(self, space='preTransform'):
-        # type: (datatypes.Space.Space) -> List[Point]
+        # type: (datatypes.Space.Space) -> List[datatypes.Point]
         do, final_do, outTypes = _f.getDoArgs([space], [('pointArray', 'MPointArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getPoints', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6715,7 +6715,7 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getUVAtPoint')
     def getUVAtPoint(self, pt, space='preTransform', uvSet=None):
-        # type: (Point, datatypes.Space.Space, unicode) -> Tuple[float, float]
+        # type: (datatypes.Point, datatypes.Space.Space, unicode) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([pt, space, uvSet], [('pt', 'MPoint', 'in', None), ('uvPoint', 'float2', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6890,14 +6890,14 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setPoint')
     def setPoint(self, point, index, space='preTransform'):
-        # type: (Point, int, datatypes.Space.Space) -> None
+        # type: (datatypes.Point, int, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setPoint', final_do)
         return res
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setPoints')
     def setPoints(self, pointArray, space='preTransform'):
-        # type: (List[Point], datatypes.Space.Space) -> None
+        # type: (List[datatypes.Point], datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([pointArray, space], [('pointArray', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setPoints', final_do)
         return res
@@ -7227,7 +7227,7 @@ class NurbsCurveCV(MItComponent1D):
 
     @_f.addApiDocs(_api.MItCurveCV, 'position')
     def getPosition(self, space='preTransform'):
-        # type: (datatypes.Space.Space) -> Point
+        # type: (datatypes.Space.Space) -> datatypes.Point
         do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItCurveCV, 'position', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MPoint', None)
@@ -7247,14 +7247,14 @@ class NurbsCurveCV(MItComponent1D):
 
     @_f.addApiDocs(_api.MItCurveCV, 'setPosition')
     def setPosition(self, pt, space='preTransform'):
-        # type: (Point, datatypes.Space.Space) -> None
+        # type: (datatypes.Point, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([pt, space], [('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
         res = _f.getProxyResult(self, _api.MItCurveCV, 'setPosition', final_do)
         return res
 
     @_f.addApiDocs(_api.MItCurveCV, 'translateBy')
     def translateBy(self, vec, space='preTransform'):
-        # type: (Vector, datatypes.Space.Space) -> None
+        # type: (datatypes.Vector, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.getDoArgs([vec, space], [('vec', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItCurveCV, 'translateBy', final_do)
         return res
@@ -7835,7 +7835,7 @@ class AttributeDefaults(PyNode):
 
     @_f.addApiDocs(_api.MFnAttribute, 'parent')
     def parent(self):
-        # type: () -> general.PyNode
+        # type: () -> PyNode
         res = _f.getProxyResult(self, _api.MFnAttribute, 'parent')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
