@@ -2188,7 +2188,7 @@ class DagNode(Entity):
         return parentDag
 
     def getParent(self, generations=1):
-        # type: (Any) -> Union[DagNode, List[DagNode]]
+        # type: (Any) -> Optional[DagNode]
         """
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
@@ -2223,7 +2223,7 @@ class DagNode(Entity):
 
         Returns
         -------
-        Union[DagNode, List[DagNode]]
+        Optional[DagNode]
         """
 
         # Get the parent through the api - listRelatives doesn't handle instances correctly,
@@ -3825,7 +3825,7 @@ class Transform(DagNode):
             raise e
 
     def attr(self, attr, checkShape=True):
-        # type: (Any, Any) -> Attribute
+        # type: (Any, Any) -> general.Attribute
         """
         when checkShape is enabled, if the attribute does not exist the
         transform but does on the shape, then the shape's attribute will
@@ -3833,7 +3833,7 @@ class Transform(DagNode):
 
         Returns
         -------
-        Attribute
+        general.Attribute
         """
         # print "ATTR: Transform"
         try:
@@ -4202,12 +4202,12 @@ class Transform(DagNode):
 
     # TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with _api.
     def getBoundingBox(self, invisible=False, space='object'):
-        # type: (Any, Any) -> dt.BoundingBox
+        # type: (Any, Any) -> datatypes.BoundingBox
         """xform -boundingBox and xform -boundingBoxInvisible
 
         Returns
         -------
-        dt.BoundingBox
+        datatypes.BoundingBox
         """
         kwargs = {'query': True}
         if invisible:
@@ -4226,21 +4226,21 @@ class Transform(DagNode):
         return datatypes.BoundingBox(res[:3], res[3:])
 
     def getBoundingBoxMin(self, invisible=False, space='object'):
-        # type: (Any, Any) -> dt.Vector
+        # type: (Any, Any) -> datatypes.Vector
         """
         Returns
         -------
-        dt.Vector
+        datatypes.Vector
         """
         return self.getBoundingBox(invisible, space)[0]
         # return self.getBoundingBox(invisible).min()
 
     def getBoundingBoxMax(self, invisible=False, space='object'):
-        # type: (Any, Any) -> dt.Vector
+        # type: (Any, Any) -> datatypes.Vector
         """
         Returns
         -------
-        dt.Vector
+        datatypes.Vector
         """
         return self.getBoundingBox(invisible, space)[1]
 # ------ Do not edit below this line --------
