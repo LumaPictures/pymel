@@ -64,6 +64,7 @@ def deprecated(funcOrMessage, className=None):
         deprecationLoggedFunc.__name__ = func.__name__
         deprecationLoggedFunc.__module__ = func.__module__
         deprecationLoggedFunc.__doc__ = message % info + '\n'
+        deprecationLoggedFunc._func_before_deprecation = func
         if func.__doc__:
             deprecationLoggedFunc.__doc__ += '\n' + func.__doc__
         return deprecationLoggedFunc

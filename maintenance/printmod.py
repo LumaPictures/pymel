@@ -54,11 +54,17 @@ def githash(branch='HEAD'):
 
 def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
     if inspect.isfunction(obj) or inspect.ismethod(obj):
+        beforeDeprecation = getattr(obj, '_func_before_deprecation', None)
+        if beforeDeprecation is not None:
+            obj = beforeDeprecation
         try:
             spec = inspect.getargspec(obj)
             sig = inspect.formatargspec(*spec)
-        except:
+        except Exception:
             sig = '(<error>)'
+        if beforeDeprecation is not None:
+            sig = '{} <deprecated>'.format(sig)
+
         # file.write((' ' * (depth * INDENT)) + name + sig + '\n')
         file.write(prefix + name + sig + '\n')
     else:
