@@ -658,6 +658,12 @@ class LazyLoadModule(types.ModuleType):
             self.name = name
 
         def __get__(self, obj, objtype):
+            # if obj is None - ie, we're accessing this from the LazyLoadModule
+            # CLASS itself (or a subclass), and not an instance of it (ie, an
+            # actual module), we just return ourself - the LazyLoader object
+            if obj is None:
+                return self
+
             # In case the LazyLoader happens to get stored on more
             # than one object, cache the created object so the exact
             # same one will be returned
@@ -681,6 +687,17 @@ class LazyLoadModule(types.ModuleType):
         # the above line assigns a None value to all entries in the original globals.
         # luckily, we have a copy on this module we can use to restore it.
         self._lazyGlobals.update(self.__dict__)
+
+    def __dir__(self):
+        # for modules, dir usually only returns what's in the dict, and does
+        # not inspect the class (ie, items on ModuleType aren't returned in
+        # a module's dir, which makes sense). However, we also want to return
+        # our LazyLoaded objects, to make it appear like they're there like
+        # a normal object...
+        keys = set(self.__dict__)
+        keys.update(name for (name, obj) in type(self).__dict__.iteritems()
+                    if isinstance(obj, self.LazyLoader))
+        return sorted(keys)
 
     @property
     def __all__(self):

@@ -54,11 +54,17 @@ def githash(branch='HEAD'):
 
 def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
     if inspect.isfunction(obj) or inspect.ismethod(obj):
+        beforeDeprecation = getattr(obj, '_func_before_deprecation', None)
+        if beforeDeprecation is not None:
+            obj = beforeDeprecation
         try:
             spec = inspect.getargspec(obj)
             sig = inspect.formatargspec(*spec)
-        except:
+        except Exception:
             sig = '(<error>)'
+        if beforeDeprecation is not None:
+            sig = '{} <deprecated>'.format(sig)
+
         # file.write((' ' * (depth * INDENT)) + name + sig + '\n')
         file.write(prefix + name + sig + '\n')
     else:
@@ -66,16 +72,32 @@ def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
         file.write(prefix + name + '\n')
 
     # print depth, isinstance(obj, (type, types.ModuleType))
-    if (depth < 2 and isinstance(obj, type)) or (depth == 0 and isinstance(obj, types.ModuleType)):
+
+    # we DON'T want to recurse LazyLoadModule class objects, because we don't
+    # want to have BOTH of these (now that we've fixed the dir for
+    # LazyLoadModule) :
+    #    pymel.core.nodetypes.SomePluginNode
+    #    pymel.core.nodetypes.NodetypesLazyLoadModule.SomePluginNode
+    if (
+            (depth < 2 and isinstance(obj, type)
+                and not issubclass(obj, types.ModuleType))
+            or (depth == 0 and isinstance(obj, types.ModuleType))
+    ):
         childprefix = prefix + name + '.'
         for childname in sorted(dir(obj)):
             try:
                 child = getattr(obj, childname)
-            except:
-                child = None
+            except AttributeError:
+                # some things may be returned in dir, but not be accessible -
+                # one example is any abstract base class (__metaclass__ =
+                # ABCMeta), which will have an __abstractmethods__ slot, but it
+                # may not actually be filled. We ignore any getattr errors.
+                continue
             printobj(childname, child, prefix=childprefix, depth=depth + 1, file=file)
 
 def writemods(branch, output, modules=None):
+    import linecache
+
     git(['checkout', branch])
     hash = githash()
     if hash != branch:
@@ -87,6 +109,21 @@ def writemods(branch, output, modules=None):
         os.makedirs(outpath)
     if not modules:
         modules = DEFAULT_MODULES
+
+    # now that we've done a git checkout, need to make sure reload all the
+    # modules, and any parent packages - ie, pymel, pymel.core,
+    # pymel.core.nodetypes, ...
+    toReload = set()
+    for modname in modules:
+        splitname = modname.split('.')
+        for i in xrange(1, len(splitname) + 1):
+            toReload.add('.'.join(splitname[:i]))
+
+    for mod in list(sys.modules):
+        if mod in toReload:
+            del sys.modules[mod]
+    linecache.clearcache()
+
     for modname in modules:
         fullnames = (modname, 'pymel.core.' + modname)
         for fullname in fullnames:
@@ -98,7 +135,12 @@ def writemods(branch, output, modules=None):
         else:
             raise RuntimeError("failed to import module {!r} or {!r}"
                                .format(*fullnames))
-        mod = __import__(fullname, globals(), locals(), [''])
+        __import__(fullname)
+        # instead of using result returned from __import__, we grab the module
+        # from sys.modules - this is because of LazyLoadModule shenannigans -
+        # __import__ will return the original module, while we want the
+        # LazyLoadModule that replaces it
+        mod = sys.modules[fullname]
         print mod
         path = os.path.join(outpath, '{}.txt'.format(fullname))
         with open(path, 'w') as f:
