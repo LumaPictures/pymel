@@ -52,9 +52,7 @@ class TestConstraintWeightSyntax(unittest.TestCase):
         'parentConstraint',
         'pointConstraint',
         'pointOnPolyConstraint',
-        # disabled due to a bug in way we detect mel-method-wrapping,
-        # which causes a bad mel-wrap of PoleVectorConstraint.setWeight
-#        'poleVectorConstraint',
+        'poleVectorConstraint',
         'scaleConstraint',
         'tangentConstraint',
     ]
