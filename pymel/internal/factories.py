@@ -1303,11 +1303,6 @@ def listForNoneQuery(res, kwargs, flags):
     return res
 
 
-#: overrideMethods specifies methods of base classes which should not be overridden by sub-classes
-overrideMethods = {}
-overrideMethods['Constraint'] = ('getWeight', 'setWeight')
-
-
 class ApiTypeRegister(object):
 
     """"

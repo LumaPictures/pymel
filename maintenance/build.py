@@ -1035,8 +1035,6 @@ class MelMethodGenerator(object):
             # # implemented on ancestors
             # filterAttrs.update({'getParent'}.intersection(self.herited))
 
-            filterAttrs.update(factories.overrideMethods.get(self.parentClassname, []))
-
             for flag, flagInfo in cmdInfo['flags'].items():
                 # don't create methods for query or edit, or for flags which only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
