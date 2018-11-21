@@ -65,9 +65,9 @@ def _constraint(func):
         Modifications:
           - added new syntax for querying the weight of a target object, by passing the constraint first::
 
-                aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
-                aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
-                aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
+                aimConstraint('pCube1_aimConstraint1', q=1, weight='pSphere1')
+                aimConstraint('pCube1_aimConstraint1', q=1, weight=['pSphere1', 'pCylinder1'])
+                aimConstraint('pCube1_aimConstraint1', q=1, weight=True)
         """
         if kwargs.get('query', kwargs.get('q', False) and len(args) == 1):
             # Fix the big with angle offset query always being in radians
@@ -81,10 +81,19 @@ def _constraint(func):
                 # targetObjects = kwargs.get( 'weight', kwargs['w'] )
                 constraint = args[0]
                 if 'constraint' in cmds.nodeType(constraint, inherited=1):
-                    if not _util.isIterable(targetObjects):
-                        targetObjects = [targetObjects]
-                    elif not targetObjects:
+                    if targetObjects is True or (
+                            # formerly, we allowed 'weight=[]' instead of
+                            # 'weight=True' - while this is somewhat more
+                            # confusing, continue to support it for backwards
+                            # compatibility
+                            _util.isIterable(targetObjects)
+                            and not targetObjects):
                         targetObjects = func(constraint, q=1, targetList=1)
+                    elif _util.isIterable(targetObjects):
+                        # convert to list, in case it isn't one
+                        targetObjects = list(targetObjects)
+                    else:
+                        targetObjects = [targetObjects]
 
                     constraintObj = cmds.listConnections(constraint + '.constraintParentInverseMatrix', s=1, d=0)[0]
                     args = targetObjects + [constraintObj]

@@ -2,6 +2,7 @@
 
 import sys, os, inspect, unittest
 import pymel.core as pm
+import maya.cmds as cmds
 
 class test_PMTypes(unittest.TestCase):
 
@@ -1423,10 +1424,16 @@ class test_Units(unittest.TestCase):
     def setUpClass(cls):
         pm.newFile(f=1)
         cls.transform = pm.createNode('transform', name='testTrans')
+        cls.linearUnit = cmds.currentUnit(query=True, linear=True)
+        cls.angleUnit = cmds.currentUnit(query=True, angle=True)
+        cls.timeUnit = cmds.currentUnit(query=True, time=True)
 
     @classmethod
     def tearDownClass(cls):
         pm.newFile(f=1)
+        cmds.currentUnit(linear=cls.linearUnit)
+        cmds.currentUnit(angle=cls.angleUnit)
+        cmds.currentUnit(time=cls.timeUnit)
 
     def testDistancePlug(self):
         pm.dt.Distance.setUIUnit('centimeters')
