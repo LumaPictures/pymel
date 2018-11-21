@@ -645,6 +645,12 @@ class LazyLoadModule(types.ModuleType):
             self.name = name
 
         def __get__(self, obj, objtype):
+            # if obj is None - ie, we're accessing this from the LazyLoadModule
+            # CLASS itself (or a subclass), and not an instance of it (ie, an
+            # actual module), we just return ourself - the LazyLoader object
+            if obj is None:
+                return self
+
             # In case the LazyLoader happens to get stored on more
             # than one object, cache the created object so the exact
             # same one will be returned
