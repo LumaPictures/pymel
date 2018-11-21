@@ -66,7 +66,17 @@ def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
         file.write(prefix + name + '\n')
 
     # print depth, isinstance(obj, (type, types.ModuleType))
-    if (depth < 2 and isinstance(obj, type)) or (depth == 0 and isinstance(obj, types.ModuleType)):
+
+    # we DON'T want to recurse LazyLoadModule class objects, because we don't
+    # want to have BOTH of these (now that we've fixed the dir for
+    # LazyLoadModule) :
+    #    pymel.core.nodetypes.SomePluginNode
+    #    pymel.core.nodetypes.NodetypesLazyLoadModule.SomePluginNode
+    if (
+            (depth < 2 and isinstance(obj, type)
+                and not issubclass(obj, types.ModuleType))
+            or (depth == 0 and isinstance(obj, types.ModuleType))
+    ):
         childprefix = prefix + name + '.'
         for childname in sorted(dir(obj)):
             try:
@@ -125,8 +135,7 @@ def writemods(branch, output, modules=None):
         # __import__ will return the original module, while we want the
         # LazyLoadModule that replaces it
         mod = sys.modules[fullname]
-        # print the type just so we know if we got the lazyload module
-        print type(mod), mod
+        print mod
         path = os.path.join(outpath, '{}.txt'.format(fullname))
         with open(path, 'w') as f:
             printobj(fullname, mod, file=f)
