@@ -65,7 +65,10 @@ def printobj(name, obj, prefix='', inherited=False, depth=0, file=sys.stdout):
         if beforeDeprecation is not None:
             sig = '{} <deprecated>'.format(sig)
     elif inspect.isclass(obj):
-        sig = '({})'.format(', '.join(x.__name__ for x in obj.__bases__))
+        if depth > 1 and name in ('__metaclass__', '__class__'):
+            sig = ' = {}'.format(obj.__name__)
+        else:
+            sig = '({})'.format(', '.join(x.__name__ for x in obj.__bases__))
     else:
         sig = ''
     if inherited:
