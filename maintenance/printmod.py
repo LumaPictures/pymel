@@ -52,7 +52,7 @@ def gitout(arg):
 def githash(branch='HEAD'):
     return gitout(['show', '-s', '--format=%H', branch])
 
-def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
+def printobj(name, obj, prefix='', inherited=False, depth=0, file=sys.stdout):
     if inspect.isfunction(obj) or inspect.ismethod(obj):
         beforeDeprecation = getattr(obj, '_func_before_deprecation', None)
         if beforeDeprecation is not None:
@@ -64,12 +64,15 @@ def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
             sig = '(<error>)'
         if beforeDeprecation is not None:
             sig = '{} <deprecated>'.format(sig)
-
-        # file.write((' ' * (depth * INDENT)) + name + sig + '\n')
-        file.write(prefix + name + sig + '\n')
+    elif inspect.isclass(obj):
+        sig = '({})'.format(', '.join(x.__name__ for x in obj.__bases__))
     else:
-        # file.write((' ' * (depth * INDENT)) + name + '\n')
-        file.write(prefix + name + '\n')
+        sig = ''
+    if inherited:
+        sig += ' <inherited>'
+
+    # file.write((' ' * (depth * INDENT)) + name + sig + '\n')
+    file.write(prefix + name + sig + '\n')
 
     # print depth, isinstance(obj, (type, types.ModuleType))
 
@@ -84,7 +87,28 @@ def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
             or (depth == 0 and isinstance(obj, types.ModuleType))
     ):
         childprefix = prefix + name + '.'
-        for childname in sorted(dir(obj)):
+
+        def iterChildren():
+            '''Yields (childname, inherited) tuples, with all non-inherited
+            children first'''
+
+            # have an exception for modules, both because they don't
+            # have inheritance, and because LazyLoadModule has a bunch
+            # of stuff that doesn't show up in __dict__, but does in
+            # dir()
+            if hasattr(obj, '__dict__') \
+                    and not isinstance(obj, types.ModuleType):
+                directChildren = set(obj.__dict__)
+            else:
+                directChildren = set()
+            for child in sorted(directChildren):
+                yield child, False
+
+            indirectChildren = set(dir(obj)) - directChildren
+            for child in sorted(indirectChildren):
+                yield child, True
+
+        for childname, inherited in iterChildren():
             try:
                 child = getattr(obj, childname)
             except AttributeError:
@@ -93,7 +117,8 @@ def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
                 # ABCMeta), which will have an __abstractmethods__ slot, but it
                 # may not actually be filled. We ignore any getattr errors.
                 continue
-            printobj(childname, child, prefix=childprefix, depth=depth + 1, file=file)
+            printobj(childname, child, prefix=childprefix, inherited=inherited,
+                     depth=depth + 1, file=file)
 
 def writemods(branch, output, modules=None):
     import linecache
