@@ -93,24 +93,31 @@ def printobj(name, obj, prefix='', inherited=False, depth=0, file=sys.stdout):
         childprefix = prefix + name + '.'
 
         def iterChildren():
-            '''Yields (childname, inherited) tuples, with all non-inherited
-            children first'''
+            '''Yields (childname, inherited) tuples'''
 
             # have an exception for modules, both because they don't
             # have inheritance, and because LazyLoadModule has a bunch
             # of stuff that doesn't show up in __dict__, but does in
             # dir()
-            if hasattr(obj, '__dict__') \
-                    and not isinstance(obj, types.ModuleType):
+            if isinstance(obj, types.ModuleType):
+                for child in sorted(dir(obj)):
+                    yield child, False
+                return
+
+            # we used to sort such that all non-inherited members came before
+            # all inherited members. While this makes for a nicer readable
+            # grouping for humans (we'll mostly be interested in see the
+            # non-inherited members first), the different orderings makes it
+            # harder for automated comparison, when you want to filter out
+            # certain items where you don't care if they're inherited or not
+            # (ie, when using filters in the meld merge tool)
+            if hasattr(obj, '__dict__'):
                 directChildren = set(obj.__dict__)
             else:
                 directChildren = set()
-            for child in sorted(directChildren):
-                yield child, False
 
-            indirectChildren = set(dir(obj)) - directChildren
-            for child in sorted(indirectChildren):
-                yield child, True
+            for child in sorted(dir(obj)):
+                yield child, child not in directChildren
 
         for childname, inherited in iterChildren():
             try:
