@@ -675,6 +675,17 @@ class LazyLoadModule(types.ModuleType):
         # luckily, we have a copy on this module we can use to restore it.
         self._lazyGlobals.update(self.__dict__)
 
+    def __dir__(self):
+        # for modules, dir usually only returns what's in the dict, and does
+        # not inspect the class (ie, items on ModuleType aren't returned in
+        # a module's dir, which makes sense). However, we also want to return
+        # our LazyLoaded objects, to make it appear like they're there like
+        # a normal object...
+        keys = set(self.__dict__)
+        keys.update(name for (name, obj) in type(self).__dict__.iteritems()
+                    if isinstance(obj, self.LazyLoader))
+        return sorted(keys)
+
     @property
     def __all__(self):
         public = [x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_')]
