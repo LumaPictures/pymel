@@ -69,7 +69,14 @@ def printobj(name, obj, prefix='', depth=0, file=sys.stdout):
     if (depth < 2 and isinstance(obj, type)) or (depth == 0 and isinstance(obj, types.ModuleType)):
         childprefix = prefix + name + '.'
         for childname in sorted(dir(obj)):
-            child = getattr(obj, childname)
+            try:
+                child = getattr(obj, childname)
+            except AttributeError:
+                # some things may be returned in dir, but not be accessible -
+                # one example is any abstract base class (__metaclass__ =
+                # ABCMeta), which will have an __abstractmethods__ slot, but it
+                # may not actually be filled. We ignore any getattr errors.
+                continue
             printobj(childname, child, prefix=childprefix, depth=depth + 1, file=file)
 
 def writemods(branch, output, modules=None):
@@ -118,7 +125,8 @@ def writemods(branch, output, modules=None):
         # __import__ will return the original module, while we want the
         # LazyLoadModule that replaces it
         mod = sys.modules[fullname]
-        print mod
+        # print the type just so we know if we got the lazyload module
+        print type(mod), mod
         path = os.path.join(outpath, '{}.txt'.format(fullname))
         with open(path, 'w') as f:
             printobj(fullname, mod, file=f)
