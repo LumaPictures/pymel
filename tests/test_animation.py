@@ -42,6 +42,93 @@ class TestConstraintVectorQuery(testing.TestCaseExtended):
     def test_tangentConstraint(self):
         self._doTestForConstraintType('tangentConstraint')
 
+
+class TestConstraintWeightSyntax(unittest.TestCase):
+    CONSTRAINTS =[
+        'aimConstraint',
+        'geometryConstraint',
+        'normalConstraint',
+        'orientConstraint',
+        'parentConstraint',
+        'pointConstraint',
+        'pointOnPolyConstraint',
+        # disabled due to a bug in way we detect mel-method-wrapping,
+        # which causes a bad mel-wrap of PoleVectorConstraint.setWeight
+#        'poleVectorConstraint',
+        'scaleConstraint',
+        'tangentConstraint',
+    ]
+
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def doWeightQueryTest(self, constraintCmd):
+        if constraintCmd == pm.tangentConstraint:
+            parentMaker = pm.circle
+        else:
+            parentMaker = pm.polyCube
+
+        self.parent1 = parentMaker(name='parent1')[0]
+        self.parent1.translateX.set(10)
+        self.parent1.rotateX.set(10)
+        self.parent1.scaleX.set(2)
+
+        self.parent2 = parentMaker(name='parent2')[0]
+        self.parent2.translateY.set(10)
+        self.parent2.rotateY.set(10)
+        self.parent2.scaleY.set(2)
+
+        self.parent3 = parentMaker(name='parent3')[0]
+        self.parent3.translateZ.set(10)
+        self.parent3.rotateZ.set(10)
+        self.parent3.scaleZ.set(2)
+
+        if constraintCmd == pm.poleVectorConstraint:
+            joint1 = pm.createNode('joint')
+            joint1.translate.set((0, 0, -20))
+            joint2 = pm.createNode('joint', parent=joint1)
+            joint2.translate.set((10, 10, 0))
+            joint3 = pm.createNode('joint', parent=joint2)
+            joint3.translate.set((10, -10, 0))
+            ikHandle, ikEffector = pm.ikHandle(sj=joint1, ee=joint3)
+            self.child = ikHandle
+        else:
+            self.child = pm.polyCube(name='child')[0]
+
+        constraint = constraintCmd([self.parent1, self.parent2, self.parent3,
+                                    self.child])
+        constraint.setWeight(1.0, self.parent1)
+        constraint.setWeight(2.0, self.parent2)
+        constraint.setWeight(3.0, self.parent3)
+
+        self.assertEqual(constraintCmd(constraint, q=1, weight=self.parent1),
+                         1.0)
+        self.assertEqual(constraintCmd(constraint, q=1, weight=(self.parent1,
+                                                                self.parent2)),
+                         [1.0, 2.0])
+        self.assertEqual(constraintCmd(constraint, q=1, weight=[self.parent1,
+                                                                self.parent2]),
+                         [1.0, 2.0])
+        self.assertEqual(constraintCmd(constraint, q=1, weight=[]),
+                         [1.0, 2.0, 3.0])
+        self.assertEqual(constraintCmd(constraint, q=1, weight=True),
+                         [1.0, 2.0, 3.0])
+
+    @classmethod
+    def makeConstraintWeightText(cls, constraintCmdName):
+        constraintCmd = getattr(pm, constraintCmdName)
+        def testConstraintWeightSyntax(self):
+            self.doWeightQueryTest(constraintCmd)
+
+        testConstraintWeightSyntax.__name__ += '_{}'.format(constraintCmdName)
+        setattr(cls, testConstraintWeightSyntax.__name__,
+                testConstraintWeightSyntax)
+        return testConstraintWeightSyntax
+
+for constraint in TestConstraintWeightSyntax.CONSTRAINTS:
+    TestConstraintWeightSyntax.makeConstraintWeightText(constraint)
+
+
 class TestTimeRange(testing.TestCaseExtended):
     def setUp(self):
         cmds.file(new=1, f=1)
