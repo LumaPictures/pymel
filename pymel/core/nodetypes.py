@@ -863,38 +863,6 @@ class DependNode(general.PyNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'absoluteName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
-    @_f.deprecated
-    def addAttribute(self, attr):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def attribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
-    def attributeClass(self, attribute):
-        # type: (general.PyNode) -> DependencyNode.MAttrClass
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attributeClass', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MAttrClass'), None)
-        return res
-
     @_f.addApiDocs(_api.MFnDependencyNode, 'attributeCount')
     def attributeCount(self):
         # type: () -> int
@@ -908,120 +876,12 @@ class DependNode(general.PyNode):
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
-        return res
-
-    @_f.deprecated
-    def dgCallbacks(self, timerType, callbackName, value):
-        # type: (DependencyNode.MdgTimerType, List[unicode], List[float]) -> None
-        do, final_do, outTypes = _f.getDoArgs([timerType, callbackName, value], [('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None), ('callbackName', 'MStringArray', 'in', None), ('value', 'MDoubleArray', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgCallbacks', final_do)
-        return res
-
-    @_f.deprecated
-    def dgTimer(self, timerMetric, timerType):
-        # type: (DependencyNode.MdgTimerMetric, DependencyNode.MdgTimerType) -> float
-        do, final_do, outTypes = _f.getDoArgs([timerMetric, timerType], [('timerMetric', ('MFnDependencyNode', 'MdgTimerMetric'), 'in', None), ('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimer', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def dgTimerOff(self):
-        # type: () -> None
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOff')
-        return res
-
-    @_f.deprecated
-    def dgTimerOn(self):
-        # type: () -> None
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOn')
-        return res
-
-    @_f.deprecated
-    def dgTimerQueryState(self):
-        # type: () -> DependencyNode.MdgTimerState
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerQueryState')
-        return _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MdgTimerState'), None)
-
-    @_f.deprecated
-    def dgTimerReset(self):
-        # type: () -> None
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerReset')
-        return res
-
-    @classmethod
     @_f.addApiDocs(_api.MFnDependencyNode, 'enableDGTiming')
     def enableDGTiming(self, enable):
         # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([enable], [('enable', 'bool', 'in', None)])
         res = _api.MFnDependencyNode.enableDGTiming(*final_do)
         return res
-
-    @_f.deprecated
-    def findAlias(self, alias):
-        # type: (unicode) -> Tuple[bool, general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([alias], [('alias', 'MString', 'in', None), ('attrObj', 'MObject', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
-    def getAffectedAttributes(self, attr):
-        # type: (general.PyNode) -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getAffectedByAttributes(self, attr):
-        # type: (general.PyNode) -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getAliasAttr(self, force):
-        # type: (bool) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([force], [('force', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasAttr', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
-    def getAliasList(self):
-        # type: () -> Tuple[bool, List[unicode]]
-        do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasList', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getConnections(self):
-        # type: () -> List[general.Attribute]
-        do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'icon')
     def getIcon(self):
@@ -1034,14 +894,6 @@ class DependNode(general.PyNode):
         # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'name')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
-    @_f.deprecated
-    def hasAttribute(self, attrName):
-        # type: (unicode) -> bool
-        do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'hasAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
 
     @_f.deprecated
     def hasUniqueName(self):
@@ -1074,14 +926,6 @@ class DependNode(general.PyNode):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isLocked')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
-    @_f.deprecated
-    def isNewAttribute(self, attr):
-        # type: (general.PyNode) -> bool
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isNewAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'isFromReferencedFile')
     def isReferenced(self):
@@ -1120,49 +964,11 @@ class DependNode(general.PyNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'pluginName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
-    @_f.deprecated
-    def plugsAlias(self, plug):
-        # type: (general.Attribute) -> unicode
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
-    def setAlias(self, alias, name, plug, add=True):
-        # type: (unicode, unicode, general.Attribute, bool) -> bool
-        do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
     @_f.addApiDocs(_api.MFnDependencyNode, 'setDoNotWrite')
     def setDoNotWrite(self, flag):
         # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([flag], [('flag', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setDoNotWrite', final_do)
-        return res
-
-    @_f.deprecated
-    def setFlag(self, flag, state):
-        # type: (int, bool) -> None
-        do, final_do, outTypes = _f.getDoArgs([flag, state], [('flag', 'uint', 'in', None), ('state', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setFlag', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'setIcon')
@@ -1186,12 +992,6 @@ class DependNode(general.PyNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
 
@@ -2392,12 +2192,6 @@ class DagNode(Entity):
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
     @_f.deprecated
-    def dagPath(self):
-        # type: () -> general.PyNode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'dagPath')
-        return _f.ApiArgUtil._castResult(self, res, 'MDagPath', None)
-
-    @_f.deprecated
     def dagRoot(self):
         # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnDagNode, 'dagRoot')
@@ -2435,19 +2229,6 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'drawOverrideIsTemplate')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
-    @_f.deprecated
-    def fullPathName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'fullPathName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
-    @_f.deprecated
-    def getAllPaths(self):
-        # type: () -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'getAllPaths', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
     @_f.addApiDocs(_api.MFnDagNode, 'getConnectedSetsAndMembers')
     def getConnectedSetsAndMembers(self, instanceNumber, renderableSetsOnly):
         # type: (int, bool) -> Tuple[List[general.PyNode], List[general.PyNode]]
@@ -2466,13 +2247,6 @@ class DagNode(Entity):
         # type: () -> DagNode.MObjectColorType
         res = _f.getProxyResult(self, _api.MFnDagNode, 'objectColorType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnDagNode', 'MObjectColorType'), None)
-
-    @_f.deprecated
-    def getPath(self):
-        # type: () -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([], [('path', 'MDagPath', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'getPath', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnDagNode, 'hiliteColor')
     def hiliteColor(self):
@@ -2514,14 +2288,6 @@ class DagNode(Entity):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def isInstancedAttribute(self, attribute):
-        # type: (general.PyNode) -> bool
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'isInstancedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
     @_f.addApiDocs(_api.MFnDagNode, 'isIntermediateObject')
     def isIntermediate(self):
         # type: () -> bool
@@ -2539,12 +2305,6 @@ class DagNode(Entity):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'usingObjectColor')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
-
-    @_f.deprecated
-    def model(self):
-        # type: () -> general.PyNode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'model')
-        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
 
     @_f.addApiDocs(_api.MFnDagNode, 'childCount')
     def numChildren(self):
@@ -2586,33 +2346,6 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'parentCount')
         return _f.ApiArgUtil._castResult(self, res, 'int', None)
 
-    @_f.deprecated
-    def partialPathName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'partialPathName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
-    @_f.deprecated
-    def removeChild(self, child):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([child], [('child', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChild', final_do)
-        return res
-
-    @_f.deprecated
-    def removeChildAt(self, index):
-        # type: (int) -> None
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChildAt', final_do)
-        return res
-
-    @_f.deprecated
-    def setInstanceable(self, how):
-        # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([how], [('how', 'bool', 'in', None)], self.isInstanceable, self.setInstanceable, [])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'setInstanceable', final_do)
-        return res
-
     @_f.addApiDocs(_api.MFnDagNode, 'setIntermediateObject')
     def setIntermediate(self, isIntermediate):
         # type: (bool) -> None
@@ -2625,13 +2358,6 @@ class DagNode(Entity):
         # type: (bool) -> None
         do, final_do, outTypes = _f.processApiArgs([isIntermediate], [('isIntermediate', 'bool', 'in', None)], self.isIntermediate, self.setIntermediateObject, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setIntermediateObject', final_do)
-        return res
-
-    @_f.deprecated
-    def setObject(self, objectPath):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([objectPath], [('objectPath', 'MDagPath', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'setObject', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnDagNode, 'setObjectColorType')
@@ -3496,13 +3222,6 @@ class Camera(Shape):
         # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClipPlane, self.setNearClipPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearClippingPlane', final_do)
-        return res
-
-    @_f.deprecated
-    def setNearFarClippingPlanes(self, dNear, dFar):
-        # type: (float, float) -> None
-        do, final_do, outTypes = _f.getDoArgs([dNear, dFar], [('dNear', 'double', 'in', u'linear'), ('dFar', 'double', 'in', u'linear')])
-        res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFarClippingPlanes', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setNearFocusDistance')
@@ -4393,18 +4112,19 @@ class Transform(DagNode):
         res = _f.getProxyResult(self, _api.MFnTransform, 'restPosition')
         return _f.ApiArgUtil._castResult(self, res, 'MTransformationMatrix', None)
 
+    @_f.deprecated
+    def getRotateOrientation(self, space):
+        # type: (datatypes.Space.Space) -> datatypes.Quaternion
+        do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateOrientation', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
+        return res
+
     @_f.addApiDocs(_api.MFnTransform, 'rotationOrder')
     def getRotationOrder(self):
         # type: () -> datatypes.TransformationMatrix.RotationOrder
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotationOrder')
         return _f.ApiArgUtil._castResult(self, res, ('MTransformationMatrix', 'RotationOrder'), None)
-
-    @_f.deprecated
-    def getRotationQuaternion(self, space='transform'):
-        # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
-        do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnTransform, 'getScale')
     def getScale(self):
@@ -4481,13 +4201,6 @@ class Transform(DagNode):
         return res
 
     @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
-
-    @_f.deprecated
     def set(self, transform):
         # type: (datatypes.TransformationMatrix) -> None
         do, final_do, outTypes = _f.processApiArgs([transform], [('transform', 'MTransformationMatrix', 'in', None)], self.getTransformation, self.set, [])
@@ -4523,25 +4236,11 @@ class Transform(DagNode):
     def setRotateAxis(self, val=True, **kwargs):
         return _f.asEdit(self, general.xform, kwargs, 'rotateAxis', val)
 
-    @_f.deprecated
-    def setRotateOrientation(self, quat, space, balance=True):
-        # type: (datatypes.Quaternion, datatypes.Space.Space, bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([quat, space, balance], [('quat', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotateOrientation, self.setRotateOrientation, ['space'])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotateOrientation', final_do)
-        return res
-
     @_f.addApiDocs(_api.MFnTransform, 'setRotationOrder')
     def setRotationOrder(self, order, reorder):
         # type: (datatypes.TransformationMatrix.RotationOrder, bool) -> None
         do, final_do, outTypes = _f.processApiArgs([order, reorder], [('order', ('MTransformationMatrix', 'RotationOrder'), 'in', None), ('reorder', 'bool', 'in', None)], self.getRotationOrder, self.setRotationOrder, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationOrder', final_do)
-        return res
-
-    @_f.deprecated
-    def setRotationQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnTransform, 'set')
@@ -7138,7 +6837,7 @@ class Mesh(SurfaceShape):
 
     @_f.addApiDocs(_api.MFnMesh, 'getPointsAtUV')
     def getPointsAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
-        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> Tuple[List[int], List[Point]]
+        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> Tuple[List[int], List[datatypes.Point]]
         do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('polygonIds', 'MIntArray', 'out', None), ('points', 'MPointArray', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPointsAtUV', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -9241,13 +8940,6 @@ class ObjectSet(Entity):
         res = _f.getProxyResult(self, _api.MFnSet, 'getUnion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def addMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'addMember', final_do)
-        return res
-
     @_f.addApiDocs(_api.MFnSet, 'addMembers')
     def addMembers(self, list):
         # type: (SelectionSet) -> None
@@ -9293,21 +8985,6 @@ class ObjectSet(Entity):
         do, final_do, outTypes = _f.getDoArgs([otherSet], [('otherSet', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'intersectsWith', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
-    @_f.deprecated
-    def isMember(self, object):
-        # type: (general.PyNode) -> bool
-        do, final_do, outTypes = _f.getDoArgs([object], [('object', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'isMember', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
-    @_f.deprecated
-    def removeMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'removeMember', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnSet, 'removeMembers')
@@ -9566,6 +9243,10 @@ class AnimLayer(ObjectSet):
     def removeAllAttributes(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animLayer, kwargs, 'removeAllAttributes', val)
 
+    @_f.addMelDocs('animLayer', 'removeAttribute')
+    def removeAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animLayer, kwargs, 'removeAttribute', val)
+
     @_f.addMelDocs('animLayer', 'addRelatedKG')
     def setAddRelatedKG(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animLayer, kwargs, 'addRelatedKG', val)
@@ -9703,24 +9384,9 @@ class AnimCurve(DependNode):
     else:
         TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11)], multiKeys=True)
 
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
     @_f.addApiDocs(_api.MFnAnimCurve, 'addKeysWithTangents')
     def addKeysWithTangents(self, timeArray, valueArray, tangentInType='global_', tangentOutType='global_', tangentInTypeArray=None, tangentOutTypeArray=None, tangentInXArray=None, tangentInYArray=None, tangentOutXArray=None, tangentOutYArray=None, tangentsLockedArray=None, weightsLockedArray=None, convertUnits=True, keepExistingKeys=False, change=None):
-        # type: (List[Time], List[float], AnimCurve.TangentType, AnimCurve.TangentType, List[int], List[int], List[float], List[float], List[float], List[float], List[int], List[int], bool, bool, datatypes.AnimCurveChange) -> None
+        # type: (List[datatypes.Time], List[float], AnimCurve.TangentType, AnimCurve.TangentType, List[int], List[int], List[float], List[float], List[float], List[float], List[int], List[int], bool, bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.getDoArgs([timeArray, valueArray, tangentInType, tangentOutType, tangentInTypeArray, tangentOutTypeArray, tangentInXArray, tangentInYArray, tangentOutXArray, tangentOutYArray, tangentsLockedArray, weightsLockedArray, convertUnits, keepExistingKeys, change], [('timeArray', 'MTimeArray', 'in', None), ('valueArray', 'MDoubleArray', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentInTypeArray', 'MIntArray', 'in', None), ('tangentOutTypeArray', 'MIntArray', 'in', None), ('tangentInXArray', 'MDoubleArray', 'in', None), ('tangentInYArray', 'MDoubleArray', 'in', None), ('tangentOutXArray', 'MDoubleArray', 'in', None), ('tangentOutYArray', 'MDoubleArray', 'in', None), ('tangentsLockedArray', 'MIntArray', 'in', None), ('weightsLockedArray', 'MIntArray', 'in', None), ('convertUnits', 'bool', 'in', None), ('keepExistingKeys', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeysWithTangents', final_do)
         return res
@@ -9730,22 +9396,6 @@ class AnimCurve(DependNode):
         # type: () -> AnimCurve.AnimCurveType
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'animCurveType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'inTangentType')
     def getInTangentType(self, index):
@@ -9956,22 +9606,6 @@ class AnimCurve(DependNode):
         # type: (int, bool, datatypes.AnimCurveChange) -> None
         do, final_do, outTypes = _f.processApiArgs([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getWeightsLocked, self.setWeightsLocked, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeightsLocked', final_do)
-        return res
-
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
         return res
 # ------ Do not edit above this line --------
 
@@ -10423,12 +10057,32 @@ class HikHandle(Transform):
     __slots__ = ()
     LimitType = Enum('LimitType', [('scaleMinX', 0), ('kScaleMinX', 0), ('scaleMaxX', 1), ('kScaleMaxX', 1), ('scaleMinY', 2), ('kScaleMinY', 2), ('scaleMaxY', 3), ('kScaleMaxY', 3), ('scaleMinZ', 4), ('kScaleMinZ', 4), ('scaleMaxZ', 5), ('kScaleMaxZ', 5), ('shearMinXY', 6), ('kShearMinXY', 6), ('shearMaxXY', 7), ('kShearMaxXY', 7), ('shearMinXZ', 8), ('kShearMinXZ', 8), ('shearMaxXZ', 9), ('kShearMaxXZ', 9), ('shearMinYZ', 10), ('kShearMinYZ', 10), ('shearMaxYZ', 11), ('kShearMaxYZ', 11), ('rotateMinX', 12), ('kRotateMinX', 12), ('rotateMaxX', 13), ('kRotateMaxX', 13), ('rotateMinY', 14), ('kRotateMinY', 14), ('rotateMaxY', 15), ('kRotateMaxY', 15), ('rotateMinZ', 16), ('kRotateMinZ', 16), ('rotateMaxZ', 17), ('kRotateMaxZ', 17), ('translateMinX', 18), ('kTranslateMinX', 18), ('translateMaxX', 19), ('kTranslateMaxX', 19), ('translateMinY', 20), ('kTranslateMinY', 20), ('translateMaxY', 21), ('kTranslateMaxY', 21), ('translateMinZ', 22), ('kTranslateMinZ', 22), ('translateMaxZ', 23), ('kTranslateMaxZ', 23)], multiKeys=True)
 
-    @_f.addApiDocs(_api.MFnTransform, 'rotateOrientation')
-    def getRotateOrientation(self, space):
-        # type: (datatypes.Space.Space) -> datatypes.Quaternion
-        do, final_do, outTypes = _f.getDoArgs([space], [('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateOrientation', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MQuaternion', None)
+    @_f.deprecated
+    def getRotationQuaternion(self, space='transform'):
+        # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
+        do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def rotateByQuaternion(self, x, y, z, w, space='transform'):
+        # type: (float, float, float, float, datatypes.Space.Space) -> None
+        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
+        return res
+
+    @_f.deprecated
+    def setRotateOrientation(self, quat, space, balance=True):
+        # type: (datatypes.Quaternion, datatypes.Space.Space, bool) -> None
+        do, final_do, outTypes = _f.processApiArgs([quat, space, balance], [('quat', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotateOrientation, self.setRotateOrientation, ['space'])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotateOrientation', final_do)
+        return res
+
+    @_f.deprecated
+    def setRotationQuaternion(self, x, y, z, w, space='transform'):
+        # type: (float, float, float, float, datatypes.Space.Space) -> None
+        do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         return res
 # ------ Do not edit above this line --------
 
@@ -10445,6 +10099,206 @@ class JointFfd(DependNode):
     MdgTimerMetric = Enum('MdgTimerMetric', [('metric_callback', 0), ('kTimerMetric_callback', 0), ('metric_compute', 1), ('kTimerMetric_compute', 1), ('metric_dirty', 2), ('kTimerMetric_dirty', 2), ('metric_draw', 3), ('kTimerMetric_draw', 3), ('metric_fetch', 4), ('kTimerMetric_fetch', 4), ('metric_callbackViaAPI', 5), ('kTimerMetric_callbackViaAPI', 5), ('metric_callbackNotViaAPI', 6), ('kTimerMetric_callbackNotViaAPI', 6), ('metric_computeDuringCallback', 7), ('kTimerMetric_computeDuringCallback', 7), ('metric_computeNotDuringCallback', 8), ('kTimerMetric_computeNotDuringCallback', 8), ('metrics', 9), ('kTimerMetrics', 9)], multiKeys=True)
     MdgTimerState = Enum('MdgTimerState', [('off', 0), ('kTimerOff', 0), ('on', 1), ('kTimerOn', 1), ('uninitialized', 2), ('kTimerUninitialized', 2), ('invalidState', 3), ('kTimerInvalidState', 3)], multiKeys=True)
     MdgTimerType = Enum('MdgTimerType', [('type_self', 0), ('kTimerType_self', 0), ('type_inclusive', 1), ('kTimerType_inclusive', 1), ('type_count', 2), ('kTimerType_count', 2), ('types', 3), ('kTimerTypes', 3)], multiKeys=True)
+
+    @_f.deprecated
+    def addAttribute(self, attr):
+        # type: (general.PyNode) -> None
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
+        return res
+
+    @classmethod
+    @_f.deprecated
+    def allocateFlag(self, pluginName):
+        # type: (unicode) -> int
+        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
+        res = _api.MFnDependencyNode.allocateFlag(*final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+
+    @_f.deprecated
+    def attribute(self, index):
+        # type: (int) -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+        return res
+
+    @_f.deprecated
+    def attributeClass(self, attribute):
+        # type: (general.PyNode) -> DependencyNode.MAttrClass
+        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attributeClass', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MAttrClass'), None)
+        return res
+
+    @classmethod
+    @_f.deprecated
+    def deallocateAllFlags(self, pluginName):
+        # type: (unicode) -> None
+        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
+        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
+        return res
+
+    @classmethod
+    @_f.deprecated
+    def deallocateFlag(self, pluginName, flag):
+        # type: (unicode, int) -> None
+        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
+        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
+        return res
+
+    @_f.deprecated
+    def dgCallbacks(self, timerType, callbackName, value):
+        # type: (DependencyNode.MdgTimerType, List[unicode], List[float]) -> None
+        do, final_do, outTypes = _f.getDoArgs([timerType, callbackName, value], [('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None), ('callbackName', 'MStringArray', 'in', None), ('value', 'MDoubleArray', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgCallbacks', final_do)
+        return res
+
+    @_f.deprecated
+    def dgTimer(self, timerMetric, timerType):
+        # type: (DependencyNode.MdgTimerMetric, DependencyNode.MdgTimerType) -> float
+        do, final_do, outTypes = _f.getDoArgs([timerMetric, timerType], [('timerMetric', ('MFnDependencyNode', 'MdgTimerMetric'), 'in', None), ('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimer', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
+        return res
+
+    @_f.deprecated
+    def dgTimerOff(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOff')
+        return res
+
+    @_f.deprecated
+    def dgTimerOn(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOn')
+        return res
+
+    @_f.deprecated
+    def dgTimerQueryState(self):
+        # type: () -> DependencyNode.MdgTimerState
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerQueryState')
+        return _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MdgTimerState'), None)
+
+    @_f.deprecated
+    def dgTimerReset(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerReset')
+        return res
+
+    @_f.deprecated
+    def findAlias(self, alias):
+        # type: (unicode) -> Tuple[bool, general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([alias], [('alias', 'MString', 'in', None), ('attrObj', 'MObject', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def findPlug(self, attr, wantNetworkedPlug):
+        # type: (general.PyNode, bool) -> general.Attribute
+        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
+        return res
+
+    @_f.deprecated
+    def getAffectedAttributes(self, attr):
+        # type: (general.PyNode) -> List[general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def getAffectedByAttributes(self, attr):
+        # type: (general.PyNode) -> List[general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def getAliasAttr(self, force):
+        # type: (bool) -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([force], [('force', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasAttr', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+        return res
+
+    @_f.deprecated
+    def getAliasList(self):
+        # type: () -> Tuple[bool, List[unicode]]
+        do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasList', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def getConnections(self):
+        # type: () -> List[general.Attribute]
+        do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def hasAttribute(self, attrName):
+        # type: (unicode) -> bool
+        do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'hasAttribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
+    @_f.deprecated
+    def isNewAttribute(self, attr):
+        # type: (general.PyNode) -> bool
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isNewAttribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
+    @_f.deprecated
+    def plugsAlias(self, plug):
+        # type: (general.Attribute) -> unicode
+        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
+        return res
+
+    @_f.deprecated
+    def removeAttribute(self, attribute):
+        # type: (general.PyNode) -> None
+        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
+        return res
+
+    @_f.deprecated
+    def reorderedAttribute(self, index):
+        # type: (int) -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+        return res
+
+    @_f.deprecated
+    def setAlias(self, alias, name, plug, add=True):
+        # type: (unicode, unicode, general.Attribute, bool) -> bool
+        do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
+    @_f.deprecated
+    def setFlag(self, flag, state):
+        # type: (int, bool) -> None
+        do, final_do, outTypes = _f.getDoArgs([flag, state], [('flag', 'uint', 'in', None), ('state', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setFlag', final_do)
+        return res
+
+    @_f.deprecated
+    def typeName(self):
+        # type: () -> unicode
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
 
@@ -20667,6 +20521,10 @@ class Instancer(Transform):
     def setLevelOfDetail(self, val=True, **kwargs):
         return _f.asEdit(self, general.instancer, kwargs, 'levelOfDetail', val)
 
+    @_f.addMelDocs('instancer', 'object')
+    def setObject(self, val=True, **kwargs):
+        return _f.asEdit(self, general.instancer, kwargs, 'object', val)
+
     @_f.addMelDocs('instancer', 'rotationUnits')
     def setRotationUnits(self, val=True, **kwargs):
         return _f.asEdit(self, general.instancer, kwargs, 'rotationUnits', val)
@@ -23125,6 +22983,13 @@ class TransferAttributes(WeightGeometryFilter):
     MdgTimerState = Enum('MdgTimerState', [('off', 0), ('kTimerOff', 0), ('on', 1), ('kTimerOn', 1), ('uninitialized', 2), ('kTimerUninitialized', 2), ('invalidState', 3), ('kTimerInvalidState', 3)], multiKeys=True)
     MdgTimerType = Enum('MdgTimerType', [('type_self', 0), ('kTimerType_self', 0), ('type_inclusive', 1), ('kTimerType_inclusive', 1), ('type_count', 2), ('kTimerType_count', 2), ('types', 3), ('kTimerTypes', 3)], multiKeys=True)
 
+    @_f.deprecated
+    def addAttribute(self, attr):
+        # type: (general.PyNode) -> None
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
+        return res
+
     @_f.addMelDocs('transferAttributes', 'after')
     def after(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'after', val)
@@ -23132,6 +22997,31 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'afterReference')
     def afterReference(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'afterReference', val)
+
+    @classmethod
+    @_f.deprecated
+    def allocateFlag(self, pluginName):
+        # type: (unicode) -> int
+        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
+        res = _api.MFnDependencyNode.allocateFlag(*final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+
+    @_f.deprecated
+    def attribute(self, index):
+        # type: (int) -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+        return res
+
+    @_f.deprecated
+    def attributeClass(self, attribute):
+        # type: (general.PyNode) -> DependencyNode.MAttrClass
+        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attributeClass', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MAttrClass'), None)
+        return res
 
     @_f.addMelDocs('transferAttributes', 'before')
     def before(self, val=True, **kwargs):
@@ -23141,6 +23031,77 @@ class TransferAttributes(WeightGeometryFilter):
     def colorBorders(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'colorBorders', val)
 
+    @classmethod
+    @_f.deprecated
+    def deallocateAllFlags(self, pluginName):
+        # type: (unicode) -> None
+        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
+        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
+        return res
+
+    @classmethod
+    @_f.deprecated
+    def deallocateFlag(self, pluginName, flag):
+        # type: (unicode, int) -> None
+        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
+        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
+        return res
+
+    @_f.deprecated
+    def dgCallbacks(self, timerType, callbackName, value):
+        # type: (DependencyNode.MdgTimerType, List[unicode], List[float]) -> None
+        do, final_do, outTypes = _f.getDoArgs([timerType, callbackName, value], [('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None), ('callbackName', 'MStringArray', 'in', None), ('value', 'MDoubleArray', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgCallbacks', final_do)
+        return res
+
+    @_f.deprecated
+    def dgTimer(self, timerMetric, timerType):
+        # type: (DependencyNode.MdgTimerMetric, DependencyNode.MdgTimerType) -> float
+        do, final_do, outTypes = _f.getDoArgs([timerMetric, timerType], [('timerMetric', ('MFnDependencyNode', 'MdgTimerMetric'), 'in', None), ('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimer', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
+        return res
+
+    @_f.deprecated
+    def dgTimerOff(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOff')
+        return res
+
+    @_f.deprecated
+    def dgTimerOn(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOn')
+        return res
+
+    @_f.deprecated
+    def dgTimerQueryState(self):
+        # type: () -> DependencyNode.MdgTimerState
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerQueryState')
+        return _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MdgTimerState'), None)
+
+    @_f.deprecated
+    def dgTimerReset(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerReset')
+        return res
+
+    @_f.deprecated
+    def findAlias(self, alias):
+        # type: (unicode) -> Tuple[bool, general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([alias], [('alias', 'MString', 'in', None), ('attrObj', 'MObject', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def findPlug(self, attr, wantNetworkedPlug):
+        # type: (general.PyNode, bool) -> general.Attribute
+        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
+        return res
+
     @_f.addMelDocs('transferAttributes', 'flipUVs')
     def flipUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'flipUVs', val)
@@ -23148,6 +23109,43 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'frontOfChain')
     def frontOfChain(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'frontOfChain', val)
+
+    @_f.deprecated
+    def getAffectedAttributes(self, attr):
+        # type: (general.PyNode) -> List[general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def getAffectedByAttributes(self, attr):
+        # type: (general.PyNode) -> List[general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def getAliasAttr(self, force):
+        # type: (bool) -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([force], [('force', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasAttr', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+        return res
+
+    @_f.deprecated
+    def getAliasList(self):
+        # type: () -> Tuple[bool, List[unicode]]
+        do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasList', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.deprecated
+    def getConnections(self):
+        # type: () -> List[general.Attribute]
+        do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('transferAttributes', 'deformerTools')
     def getDeformerTools(self, **kwargs):
@@ -23169,6 +23167,22 @@ class TransferAttributes(WeightGeometryFilter):
         res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'geometryIndices')
         return res
 
+    @_f.deprecated
+    def hasAttribute(self, attrName):
+        # type: (unicode) -> bool
+        do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'hasAttribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
+    @_f.deprecated
+    def isNewAttribute(self, attr):
+        # type: (general.PyNode) -> bool
+        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isNewAttribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
     @_f.addMelDocs('transferAttributes', 'matchChoice')
     def matchChoice(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'matchChoice', val)
@@ -23177,6 +23191,14 @@ class TransferAttributes(WeightGeometryFilter):
     def parallel(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'parallel', val)
 
+    @_f.deprecated
+    def plugsAlias(self, plug):
+        # type: (general.Attribute) -> unicode
+        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
+        return res
+
     @_f.addMelDocs('transferAttributes', 'prune')
     def prune(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'prune', val)
@@ -23184,6 +23206,21 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'remove')
     def remove(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'remove', val)
+
+    @_f.deprecated
+    def removeAttribute(self, attribute):
+        # type: (general.PyNode) -> None
+        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
+        return res
+
+    @_f.deprecated
+    def reorderedAttribute(self, index):
+        # type: (int) -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+        return res
 
     @_f.addMelDocs('transferAttributes', 'sampleSpace')
     def sampleSpace(self, val=True, **kwargs):
@@ -23205,6 +23242,21 @@ class TransferAttributes(WeightGeometryFilter):
     def searchScaleZ(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'searchScaleZ', val)
 
+    @_f.deprecated
+    def setAlias(self, alias, name, plug, add=True):
+        # type: (unicode, unicode, general.Attribute, bool) -> bool
+        do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
+    @_f.deprecated
+    def setFlag(self, flag, state):
+        # type: (int, bool) -> None
+        do, final_do, outTypes = _f.getDoArgs([flag, state], [('flag', 'uint', 'in', None), ('state', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setFlag', final_do)
+        return res
+
     @_f.addMelDocs('transferAttributes', 'geometry')
     def setGeometry(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'geometry', val)
@@ -23224,6 +23276,12 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'transferUVs')
     def transferUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'transferUVs', val)
+
+    @_f.deprecated
+    def typeName(self):
+        # type: () -> unicode
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Wire(WeightGeometryFilter):
@@ -34228,6 +34286,10 @@ class TimeEditorAnimSource(DependNode):
     def apply(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorAnimSource, kwargs, 'apply', val)
 
+    @_f.addMelDocs('timeEditorAnimSource', 'attribute')
+    def attribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorAnimSource, kwargs, 'attribute', val)
+
     @_f.addMelDocs('timeEditorAnimSource', 'bakeToAnimSource')
     def bakeToAnimSource(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorAnimSource, kwargs, 'bakeToAnimSource', val)
@@ -34346,9 +34408,17 @@ class TimeEditorClip(TimeEditorClipBase):
     __melnode__ = u'timeEditorClip'
     __slots__ = ()
 
+    @_f.addMelDocs('timeEditorClip', 'addAttribute')
+    def addAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorClip, kwargs, 'addAttribute', val)
+
     @_f.addMelDocs('timeEditorClip', 'allowShrinking')
     def allowShrinking(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorClip, kwargs, 'allowShrinking', val)
+
+    @_f.addMelDocs('timeEditorClip', 'attribute')
+    def attribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorClip, kwargs, 'attribute', val)
 
     @_f.addMelDocs('timeEditorClip', 'clipId')
     def clipId(self, val=True, **kwargs):
@@ -34695,6 +34765,10 @@ class TimeEditorClip(TimeEditorClipBase):
     @_f.addMelDocs('timeEditorClip', 'remapSource')
     def remapSource(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorClip, kwargs, 'remapSource', val)
+
+    @_f.addMelDocs('timeEditorClip', 'removeAttribute')
+    def removeAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorClip, kwargs, 'removeAttribute', val)
 
     @_f.addMelDocs('timeEditorClip', 'removeClip')
     def removeClip(self, val=True, **kwargs):

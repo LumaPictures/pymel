@@ -1029,8 +1029,7 @@ class MelMethodGenerator(object):
             #   we always override mel-generated flags, as there's no guarantee
             #   that, ie, rowLayout -dragCallback won't have
             #   some extra functionality as compared to layout -dragCallback.
-            filterAttrs.update(x for x in self.herited
-                               if not self.isMelMethod(x))
+            filterAttrs.update(x for x in self.herited if not self.isMelMethod(x))
             # # instead, we only filter out a specific set of methods, if they're
             # # implemented on ancestors
             # filterAttrs.update({'getParent'}.intersection(self.herited))
@@ -1051,7 +1050,8 @@ class MelMethodGenerator(object):
                         methodName = 'get' + util.capitalize(flag)
 
                         if methodName not in filterAttrs and \
-                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
+                                (not hasattr(self.existingClass, methodName)
+                                 or self.isMelMethod(methodName)):
 
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here.
@@ -1084,7 +1084,8 @@ class MelMethodGenerator(object):
                             methodName = flag
 
                         if methodName not in filterAttrs and \
-                                (not hasattr(self.existingClass, methodName) or self.isMelMethod(methodName)):
+                                (not hasattr(self.existingClass, methodName)
+                                 or self.isMelMethod(methodName)):
                             bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
                             if (not bridgeInfo
                                     or bridgeInfo.get('melEnabled', False)
@@ -1131,6 +1132,23 @@ class MelMethodGenerator(object):
         """
         return self.methodType(methodName) == 'mel'
 
+    def isEnabled(self, methodName, recursive=True):
+        if recursive:
+            classes = self.classnameMRO()
+        else:
+            classes = [self.classname]
+        for parentClass in classes:
+            overrideData = factories._getApiOverrideNameAndData(parentClass,
+                                                                methodName)[1]
+            # TODO: eventually, we should return a result as soon as we find
+            # an entry... however, currently, the api override cache is littered
+            # with a bunch of default-created entries, with a bunch of "enabled"
+            # values set to True. So, we ignore any True results, and search
+            # upstream until we find a False
+            if not overrideData.get('enabled', True):
+                return False
+        return True
+
     def docstring(self, melCmdName):
         try:
             cmdInfo = factories.cmdlist[melCmdName]
@@ -1168,24 +1186,26 @@ class ApiMethodGenerator(MelMethodGenerator):
         self.childClasses = childClasses
         self.apicls = self.getApiCls()
 
-    def methodIsEnabledOnChildren(self, pymelName):
+    def methodWasFormerlyEnabled(self, pymelName):
         """
         previous versions of pymel erroneously included disabled methods on
-        child classes which possessed the same apicls as their parent.
+        some child classes which possessed the same apicls as their parent.
         We will deprecate them in order to allow users to transition.
         """
-        enabled = []
-        # cycle through child classes and test overrides for this method
-        for childClassName in self.childClasses:
-            _, overrides, _ = factories._getApiOverrideNameAndData(
-                childClassName, pymelName)
-            if overrides.get('overloadIndex', None) is None:
-                continue
-            elif not overrides.get('enabled', True):
-                continue
-            # enabled!
-            enabled.append(childClassName)
-        return enabled
+        # formerly, pymel did not check parents, only it's own class entry,
+        # for 'enabled' data
+        if pymelName in factories.EXCLUDE_METHODS:
+            return False
+
+        if not self.isEnabled(pymelName, recursive=False):
+            return False
+
+        # also, formerly if an entry did not exist in the api override cache,
+        # it was effectively disabled (ie, if it didn't have an overrideIndex)
+        overrideData = factories._getApiOverrideNameAndData(
+            self.classname, pymelName)[1]
+        overloadIndex = overrideData.get('overloadIndex', None)
+        return overloadIndex is not None
 
     def getApiCls(self):
         if self.existingClass is not None:
@@ -1330,20 +1350,21 @@ class ApiMethodGenerator(MelMethodGenerator):
                     yieldTuple = (methodName, self.classname, pymelName,
                                   overloadIndex, aliases, properties)
 
-                    if not overrideData.get('enabled', True):
-                        #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                        # FIXME: add unique deprecation message
-                        if methodName in factories.EXCLUDE_METHODS:
-                            continue
-                        usedByChildren = self.methodIsEnabledOnChildren(pymelName)
-                        if not usedByChildren:
-                            print self.classname, pymelName, "not on any children"
-                            continue
-                        else:
-                            _logger.info("%s.%s: Adding disabled method as "
-                                         "deprecated. Used by children %s" %
-                                         (self.classname, pymelName, usedByChildren))
+                    if not self.isEnabled(basePymelName):
+                        # check to see if it was formerly (erroneously) enabled
+                        # in older versions of pymel. if so, we keep it, but
+                        # mark it deprecated
+                        if self.methodWasFormerlyEnabled(basePymelName):
+                            # FIXME: add unique deprecation message
+                            _logger.info(
+                                "{}.{}: Adding disabled method as deprecated."
+                                " Used by older versions of pymel".format(
+                                    self.classname, pymelName))
                             deprecated.append(yieldTuple)
+                        else:
+                            _logger.debug(
+                                "{}.{} has been manually disabled, skipping"
+                                .format(self.classname, pymelName))
                     elif info[overloadIndex].get('deprecated', False):
                         deprecated.append(yieldTuple)
                     else:
