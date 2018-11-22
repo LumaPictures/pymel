@@ -2474,8 +2474,8 @@ class DisplayLayer(DependNode):
     def addMembers(self, members, noRecurse=True):
         cmds.editDisplayLayerMembers(self, members, noRecurse=noRecurse)
 
-    def removeMembers(self, members):
-        cmds.editDisplayLayerMembers(self, members, remove=True)
+    def removeMembers(self, members, noRecurse=True):
+        cmds.editDisplayLayerMembers('defaultLayer', members, noRecurse=noRecurse)
 
     def setCurrent(self):
         cmds.editDisplayLayerMembers(currentDisplayLayer=self)
