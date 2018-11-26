@@ -1194,9 +1194,6 @@ class ApiMethodGenerator(MelMethodGenerator):
         """
         # formerly, pymel did not check parents, only it's own class entry,
         # for 'enabled' data
-        if pymelName in factories.EXCLUDE_METHODS:
-            return False
-
         if not self.isEnabled(pymelName, recursive=False):
             return False
 
@@ -1251,12 +1248,18 @@ class ApiMethodGenerator(MelMethodGenerator):
         if self.apicls.__name__ not in factories.apiClassNamesToPyNodeNames:
             factories.apiClassNamesToPyNodeNames[self.apicls.__name__] = self.classname
 
+        classShouldBeSkipped = False
         if self.apicls is self.parentApicls:
             # If this class's api class is the same as the parent, the methods
-            # are already handled.
+            # are already handled... so we SHOULD skip skip this class, and
+            # return immediately. However, "old" pymel did not have this check,
+            # so instead we continue, but mark ALL methods that we end up
+            # wrapping here as deprecated
+            classShouldBeSkipped = True
+
             # FIXME: should this be extended to check all parent classes?
             # FIXME: assert that there is nothing explicit in the mel-api bridge
-            return
+            # return
 
         # if not proxy and apicls not in self.bases:
         #     #_logger.debug("ADDING BASE %s" % self.attrs['apicls'])
@@ -1294,8 +1297,6 @@ class ApiMethodGenerator(MelMethodGenerator):
 
                 deprecated = []
                 for methodName, info in classInfo['methods'].iteritems():
-                    # don't rewrap if already herited from a base class that is not the apicls
-                    # _logger.debug("Checking method %s" % (methodName))
 
                     try:
                         basePymelName = info[0]['pymelName']
@@ -1386,6 +1387,14 @@ class ApiMethodGenerator(MelMethodGenerator):
                     in non_deprecated_methods_first():
                 assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
 
+                # note that we set deprecated True here, instead of in
+                # non_deprecated_methods_first, because we want to keep the
+                # "old" ordering (ie, even though we end up marking everything
+                # as deprecated, ones that formerly wouldn't be deprecated
+                # should still come first)
+                if classShouldBeSkipped:
+                    deprecated = True
+
                 # TODO: some methods are being wrapped for the base class,
                 # and all their children - ie, MFnTransform.transformation()
                 # gets wrapped for Transform, Place3dTexture,
@@ -1404,7 +1413,9 @@ class ApiMethodGenerator(MelMethodGenerator):
                     #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
                 #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
 
-            self.addEnums()
+            # no reason to re-add enums for backward compatibility
+            if not classShouldBeSkipped:
+                self.addEnums()
 
 
 class ApiDataTypeGenerator(ApiMethodGenerator):
