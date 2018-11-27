@@ -1405,9 +1405,10 @@ class ApiTypeRegister(object):
         """
         pymelType = cls.types.get(apiType)
         if pymelType is not None:
-            # strip the module
-            return pymelType.rsplit('.', 1)[-1]
-
+            if isinstance(pymelType, basestring):
+                # strip the module
+                return pymelType.rsplit('.', 1)[-1]
+            return pymelType
         elif allowGuess:
             m = re.match('^((MIt)|(MFn)|(M))([A-Z]+.*)', apiType)
             if m:
@@ -2730,7 +2731,7 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
         to
         "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
         """
-        if not isinstance(typ, list):
+        if not isinstance(typ, (list, tuple)):
             pymelType = ApiTypeRegister.getPymelType(typ, allowGuess=False)
             if pymelType is None:
                 pymelType = typ
