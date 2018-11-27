@@ -682,8 +682,9 @@ class LazyLoadModule(types.ModuleType):
         # our LazyLoaded objects, to make it appear like they're there like
         # a normal object...
         keys = set(self.__dict__)
-        keys.update(name for (name, obj) in type(self).__dict__.iteritems()
-                    if isinstance(obj, self.LazyLoader))
+        lazyLoaders = inspect.getmembers(
+            type(self), lambda x: isinstance(x, self.LazyLoader))
+        keys.update(name for (name, obj) in lazyLoaders)
         return sorted(keys)
 
     @property
