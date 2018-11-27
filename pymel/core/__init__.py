@@ -67,7 +67,7 @@ _uitypes_names = ['AnimCurveEditor', 'AnimDisplay', 'AttrColorSliderGrp',
     'ShelfButton', 'ShelfLayout', 'ShelfTabLayout', 'ShellField',
     'SymbolButton', 'SymbolCheckBox', 'TabLayout', 'Text', 'TextCurves',
     'TextField', 'TextFieldButtonGrp', 'TextFieldGrp', 'ToolButton',
-    'ToolCollection']
+    'ToolCollection', 'Visor']
 if not _factories.building:
     for _uiname in _uitypes_names:
         setattr(nodetypes, _uiname, getattr(uitypes, _uiname))
