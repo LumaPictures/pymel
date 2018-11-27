@@ -1,4 +1,5 @@
 import sys, os, inspect, unittest, logging
+import types
 #from testingutils import setupUnittestModule
 from pymel.core import *
 import pymel.core as pm
@@ -1616,6 +1617,27 @@ class test_lazyDocs(unittest.TestCase):
             cmd = _makeStubFunc('filter', 'Devices.dll')
         self.assertEqual(pmcmds.getCmdName(cmd), 'filter')
 
+    # assert that we can get a docstring for every class and method
+    def test_LazyDocString_evaluation(self):
+        def iterDocObjs(module):
+            for name, obj in inspect.getmembers(module):
+                if hasattr(obj, '__doc__'):
+                    yield '{}.{}'.format(module.__name__ , name), obj
+                if inspect.isclass(obj):
+                    # we don't recurse, we only go 2 levels deep for simplicity
+                    # this should get most things, good enough for testing,
+                    # and we don't have to worry about recursion
+                    for name2, obj2 in inspect.getmembers(obj):
+                        yield '{}.{}.{}'.format(module.__name__, name, name2), obj2
+
+        for module in (pm, pm.nt):
+            for name, obj in iterDocObjs(module):
+                # we just want to make sure this doesn't error
+                try:
+                    str(obj.__doc__)
+                except Exception:
+                    print "errored getting docstring for {}".format(name)
+                    raise
 
 
 class test_hasAttr(unittest.TestCase):
