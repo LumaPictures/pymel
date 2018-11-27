@@ -2296,7 +2296,7 @@ def fileDialog2(*args, **kwargs):
     res = cmds.fileDialog2(*args, **kwargs)
     return res
 
-fileInfo = _factories.addCmdDocs(fileInfo)
+fileInfo = _factories.addCmdDocs(fileInfo, cmdName='fileInfo')
 
 filePathEditor = _factories.getCmdFunc('filePathEditor')
 
@@ -2550,6 +2550,6 @@ warning = _factories.getCmdFunc('warning')
 
 whatsNewHighlight = _factories.getCmdFunc('whatsNewHighlight')
 
-workspace = _factories.addCmdDocs(workspace)
+workspace = _factories.addCmdDocs(workspace, cmdName='workspace')
 
 xpmPicker = _factories.getCmdFunc('xpmPicker')

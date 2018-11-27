@@ -575,6 +575,13 @@ def getCmdFunc(cmdName):
     return addCmdDocs(func)
 
 
+def _guessCmdName(func):
+    try:
+        return func.__name__
+    except AttributeError:
+        return func.__class__.__name__
+
+
 def addCmdDocs(func, cmdName=None):
     # type: (C, Optional[str]) -> C
     """
@@ -589,10 +596,7 @@ def addCmdDocs(func, cmdName=None):
     """
 
     if cmdName is None:
-        try:
-            cmdName = func.__name__
-        except AttributeError:
-            cmdName = func.__class__.__name__
+        cmdName = _guessCmdName(func)
     if func.__doc__:
         docstring = func.__doc__
     else:

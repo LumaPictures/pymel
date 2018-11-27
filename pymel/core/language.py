@@ -1310,7 +1310,7 @@ getProcArguments = _factories.getCmdFunc('getProcArguments')
 
 melOptions = _factories.getCmdFunc('melOptions')
 
-optionVar = _factories.addCmdDocs(optionVar)
+optionVar = _factories.addCmdDocs(optionVar, cmdName='optionVar')
 
 python = _factories.getCmdFunc('python')
 

@@ -210,9 +210,17 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
             callbackFlags=callbackFlags, uiWidget=uiWidget).encode()
     else:
         if existing:
-            return "\n{newName} = _factories.addCmdDocs({origName})\n".format(
+            guessedName = factories._guessCmdName(inFunc)
+            if guessedName != funcName:
+                # for, ie, fileInfo = FileInfo(), optionVar = OptionVar(),
+                # workspace = Workspace()
+                explicitCmdName = ', cmdName={!r}'.format(funcName)
+            else:
+                explicitCmdName = ''
+            return "\n{newName} = _factories.addCmdDocs({origName}{explicitCmdName})\n".format(
                 newName=rename or funcName,
-                origName=funcName)
+                origName=funcName,
+                explicitCmdName=explicitCmdName)
         # no doc in runtime module
         if module.__name__ == 'pymel.core.runtime':
             return "\n{newName} = getattr(cmds, '{origName}', None)\n".format(
