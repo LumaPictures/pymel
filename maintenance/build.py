@@ -1799,6 +1799,8 @@ def iterModuleApiDataTypeText(module):
     heritedMethods = {}
 
     for obj in iterModuleDataClasses(module):
+        parentMethods = set()
+
         # we check for type registry metaclass because some datatypes (Time, Distance)
         # don't have a metaclass (and never did).  I'm not sure if that was a
         # mistake, but adding the metaclass causes errors.
@@ -1806,28 +1808,25 @@ def iterModuleApiDataTypeText(module):
             cls = obj
             # parentMethods = methodNames(cls, apicls=obj.apicls)
             parentApicls = None
-            parentPymelTypes = [x for x in cls.mro()[1:]
-                                if x not in (obj.apicls, object)]
-            parentPymelTypeNames = [x.__name__ for x in parentPymelTypes]
-            if parentPymelTypes:
-                # TODO: I think we should do union of all parents...?
-                firstParent = parentPymelTypes[0]
-                parentMethods = heritedMethods.get(firstParent.__name__)
-                if parentMethods is None:
-                    parentMethods = methodNames(firstParent)
-                    heritedMethods[firstParent.__name__] = parentMethods
-            else:
-                parentMethods = set()
+            isIgnoredClass = lambda x: x in (obj.apicls, object)
+            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]
+                                if not isIgnoredClass(x)]
+            for parentCls in cls.__bases__:
+                if isIgnoredClass(parentCls):
+                    continue
+                thisParentMethods = heritedMethods.get(parentCls.__name__)
+                if thisParentMethods is None:
+                    thisParentMethods = methodNames(parentCls)
+                    heritedMethods[parentCls.__name__] = thisParentMethods
+                parentMethods.update(thisParentMethods)
             template = ApiDataTypeGenerator(
-                cls.__name__, cls, parentPymelTypeNames, parentMethods, parentApicls)
+                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
 
             text, methods = template.render()
             yield text, template
-            heritedMethods[cls.__name__] = parentMethods.union(methods)
 
         elif issubclass(obj, pymel.core.datatypes.Unit):
             cls = obj
-            parentMethods = set()
             parentApicls = None
             parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
             template = ApiUnitsGenerator(
@@ -1835,6 +1834,7 @@ def iterModuleApiDataTypeText(module):
 
             text, methods = template.render()
             yield text, template
+        heritedMethods[cls.__name__] = parentMethods.union(methods)
 
 
 def iterApiDataTypeText():
