@@ -2083,6 +2083,26 @@ class testCase_transform(TestCaseExtended):
                                    msg="component %i of rotations not equal (%s != %s)"
                                         % (i, aVal, bVal))
 
+    def test_rotateOrientation(self):
+        # test that getRotateOrientation / setRotateOrientation work
+        noRot = pm.dt.Quaternion.identity
+        self.assertEqual(noRot, self.trans.getRotateOrientation())
+        rot1 = pm.dt.Quaternion(pm.dt.Vector(1, 0, 0), pm.dt.Vector(1,2,3))
+        rot2 = pm.dt.Quaternion(pm.dt.Vector(1, 0, 0), .5)
+        self.trans.setRotateOrientation(rot1, balance=False)
+        self.assertEqual(rot1, self.trans.getRotateOrientation())
+        self.trans.setRotateOrientation(rot2, balance=False)
+        self.assertEqual(rot2, self.trans.getRotateOrientation())
+        pm.undo()
+        self.assertEqual(rot1, self.trans.getRotateOrientation())
+        pm.undo()
+        self.assertEqual(noRot, self.trans.getRotateOrientation())
+        pm.redo()
+        self.assertEqual(rot1, self.trans.getRotateOrientation())
+        pm.redo()
+        self.assertEqual(rot2, self.trans.getRotateOrientation())
+
+
 class testCase_nurbsSurface(TestCaseExtended):
     def setUp(self):
         self.negUSurf = pm.PyNode(pm.surface(name='periodicSurf', du=3, dv=1,
