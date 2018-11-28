@@ -1800,41 +1800,34 @@ def iterModuleApiDataTypeText(module):
     heritedMethods = {}
 
     for obj in iterModuleDataClasses(module):
+        cls = obj
+        parentApicls = None
         parentMethods = set()
+        isIgnoredClass = lambda x: x in (obj.apicls, object)
+        parentPymelTypes = [x.__name__ for x in cls.mro()[1:]
+                            if not isIgnoredClass(x)]
+        for parentCls in cls.__bases__:
+            if isIgnoredClass(parentCls):
+                continue
+            thisParentMethods = heritedMethods.get(parentCls.__name__)
+            if thisParentMethods is None:
+                thisParentMethods = methodNames(parentCls)
+                heritedMethods[parentCls.__name__] = thisParentMethods
+            parentMethods.update(thisParentMethods)
 
         # we check for type registry metaclass because some datatypes (Time, Distance)
         # don't have a metaclass (and never did).  I'm not sure if that was a
         # mistake, but adding the metaclass causes errors.
         if issubclass(getattr(obj, '__metaclass__', type), factories.MetaMayaTypeRegistry):
-            cls = obj
-            # parentMethods = methodNames(cls, apicls=obj.apicls)
-            parentApicls = None
-            isIgnoredClass = lambda x: x in (obj.apicls, object)
-            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]
-                                if not isIgnoredClass(x)]
-            for parentCls in cls.__bases__:
-                if isIgnoredClass(parentCls):
-                    continue
-                thisParentMethods = heritedMethods.get(parentCls.__name__)
-                if thisParentMethods is None:
-                    thisParentMethods = methodNames(parentCls)
-                    heritedMethods[parentCls.__name__] = thisParentMethods
-                parentMethods.update(thisParentMethods)
-            template = ApiDataTypeGenerator(
-                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
-
-            text, methods = template.render()
-            yield text, template
-
+            templateGenerator = ApiDataTypeGenerator
         elif issubclass(obj, pymel.core.datatypes.Unit):
-            cls = obj
-            parentApicls = None
-            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]]
-            template = ApiUnitsGenerator(
-                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+            templateGenerator = ApiUnitsGenerator
 
-            text, methods = template.render()
-            yield text, template
+        template = templateGenerator(
+            cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+        text, methods = template.render()
+        yield text, template
+
         heritedMethods[cls.__name__] = parentMethods.union(methods)
 
 
