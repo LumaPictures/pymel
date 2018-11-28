@@ -8807,6 +8807,43 @@ class SelectionSet(_api.MSelectionList):
 
     def asObjectSet(self):
         return general.sets(self)
+# ------ Do not edit below this line --------
+    __slots__ = ()
+    MergeStrategy = Enum('MergeStrategy', [('mergeNormal', 0), ('kMergeNormal', 0), ('XORWithList', 1), ('kXORWithList', 1), ('removeFromList', 2), ('kRemoveFromList', 2)], multiKeys=True)
+
+    @_f.addApiDocs(_api.MSelectionList, 'clear')
+    def clear(self):
+        # type: () -> None
+        res = _api.MSelectionList.clear(self)
+        return res
+
+    @_f.addApiDocs(_api.MSelectionList, 'getSelectionStrings')
+    def getSelectionStrings(self):
+        # type: () -> List[unicode]
+        do, final_do, outTypes = _f.getDoArgs([], [('array', 'MStringArray', 'out', None)])
+        res = _api.MSelectionList.getSelectionStrings(self, *final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MSelectionList, 'intersect')
+    def intersect(self, other, expandToLeaves=False):
+        # type: (SelectionSet, bool) -> None
+        do, final_do, outTypes = _f.getDoArgs([other, expandToLeaves], [('other', 'MSelectionList', 'in', None), ('expandToLeaves', 'bool', 'in', None)])
+        res = _api.MSelectionList.intersect(self, *final_do)
+        return res
+
+    @_f.addApiDocs(_api.MSelectionList, 'isEmpty')
+    def isEmpty(self):
+        # type: () -> bool
+        res = _api.MSelectionList.isEmpty(self)
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MSelectionList, 'remove')
+    def removeAtIndex(self, index):
+        # type: (int) -> None
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _api.MSelectionList.remove(self, *final_do)
+        return res
+# ------ Do not edit above this line --------
 #    def intersect(self, other):
 #        self.apicls.merge( other, _api.MSelectionList.kXORWithList )
 
