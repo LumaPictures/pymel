@@ -1771,31 +1771,34 @@ def iterApiTypeText():
         yield text, template
 
 
-def iterApiDataTypeText():
+def dependentOrder(classes, seen=None):
+    if seen is None:
+        seen = set()
+    for cls in classes:
+        if cls in seen:
+            continue
+
+        seen.add(cls)
+        for parent in dependentOrder(cls.__bases__, seen):
+            yield parent
+        yield cls
+
+
+def iterModuleDataClasses(module):
+    classes = [obj for name, obj in sorted(
+                    inspect.getmembers(module,
+                                       inspect.isclass))]
+    for cls in dependentOrder(classes):
+        if hasattr(cls, 'apicls') and cls.__module__ == module.__name__:
+            yield cls
+
+
+def iterModuleApiDataTypeText(module):
     import pymel.core.datatypes
 
-    heritedMethods = {
-        'VectorN': methodNames(pymel.core.datatypes.VectorN),
-        'MatrixN': methodNames(pymel.core.datatypes.MatrixN),
-        'Array': methodNames(pymel.core.datatypes.Array),
-    }
+    heritedMethods = {}
 
-    def dependentOrder(objects, seen):
-        for obj in objects:
-            if obj in seen:
-                continue
-
-            seen.add(obj)
-            for child in dependentOrder(obj.__bases__, seen):
-                yield child
-
-            if hasattr(obj, 'apicls') and obj.__module__ == 'pymel.core.datatypes':
-                yield obj
-
-    classes = [obj for name, obj in sorted(
-                    inspect.getmembers(pymel.core.datatypes,
-                                       inspect.isclass))]
-    for obj in dependentOrder(classes, set()):
+    for obj in iterModuleDataClasses(module):
         # we check for type registry metaclass because some datatypes (Time, Distance)
         # don't have a metaclass (and never did).  I'm not sure if that was a
         # mistake, but adding the metaclass causes errors.
@@ -1803,14 +1806,20 @@ def iterApiDataTypeText():
             cls = obj
             # parentMethods = methodNames(cls, apicls=obj.apicls)
             parentApicls = None
-            parentPymelTypes = [x.__name__ for x in cls.mro()[1:]
+            parentPymelTypes = [x for x in cls.mro()[1:]
                                 if x not in (obj.apicls, object)]
+            parentPymelTypeNames = [x.__name__ for x in parentPymelTypes]
             if parentPymelTypes:
-                parentMethods = heritedMethods[parentPymelTypes[0]]
+                # TODO: I think we should do union of all parents...?
+                firstParent = parentPymelTypes[0]
+                parentMethods = heritedMethods.get(firstParent.__name__)
+                if parentMethods is None:
+                    parentMethods = methodNames(firstParent)
+                    heritedMethods[firstParent.__name__] = parentMethods
             else:
                 parentMethods = set()
             template = ApiDataTypeGenerator(
-                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+                cls.__name__, cls, parentPymelTypeNames, parentMethods, parentApicls)
 
             text, methods = template.render()
             yield text, template
@@ -1826,6 +1835,12 @@ def iterApiDataTypeText():
 
             text, methods = template.render()
             yield text, template
+
+
+def iterApiDataTypeText():
+    import pymel.core.datatypes
+    for item in iterModuleApiDataTypeText(pymel.core.datatypes):
+        yield item
 
 
 def iterPyNodeText():
