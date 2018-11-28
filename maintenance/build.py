@@ -1451,7 +1451,8 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         """
         super(ApiDataTypeGenerator, self).getAPIData()
 
-        _logger.info("%s: removing attributes %s" % (self.classname, self.removeAttrs))
+        if self.removeAttrs:
+            _logger.info("%s: removing attributes %s" % (self.classname, self.removeAttrs))
 
         if self.apicls is None:
             return

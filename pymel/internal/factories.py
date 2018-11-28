@@ -1810,7 +1810,6 @@ class ApiArgUtil(object):
             currentModule = 'pymel.core.nodetypes'
         else:
             currentModule = pymelClass.__module__
-        print "current", self.apiClassName, currentModule
 
         def toPymelType(apiName):
             moduleName = None
