@@ -32,6 +32,8 @@ class PymelControlPanel(object):
 
 
     def buildUI(self):
+        _notifySavingDisabled()
+
         self.win = pm.window(title='Pymel Control Panel')
         self.win.show()
 
@@ -940,27 +942,33 @@ def fixSpace():
     else:
         logger.warning( "could not fix Space")
 
+def _notifySavingDisabled():
+    pm.confirmDialog(title='Saving Disabled',
+                     message='Saving using this UI has been disabled until it'
+                             ' can be updated. Changes will not be saved.')
+
 def cacheResults():
-    #return
+    _notifySavingDisabled()
+    return
 
-    res = pm.confirmDialog( title='Cache Results?',
-                         message="Would you like to write your changes to disk? If you choose 'No' your changes will be lost when you restart Maya.",
-                        button=['Yes','No'],
-                        cancelButton='No',
-                        defaultButton='Yes')
-    print res
-    if res == 'Yes':
-        doCacheResults()
+    # res = pm.confirmDialog( title='Cache Results?',
+    #                      message="Would you like to write your changes to disk? If you choose 'No' your changes will be lost when you restart Maya.",
+    #                     button=['Yes','No'],
+    #                     cancelButton='No',
+    #                     defaultButton='Yes')
+    # print res
+    # if res == 'Yes':
+    #     doCacheResults()
 
-def doCacheResults():
-    print "---"
-    print "adding manual defaults"
-    setManualDefaults()
-    print "merging dictionaries"
-    # update apiClasIfno with the sparse data stored in apiClassOverrides
-    factories.mergeApiClassOverrides()
-    print "saving api cache"
-    factories.saveApiCache()
-    print "saving bridge"
-    factories.saveApiMelBridgeCache()
-    print "---"
+# def doCacheResults():
+#     print "---"
+#     print "adding manual defaults"
+#     setManualDefaults()
+#     print "merging dictionaries"
+#     # update apiClasIfno with the sparse data stored in apiClassOverrides
+#     factories.mergeApiClassOverrides()
+#     print "saving api cache"
+#     factories.saveApiCache()
+#     print "saving bridge"
+#     factories.saveApiMelBridgeCache()
+#     print "---"
