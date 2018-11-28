@@ -1896,6 +1896,11 @@ def iterPyNodeText():
                 heritedMethods[mayaType] = parentMethods.union(methods)
                 apiClasses[mayaType] = template.apicls
 
+    # wrap any other datatype classes that don't correspond to a depend node
+    # ...ie, SelectionSet / MSelectionList
+    for text, template in iterModuleApiDataTypeText(pymel.core.nodetypes):
+        yield text, template
+
 
 def iterUIText():
     import pymel.core.uitypes

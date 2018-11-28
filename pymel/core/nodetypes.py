@@ -8534,6 +8534,7 @@ class Particle(DeformableShape):
 
 
 class SelectionSet(_api.MSelectionList):
+    __metaclass__ = _factories.MetaMayaTypeRegistry
     apicls = _api.MSelectionList
 
     def __init__(self, objs):
