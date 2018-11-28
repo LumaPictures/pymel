@@ -1962,25 +1962,6 @@ def generateAll(allowNonWindows=False):
     try:
 
         factories.loadCmdCache()
-        # FIXME: save this into the caches
-
-        factories.apiToMelData[('DependNode', 'setName')] = {'enabled': True, 'overloadIndex': 0, 'useName': 'API'}
-        factories.apiToMelData[('DependNode', 'getName')] = {'enabled': True, 'overloadIndex': 0, 'useName': 'API'}
-        # this prevents NurbsCurve from growing a deprecated `cv` method,
-        # which conflicts with its cv component attribute
-        factories.apiToMelData[('BezierCurve', 'cv')] = {'enabled': False, 'overloadIndex': 0, 'useName': 'API'}
-
-        doc = factories.apiToMelData[('Attribute', 'logicalIndex')]
-        doc['aliases'] = ['item', 'index']
-
-        doc = factories.apiToMelData[('Attribute', 'elementByLogicalIndex')]
-        doc['aliases'] = ['__getitem__']
-
-        doc = factories.apiToMelData[('Attribute', 'isArray')]
-        doc['aliases'] = ['isMulti']
-
-        doc = factories.apiToMelData[('DependNode', 'isFromReferencedFile')]
-        doc['aliases'] = ['isReadOnly']
 
         # import pymel.core, so resetter can read class source info
         import pymel.core
