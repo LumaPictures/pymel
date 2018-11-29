@@ -22538,36 +22538,6 @@ class GreasePlaneRenderShape(Mesh):
     __melnode__ = u'greasePlaneRenderShape'
     __slots__ = ()
 
-    @_f.deprecated
-    def numColorSets(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnMesh, 'numColorSets')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
-    @_f.deprecated
-    def numFaceVertices(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnMesh, 'numFaceVertices')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
-    @_f.deprecated
-    def numNormals(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnMesh, 'numNormals')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
-    @_f.deprecated
-    def numUVSets(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnMesh, 'numUVSets')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
-    @_f.deprecated
-    def numUVs(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnMesh, 'numUVs')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
 
 class NBase(Particle):
     __melcmd__ = staticmethod(effects.nBase)
