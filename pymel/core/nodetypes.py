@@ -22239,12 +22239,6 @@ class BezierCurve(NurbsCurve):
     __melnode__ = u'bezierCurve'
     __slots__ = ()
 
-    @_f.deprecated
-    def numCVs(self):
-        # type: () -> int
-        res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'numCVs')
-        return _f.ApiArgUtil._castResult(self, res, 'int', None)
-
 
 class SnapshotShape(ControlPoint):
     __melnode__ = u'snapshotShape'
