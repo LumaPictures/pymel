@@ -707,6 +707,10 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
     _CACHE_NAMES = '''apiToMelData apiClassOverrides'''.split()
     CLASSINFO_SUBCACHE_NAME = 'apiClassOverrides'
 
+    def rebuild(self):
+        raise RuntimeError("should never need to rebuild the {} cache"
+                           .format(self.NAME))
+
 
 class ApiCache(BaseApiClassInfoCache):
     NAME = 'mayaApi'
