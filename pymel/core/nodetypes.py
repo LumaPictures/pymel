@@ -10322,10 +10322,8 @@ class SkinCluster(GeometryFilter):
 class HikHandle(Transform):
     pass
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnTransform
     __melnode__ = u'hikHandle'
     __slots__ = ()
-    LimitType = Enum('LimitType', [('scaleMinX', 0), ('kScaleMinX', 0), ('scaleMaxX', 1), ('kScaleMaxX', 1), ('scaleMinY', 2), ('kScaleMinY', 2), ('scaleMaxY', 3), ('kScaleMaxY', 3), ('scaleMinZ', 4), ('kScaleMinZ', 4), ('scaleMaxZ', 5), ('kScaleMaxZ', 5), ('shearMinXY', 6), ('kShearMinXY', 6), ('shearMaxXY', 7), ('kShearMaxXY', 7), ('shearMinXZ', 8), ('kShearMinXZ', 8), ('shearMaxXZ', 9), ('kShearMaxXZ', 9), ('shearMinYZ', 10), ('kShearMinYZ', 10), ('shearMaxYZ', 11), ('kShearMaxYZ', 11), ('rotateMinX', 12), ('kRotateMinX', 12), ('rotateMaxX', 13), ('kRotateMaxX', 13), ('rotateMinY', 14), ('kRotateMinY', 14), ('rotateMaxY', 15), ('kRotateMaxY', 15), ('rotateMinZ', 16), ('kRotateMinZ', 16), ('rotateMaxZ', 17), ('kRotateMaxZ', 17), ('translateMinX', 18), ('kTranslateMinX', 18), ('translateMaxX', 19), ('kTranslateMaxX', 19), ('translateMinY', 20), ('kTranslateMinY', 20), ('translateMaxY', 21), ('kTranslateMaxY', 21), ('translateMinZ', 22), ('kTranslateMinZ', 22), ('translateMaxZ', 23), ('kTranslateMaxZ', 23)], multiKeys=True)
 
     @_f.deprecated
     def getRotationQuaternion(self, space='transform'):
@@ -10355,13 +10353,8 @@ class HikHandle(Transform):
 class JointFfd(DependNode):
     pass
 # ------ Do not edit below this line --------
-    __apicls__ = _api.MFnDependencyNode
     __melnode__ = u'jointFfd'
     __slots__ = ()
-    MAttrClass = Enum('MAttrClass', [('localDynamicAttr', 1), ('kLocalDynamicAttr', 1), ('normalAttr', 2), ('kNormalAttr', 2), ('extensionAttr', 3), ('kExtensionAttr', 3), ('invalidAttr', 4), ('kInvalidAttr', 4)], multiKeys=True)
-    MdgTimerMetric = Enum('MdgTimerMetric', [('metric_callback', 0), ('kTimerMetric_callback', 0), ('metric_compute', 1), ('kTimerMetric_compute', 1), ('metric_dirty', 2), ('kTimerMetric_dirty', 2), ('metric_draw', 3), ('kTimerMetric_draw', 3), ('metric_fetch', 4), ('kTimerMetric_fetch', 4), ('metric_callbackViaAPI', 5), ('kTimerMetric_callbackViaAPI', 5), ('metric_callbackNotViaAPI', 6), ('kTimerMetric_callbackNotViaAPI', 6), ('metric_computeDuringCallback', 7), ('kTimerMetric_computeDuringCallback', 7), ('metric_computeNotDuringCallback', 8), ('kTimerMetric_computeNotDuringCallback', 8), ('metrics', 9), ('kTimerMetrics', 9)], multiKeys=True)
-    MdgTimerState = Enum('MdgTimerState', [('off', 0), ('kTimerOff', 0), ('on', 1), ('kTimerOn', 1), ('uninitialized', 2), ('kTimerUninitialized', 2), ('invalidState', 3), ('kTimerInvalidState', 3)], multiKeys=True)
-    MdgTimerType = Enum('MdgTimerType', [('type_self', 0), ('kTimerType_self', 0), ('type_inclusive', 1), ('kTimerType_inclusive', 1), ('type_count', 2), ('kTimerType_count', 2), ('types', 3), ('kTimerTypes', 3)], multiKeys=True)
 
     @_f.deprecated
     def addAttribute(self, attr):
