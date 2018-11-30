@@ -3,6 +3,7 @@
 import sys, os, inspect, unittest
 import pymel.core as pm
 import maya.cmds as cmds
+import maya.OpenMaya as om
 
 class test_PMTypes(unittest.TestCase):
 
@@ -917,9 +918,8 @@ class test_PMTypes(unittest.TestCase):
         rot[0] = 70
         self.assertAlmostEqual(rot.x, 70)
 
-
-##################################################################
-## MMatrix tests
+    ##################################################################
+    ## MMatrix tests
 
     def testMatrix_Instance(self) :
         self.m = pm.datatypes.Matrix()
@@ -1417,6 +1417,119 @@ class test_PMTypes(unittest.TestCase):
             if x:
                 c, at = x.split('.')
                 val  = getattr( getattr( pm.datatypes, c ), at )
+
+
+class test_Quaternion(unittest.TestCase):
+    def testQuaternion_init_identity(self):
+        mIdentity = om.MQuaternion()
+        identity = pm.dt.Quaternion()
+        self.assertEqual(identity, pm.dt.Quaternion(0, 0, 0, 1))
+        self.assertEqual(identity, pm.dt.Quaternion(0, 0, 0, 1))
+        self.assertEqual(identity, mIdentity)
+        self.assertNotEqual(identity, om.MQuaternion(1,2,3,1))
+
+    def testQuaternion_init_4floats(self):
+        m1231float = om.MQuaternion(1.1, 2.2, 3.3, 1.0)
+        quat = pm.dt.Quaternion(1.1, 2.2, 3.3, 1.0)
+        self.assertEqual(quat, pm.dt.Quaternion(1.1, 2.2, 3.3, 1.0))
+        self.assertEqual(quat, m1231float)
+        self.assertNotEqual(quat, pm.dt.Quaternion())
+
+    def testQuaternion_init_4ints(self):
+        m1231int = om.MQuaternion(1, 2, 3, 1)
+        quat = pm.dt.Quaternion(1, 2, 3, 1)
+        self.assertEqual(quat, pm.dt.Quaternion(1, 2, 3, 1))
+        self.assertEqual(quat, m1231int)
+
+    def testQuaternion_init_otherQuat(self):
+        m1231int = om.MQuaternion(1, 2, 3, 1)
+        origQuat = pm.dt.Quaternion(1, 2, 3, 1)
+        quat = pm.dt.Quaternion(origQuat)
+        self.assertEqual(quat, origQuat)
+        self.assertEqual(quat, m1231int)
+
+    def testQuaternion_init_otherMQuat(self):
+        m1231int = om.MQuaternion(1, 2, 3, 1)
+        quat = pm.dt.Quaternion(m1231int)
+        self.assertEqual(quat, m1231int)
+
+    def testQuaternion_init_rotateVecToVec(self):
+        m100to123 = om.MQuaternion(om.MVector(1,0,0), om.MVector(1,2,3))
+        quat = pm.dt.Quaternion(pm.dt.Vector(1,0,0), pm.dt.Vector(1,2,3))
+        self.assertEqual(quat, m100to123)
+
+        quat = pm.dt.Quaternion(om.MVector(1,0,0), om.MVector(1,2,3))
+        self.assertEqual(quat, m100to123)
+
+        quat = pm.dt.Quaternion((1,0,0), (1,2,3))
+        self.assertEqual(quat, m100to123)
+
+        quat = pm.dt.Quaternion([1,0,0], [1,2,3])
+        self.assertEqual(quat, m100to123)
+
+        quat = pm.dt.Quaternion((1,0,0), [1,2,3])
+        self.assertEqual(quat, m100to123)
+
+        quat = pm.dt.Quaternion(pm.dt.Vector(1,0,0), [1,2,3])
+        self.assertEqual(quat, m100to123)
+
+    def testQuaternion_init_rotateVecToVec_factor(self):
+        m100to123_25 = om.MQuaternion(om.MVector(1,0,0), om.MVector(1,2,3), .25)
+        quat = pm.dt.Quaternion(pm.dt.Vector(1,0,0), pm.dt.Vector(1,2,3), .25)
+        self.assertEqual(quat, m100to123_25)
+
+        quat = pm.dt.Quaternion(om.MVector(1,0,0), om.MVector(1,2,3), .25)
+        self.assertEqual(quat, m100to123_25)
+
+        quat = pm.dt.Quaternion((1,0,0), (1,2,3), .25)
+        self.assertEqual(quat, m100to123_25)
+
+        quat = pm.dt.Quaternion([1,0,0], [1,2,3], .25)
+        self.assertEqual(quat, m100to123_25)
+
+        quat = pm.dt.Quaternion((1,0,0), om.MVector(1,2,3), .25)
+        self.assertEqual(quat, m100to123_25)
+
+        quat = pm.dt.Quaternion([1,0,0], (1,2,3), .25)
+        self.assertEqual(quat, m100to123_25)
+
+    def testQuaternion_init_axisAngle(self):
+        m32x = om.MQuaternion(32, om.MVector(1,0,0))
+        quat = pm.dt.Quaternion(pm.dt.Vector(1, 0, 0), 32.0)
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion(pm.dt.Vector(1, 0, 0), 32)
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion(32.0, pm.dt.Vector(1, 0, 0))
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion(32, pm.dt.Vector(1, 0, 0))
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion((1, 0, 0), 32.0)
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion((1, 0, 0), 32)
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion(32.0, (1, 0, 0))
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion(32, (1, 0, 0))
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion([1, 0, 0], 32.0)
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion([1, 0, 0], 32)
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion(32.0, [1, 0, 0])
+        self.assertEqual(quat, m32x)
+
+        quat = pm.dt.Quaternion(32, [1, 0, 0])
+        self.assertEqual(quat, m32x)
 
 
 class test_Units(unittest.TestCase):
