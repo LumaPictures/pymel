@@ -2162,9 +2162,14 @@ class Quaternion(Matrix):
         """ __init__ method for Quaternion """
         cls = self.__class__
 
+        def isVectorLike(x):
+            return isinstance(x, (_api.MVector, Vector)) \
+                    or hasattr(x, '__len__') and len(x) == 3
+
         if args:
             # allow both forms for arguments
-            if len(args) == 1 and hasattr(args[0], '__iter__'):
+            if len(args) == 1 and hasattr(args[0], '__iter__') \
+                    and not isinstance(args[0], (_api.MQuaternion, Quaternion)):
                 args = args[0]
 
             rotate = getattr(args, 'rotate', None)
@@ -2179,12 +2184,22 @@ class Quaternion(Matrix):
                 args = quat
                 # allow to initialize directly from 3 rotations and a rotation order
 
-            elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float):
-                # some special init cases are allowed by the api class, want to authorize
-                # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
-                args = (float(args[1]), Vector(args[0]))
-            # shortcut when a direct api init is possible
 
+            # axis-angle - want to authorize
+            # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
+            elif len(args) == 2 and isVectorLike(args[0]) and isinstance(args[1], (int, float)):
+                args = (args[1], Vector(args[0]))
+            elif len(args) == 2 and isinstance(args[0], (int, float)) and isVectorLike(args[1]):
+                args = (args[0], Vector(args[1]))
+            # rotate vector-to-vector
+            elif len(args) == 2 and isVectorLike(args[0]) and isVectorLike(args[1]):
+                args = (Vector(args[0]), Vector(args[1]))
+            # rotate vector-to-vector, with scalar factor
+            elif len(args) == 3 and isVectorLike(args[0]) and isVectorLike(args[1]) \
+                    and isinstance(args[2], (int, float)):
+                args = (Vector(args[0]), Vector(args[1]), args[2])
+
+            # shortcut when a direct api init is possible
             try:
                 self.assign(args)
             except:
