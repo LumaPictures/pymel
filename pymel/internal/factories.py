@@ -173,6 +173,11 @@ apiClassNamesToPyNodeNames = {}  # type: Dict[str, str]
 # Lookup from MFn name to Pymel class
 apiClassNamesToPymelTypes = {}  # type: Dict[str, Type]
 
+# Dictionary mapping from maya node type names (ie, surfaceShape) to pymel
+# class names, in this module - ie, SurfaceShape
+mayaTypeNameToPymelTypeName = {}
+pymelTypeNameToMayaTypeName = {}
+
 # Lookup from Api Enums to Pymel Component Classes
 #
 # A list of possible component classes is always returned (even if it's only
@@ -2840,6 +2845,11 @@ class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
 
         newcls = super(MetaMayaTypeRegistry, cls).__new__(cls, classname, bases, classdict)
 
+        nodeType = getattr(newcls, '__melnode__', None)
+        if nodeType and classname not in pymelTypeNameToMayaTypeName:
+            pymelTypeNameToMayaTypeName[nodeType] = classname
+            mayaTypeNameToPymelTypeName.setdefault(nodeType, classname)
+
         if proxy:
             parentPyNode = [x for x in bases if issubclass(x, util.ProxyUnicode)]
             assert len(parentPyNode), \
@@ -3344,9 +3354,6 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
                 nodeType = util.uncapitalize(classname)
             classdict['__melnode__'] = nodeType
 
-        from pymel.core.nodetypes import mayaTypeNameToPymelTypeName, \
-            pymelTypeNameToMayaTypeName
-
         # mapping from pymel type to maya type should always be made...
         oldMayaType = pymelTypeNameToMayaTypeName.get(classname)
         if oldMayaType is None:
@@ -3510,6 +3517,21 @@ def addCustomPyNode(module, mayaType, extraAttrs=None):
         return pynodeName
 
 
+def getPymelTypeName(mayaTypeName, create=True):
+    # type: (str) -> str
+    pymelTypeName = mayaTypeNameToPymelTypeName.get(mayaTypeName)
+    if pymelTypeName is None and create:
+        pymelTypeName = str(util.capitalize(mayaTypeName))
+        pymelTypeNameBase = pymelTypeName
+        num = 1
+        while pymelTypeName in pymelTypeNameToMayaTypeName:
+            num += 1
+            pymelTypeName = pymelTypeNameBase + str(num)
+        mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
+        pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
+    return pymelTypeName
+
+
 def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
     # type: (Any, Any, Any, Any) -> Tuple[str, type]
     """
@@ -3520,24 +3542,6 @@ def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
     name : str
     class : type
     """
-    # module is generally pymel.core.nodetypes, but don't want to rely on
-    # that for pymel.core.nodetypes.mayaTypeNameToPymelTypeName...
-    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName,\
-        pymelTypeNameToMayaTypeName
-
-    def getPymelTypeName(mayaTypeName):
-        pymelTypeName = mayaTypeNameToPymelTypeName.get(mayaTypeName)
-        if pymelTypeName is None:
-            pymelTypeName = str(util.capitalize(mayaTypeName))
-            pymelTypeNameBase = pymelTypeName
-            num = 1
-            while pymelTypeName in pymelTypeNameToMayaTypeName:
-                num += 1
-                pymelTypeName = pymelTypeNameBase + str(num)
-            mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
-            pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
-        return pymelTypeName
-
     # unicode is not liked by metaNode
     parentPyNodeTypeName = mayaTypeNameToPymelTypeName.get(parentMayaType)
     if parentPyNodeTypeName is None:
@@ -3560,7 +3564,6 @@ def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
 
 
 def removePyNode(module, mayaType):
-    from pymel.core.nodetypes import mayaTypeNameToPymelTypeName
     pyNodeTypeName = mayaTypeNameToPymelTypeName.get(mayaType)
     if not pyNodeTypeName:
         _logger.raiseLog(_logger.WARNING,

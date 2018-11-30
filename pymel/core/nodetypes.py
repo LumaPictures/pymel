@@ -54,10 +54,9 @@ _f = _factories
 # If we're reloading, clear the pynode types out
 _factories.clearPyNodeTypes()
 
-# Dictionary mapping from maya node type names (ie, surfaceShape) to pymel
-# class names, in this module - ie, SurfaceShape
-mayaTypeNameToPymelTypeName = {}
-pymelTypeNameToMayaTypeName = {}
+# for backwards compatibility, need these in this namespace
+mayaTypeNameToPymelTypeName = _factories.mayaTypeNameToPymelTypeName
+pymelTypeNameToMayaTypeName = _factories.pymelTypeNameToMayaTypeName
 
 
 def _addTypeNames():

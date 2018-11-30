@@ -1683,8 +1683,9 @@ class UITypeGenerator(MelMethodGenerator):
         return cmd, False
 
 
-def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods, parentApicls):
-    # type: (str, List[str], Any, Any, Any) -> NodeTypeGenerator
+def getPyNodeGenerator(mayaType, existingClass, pyNodeTypeName, parentMayaTypes,
+                       childMayaTypes, parentMethods, parentApicls):
+    # type: (str, Optional[type], str, List[str], Any, Any, Any) -> NodeTypeGenerator
     """
     create a PyNode type for a maya node.
 
@@ -1698,20 +1699,6 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods,
     NodeTypeGenerator
     """
     import pymel.core.nodetypes as nt
-
-    def getPymelTypeName(mayaTypeName):
-        # type: (str) -> str
-        pymelTypeName = nt.mayaTypeNameToPymelTypeName.get(mayaTypeName)
-        if pymelTypeName is None:
-            pymelTypeName = str(util.capitalize(mayaTypeName))
-            pymelTypeNameBase = pymelTypeName
-            num = 1
-            while pymelTypeName in nt.pymelTypeNameToMayaTypeName:
-                num += 1
-                pymelTypeName = pymelTypeNameBase + str(num)
-            nt.mayaTypeNameToPymelTypeName[mayaTypeName] = pymelTypeName
-            nt.pymelTypeNameToMayaTypeName[pymelTypeName] = mayaTypeName
-        return pymelTypeName
 
     def getCachedPymelType(nodeType):
         # type: (str) -> str
@@ -1733,8 +1720,6 @@ def getPyNodeGenerator(mayaType, parentMayaTypes, childMayaTypes, parentMethods,
 
     parentPymelTypes = [getCachedPymelType(p) for p in parentMayaTypes]
     childPymelTypes = [getCachedPymelType(c) for c in childMayaTypes]
-    pyNodeTypeName = getPymelTypeName(mayaType)
-    existingClass = getattr(nt, pyNodeTypeName, None)
 
     return NodeTypeGenerator(pyNodeTypeName, existingClass,
                              parentPymelTypes, parentMethods, parentApicls,
@@ -1830,6 +1815,7 @@ def iterApiDataTypeText():
 
 def iterPyNodeText():
     import pymel.core.general
+    import pymel.core.nodetypes as nt
 
     # Generate Classes
     heritedMethods = {
@@ -1856,15 +1842,31 @@ def iterPyNodeText():
                    for x in nodeHierarchyTree.preorder()]
         factories.nodeHierarchy = newHier
 
+    parentsDict = {}
     for mayaType, parents, children in factories.nodeHierarchy:
         for parent in parents:
             realChildren[parent].add(mayaType)
+        parentsDict[mayaType] = parents
 
     for mayaType, parents, _ in factories.nodeHierarchy:
         children = realChildren[mayaType]
 
+        pyNodeTypeName = factories.getPymelTypeName(mayaType)
+        existingClass = getattr(nt, pyNodeTypeName, None)
+
         if mayaType == 'dependNode':
             parents = ['general.PyNode']
+        elif existingClass is not None:
+            # sometimes - ie, due to maya bugs where a node type isn't
+            # compatible with the MFn class of one of it's parents - we'll
+            # manually define the parent pynode class of a pynode class
+            # different than it's normal maya type parent.  Check for this.s
+            existingParent = existingClass.__bases__[0]
+            existingParentType = \
+                factories.pymelTypeNameToMayaTypeName.get(
+                    existingParent.__name__)
+            if existingParentType and existingParentType != parents[0]:
+                parents = [existingParentType] + list(parentsDict[existingParentType])
 
         parentMayaType = parents[0]
         if parentMayaType is None:
@@ -1874,7 +1876,13 @@ def iterPyNodeText():
         if factories.isMayaType(mayaType) or mayaType == 'dependNode':
             parentMethods = heritedMethods[parentMayaType]
             parentApicls = apiClasses[parentMayaType]
-            template = getPyNodeGenerator(mayaType, parents, children, parentMethods, parentApicls)
+            template = getPyNodeGenerator(mayaType,
+                                          existingClass,
+                                          pyNodeTypeName,
+                                          parents,
+                                          children,
+                                          parentMethods,
+                                          parentApicls)
             if template:
                 text, methods = template.render()
                 yield text, template
