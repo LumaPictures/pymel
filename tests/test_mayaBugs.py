@@ -478,7 +478,8 @@ class TestFluidMFnCreation(unittest.TestCase):
 
 # nucleus node fixed in 2014
 # symmetryConstraint fixed in 2015
-# jointFFd / transferAttributes fixed <= 2016.5
+# transferAttributes fixed <= 2016.5
+# jointFFd still broken as of 2019
 class TestMFnCompatibility(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
