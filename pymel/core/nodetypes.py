@@ -35419,19 +35419,11 @@ class TextureDeformer(WeightGeometryFilter):
 
 
 class TransferAttributes(WeightGeometryFilter):
-    __apicls__ = _api.MFnDependencyNode
     __melcmd__ = staticmethod(modeling.transferAttributes)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'transferAttributes'
     __melnode__ = u'transferAttributes'
     __slots__ = ()
-
-    @_f.deprecated
-    def addAttribute(self, attr):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
-        return res
 
     @_f.addMelDocs('transferAttributes', 'after')
     def after(self, val=True, **kwargs):
@@ -35441,31 +35433,6 @@ class TransferAttributes(WeightGeometryFilter):
     def afterReference(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'afterReference', val)
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def attribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
-    def attributeClass(self, attribute):
-        # type: (general.PyNode) -> DependencyNode.MAttrClass
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attributeClass', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MAttrClass'), None)
-        return res
-
     @_f.addMelDocs('transferAttributes', 'before')
     def before(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'before', val)
@@ -35474,77 +35441,6 @@ class TransferAttributes(WeightGeometryFilter):
     def colorBorders(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'colorBorders', val)
 
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
-        return res
-
-    @_f.deprecated
-    def dgCallbacks(self, timerType, callbackName, value):
-        # type: (DependencyNode.MdgTimerType, List[unicode], List[float]) -> None
-        do, final_do, outTypes = _f.getDoArgs([timerType, callbackName, value], [('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None), ('callbackName', 'MStringArray', 'in', None), ('value', 'MDoubleArray', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgCallbacks', final_do)
-        return res
-
-    @_f.deprecated
-    def dgTimer(self, timerMetric, timerType):
-        # type: (DependencyNode.MdgTimerMetric, DependencyNode.MdgTimerType) -> float
-        do, final_do, outTypes = _f.getDoArgs([timerMetric, timerType], [('timerMetric', ('MFnDependencyNode', 'MdgTimerMetric'), 'in', None), ('timerType', ('MFnDependencyNode', 'MdgTimerType'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimer', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def dgTimerOff(self):
-        # type: () -> None
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOff')
-        return res
-
-    @_f.deprecated
-    def dgTimerOn(self):
-        # type: () -> None
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerOn')
-        return res
-
-    @_f.deprecated
-    def dgTimerQueryState(self):
-        # type: () -> DependencyNode.MdgTimerState
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerQueryState')
-        return _f.ApiArgUtil._castResult(self, res, ('MFnDependencyNode', 'MdgTimerState'), None)
-
-    @_f.deprecated
-    def dgTimerReset(self):
-        # type: () -> None
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'dgTimerReset')
-        return res
-
-    @_f.deprecated
-    def findAlias(self, alias):
-        # type: (unicode) -> Tuple[bool, general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([alias], [('alias', 'MString', 'in', None), ('attrObj', 'MObject', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
     @_f.addMelDocs('transferAttributes', 'flipUVs')
     def flipUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'flipUVs', val)
@@ -35552,43 +35448,6 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'frontOfChain')
     def frontOfChain(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'frontOfChain', val)
-
-    @_f.deprecated
-    def getAffectedAttributes(self, attr):
-        # type: (general.PyNode) -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getAffectedByAttributes(self, attr):
-        # type: (general.PyNode) -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getAliasAttr(self, force):
-        # type: (bool) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([force], [('force', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasAttr', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
-    def getAliasList(self):
-        # type: () -> Tuple[bool, List[unicode]]
-        do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAliasList', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getConnections(self):
-        # type: () -> List[general.Attribute]
-        do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('transferAttributes', 'deformerTools')
     def getDeformerTools(self, **kwargs):
@@ -35610,22 +35469,6 @@ class TransferAttributes(WeightGeometryFilter):
         res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'geometryIndices')
         return res
 
-    @_f.deprecated
-    def hasAttribute(self, attrName):
-        # type: (unicode) -> bool
-        do, final_do, outTypes = _f.getDoArgs([attrName], [('attrName', 'MString', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'hasAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
-    @_f.deprecated
-    def isNewAttribute(self, attr):
-        # type: (general.PyNode) -> bool
-        do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'isNewAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
     @_f.addMelDocs('transferAttributes', 'matchChoice')
     def matchChoice(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'matchChoice', val)
@@ -35634,14 +35477,6 @@ class TransferAttributes(WeightGeometryFilter):
     def parallel(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'parallel', val)
 
-    @_f.deprecated
-    def plugsAlias(self, plug):
-        # type: (general.Attribute) -> unicode
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
     @_f.addMelDocs('transferAttributes', 'prune')
     def prune(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'prune', val)
@@ -35649,21 +35484,6 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'remove')
     def remove(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'remove', val)
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
 
     @_f.addMelDocs('transferAttributes', 'sampleSpace')
     def sampleSpace(self, val=True, **kwargs):
@@ -35685,21 +35505,6 @@ class TransferAttributes(WeightGeometryFilter):
     def searchScaleZ(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'searchScaleZ', val)
 
-    @_f.deprecated
-    def setAlias(self, alias, name, plug, add=True):
-        # type: (unicode, unicode, general.Attribute, bool) -> bool
-        do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
-        return res
-
-    @_f.deprecated
-    def setFlag(self, flag, state):
-        # type: (int, bool) -> None
-        do, final_do, outTypes = _f.getDoArgs([flag, state], [('flag', 'uint', 'in', None), ('state', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setFlag', final_do)
-        return res
-
     @_f.addMelDocs('transferAttributes', 'geometry')
     def setGeometry(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'geometry', val)
@@ -35719,12 +35524,6 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'transferUVs')
     def transferUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.transferAttributes, kwargs, 'transferUVs', val)
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Wire(WeightGeometryFilter):
