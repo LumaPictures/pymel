@@ -35425,10 +35425,6 @@ class TransferAttributes(WeightGeometryFilter):
     __melcmdname__ = u'transferAttributes'
     __melnode__ = u'transferAttributes'
     __slots__ = ()
-    MAttrClass = Enum('MAttrClass', [('localDynamicAttr', 1), ('kLocalDynamicAttr', 1), ('normalAttr', 2), ('kNormalAttr', 2), ('extensionAttr', 3), ('kExtensionAttr', 3), ('invalidAttr', 4), ('kInvalidAttr', 4)], multiKeys=True)
-    MdgTimerMetric = Enum('MdgTimerMetric', [('metric_callback', 0), ('kTimerMetric_callback', 0), ('metric_compute', 1), ('kTimerMetric_compute', 1), ('metric_dirty', 2), ('kTimerMetric_dirty', 2), ('metric_draw', 3), ('kTimerMetric_draw', 3), ('metric_fetch', 4), ('kTimerMetric_fetch', 4), ('metric_callbackViaAPI', 5), ('kTimerMetric_callbackViaAPI', 5), ('metric_callbackNotViaAPI', 6), ('kTimerMetric_callbackNotViaAPI', 6), ('metric_computeDuringCallback', 7), ('kTimerMetric_computeDuringCallback', 7), ('metric_computeNotDuringCallback', 8), ('kTimerMetric_computeNotDuringCallback', 8), ('metrics', 9), ('kTimerMetrics', 9)], multiKeys=True)
-    MdgTimerState = Enum('MdgTimerState', [('off', 0), ('kTimerOff', 0), ('on', 1), ('kTimerOn', 1), ('uninitialized', 2), ('kTimerUninitialized', 2), ('invalidState', 3), ('kTimerInvalidState', 3)], multiKeys=True)
-    MdgTimerType = Enum('MdgTimerType', [('type_self', 0), ('kTimerType_self', 0), ('type_inclusive', 1), ('kTimerType_inclusive', 1), ('type_count', 2), ('kTimerType_count', 2), ('types', 3), ('kTimerTypes', 3)], multiKeys=True)
 
     @_f.deprecated
     def addAttribute(self, attr):

@@ -1257,10 +1257,18 @@ class ApiMethodGenerator(MelMethodGenerator):
             factories.apiClassNamesToPyNodeNames[self.apicls.__name__] = self.classname
 
         classShouldBeSkipped = False
-        if self.apicls is self.parentApicls:
-            # If this class's api class is the same as the parent, the methods
-            # are already handled... so we SHOULD skip skip this class, and
-            # return immediately. However, "old" pymel did not have this check,
+        if inspect.isclass(self.parentApicls) and issubclass(self.parentApicls,
+                                                             self.apicls):
+            # check if our apiCls is same as parentApicls, OR is a parent
+            # it may seem odd / impossible for our apicls to be the parent of
+            # the parentApicls - we'd be going from more specific to less
+            # specific. However, in same cases due to bugs in maya, a given node
+            # may not support all of it's parent node's MFns / methods... so
+            # we would need to "roll back" it's MFn
+
+            # If it is the same or a subclss, the methods are already
+            # handled... so we SHOULD skip skip this class, and return
+            # immediately. However, "old" pymel did not have this check,
             # so instead we continue, but mark ALL methods that we end up
             # wrapping here as deprecated
             classShouldBeSkipped = True
