@@ -54,6 +54,7 @@ EXCLUDE_TEST_MODULES = tuple('''windows
     maintenance
     extras
     docs
+    pymel_modules
     tests/pymel_test.py
     tests/TestPymel.py'''.split())
 
