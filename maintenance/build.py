@@ -1043,22 +1043,26 @@ class MelMethodGenerator(object):
             # # implemented on ancestors
             # filterAttrs.update({'getParent'}.intersection(self.herited))
 
-            def shouldWrap(methodName):
-                if methodName in filterAttrs:
-                    return False
-                if (hasattr(self.existingClass, methodName)
-                         and not self.isMelMethod(methodName)):
-                    return False
-
+            def getMelName(methodName):
                 bridgeInfo = factories.apiToMelData.get(
-                    (self.classname, methodName))
+                    (self.classname, methodName), {})
+                melName = bridgeInfo.get('melName', methodName)
+                if melName in filterAttrs:
+                    return None
+                if (hasattr(self.existingClass, melName)
+                        and not self.isMelMethod(melName)):
+                    return None
+
                 if not bridgeInfo:
-                    return True
+                    return melName
+
                 melEnabled = bridgeInfo.get('melEnabled')
                 if melEnabled is not None:
-                    return melEnabled
+                    return melName if melEnabled else None
                 # if the api method is enabled that means we skip it here.
-                return not bridgeInfo.get('enabled', True)
+                if bridgeInfo.get('enabled', True):
+                    return None
+                return melName
 
             for flag, flagInfo in cmdInfo['flags'].items():
                 # don't create methods for query or edit, or for flags which only serve to modify other flags
@@ -1074,8 +1078,9 @@ class MelMethodGenerator(object):
                     # query command
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
+                        methodName = getMelName(methodName)
 
-                        if shouldWrap(methodName):
+                        if methodName:
                             returnFunc = None
                             if flagInfo.get('resultNeedsCasting', False):
                                 returnFunc = flagInfo['args']
@@ -1096,8 +1101,9 @@ class MelMethodGenerator(object):
                         # if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
                         else:
                             methodName = flag
+                        methodName = getMelName(methodName)
 
-                        if shouldWrap(methodName):
+                        if methodName:
                             # FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
                             # FIXME: the 2nd argument is wrong, so I think this is broken
                             # fixedFunc = fixCallbacks(func, melCmdName)
