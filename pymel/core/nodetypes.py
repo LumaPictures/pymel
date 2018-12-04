@@ -52800,6 +52800,10 @@ class PolyBlindData(DependNode):
     def stringData(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'stringData', val)
 
+    @_f.addMelDocs('polyBlindData', 'typeId')
+    def typeId(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyBlindData, kwargs, 'typeId', val)
+
     @_f.deprecated
     def typeName(self):
         # type: () -> unicode
