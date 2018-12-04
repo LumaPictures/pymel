@@ -928,7 +928,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
             print "git mergetool"
             print 'git commit -m "merge in comments"'
             print "git checkout {}".format(oldBranch)
-            print "git checkout {} -- {}".format(CACHE_CHANGES_BRANCH, newPath)
+            print 'git checkout {} -- "{}"'.format(CACHE_CHANGES_BRANCH, newPath)
             print "git branch -D {}".format(' '.join(TEMP_BRANCHES))
             return
 
