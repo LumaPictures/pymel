@@ -520,7 +520,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
         if nameType == 'API':
             pass
         elif nameType == 'MEL':
-            pymelName = data['melName']
+            pymelName = data.get('melName', pymelName)
         else:
             pymelName = nameType
             explicitRename = True
