@@ -1200,17 +1200,11 @@ class ApiMethodGenerator(MelMethodGenerator):
         some child classes which possessed the same apicls as their parent.
         We will deprecate them in order to allow users to transition.
         """
-        # formerly, pymel did not check parents, only it's own class entry,
-        # for 'enabled' data
-        if not self.isEnabled(pymelName, recursive=False):
-            return False
-
-        # also, formerly if an entry did not exist in the api override cache,
-        # it was effectively disabled (ie, if it didn't have an overrideIndex)
+        # this is one place we don't need to check recursively up the chain,
+        # since it was a one-time thing we added exactly where needed
         overrideData = factories._getApiOverrideNameAndData(
             self.classname, pymelName)[1]
-        overloadIndex = overrideData.get('overloadIndex', None)
-        return overloadIndex is not None
+        return overrideData.get('backwards_compatibility_enabled', False)
 
     def getApiCls(self):
         if self.existingClass is not None:
@@ -1367,18 +1361,28 @@ class ApiMethodGenerator(MelMethodGenerator):
                     yieldTuple = (methodName, self.classname, pymelName,
                                   overloadIndex, aliases, properties)
 
-                    if not self.isEnabled(basePymelName):
-                        # check to see if it was formerly (erroneously) enabled
-                        # in older versions of pymel. if so, we keep it, but
-                        # mark it deprecated
-                        if self.methodWasFormerlyEnabled(basePymelName):
+                    def handleBackwardsCompatibilityFix():
+                        '''check to see if it was formerly (erroneously) enabled
+                        in older versions of pymel.
+
+                        if so, we keep it, but mark it deprecated'''
+                        wasEnabled = self.methodWasFormerlyEnabled(basePymelName)
+                        if wasEnabled:
                             # FIXME: add unique deprecation message
                             _logger.info(
                                 "{}.{}: Adding disabled method as deprecated."
                                 " Used by older versions of pymel".format(
                                     self.classname, pymelName))
                             deprecated.append(yieldTuple)
-                        else:
+                        return wasEnabled
+
+                    if classShouldBeSkipped:
+                        # if we're doing a class which "should" be skipped,
+                        # the ONLY reason we should wrap it is to deal
+                        # with backwards-compatibility enabled methods
+                        handleBackwardsCompatibilityFix()
+                    elif not self.isEnabled(basePymelName):
+                        if not handleBackwardsCompatibilityFix():
                             _logger.debug(
                                 "{}.{} has been manually disabled, skipping"
                                 .format(self.classname, pymelName))
@@ -1393,14 +1397,6 @@ class ApiMethodGenerator(MelMethodGenerator):
             for (methodName, classname, pymelName, overloadIndex, aliases, properties, deprecated) \
                     in non_deprecated_methods_first():
                 assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
-
-                # note that we set deprecated True here, instead of in
-                # non_deprecated_methods_first, because we want to keep the
-                # "old" ordering (ie, even though we end up marking everything
-                # as deprecated, ones that formerly wouldn't be deprecated
-                # should still come first)
-                if classShouldBeSkipped:
-                    deprecated = True
 
                 # TODO: some methods are being wrapped for the base class,
                 # and all their children - ie, MFnTransform.transformation()
