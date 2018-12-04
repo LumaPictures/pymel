@@ -961,6 +961,7 @@ class MelMethodGenerator(object):
         self.methods[name] = Method(self.classname, name, data=data, **kwargs)
 
     def addMelMethod(self, name, data=None, **kwargs):
+        # _logger.debug("Adding mel derived method %s.%s()" % (self.classname, name))
         return self.addMethod(name, 'mel', data=data, **kwargs)
 
     def addApiMethod(self, name, data=None, **kwargs):
@@ -1042,6 +1043,22 @@ class MelMethodGenerator(object):
             # # implemented on ancestors
             # filterAttrs.update({'getParent'}.intersection(self.herited))
 
+            def shouldWrap(methodName):
+                if methodName in filterAttrs:
+                    return False
+                if (hasattr(self.existingClass, methodName)
+                         and not self.isMelMethod(methodName)):
+                    return False
+
+                bridgeInfo = factories.apiToMelData.get(
+                    (self.classname, methodName))
+                if not bridgeInfo:
+                    return True
+                if bridgeInfo.get('melEnabled', False):
+                    return True
+                # if the api method is enabled that means we skip it here.
+                return not bridgeInfo.get('enabled', True)
+
             for flag, flagInfo in cmdInfo['flags'].items():
                 # don't create methods for query or edit, or for flags which only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
@@ -1057,32 +1074,20 @@ class MelMethodGenerator(object):
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
 
-                        if methodName not in filterAttrs and \
-                                (not hasattr(self.existingClass, methodName)
-                                 or self.isMelMethod(methodName)):
+                        if shouldWrap(methodName):
+                            returnFunc = None
+                            if flagInfo.get('resultNeedsCasting', False):
+                                returnFunc = flagInfo['args']
 
-                            # 'enabled' refers to whether the API version of this method will be used.
-                            # if the method is enabled that means we skip it here.
-                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
-                            if (not bridgeInfo
-                                    or bridgeInfo.get('melEnabled', False)
-                                    or not bridgeInfo.get('enabled', True)):
-                                returnFunc = None
+                            self.addMelMethod(methodName, {
+                                'command': melCmdName,
+                                'type': 'query',
+                                'flag': flag,
+                                'returnFunc': importableName(returnFunc) if returnFunc else None,
+                                'func': cmdPath,
+                            })
 
-                                if flagInfo.get('resultNeedsCasting', False):
-                                    returnFunc = flagInfo['args']
-
-                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                self.addMelMethod(methodName, {
-                                    'command': melCmdName,
-                                    'type': 'query',
-                                    'flag': flag,
-                                    'returnFunc': importableName(returnFunc) if returnFunc else None,
-                                    'func': cmdPath,
-                                })
-                            # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
-                        # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
-                    # edit command:
+                    # edit command
                     if 'edit' in modes or (infoCmd and 'create' in modes):
                         # if there is a corresponding query we use the 'set' prefix.
                         if 'query' in modes:
@@ -1091,27 +1096,17 @@ class MelMethodGenerator(object):
                         else:
                             methodName = flag
 
-                        if methodName not in filterAttrs and \
-                                (not hasattr(self.existingClass, methodName)
-                                 or self.isMelMethod(methodName)):
-                            bridgeInfo = factories.apiToMelData.get((self.classname, methodName))
-                            if (not bridgeInfo
-                                    or bridgeInfo.get('melEnabled', False)
-                                    or not bridgeInfo.get('enabled', True)):
+                        if shouldWrap(methodName):
+                            # FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
+                            # FIXME: the 2nd argument is wrong, so I think this is broken
+                            # fixedFunc = fixCallbacks(func, melCmdName)
 
-                                # FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
-                                # FIXME: the 2nd argument is wrong, so I think this is broken
-                                # fixedFunc = fixCallbacks(func, melCmdName)
-
-                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
-                                self.addMelMethod(methodName, {
-                                    'command': melCmdName,
-                                    'type': 'edit',
-                                    'flag': flag,
-                                    'func': cmdPath,
-                                })
-                            # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-                        # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            self.addMelMethod(methodName, {
+                                'command': melCmdName,
+                                'type': 'edit',
+                                'flag': flag,
+                                'func': cmdPath,
+                            })
 
     def getMelCmd(self):
         """
