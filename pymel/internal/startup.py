@@ -552,6 +552,9 @@ class PymelCache(object):
     # whether to add the version to the filename when writing out the cache
     USE_VERSION = True
 
+    _lastReadPath = None
+    _lastWritePath = None
+
     def fromRawData(self, rawData):
         '''If a subclass needs to modify data as it is read from the cache
         on disk, do it here'''
@@ -576,9 +579,12 @@ class PymelCache(object):
             func = format.reader
             _logger.debug(self._actionMessage('Loading', 'from', newPath))
             try:
-                return self.fromRawData(func(newPath))
+                finalData = self.fromRawData(func(newPath))
             except Exception, e:
                 self._errorMsg('read', 'from', newPath, e)
+            else:
+                self._lastReadPath = newPath
+                return finalData
 
     def write(self, data, ext=None):
         import copy
@@ -597,6 +603,8 @@ class PymelCache(object):
             func(self.toRawData(data), newPath)
         except Exception, e:
             self._errorMsg('write', 'to', newPath, e)
+        else:
+            self._lastWritePath = newPath
 
     @universalmethod
     def path(self, version=None, ext=None):

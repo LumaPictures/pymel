@@ -2,6 +2,7 @@
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 import inspect
+import os
 import re
 import itertools
 
@@ -710,6 +711,266 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
     def rebuild(self):
         raise RuntimeError("should never need to rebuild the {} cache"
                            .format(self.NAME))
+
+    @classmethod
+    def stripComments(cls, sourcelines):
+        '''Returns the text of the input python source lines with no comments,
+        or None if the source did not have any comments
+
+        sourcelines should have trailing newlines, ie, as returned by readlines
+        '''
+        import tokenize
+
+        if isinstance(sourcelines, basestring):
+            if not sourcelines:
+                sourcelines = []
+            else:
+                sourcelines = sourcelines.split('\n')
+                sourcelines = [x + '\n' for x in sourcelines]
+                sourcelines[-1] = sourcelines[-1][:-1]
+
+        def isNewline(tok):
+            return tok[0] in (tokenize.NL, tokenize.NEWLINE)
+
+        nonComments = []
+        linesRemoved = 0
+        foundComments = False
+        stripNewlines = False
+        for tok in tokenize.generate_tokens(iter(sourcelines).next):
+            if tok[0] == tokenize.COMMENT:
+                foundComments = True
+                # if the comment was the only thing on the line - ie, it wasn't
+                # an inline comment - we also strip all empty lines before and after
+
+                # first, check to see if the last token was a newline - this is
+                # how we check if it was an inline comment...
+                if not nonComments or isNewline(nonComments[-1]):
+                    # ok, now strip the empty lines before...
+                    # note that we still want to leave in ONE newline before, since
+                    # we will strip newlines after!
+                    while len(nonComments) > 1 and isNewline(nonComments[-2]):
+                        linesRemoved += 1
+                        nonComments.pop()
+                    # then mark that we're stripping newlines, so we can filter
+                    # the ones after...
+                    stripNewlines = True
+            elif stripNewlines and isNewline(tok):
+                # skip the next newline(s) after a comment, if that was the only
+                # thing on the line
+                linesRemoved += 1
+            else:
+                stripNewlines = False
+                # correct the token for the removed newlines, or else untokenize will
+                # insert empty lines
+                nonComments.append((
+                    # token type
+                    tok[0],
+                    # token text
+                    tok[1],
+                    # token start row/col
+                    (tok[2][0] - linesRemoved, tok[2][1]),
+                    # token end row/col
+                    (tok[3][0] - linesRemoved, tok[3][1]),
+                    # line tok was in
+                    tok[4],
+                ))
+
+        if foundComments:
+            return tokenize.untokenize(nonComments)
+
+    @classmethod
+    def applyComments(cls, origText, origTextNoComments, newPath):
+        import subprocess
+
+        newPath = os.path.normpath(os.path.abspath(newPath))
+
+        def readcache():
+            with open(newPath, 'rb') as f:
+                return f.read()
+
+        def writecache(text):
+            with open(newPath, 'wb') as f:
+                f.write(text)
+
+        # read the current state of newPath to get the updated text
+        newText = readcache()
+        if newText == origText:
+            # nothing was changed, we can quit
+            print "No changes made to {} - no need to apply comments".format(
+                cls.NAME)
+            return
+
+        # we assume user has git installed, and this source file is part of a
+        # git repo, as it simplifies things (ie, no diff tools on windows)
+        # this should be fine, as ApiMelBridgeCache.write() / .save() should
+        # only ever be invoked manually, since rebuild() is overridden to error
+
+        thisFile = inspect.getsourcefile(cls)
+        pymelRoot = os.path.dirname(os.path.dirname(os.path.dirname(thisFile)))
+
+        # in case of error, and in case origText was NOT committed, write it
+        # out to disk
+        origTextPath = newPath + '.orig'
+        with open(origTextPath, 'wb') as f:
+            f.write(origText)
+
+        def git(arg, output=False):
+            if isinstance(arg, basestring):
+                args = arg.split()
+            else:
+                args = arg
+            if output:
+                def func(*args, **kwargs):
+                    kwargs['stderr'] = subprocess.STDOUT
+                    return subprocess.check_output(*args, **kwargs)
+            else:
+                func = subprocess.check_call
+            # on Windows, at least, when git is run from subprocess inside of
+            # maya, it's unable to access the user's .gitconfig for some reason
+            # Not too big of a deal, since these shouldn't be "permanent"
+            # commits, so we just hard code some settings
+            args = [
+                'git',
+                '-c', 'core.autocrlf=false',
+                '-c', 'user.name=pymel',
+                '-c', 'user.email=pymel@noexist',
+            ] + list(args)
+            # print '{}({!r}, cwd={!r})'.format(func.__name__, args, pymelRoot)
+            return func(args, cwd=pymelRoot)
+
+        def gitout(arg):
+            return git(arg, output=True).rstrip()
+
+        def commitcache(text, message):
+            writecache(text)
+            git(['add', newPath])
+            git(['commit', '-m', message])
+
+        # verify we have git accessible
+        try:
+            git('--version')
+        except subprocess.CalledProcessError:
+            raise RuntimeError("Cannot save {} cache and preserve comments - no"
+                               "git installed / accessible on executable path"
+                               .format(cls.NAME))
+
+        # make sure the file is tracked by git
+        output = gitout(['ls-files', '--', newPath])
+        if not output:
+            # file was not tracked - error
+            raise RuntimeError("File did not seem to be tracked by git -"
+                               " cannot revert comments: {}".format(newPath))
+
+        # make sure that the user hasn't already added files to commit to the
+        # git index with "git add" - outstanding untracked changes are fine,
+        # just not things in the index.,
+        try:
+            git('diff-index --quiet --cached HEAD')
+        except subprocess.CalledProcessError:
+            raise RuntimeError("Outstanding changes were added to the git"
+                               " index - commit or revert these before"
+                               " continuing")
+
+        # we'll be making commits, so we'll need our own temp branches
+        COMMENT_APPLY_BRANCH = 'pymel_cache_temp_comment_apply'
+        CACHE_CHANGES_BRANCH = 'pymel_cache_temp_new_changes'
+        TEMP_BRANCHES = [COMMENT_APPLY_BRANCH, CACHE_CHANGES_BRANCH]
+        for tempBranch in TEMP_BRANCHES:
+            try:
+                gitout(['rev-parse', '--verify', '--quiet', tempBranch])
+            except subprocess.CalledProcessError:
+                pass
+            else:
+                # The branch already exists, abort
+                raise RuntimeError("The temp branch already exists - remove it "
+                                   " before continuing: {}".format(tempBranch))
+
+        oldBranch = gitout('rev-parse --abbrev-ref HEAD')
+        git(['checkout', '-b', COMMENT_APPLY_BRANCH])
+
+        # revert cache first, then commit origText if different... technically,
+        # we could skip this step, and go straight for committing of
+        # origNoComment, but this will make history slightly clearer if
+        # something goes wrong
+        git(['checkout', '-f', oldBranch, '--', newPath])
+        revertedText = readcache()
+        if revertedText != origText:
+            commitcache(origText,
+                 "writing uncomitted state before {} cache was re-written"
+                        .format(cls.NAME))
+
+        # ok, now commit the no-comment state, since this is the common
+        # "merge-base"
+        commitcache(origTextNoComments,
+                    "commit no-comment cache to serve as common merge-base")
+
+        git(['branch', CACHE_CHANGES_BRANCH])
+
+        # now commit the with-comment state
+        commitcache(origText, "re-add the comments")
+
+        # ok, swap to different branch, and commit the new state
+        git(['checkout', CACHE_CHANGES_BRANCH])
+        commitcache(newText, "new changes, without comments")
+
+        # finally, merge in the comments
+        try:
+            output = gitout(['merge', COMMENT_APPLY_BRANCH,
+                             '-m', "merge in comments"])
+        except subprocess.CalledProcessError as e:
+            print '!' * 80
+            print e
+            print e.output
+            print "Error during merge - run the following to resolve the"
+            print "merge conflict manually with mergetool, then commit the"
+            print "result, and finally clean up your repo:"
+            print
+            print "git mergetool"
+            print 'git commit -m "merge in comments"'
+            print "git checkout {}".format(oldBranch)
+            print "git checkout {} -- {}".format(CACHE_CHANGES_BRANCH, newPath)
+            print "git branch -D {}".format(' '.join(TEMP_BRANCHES))
+            return
+
+        # since everything worked, do some cleanup!
+        with open(newPath, 'rb') as f:
+            newTextWithComments = f.read()
+        # if we don't explicitly checkout the cache path from the oldBranch
+        # first, we will get an error when we do "git checkout oldBranch"
+        # We don't want to use "-f" in case there are outstanding changes to
+        # other files!
+        git(['checkout', oldBranch, '--', newPath])
+        git(['checkout', oldBranch])
+        # now write back our changes
+        with open(newPath, 'wb') as f:
+            f.write(newTextWithComments)
+        os.remove(origTextPath)
+        for tempBranch in TEMP_BRANCHES:
+            git(['branch', '-D', tempBranch])
+
+    # override write to preserve comments
+    def write(self, data, ext=None):
+        if ext is None:
+            ext = self.DEFAULT_EXT
+
+        def isPyPath(path):
+            return os.path.splitext(self._lastReadPath)[1] == '.py'
+
+        noComments = None
+        if ext == '.py' and os.path.splitext(self._lastReadPath)[1] == '.py':
+            # we last read .py, and we're writing .py... check for comments
+            with open(self._lastReadPath, 'rb') as f:
+                origLines = f.readlines()
+            noComments = self.stripComments(origLines)
+
+        super(ApiMelBridgeCache, self).write(data, ext=ext)
+
+        if noComments is None:
+            print "original {} had no comments, no need to strip".format(cls.NAME)
+        else:
+            # if we had comments, try to apply them now
+            self.applyComments(''.join(origLines), noComments,
+                               self._lastWritePath)
 
 
 class ApiCache(BaseApiClassInfoCache):
