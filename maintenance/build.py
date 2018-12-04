@@ -1148,13 +1148,9 @@ class MelMethodGenerator(object):
         for parentClass in classes:
             overrideData = factories._getApiOverrideNameAndData(parentClass,
                                                                 methodName)[1]
-            # TODO: eventually, we should return a result as soon as we find
-            # an entry... however, currently, the api override cache is littered
-            # with a bunch of default-created entries, with a bunch of "enabled"
-            # values set to True. So, we ignore any True results, and search
-            # upstream until we find a False
-            if not overrideData.get('enabled', True):
-                return False
+            enabled = overrideData.get('enabled')
+            if enabled is not None:
+                return enabled
         return True
 
     def docstring(self, melCmdName):
