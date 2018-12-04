@@ -159,7 +159,8 @@ loadApiCache()  # need mayaTypesToApiTypes
 #        Mappings and Lists
 # ---------------------------------------------------------------
 
-EXCLUDE_METHODS = ['type', 'className', 'create', 'name']
+EXCLUDE_METHODS = ['type', 'className', 'create', 'name', 'attribute',
+                   'addAttribute', 'removeAttribute']
 
 #: controls whether command docstrings will contain examples parsed from autodesk docs
 # examples are usually only included when creating documentation, otherwise it's too much info
@@ -524,12 +525,11 @@ def _getApiOverrideNameAndData(classname, pymelName):
             pymelName = nameType
             explicitRename = True
     else:
-        # set defaults
-        #_logger.debug( "creating default api-to-MEL data for %s.%s" % ( classname, pymelName ) )
-        data = {'enabled': pymelName not in EXCLUDE_METHODS}
-        apiToMelData[(classname, pymelName)] = data
+        # return defaults
+        data = {}
+        if pymelName in EXCLUDE_METHODS:
+            data['enabled'] = False
 
-    #overloadIndex = data.get( 'overloadIndex', None )
     return pymelName, data, explicitRename
 
 

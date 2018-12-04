@@ -24815,6 +24815,10 @@ class Assembly(DagContainer):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
+    @_f.addMelDocs('assembly', 'createRepresentation')
+    def createRepresentation(self, val=True, **kwargs):
+        return _f.asEdit(self, general.assembly, kwargs, 'createRepresentation', val)
+
     @_f.addApiDocs(_api.MFnAssembly, 'deleteAllRepresentations')
     def deleteAllRepresentations(self):
         # type: () -> None
@@ -63605,6 +63609,10 @@ class TimeEditorAnimSource(DependNode):
     def includeRoot(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorAnimSource, kwargs, 'includeRoot', val)
 
+    @_f.addMelDocs('timeEditorAnimSource', 'attribute')
+    def populateAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorAnimSource, kwargs, 'attribute', val)
+
     @_f.addMelDocs('timeEditorAnimSource', 'recursively')
     def recursively(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorAnimSource, kwargs, 'recursively', val)
@@ -63649,6 +63657,10 @@ class TimeEditorClip(TimeEditorClipBase):
     __melcmdname__ = u'timeEditorClip'
     __melnode__ = u'timeEditorClip'
     __slots__ = ()
+
+    @_f.addMelDocs('timeEditorClip', 'addAttribute')
+    def addClipAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorClip, kwargs, 'addAttribute', val)
 
     @_f.addMelDocs('timeEditorClip', 'allowShrinking')
     def allowShrinking(self, val=True, **kwargs):
@@ -63984,6 +63996,10 @@ class TimeEditorClip(TimeEditorClipBase):
     def path(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorClip, kwargs, 'path', val)
 
+    @_f.addMelDocs('timeEditorClip', 'attribute')
+    def populateAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorClip, kwargs, 'attribute', val)
+
     @_f.addMelDocs('timeEditorClip', 'razorClip')
     def razorClip(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorClip, kwargs, 'razorClip', val)
@@ -64003,6 +64019,10 @@ class TimeEditorClip(TimeEditorClipBase):
     @_f.addMelDocs('timeEditorClip', 'removeClip')
     def removeClip(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorClip, kwargs, 'removeClip', val)
+
+    @_f.addMelDocs('timeEditorClip', 'removeAttribute')
+    def removeClipAttribute(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorClip, kwargs, 'removeAttribute', val)
 
     @_f.addMelDocs('timeEditorClip', 'removeCrossfade')
     def removeCrossfade(self, val=True, **kwargs):

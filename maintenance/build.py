@@ -964,7 +964,12 @@ class MelMethodGenerator(object):
         # _logger.debug("Adding mel derived method %s.%s()" % (self.classname, name))
         return self.addMethod(name, 'mel', data=data, **kwargs)
 
-    def addApiMethod(self, name, data=None, **kwargs):
+    def addApiMethod(self, name, baseName, data=None, **kwargs):
+        overrideData = factories._getApiOverrideNameAndData(
+            self.classname, baseName)[1]
+        melName = overrideData.get('melName')
+        if melName:
+            self.classToMethodTypes[self.classname][melName] = 'api'
         return self.addMethod(name, 'api', data=data, **kwargs)
 
     def render(self):
@@ -1047,20 +1052,22 @@ class MelMethodGenerator(object):
                 bridgeInfo = factories.apiToMelData.get(
                     (self.classname, methodName), {})
                 melName = bridgeInfo.get('melName', methodName)
+
+                methodType = self.methodType(melName)
+                if methodType not in (None, 'mel'):
+                    return None
                 if melName in filterAttrs:
                     return None
                 if (hasattr(self.existingClass, melName)
-                        and not self.isMelMethod(melName)):
+                        and  methodType != 'mel'):
                     return None
 
-                if not bridgeInfo:
-                    return melName
 
                 melEnabled = bridgeInfo.get('melEnabled')
                 if melEnabled is not None:
                     return melName if melEnabled else None
                 # if the api method is enabled that means we skip it here.
-                if bridgeInfo.get('enabled', True):
+                if self.isApiEnabled(methodName, default=False):
                     return None
                 return melName
 
@@ -1142,18 +1149,14 @@ class MelMethodGenerator(object):
         """
         return self.methodType(methodName) == 'mel'
 
-    def isEnabled(self, methodName, recursive=True):
-        if recursive:
-            classes = self.classnameMRO()
-        else:
-            classes = [self.classname]
-        for parentClass in classes:
-            overrideData = factories._getApiOverrideNameAndData(parentClass,
-                                                                methodName)[1]
+    def isApiEnabled(self, methodName, default=True):
+        for parentClass in self.classnameMRO():
+            overrideData = factories._getApiOverrideNameAndData(
+                parentClass, methodName)[1]
             enabled = overrideData.get('enabled')
             if enabled is not None:
                 return enabled
-        return True
+        return default
 
     def docstring(self, melCmdName):
         try:
@@ -1356,7 +1359,7 @@ class ApiMethodGenerator(MelMethodGenerator):
 
                     aliases = overrideData.get('aliases', [])
                     properties = overrideData.get('properties', [])
-                    yieldTuple = (methodName, self.classname, pymelName,
+                    yieldTuple = (methodName, pymelName, basePymelName,
                                   overloadIndex, aliases, properties)
 
                     def handleBackwardsCompatibilityFix():
@@ -1379,7 +1382,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                         # the ONLY reason we should wrap it is to deal
                         # with backwards-compatibility enabled methods
                         handleBackwardsCompatibilityFix()
-                    elif not self.isEnabled(basePymelName):
+                    elif not self.isApiEnabled(basePymelName):
                         if not handleBackwardsCompatibilityFix():
                             _logger.debug(
                                 "{}.{} has been manually disabled, skipping"
@@ -1392,9 +1395,10 @@ class ApiMethodGenerator(MelMethodGenerator):
                 for yieldTuple in deprecated:
                     yield yieldTuple + (True,)
 
-            for (methodName, classname, pymelName, overloadIndex, aliases, properties, deprecated) \
+            for (methodName, pymelName, basePymelName, overloadIndex, aliases,
+                 properties, deprecated) \
                     in non_deprecated_methods_first():
-                assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
+                assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (self.classname, methodName, pymelName)
 
                 # TODO: some methods are being wrapped for the base class,
                 # and all their children - ie, MFnTransform.transformation()
@@ -1409,7 +1413,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                                             deprecated=deprecated, aliases=aliases,
                                             properties=properties)
                         if doc:
-                            self.addApiMethod(pymelName, doc)
+                            self.addApiMethod(pymelName, basePymelName, doc)
                         #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
                     #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
                 #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
@@ -1453,7 +1457,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         if self.removeAttrs:
             # because datatype classes inherit from their API classes, if a
             # method is renamed, we must also remove the inherited API method.
-            self.addApiMethod('__getattribute__', {
+            self.addApiMethod('__getattribute__', '__getattribute__', {
                 'type': 'getattribute',
                 'removeAttrs': _setRepr(self.removeAttrs),
             })
