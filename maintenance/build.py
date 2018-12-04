@@ -1054,8 +1054,9 @@ class MelMethodGenerator(object):
                     (self.classname, methodName))
                 if not bridgeInfo:
                     return True
-                if bridgeInfo.get('melEnabled', False):
-                    return True
+                melEnabled = bridgeInfo.get('melEnabled')
+                if melEnabled is not None:
+                    return melEnabled
                 # if the api method is enabled that means we skip it here.
                 return not bridgeInfo.get('enabled', True)
 
