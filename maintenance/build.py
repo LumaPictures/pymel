@@ -1048,8 +1048,8 @@ class MelMethodGenerator(object):
             # filterAttrs.update({'getParent'}.intersection(self.herited))
 
             def getMelName(methodName):
-                bridgeInfo = factories.apiToMelData.get(
-                    (self.classname, methodName), {})
+                bridgeInfo = factories._getApiOverrideData(self.classname,
+                                                           methodName)
                 melName = bridgeInfo.get('melName', methodName)
 
                 methodType = self.methodType(melName)
