@@ -52792,6 +52792,10 @@ class PolyBlindData(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setFlag', final_do)
         return res
 
+    @_f.addMelDocs('polyBlindData', 'typeId')
+    def setTypeId(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyBlindData, kwargs, 'typeId', val)
+
     @_f.addMelDocs('polyBlindData', 'shape')
     def shape(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'shape', val)
@@ -52803,10 +52807,6 @@ class PolyBlindData(DependNode):
     @_f.addMelDocs('polyBlindData', 'stringData')
     def stringData(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'stringData', val)
-
-    @_f.addMelDocs('polyBlindData', 'typeId')
-    def typeId(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyBlindData, kwargs, 'typeId', val)
 
     @_f.deprecated
     def typeName(self):

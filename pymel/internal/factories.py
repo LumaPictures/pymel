@@ -160,7 +160,7 @@ loadApiCache()  # need mayaTypesToApiTypes
 # ---------------------------------------------------------------
 
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name', 'attribute',
-                   'addAttribute', 'removeAttribute']
+                   'addAttribute', 'removeAttribute', 'typeId']
 
 #: controls whether command docstrings will contain examples parsed from autodesk docs
 # examples are usually only included when creating documentation, otherwise it's too much info
