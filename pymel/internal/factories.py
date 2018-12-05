@@ -505,31 +505,27 @@ if docstringMode == 'html':
             pass
 
 
-def _getApiOverrideNameAndData(classname, pymelName):
-    explicitRename = False
-    if apiToMelData.has_key((classname, pymelName)):
-
-        data = apiToMelData[(classname, pymelName)]
-        try:
-            nameType = data['useName']
-        except KeyError:
-            # Not sure why it was a big deal if useName wasn't set...?
-            #_logger.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
-            nameType = 'API'
-
-        if nameType == 'API':
-            pass
-        elif nameType == 'MEL':
-            pymelName = data.get('melName', pymelName)
-        else:
-            pymelName = nameType
-            explicitRename = True
-    else:
+def _getApiOverrideData(classname, pymelName):
+    data = apiToMelData.get((classname, pymelName))
+    if data is None:
         # return defaults
         data = {}
         if pymelName in EXCLUDE_METHODS:
             data['enabled'] = False
+    return data
 
+
+def _getApiOverrideNameAndData(classname, pymelName):
+    data = _getApiOverrideData(classname, pymelName)
+    explicitRename = False
+    nameType = data.get('useName', 'API')
+    if nameType == 'API':
+        pass
+    elif nameType == 'MEL':
+        pymelName = data.get('melName', pymelName)
+    else:
+        pymelName = nameType
+        explicitRename = True
     return pymelName, data, explicitRename
 
 
@@ -1759,9 +1755,10 @@ class ApiArgUtil(object):
         pymelName = self.methodInfo.get('pymelName', self.methodName)
         try:
             pymelClassName = apiClassNamesToPyNodeNames[self.apiClassName]
-            pymelName, data, _ = _getApiOverrideNameAndData(pymelClassName, pymelName)
         except KeyError:
             pass
+        else:
+            pymelName = _getApiOverrideNameAndData(pymelClassName, pymelName)[0]
         return pymelName
 
     def getMethodDocs(self):

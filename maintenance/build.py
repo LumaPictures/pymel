@@ -965,8 +965,7 @@ class MelMethodGenerator(object):
         return self.addMethod(name, 'mel', data=data, **kwargs)
 
     def addApiMethod(self, name, baseName, data=None, **kwargs):
-        overrideData = factories._getApiOverrideNameAndData(
-            self.classname, baseName)[1]
+        overrideData = factories._getApiOverrideData(self.classname, baseName)
         melName = overrideData.get('melName')
         if melName:
             self.classToMethodTypes[self.classname][melName] = 'api'
@@ -1151,8 +1150,8 @@ class MelMethodGenerator(object):
 
     def isApiEnabled(self, methodName, default=True):
         for parentClass in self.classnameMRO():
-            overrideData = factories._getApiOverrideNameAndData(
-                parentClass, methodName)[1]
+            overrideData = factories._getApiOverrideData(parentClass,
+                                                         methodName)
             enabled = overrideData.get('enabled')
             if enabled is not None:
                 return enabled
@@ -1203,8 +1202,7 @@ class ApiMethodGenerator(MelMethodGenerator):
         """
         # this is one place we don't need to check recursively up the chain,
         # since it was a one-time thing we added exactly where needed
-        overrideData = factories._getApiOverrideNameAndData(
-            self.classname, pymelName)[1]
+        overrideData = factories._getApiOverrideData(self.classname, pymelName)
         return overrideData.get('backwards_compatibility_enabled', False)
 
     def getApiCls(self):
