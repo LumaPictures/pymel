@@ -17,6 +17,18 @@ Non-Backward Compatible Changes
   inherits from om.MEulerRotation, they should mostly be compatible, but if you
   need a om.MEulerRotation, just cast directly - ie,
   om.MEulerRotation(dt.Quaternion().asEulerRotation())
+- OptionMenuGrp.getParent() now returns a PyUI object, instead of a string,
+  as intended.  This brings it's behavior in line with most other
+  PyUI.getParent() calls, including RowLayout.getParent() and Layout.getParent(),
+  from which OptionMenuGrp inherits
+- PopupMenu.getItemArray() now returns PyUI objects, instead of strings, as
+  intended.  This brings it's behavior in line with Menu.getItemArray(), from
+  which it inherits
+
+----------------------------------
+Bug Fixes
+----------------------------------
+- uitypes.OptionMenu.getItemArray() now fixed, and returns PyUI objects
 
 ==================================
 Version 1.0.10
