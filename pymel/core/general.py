@@ -7862,12 +7862,6 @@ Modifications:
         res = _f.getProxyResult(self, _api.MFnAttribute, 'isWritable')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
-    @_f.addApiDocs(_api.MFnAttribute, 'parent')
-    def parent(self):
-        # type: () -> PyNode
-        res = _f.getProxyResult(self, _api.MFnAttribute, 'parent')
-        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-
     @_f.addApiDocs(_api.MFnAttribute, 'removeFromCategory')
     def removeFromCategory(self, category):
         # type: (unicode) -> None
