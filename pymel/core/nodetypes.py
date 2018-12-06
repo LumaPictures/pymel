@@ -427,6 +427,12 @@ class DependNode(general.PyNode):
 
         Note: this is still experimental.
         """
+        # if it's a MPlug, MObject, Attribute, or AttributeDefaults, we don't
+        # even need either cls/self
+        if isinstance(attr, (_api.MPlug, _api.MObject,
+                             general.Attribute, general.AttributeDefaults)):
+            return general.AttributeDefaults(attr)
+
         if inspect.isclass(obj):
             self = None
             cls = obj  # keep things familiar
@@ -456,19 +462,9 @@ class DependNode(general.PyNode):
                 return attrObj
 
             if self is None:
-                if hasattr(_api, 'MNodeClass'):
-                    # Yay, we have MNodeClass, use it!
-                    nodeCls = _api.MNodeClass(cls.__melnode__)
-                    attrObj = toAttrObj(nodeCls)
-                else:
-                    # We don't have an instance of the node, we need
-                    # to make a ghost one...
-                    with _apicache._GhostObjMaker(cls.__melnode__) as nodeObj:
-                        if nodeObj is None:
-                            # for instance, we get this if we have an abstract class...
-                            raise RuntimeError("Unable to get attribute defaults for abstract node class %s, in versions prior to 2012" % cls.__melnode__)
-                        nodeMfn = cls.__apicls__(nodeObj)
-                        attrObj = toAttrObj(nodeMfn)
+                # Yay, we have MNodeClass, use it!
+                nodeCls = _api.MNodeClass(cls.__melnode__)
+                attrObj = toAttrObj(nodeCls)
             else:
                 nodeMfn = self.__apimfn__()
                 attrObj = toAttrObj(nodeMfn)

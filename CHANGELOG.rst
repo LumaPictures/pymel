@@ -5,6 +5,22 @@ What's New
 **********
 
 ==================================
+Version 1.1.0
+==================================
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- AttributeDefaults.parent() now returns None instead of erroring
+
+----------------------------------
+Additions
+----------------------------------
+- AttributeDefaults may now be constructed from a string (which names an
+  existing Attribute), an Attribute, an MPlug, or another AttributeDefaults.
+  DependNode.attrDefaults now also accepts all these objects as well.
+
+==================================
 Version 1.0.10
 ==================================
 
