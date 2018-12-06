@@ -42,6 +42,22 @@ Additions
     setHighlightColor, setManage, setPreventOverride, setVisible,
     setVisibleChangeCommand, setWidth, statusBarMessage
 
+- Some api method wraps were re-enabled on DependNode, DagNode, and ObjectSet.
+  Formerly, some of these methods were implemented on some subclasses of these
+  node types; they are now uniformly available on the base node.  Note that some
+  of these methods represent new functionality, while others merely duplicate
+  existing functionality (ie, DagNode.partialPathName <=> DagNode.name);
+  however, we wanted to provide a uniform interface, and did not want to break
+  backward compatibility, so they were enabled on their base classes. The set of
+  new methods is:
+
+    DagNode.fullPathName, DagNode.isInstancedAttribute, DagNode.partialPathName,
+    DagNode.setInstanceable, DependNode.attributeClass, DependNode.dgCallbacks,
+    DependNode.dgTimer, DependNode.dgTimerOff, DependNode.dgTimerOn,
+    DependNode.dgTimerQueryState, DependNode.dgTimerReset, DependNode.getAliasAttr,
+    DependNode.isNewAttribute, DependNode.setFlag, ObjectSet.isMember
+
+
 ----------------------------------
 Bug Fixes
 ----------------------------------
