@@ -2289,6 +2289,13 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'fullPathName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
+    @_f.deprecated
+    def getAllPaths(self):
+        # type: () -> List[general.PyNode]
+        do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnDagNode, 'getAllPaths', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
     @_f.addApiDocs(_api.MFnDagNode, 'getConnectedSetsAndMembers')
     def getConnectedSetsAndMembers(self, instanceNumber, renderableSetsOnly):
         # type: (int, bool) -> Tuple[List[general.PyNode], List[general.PyNode]]
@@ -2458,26 +2465,6 @@ class Shape(DagNode):
 # ------ Do not edit below this line --------
     __melnode__ = u'shape'
     __slots__ = ()
-
-    @_f.deprecated
-    def dagPath(self):
-        # type: () -> general.PyNode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'dagPath')
-        return _f.ApiArgUtil._castResult(self, res, 'MDagPath', None)
-
-    @_f.deprecated
-    def getAllPaths(self):
-        # type: () -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'getAllPaths', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getPath(self):
-        # type: () -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([], [('path', 'MDagPath', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'getPath', final_do)
-        return _f.processApiResult(res, outTypes, do)
 # ------ Do not edit above this line --------
 
 
@@ -23777,26 +23764,6 @@ class UnknownTransform(Transform):
 class UnknownDag(DagNode):
     __melnode__ = u'unknownDag'
     __slots__ = ()
-
-    @_f.deprecated
-    def dagPath(self):
-        # type: () -> general.PyNode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'dagPath')
-        return _f.ApiArgUtil._castResult(self, res, 'MDagPath', None)
-
-    @_f.deprecated
-    def getAllPaths(self):
-        # type: () -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'getAllPaths', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def getPath(self):
-        # type: () -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([], [('path', 'MDagPath', 'out', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'getPath', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
 
 class THobjectSet(ObjectSet):

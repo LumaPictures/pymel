@@ -11,7 +11,6 @@ Version 1.1.0
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
-
 - datatypes.Quaternion.asEulerRotation now returns a datatypes.EulerRotation
   as intended, instead of OpenMaya.MEulerRotation; since dt.EulerRotation
   inherits from om.MEulerRotation, they should mostly be compatible, but if you
@@ -26,12 +25,13 @@ Non-Backward Compatible Changes
   which it inherits
 - Due to a bug, the following methods were wrapped on some subclasses, but not
   all.  None were ever intended to be wrapped at all.  They are all being
-  removed, as they were either too danagerous, difficult to use, or obscure
-  to continue supporting.
+  removed, as they were either too danagerous, difficult to use, not useful, or
+  obscure to continue supporting.
 
     AnimCurve.timedAnimCurveTypeForPlug, AnimCurve.unitlessAnimCurveTypeForPlug,
     DagNode.setObject, DependNode.allocateFlag, DependNode.deallocateAllFlags,
-    DependNode.deallocateFlag, DependNode.reorderedAttribute
+    DependNode.deallocateFlag, DependNode.reorderedAttribute, Shape.dagPath,
+    Shape.getPath
 
 ----------------------------------
 Changes
@@ -40,7 +40,18 @@ Changes
   removeChildAt. They were never intended to be wrapped, and were non-
   functional, so removing them should not introduce any backwards-compatibility
   issues.
-
+- Shape.getAllPaths was moved from Shape to DagNode, and marked deprecated. It
+  was only wrapped as a result of a bug, it has a misleading name (it returns
+  PyNodes, not paths), and is functionally equivalent to getInstances().
+  However, since it may have been in use, and we don't wish to break backward
+  compatibility, we are marking it as deprecated.  We are moving it to DagNode,
+  instead of Shape, because the fact that it was defined on Shape and not
+  Transform made it give incorrect / misleading results.  This is because
+  the Transform node will check it's first shape for attributes it can't find
+  defined on itself - the net result is that, even though it's not defined on
+  Transform, if it had a shape, it would "appear" to be, but return the
+  "wrong" results - ie PyNodes corresponding to all instances of the first
+  shape, NOT the transform itself.
 
 ----------------------------------
 Additions
@@ -73,7 +84,6 @@ Additions
     DependNode.dgTimer, DependNode.dgTimerOff, DependNode.dgTimerOn,
     DependNode.dgTimerQueryState, DependNode.dgTimerReset, DependNode.getAliasAttr,
     DependNode.isNewAttribute, DependNode.setFlag, ObjectSet.isMember
-
 
 ----------------------------------
 Bug Fixes
