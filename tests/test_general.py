@@ -1,5 +1,6 @@
 import sys, os, inspect, unittest, logging
 import types
+import maya.OpenMaya as om
 #from testingutils import setupUnittestModule
 from pymel.core import *
 import pymel.core as pm
@@ -2045,6 +2046,48 @@ class test_Attribute_getDefault(unittest.TestCase):
         self.assertIs(attr.getDefault(), None)
         attr = pm.Attribute('persp.specifiedManipLocation')
         self.assertIs(attr.getDefault(), None)
+
+
+class test_AttributeDefaults(unittest.TestCase):
+    def assertWorldMatrix(self, attrDefaults):
+        self.assertTrue(attrDefaults.isWorldSpace())
+        self.assertTrue(attrDefaults.isReadable())
+        self.assertFalse(attrDefaults.isWritable())
+        self.assertTrue(attrDefaults.isArray())
+        self.assertEqual(attrDefaults.name(), 'worldMatrix')
+        self.assertEqual(attrDefaults.shortName(), 'wm')
+        self.assertIsNone(attrDefaults.parent())
+
+    def test_create_str(self):
+        attrDefaults = pm.AttributeDefaults('persp.worldMatrix')
+        self.assertWorldMatrix(attrDefaults)
+
+    def test_create_Attribute(self):
+        attr = pm.PyNode('persp').attr('worldMatrix')
+        attrDefaults = pm.AttributeDefaults(attr)
+        self.assertWorldMatrix(attrDefaults)
+
+    def test_create_AttributeDefaults(self):
+        attrDefaultsOrig = pm.AttributeDefaults('persp.wm')
+        attrDefaults = pm.AttributeDefaults(attrDefaultsOrig)
+        self.assertWorldMatrix(attrDefaults)
+
+    def test_create_mplug(self):
+        sel = om.MSelectionList()
+        sel.add('persp.worldMatrix')
+        mplug = om.MPlug()
+        sel.getPlug(0, mplug)
+        attrDefaults = pm.AttributeDefaults(mplug)
+        self.assertWorldMatrix(attrDefaults)
+
+    def test_create_mobject(self):
+        sel = om.MSelectionList()
+        sel.add('persp.worldMatrix')
+        mplug = om.MPlug()
+        sel.getPlug(0, mplug)
+        mobj = mplug.attribute()
+        attrDefaults = pm.AttributeDefaults(mobj)
+        self.assertWorldMatrix(attrDefaults)
 
 
 class test_exists(unittest.TestCase):

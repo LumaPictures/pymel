@@ -10,6 +10,7 @@ import inspect
 import pytest
 
 import maya.cmds as cmds
+import maya.OpenMaya as om
 import pymel.core as pm
 import pymel.api as api
 
@@ -243,6 +244,114 @@ class testCase_attribs(unittest.TestCase):
         # Try a more unusual attr type...
         circleMaker = pm.circle()[1]
         self.assertEqual(circleMaker.attr('outputCurve').type(), 'nurbsCurve')
+
+
+class testCase_attrDefaults(unittest.TestCase):
+    def setUp(self):
+        self.persp = pm.nt.Transform('persp')
+    
+    def assertObjectGroups(self, attrDefaults):
+        self.assertTrue(attrDefaults.isConnectable())
+        self.assertTrue(attrDefaults.isStorable())
+        self.assertTrue(attrDefaults.isCached())
+        self.assertTrue(attrDefaults.isArray())
+        self.assertEqual(attrDefaults.name(), 'objectGroups')
+        self.assertEqual(attrDefaults.shortName(), 'og')
+        parent = attrDefaults.parent()
+        self.assertIsInstance(parent, pm.AttributeDefaults)
+        self.assertEqual(parent.name(), 'instObjGroups')
+
+    def test_str(self):
+        attrDefaults = self.persp.attrDefaults('objectGroups')
+        self.assertObjectGroups(attrDefaults)
+
+    def test_index(self):
+        objGroups = None
+        for i in xrange(self.persp.attributeCount()):
+            # make sure we get a valid obj for all indices
+            attrDefaults = self.persp.attrDefaults(i)
+            self.assertIsInstance(attrDefaults, pm.AttributeDefaults)
+            # make sure this doesn't error
+            name = attrDefaults.name()
+            self.assertIsInstance(name, basestring)
+            self.assertTrue(name)
+            if name == 'objectGroups':
+                objGroups = attrDefaults
+        self.assertIsNotNone(objGroups)
+        self.assertObjectGroups(objGroups)
+
+    def test_Attribute(self):
+        attr = self.persp.attr('objectGroups')
+        attrDefaults = self.persp.attrDefaults(attr)
+        self.assertObjectGroups(attrDefaults)
+
+    def test_AttributeDefaults(self):
+        attrDefaultsOrig = self.persp.attrDefaults('og')
+        attrDefaults = self.persp.attrDefaults(attrDefaultsOrig)
+        self.assertObjectGroups(attrDefaults)
+
+    def test_mplug(self):
+        sel = om.MSelectionList()
+        sel.add('persp.instObjGroups[0].objectGroups')
+        mplug = om.MPlug()
+        sel.getPlug(0, mplug)
+        attrDefaults = self.persp.attrDefaults(mplug)
+        self.assertObjectGroups(attrDefaults)
+
+    def test_mobject(self):
+        sel = om.MSelectionList()
+        sel.add('persp.instObjGroups[0].objectGroups')
+        mplug = om.MPlug()
+        sel.getPlug(0, mplug)
+        mobj = mplug.attribute()
+        attrDefaults = self.persp.attrDefaults(mobj)
+        self.assertObjectGroups(attrDefaults)
+
+    def test_cls_str(self):
+        attrDefaults = pm.nt.Transform.attrDefaults('objectGroups')
+        self.assertObjectGroups(attrDefaults)
+
+    def test_cls_index(self):
+        objGroups = None
+        for i in xrange(om.MNodeClass('transform').attributeCount()):
+            # make sure we get a valid obj for all indices
+            attrDefaults = pm.nt.Transform.attrDefaults(i)
+            self.assertIsInstance(attrDefaults, pm.AttributeDefaults)
+            # make sure this doesn't error
+            name = attrDefaults.name()
+            self.assertIsInstance(name, basestring)
+            self.assertTrue(name)
+            if name == 'objectGroups':
+                objGroups = attrDefaults
+        self.assertIsNotNone(objGroups)
+        self.assertObjectGroups(objGroups)
+
+    def test_cls_Attribute(self):
+        attr = self.persp.attr('objectGroups')
+        attrDefaults = pm.nt.Transform.attrDefaults(attr)
+        self.assertObjectGroups(attrDefaults)
+
+    def test_cls_AttributeDefaults(self):
+        attrDefaultsOrig = pm.nt.Transform.attrDefaults('og')
+        attrDefaults = pm.nt.Transform.attrDefaults(attrDefaultsOrig)
+        self.assertObjectGroups(attrDefaults)
+
+    def test_cls_mplug(self):
+        sel = om.MSelectionList()
+        sel.add('persp.instObjGroups[0].objectGroups')
+        mplug = om.MPlug()
+        sel.getPlug(0, mplug)
+        attrDefaults = pm.nt.Transform.attrDefaults(mplug)
+        self.assertObjectGroups(attrDefaults)
+
+    def test_cls_mobject(self):
+        sel = om.MSelectionList()
+        sel.add('persp.instObjGroups[0].objectGroups')
+        mplug = om.MPlug()
+        sel.getPlug(0, mplug)
+        mobj = mplug.attribute()
+        attrDefaults = pm.nt.Transform.attrDefaults(mobj)
+        self.assertObjectGroups(attrDefaults)
 
 
 def pytest_generate_tests(metafunc):

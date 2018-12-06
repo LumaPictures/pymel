@@ -11,6 +11,7 @@ Version 1.1.0
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
+- AttributeDefaults.parent() now returns None instead of erroring
 - datatypes.Quaternion.asEulerRotation now returns a datatypes.EulerRotation
   as intended, instead of OpenMaya.MEulerRotation; since dt.EulerRotation
   inherits from om.MEulerRotation, they should mostly be compatible, but if you
@@ -56,6 +57,9 @@ Changes
 ----------------------------------
 Additions
 ----------------------------------
+- AttributeDefaults may now be constructed from a string (which names an
+  existing Attribute), an Attribute, an MPlug, or another AttributeDefaults.
+  DependNode.attrDefaults now also accepts all these objects as well.
 - Many layout flags were were not wrapped on uitypes.Layout; they now are,
   which also means all sub-classes inherit these methods as well (though many
   subclasses already had their own overrides for many of these commands). The

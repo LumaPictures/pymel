@@ -2342,6 +2342,8 @@ class PyNode(_util.ProxyUnicode):
                 if isinstance(argObj, Attribute):
                     attrNode = argObj._node
                     argObj = argObj.__apimplug__()
+                elif isinstance(argObj, AttributeDefaults):
+                    argObj = argObj.__apimobject__()
                 elif isinstance(argObj, Component):
                     try:
                         argObj = argObj._node.__apimdagpath__()
@@ -7614,6 +7616,20 @@ class AttributeDefaults(PyNode):
     __apicls__ = _api.MFnAttribute
     __metaclass__ = _factories.MetaMayaTypeRegistry
 
+    def __new__(cls, *args, **kwargs):
+        if len(args) == 1:
+            argObj = args[0]
+            if isinstance(argObj, basestring):
+                # PyNode's __new__ will translate a string to an Attribute, and
+                # then complain that's not a subclass of AttributeDefaults...
+                argObj = Attribute(argObj)
+            if isinstance(argObj, Attribute):
+                argObj = argObj.__apimplug__()
+            if isinstance(argObj, _api.MPlug):
+                argObj = argObj.attribute()
+            args = (argObj,)
+        return super(AttributeDefaults, cls).__new__(cls, *args, **kwargs)
+
     def __apiobject__(self):
         """
         Return the default API object for this attribute, if it is valid
@@ -7654,6 +7670,19 @@ class AttributeDefaults(PyNode):
     def name(self):
         # type: () -> unicode
         return self.__apimfn__().name()
+
+    @_factories.addApiDocs(_api.MFnAttribute, 'parent')
+    def parent(self):
+        """
+Modifications:
+  - returns None instead of erroring if no parent
+        """
+        mfn = self.__apimfn__()
+        try:
+            parentMObj = mfn.parent()
+        except RuntimeError:
+            return None
+        return AttributeDefaults(parentMObj)
 # ------ Do not edit below this line --------
     DisconnectBehavior = Enum('DisconnectBehavior', [('delete', 0), ('kDelete', 0), ('reset', 1), ('kReset', 1), ('nothing', 2), ('kNothing', 2)], multiKeys=True)
 
