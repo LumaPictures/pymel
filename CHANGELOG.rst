@@ -26,6 +26,23 @@ Non-Backward Compatible Changes
   which it inherits
 
 ----------------------------------
+Additions
+----------------------------------
+- Many layout flags were were not wrapped on uitypes.Layout; they now are,
+  which also means all sub-classes inherit these methods as well (though many
+  subclasses already had their own overrides for many of these commands). The
+  full set of new methods on Layout is:
+
+    dragCallback, dropCallback, getAnnotation, getBackgroundColor, getChildArray,
+    getDocTag, getEnable, getEnableBackground, getFullPathName, getHeight,
+    getHighlightColor, getIsObscured, getManage, getNumberOfChildren,
+    getNumberOfPopupMenus, getPopupMenuArray, getPreventOverride, getVisible,
+    getVisibleChangeCommand, getWidth, noBackground, setAnnotation,
+    setBackgroundColor, setDocTag, setEnable, setEnableBackground, setHeight,
+    setHighlightColor, setManage, setPreventOverride, setVisible,
+    setVisibleChangeCommand, setWidth, statusBarMessage
+
+----------------------------------
 Bug Fixes
 ----------------------------------
 - uitypes.OptionMenu.getItemArray() now fixed, and returns PyUI objects
