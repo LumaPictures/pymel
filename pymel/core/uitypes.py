@@ -646,7 +646,7 @@ _withParentStack = []
 _withParentMenuStack = []
 
 
-class Layout(PyUI):
+class PyUIContainer(PyUI):
 
     def __enter__(self):
         global _withParentStack
@@ -665,21 +665,7 @@ class Layout(PyUI):
                 parent = parent.pop()
         cmds.setParent(parent)
 
-    def children(self):
-        # type: () -> List[PyUI]
-        """
-        Returns
-        -------
-        List[PyUI]
-        """
-        kids = cmds.layout(self, q=1, childArray=1)
-        if kids:
-            return [PyUI(self.name() + '|' + x) for x in kids]
-        return []
-
-    getChildren = children
-
-    # TODO: add depth firt and breadth first options
+    # TODO: add depth first and breadth first options
     def walkChildren(self):
         # type: () -> Iterator[PyUI]
         """
@@ -748,6 +734,23 @@ class Layout(PyUI):
         p = self.parent()
         cmds.setParent(p)
         return p
+
+
+class Layout(PyUIContainer):
+
+    def children(self):
+        # type: () -> List[PyUI]
+        """
+        Returns
+        -------
+        List[PyUI]
+        """
+        kids = cmds.layout(self, q=1, childArray=1)
+        if kids:
+            return [PyUI(self.name() + '|' + x) for x in kids]
+        return []
+
+    getChildren = children
 
     def clear(self):
         children = self.getChildArray()
@@ -920,7 +923,7 @@ class Layout(PyUI):
 
 
 # customized ui classes
-class Window(Layout):
+class Window(PyUIContainer):
 
     """pymel window class"""
 
