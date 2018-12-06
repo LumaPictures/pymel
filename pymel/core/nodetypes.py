@@ -2478,33 +2478,6 @@ class Shape(DagNode):
         do, final_do, outTypes = _f.getDoArgs([], [('path', 'MDagPath', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'getPath', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def model(self):
-        # type: () -> general.PyNode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'model')
-        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-
-    @_f.deprecated
-    def removeChild(self, child):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([child], [('child', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChild', final_do)
-        return res
-
-    @_f.deprecated
-    def removeChildAt(self, index):
-        # type: (int) -> None
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChildAt', final_do)
-        return res
-
-    @_f.deprecated
-    def setObject(self, objectPath):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([objectPath], [('objectPath', 'MDagPath', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'setObject', final_do)
-        return res
 # ------ Do not edit above this line --------
 
 
@@ -5136,37 +5109,12 @@ class DisplayLayer(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -5235,14 +5183,6 @@ class DisplayLayer(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -10355,37 +10295,12 @@ class JointFfd(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -10454,14 +10369,6 @@ class JointFfd(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -10507,37 +10414,12 @@ class THdependNode(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -10606,14 +10488,6 @@ class THdependNode(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -10657,37 +10531,12 @@ class AbstractBaseCreate(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -10756,14 +10605,6 @@ class AbstractBaseCreate(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -15284,37 +15125,12 @@ class AddDoubleLinear(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -15383,14 +15199,6 @@ class AddDoubleLinear(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -15419,37 +15227,12 @@ class AddMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -15518,14 +15301,6 @@ class AddMatrix(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -15557,37 +15332,12 @@ class AngleBetween(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -15656,14 +15406,6 @@ class AngleBetween(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -15692,37 +15434,12 @@ class AnimBlend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -15791,14 +15508,6 @@ class AnimBlend(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -15832,37 +15541,12 @@ class AnimBlendNodeBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -15931,14 +15615,6 @@ class AnimBlendNodeBase(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -16205,22 +15881,6 @@ class AnimCurveTA(AnimCurve):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return res
 
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
 
 class AnimCurveTL(AnimCurve):
     __melnode__ = u'animCurveTL'
@@ -16255,22 +15915,6 @@ class AnimCurveTL(AnimCurve):
         do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
         return res
 
 
@@ -16309,22 +15953,6 @@ class AnimCurveTT(AnimCurve):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return res
 
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
 
 class AnimCurveTU(AnimCurve):
     __melnode__ = u'animCurveTU'
@@ -16359,22 +15987,6 @@ class AnimCurveTU(AnimCurve):
         do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
         return res
 
 
@@ -16413,22 +16025,6 @@ class AnimCurveUA(AnimCurve):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return res
 
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
 
 class AnimCurveUL(AnimCurve):
     __melnode__ = u'animCurveUL'
@@ -16463,22 +16059,6 @@ class AnimCurveUL(AnimCurve):
         do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
         return res
 
 
@@ -16517,22 +16097,6 @@ class AnimCurveUT(AnimCurve):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return res
 
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
 
 class AnimCurveUU(AnimCurve):
     __melnode__ = u'animCurveUU'
@@ -16567,22 +16131,6 @@ class AnimCurveUU(AnimCurve):
         do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
         return res
 
 
@@ -16621,22 +16169,6 @@ class ResultCurve(AnimCurve):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return res
 
-    @_f.deprecated
-    def timedAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'timedAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
-    @_f.deprecated
-    def unitlessAnimCurveTypeForPlug(self, plug):
-        # type: (general.Attribute) -> AnimCurve.AnimCurveType
-        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'AnimCurveType'), None)
-        return res
-
 
 class ResultCurveTimeToAngular(ResultCurve):
     __melnode__ = u'resultCurveTimeToAngular'
@@ -16672,37 +16204,12 @@ class ArrayMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -16771,14 +16278,6 @@ class ArrayMapper(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -16812,37 +16311,12 @@ class AttrHierarchyTest(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -16911,14 +16385,6 @@ class AttrHierarchyTest(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -16947,37 +16413,12 @@ class Audio(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -17046,14 +16487,6 @@ class Audio(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -17085,37 +16518,12 @@ class Blend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -17184,14 +16592,6 @@ class Blend(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -17274,37 +16674,12 @@ class BlendColors(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -17373,14 +16748,6 @@ class BlendColors(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -17409,37 +16776,12 @@ class BlindDataTemplate(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -17508,14 +16850,6 @@ class BlindDataTemplate(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -17549,37 +16883,12 @@ class Brush(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -17648,14 +16957,6 @@ class Brush(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -17684,37 +16985,12 @@ class Bump3d(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -17783,14 +17059,6 @@ class Bump3d(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -17819,37 +17087,12 @@ class CacheBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -17918,14 +17161,6 @@ class CacheBase(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -18249,15 +17484,6 @@ class CameraView(DependNode):
     def addBookmark(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.cameraView, kwargs, 'addBookmark', val)
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.addMelDocs('cameraView', 'animate')
     def animate(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.cameraView, kwargs, 'animate', val)
@@ -18273,22 +17499,6 @@ class CameraView(DependNode):
     @_f.addMelDocs('cameraView', 'camera')
     def camera(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.cameraView, kwargs, 'camera', val)
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
-        return res
 
     @_f.deprecated
     def findAlias(self, alias):
@@ -18363,14 +17573,6 @@ class CameraView(DependNode):
         return _f.asEdit(self, rendering.cameraView, kwargs, 'removeBookmark', val)
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -18407,37 +17609,12 @@ class CharacterMap(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -18529,14 +17706,6 @@ class CharacterMap(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -18570,37 +17739,12 @@ class CharacterOffset(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -18672,14 +17816,6 @@ class CharacterOffset(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -18708,37 +17844,12 @@ class Choice(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -18820,14 +17931,6 @@ class Choice(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -18853,37 +17956,12 @@ class Chooser(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -18952,14 +18030,6 @@ class Chooser(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -18988,37 +18058,12 @@ class Clamp(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -19087,14 +18132,6 @@ class Clamp(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -19123,37 +18160,12 @@ class ClipLibrary(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -19222,14 +18234,6 @@ class ClipLibrary(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -19258,37 +18262,12 @@ class ClipScheduler(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -19357,14 +18336,6 @@ class ClipScheduler(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -19398,37 +18369,12 @@ class ClosestPointOnMesh(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -19497,14 +18443,6 @@ class ClosestPointOnMesh(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -19538,37 +18476,12 @@ class ColorProfile(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -19637,14 +18550,6 @@ class ColorProfile(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -19705,37 +18610,12 @@ class Condition(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -19804,14 +18684,6 @@ class Condition(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -24926,33 +23798,6 @@ class UnknownDag(DagNode):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'getPath', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def model(self):
-        # type: () -> general.PyNode
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'model')
-        return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-
-    @_f.deprecated
-    def removeChild(self, child):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([child], [('child', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChild', final_do)
-        return res
-
-    @_f.deprecated
-    def removeChildAt(self, index):
-        # type: (int) -> None
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'removeChildAt', final_do)
-        return res
-
-    @_f.deprecated
-    def setObject(self, objectPath):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([objectPath], [('objectPath', 'MDagPath', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDagNode, 'setObject', final_do)
-        return res
-
 
 class THobjectSet(ObjectSet):
     __melnode__ = u'THobjectSet'
@@ -25377,37 +24222,12 @@ class Contrast(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -25476,14 +24296,6 @@ class Contrast(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -25619,37 +24431,12 @@ class CopyColorSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -25718,14 +24505,6 @@ class CopyColorSet(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -25754,37 +24533,12 @@ class CopyUVSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -25853,14 +24607,6 @@ class CopyUVSet(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -25889,37 +24635,12 @@ class CreateColorSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -25988,14 +24709,6 @@ class CreateColorSet(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -26024,37 +24737,12 @@ class CreateUVSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -26123,14 +24811,6 @@ class CreateUVSet(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -26159,37 +24839,12 @@ class CurveFromMesh(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -26258,14 +24913,6 @@ class CurveFromMesh(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -26304,37 +24951,12 @@ class CurveNormalizer(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -26403,14 +25025,6 @@ class CurveNormalizer(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -26452,37 +25066,12 @@ class DagPose(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -26574,14 +25163,6 @@ class DagPose(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -26607,37 +25188,12 @@ class DataBlockTest(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -26706,14 +25262,6 @@ class DataBlockTest(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -26742,37 +25290,12 @@ class DefaultLightList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -26841,14 +25364,6 @@ class DefaultLightList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -26877,37 +25392,12 @@ class DefaultRenderUtilityList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -26976,14 +25466,6 @@ class DefaultRenderUtilityList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -27012,37 +25494,12 @@ class DefaultRenderingList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -27111,14 +25568,6 @@ class DefaultRenderingList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -27147,37 +25596,12 @@ class DefaultShaderList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -27246,14 +25670,6 @@ class DefaultShaderList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -27282,37 +25698,12 @@ class DefaultTextureList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -27381,14 +25772,6 @@ class DefaultTextureList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -27417,37 +25800,12 @@ class DeleteColorSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -27516,14 +25874,6 @@ class DeleteColorSet(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -27552,37 +25902,12 @@ class DeleteComponent(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -27651,14 +25976,6 @@ class DeleteComponent(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -27687,37 +26004,12 @@ class DeleteUVSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -27786,14 +26078,6 @@ class DeleteUVSet(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -27825,37 +26109,12 @@ class DiskCache(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -28002,14 +26261,6 @@ class DiskCache(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28035,37 +26286,12 @@ class DisplacementShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -28134,14 +26360,6 @@ class DisplacementShader(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -28170,37 +26388,12 @@ class DisplayLayerManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -28269,14 +26462,6 @@ class DisplayLayerManager(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -28305,37 +26490,12 @@ class DistanceBetween(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -28404,14 +26564,6 @@ class DistanceBetween(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -28440,37 +26592,12 @@ class Dof(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -28539,14 +26666,6 @@ class Dof(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -28575,37 +26694,12 @@ class DynController(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -28674,14 +26768,6 @@ class DynController(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -28713,37 +26799,12 @@ class DynGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -28827,14 +26888,6 @@ class DynGlobals(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -29040,37 +27093,12 @@ class Facade(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -29142,14 +27170,6 @@ class Facade(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29193,37 +27213,12 @@ class Flow(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -29315,14 +27310,6 @@ class Flow(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29348,37 +27335,12 @@ class FourByFourMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -29447,14 +27409,6 @@ class FourByFourMatrix(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -29483,37 +27437,12 @@ class FrameCache(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -29582,14 +27511,6 @@ class FrameCache(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -29618,37 +27539,12 @@ class GammaCorrect(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -29717,14 +27613,6 @@ class GammaCorrect(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -29753,37 +27641,12 @@ class GeoConnector(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -29852,14 +27715,6 @@ class GeoConnector(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -31675,37 +29530,12 @@ class GlobalCacheControl(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -31774,14 +29604,6 @@ class GlobalCacheControl(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -31815,37 +29637,12 @@ class GroupId(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -31914,14 +29711,6 @@ class GroupId(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -31953,37 +29742,12 @@ class GroupParts(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -32052,14 +29816,6 @@ class GroupParts(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -32088,37 +29844,12 @@ class Guide(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -32187,14 +29918,6 @@ class Guide(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -32223,37 +29946,12 @@ class HardwareRenderGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -32322,14 +30020,6 @@ class HardwareRenderGlobals(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -32358,37 +30048,12 @@ class HardwareRenderingGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -32457,14 +30122,6 @@ class HardwareRenderingGlobals(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -32493,37 +30150,12 @@ class HierarchyTestNode1(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -32592,14 +30224,6 @@ class HierarchyTestNode1(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -32638,37 +30262,12 @@ class HoldMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -32737,14 +30336,6 @@ class HoldMatrix(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -32773,37 +30364,12 @@ class HsvToRgb(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -32872,14 +30438,6 @@ class HsvToRgb(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -32911,37 +30469,12 @@ class HwReflectionMap(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -33063,14 +30596,6 @@ class HwReflectionMap(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -33096,37 +30621,12 @@ class HwRenderGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -33195,14 +30695,6 @@ class HwRenderGlobals(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -33231,37 +30723,12 @@ class HyperGraphInfo(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -33330,14 +30797,6 @@ class HyperGraphInfo(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -33366,37 +30825,12 @@ class HyperLayout(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -33465,14 +30899,6 @@ class HyperLayout(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -33501,37 +30927,12 @@ class HyperView(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -33600,14 +31001,6 @@ class HyperView(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -33727,15 +31120,6 @@ class IkSystem(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
@@ -33755,22 +31139,6 @@ class IkSystem(DependNode):
     @_f.addMelDocs('ikSystem', 'autoPrioritySC')
     def autoPrioritySC(self, val=True, **kwargs):
         return _f.asEdit(self, animation.ikSystem, kwargs, 'autoPrioritySC', val)
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
-        return res
 
     @_f.deprecated
     def findAlias(self, alias):
@@ -33866,14 +31234,6 @@ class IkSystem(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -33961,37 +31321,12 @@ class LightInfo(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -34060,14 +31395,6 @@ class LightInfo(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -34096,37 +31423,12 @@ class LightLinker(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -34195,14 +31497,6 @@ class LightLinker(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -34234,37 +31528,12 @@ class LightList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -34333,14 +31602,6 @@ class LightList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -34369,37 +31630,12 @@ class LodThresholds(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -34468,14 +31704,6 @@ class LodThresholds(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -34504,37 +31732,12 @@ class Luminance(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -34603,14 +31806,6 @@ class Luminance(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -34639,37 +31834,12 @@ class MakeGroup(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -34738,14 +31908,6 @@ class MakeGroup(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -34774,37 +31936,12 @@ class MaterialInfo(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -34873,14 +32010,6 @@ class MaterialInfo(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -34909,37 +32038,12 @@ class Membrane(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -35008,14 +32112,6 @@ class Membrane(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -35267,37 +32363,12 @@ class MultDoubleLinear(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -35366,14 +32437,6 @@ class MultDoubleLinear(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -35402,37 +32465,12 @@ class MultMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -35501,14 +32539,6 @@ class MultMatrix(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -35537,37 +32567,12 @@ class MultilisterLight(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -35636,14 +32641,6 @@ class MultilisterLight(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -35675,37 +32672,12 @@ class Mute(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -35774,14 +32746,6 @@ class Mute(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -35810,37 +32774,12 @@ class NComponent(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -35909,14 +32848,6 @@ class NComponent(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -35945,37 +32876,12 @@ class Network(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -36044,14 +32950,6 @@ class Network(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -36095,37 +32993,12 @@ class ObjectFilter(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -36194,14 +33067,6 @@ class ObjectFilter(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -36265,37 +33130,12 @@ class OldBlindDataBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -36364,14 +33204,6 @@ class OldBlindDataBase(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -36400,37 +33232,12 @@ class OldGeometryConstraint(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -36499,14 +33306,6 @@ class OldGeometryConstraint(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -36535,37 +33334,12 @@ class OpticalFX(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -36634,14 +33408,6 @@ class OpticalFX(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -36673,37 +33439,12 @@ class PairBlend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -36785,14 +33526,6 @@ class PairBlend(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -36818,37 +33551,12 @@ class ParticleAgeMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -36917,14 +33625,6 @@ class ParticleAgeMapper(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -36953,37 +33653,12 @@ class ParticleColorMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -37052,14 +33727,6 @@ class ParticleColorMapper(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -37088,37 +33755,12 @@ class ParticleIncandMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -37187,14 +33829,6 @@ class ParticleIncandMapper(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -37223,37 +33857,12 @@ class ParticleTranspMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -37322,14 +33931,6 @@ class ParticleTranspMapper(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -37358,37 +33959,12 @@ class PassContributionMap(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -37457,14 +34033,6 @@ class PassContributionMap(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -37493,37 +34061,12 @@ class PassMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -37592,14 +34135,6 @@ class PassMatrix(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -37628,37 +34163,12 @@ class PointMatrixMult(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -37727,14 +34237,6 @@ class PointMatrixMult(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -37763,37 +34265,12 @@ class PolyBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -37862,14 +34339,6 @@ class PolyBase(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -45514,15 +41983,6 @@ class PolyBlindData(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.addMelDocs('polyBlindData', 'associationType')
     def associationType(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'associationType', val)
@@ -45542,22 +42002,6 @@ class PolyBlindData(DependNode):
     @_f.addMelDocs('polyBlindData', 'booleanData')
     def booleanData(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'booleanData', val)
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
-        return res
 
     @_f.addMelDocs('polyBlindData', 'delete')
     def delete(self, val=True, **kwargs):
@@ -45647,14 +42091,6 @@ class PolyBlindData(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
     @_f.addMelDocs('polyBlindData', 'rescan')
     def rescan(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'rescan', val)
@@ -45713,37 +42149,12 @@ class PolySeparate(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -45825,14 +42236,6 @@ class PolySeparate(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -45869,37 +42272,12 @@ class PolyToSubdiv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -46030,14 +42408,6 @@ class PolyToSubdiv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
     @_f.addMelDocs('polyToSubdiv', 'absolutePosition')
     def setAbsolutePosition(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyToSubdiv, kwargs, 'absolutePosition', val)
@@ -46117,37 +42487,12 @@ class PostProcessList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -46216,14 +42561,6 @@ class PostProcessList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -46252,37 +42589,12 @@ class PrecompExport(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -46351,14 +42663,6 @@ class PrecompExport(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -46387,37 +42691,12 @@ class ProxyManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -46486,14 +42765,6 @@ class ProxyManager(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -46522,37 +42793,12 @@ class Record(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -46621,14 +42867,6 @@ class Record(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -46752,37 +42990,12 @@ class RemapColor(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -46851,14 +43064,6 @@ class RemapColor(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -46887,37 +43092,12 @@ class RemapHsv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -46986,14 +43166,6 @@ class RemapHsv(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47022,37 +43194,12 @@ class RemapValue(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -47121,14 +43268,6 @@ class RemapValue(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47157,37 +43296,12 @@ class RenderGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -47256,14 +43370,6 @@ class RenderGlobals(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47292,37 +43398,12 @@ class RenderGlobalsList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -47391,14 +43472,6 @@ class RenderGlobalsList(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47427,37 +43500,12 @@ class RenderLayerManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -47526,14 +43574,6 @@ class RenderLayerManager(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47562,37 +43602,12 @@ class RenderPassSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -47661,14 +43676,6 @@ class RenderPassSet(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47697,37 +43704,12 @@ class RenderQuality(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -47796,14 +43778,6 @@ class RenderQuality(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47837,37 +43811,12 @@ class Resolution(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -47936,14 +43885,6 @@ class Resolution(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -47972,37 +43913,12 @@ class Reverse(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -48071,14 +43987,6 @@ class Reverse(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -48107,37 +44015,12 @@ class RgbToHsv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -48206,14 +44089,6 @@ class RgbToHsv(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -48245,37 +44120,12 @@ class RigidSolver(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -48466,14 +44316,6 @@ class RigidSolver(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -48583,37 +44425,12 @@ class Sampler(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -48682,14 +44499,6 @@ class Sampler(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -48718,37 +44527,12 @@ class Script(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -48817,14 +44601,6 @@ class Script(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -48853,37 +44629,12 @@ class SelectionListOperator(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -48952,14 +44703,6 @@ class SelectionListOperator(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -48991,37 +44734,12 @@ class SequenceManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -49118,14 +44836,6 @@ class SequenceManager(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -49151,37 +44861,12 @@ class Sequencer(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -49250,14 +44935,6 @@ class Sequencer(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -49286,37 +44963,12 @@ class SetRange(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -49385,14 +45037,6 @@ class SetRange(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -49421,37 +45065,12 @@ class ShaderGlow(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -49520,14 +45139,6 @@ class ShaderGlow(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -49556,37 +45167,12 @@ class ShadingDependNode(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -49655,14 +45241,6 @@ class ShadingDependNode(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -50577,15 +46155,6 @@ class Shot(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
@@ -50597,22 +46166,6 @@ class Shot(DependNode):
     @_f.addMelDocs('shot', 'createCustomAnim')
     def createCustomAnim(self, val=True, **kwargs):
         return _f.asEdit(self, animation.shot, kwargs, 'createCustomAnim', val)
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
-        return res
 
     @_f.addMelDocs('shot', 'deleteCustomAnim')
     def deleteCustomAnim(self, val=True, **kwargs):
@@ -50928,14 +46481,6 @@ class Shot(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -51149,37 +46694,12 @@ class SimpleTestNode(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -51248,14 +46768,6 @@ class SimpleTestNode(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -51284,37 +46796,12 @@ class SimpleVolumeShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -51383,14 +46870,6 @@ class SimpleVolumeShader(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -51419,37 +46898,12 @@ class SkinBinding(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -51518,14 +46972,6 @@ class SkinBinding(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -51557,37 +47003,12 @@ class Snapshot(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -51684,14 +47105,6 @@ class Snapshot(DependNode):
         return res
 
     @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -51738,37 +47151,12 @@ class StrokeGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -51837,14 +47225,6 @@ class StrokeGlobals(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -51873,37 +47253,12 @@ class SubdBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -51972,14 +47327,6 @@ class SubdBase(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -52233,37 +47580,12 @@ class SubdivCollapse(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -52332,14 +47654,6 @@ class SubdivCollapse(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -52368,37 +47682,12 @@ class SubdivComponentId(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -52467,14 +47756,6 @@ class SubdivComponentId(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -52503,37 +47784,12 @@ class SubdivReverseFaces(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -52602,14 +47858,6 @@ class SubdivReverseFaces(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -52638,37 +47886,12 @@ class SubdivToPoly(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -52737,14 +47960,6 @@ class SubdivToPoly(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -52773,37 +47988,12 @@ class SurfaceLuminance(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -52872,14 +48062,6 @@ class SurfaceLuminance(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -52908,37 +48090,12 @@ class SurfaceShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -53007,14 +48164,6 @@ class SurfaceShader(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -53043,37 +48192,12 @@ class TexLattice(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -53142,14 +48266,6 @@ class TexLattice(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -53178,37 +48294,12 @@ class TextureToGeom(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -53277,14 +48368,6 @@ class TextureToGeom(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -53323,37 +48406,12 @@ class Time(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -53422,14 +48480,6 @@ class Time(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -54251,37 +49301,12 @@ class TimeFunction(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -54350,14 +49375,6 @@ class TimeFunction(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -54386,37 +49403,12 @@ class TimeToUnitConversion(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -54485,14 +49477,6 @@ class TimeToUnitConversion(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -54569,37 +49553,12 @@ class ToonLineAttributes(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -54668,14 +49627,6 @@ class ToonLineAttributes(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -54709,37 +49660,12 @@ class UnitConversion(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -54808,14 +49734,6 @@ class UnitConversion(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -54844,37 +49762,12 @@ class UnitToTimeConversion(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -54943,14 +49836,6 @@ class UnitToTimeConversion(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -54979,37 +49864,12 @@ class Unknown(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -55078,14 +49938,6 @@ class Unknown(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -55114,37 +49966,12 @@ class UvChooser(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -55213,14 +50040,6 @@ class UvChooser(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -55249,37 +50068,12 @@ class ViewColorManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -55348,14 +50142,6 @@ class ViewColorManager(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -55384,37 +50170,12 @@ class VolumeShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -55483,14 +50244,6 @@ class VolumeShader(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated
@@ -55519,37 +50272,12 @@ class WtAddMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'addAttribute', final_do)
         return res
 
-    @classmethod
-    @_f.deprecated
-    def allocateFlag(self, pluginName):
-        # type: (unicode) -> int
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.allocateFlag(*final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
     @_f.deprecated
     def attribute(self, index):
         # type: (int) -> general.PyNode
         do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'attribute', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateAllFlags(self, pluginName):
-        # type: (unicode) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
-        return res
-
-    @classmethod
-    @_f.deprecated
-    def deallocateFlag(self, pluginName, flag):
-        # type: (unicode, int) -> None
-        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
-        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
         return res
 
     @_f.deprecated
@@ -55618,14 +50346,6 @@ class WtAddMatrix(DependNode):
         # type: (general.PyNode) -> None
         do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
-    def reorderedAttribute(self, index):
-        # type: (int) -> general.PyNode
-        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'reorderedAttribute', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
         return res
 
     @_f.deprecated

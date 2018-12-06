@@ -24,6 +24,23 @@ Non-Backward Compatible Changes
 - PopupMenu.getItemArray() now returns PyUI objects, instead of strings, as
   intended.  This brings it's behavior in line with Menu.getItemArray(), from
   which it inherits
+- Due to a bug, the following methods were wrapped on some subclasses, but not
+  all.  None were ever intended to be wrapped at all.  They are all being
+  removed, as they were either too danagerous, difficult to use, or obscure
+  to continue supporting.
+
+    AnimCurve.timedAnimCurveTypeForPlug, AnimCurve.unitlessAnimCurveTypeForPlug,
+    DagNode.setObject, DependNode.allocateFlag, DependNode.deallocateAllFlags,
+    DependNode.deallocateFlag, DependNode.reorderedAttribute
+
+----------------------------------
+Changes
+----------------------------------
+- The following methods were removed from Shape: model, removeChild, and
+  removeChildAt. They were never intended to be wrapped, and were non-
+  functional, so removing them should not introduce any backwards-compatibility
+  issues.
+
 
 ----------------------------------
 Additions
