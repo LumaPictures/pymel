@@ -530,6 +530,10 @@ class DependNode(general.PyNode):
                 attrObj = toAttrObj(nodeMfn)
             attributes[attr] = attrObj
         return general.AttributeDefaults(attrObj)
+    # a former bug caused DependNode.attribute (form that takes an index) to
+    # be wrapped on many nodes... made it an alias for the more useful
+    # attrDefaults method to preserve backward compatibility
+    attribute = attrDefaults
 
     def attr(self, attr):
         # type: (Any) -> general.Attribute
