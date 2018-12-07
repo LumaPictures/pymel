@@ -102,8 +102,8 @@ Additions
     DependNode.deallocateAllFlags, DependNode.deallocateFlag,
     DependNode.dgCallbacks, DependNode.dgTimer, DependNode.dgTimerOff,
     DependNode.dgTimerOn, DependNode.dgTimerQueryState, DependNode.dgTimerReset,
-    DependNode.getAliasAttr, DependNode.isNewAttribute, DependNode.setFlag,
-    ObjectSet.isMember
+    DependNode.getAliasAttr, DependNode.hasAttribute, DependNode.isNewAttribute,
+    DependNode.setFlag, ObjectSet.isMember
 
 ----------------------------------
 Bug Fixes
