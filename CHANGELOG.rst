@@ -31,13 +31,18 @@ Non-Backward Compatible Changes
 
   - **DagNode.setObject**: dangerous - changes the node we're wrapping out from
     underneath us
-  - **DependNode.reorderedAttribute**: obscure, and apparently only useful
-    during file IO
+  - **DependNode.addAttribute**: dangerous, because it only took
+    AttributeDefaults objects as inputs. In addition to being fairly obscure,
+    they are mostly constructed from existing attributes - but the API
+    explicitly warns against adding an attribute using an MObject that's already
+    added to another node. Use addAttr method instead.
   - **DependNode.findPlug**: dangerous, as it allowed returning networked mplugs.
     Use attr method instead. The api docs warn that networked plugs should not
     be used if you might be breaking connections, thus why these are
     considerered dangerous. Also, it only worked when fed AttributeDefaults, a
     little known / used part of pymel.
+  - **DependNode.reorderedAttribute**: obscure, and apparently only useful
+    during file IO
   - **Shape.dagPath**: useless, as it just always returned self
   - **Shape.getPath**: useless, as it just always returned self
 
