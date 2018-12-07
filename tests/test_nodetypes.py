@@ -2745,6 +2745,31 @@ class testCase_AnimCurve(TestCaseExtended):
             pm.currentTime(time)
             self.assertEqual(pm.getAttr(nodeAttr), val)
 
+    def test_timedAnimCurveTypeForPlug(self):
+        time = pm.PyNode('time1')
+        persp = pm.PyNode('persp')
+        self.assertEqual(pm.nt.AnimCurve.timedAnimCurveTypeForPlug(persp.tx),
+                         pm.nt.AnimCurve.AnimCurveType.TL)
+        self.assertEqual(pm.nt.AnimCurve.timedAnimCurveTypeForPlug(persp.rx),
+                         pm.nt.AnimCurve.AnimCurveType.TA)
+        self.assertEqual(pm.nt.AnimCurve.timedAnimCurveTypeForPlug(time.outTime),
+                         pm.nt.AnimCurve.AnimCurveType.TT)
+        self.assertEqual(pm.nt.AnimCurve.timedAnimCurveTypeForPlug(persp.displayLocalAxis),
+                         pm.nt.AnimCurve.AnimCurveType.TU)
+
+    def test_unitlessAnimCurveTypeForPlug(self):
+        time = pm.PyNode('time1')
+        persp = pm.PyNode('persp')
+        self.assertEqual(pm.nt.AnimCurve.unitlessAnimCurveTypeForPlug(persp.tx),
+                         pm.nt.AnimCurve.AnimCurveType.UL)
+        self.assertEqual(pm.nt.AnimCurve.unitlessAnimCurveTypeForPlug(persp.rx),
+                         pm.nt.AnimCurve.AnimCurveType.UA)
+        self.assertEqual(pm.nt.AnimCurve.unitlessAnimCurveTypeForPlug(time.outTime),
+                         pm.nt.AnimCurve.AnimCurveType.UT)
+        self.assertEqual(pm.nt.AnimCurve.unitlessAnimCurveTypeForPlug(persp.displayLocalAxis),
+                         pm.nt.AnimCurve.AnimCurveType.UU)
+
+
 class testCase_rename(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)

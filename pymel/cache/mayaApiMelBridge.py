@@ -141,8 +141,6 @@
   ('AnimCurve', 'find'): {'enabled': False},
   ('AnimCurve', 'findClosest'): {'enabled': False},
   ('AnimCurve', 'numKeyframes'): {'enabled': False},
-  ('AnimCurve', 'timedAnimCurveTypeForPlug'): {'enabled': False},
-  ('AnimCurve', 'unitlessAnimCurveTypeForPlug'): {'enabled': False},
   ('AnimCurveTA', 'addKey'): {'backwards_compatibility_enabled': True},
   ('AnimCurveTA', 'addKeyframe'): {'backwards_compatibility_enabled': True},
   ('AnimCurveTA', 'evaluate'): {'backwards_compatibility_enabled': True},

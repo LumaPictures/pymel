@@ -9563,6 +9563,25 @@ class AnimCurve(DependNode):
     def numKeyframes(self):
         # just because MFnAnimCurve.numKeyframes is deprecated...
         return self.numKeys()
+
+    # originally wasn't intending to wrap these two, but they were due to a bug,
+    # and we decided not to break backwards compatibility. However, we're
+    # turning them into classmethods, as they make more sense that way
+    @classmethod
+    @_f.addApiDocs(_api.MFnAnimCurve, 'timedAnimCurveTypeForPlug')
+    def timedAnimCurveTypeForPlug(cls, plug):
+        # type: (general.Attribute) -> AnimCurve.AnimCurveType
+        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
+        res = cls.__apicls__().timedAnimCurveTypeForPlug(*final_do)
+        return cls.AnimCurveType[res]
+
+    @classmethod
+    @_f.addApiDocs(_api.MFnAnimCurve, 'unitlessAnimCurveTypeForPlug')
+    def unitlessAnimCurveTypeForPlug(cls, plug):
+        # type: (general.Attribute) -> AnimCurve.AnimCurveType
+        do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
+        res = cls.__apicls__().unitlessAnimCurveTypeForPlug(*final_do)
+        return cls.AnimCurveType[res]
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnAnimCurve
     __melnode__ = u'animCurve'

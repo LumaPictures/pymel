@@ -29,7 +29,6 @@ Non-Backward Compatible Changes
   removed, as they were either too danagerous, difficult to use, not useful, or
   obscure to continue supporting.
 
-    AnimCurve.timedAnimCurveTypeForPlug, AnimCurve.unitlessAnimCurveTypeForPlug,
     DagNode.setObject, DependNode.allocateFlag, DependNode.deallocateAllFlags,
     DependNode.deallocateFlag, DependNode.reorderedAttribute, Shape.dagPath,
     Shape.getPath
@@ -53,6 +52,8 @@ Changes
   Transform, if it had a shape, it would "appear" to be, but return the
   "wrong" results - ie PyNodes corresponding to all instances of the first
   shape, NOT the transform itself.
+- AnimCurve.timedAnimCurveTypeForPlug/unitlessAnimCurveTypeForPlug turned into
+  classmethods, as they don't require / operate on a specific AnimCurve
 
 ----------------------------------
 Additions
