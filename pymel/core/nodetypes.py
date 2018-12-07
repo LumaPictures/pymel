@@ -1103,6 +1103,12 @@ class DependNode(general.PyNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
+
+    @_f.addApiDocs(_api.MFnDependencyNode, 'typeName')
+    def typeName(self):
+        # type: () -> unicode
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
 
@@ -5193,12 +5199,6 @@ class DisplayLayer(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
 
@@ -10356,12 +10356,6 @@ class JointFfd(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
 
@@ -10438,12 +10432,6 @@ class THdependNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class TadskAssetInstanceNode_TdependNode(DependNode):
     __melnode__ = u'TadskAssetInstanceNode_TdependNode'
@@ -10516,12 +10504,6 @@ class AbstractBaseCreate(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class AbstractBaseNurbsConversion(AbstractBaseCreate):
@@ -15073,12 +15055,6 @@ class AddDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class AddMatrix(DependNode):
     __melnode__ = u'addMatrix'
@@ -15136,12 +15112,6 @@ class AddMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class AngleBetween(DependNode):
@@ -15204,12 +15174,6 @@ class AngleBetween(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class AnimBlend(DependNode):
     __melnode__ = u'animBlend'
@@ -15267,12 +15231,6 @@ class AnimBlend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class AnimBlendInOut(AnimBlend):
@@ -15336,12 +15294,6 @@ class AnimBlendNodeBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class AnimBlendNodeAdditive(AnimBlendNodeBase):
@@ -15962,12 +15914,6 @@ class ArrayMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class THarrayMapper(ArrayMapper):
     __melnode__ = u'THarrayMapper'
@@ -16031,12 +15977,6 @@ class AttrHierarchyTest(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Audio(DependNode):
     __melnode__ = u'audio'
@@ -16094,12 +16034,6 @@ class Audio(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Blend(DependNode):
@@ -16161,12 +16095,6 @@ class Blend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class BlendDevice(Blend):
@@ -16280,12 +16208,6 @@ class BlendColors(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class BlindDataTemplate(DependNode):
     __melnode__ = u'blindDataTemplate'
@@ -16343,12 +16265,6 @@ class BlindDataTemplate(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class SubdHierBlind(BlindDataTemplate):
@@ -16413,12 +16329,6 @@ class Brush(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Bump3d(DependNode):
     __melnode__ = u'bump3d'
@@ -16477,12 +16387,6 @@ class Bump3d(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class CacheBase(DependNode):
     __melnode__ = u'cacheBase'
@@ -16540,12 +16444,6 @@ class CacheBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class CacheBlend(CacheBase):
@@ -16920,12 +16818,6 @@ class CameraView(DependNode):
     def setView(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.cameraView, kwargs, 'setView', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class CharacterMap(DependNode):
     __melcmd__ = staticmethod(animation.characterMap)
@@ -17011,12 +16903,6 @@ class CharacterMap(DependNode):
     def setMapAttr(self, val=True, **kwargs):
         return _f.asEdit(self, animation.characterMap, kwargs, 'mapAttr', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
     @_f.addMelDocs('characterMap', 'unmapAttr')
     def unmapAttr(self, val=True, **kwargs):
         return _f.asEdit(self, animation.characterMap, kwargs, 'unmapAttr', val)
@@ -17078,12 +16964,6 @@ class CharacterOffset(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Choice(DependNode):
@@ -17156,12 +17036,6 @@ class Choice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Chooser(DependNode):
     __melnode__ = u'chooser'
@@ -17219,12 +17093,6 @@ class Chooser(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Clamp(DependNode):
@@ -17284,12 +17152,6 @@ class Clamp(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ClipLibrary(DependNode):
     __melnode__ = u'clipLibrary'
@@ -17348,12 +17210,6 @@ class ClipLibrary(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ClipScheduler(DependNode):
     __melnode__ = u'clipScheduler'
@@ -17411,12 +17267,6 @@ class ClipScheduler(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ClipToGhostData(DependNode):
@@ -17481,12 +17331,6 @@ class ClosestPointOnMesh(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ColorManagementGlobals(DependNode):
     __melnode__ = u'colorManagementGlobals'
@@ -17549,12 +17393,6 @@ class ColorProfile(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class CombinationShape(DependNode):
@@ -17645,12 +17483,6 @@ class Condition(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Container(ContainerBase):
@@ -23200,12 +23032,6 @@ class Contrast(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Controller(DependNode):
     __melcmd__ = staticmethod(animation.controller)
@@ -23371,12 +23197,6 @@ class CopyColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class CopyUVSet(DependNode):
     __melnode__ = u'copyUVSet'
@@ -23434,12 +23254,6 @@ class CopyUVSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class CreateColorSet(DependNode):
@@ -23499,12 +23313,6 @@ class CreateColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class CreateUVSet(DependNode):
     __melnode__ = u'createUVSet'
@@ -23563,12 +23371,6 @@ class CreateUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class CurveFromMesh(DependNode):
     __melnode__ = u'curveFromMesh'
@@ -23626,12 +23428,6 @@ class CurveFromMesh(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class CurveFromMeshCoM(CurveFromMesh):
@@ -23700,12 +23496,6 @@ class CurveNormalizer(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class CurveNormalizerAngle(CurveNormalizer):
@@ -23798,12 +23588,6 @@ class DagPose(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DataBlockTest(DependNode):
     __melnode__ = u'dataBlockTest'
@@ -23861,12 +23645,6 @@ class DataBlockTest(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class DefaultLightList(DependNode):
@@ -23926,12 +23704,6 @@ class DefaultLightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DefaultRenderUtilityList(DependNode):
     __melnode__ = u'defaultRenderUtilityList'
@@ -23989,12 +23761,6 @@ class DefaultRenderUtilityList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class DefaultRenderingList(DependNode):
@@ -24054,12 +23820,6 @@ class DefaultRenderingList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DefaultShaderList(DependNode):
     __melnode__ = u'defaultShaderList'
@@ -24117,12 +23877,6 @@ class DefaultShaderList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class DefaultTextureList(DependNode):
@@ -24182,12 +23936,6 @@ class DefaultTextureList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DeleteColorSet(DependNode):
     __melnode__ = u'deleteColorSet'
@@ -24245,12 +23993,6 @@ class DeleteColorSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class DeleteComponent(DependNode):
@@ -24310,12 +24052,6 @@ class DeleteComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DeleteUVSet(DependNode):
     __melnode__ = u'deleteUVSet'
@@ -24373,12 +24109,6 @@ class DeleteUVSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class DiskCache(DependNode):
@@ -24516,12 +24246,6 @@ class DiskCache(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DisplacementShader(DependNode):
     __melnode__ = u'displacementShader'
@@ -24579,12 +24303,6 @@ class DisplacementShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class DisplayLayerManager(DependNode):
@@ -24644,12 +24362,6 @@ class DisplayLayerManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DistanceBetween(DependNode):
     __melnode__ = u'distanceBetween'
@@ -24707,12 +24419,6 @@ class DistanceBetween(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Dof(DependNode):
@@ -24772,12 +24478,6 @@ class Dof(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class DynController(DependNode):
     __melnode__ = u'dynController'
@@ -24835,12 +24535,6 @@ class DynController(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class DynGlobals(DependNode):
@@ -24921,12 +24615,6 @@ class DynGlobals(DependNode):
     @_f.addMelDocs('dynGlobals', 'overSampling')
     def setOverSampling(self, val=True, **kwargs):
         return _f.asEdit(self, effects.dynGlobals, kwargs, 'overSampling', val)
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class EditMetadata(DependNode):
@@ -25159,12 +24847,6 @@ class Facade(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class EnvFacade(Facade):
     __melnode__ = u'envFacade'
@@ -25261,12 +24943,6 @@ class Flow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class FourByFourMatrix(DependNode):
     __melnode__ = u'fourByFourMatrix'
@@ -25324,12 +25000,6 @@ class FourByFourMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class FrameCache(DependNode):
@@ -25389,12 +25059,6 @@ class FrameCache(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class GammaCorrect(DependNode):
     __melnode__ = u'gammaCorrect'
@@ -25453,12 +25117,6 @@ class GammaCorrect(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class GeoConnector(DependNode):
     __melnode__ = u'geoConnector'
@@ -25516,12 +25174,6 @@ class GeoConnector(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class GeomBind(DependNode):
@@ -27368,12 +27020,6 @@ class GlobalCacheControl(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class GreasePencilSequence(DependNode):
     __melnode__ = u'greasePencilSequence'
@@ -27437,12 +27083,6 @@ class GroupId(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class GroupParts(DependNode):
     __melcmd__ = staticmethod(other.groupParts)
@@ -27504,12 +27144,6 @@ class GroupParts(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Guide(DependNode):
     __melnode__ = u'guide'
@@ -27567,12 +27201,6 @@ class Guide(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class HardwareRenderGlobals(DependNode):
@@ -27632,12 +27260,6 @@ class HardwareRenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class HardwareRenderingGlobals(DependNode):
     __melnode__ = u'hardwareRenderingGlobals'
@@ -27696,12 +27318,6 @@ class HardwareRenderingGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class HierarchyTestNode1(DependNode):
     __melnode__ = u'hierarchyTestNode1'
@@ -27759,12 +27375,6 @@ class HierarchyTestNode1(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class HierarchyTestNode2(HierarchyTestNode1):
@@ -27834,12 +27444,6 @@ class HoldMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class HsvToRgb(DependNode):
     __melnode__ = u'hsvToRgb'
@@ -27897,12 +27501,6 @@ class HsvToRgb(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class HwReflectionMap(DependNode):
@@ -28015,12 +27613,6 @@ class HwReflectionMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class HwRenderGlobals(DependNode):
     __melnode__ = u'hwRenderGlobals'
@@ -28078,12 +27670,6 @@ class HwRenderGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class HyperGraphInfo(DependNode):
@@ -28143,12 +27729,6 @@ class HyperGraphInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class HyperLayout(DependNode):
     __melnode__ = u'hyperLayout'
@@ -28207,12 +27787,6 @@ class HyperLayout(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class HyperView(DependNode):
     __melnode__ = u'hyperView'
@@ -28270,12 +27844,6 @@ class HyperView(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class IkSolver(DependNode):
@@ -28479,12 +28047,6 @@ class IkSystem(DependNode):
     def setSolve(self, val=True, **kwargs):
         return _f.asEdit(self, animation.ikSystem, kwargs, 'solve', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ImageSource(DependNode):
     __apicls__ = _api.MFnImageSource
@@ -28589,12 +28151,6 @@ class LightInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class LightLinker(DependNode):
     __melnode__ = u'lightLinker'
@@ -28652,12 +28208,6 @@ class LightLinker(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class LightList(DependNode):
@@ -28720,12 +28270,6 @@ class LightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class LodThresholds(DependNode):
     __melnode__ = u'lodThresholds'
@@ -28783,12 +28327,6 @@ class LodThresholds(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Luminance(DependNode):
@@ -28848,12 +28386,6 @@ class Luminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class MakeGroup(DependNode):
     __melnode__ = u'makeGroup'
@@ -28911,12 +28443,6 @@ class MakeGroup(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class MaterialInfo(DependNode):
@@ -28976,12 +28502,6 @@ class MaterialInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Membrane(DependNode):
     __melnode__ = u'membrane'
@@ -29039,12 +28559,6 @@ class Membrane(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class MotionPath(DependNode):
@@ -29327,12 +28841,6 @@ class MultDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class MultMatrix(DependNode):
     __melnode__ = u'multMatrix'
@@ -29391,12 +28899,6 @@ class MultMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class MultilisterLight(DependNode):
     __melnode__ = u'multilisterLight'
@@ -29454,12 +28956,6 @@ class MultilisterLight(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Mute(DependNode):
@@ -29522,12 +29018,6 @@ class Mute(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class NComponent(DependNode):
     __melnode__ = u'nComponent'
@@ -29586,12 +29076,6 @@ class NComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Network(DependNode):
     __melnode__ = u'network'
@@ -29649,12 +29133,6 @@ class Network(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class NodeGraphEditorBookmarkInfo(DependNode):
@@ -29728,12 +29206,6 @@ class ObjectFilter(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ObjectAttrFilter(ObjectFilter):
@@ -29828,12 +29300,6 @@ class OldBlindDataBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class OldGeometryConstraint(DependNode):
     __melnode__ = u'oldGeometryConstraint'
@@ -29892,12 +29358,6 @@ class OldGeometryConstraint(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class OpticalFX(DependNode):
     __melnode__ = u'opticalFX'
@@ -29955,12 +29415,6 @@ class OpticalFX(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class PairBlend(DependNode):
@@ -30033,12 +29487,6 @@ class PairBlend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ParticleAgeMapper(DependNode):
     __melnode__ = u'particleAgeMapper'
@@ -30096,12 +29544,6 @@ class ParticleAgeMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ParticleColorMapper(DependNode):
@@ -30161,12 +29603,6 @@ class ParticleColorMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ParticleIncandMapper(DependNode):
     __melnode__ = u'particleIncandMapper'
@@ -30224,12 +29660,6 @@ class ParticleIncandMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ParticleTranspMapper(DependNode):
@@ -30289,12 +29719,6 @@ class ParticleTranspMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class PassContributionMap(DependNode):
     __melnode__ = u'passContributionMap'
@@ -30352,12 +29776,6 @@ class PassContributionMap(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class PassMatrix(DependNode):
@@ -30417,12 +29835,6 @@ class PassMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class PointMatrixMult(DependNode):
     __melnode__ = u'pointMatrixMult'
@@ -30481,12 +29893,6 @@ class PointMatrixMult(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class PolyBase(DependNode):
     __melnode__ = u'polyBase'
@@ -30544,12 +29950,6 @@ class PolyBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class PolyCreator(PolyBase):
@@ -38281,12 +37681,6 @@ class PolyBlindData(DependNode):
     def stringData(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'stringData', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SubdBlindData(PolyBlindData):
     __melnode__ = u'subdBlindData'
@@ -38370,12 +37764,6 @@ class PolySeparate(DependNode):
     @_f.addMelDocs('polySeparate', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polySeparate, kwargs, 'nodeState', val)
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class PolyToSubdiv(DependNode):
@@ -38546,12 +37934,6 @@ class PolyToSubdiv(DependNode):
     def setUvTreatment(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyToSubdiv, kwargs, 'uvTreatment', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class PoseInterpolatorManager(DependNode):
     __melnode__ = u'poseInterpolatorManager'
@@ -38615,12 +37997,6 @@ class PostProcessList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class PrecompExport(DependNode):
     __melnode__ = u'precompExport'
@@ -38678,12 +38054,6 @@ class PrecompExport(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ProxyManager(DependNode):
@@ -38743,12 +38113,6 @@ class ProxyManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Record(DependNode):
     __melnode__ = u'record'
@@ -38806,12 +38170,6 @@ class Record(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Reference(DependNode):
@@ -38966,12 +38324,6 @@ class RemapColor(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class RemapHsv(DependNode):
     __melnode__ = u'remapHsv'
@@ -39029,12 +38381,6 @@ class RemapHsv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class RemapValue(DependNode):
@@ -39094,12 +38440,6 @@ class RemapValue(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class RenderGlobals(DependNode):
     __melnode__ = u'renderGlobals'
@@ -39157,12 +38497,6 @@ class RenderGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class RenderGlobalsList(DependNode):
@@ -39222,12 +38556,6 @@ class RenderGlobalsList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class RenderLayerManager(DependNode):
     __melnode__ = u'renderLayerManager'
@@ -39285,12 +38613,6 @@ class RenderLayerManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class RenderPassSet(DependNode):
@@ -39350,12 +38672,6 @@ class RenderPassSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class RenderQuality(DependNode):
     __melnode__ = u'renderQuality'
@@ -39413,12 +38729,6 @@ class RenderQuality(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ReorderUVSet(DependNode):
@@ -39483,12 +38793,6 @@ class Resolution(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Reverse(DependNode):
     __melnode__ = u'reverse'
@@ -39547,12 +38851,6 @@ class Reverse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class RgbToHsv(DependNode):
     __melnode__ = u'rgbToHsv'
@@ -39610,12 +38908,6 @@ class RgbToHsv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class RigidSolver(DependNode):
@@ -39881,12 +39173,6 @@ class RigidSolver(DependNode):
     def setVelocityVectorScale(self, val=True, **kwargs):
         return _f.asEdit(self, effects.rigidSolver, kwargs, 'velocityVectorScale', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Sampler(DependNode):
     __melnode__ = u'sampler'
@@ -39944,12 +39230,6 @@ class Sampler(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Script(DependNode):
@@ -40009,12 +39289,6 @@ class Script(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SelectionListOperator(DependNode):
     __melnode__ = u'selectionListOperator'
@@ -40072,12 +39346,6 @@ class SelectionListOperator(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class SequenceManager(DependNode):
@@ -40165,12 +39433,6 @@ class SequenceManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class Sequencer(DependNode):
     __melnode__ = u'sequencer'
@@ -40228,12 +39490,6 @@ class Sequencer(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class SetRange(DependNode):
@@ -40293,12 +39549,6 @@ class SetRange(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ShaderGlow(DependNode):
     __melnode__ = u'shaderGlow'
@@ -40357,12 +39607,6 @@ class ShaderGlow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class ShadingDependNode(DependNode):
     __melnode__ = u'shadingDependNode'
@@ -40420,12 +39664,6 @@ class ShadingDependNode(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class BaseShadingSwitch(ShadingDependNode):
@@ -41808,12 +41046,6 @@ class Shot(DependNode):
     def setUnlinkAudio(self, val=True, **kwargs):
         return _f.asEdit(self, animation.shot, kwargs, 'unlinkAudio', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SimpleTestNode(DependNode):
     __melnode__ = u'simpleTestNode'
@@ -41871,12 +41103,6 @@ class SimpleTestNode(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class SimpleVolumeShader(DependNode):
@@ -41936,12 +41162,6 @@ class SimpleVolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SkinBinding(DependNode):
     __melnode__ = u'skinBinding'
@@ -41999,12 +41219,6 @@ class SkinBinding(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Snapshot(DependNode):
@@ -42108,12 +41322,6 @@ class Snapshot(DependNode):
     def setUpdate(self, val=True, **kwargs):
         return _f.asEdit(self, animation.snapshot, kwargs, 'update', val)
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class MotionTrail(Snapshot):
     __melnode__ = u'motionTrail'
@@ -42177,12 +41385,6 @@ class StrokeGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SubdBase(DependNode):
     __melnode__ = u'subdBase'
@@ -42240,12 +41442,6 @@ class SubdBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class SubdModifier(SubdBase):
@@ -42530,12 +41726,6 @@ class SubdivCollapse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SubdivComponentId(DependNode):
     __melnode__ = u'subdivComponentId'
@@ -42593,12 +41783,6 @@ class SubdivComponentId(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class SubdivReverseFaces(DependNode):
@@ -42658,12 +41842,6 @@ class SubdivReverseFaces(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SubdivToPoly(DependNode):
     __melnode__ = u'subdivToPoly'
@@ -42721,12 +41899,6 @@ class SubdivToPoly(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class SurfaceLuminance(DependNode):
@@ -42786,12 +41958,6 @@ class SurfaceLuminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class SurfaceShader(DependNode):
     __melnode__ = u'surfaceShader'
@@ -42849,12 +42015,6 @@ class SurfaceShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class TexLattice(DependNode):
@@ -42914,12 +42074,6 @@ class TexLattice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class TextureToGeom(DependNode):
     __melnode__ = u'textureToGeom'
@@ -42977,12 +42131,6 @@ class TextureToGeom(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ThreadedDevice(DependNode):
@@ -43051,12 +42199,6 @@ class Time(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class TimeEditor(DependNode):
@@ -43909,12 +43051,6 @@ class TimeFunction(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class TimeToUnitConversion(DependNode):
     __melnode__ = u'timeToUnitConversion'
@@ -43972,12 +43108,6 @@ class TimeToUnitConversion(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class TimeWarp(DependNode):
@@ -44085,12 +43215,6 @@ class ToonLineAttributes(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class TrackInfoManager(DependNode):
     __melnode__ = u'trackInfoManager'
@@ -44154,12 +43278,6 @@ class UnitConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class UnitToTimeConversion(DependNode):
     __melnode__ = u'unitToTimeConversion'
@@ -44217,12 +43335,6 @@ class UnitToTimeConversion(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class Unknown(DependNode):
@@ -44282,12 +43394,6 @@ class Unknown(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class UvChooser(DependNode):
     __melnode__ = u'uvChooser'
@@ -44345,12 +43451,6 @@ class UvChooser(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 class ViewColorManager(DependNode):
@@ -44410,12 +43510,6 @@ class ViewColorManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class VolumeShader(DependNode):
     __melnode__ = u'volumeShader'
@@ -44474,12 +43568,6 @@ class VolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
-
 
 class WtAddMatrix(DependNode):
     __melnode__ = u'wtAddMatrix'
@@ -44537,12 +43625,6 @@ class WtAddMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
-
-    @_f.deprecated
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
 
 _addTypeNames()

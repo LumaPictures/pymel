@@ -111,7 +111,7 @@ Additions
     DependNode.dgCallbacks, DependNode.dgTimer, DependNode.dgTimerOff,
     DependNode.dgTimerOn, DependNode.dgTimerQueryState, DependNode.dgTimerReset,
     DependNode.getAliasAttr, DependNode.hasAttribute, DependNode.isNewAttribute,
-    DependNode.setFlag, ObjectSet.isMember
+    DependNode.setFlag, DependNode.typeName, ObjectSet.isMember
 
 - DependNode.deleteAttr now accepts Attribute objects (first verifying that it
   is an attribute on the same node as self)
