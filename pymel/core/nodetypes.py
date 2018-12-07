@@ -8929,6 +8929,9 @@ class ObjectSet(Entity):
 
     def add(self, item):
         return self.__apimfn__().addMember(*self._getApiObjs(item))
+    
+    # alias for backwards compatibility
+    addMember = add
 
     def remove(self, item):
         try:
@@ -8943,6 +8946,9 @@ class ObjectSet(Entity):
                 raise ValueError("%s not in set %r" % (itemStr, self))
             else:
                 raise
+
+    # alias for backwards compatibility
+    removeMember = remove
 
     def isSubSet(self, other):
         # type: (Union[str, ObjectSet]) -> bool
