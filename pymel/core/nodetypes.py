@@ -502,34 +502,43 @@ class DependNode(general.PyNode):
 
         attributes = cls.__apiobjects__.setdefault('MFnAttributes', {})
         attrObj = attributes.get(attr, None)
-        if not _api.isValidMObject(attrObj):
-            def toAttrObj(apiObj):
-                try:
-                    attrObj = apiObj.attribute(attr)
-                    if attrObj.isNull():
-                        raise RuntimeError
-                except RuntimeError:
-                    # just try it first, then check if it has the attribute if
-                    # we errored (as opposed to always check first if the node
-                    # has the attribute), on the assumption that this will be
-                    # "faster" for most cases, where the node actually DOES have
-                    # the attribute...
-                    if not apiObj.hasAttribute(attr):
-                        raise general.MayaAttributeError('%s.%s' % (cls.__melnode__, attr))
-                    else:
-                        # don't know why we got this error, so just reraise
-                        raise
-                return attrObj
+        if _api.isValidMObject(attrObj):
+            # we don't store the AttributeDefault object in the cash, in case
+            # users store extra information on them, ie:
+            #    attrDef = myNode.attrDefaults('foobar')
+            #    attrDef.customInfo = 'awesome'
+            return general.AttributeDefaults(attrObj)
 
-            if self is None:
-                # Yay, we have MNodeClass, use it!
-                nodeCls = _api.MNodeClass(cls.__melnode__)
-                attrObj = toAttrObj(nodeCls)
-            else:
-                nodeMfn = self.__apimfn__()
-                attrObj = toAttrObj(nodeMfn)
+        def toAttrObj(apiObj):
+            try:
+                attrObj = apiObj.attribute(attr)
+                if attrObj.isNull():
+                    raise RuntimeError
+            except RuntimeError:
+                # just try it first, then check if it has the attribute if
+                # we errored (as opposed to always check first if the node
+                # has the attribute), on the assumption that this will be
+                # "faster" for most cases, where the node actually DOES have
+                # the attribute...
+                if not apiObj.hasAttribute(attr):
+                    raise general.MayaAttributeError('%s.%s' % (cls.__melnode__, attr))
+                else:
+                    # don't know why we got this error, so just reraise
+                    raise
+            return attrObj
+
+        if self is None:
+            # Yay, we have MNodeClass, use it!
+            nodeCls = _api.MNodeClass(cls.__melnode__)
+            attrObj = toAttrObj(nodeCls)
+        else:
+            nodeMfn = self.__apimfn__()
+            attrObj = toAttrObj(nodeMfn)
+
+        attrDefault = general.AttributeDefaults(attrObj)
+        if not attrDefault.isDynamic() and not attrDefault.isExtension():
             attributes[attr] = attrObj
-        return general.AttributeDefaults(attrObj)
+        return attrDefault
     # a former bug caused DependNode.attribute (form that takes an index) to
     # be wrapped on many nodes... made it an alias for the more useful
     # attrDefaults method to preserve backward compatibility

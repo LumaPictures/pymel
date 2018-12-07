@@ -94,6 +94,11 @@ Bug Fixes
 ----------------------------------
 - uitypes.OptionMenu.getItemArray() now fixed, and returns PyUI objects
 
+----------------------------------
+Bug Fixes
+----------------------------------
+- fixed issue with DependNode.attrDefaults incorrectly caching dynamic attrs
+
 ==================================
 Version 1.0.10
 ==================================

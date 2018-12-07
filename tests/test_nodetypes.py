@@ -353,6 +353,50 @@ class testCase_attrDefaults(unittest.TestCase):
         attrDefaults = pm.nt.Transform.attrDefaults(mobj)
         self.assertObjectGroups(attrDefaults)
 
+    def test_dynamic(self):
+        # make sure that attrDefaults doesn't improperly cache dynamic atributes
+        # by re-creating an attr with the same name multiple times. We check
+        # both by creating an attr with the same name on two different nodes
+        # of the same type, and by recreating attrs with the exact same specs
+        # multiple times, after doing a newFile
+        for i in xrange(3):
+            pm.newFile(f=1)
+            persp = pm.PyNode('persp')
+            top = pm.PyNode('top')
+            self.assertFalse(persp.hasAttr('foobar'))
+            self.assertFalse(persp.hasAttr('foo'))
+            self.assertFalse(persp.hasAttr('foob'))
+            self.assertFalse(top.hasAttr('foobar'))
+            self.assertFalse(top.hasAttr('foo'))
+            self.assertFalse(top.hasAttr('foob'))
+            persp.addAttr(
+                'foobar', shortName="foo", readable=True, writable=False,
+                storable=False, multi=True, indexMatters=False)
+            top.addAttr(
+                'foobar', shortName="foob", readable=False, writable=True)
+            self.assertTrue(persp.hasAttr('foobar'))
+            self.assertTrue(persp.hasAttr('foo'))
+            self.assertFalse(persp.hasAttr('foob'))
+            self.assertTrue(top.hasAttr('foobar'))
+            self.assertFalse(top.hasAttr('foo'))
+            self.assertTrue(top.hasAttr('foob'))
+            foo = persp.attrDefaults('foobar')
+            self.assertEqual(foo.name(), "foobar")
+            self.assertEqual(foo.shortName(), "foo")
+            self.assertTrue(foo.isReadable())
+            self.assertFalse(foo.isWritable())
+            self.assertFalse(foo.isStorable())
+            self.assertTrue(foo.isArray())
+            self.assertFalse(foo.getIndexMatters())
+            foob = top.attrDefaults('foobar')
+            self.assertEqual(foob.name(), "foobar")
+            self.assertEqual(foob.shortName(), "foob")
+            self.assertFalse(foob.isReadable())
+            self.assertTrue(foob.isWritable())
+            self.assertTrue(foob.isStorable())
+            self.assertFalse(foob.isArray())
+            self.assertTrue(foob.getIndexMatters())
+
 
 def pytest_generate_tests(metafunc):
     if hasattr(metafunc.cls, 'ARGS'):
