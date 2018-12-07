@@ -474,24 +474,25 @@ class DependNode(general.PyNode):
                 raise AttributeError, "%r has no attribute or method named '%s'" % (self, attr)
 
     @_util.universalmethod
-    def attrDefaults(obj, attr):  # @NoSelf
+    def attrSpec(obj, attr):  # @NoSelf
         """
-        Access to an attribute of a node.  This does not require an instance:
+        Access to an attribute specifications of a node.  This does not require
+        an instance:
 
-            >>> nt.Transform.attrDefaults('tx').isKeyable()
+            >>> nt.Transform.attrSpec('tx').isKeyable()
             True
 
         but it can use one if needed ( for example, for dynamically created attributes )
 
-            >>> nt.Transform(u'persp').attrDefaults('tx').isKeyable()
+            >>> nt.Transform(u'persp').attrSpec('tx').isKeyable()
 
         Note: this is still experimental.
         """
-        # if it's a MPlug, MObject, Attribute, or AttributeDefaults, we don't
+        # if it's a MPlug, MObject, Attribute, or AttributeSpec, we don't
         # even need either cls/self
         if isinstance(attr, (_api.MPlug, _api.MObject,
-                             general.Attribute, general.AttributeDefaults)):
-            return general.AttributeDefaults(attr)
+                             general.Attribute, general.AttributeSpec)):
+            return general.AttributeSpec(attr)
 
         if inspect.isclass(obj):
             self = None
@@ -505,9 +506,9 @@ class DependNode(general.PyNode):
         if _api.isValidMObject(attrObj):
             # we don't store the AttributeDefault object in the cash, in case
             # users store extra information on them, ie:
-            #    attrDef = myNode.attrDefaults('foobar')
+            #    attrDef = myNode.attrSpec('foobar')
             #    attrDef.customInfo = 'awesome'
-            return general.AttributeDefaults(attrObj)
+            return general.AttributeSpec(attrObj)
 
         def toAttrObj(apiObj):
             try:
@@ -535,14 +536,18 @@ class DependNode(general.PyNode):
             nodeMfn = self.__apimfn__()
             attrObj = toAttrObj(nodeMfn)
 
-        attrDefault = general.AttributeDefaults(attrObj)
-        if not attrDefault.isDynamic() and not attrDefault.isExtension():
+        attrSpec = general.AttributeSpec(attrObj)
+        if not attrSpec.isDynamic() and not attrSpec.isExtension():
             attributes[attr] = attrObj
-        return attrDefault
+        return attrSpec
+
+    # keep attrDefaults name for backwards compatibility
+    attrDefaults = attrSpec
+
     # a former bug caused DependNode.attribute (form that takes an index) to
     # be wrapped on many nodes... made it an alias for the more useful
-    # attrDefaults method to preserve backward compatibility
-    attribute = attrDefaults
+    # attrSpec method to preserve backward compatibility
+    attribute = attrSpec
 
     def attr(self, attr):
         # type: (Any) -> general.Attribute

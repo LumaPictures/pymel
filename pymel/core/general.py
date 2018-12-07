@@ -70,7 +70,7 @@ def _getPymelTypeFromObject(obj, name):
                              'one possible PyNode type: %s' % obj.apiTypeStr())
         pymelType = compTypes[0]
     elif obj.hasFn(_api.MFn.kAttribute):
-        pymelType = AttributeDefaults
+        pymelType = AttributeSpec
     else:
         raise RuntimeError('Could not determine pymel type for object of type %s' % obj.apiTypeStr())
 
@@ -820,14 +820,14 @@ def addAttr(*args, **kwargs):
 
 
 def hasAttr(pyObj, attr, checkShape=True):
-    # type: (PyNode, Union[unicode, Attribute, AttributeDefaults], bool) -> bool
+    # type: (PyNode, Union[unicode, Attribute, AttributeSpec], bool) -> bool
     """
     Convenience function for determining if an object has an attribute.
 
     Parameters
     ----------
     pyObj : PyNode
-    attr : Union[unicode, Attribute, AttributeDefaults]
+    attr : Union[unicode, Attribute, AttributeSpec]
     checkShape : bool
         If enabled, the shape node of a transform will also be
         checked for the attribute.
@@ -2342,7 +2342,7 @@ class PyNode(_util.ProxyUnicode):
                 if isinstance(argObj, Attribute):
                     attrNode = argObj._node
                     argObj = argObj.__apimplug__()
-                elif isinstance(argObj, AttributeDefaults):
+                elif isinstance(argObj, AttributeSpec):
                     argObj = argObj.__apimobject__()
                 elif isinstance(argObj, Component):
                     try:
@@ -7611,7 +7611,21 @@ class ParticleComponent(Component1D):
 #        return rotate( self, *args, **kwargs )
 
 
-class AttributeDefaults(PyNode):
+class AttributeSpec(PyNode):
+    '''Represents a specification for the type of an attribute.
+
+    This is different from an Attribute, which is a particular instance of
+    an attribute, and is associated with a single node.  For instance, consider
+    the "translateX" on "transform" nodes.  Every instance of a transform node
+    will have it's own unique Attribute (ie, Attribute('top.translateX') and
+    Attribute('top.translateX') are separate objects), but they all share the
+    same AttributeSpec, since the properites of all the translateX's are all
+    the same - ie, they are all floating point numerical attributes, are all
+    storable, etc.
+
+    For those familar with the API, an Attribute wraps an MPlug, while an
+    AttributeSpec wraps MFnAttribute.
+    '''
     __slots__ = ()
     __apicls__ = _api.MFnAttribute
     __metaclass__ = _factories.MetaMayaTypeRegistry
@@ -7621,14 +7635,14 @@ class AttributeDefaults(PyNode):
             argObj = args[0]
             if isinstance(argObj, basestring):
                 # PyNode's __new__ will translate a string to an Attribute, and
-                # then complain that's not a subclass of AttributeDefaults...
+                # then complain that's not a subclass of AttributeSpec...
                 argObj = Attribute(argObj)
             if isinstance(argObj, Attribute):
                 argObj = argObj.__apimplug__()
             if isinstance(argObj, _api.MPlug):
                 argObj = argObj.attribute()
             args = (argObj,)
-        return super(AttributeDefaults, cls).__new__(cls, *args, **kwargs)
+        return super(AttributeSpec, cls).__new__(cls, *args, **kwargs)
 
     def __apiobject__(self):
         """
@@ -7682,7 +7696,7 @@ Modifications:
             parentMObj = mfn.parent()
         except RuntimeError:
             return None
-        return AttributeDefaults(parentMObj)
+        return AttributeSpec(parentMObj)
 # ------ Do not edit below this line --------
     DisconnectBehavior = Enum('DisconnectBehavior', [('delete', 0), ('kDelete', 0), ('reset', 1), ('kReset', 1), ('nothing', 2), ('kNothing', 2)], multiKeys=True)
 
@@ -8030,6 +8044,9 @@ Modifications:
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
+# For backwards compatibility, provide an "AttributeDefaults" alias for
+# AttributeSpec
+AttributeDefaults = AttributeSpec
 
 # ----------------------------------------------
 #  Global Settings

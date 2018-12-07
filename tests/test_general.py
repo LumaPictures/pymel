@@ -1664,15 +1664,15 @@ class test_hasAttr(unittest.TestCase):
         self.assertFalse(self.loc.hasAttr('foobar', checkShape=False))
         self.assertFalse(self.loc.hasAttr('foobar', checkShape=True))
 
-    def test_AttributeDefaults(self):
+    def test_AttributeSpec(self):
         self.loc.addAttr('spangle')
         self.assertTrue(pm.hasAttr(self.loc, 'spangle'))
-        attrDefaults = self.loc.attrDefaults('spangle')
-        self.assertTrue(pm.hasAttr(self.loc, attrDefaults))
-        txAttrDefaults = pm.nt.Transform.attrDefaults('tx')
-        self.assertTrue(pm.hasAttr(self.loc, txAttrDefaults))
-        otherAttrDefaults = pm.nt.Time.attrDefaults('outTime')
-        self.assertFalse(pm.hasAttr(self.loc, otherAttrDefaults))
+        attrSpec = self.loc.attrSpec('spangle')
+        self.assertTrue(pm.hasAttr(self.loc, attrSpec))
+        txAttrSpec = pm.nt.Transform.attrSpec('tx')
+        self.assertTrue(pm.hasAttr(self.loc, txAttrSpec))
+        otherAttrSpec = pm.nt.Time.attrSpec('outTime')
+        self.assertFalse(pm.hasAttr(self.loc, otherAttrSpec))
 
 
 class test_setEnums(unittest.TestCase):
@@ -1836,14 +1836,14 @@ class test_deleteAttr(unittest.TestCase):
         pm.deleteAttr(self.attr)
         self.assertFalse(self.node.hasAttr('foobar'))
 
-    def test_node_str_attr_defaults(self):
+    def test_node_str_attr_spec(self):
         self.assertTrue(self.node.hasAttr('foobar'))
-        pm.deleteAttr('daNode', attribute=self.node.attrDefaults('foobar'))
+        pm.deleteAttr('daNode', attribute=self.node.attrSpec('foobar'))
         self.assertFalse(self.node.hasAttr('foobar'))
 
-    def test_node_obj_attr_defaults(self):
+    def test_node_obj_attr_spec(self):
         self.assertTrue(self.node.hasAttr('foobar'))
-        pm.deleteAttr(self.node, at=self.node.attrDefaults('foobar'))
+        pm.deleteAttr(self.node, at=self.node.attrSpec('foobar'))
         self.assertFalse(self.node.hasAttr('foobar'))
 
 
@@ -2098,37 +2098,37 @@ class test_Attribute_getDefault(unittest.TestCase):
         self.assertIs(attr.getDefault(), None)
 
 
-class test_AttributeDefaults(unittest.TestCase):
-    def assertWorldMatrix(self, attrDefaults):
-        self.assertTrue(attrDefaults.isWorldSpace())
-        self.assertTrue(attrDefaults.isReadable())
-        self.assertFalse(attrDefaults.isWritable())
-        self.assertTrue(attrDefaults.isArray())
-        self.assertEqual(attrDefaults.name(), 'worldMatrix')
-        self.assertEqual(attrDefaults.shortName(), 'wm')
-        self.assertIsNone(attrDefaults.parent())
+class test_AttributeSpec(unittest.TestCase):
+    def assertWorldMatrix(self, attrSpec):
+        self.assertTrue(attrSpec.isWorldSpace())
+        self.assertTrue(attrSpec.isReadable())
+        self.assertFalse(attrSpec.isWritable())
+        self.assertTrue(attrSpec.isArray())
+        self.assertEqual(attrSpec.name(), 'worldMatrix')
+        self.assertEqual(attrSpec.shortName(), 'wm')
+        self.assertIsNone(attrSpec.parent())
 
     def test_create_str(self):
-        attrDefaults = pm.AttributeDefaults('persp.worldMatrix')
-        self.assertWorldMatrix(attrDefaults)
+        attrSpec = pm.AttributeSpec('persp.worldMatrix')
+        self.assertWorldMatrix(attrSpec)
 
     def test_create_Attribute(self):
         attr = pm.PyNode('persp').attr('worldMatrix')
-        attrDefaults = pm.AttributeDefaults(attr)
-        self.assertWorldMatrix(attrDefaults)
+        attrSpec = pm.AttributeSpec(attr)
+        self.assertWorldMatrix(attrSpec)
 
-    def test_create_AttributeDefaults(self):
-        attrDefaultsOrig = pm.AttributeDefaults('persp.wm')
-        attrDefaults = pm.AttributeDefaults(attrDefaultsOrig)
-        self.assertWorldMatrix(attrDefaults)
+    def test_create_AttributeSpec(self):
+        attrSpecOrig = pm.AttributeSpec('persp.wm')
+        attrSpec = pm.AttributeSpec(attrSpecOrig)
+        self.assertWorldMatrix(attrSpec)
 
     def test_create_mplug(self):
         sel = om.MSelectionList()
         sel.add('persp.worldMatrix')
         mplug = om.MPlug()
         sel.getPlug(0, mplug)
-        attrDefaults = pm.AttributeDefaults(mplug)
-        self.assertWorldMatrix(attrDefaults)
+        attrSpec = pm.AttributeSpec(mplug)
+        self.assertWorldMatrix(attrSpec)
 
     def test_create_mobject(self):
         sel = om.MSelectionList()
@@ -2136,8 +2136,8 @@ class test_AttributeDefaults(unittest.TestCase):
         mplug = om.MPlug()
         sel.getPlug(0, mplug)
         mobj = mplug.attribute()
-        attrDefaults = pm.AttributeDefaults(mobj)
-        self.assertWorldMatrix(attrDefaults)
+        attrSpec = pm.AttributeSpec(mobj)
+        self.assertWorldMatrix(attrSpec)
 
 
 class test_exists(unittest.TestCase):

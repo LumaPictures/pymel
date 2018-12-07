@@ -1735,7 +1735,7 @@ def iterApiTypeText():
     # FIXME: handle herited methods
     types = [
         pymel.core.general.Attribute,
-        pymel.core.general.AttributeDefaults,
+        pymel.core.general.AttributeSpec,
         pymel.core.general.MeshVertex,
         pymel.core.general.MeshEdge,
         pymel.core.general.MeshFace,

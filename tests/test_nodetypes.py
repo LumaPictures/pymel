@@ -282,63 +282,63 @@ class testCase_deleteAttr(unittest.TestCase):
         self.assertFalse(self.node.hasAttr('foobar'))
         self.assertTrue(otherNode.hasAttr('foobar'))
 
-    def test_attrdefaults(self):
+    def test_attrSpec(self):
         self.assertTrue(self.node.hasAttr('foobar'))
-        self.node.deleteAttr(self.node.attrDefaults('foobar'))
+        self.node.deleteAttr(self.node.attrSpec('foobar'))
         self.assertFalse(self.node.hasAttr('foobar'))
 
 
-class testCase_attrDefaults(unittest.TestCase):
+class testCase_attrSpec(unittest.TestCase):
     def setUp(self):
         self.persp = pm.nt.Transform('persp')
     
-    def assertObjectGroups(self, attrDefaults):
-        self.assertTrue(attrDefaults.isConnectable())
-        self.assertTrue(attrDefaults.isStorable())
-        self.assertTrue(attrDefaults.isCached())
-        self.assertTrue(attrDefaults.isArray())
-        self.assertEqual(attrDefaults.name(), 'objectGroups')
-        self.assertEqual(attrDefaults.shortName(), 'og')
-        parent = attrDefaults.parent()
-        self.assertIsInstance(parent, pm.AttributeDefaults)
+    def assertObjectGroups(self, attrSpec):
+        self.assertTrue(attrSpec.isConnectable())
+        self.assertTrue(attrSpec.isStorable())
+        self.assertTrue(attrSpec.isCached())
+        self.assertTrue(attrSpec.isArray())
+        self.assertEqual(attrSpec.name(), 'objectGroups')
+        self.assertEqual(attrSpec.shortName(), 'og')
+        parent = attrSpec.parent()
+        self.assertIsInstance(parent, pm.AttributeSpec)
         self.assertEqual(parent.name(), 'instObjGroups')
 
     def test_str(self):
-        attrDefaults = self.persp.attrDefaults('objectGroups')
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = self.persp.attrSpec('objectGroups')
+        self.assertObjectGroups(attrSpec)
 
     def test_index(self):
         objGroups = None
         for i in xrange(self.persp.attributeCount()):
             # make sure we get a valid obj for all indices
-            attrDefaults = self.persp.attrDefaults(i)
-            self.assertIsInstance(attrDefaults, pm.AttributeDefaults)
+            attrSpec = self.persp.attrSpec(i)
+            self.assertIsInstance(attrSpec, pm.AttributeSpec)
             # make sure this doesn't error
-            name = attrDefaults.name()
+            name = attrSpec.name()
             self.assertIsInstance(name, basestring)
             self.assertTrue(name)
             if name == 'objectGroups':
-                objGroups = attrDefaults
+                objGroups = attrSpec
         self.assertIsNotNone(objGroups)
         self.assertObjectGroups(objGroups)
 
     def test_Attribute(self):
         attr = self.persp.attr('objectGroups')
-        attrDefaults = self.persp.attrDefaults(attr)
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = self.persp.attrSpec(attr)
+        self.assertObjectGroups(attrSpec)
 
-    def test_AttributeDefaults(self):
-        attrDefaultsOrig = self.persp.attrDefaults('og')
-        attrDefaults = self.persp.attrDefaults(attrDefaultsOrig)
-        self.assertObjectGroups(attrDefaults)
+    def test_AttributeSpec(self):
+        attrSpecOrig = self.persp.attrSpec('og')
+        attrSpec = self.persp.attrSpec(attrSpecOrig)
+        self.assertObjectGroups(attrSpec)
 
     def test_mplug(self):
         sel = om.MSelectionList()
         sel.add('persp.instObjGroups[0].objectGroups')
         mplug = om.MPlug()
         sel.getPlug(0, mplug)
-        attrDefaults = self.persp.attrDefaults(mplug)
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = self.persp.attrSpec(mplug)
+        self.assertObjectGroups(attrSpec)
 
     def test_mobject(self):
         sel = om.MSelectionList()
@@ -346,45 +346,45 @@ class testCase_attrDefaults(unittest.TestCase):
         mplug = om.MPlug()
         sel.getPlug(0, mplug)
         mobj = mplug.attribute()
-        attrDefaults = self.persp.attrDefaults(mobj)
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = self.persp.attrSpec(mobj)
+        self.assertObjectGroups(attrSpec)
 
     def test_cls_str(self):
-        attrDefaults = pm.nt.Transform.attrDefaults('objectGroups')
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = pm.nt.Transform.attrSpec('objectGroups')
+        self.assertObjectGroups(attrSpec)
 
     def test_cls_index(self):
         objGroups = None
         for i in xrange(om.MNodeClass('transform').attributeCount()):
             # make sure we get a valid obj for all indices
-            attrDefaults = pm.nt.Transform.attrDefaults(i)
-            self.assertIsInstance(attrDefaults, pm.AttributeDefaults)
+            attrSpec = pm.nt.Transform.attrSpec(i)
+            self.assertIsInstance(attrSpec, pm.AttributeSpec)
             # make sure this doesn't error
-            name = attrDefaults.name()
+            name = attrSpec.name()
             self.assertIsInstance(name, basestring)
             self.assertTrue(name)
             if name == 'objectGroups':
-                objGroups = attrDefaults
+                objGroups = attrSpec
         self.assertIsNotNone(objGroups)
         self.assertObjectGroups(objGroups)
 
     def test_cls_Attribute(self):
         attr = self.persp.attr('objectGroups')
-        attrDefaults = pm.nt.Transform.attrDefaults(attr)
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = pm.nt.Transform.attrSpec(attr)
+        self.assertObjectGroups(attrSpec)
 
-    def test_cls_AttributeDefaults(self):
-        attrDefaultsOrig = pm.nt.Transform.attrDefaults('og')
-        attrDefaults = pm.nt.Transform.attrDefaults(attrDefaultsOrig)
-        self.assertObjectGroups(attrDefaults)
+    def test_cls_AttributeSpec(self):
+        attrSpecOrig = pm.nt.Transform.attrSpec('og')
+        attrSpec = pm.nt.Transform.attrSpec(attrSpecOrig)
+        self.assertObjectGroups(attrSpec)
 
     def test_cls_mplug(self):
         sel = om.MSelectionList()
         sel.add('persp.instObjGroups[0].objectGroups')
         mplug = om.MPlug()
         sel.getPlug(0, mplug)
-        attrDefaults = pm.nt.Transform.attrDefaults(mplug)
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = pm.nt.Transform.attrSpec(mplug)
+        self.assertObjectGroups(attrSpec)
 
     def test_cls_mobject(self):
         sel = om.MSelectionList()
@@ -392,11 +392,11 @@ class testCase_attrDefaults(unittest.TestCase):
         mplug = om.MPlug()
         sel.getPlug(0, mplug)
         mobj = mplug.attribute()
-        attrDefaults = pm.nt.Transform.attrDefaults(mobj)
-        self.assertObjectGroups(attrDefaults)
+        attrSpec = pm.nt.Transform.attrSpec(mobj)
+        self.assertObjectGroups(attrSpec)
 
     def test_dynamic(self):
-        # make sure that attrDefaults doesn't improperly cache dynamic atributes
+        # make sure that attrSpec doesn't improperly cache dynamic atributes
         # by re-creating an attr with the same name multiple times. We check
         # both by creating an attr with the same name on two different nodes
         # of the same type, and by recreating attrs with the exact same specs
@@ -422,7 +422,7 @@ class testCase_attrDefaults(unittest.TestCase):
             self.assertTrue(top.hasAttr('foobar'))
             self.assertFalse(top.hasAttr('foo'))
             self.assertTrue(top.hasAttr('foob'))
-            foo = persp.attrDefaults('foobar')
+            foo = persp.attrSpec('foobar')
             self.assertEqual(foo.name(), "foobar")
             self.assertEqual(foo.shortName(), "foo")
             self.assertTrue(foo.isReadable())
@@ -430,7 +430,7 @@ class testCase_attrDefaults(unittest.TestCase):
             self.assertFalse(foo.isStorable())
             self.assertTrue(foo.isArray())
             self.assertFalse(foo.getIndexMatters())
-            foob = top.attrDefaults('foobar')
+            foob = top.attrSpec('foobar')
             self.assertEqual(foob.name(), "foobar")
             self.assertEqual(foob.shortName(), "foob")
             self.assertFalse(foob.isReadable())

@@ -11,7 +11,7 @@ Version 1.1.0
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
-- AttributeDefaults.parent() now returns None instead of erroring
+- AttributeSpec.parent() now returns None instead of erroring
 - datatypes.Quaternion.asEulerRotation now returns a datatypes.EulerRotation
   as intended, instead of OpenMaya.MEulerRotation; since dt.EulerRotation
   inherits from om.MEulerRotation, they should mostly be compatible, but if you
@@ -32,14 +32,14 @@ Non-Backward Compatible Changes
   - **DagNode.setObject**: dangerous - changes the node we're wrapping out from
     underneath us
   - **DependNode.addAttribute**: dangerous, because it only took
-    AttributeDefaults objects as inputs. In addition to being fairly obscure,
+    AttributeSpec objects as inputs. In addition to being fairly obscure,
     they are mostly constructed from existing attributes - but the API
     explicitly warns against adding an attribute using an MObject that's already
     added to another node. Use addAttr method instead.
   - **DependNode.findPlug**: dangerous, as it allowed returning networked mplugs.
     Use attr method instead. The api docs warn that networked plugs should not
     be used if you might be breaking connections, thus why these are
-    considerered dangerous. Also, it only worked when fed AttributeDefaults, a
+    considerered dangerous. Also, it only worked when fed AttributeSpec, a
     little known / used part of pymel.
   - **DependNode.reorderedAttribute**: obscure, and apparently only useful
     during file IO
@@ -49,6 +49,10 @@ Non-Backward Compatible Changes
 ----------------------------------
 Changes
 ----------------------------------
+- AttributeDefaults renamed to AttributeSpec, which better reflects what it is:
+  a specification for the type on an attribute, not associated with any single
+  node.  The AttributeDefaults name is preserved as an alias for backwards
+  compatibility.
 - The following methods were removed from Shape: model, removeChild, and
   removeChildAt. They were never intended to be wrapped, and were non-
   functional, so removing them should not introduce any backwards-compatibility
@@ -71,9 +75,9 @@ Changes
 ----------------------------------
 Additions
 ----------------------------------
-- AttributeDefaults may now be constructed from a string (which names an
-  existing Attribute), an Attribute, an MPlug, or another AttributeDefaults.
-  DependNode.attrDefaults now also accepts all these objects as well.
+- AttributeSpec may now be constructed from a string (which names an
+  existing Attribute), an Attribute, an MPlug, or another AttributeSpec.
+  DependNode.attrSpec now also accepts all these objects as well.
 - Many layout flags were were not wrapped on uitypes.Layout; they now are,
   which also means all sub-classes inherit these methods as well (though many
   subclasses already had their own overrides for many of these commands). The
@@ -116,7 +120,7 @@ Bug Fixes
 ----------------------------------
 Bug Fixes
 ----------------------------------
-- fixed issue with DependNode.attrDefaults incorrectly caching dynamic attrs
+- fixed issue with DependNode.attrSpec incorrectly caching dynamic attrs
 
 ==================================
 Version 1.0.10
