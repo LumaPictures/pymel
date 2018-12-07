@@ -671,6 +671,10 @@ class DependNode(general.PyNode):
                     " {} - attr: {}".format(self, attr))
             return general.deleteAttr(attr.name(), *args, **kwargs)
         return general.deleteAttr("%s.%s" % (self, attr), *args, **kwargs)
+    # a former bug caused DependNode.removeAttribute to be wrapped on many
+    # nodes... made it an alias for deleteAttr method to preserve backward
+    # compatibility
+    removeAttribute = deleteAttr
 
     @_factories.addMelDocs('connectAttr')
     def connectAttr(self, attr, destination, **kwargs):
