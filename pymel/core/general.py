@@ -820,14 +820,14 @@ def addAttr(*args, **kwargs):
 
 
 def hasAttr(pyObj, attr, checkShape=True):
-    # type: (PyNode, Union[unicode, Attribute], bool) -> bool
+    # type: (PyNode, Union[unicode, Attribute, AttributeDefaults], bool) -> bool
     """
     Convenience function for determining if an object has an attribute.
 
     Parameters
     ----------
     pyObj : PyNode
-    attr : Union[unicode, Attribute]
+    attr : Union[unicode, Attribute, AttributeDefaults]
     checkShape : bool
         If enabled, the shape node of a transform will also be
         checked for the attribute.

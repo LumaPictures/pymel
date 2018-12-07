@@ -1664,6 +1664,17 @@ class test_hasAttr(unittest.TestCase):
         self.assertFalse(self.loc.hasAttr('foobar', checkShape=False))
         self.assertFalse(self.loc.hasAttr('foobar', checkShape=True))
 
+    def test_AttributeDefaults(self):
+        self.loc.addAttr('spangle')
+        self.assertTrue(pm.hasAttr(self.loc, 'spangle'))
+        attrDefaults = self.loc.attrDefaults('spangle')
+        self.assertTrue(pm.hasAttr(self.loc, attrDefaults))
+        txAttrDefaults = pm.nt.Transform.attrDefaults('tx')
+        self.assertTrue(pm.hasAttr(self.loc, txAttrDefaults))
+        otherAttrDefaults = pm.nt.Time.attrDefaults('outTime')
+        self.assertFalse(pm.hasAttr(self.loc, otherAttrDefaults))
+
+
 class test_setEnums(unittest.TestCase):
     def setUp(self):
         pm.newFile(f=1)
