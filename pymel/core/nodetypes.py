@@ -3976,7 +3976,7 @@ class Transform(DagNode):
     # quaternion - which is what is actually stored under the hood (even though
     # the external "interface" is an euler rotation attribute
 
-    @_factories.addApiDocs(_api.MFnTransform, 'getRotateOrientation')
+    @_factories.addApiDocs(_api.MFnTransform, 'rotateOrientation')
     def getRotateOrientation(self):
         # space is currently ignored, and transform is always used, according to
         # docs
