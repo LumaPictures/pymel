@@ -5139,14 +5139,6 @@ class DisplayLayer(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -10336,14 +10328,6 @@ class JointFfd(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -10447,14 +10431,6 @@ class THdependNode(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -10554,14 +10530,6 @@ class AbstractBaseCreate(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -15142,14 +15110,6 @@ class AddDoubleLinear(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -15234,14 +15194,6 @@ class AddMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -15333,14 +15285,6 @@ class AngleBetween(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -15425,14 +15369,6 @@ class AnimBlend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -15524,14 +15460,6 @@ class AnimBlendNodeBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -16181,14 +16109,6 @@ class ArrayMapper(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -16280,14 +16200,6 @@ class AttrHierarchyTest(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -16372,14 +16284,6 @@ class Audio(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -16469,14 +16373,6 @@ class Blend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -16619,14 +16515,6 @@ class BlendColors(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -16711,14 +16599,6 @@ class BlindDataTemplate(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -16812,14 +16692,6 @@ class Brush(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -16906,14 +16778,6 @@ class Bump3d(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -16998,14 +16862,6 @@ class CacheBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -17397,14 +17253,6 @@ class CameraView(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -17504,14 +17352,6 @@ class CharacterMap(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -17628,14 +17468,6 @@ class CharacterOffset(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -17723,14 +17555,6 @@ class Choice(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -17829,14 +17653,6 @@ class Chooser(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -17921,14 +17737,6 @@ class Clamp(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -18017,14 +17825,6 @@ class ClipLibrary(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -18109,14 +17909,6 @@ class ClipScheduler(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -18210,14 +18002,6 @@ class ClosestPointOnMesh(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -18307,14 +18091,6 @@ class ColorProfile(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -18433,14 +18209,6 @@ class Condition(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -24019,14 +23787,6 @@ class Contrast(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -24220,14 +23980,6 @@ class CopyColorSet(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -24312,14 +24064,6 @@ class CopyUVSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -24408,14 +24152,6 @@ class CreateColorSet(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -24502,14 +24238,6 @@ class CreateUVSet(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -24594,14 +24322,6 @@ class CurveFromMesh(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -24698,14 +24418,6 @@ class CurveNormalizer(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -24805,14 +24517,6 @@ class DagPose(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -24921,14 +24625,6 @@ class DataBlockTest(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -25013,14 +24709,6 @@ class DefaultLightList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -25109,14 +24797,6 @@ class DefaultRenderUtilityList(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -25201,14 +24881,6 @@ class DefaultRenderingList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -25297,14 +24969,6 @@ class DefaultShaderList(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -25389,14 +25053,6 @@ class DefaultTextureList(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -25485,14 +25141,6 @@ class DeleteColorSet(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -25579,14 +25227,6 @@ class DeleteComponent(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -25671,14 +25311,6 @@ class DeleteUVSet(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -25768,14 +25400,6 @@ class DiskCache(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -25939,14 +25563,6 @@ class DisplacementShader(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -26031,14 +25647,6 @@ class DisplayLayerManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -26127,14 +25735,6 @@ class DistanceBetween(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -26221,14 +25821,6 @@ class Dof(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -26313,14 +25905,6 @@ class DynController(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -26410,14 +25994,6 @@ class DynGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.addMelDocs('dynGlobals', 'active')
     def getActive(self, **kwargs):
@@ -26698,14 +26274,6 @@ class Facade(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -26808,14 +26376,6 @@ class Flow(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -26924,14 +26484,6 @@ class FourByFourMatrix(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -27016,14 +26568,6 @@ class FrameCache(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -27112,14 +26656,6 @@ class GammaCorrect(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -27204,14 +26740,6 @@ class GeoConnector(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -29087,14 +28615,6 @@ class GlobalCacheControl(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -29186,14 +28706,6 @@ class GroupId(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -29283,14 +28795,6 @@ class GroupParts(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -29375,14 +28879,6 @@ class Guide(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -29471,14 +28967,6 @@ class HardwareRenderGlobals(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -29565,14 +29053,6 @@ class HardwareRenderingGlobals(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -29657,14 +29137,6 @@ class HierarchyTestNode1(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -29763,14 +29235,6 @@ class HoldMatrix(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -29855,14 +29319,6 @@ class HsvToRgb(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -29952,14 +29408,6 @@ class HwReflectionMap(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -30098,14 +29546,6 @@ class HwRenderGlobals(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -30190,14 +29630,6 @@ class HyperGraphInfo(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -30286,14 +29718,6 @@ class HyperLayout(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -30378,14 +29802,6 @@ class HyperView(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -30577,14 +29993,6 @@ class IkSystem(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -30758,14 +30166,6 @@ class LightInfo(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -30850,14 +30250,6 @@ class LightLinker(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -30949,14 +30341,6 @@ class LightList(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -31041,14 +30425,6 @@ class LodThresholds(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -31137,14 +30513,6 @@ class Luminance(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -31229,14 +30597,6 @@ class MakeGroup(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -31325,14 +30685,6 @@ class MaterialInfo(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -31417,14 +30769,6 @@ class Membrane(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -31736,14 +31080,6 @@ class MultDoubleLinear(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -31830,14 +31166,6 @@ class MultMatrix(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -31922,14 +31250,6 @@ class MultilisterLight(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -32021,14 +31341,6 @@ class Mute(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -32115,14 +31427,6 @@ class NComponent(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -32207,14 +31511,6 @@ class Network(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -32316,14 +31612,6 @@ class ObjectFilter(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -32447,14 +31735,6 @@ class OldBlindDataBase(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -32541,14 +31821,6 @@ class OldGeometryConstraint(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -32633,14 +31905,6 @@ class OpticalFX(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -32730,14 +31994,6 @@ class PairBlend(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -32836,14 +32092,6 @@ class ParticleAgeMapper(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -32928,14 +32176,6 @@ class ParticleColorMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -33024,14 +32264,6 @@ class ParticleIncandMapper(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -33116,14 +32348,6 @@ class ParticleTranspMapper(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -33212,14 +32436,6 @@ class PassContributionMap(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -33304,14 +32520,6 @@ class PassMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -33400,14 +32608,6 @@ class PointMatrixMult(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -33492,14 +32692,6 @@ class PolyBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -41224,14 +40416,6 @@ class PolyBlindData(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -41362,14 +40546,6 @@ class PolySeparate(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -41475,14 +40651,6 @@ class PolyToSubdiv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.addMelDocs('polyToSubdiv', 'absolutePosition')
     def getAbsolutePosition(self, **kwargs):
@@ -41684,14 +40852,6 @@ class PostProcessList(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -41776,14 +40936,6 @@ class PrecompExport(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -41872,14 +41024,6 @@ class ProxyManager(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -41964,14 +41108,6 @@ class Record(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -42155,14 +41291,6 @@ class RemapColor(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -42247,14 +41375,6 @@ class RemapHsv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -42343,14 +41463,6 @@ class RemapValue(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -42435,14 +41547,6 @@ class RenderGlobals(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -42531,14 +41635,6 @@ class RenderGlobalsList(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -42623,14 +41719,6 @@ class RenderLayerManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -42719,14 +41807,6 @@ class RenderPassSet(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -42811,14 +41891,6 @@ class RenderQuality(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -42912,14 +41984,6 @@ class Resolution(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -43006,14 +42070,6 @@ class Reverse(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -43098,14 +42154,6 @@ class RgbToHsv(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -43195,14 +42243,6 @@ class RigidSolver(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -43494,14 +42534,6 @@ class Sampler(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -43588,14 +42620,6 @@ class Script(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -43680,14 +42704,6 @@ class SelectionListOperator(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -43777,14 +42793,6 @@ class SequenceManager(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -43898,14 +42906,6 @@ class Sequencer(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -43990,14 +42990,6 @@ class SetRange(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -44086,14 +43078,6 @@ class ShaderGlow(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -44178,14 +43162,6 @@ class ShadingDependNode(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -45168,14 +44144,6 @@ class Shot(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -45691,14 +44659,6 @@ class SimpleTestNode(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -45785,14 +44745,6 @@ class SimpleVolumeShader(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -45877,14 +44829,6 @@ class SkinBinding(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -45974,14 +44918,6 @@ class Snapshot(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -46116,14 +45052,6 @@ class StrokeGlobals(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -46208,14 +45136,6 @@ class SubdBase(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -46529,14 +45449,6 @@ class SubdivCollapse(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -46621,14 +45533,6 @@ class SubdivComponentId(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -46717,14 +45621,6 @@ class SubdivReverseFaces(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -46809,14 +45705,6 @@ class SubdivToPoly(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -46905,14 +45793,6 @@ class SurfaceLuminance(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -46997,14 +45877,6 @@ class SurfaceShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -47093,14 +45965,6 @@ class TexLattice(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -47185,14 +46049,6 @@ class TextureToGeom(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -47289,14 +46145,6 @@ class Time(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -48178,14 +47026,6 @@ class TimeFunction(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -48270,14 +47110,6 @@ class TimeToUnitConversion(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -48414,14 +47246,6 @@ class ToonLineAttributes(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -48513,14 +47337,6 @@ class UnitConversion(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -48605,14 +47421,6 @@ class UnitToTimeConversion(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -48701,14 +47509,6 @@ class Unknown(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -48793,14 +47593,6 @@ class UvChooser(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):
@@ -48889,14 +47681,6 @@ class ViewColorManager(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -48983,14 +47767,6 @@ class VolumeShader(DependNode):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
-
-    @_f.deprecated
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
@@ -49075,14 +47851,6 @@ class WtAddMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def findPlug(self, attr, wantNetworkedPlug):
-        # type: (general.PyNode, bool) -> general.Attribute
-        do, final_do, outTypes = _f.getDoArgs([attr, wantNetworkedPlug], [('attr', 'MObject', 'in', None), ('wantNetworkedPlug', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'findPlug', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
-        return res
 
     @_f.deprecated
     def getAffectedAttributes(self, attr):

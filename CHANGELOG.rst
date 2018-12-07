@@ -24,15 +24,22 @@ Non-Backward Compatible Changes
 - PopupMenu.getItemArray() now returns PyUI objects, instead of strings, as
   intended.  This brings it's behavior in line with Menu.getItemArray(), from
   which it inherits
-- Due to a bug, the following methods were wrapped on some subclasses, but not
-  all.  None were ever intended to be wrapped at all.  They are all being
-  removed, as they were either too danagerous, difficult to use, not useful, or
-  obscure to continue supporting.
+- Due to a bug, the following methods were wrapped on a random scattering of
+  subclasses, of the named classes. They were ever intended to be wrapped at
+  all.  They are all being removed, as they were either too dangerous, not
+  useful, or obscure to continue supporting.
 
-  - DagNode.setObject
-  - DependNode.reorderedAttribute
-  - Shape.dagPath
-  - Shape.getPath
+  - **DagNode.setObject**: dangerous - changes the node we're wrapping out from
+    underneath us
+  - **DependNode.reorderedAttribute**: obscure, and apparently only useful
+    during file IO
+  - **DependNode.findPlug**: dangerous, as it allowed returning networked mplugs.
+    Use attr method instead. The api docs warn that networked plugs should not
+    be used if you might be breaking connections, thus why these are
+    considerered dangerous. Also, it only worked when fed AttributeDefaults, a
+    little known / used part of pymel.
+  - **Shape.dagPath**: useless, as it just always returned self
+  - **Shape.getPath**: useless, as it just always returned self
 
 ----------------------------------
 Changes
