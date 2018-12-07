@@ -5187,13 +5187,6 @@ class DisplayLayer(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -9446,10 +9439,6 @@ class AnimLayer(ObjectSet):
     def removeAllAttributes(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animLayer, kwargs, 'removeAllAttributes', val)
 
-    @_f.addMelDocs('animLayer', 'removeAttribute')
-    def removeAttribute(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.animLayer, kwargs, 'removeAttribute', val)
-
     @_f.deprecated
     def removeMember(self, obj):
         # type: (general.PyNode) -> None
@@ -10361,13 +10350,6 @@ class JointFfd(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -10449,13 +10431,6 @@ class THdependNode(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -10532,13 +10507,6 @@ class AbstractBaseCreate(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -15098,13 +15066,6 @@ class AddDoubleLinear(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15166,13 +15127,6 @@ class AddMatrix(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -15243,13 +15197,6 @@ class AngleBetween(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15311,13 +15258,6 @@ class AnimBlend(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -15387,13 +15327,6 @@ class AnimBlendNodeBase(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -16022,13 +15955,6 @@ class ArrayMapper(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16098,13 +16024,6 @@ class AttrHierarchyTest(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16166,13 +16085,6 @@ class Audio(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -16240,13 +16152,6 @@ class Blend(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -16368,13 +16273,6 @@ class BlendColors(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16436,13 +16334,6 @@ class BlindDataTemplate(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -16515,13 +16406,6 @@ class Brush(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16586,13 +16470,6 @@ class Bump3d(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16654,13 +16531,6 @@ class CacheBase(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -17030,13 +16900,6 @@ class CameraView(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
     @_f.addMelDocs('cameraView', 'removeBookmark')
     def removeBookmark(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.cameraView, kwargs, 'removeBookmark', val)
@@ -17137,13 +17000,6 @@ class CharacterMap(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17213,13 +17069,6 @@ class CharacterOffset(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -17300,13 +17149,6 @@ class Choice(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17368,13 +17210,6 @@ class Chooser(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -17442,13 +17277,6 @@ class Clamp(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17513,13 +17341,6 @@ class ClipLibrary(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17581,13 +17402,6 @@ class ClipScheduler(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -17660,13 +17474,6 @@ class ClosestPointOnMesh(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17733,13 +17540,6 @@ class ColorProfile(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -17836,13 +17636,6 @@ class Condition(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -23400,13 +23193,6 @@ class Contrast(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23578,13 +23364,6 @@ class CopyColorSet(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23646,13 +23425,6 @@ class CopyUVSet(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -23720,13 +23492,6 @@ class CreateColorSet(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23791,13 +23556,6 @@ class CreateUVSet(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23859,13 +23617,6 @@ class CurveFromMesh(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -23940,13 +23691,6 @@ class CurveNormalizer(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -24047,13 +23791,6 @@ class DagPose(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24115,13 +23852,6 @@ class DataBlockTest(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -24189,13 +23919,6 @@ class DefaultLightList(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24257,13 +23980,6 @@ class DefaultRenderUtilityList(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -24331,13 +24047,6 @@ class DefaultRenderingList(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24399,13 +24108,6 @@ class DefaultShaderList(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -24473,13 +24175,6 @@ class DefaultTextureList(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24541,13 +24236,6 @@ class DeleteColorSet(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -24615,13 +24303,6 @@ class DeleteComponent(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24683,13 +24364,6 @@ class DeleteUVSet(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -24835,13 +24509,6 @@ class DiskCache(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24903,13 +24570,6 @@ class DisplacementShader(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -24977,13 +24637,6 @@ class DisplayLayerManager(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -25045,13 +24698,6 @@ class DistanceBetween(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -25119,13 +24765,6 @@ class Dof(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -25187,13 +24826,6 @@ class DynController(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -25276,13 +24908,6 @@ class DynGlobals(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -25527,13 +25152,6 @@ class Facade(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -25636,13 +25254,6 @@ class Flow(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -25704,13 +25315,6 @@ class FourByFourMatrix(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -25778,13 +25382,6 @@ class FrameCache(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -25849,13 +25446,6 @@ class GammaCorrect(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -25917,13 +25507,6 @@ class GeoConnector(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -27778,13 +27361,6 @@ class GlobalCacheControl(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27851,13 +27427,6 @@ class GroupId(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -27928,13 +27497,6 @@ class GroupParts(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27996,13 +27558,6 @@ class Guide(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -28070,13 +27625,6 @@ class HardwareRenderGlobals(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28141,13 +27689,6 @@ class HardwareRenderingGlobals(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28209,13 +27750,6 @@ class HierarchyTestNode1(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -28293,13 +27827,6 @@ class HoldMatrix(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28361,13 +27888,6 @@ class HsvToRgb(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -28488,13 +28008,6 @@ class HwReflectionMap(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28556,13 +28069,6 @@ class HwRenderGlobals(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -28630,13 +28136,6 @@ class HyperGraphInfo(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28701,13 +28200,6 @@ class HyperLayout(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28769,13 +28261,6 @@ class HyperView(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -28971,13 +28456,6 @@ class IkSystem(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29104,13 +28582,6 @@ class LightInfo(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29172,13 +28643,6 @@ class LightLinker(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -29249,13 +28713,6 @@ class LightList(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29317,13 +28774,6 @@ class LodThresholds(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -29391,13 +28841,6 @@ class Luminance(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29459,13 +28902,6 @@ class MakeGroup(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -29533,13 +28969,6 @@ class MaterialInfo(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29601,13 +29030,6 @@ class Membrane(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -29898,13 +29320,6 @@ class MultDoubleLinear(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29969,13 +29384,6 @@ class MultMatrix(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -30037,13 +29445,6 @@ class MultilisterLight(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -30114,13 +29515,6 @@ class Mute(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -30185,13 +29579,6 @@ class NComponent(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -30253,13 +29640,6 @@ class Network(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -30339,13 +29719,6 @@ class ObjectFilter(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -30448,13 +29821,6 @@ class OldBlindDataBase(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -30519,13 +29885,6 @@ class OldGeometryConstraint(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -30587,13 +29946,6 @@ class OpticalFX(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -30674,13 +30026,6 @@ class PairBlend(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -30742,13 +30087,6 @@ class ParticleAgeMapper(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -30816,13 +30154,6 @@ class ParticleColorMapper(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -30884,13 +30215,6 @@ class ParticleIncandMapper(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -30958,13 +30282,6 @@ class ParticleTranspMapper(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -31026,13 +30343,6 @@ class PassContributionMap(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -31100,13 +30410,6 @@ class PassMatrix(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -31171,13 +30474,6 @@ class PointMatrixMult(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -31239,13 +30535,6 @@ class PolyBase(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -38960,13 +38249,6 @@ class PolyBlindData(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
     @_f.addMelDocs('polyBlindData', 'rescan')
     def rescan(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'rescan', val)
@@ -39071,13 +38353,6 @@ class PolySeparate(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -39215,13 +38490,6 @@ class PolyToSubdiv(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
     @_f.addMelDocs('polyToSubdiv', 'absolutePosition')
     def setAbsolutePosition(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyToSubdiv, kwargs, 'absolutePosition', val)
@@ -39340,13 +38608,6 @@ class PostProcessList(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39408,13 +38669,6 @@ class PrecompExport(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -39482,13 +38736,6 @@ class ProxyManager(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39550,13 +38797,6 @@ class Record(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -39719,13 +38959,6 @@ class RemapColor(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39787,13 +39020,6 @@ class RemapHsv(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -39861,13 +39087,6 @@ class RemapValue(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39929,13 +39148,6 @@ class RenderGlobals(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -40003,13 +39215,6 @@ class RenderGlobalsList(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40071,13 +39276,6 @@ class RenderLayerManager(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -40145,13 +39343,6 @@ class RenderPassSet(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40213,13 +39404,6 @@ class RenderQuality(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -40292,13 +39476,6 @@ class Resolution(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40363,13 +39540,6 @@ class Reverse(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40431,13 +39601,6 @@ class RgbToHsv(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -40627,13 +39790,6 @@ class RigidSolver(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40782,13 +39938,6 @@ class Sampler(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40853,13 +40002,6 @@ class Script(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40921,13 +40063,6 @@ class SelectionListOperator(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -41023,13 +40158,6 @@ class SequenceManager(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41091,13 +40219,6 @@ class Sequencer(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -41165,13 +40286,6 @@ class SetRange(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41236,13 +40350,6 @@ class ShaderGlow(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41304,13 +40411,6 @@ class ShadingDependNode(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -42513,13 +41613,6 @@ class Shot(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -42772,13 +41865,6 @@ class SimpleTestNode(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -42843,13 +41929,6 @@ class SimpleVolumeShader(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -42911,13 +41990,6 @@ class SkinBinding(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -43013,13 +42085,6 @@ class Snapshot(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43105,13 +42170,6 @@ class StrokeGlobals(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43173,13 +42231,6 @@ class SubdBase(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -43472,13 +42523,6 @@ class SubdivCollapse(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43540,13 +42584,6 @@ class SubdivComponentId(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -43614,13 +42651,6 @@ class SubdivReverseFaces(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43682,13 +42712,6 @@ class SubdivToPoly(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -43756,13 +42779,6 @@ class SurfaceLuminance(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43824,13 +42840,6 @@ class SurfaceShader(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -43898,13 +42907,6 @@ class TexLattice(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43966,13 +42968,6 @@ class TextureToGeom(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -44047,13 +43042,6 @@ class Time(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -44914,13 +43902,6 @@ class TimeFunction(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -44982,13 +43963,6 @@ class TimeToUnitConversion(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -45104,13 +44078,6 @@ class ToonLineAttributes(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -45180,13 +44147,6 @@ class UnitConversion(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -45248,13 +44208,6 @@ class UnitToTimeConversion(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -45322,13 +44275,6 @@ class Unknown(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -45390,13 +44336,6 @@ class UvChooser(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
@@ -45464,13 +44403,6 @@ class ViewColorManager(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -45535,13 +44467,6 @@ class VolumeShader(DependNode):
         return res
 
     @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
-        return res
-
-    @_f.deprecated
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -45603,13 +44528,6 @@ class WtAddMatrix(DependNode):
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'plugsAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
-        return res
-
-    @_f.deprecated
-    def removeAttribute(self, attribute):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([attribute], [('attribute', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'removeAttribute', final_do)
         return res
 
     @_f.deprecated
