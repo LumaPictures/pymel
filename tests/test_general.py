@@ -1808,6 +1808,45 @@ class test_addAttr(unittest.TestCase):
                           u'autoLong2_second'])
 
 
+class test_deleteAttr(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+        self.node = pm.createNode('transform', name='daNode')
+        self.assertFalse(self.node.hasAttr('foobar'))
+        self.node.addAttr('foobar')
+        self.attr = self.node.attr('foobar')
+
+    def test_nodeattr_str(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        pm.deleteAttr('daNode.foobar')
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+    def test_node_str_attr_str(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        pm.deleteAttr('daNode', at='foobar')
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+    def test_node_obj_attr_str(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        pm.deleteAttr(self.node, attribute='foobar')
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+    def test_attr_obj(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        pm.deleteAttr(self.attr)
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+    def test_node_str_attr_defaults(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        pm.deleteAttr('daNode', attribute=self.node.attrDefaults('foobar'))
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+    def test_node_obj_attr_defaults(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        pm.deleteAttr(self.node, at=self.node.attrDefaults('foobar'))
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+
 class test_Attribute_iterDescendants(unittest.TestCase):
     # FIXME: to prevent this test from changing over time it might be a good idea to create
     # custom MPxNode type with known attributes

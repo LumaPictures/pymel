@@ -246,6 +246,48 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(circleMaker.attr('outputCurve').type(), 'nurbsCurve')
 
 
+class testCase_deleteAttr(unittest.TestCase):
+    def setUp(self):
+        self.node = pm.createNode('transform', name='daNode')
+        self.assertFalse(self.node.hasAttr('foobar'))
+        self.node.addAttr('foobar')
+        self.attr = self.node.attr('foobar')
+
+    def tearDown(self):
+        pm.delete(self.node)
+
+    def test_str(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        self.node.deleteAttr('foobar')
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+    def test_attr(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        self.node.deleteAttr(self.attr)
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+    def test_attr_wrongNode(self):
+        otherNode = pm.createNode('transform', name='otherNode')
+        otherNode.addAttr('foobar')
+        otherAttr = otherNode.attr('foobar')
+        self.assertTrue(self.node.hasAttr('foobar'))
+        self.assertTrue(otherNode.hasAttr('foobar'))
+        self.assertRaises(pm.MayaAttributeError, self.node.deleteAttr,
+                          otherAttr)
+        self.assertRaises(pm.MayaAttributeError, otherNode.deleteAttr,
+                          self.attr)
+        self.assertTrue(self.node.hasAttr('foobar'))
+        self.assertTrue(otherNode.hasAttr('foobar'))
+        self.node.deleteAttr(self.attr)
+        self.assertFalse(self.node.hasAttr('foobar'))
+        self.assertTrue(otherNode.hasAttr('foobar'))
+
+    def test_attrdefaults(self):
+        self.assertTrue(self.node.hasAttr('foobar'))
+        self.node.deleteAttr(self.node.attrDefaults('foobar'))
+        self.assertFalse(self.node.hasAttr('foobar'))
+
+
 class testCase_attrDefaults(unittest.TestCase):
     def setUp(self):
         self.persp = pm.nt.Transform('persp')

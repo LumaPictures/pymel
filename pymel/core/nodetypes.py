@@ -664,6 +664,12 @@ class DependNode(general.PyNode):
     @_factories.addMelDocs('deleteAttr')
     def deleteAttr(self, attr, *args, **kwargs):
         # for now, using strings is better, because there is no MPlug support
+        if isinstance(attr, general.Attribute):
+            if not attr.node() == self:
+                raise general.MayaAttributeError(
+                    "Cannot delete an attribute from another node - thisNode:"
+                    " {} - attr: {}".format(self, attr))
+            return general.deleteAttr(attr.name(), *args, **kwargs)
         return general.deleteAttr("%s.%s" % (self, attr), *args, **kwargs)
 
     @_factories.addMelDocs('connectAttr')
