@@ -9199,25 +9199,11 @@ class ShadingEngine(ObjectSet):
     __slots__ = ()
 
     @_f.deprecated
-    def addMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'addMember', final_do)
-        return res
-
-    @_f.deprecated
     def getMembers(self, flatten=False):
         # type: (bool) -> SelectionSet
         do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def removeMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'removeMember', final_do)
-        return res
 # ------ Do not edit above this line --------
 
 
@@ -9247,13 +9233,6 @@ class AnimLayer(ObjectSet):
     __melcmdname__ = u'animLayer'
     __melnode__ = u'animLayer'
     __slots__ = ()
-
-    @_f.deprecated
-    def addMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'addMember', final_do)
-        return res
 
     @_f.addMelDocs('animLayer', 'copy')
     def copy(self, val=True, **kwargs):
@@ -9444,13 +9423,6 @@ class AnimLayer(ObjectSet):
     @_f.addMelDocs('animLayer', 'removeAllAttributes')
     def removeAllAttributes(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animLayer, kwargs, 'removeAllAttributes', val)
-
-    @_f.deprecated
-    def removeMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'removeMember', final_do)
-        return res
 
     @_f.addMelDocs('animLayer', 'addRelatedKG')
     def setAddRelatedKG(self, val=True, **kwargs):
@@ -22586,25 +22558,11 @@ class BakeSet(ObjectSet):
     __slots__ = ()
 
     @_f.deprecated
-    def addMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'addMember', final_do)
-        return res
-
-    @_f.deprecated
     def getMembers(self, flatten=False):
         # type: (bool) -> SelectionSet
         do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def removeMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'removeMember', final_do)
-        return res
 
 
 class TextureBakeSet(BakeSet):
@@ -22818,13 +22776,6 @@ class KeyingGroup(ObjectSet):
     def addElement(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyingGroup, kwargs, 'addElement', val)
 
-    @_f.deprecated
-    def addMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'addMember', final_do)
-        return res
-
     @_f.addMelDocs('keyingGroup', 'afterFilters')
     def afterFilters(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyingGroup, kwargs, 'afterFilters', val)
@@ -22912,13 +22863,6 @@ class KeyingGroup(ObjectSet):
     @_f.addMelDocs('keyingGroup', 'removeActivator')
     def removeActivator(self, val=True, **kwargs):
         return _f.asEdit(self, animation.keyingGroup, kwargs, 'removeActivator', val)
-
-    @_f.deprecated
-    def removeMember(self, obj):
-        # type: (general.PyNode) -> None
-        do, final_do, outTypes = _f.getDoArgs([obj], [('obj', 'MObject', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'removeMember', final_do)
-        return res
 
     @_f.addMelDocs('keyingGroup', 'activator')
     def setActivator(self, val=True, **kwargs):
