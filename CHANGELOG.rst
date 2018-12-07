@@ -20,6 +20,11 @@ Additions
   existing Attribute), an Attribute, an MPlug, or another AttributeDefaults.
   DependNode.attrDefaults now also accepts all these objects as well.
 
+----------------------------------
+Bug Fixes
+----------------------------------
+- fixed issue with DependNode.attrDefaults incorrectly caching dynamic attrs
+
 ==================================
 Version 1.0.10
 ==================================
