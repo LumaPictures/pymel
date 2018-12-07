@@ -544,11 +544,6 @@ class DependNode(general.PyNode):
     # keep attrDefaults name for backwards compatibility
     attrDefaults = attrSpec
 
-    # a former bug caused DependNode.attribute (form that takes an index) to
-    # be wrapped on many nodes... made it an alias for the more useful
-    # attrSpec method to preserve backward compatibility
-    attribute = attrSpec
-
     def attr(self, attr):
         # type: (Any) -> general.Attribute
         """

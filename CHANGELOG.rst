@@ -26,8 +26,7 @@ Non-Backward Compatible Changes
   which it inherits
 - Due to a bug, the following methods were wrapped on a random scattering of
   subclasses, of the named classes. They were ever intended to be wrapped at
-  all.  They are all being removed, as they were either too dangerous, not
-  useful, or obscure to continue supporting.
+  all.  They are all being removed - exact methods and reasoning below:
 
   - **DagNode.setObject**: dangerous - changes the node we're wrapping out from
     underneath us
@@ -36,6 +35,11 @@ Non-Backward Compatible Changes
     they are mostly constructed from existing attributes - but the API
     explicitly warns against adding an attribute using an MObject that's already
     added to another node. Use addAttr method instead.
+  - **DependNode.attribute**: too confusing to have both "attr" and "attribute"
+    which return different types of objects. Use attrSpec instead. Also, the old
+    wrap only worked with integer indices, which wasn't useful in most
+    situations (attrSpec works with either string names, Attribute objects, or
+    indices).
   - **DependNode.findPlug**: dangerous, as it allowed returning networked mplugs.
     Use attr method instead. The api docs warn that networked plugs should not
     be used if you might be breaking connections, thus why these are
