@@ -29,9 +29,10 @@ Non-Backward Compatible Changes
   removed, as they were either too danagerous, difficult to use, not useful, or
   obscure to continue supporting.
 
-    DagNode.setObject, DependNode.allocateFlag, DependNode.deallocateAllFlags,
-    DependNode.deallocateFlag, DependNode.reorderedAttribute, Shape.dagPath,
-    Shape.getPath
+  - DagNode.setObject
+  - DependNode.reorderedAttribute
+  - Shape.dagPath
+  - Shape.getPath
 
 ----------------------------------
 Changes
@@ -85,10 +86,12 @@ Additions
   new methods is:
 
     DagNode.fullPathName, DagNode.isInstancedAttribute, DagNode.partialPathName,
-    DagNode.setInstanceable, DependNode.attributeClass, DependNode.dgCallbacks,
-    DependNode.dgTimer, DependNode.dgTimerOff, DependNode.dgTimerOn,
-    DependNode.dgTimerQueryState, DependNode.dgTimerReset, DependNode.getAliasAttr,
-    DependNode.isNewAttribute, DependNode.setFlag, ObjectSet.isMember
+    DagNode.setInstanceable, DependNode.allocateFlag, DependNode.attributeClass,
+    DependNode.deallocateAllFlags, DependNode.deallocateFlag,
+    DependNode.dgCallbacks, DependNode.dgTimer, DependNode.dgTimerOff,
+    DependNode.dgTimerOn, DependNode.dgTimerQueryState, DependNode.dgTimerReset,
+    DependNode.getAliasAttr, DependNode.isNewAttribute, DependNode.setFlag,
+    ObjectSet.isMember
 
 ----------------------------------
 Bug Fixes

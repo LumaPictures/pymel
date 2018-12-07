@@ -871,6 +871,15 @@ class DependNode(general.PyNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'absoluteName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
+    @classmethod
+    @_f.addApiDocs(_api.MFnDependencyNode, 'allocateFlag')
+    def allocateFlag(self, pluginName):
+        # type: (unicode) -> int
+        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
+        res = _api.MFnDependencyNode.allocateFlag(*final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+
     @_f.addApiDocs(_api.MFnDependencyNode, 'attributeClass')
     def attributeClass(self, attribute):
         # type: (general.PyNode) -> DependencyNode.MAttrClass
@@ -890,6 +899,22 @@ class DependNode(general.PyNode):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'canBeWritten')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @classmethod
+    @_f.addApiDocs(_api.MFnDependencyNode, 'deallocateAllFlags')
+    def deallocateAllFlags(self, pluginName):
+        # type: (unicode) -> None
+        do, final_do, outTypes = _f.getDoArgs([pluginName], [('pluginName', 'MString', 'in', None)])
+        res = _api.MFnDependencyNode.deallocateAllFlags(*final_do)
+        return res
+
+    @classmethod
+    @_f.addApiDocs(_api.MFnDependencyNode, 'deallocateFlag')
+    def deallocateFlag(self, pluginName, flag):
+        # type: (unicode, int) -> None
+        do, final_do, outTypes = _f.getDoArgs([pluginName, flag], [('pluginName', 'MString', 'in', None), ('flag', 'uint', 'in', None)])
+        res = _api.MFnDependencyNode.deallocateFlag(*final_do)
+        return res
 
     @_f.addApiDocs(_api.MFnDependencyNode, 'dgCallbacks')
     def dgCallbacks(self, timerType, callbackName, value):
