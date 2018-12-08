@@ -2299,6 +2299,15 @@ class ApiUndoItem(object):
             undoKwargs = {}
         self._undo_kwargs = undoKwargs
 
+    def __repr__(self):
+        args = [self._setter, self._redo_args, self._undo_args]
+        args = [repr(x) for x in args]
+        if self._redo_kwargs:
+            args.append('redoKwargs={!r}'.format(self._redo_kwargs))
+        if self._undo_kwargs:
+            args.append('undoKwargs={!r}'.format(self._undo_kwargs))
+        return '{}({})'.format(type(self).__name__, ', '.join(args))
+
     def redoIt(self):
         self._setter(*self._redo_args, **self._redo_kwargs)
     doIt = redoIt
