@@ -25,6 +25,10 @@
 #     known affected children: stereoRigCamera
 #
 #     isMotionBlur => isMotionBlurred
+#     getFarClippingPlane => getFarClipPlane
+#     getNearClippingPlane => getNearClipPlane
+#     setFarClippingPlane => setFarClipPlane
+#     setNearClippingPlane => setNearClipPlane
 #     setMotionBlur => setMotionBlurred
 #     set => setupCamera
 # Mesh
@@ -268,14 +272,12 @@
   ('CacheBase', 'getConnections'): {'backwards_compatibility_enabled': True},
   ('CacheBase', 'plugsAlias'): {'backwards_compatibility_enabled': True},
   ('CacheBase', 'setAlias'): {'backwards_compatibility_enabled': True},
-  ('Camera', 'getFarClipPlane'): {'useName': 'MEL'},
-  ('Camera', 'getFarClippingPlane'): {'melName': 'getFarClipPlane',
-                                      'useName': 'MEL'},
+  ('Camera', 'getFarClippingPlane'): {'aliases': ['getFarClipPlane'],
+                                      'melName': 'getFarClipPlane'},
   ('Camera', 'getMotionBlur'): {'useName': 'isMotionBlurred'},
   ('Camera', 'getName'): {'melEnabled': False},
-  ('Camera', 'getNearClipPlane'): {'useName': 'MEL'},
-  ('Camera', 'getNearClippingPlane'): {'melName': 'getNearClipPlane',
-                                       'useName': 'MEL'},
+  ('Camera', 'getNearClippingPlane'): {'aliases': ['getNearClipPlane'],
+                                       'melName': 'getNearClipPlane'},
   ('Camera', 'getOrthoWidth'): {'melName': 'getOrthographicWidth'},
   ('Camera', 'getPosition'): {'melEnabled': False},
   ('Camera', 'getRotation'): {'melEnabled': False},
@@ -290,14 +292,12 @@
   ('Camera', 'isOrtho'): {'melName': 'getOrthographic'},
   ('Camera', 'isVerticalLock'): {'melName': 'getVerticalLock'},
   ('Camera', 'set'): {'aliases': ['setupCamera']},
-  ('Camera', 'setFarClipPlane'): {'useName': 'MEL'},
-  ('Camera', 'setFarClippingPlane'): {'melName': 'setFarClipPlane',
-                                      'useName': 'MEL'},
+  ('Camera', 'setFarClippingPlane'): {'aliases': ['setFarClipPlane'],
+                                      'melName': 'setFarClipPlane'},
   ('Camera', 'setMotionBlur'): {'aliases': ['setMotionBlurred']},
   ('Camera', 'setName'): {'melEnabled': False},
-  ('Camera', 'setNearClipPlane'): {'useName': 'MEL'},
-  ('Camera', 'setNearClippingPlane'): {'melName': 'setNearClipPlane',
-                                       'useName': 'MEL'},
+  ('Camera', 'setNearClippingPlane'): {'aliases': ['setNearClipPlane'],
+                                       'melName': 'setNearClipPlane'},
   ('Camera', 'setNearFarClippingPlanes'): {'enabled': False},
   ('Camera', 'setOrtho'): {'melName': 'setOrthographic'},
   ('Camera', 'setOrthoWidth'): {'melName': 'setOrthographicWidth'},
@@ -1472,10 +1472,6 @@
   ('SpotLight', 'setPenumbraAngle'): {'melName': 'setPenumbra',
                                       'useName': 'MEL'},
   ('SpotLight', 'setPosition'): {'melEnabled': False},
-  ('StereoRigCamera', 'getFarClippingPlane'): {'backwards_compatibility_enabled': True},
-  ('StereoRigCamera', 'getNearClippingPlane'): {'backwards_compatibility_enabled': True},
-  ('StereoRigCamera', 'setFarClippingPlane'): {'backwards_compatibility_enabled': True},
-  ('StereoRigCamera', 'setNearClippingPlane'): {'backwards_compatibility_enabled': True},
   ('StereoRigCamera', 'setNearFarClippingPlanes'): {'backwards_compatibility_enabled': True},
   ('StrokeGlobals', 'findAlias'): {'backwards_compatibility_enabled': True},
   ('StrokeGlobals', 'getAffectedAttributes'): {'backwards_compatibility_enabled': True},

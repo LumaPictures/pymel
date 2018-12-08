@@ -2694,10 +2694,11 @@ class Camera(Shape):
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
 
     @_f.addApiDocs(_api.MFnCamera, 'farClippingPlane')
-    def getFarClipPlane(self):
+    def getFarClippingPlane(self):
         # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'farClippingPlane')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
+    getFarClipPlane = getFarClippingPlane
 
     @_f.addApiDocs(_api.MFnCamera, 'farFocusDistance')
     def getFarFocusDistance(self):
@@ -2832,10 +2833,11 @@ class Camera(Shape):
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'nearClippingPlane')
-    def getNearClipPlane(self):
+    def getNearClippingPlane(self):
         # type: () -> float
         res = _f.getProxyResult(self, _api.MFnCamera, 'nearClippingPlane')
         return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
+    getNearClipPlane = getNearClippingPlane
 
     @_f.addApiDocs(_api.MFnCamera, 'nearFocusDistance')
     def getNearFocusDistance(self):
@@ -3186,11 +3188,12 @@ class Camera(Shape):
         return res
 
     @_f.addApiDocs(_api.MFnCamera, 'setFarClippingPlane')
-    def setFarClipPlane(self, dFar):
+    def setFarClippingPlane(self, dFar):
         # type: (float) -> None
-        do, final_do, outTypes = _f.processApiArgs([dFar], [('dFar', 'double', 'in', u'linear')], self.getFarClipPlane, self.setFarClipPlane, [])
+        do, final_do, outTypes = _f.processApiArgs([dFar], [('dFar', 'double', 'in', u'linear')], self.getFarClippingPlane, self.setFarClippingPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFarClippingPlane', final_do)
         return res
+    setFarClipPlane = setFarClippingPlane
 
     @_f.addApiDocs(_api.MFnCamera, 'setFarFocusDistance')
     def setFarFocusDistance(self, farFocusDistance):
@@ -3325,11 +3328,12 @@ class Camera(Shape):
     setMotionBlurred = setMotionBlur
 
     @_f.addApiDocs(_api.MFnCamera, 'setNearClippingPlane')
-    def setNearClipPlane(self, dNear):
+    def setNearClippingPlane(self, dNear):
         # type: (float) -> None
-        do, final_do, outTypes = _f.processApiArgs([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClipPlane, self.setNearClipPlane, [])
+        do, final_do, outTypes = _f.processApiArgs([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClippingPlane, self.setNearClippingPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearClippingPlane', final_do)
         return res
+    setNearClipPlane = setNearClippingPlane
 
     @_f.addApiDocs(_api.MFnCamera, 'setNearFocusDistance')
     def setNearFocusDistance(self, nearFocusDistance):
@@ -17744,32 +17748,6 @@ class BaseLattice(Shape):
 class StereoRigCamera(Camera):
     __melnode__ = u'stereoRigCamera'
     __slots__ = ()
-
-    @_f.deprecated
-    def getFarClippingPlane(self):
-        # type: () -> float
-        res = _f.getProxyResult(self, _api.MFnCamera, 'farClippingPlane')
-        return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
-
-    @_f.deprecated
-    def getNearClippingPlane(self):
-        # type: () -> float
-        res = _f.getProxyResult(self, _api.MFnCamera, 'nearClippingPlane')
-        return _f.ApiArgUtil._castResult(self, res, 'double', 'linear')
-
-    @_f.deprecated
-    def setFarClippingPlane(self, dFar):
-        # type: (float) -> None
-        do, final_do, outTypes = _f.processApiArgs([dFar], [('dFar', 'double', 'in', u'linear')], self.getFarClipPlane, self.setFarClippingPlane, [])
-        res = _f.getProxyResult(self, _api.MFnCamera, 'setFarClippingPlane', final_do)
-        return res
-
-    @_f.deprecated
-    def setNearClippingPlane(self, dNear):
-        # type: (float) -> None
-        do, final_do, outTypes = _f.processApiArgs([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClipPlane, self.setNearClippingPlane, [])
-        res = _f.getProxyResult(self, _api.MFnCamera, 'setNearClippingPlane', final_do)
-        return res
 
     @_f.deprecated
     def setNearFarClippingPlanes(self, dNear, dFar):
