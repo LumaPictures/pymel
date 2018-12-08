@@ -871,7 +871,6 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         if getterArgHelper is None:
             #_logger.debug( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
             getterInArgs = []
-            undoable = False
         else:
             getterInArgs = getterArgHelper.inArgs()
 
