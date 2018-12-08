@@ -4006,16 +4006,16 @@ class Transform(DagNode):
     # the external "interface" is an euler rotation attribute
 
     @_factories.addApiDocs(_api.MFnTransform, 'rotateOrientation')
-    def getRotateOrientation(self):
+    def getRotateOrientation(self, space='transform'):
         # space is currently ignored, and transform is always used, according to
-        # docs
-        return self._getRotateOrientation(space='transform')
+        # docs; however, allow the kwarg for backwards compat
+        return self._getRotateOrientation(space=space)
 
     @_factories.addApiDocs(_api.MFnTransform, 'setRotateOrientation')
-    def setRotateOrientation(self, quat, balance=True):
+    def setRotateOrientation(self, quat, space='transform', balance=True):
         # space is currently ignored, and transform is always used, according to
-        # docs
-        return self._setRotateOrientation(quat, space='transform',
+        # docs; however, allow the kwarg for backwards compat
+        return self._setRotateOrientation(quat, space=space,
             balance=balance)
 
 #    @_factories.queryflag('xform','shear')
