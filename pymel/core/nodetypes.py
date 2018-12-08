@@ -2588,6 +2588,18 @@ class Camera(Shape):
         else:
             kwargs['absolute'] = True
         cmds.roll(self, **kwargs)
+        
+    @_f.addApiDocs(_api.MFnCamera, 'setNearFarClippingPlanes')
+    def setNearFarClippingPlanes(self, dNear, dFar):
+        redoArgs = (dNear, dFar)
+        undoArgs = (self.getNearClippingPlane(), self.getFarClippingPlane())
+        self._setNearFarClippingPlanes(dNear, dFar)
+        undoItem = _factories.ApiUndoItem(self._setNearFarClippingPlanes,
+                                          redoArgs, undoArgs)
+        _factories.apiUndo.append(undoItem)
+    # add an alias - don't technically need one, but since we now have
+    # aliases for other variants, makes sense to make this one too
+    setNearFarClipPlanes = setNearFarClippingPlanes
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnCamera
     __melcmd__ = staticmethod(rendering.camera)
@@ -2597,6 +2609,13 @@ class Camera(Shape):
     __slots__ = ()
     FilmFit = Enum('FilmFit', [('fillFilmFit', 0), ('kFillFilmFit', 0), ('horizontalFilmFit', 1), ('kHorizontalFilmFit', 1), ('verticalFilmFit', 2), ('kVerticalFilmFit', 2), ('overscanFilmFit', 3), ('kOverscanFilmFit', 3), ('invalid', 4), ('kInvalid', 4)], multiKeys=True)
     RollOrder = Enum('RollOrder', [('rotateTranslate', 0), ('kRotateTranslate', 0), ('translateRotate', 1), ('kTranslateRotate', 1)], multiKeys=True)
+
+    @_f.addApiDocs(_api.MFnCamera, 'setNearFarClippingPlanes')
+    def _setNearFarClippingPlanes(self, dNear, dFar):
+        # type: (float, float) -> None
+        do, final_do, outTypes = _f.getDoArgs([dNear, dFar], [('dNear', 'double', 'in', u'linear'), ('dFar', 'double', 'in', u'linear')])
+        res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFarClippingPlanes', final_do)
+        return res
 
     @_f.addApiDocs(_api.MFnCamera, 'computeDepthOfField')
     def computeDepthOfField(self):
@@ -17748,13 +17767,6 @@ class BaseLattice(Shape):
 class StereoRigCamera(Camera):
     __melnode__ = u'stereoRigCamera'
     __slots__ = ()
-
-    @_f.deprecated
-    def setNearFarClippingPlanes(self, dNear, dFar):
-        # type: (float, float) -> None
-        do, final_do, outTypes = _f.getDoArgs([dNear, dFar], [('dNear', 'double', 'in', u'linear'), ('dFar', 'double', 'in', u'linear')])
-        res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFarClippingPlanes', final_do)
-        return res
 
 
 class ClusterHandle(Shape):

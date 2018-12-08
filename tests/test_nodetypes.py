@@ -2322,6 +2322,52 @@ class testCase_nurbsSurface(TestCaseExtended):
         # Was a bug with this, due to automatic wrapping of api 'unsigned int &' args
         self.assertEqual(self.negUSurf.getKnotDomain(), (-11.0, -3.0, 0.0, 1.0))
 
+
+class testCase_camera(unittest.TestCase):
+    def setUp(self):
+        pm.newFile(f=1)
+
+    def test_setNearFarClippingPlanes(self):
+        cam = pm.createNode('camera')
+        near = cam.attr('nearClipPlane')
+        far = cam.attr('farClipPlane')
+        near.set(.1)
+        far.set(1000)
+        pm.flushUndo()
+        self.assertEqual(cam.getNearClipPlane(), .1)
+        self.assertEqual(cam.getFarClipPlane(), 1000)
+        cam.setNearFarClippingPlanes(.2, 2000)
+        self.assertEqual(cam.getNearClipPlane(), .2)
+        self.assertEqual(cam.getFarClipPlane(), 2000)
+        cam.setNearFarClippingPlanes(.3, 3000)
+        self.assertEqual(cam.getNearClipPlane(), .3)
+        self.assertEqual(cam.getFarClipPlane(), 3000)
+        pm.undo()
+        self.assertEqual(cam.getNearClipPlane(), .2)
+        self.assertEqual(cam.getFarClipPlane(), 2000)
+        pm.undo()
+        self.assertEqual(cam.getNearClipPlane(), .1)
+        self.assertEqual(cam.getFarClipPlane(), 1000)
+        pm.redo()
+        self.assertEqual(cam.getNearClipPlane(), .2)
+        self.assertEqual(cam.getFarClipPlane(), 2000)
+        cam.setNearFarClippingPlanes(.4, 4000)
+        self.assertEqual(cam.getNearClipPlane(), .4)
+        self.assertEqual(cam.getFarClipPlane(), 4000)
+        pm.undo()
+        self.assertEqual(cam.getNearClipPlane(), .2)
+        self.assertEqual(cam.getFarClipPlane(), 2000)
+        pm.undo()
+        self.assertEqual(cam.getNearClipPlane(), .1)
+        self.assertEqual(cam.getFarClipPlane(), 1000)
+        pm.redo()
+        self.assertEqual(cam.getNearClipPlane(), .2)
+        self.assertEqual(cam.getFarClipPlane(), 2000)
+        pm.redo()
+        self.assertEqual(cam.getNearClipPlane(), .4)
+        self.assertEqual(cam.getFarClipPlane(), 4000)
+
+
 class testCase_joint(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
