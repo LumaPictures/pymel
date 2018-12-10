@@ -62,8 +62,11 @@ pymelTypeNameToMayaTypeName = _factories.pymelTypeNameToMayaTypeName
 def _addTypeNames():
     for name, obj in globals().items():
         if isinstance(obj, type) and issubclass(obj, DependNode):
-            mayaTypeNameToPymelTypeName[obj.__melnode__] = name
-            pymelTypeNameToMayaTypeName[name] = obj.__melnode__
+            # only want to add this entry if it's defined on THIS class, not
+            # if it's inherited!
+            if '__melnode__' in obj.__dict__:
+                mayaTypeNameToPymelTypeName[obj.__melnode__] = name
+                pymelTypeNameToMayaTypeName[name] = obj.__melnode__
 
 
 class DependNode(general.PyNode):
