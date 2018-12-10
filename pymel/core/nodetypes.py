@@ -2591,7 +2591,7 @@ class Camera(Shape):
         else:
             kwargs['absolute'] = True
         cmds.roll(self, **kwargs)
-        
+
     @_f.addApiDocs(_api.MFnCamera, 'setNearFarClippingPlanes')
     def setNearFarClippingPlanes(self, dNear, dFar):
         redoArgs = (dNear, dFar)
@@ -8955,7 +8955,7 @@ class ObjectSet(Entity):
 
     def add(self, item):
         return self.__apimfn__().addMember(*self._getApiObjs(item))
-    
+
     # alias for backwards compatibility
     addMember = add
 
@@ -9573,6 +9573,94 @@ class AnimCurve(DependNode):
                                          infoObj.getIndex('kTangent' + tangentInType.capitalize()),
                                          infoObj.getIndex('kTangent' + tangentOutType.capitalize()))
 
+    @_f.addApiDocs(_api.MFnAnimCurve, 'addKey', 0)
+    def addKeyTU(self, time, value, tangentInType='global_', tangentOutType='global_'):
+        # type: (Union[datatypes.Time, float], float, AnimCurve.TangentType, AnimCurve.TangentType) -> int
+        time = datatypes.Time._inCast(time)
+        value = float(value)
+        tangentInType = self.TangentType.getIndex(tangentInType)
+        tangentOutType = self.TangentType.getIndex(tangentOutType)
+        change = _api.MAnimCurveChange()
+        res = self.__apimfn__().addKey(time, value, tangentInType, tangentOutType, change)
+        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        _factories.apiUndo.append(undoItem, undoName="addKeyTU")
+        return res
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'addKey', 1)
+    def addKeyTT(self, timeInput, timeValue, tangentInType='global_', tangentOutType='global_'):
+        # type: (Union[datatypes.Time, float], Union[datatypes.Time, float], AnimCurve.TangentType, AnimCurve.TangentType) -> int
+        timeInput = datatypes.Time._inCast(timeInput)
+        timeValue = datatypes.Time._inCast(timeValue)
+        tangentInType = self.TangentType.getIndex(tangentInType)
+        tangentOutType = self.TangentType.getIndex(tangentOutType)
+        change = _api.MAnimCurveChange()
+        res = self.__apimfn__().addKey(timeInput, timeValue, tangentInType, tangentOutType, change)
+        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        _factories.apiUndo.append(undoItem, undoName="addKeyTT")
+        return res
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'addKey', 2)
+    def addKeyUU(self, unitlessInput, value, tangentInType='global_', tangentOutType='global_'):
+        # type: (float, float, AnimCurve.TangentType, AnimCurve.TangentType) -> int
+        unitlessInput = float(unitlessInput)
+        value = float(value)
+        tangentInType = self.TangentType.getIndex(tangentInType)
+        tangentOutType = self.TangentType.getIndex(tangentOutType)
+        change = _api.MAnimCurveChange()
+        res = self.__apimfn__().addKey(unitlessInput, value, tangentInType, tangentOutType, change)
+        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        _factories.apiUndo.append(undoItem, undoName="addKeyUU")
+        return res
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'addKey', 3)
+    def addKeyUT(self, unitlessInput, timeValue, tangentInType='global_', tangentOutType='global_'):
+        # type: (float, Union[datatypes.Time, float], AnimCurve.TangentType, AnimCurve.TangentType) -> int
+        unitlessInput = float(unitlessInput)
+        timeValue = datatypes.Time._inCast(timeValue)
+        tangentInType = self.TangentType.getIndex(tangentInType)
+        tangentOutType = self.TangentType.getIndex(tangentOutType)
+        change = _api.MAnimCurveChange()
+        res = self.__apimfn__().addKey(unitlessInput, timeValue, tangentInType, tangentOutType, change)
+        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        _factories.apiUndo.append(undoItem, undoName="addKeyUT")
+        return res
+
+    # because addKeyframe only works with TA/TL/TU, make it an alias for addKey
+    def addKeyframe(self, *args, **kwargs):
+        return self.addKey(*args, **kwargs)
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'evaluate', 0)
+    def evaluateTU(self, atTime):
+        # type: (datatypes.Time) -> float
+        atTime = datatypes.Time._inCast(atTime)
+        return self.__apimfn__().evaluate(atTime)
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'evaluate', 2)
+    def evaluateTT(self, atTime):
+        # type: (datatypes.Time) -> datatypes.Time
+        atTime = datatypes.Time._inCast(atTime)
+        timeValue = _api.MTime()
+        self.__apimfn__().evaluate(atTime, timeValue)
+        uiUnit = _api.MTime.uiUnit()
+        return datatypes.Time(timeValue.asUnits(uiUnit), uiUnit)
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'evaluate', 3)
+    def evaluateUU(self, atUnitlessInput):
+        # type: (float) -> float
+        atUnitlessInput = float(atUnitlessInput)
+        outValuePtr = _api.SafeApiPtr('double')
+        self.__apimfn__().evaluate(atUnitlessInput, outValuePtr())
+        return outValuePtr.get()
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'evaluate', 4)
+    def evaluateUT(self, atUnitlessInput):
+        # type: (float) -> datatypes.Time
+        atUnitlessInput = float(atUnitlessInput)
+        timeValue = _api.MTime()
+        self.__apimfn__().evaluate(atUnitlessInput, timeValue)
+        uiUnit = _api.MTime.uiUnit()
+        return datatypes.Time(timeValue.asUnits(uiUnit), uiUnit)
+
     def numKeyframes(self):
         # just because MFnAnimCurve.numKeyframes is deprecated...
         return self.numKeys()
@@ -9829,6 +9917,195 @@ class AnimCurve(DependNode):
         do, final_do, outTypes = _f.processApiArgs([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getWeightsLocked, self.setWeightsLocked, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeightsLocked', final_do)
         return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveTA(AnimCurve):
+    addKey = AnimCurve.addKeyTU
+    evaluate = AnimCurve.evaluateTU
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveTA'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveTL(AnimCurve):
+    addKey = AnimCurve.addKeyTU
+    evaluate = AnimCurve.evaluateTU
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveTL'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveTT(AnimCurve):
+    addKey = AnimCurve.addKeyTT
+    evaluate = AnimCurve.evaluateTT
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveTT'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveTU(AnimCurve):
+    addKey = AnimCurve.addKeyTU
+    evaluate = AnimCurve.evaluateTU
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveTU'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveUA(AnimCurve):
+    addKey = AnimCurve.addKeyUU
+    evaluate = AnimCurve.evaluateUU
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveUA'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveUL(AnimCurve):
+    addKey = AnimCurve.addKeyUU
+    evaluate = AnimCurve.evaluateUU
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveUL'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveUT(AnimCurve):
+    addKey = AnimCurve.addKeyUT
+    evaluate = AnimCurve.evaluateUT
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveUT'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class AnimCurveUU(AnimCurve):
+    addKey = AnimCurve.addKeyUU
+    evaluate = AnimCurve.evaluateUU
+# ------ Do not edit below this line --------
+    __melnode__ = u'animCurveUU'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+
+class ResultCurve(AnimCurve):
+    pass
+# ------ Do not edit below this line --------
+    __melnode__ = u'resultCurve'
+    __slots__ = ()
+
+    @_f.deprecated
+    def findClosest(self, time):
+        # type: (datatypes.Time) -> int
+        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
+        return res
+# ------ Do not edit above this line --------
+
+
+class ResultCurveTimeToAngular(ResultCurve):
+    addKey = AnimCurve.addKeyTU
+    evaluate = AnimCurve.evaluateTU
+# ------ Do not edit below this line --------
+    __melnode__ = u'resultCurveTimeToAngular'
+    __slots__ = ()
+# ------ Do not edit above this line --------
+
+
+class ResultCurveTimeToLinear(ResultCurve):
+    addKey = AnimCurve.addKeyTU
+    evaluate = AnimCurve.evaluateTU
+# ------ Do not edit below this line --------
+    __melnode__ = u'resultCurveTimeToLinear'
+    __slots__ = ()
+# ------ Do not edit above this line --------
+
+
+class ResultCurveTimeToTime(ResultCurve):
+    addKey = AnimCurve.addKeyTT
+    evaluate = AnimCurve.evaluateTT
+# ------ Do not edit below this line --------
+    __melnode__ = u'resultCurveTimeToTime'
+    __slots__ = ()
+# ------ Do not edit above this line --------
+
+
+class ResultCurveTimeToUnitless(ResultCurve):
+    addKey = AnimCurve.addKeyTU
+    evaluate = AnimCurve.evaluateTU
+# ------ Do not edit below this line --------
+    __melnode__ = u'resultCurveTimeToUnitless'
+    __slots__ = ()
 # ------ Do not edit above this line --------
 
 
@@ -15512,350 +15789,6 @@ class AnimClip(DependNode):
         # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnClip, 'sourceClip')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
-
-
-class AnimCurveTA(AnimCurve):
-    __melnode__ = u'animCurveTA'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class AnimCurveTL(AnimCurve):
-    __melnode__ = u'animCurveTL'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class AnimCurveTT(AnimCurve):
-    __melnode__ = u'animCurveTT'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class AnimCurveTU(AnimCurve):
-    __melnode__ = u'animCurveTU'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class AnimCurveUA(AnimCurve):
-    __melnode__ = u'animCurveUA'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class AnimCurveUL(AnimCurve):
-    __melnode__ = u'animCurveUL'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class AnimCurveUT(AnimCurve):
-    __melnode__ = u'animCurveUT'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class AnimCurveUU(AnimCurve):
-    __melnode__ = u'animCurveUU'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class ResultCurve(AnimCurve):
-    __melnode__ = u'resultCurve'
-    __slots__ = ()
-
-    @_f.deprecated
-    def addKey(self, time, value, tangentInType='global_', tangentOutType='global_', change=None):
-        # type: (datatypes.Time, float, AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, value, tangentInType, tangentOutType, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKey', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-    @_f.deprecated
-    def addKeyframe(self, time, value, change=None):
-        # type: (datatypes.Time, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([time, value, change], [('time', 'MTime', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeyframe', final_do)
-        return res
-
-    @_f.deprecated
-    def evaluate(self, atTime):
-        # type: (datatypes.Time) -> float
-        do, final_do, outTypes = _f.getDoArgs([atTime], [('atTime', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'evaluate', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
-        return res
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
-
-
-class ResultCurveTimeToAngular(ResultCurve):
-    __melnode__ = u'resultCurveTimeToAngular'
-    __slots__ = ()
-
-
-class ResultCurveTimeToLinear(ResultCurve):
-    __melnode__ = u'resultCurveTimeToLinear'
-    __slots__ = ()
-
-
-class ResultCurveTimeToTime(ResultCurve):
-    __melnode__ = u'resultCurveTimeToTime'
-    __slots__ = ()
-
-
-class ResultCurveTimeToUnitless(ResultCurve):
-    __melnode__ = u'resultCurveTimeToUnitless'
-    __slots__ = ()
 
 
 class ArrayMapper(DependNode):

@@ -2833,6 +2833,159 @@ class testCase_AnimCurve(TestCaseExtended):
             pm.currentTime(time)
             self.assertEqual(pm.getAttr(nodeAttr), val)
 
+    def assertAddKey(self, curveType):
+        if curveType.startswith('animCurve'):
+            inType = curveType[-2]
+            outType = curveType[-1]
+        elif curveType.startswith('resultCurveTimeTo'):
+            inType = 'T'
+            if curveType.endswith('Angular'):
+                outType = 'A'
+            elif curveType.endswith('Linear'):
+                outType = 'L'
+            elif curveType.endswith('Time'):
+                outType = 'T'
+            elif curveType.endswith('Unitless'):
+                outType = 'T'
+            else:
+                raise ValueError('unknown result curve type')
+        else:
+            raise ValueError('unknown curve type')
+        curve = pm.createNode(curveType)
+        self.assertEqual(curve.numKeys(), 0)
+        if inType == 'T':
+            inputs = (-1, 1, pm.dt.Time(3), pm.dt.Time(100))
+        else:
+            inputs = (-1, 1, 3, 100)
+        if outType == 'T':
+            outputs = (pm.dt.Time(-5), .25, pm.dt.Time(20), 45)
+        else:
+            outputs = (-5, .25, 20, 45)
+
+        inTangents = []
+        outTangents = []
+        origGlobalIn = cmds.keyTangent(q=1, g=1, inTangentType=1)[0]
+        origGlobalOut = cmds.keyTangent(q=1, g=1, outTangentType=1)[0]
+
+        pm.flushUndo()
+
+        try:
+            # Add key 0
+            cmds.keyTangent(g=1, inTangentType='auto')
+            cmds.keyTangent(g=1, outTangentType='plateau')
+
+            curve.addKey(inputs[0], outputs[0], 'flat',
+                         pm.nt.AnimCurve.TangentType.clamped)
+            inTangents.append('flat')
+            outTangents.append(pm.nt.AnimCurve.TangentType.clamped)
+
+            # Add key 1
+            curve.addKey(inputs[1], outputs[1])
+            inTangents.append(pm.nt.AnimCurve.TangentType.auto.index)
+            outTangents.append('plateau')
+
+            # Add key 2
+            cmds.keyTangent(g=1, inTangentType='linear')
+            cmds.keyTangent(g=1, outTangentType='step')
+            curve.addKey(inputs[2], outputs[2],
+                         tangentOutType=pm.nt.AnimCurve.TangentType.smooth)
+            inTangents.append(pm.nt.AnimCurve.TangentType.linear)
+            outTangents.append('smooth')
+
+            # Add key 3
+            cmds.keyTangent(g=1, inTangentType='slow')
+            cmds.keyTangent(g=1, outTangentType='fast')
+            curve.addKey(inputs[3], outputs[3],
+                         tangentInType=pm.nt.AnimCurve.TangentType.clamped.index)
+            inTangents.append(pm.nt.AnimCurve.TangentType.clamped)
+            outTangents.append(pm.nt.AnimCurve.TangentType.fast.index)
+
+            def assertKeys(numKeys):
+                self.assertEqual(curve.numKeys(), numKeys)
+                for i, (inVal, outVal, inTan, outTan) in enumerate(zip(
+                        inputs, outputs, inTangents, outTangents)):
+                    if i >= numKeys:
+                        break
+
+                    if inType =='T':
+                        keyInput = curve.getTime(i)
+                    else:
+                        keyInput = curve.getUnitlessInput(i)
+                    self.assertEqual(keyInput, inVal)
+
+                    if outType != 'T':
+                        self.assertEqual(curve.getValue(i), outVal)
+                    self.assertEqual(curve.evaluate(keyInput), outVal)
+                    self.assertEqual(curve.getInTangentType(i), inTan)
+                    self.assertEqual(curve.getOutTangentType(i), outTan)
+
+            assertKeys(4)
+
+            # test undo/redo
+            cmds.undo() # undo 4th addKey
+            assertKeys(3)
+            cmds.undo() # undo outTangentType='fast'
+            cmds.undo() # undo inTangentType='slow'
+            cmds.undo() # undo 3rd addKey
+            assertKeys(2)
+            cmds.undo() # undo outTangentType='step'
+            cmds.undo() # undo inTangentType='linear'
+            cmds.undo() # undo 2nd addKey
+            assertKeys(1)
+            cmds.undo() # undo 1st addKey
+            assertKeys(0)
+            cmds.redo() # redo 1st addKey
+            assertKeys(1)
+            cmds.redo() # redo 2nd addKey
+            cmds.redo() # redo inTangentType='linear'
+            cmds.redo() # redo outTangentType='step'
+            assertKeys(2)
+            cmds.redo() # redo 3rd addKey
+            cmds.redo() # redo inTangentType='slow'
+            cmds.redo() # redo outTangentType='fast'
+            assertKeys(3)
+            cmds.redo()  # redo 4th addKey
+            assertKeys(4)
+        finally:
+            cmds.keyTangent(g=1, inTangentType=origGlobalIn)
+            cmds.keyTangent(g=1, outTangentType=origGlobalOut)
+
+    def test_addKeyTA(self):
+        self.assertAddKey("animCurveTA")
+
+    def test_addKeyTL(self):
+        self.assertAddKey("animCurveTL")
+
+    def test_addKeyTT(self):
+        self.assertAddKey("animCurveTT")
+
+    def test_addKeyTU(self):
+        self.assertAddKey("animCurveTU")
+
+    def test_addKeyUA(self):
+        self.assertAddKey("animCurveUA")
+
+    def test_addKeyUL(self):
+        self.assertAddKey("animCurveUL")
+
+    def test_addKeyUT(self):
+        self.assertAddKey("animCurveUT")
+
+    def test_addKeyUU(self):
+        self.assertAddKey("animCurveUU")
+
+    def test_addKeyResultTA(self):
+        self.assertAddKey("resultCurveTimeToAngular")
+
+    def test_addKeyResultTL(self):
+        self.assertAddKey("resultCurveTimeToLinear")
+
+    def test_addKeyResultTT(self):
+        self.assertAddKey("resultCurveTimeToTime")
+
+    def test_addKeyResultTU(self):
+        self.assertAddKey("resultCurveTimeToUnitless")
+
     def test_timedAnimCurveTypeForPlug(self):
         time = pm.PyNode('time1')
         persp = pm.PyNode('persp')
