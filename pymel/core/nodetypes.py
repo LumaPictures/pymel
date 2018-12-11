@@ -3951,6 +3951,12 @@ class Transform(DagNode):
 
     @_factories.addApiDocs(_api.MFnTransform, 'rotateBy')
     def rotateBy(self, rotation, space='object', **kwargs):
+        '''
+        Modifications:
+          - rotation may be a Quaternion or MQuaternion
+        '''
+        if isinstance(rotation, (_api.MQuaternion, datatypes.Quaternion)):
+            self.rotateByQuaternion(rotation, space=space)
         space = self._getSpaceArg(space, kwargs)
         curr = self.getRotation(space)
         self._rotateBy(rotation, space)
@@ -3960,8 +3966,22 @@ class Transform(DagNode):
                                           (self, curr, space))
         _factories.apiUndo.append(undoItem)
 
+    @_factories.addApiDocs(_api.MFnTransform, 'rotateByQuaternion')
+    def rotateByQuaternion(self, xOrQuaternion, y=None, z=None, w=None, space='transform'):
+        '''
+        Modifications:
+          - may feed in a single Quaternion object/list/tuple instead of 4 separate floats
+        '''
+        # type: (Union[float, Quaternion, List[float], Tuple[float]], float, float, float, datatypes.Space.Space) -> None
+        if isinstance(xOrQuaternion, (int, float)):
+            x = xOrQuaternion
+        else:
+            if y is not None or z is not None or w is not None:
+                raise ValueError("if xOrQuaternion is a Quaternion or iterable, you may not specify y/z/w")
+            x, y, z, w = xOrQuaternion
+        return self._rotateByQuaternion(x, y, z, w, space=space)
 
-#    @_factories.queryflag('xform','scalePivot')
+    #    @_factories.queryflag('xform','scalePivot')
 #    def getScalePivotOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 

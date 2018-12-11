@@ -113,6 +113,8 @@ Additions
     DependNode.getAliasAttr, DependNode.hasAttribute, DependNode.isNewAttribute,
     DependNode.setFlag, DependNode.typeName, ObjectSet.isMember
 
+- Transform.rotateByQuaternion added, and accepts either a Quaternion/
+  MQuaternion or four separate floats
 - DependNode.deleteAttr now accepts Attribute objects (first verifying that it
   is an attribute on the same node as self)
 

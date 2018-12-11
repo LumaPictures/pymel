@@ -2270,6 +2270,17 @@ class testCase_transform(TestCaseExtended):
         finally:
             pm.currentUnit(angle=oldUnit)
 
+    def test_rotateByQuaternion(self):
+        # Check dt.Quaternion input
+        euler = pm.dt.EulerRotation(5, 15, -16)
+        quat = pm.dt.Quaternion(euler.asQuaternion())
+        self.trans.rotateByQuaternion(quat)
+        self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+        self.trans.rotateByQuaternion(quat)
+        eulerSquared = (quat * quat).asEulerRotation()
+        eulerSquared.unit = pm.dt.Angle.getUIUnit()
+        self.checkRotationsEqual(eulerSquared, self.trans.attr('rotate').get())
+
     def checkRotationsEqual(self, rot1, rot2):
         if not len(rot1) == len(rot2):
             raise ValueError("rotation values must have same length: %r, %r" % (rot1, rot2))
