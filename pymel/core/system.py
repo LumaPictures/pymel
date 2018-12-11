@@ -174,8 +174,12 @@ class UndoChunk(object):
     []
     """
 
+    def __init__(self, name=None):
+        self.name = name
+
     def __enter__(self):
-        cmds.undoInfo(openChunk=1)
+        if self.name:
+            cmds.undoInfo(openChunk=1, chunkName=self.name)
         return self
 
     def __exit__(*args, **kwargs):

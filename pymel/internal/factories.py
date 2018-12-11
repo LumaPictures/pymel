@@ -2234,7 +2234,7 @@ class ApiUndo(object):
             pass
         self.cbid = api.MNodeMessage.addAttributeChangedCallback(self.undoNode, self._attrChanged)
 
-    def append(self, cmdObj):
+    def append(self, cmdObj, undoName=None):
         if not self.undoStateCallbackId:
             self.installUndoStateCallbacks()
 
@@ -2256,7 +2256,13 @@ class ApiUndo(object):
                 else:
                     raise
 
-            cmds.setAttr(self.node_name + '.cmdCount', count + 1)
+            if undoName is not None:
+                cmds.undoInfo(openChunk=1, chunkName=undoName)
+            try:
+                cmds.setAttr(self.node_name + '.cmdCount', count + 1)
+            finally:
+                if undoName is not None:
+                    cmds.undoInfo(closeChunk=1)
 
             # Append the command to the end of the undo queue.
             self.undo_queue.append(cmdObj)
@@ -2330,6 +2336,16 @@ class ApiRedoUndoItem(ApiUndoItem):
                                               redoKwargs=redoKwargs,
                                               undoKwargs=undoKwargs)
         self._undoer = undoer
+
+    def __repr__(self):
+        args = [self._setter, self._redo_args, self._undoer, self._undo_args]
+        args = [repr(x) for x in args]
+        if self._redo_kwargs:
+            args.append('redoKwargs={!r}'.format(self._redo_kwargs))
+        if self._undo_kwargs:
+            args.append('undoKwargs={!r}'.format(self._undo_kwargs))
+        return '{}({})'.format(type(self).__name__, ', '.join(args))
+
 
     def undoIt(self):
         self._undoer(*self._undo_args, **self._undo_kwargs)
