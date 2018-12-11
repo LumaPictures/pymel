@@ -2341,7 +2341,7 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'fullPathName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
-    @_f.deprecated
+    @_f.deprecated('Use getInstances instead.')
     def getAllPaths(self):
         # type: () -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
@@ -4836,7 +4836,7 @@ class DynBase(Transform):
     __melnode__ = u'dynBase'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -4850,7 +4850,7 @@ class DynBase(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -5172,21 +5172,21 @@ class DisplayLayer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -5194,14 +5194,14 @@ class DisplayLayer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -5209,7 +5209,7 @@ class DisplayLayer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -5242,7 +5242,7 @@ class Constraint(Transform):
     __melnode__ = u'constraint'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -5256,7 +5256,7 @@ class Constraint(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -10497,7 +10497,7 @@ class HikHandle(Transform):
     __melnode__ = u'hikHandle'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -10511,7 +10511,7 @@ class HikHandle(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -10536,21 +10536,21 @@ class JointFfd(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -10558,14 +10558,14 @@ class JointFfd(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -10573,7 +10573,7 @@ class JointFfd(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -10611,21 +10611,21 @@ class THdependNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -10633,14 +10633,14 @@ class THdependNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -10648,7 +10648,7 @@ class THdependNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -10684,21 +10684,21 @@ class AbstractBaseCreate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -10706,14 +10706,14 @@ class AbstractBaseCreate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -10721,7 +10721,7 @@ class AbstractBaseCreate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15234,21 +15234,21 @@ class AddDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15256,14 +15256,14 @@ class AddDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15271,7 +15271,7 @@ class AddDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15292,21 +15292,21 @@ class AddMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15314,14 +15314,14 @@ class AddMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15329,7 +15329,7 @@ class AddMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15353,21 +15353,21 @@ class AngleBetween(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15375,14 +15375,14 @@ class AngleBetween(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15390,7 +15390,7 @@ class AngleBetween(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15411,21 +15411,21 @@ class AnimBlend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15433,14 +15433,14 @@ class AnimBlend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15448,7 +15448,7 @@ class AnimBlend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15474,21 +15474,21 @@ class AnimBlendNodeBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15496,14 +15496,14 @@ class AnimBlendNodeBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15511,7 +15511,7 @@ class AnimBlendNodeBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15749,21 +15749,21 @@ class ArrayMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15771,14 +15771,14 @@ class ArrayMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15786,7 +15786,7 @@ class ArrayMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15812,21 +15812,21 @@ class AttrHierarchyTest(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15834,14 +15834,14 @@ class AttrHierarchyTest(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15849,7 +15849,7 @@ class AttrHierarchyTest(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15870,21 +15870,21 @@ class Audio(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15892,14 +15892,14 @@ class Audio(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15907,7 +15907,7 @@ class Audio(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -15931,21 +15931,21 @@ class Blend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -15953,14 +15953,14 @@ class Blend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -15968,7 +15968,7 @@ class Blend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16043,21 +16043,21 @@ class BlendColors(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16065,14 +16065,14 @@ class BlendColors(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16080,7 +16080,7 @@ class BlendColors(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16101,21 +16101,21 @@ class BlindDataTemplate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16123,14 +16123,14 @@ class BlindDataTemplate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16138,7 +16138,7 @@ class BlindDataTemplate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16164,21 +16164,21 @@ class Brush(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16186,14 +16186,14 @@ class Brush(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16201,7 +16201,7 @@ class Brush(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16222,21 +16222,21 @@ class Bump3d(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16244,14 +16244,14 @@ class Bump3d(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16259,7 +16259,7 @@ class Bump3d(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16280,21 +16280,21 @@ class CacheBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16302,14 +16302,14 @@ class CacheBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16317,7 +16317,7 @@ class CacheBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16641,21 +16641,21 @@ class CameraView(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16663,14 +16663,14 @@ class CameraView(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16682,7 +16682,7 @@ class CameraView(DependNode):
     def removeBookmark(self, val=True, **kwargs):
         return _f.asEdit(self, rendering.cameraView, kwargs, 'removeBookmark', val)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16714,21 +16714,21 @@ class CharacterMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16736,7 +16736,7 @@ class CharacterMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -16763,7 +16763,7 @@ class CharacterMap(DependNode):
         res = _f.asQuery(self, animation.characterMap, kwargs, 'proposedMapping')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16771,7 +16771,7 @@ class CharacterMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16800,21 +16800,21 @@ class CharacterOffset(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16822,14 +16822,14 @@ class CharacterOffset(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16837,7 +16837,7 @@ class CharacterOffset(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16861,21 +16861,21 @@ class Choice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16883,7 +16883,7 @@ class Choice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -16900,7 +16900,7 @@ class Choice(DependNode):
         res = _f.asQuery(self, animation.choice, kwargs, 'selector')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16908,7 +16908,7 @@ class Choice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16929,21 +16929,21 @@ class Chooser(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -16951,14 +16951,14 @@ class Chooser(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -16966,7 +16966,7 @@ class Chooser(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -16987,21 +16987,21 @@ class Clamp(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -17009,14 +17009,14 @@ class Clamp(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -17024,7 +17024,7 @@ class Clamp(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17045,21 +17045,21 @@ class ClipLibrary(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -17067,14 +17067,14 @@ class ClipLibrary(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -17082,7 +17082,7 @@ class ClipLibrary(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17103,21 +17103,21 @@ class ClipScheduler(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -17125,14 +17125,14 @@ class ClipScheduler(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -17140,7 +17140,7 @@ class ClipScheduler(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17166,21 +17166,21 @@ class ClosestPointOnMesh(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -17188,14 +17188,14 @@ class ClosestPointOnMesh(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -17203,7 +17203,7 @@ class ClosestPointOnMesh(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17229,21 +17229,21 @@ class ColorProfile(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -17251,14 +17251,14 @@ class ColorProfile(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -17266,7 +17266,7 @@ class ColorProfile(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -17319,21 +17319,21 @@ class Condition(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -17341,14 +17341,14 @@ class Condition(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -17356,7 +17356,7 @@ class Condition(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -19731,7 +19731,7 @@ class BaseGeometryVarGroup(Transform):
     __melnode__ = u'baseGeometryVarGroup'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -19745,7 +19745,7 @@ class BaseGeometryVarGroup(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -20292,7 +20292,7 @@ class DagContainer(Transform):
     __melnode__ = u'dagContainer'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -20306,7 +20306,7 @@ class DagContainer(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -21865,7 +21865,7 @@ class HikGroundPlane(Transform):
     __melnode__ = u'hikGroundPlane'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -21879,7 +21879,7 @@ class HikGroundPlane(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -21891,7 +21891,7 @@ class HikIKEffector(Transform):
     __melnode__ = u'hikIKEffector'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -21905,7 +21905,7 @@ class HikIKEffector(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -22274,7 +22274,7 @@ class LodGroup(Transform):
     __melnode__ = u'lodGroup'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -22288,7 +22288,7 @@ class LodGroup(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -22300,7 +22300,7 @@ class Nucleus(Transform):
     __melnode__ = u'nucleus'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -22314,7 +22314,7 @@ class Nucleus(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -22326,7 +22326,7 @@ class Place3dTexture(Transform):
     __melnode__ = u'place3dTexture'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -22340,7 +22340,7 @@ class Place3dTexture(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -22352,7 +22352,7 @@ class RigidConstraint(Transform):
     __melnode__ = u'rigidConstraint'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -22366,7 +22366,7 @@ class RigidConstraint(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -22383,7 +22383,7 @@ class UnknownTransform(Transform):
     __melnode__ = u'unknownTransform'
     __slots__ = ()
 
-    @_f.deprecated
+    @_f.deprecated('Use getRotation(quaternion=True) instead.')
     def getRotationQuaternion(self, space='transform'):
         # type: (datatypes.Space.Space) -> Tuple[float, float, float, float]
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -22397,7 +22397,7 @@ class UnknownTransform(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
         do, final_do, outTypes = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
@@ -22806,21 +22806,21 @@ class Contrast(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -22828,14 +22828,14 @@ class Contrast(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -22843,7 +22843,7 @@ class Contrast(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -22971,21 +22971,21 @@ class CopyColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -22993,14 +22993,14 @@ class CopyColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23008,7 +23008,7 @@ class CopyColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23029,21 +23029,21 @@ class CopyUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23051,14 +23051,14 @@ class CopyUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23066,7 +23066,7 @@ class CopyUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23087,21 +23087,21 @@ class CreateColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23109,14 +23109,14 @@ class CreateColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23124,7 +23124,7 @@ class CreateColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23145,21 +23145,21 @@ class CreateUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23167,14 +23167,14 @@ class CreateUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23182,7 +23182,7 @@ class CreateUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23203,21 +23203,21 @@ class CurveFromMesh(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23225,14 +23225,14 @@ class CurveFromMesh(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23240,7 +23240,7 @@ class CurveFromMesh(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23271,21 +23271,21 @@ class CurveNormalizer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23293,14 +23293,14 @@ class CurveNormalizer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23308,7 +23308,7 @@ class CurveNormalizer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23342,21 +23342,21 @@ class DagPose(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23374,7 +23374,7 @@ class DagPose(DependNode):
         res = _f.asQuery(self, animation.dagPose, kwargs, 'bindPose')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -23391,7 +23391,7 @@ class DagPose(DependNode):
         res = _f.asQuery(self, animation.dagPose, kwargs, 'selection')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23399,7 +23399,7 @@ class DagPose(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23420,21 +23420,21 @@ class DataBlockTest(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23442,14 +23442,14 @@ class DataBlockTest(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23457,7 +23457,7 @@ class DataBlockTest(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23478,21 +23478,21 @@ class DefaultLightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23500,14 +23500,14 @@ class DefaultLightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23515,7 +23515,7 @@ class DefaultLightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23536,21 +23536,21 @@ class DefaultRenderUtilityList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23558,14 +23558,14 @@ class DefaultRenderUtilityList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23573,7 +23573,7 @@ class DefaultRenderUtilityList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23594,21 +23594,21 @@ class DefaultRenderingList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23616,14 +23616,14 @@ class DefaultRenderingList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23631,7 +23631,7 @@ class DefaultRenderingList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23652,21 +23652,21 @@ class DefaultShaderList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23674,14 +23674,14 @@ class DefaultShaderList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23689,7 +23689,7 @@ class DefaultShaderList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23710,21 +23710,21 @@ class DefaultTextureList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23732,14 +23732,14 @@ class DefaultTextureList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23747,7 +23747,7 @@ class DefaultTextureList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23768,21 +23768,21 @@ class DeleteColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23790,14 +23790,14 @@ class DeleteColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23805,7 +23805,7 @@ class DeleteColorSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23826,21 +23826,21 @@ class DeleteComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23848,14 +23848,14 @@ class DeleteComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23863,7 +23863,7 @@ class DeleteComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23884,21 +23884,21 @@ class DeleteUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23906,14 +23906,14 @@ class DeleteUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -23921,7 +23921,7 @@ class DeleteUVSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -23945,21 +23945,21 @@ class DiskCache(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -23987,7 +23987,7 @@ class DiskCache(DependNode):
         res = _f.asQuery(self, system.diskCache, kwargs, 'closeAll')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -24049,7 +24049,7 @@ class DiskCache(DependNode):
         res = _f.asQuery(self, system.diskCache, kwargs, 'tempDir')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24057,7 +24057,7 @@ class DiskCache(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24078,21 +24078,21 @@ class DisplacementShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24100,14 +24100,14 @@ class DisplacementShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24115,7 +24115,7 @@ class DisplacementShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24136,21 +24136,21 @@ class DisplayLayerManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24158,14 +24158,14 @@ class DisplayLayerManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24173,7 +24173,7 @@ class DisplayLayerManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24194,21 +24194,21 @@ class DistanceBetween(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24216,14 +24216,14 @@ class DistanceBetween(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24231,7 +24231,7 @@ class DistanceBetween(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24252,21 +24252,21 @@ class Dof(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24274,14 +24274,14 @@ class Dof(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24289,7 +24289,7 @@ class Dof(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24310,21 +24310,21 @@ class DynController(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24332,14 +24332,14 @@ class DynController(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24347,7 +24347,7 @@ class DynController(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24376,21 +24376,21 @@ class DynGlobals(DependNode):
         res = _f.asQuery(self, effects.dynGlobals, kwargs, 'active')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24398,7 +24398,7 @@ class DynGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -24415,7 +24415,7 @@ class DynGlobals(DependNode):
         res = _f.asQuery(self, effects.dynGlobals, kwargs, 'overSampling')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24423,7 +24423,7 @@ class DynGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24621,21 +24621,21 @@ class Facade(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24643,14 +24643,14 @@ class Facade(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24658,7 +24658,7 @@ class Facade(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24697,21 +24697,21 @@ class Flow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24719,7 +24719,7 @@ class Flow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -24746,7 +24746,7 @@ class Flow(DependNode):
         res = _f.asQuery(self, animation.flow, kwargs, 'objectCentered')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24754,7 +24754,7 @@ class Flow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24775,21 +24775,21 @@ class FourByFourMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24797,14 +24797,14 @@ class FourByFourMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24812,7 +24812,7 @@ class FourByFourMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24833,21 +24833,21 @@ class FrameCache(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24855,14 +24855,14 @@ class FrameCache(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24870,7 +24870,7 @@ class FrameCache(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24891,21 +24891,21 @@ class GammaCorrect(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24913,14 +24913,14 @@ class GammaCorrect(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24928,7 +24928,7 @@ class GammaCorrect(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -24949,21 +24949,21 @@ class GeoConnector(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -24971,14 +24971,14 @@ class GeoConnector(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -24986,7 +24986,7 @@ class GeoConnector(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -26794,21 +26794,21 @@ class GlobalCacheControl(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -26816,14 +26816,14 @@ class GlobalCacheControl(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -26831,7 +26831,7 @@ class GlobalCacheControl(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -26857,21 +26857,21 @@ class GroupId(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -26879,14 +26879,14 @@ class GroupId(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -26894,7 +26894,7 @@ class GroupId(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -26918,21 +26918,21 @@ class GroupParts(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -26940,14 +26940,14 @@ class GroupParts(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -26955,7 +26955,7 @@ class GroupParts(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -26976,21 +26976,21 @@ class Guide(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -26998,14 +26998,14 @@ class Guide(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27013,7 +27013,7 @@ class Guide(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27034,21 +27034,21 @@ class HardwareRenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27056,14 +27056,14 @@ class HardwareRenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27071,7 +27071,7 @@ class HardwareRenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27092,21 +27092,21 @@ class HardwareRenderingGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27114,14 +27114,14 @@ class HardwareRenderingGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27129,7 +27129,7 @@ class HardwareRenderingGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27150,21 +27150,21 @@ class HierarchyTestNode1(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27172,14 +27172,14 @@ class HierarchyTestNode1(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27187,7 +27187,7 @@ class HierarchyTestNode1(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27218,21 +27218,21 @@ class HoldMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27240,14 +27240,14 @@ class HoldMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27255,7 +27255,7 @@ class HoldMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27276,21 +27276,21 @@ class HsvToRgb(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27298,14 +27298,14 @@ class HsvToRgb(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27313,7 +27313,7 @@ class HsvToRgb(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27337,21 +27337,21 @@ class HwReflectionMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27369,7 +27369,7 @@ class HwReflectionMap(DependNode):
         res = _f.asQuery(self, rendering.hwReflectionMap, kwargs, 'bottomTextureName')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -27416,7 +27416,7 @@ class HwReflectionMap(DependNode):
         res = _f.asQuery(self, rendering.hwReflectionMap, kwargs, 'topTextureName')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27424,7 +27424,7 @@ class HwReflectionMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27445,21 +27445,21 @@ class HwRenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27467,14 +27467,14 @@ class HwRenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27482,7 +27482,7 @@ class HwRenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27503,21 +27503,21 @@ class HyperGraphInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27525,14 +27525,14 @@ class HyperGraphInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27540,7 +27540,7 @@ class HyperGraphInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27561,21 +27561,21 @@ class HyperLayout(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27583,14 +27583,14 @@ class HyperLayout(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27598,7 +27598,7 @@ class HyperLayout(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27619,21 +27619,21 @@ class HyperView(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27641,14 +27641,14 @@ class HyperView(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27656,7 +27656,7 @@ class HyperView(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27780,21 +27780,21 @@ class IkSystem(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27807,7 +27807,7 @@ class IkSystem(DependNode):
         res = _f.asQuery(self, animation.ikSystem, kwargs, 'allowRotation')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -27834,7 +27834,7 @@ class IkSystem(DependNode):
         res = _f.asQuery(self, animation.ikSystem, kwargs, 'solverTypes')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27842,7 +27842,7 @@ class IkSystem(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27925,21 +27925,21 @@ class LightInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -27947,14 +27947,14 @@ class LightInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -27962,7 +27962,7 @@ class LightInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -27983,21 +27983,21 @@ class LightLinker(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28005,14 +28005,14 @@ class LightLinker(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28020,7 +28020,7 @@ class LightLinker(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28044,21 +28044,21 @@ class LightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28066,14 +28066,14 @@ class LightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28081,7 +28081,7 @@ class LightList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28102,21 +28102,21 @@ class LodThresholds(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28124,14 +28124,14 @@ class LodThresholds(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28139,7 +28139,7 @@ class LodThresholds(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28160,21 +28160,21 @@ class Luminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28182,14 +28182,14 @@ class Luminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28197,7 +28197,7 @@ class Luminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28218,21 +28218,21 @@ class MakeGroup(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28240,14 +28240,14 @@ class MakeGroup(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28255,7 +28255,7 @@ class MakeGroup(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28276,21 +28276,21 @@ class MaterialInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28298,14 +28298,14 @@ class MaterialInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28313,7 +28313,7 @@ class MaterialInfo(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28334,21 +28334,21 @@ class Membrane(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28356,14 +28356,14 @@ class Membrane(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28371,7 +28371,7 @@ class Membrane(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28615,21 +28615,21 @@ class MultDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28637,14 +28637,14 @@ class MultDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28652,7 +28652,7 @@ class MultDoubleLinear(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28673,21 +28673,21 @@ class MultMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28695,14 +28695,14 @@ class MultMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28710,7 +28710,7 @@ class MultMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28731,21 +28731,21 @@ class MultilisterLight(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28753,14 +28753,14 @@ class MultilisterLight(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28768,7 +28768,7 @@ class MultilisterLight(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28792,21 +28792,21 @@ class Mute(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28814,14 +28814,14 @@ class Mute(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28829,7 +28829,7 @@ class Mute(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28850,21 +28850,21 @@ class NComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28872,14 +28872,14 @@ class NComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28887,7 +28887,7 @@ class NComponent(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28908,21 +28908,21 @@ class Network(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -28930,14 +28930,14 @@ class Network(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -28945,7 +28945,7 @@ class Network(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -28981,21 +28981,21 @@ class ObjectFilter(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29003,14 +29003,14 @@ class ObjectFilter(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29018,7 +29018,7 @@ class ObjectFilter(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29074,21 +29074,21 @@ class OldBlindDataBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29096,14 +29096,14 @@ class OldBlindDataBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29111,7 +29111,7 @@ class OldBlindDataBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29132,21 +29132,21 @@ class OldGeometryConstraint(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29154,14 +29154,14 @@ class OldGeometryConstraint(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29169,7 +29169,7 @@ class OldGeometryConstraint(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29190,21 +29190,21 @@ class OpticalFX(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29212,14 +29212,14 @@ class OpticalFX(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29227,7 +29227,7 @@ class OpticalFX(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29251,21 +29251,21 @@ class PairBlend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29273,7 +29273,7 @@ class PairBlend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -29290,7 +29290,7 @@ class PairBlend(DependNode):
         res = _f.asQuery(self, animation.pairBlend, kwargs, 'input2')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29298,7 +29298,7 @@ class PairBlend(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29319,21 +29319,21 @@ class ParticleAgeMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29341,14 +29341,14 @@ class ParticleAgeMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29356,7 +29356,7 @@ class ParticleAgeMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29377,21 +29377,21 @@ class ParticleColorMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29399,14 +29399,14 @@ class ParticleColorMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29414,7 +29414,7 @@ class ParticleColorMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29435,21 +29435,21 @@ class ParticleIncandMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29457,14 +29457,14 @@ class ParticleIncandMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29472,7 +29472,7 @@ class ParticleIncandMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29493,21 +29493,21 @@ class ParticleTranspMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29515,14 +29515,14 @@ class ParticleTranspMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29530,7 +29530,7 @@ class ParticleTranspMapper(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29551,21 +29551,21 @@ class PassContributionMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29573,14 +29573,14 @@ class PassContributionMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29588,7 +29588,7 @@ class PassContributionMap(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29609,21 +29609,21 @@ class PassMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29631,14 +29631,14 @@ class PassMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29646,7 +29646,7 @@ class PassMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29667,21 +29667,21 @@ class PointMatrixMult(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29689,14 +29689,14 @@ class PointMatrixMult(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29704,7 +29704,7 @@ class PointMatrixMult(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -29725,21 +29725,21 @@ class PolyBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -29747,14 +29747,14 @@ class PolyBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -29762,7 +29762,7 @@ class PolyBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -37419,21 +37419,21 @@ class PolyBlindData(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -37441,7 +37441,7 @@ class PolyBlindData(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -37460,7 +37460,7 @@ class PolyBlindData(DependNode):
     def longDataName(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'longDataName', val)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -37476,7 +37476,7 @@ class PolyBlindData(DependNode):
     def reset(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyBlindData, kwargs, 'reset', val)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -37521,21 +37521,21 @@ class PolySeparate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -37548,7 +37548,7 @@ class PolySeparate(DependNode):
         res = _f.asQuery(self, modeling.polySeparate, kwargs, 'caching')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -37560,7 +37560,7 @@ class PolySeparate(DependNode):
         res = _f.asQuery(self, modeling.polySeparate, kwargs, 'nodeState')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -37568,7 +37568,7 @@ class PolySeparate(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -37605,21 +37605,21 @@ class PolyToSubdiv(DependNode):
         res = _f.asQuery(self, modeling.polyToSubdiv, kwargs, 'absolutePosition')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -37637,7 +37637,7 @@ class PolyToSubdiv(DependNode):
         res = _f.asQuery(self, modeling.polyToSubdiv, kwargs, 'caching')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -37689,7 +37689,7 @@ class PolyToSubdiv(DependNode):
         res = _f.asQuery(self, modeling.polyToSubdiv, kwargs, 'uvTreatment')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -37701,7 +37701,7 @@ class PolyToSubdiv(DependNode):
     def setAbsolutePosition(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyToSubdiv, kwargs, 'absolutePosition', val)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -37771,21 +37771,21 @@ class PostProcessList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -37793,14 +37793,14 @@ class PostProcessList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -37808,7 +37808,7 @@ class PostProcessList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -37829,21 +37829,21 @@ class PrecompExport(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -37851,14 +37851,14 @@ class PrecompExport(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -37866,7 +37866,7 @@ class PrecompExport(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -37887,21 +37887,21 @@ class ProxyManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -37909,14 +37909,14 @@ class ProxyManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -37924,7 +37924,7 @@ class ProxyManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -37945,21 +37945,21 @@ class Record(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -37967,14 +37967,14 @@ class Record(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -37982,7 +37982,7 @@ class Record(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38098,21 +38098,21 @@ class RemapColor(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38120,14 +38120,14 @@ class RemapColor(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38135,7 +38135,7 @@ class RemapColor(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38156,21 +38156,21 @@ class RemapHsv(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38178,14 +38178,14 @@ class RemapHsv(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38193,7 +38193,7 @@ class RemapHsv(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38214,21 +38214,21 @@ class RemapValue(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38236,14 +38236,14 @@ class RemapValue(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38251,7 +38251,7 @@ class RemapValue(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38272,21 +38272,21 @@ class RenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38294,14 +38294,14 @@ class RenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38309,7 +38309,7 @@ class RenderGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38330,21 +38330,21 @@ class RenderGlobalsList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38352,14 +38352,14 @@ class RenderGlobalsList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38367,7 +38367,7 @@ class RenderGlobalsList(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38388,21 +38388,21 @@ class RenderLayerManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38410,14 +38410,14 @@ class RenderLayerManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38425,7 +38425,7 @@ class RenderLayerManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38446,21 +38446,21 @@ class RenderPassSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38468,14 +38468,14 @@ class RenderPassSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38483,7 +38483,7 @@ class RenderPassSet(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38504,21 +38504,21 @@ class RenderQuality(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38526,14 +38526,14 @@ class RenderQuality(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38541,7 +38541,7 @@ class RenderQuality(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38567,21 +38567,21 @@ class Resolution(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38589,14 +38589,14 @@ class Resolution(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38604,7 +38604,7 @@ class Resolution(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38625,21 +38625,21 @@ class Reverse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38647,14 +38647,14 @@ class Reverse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38662,7 +38662,7 @@ class Reverse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38683,21 +38683,21 @@ class RgbToHsv(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38705,14 +38705,14 @@ class RgbToHsv(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38720,7 +38720,7 @@ class RgbToHsv(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -38744,21 +38744,21 @@ class RigidSolver(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -38791,7 +38791,7 @@ class RigidSolver(DependNode):
         res = _f.asQuery(self, effects.rigidSolver, kwargs, 'collisionTolerance')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -38892,7 +38892,7 @@ class RigidSolver(DependNode):
     def interpenetrationCheck(self, val=True, **kwargs):
         return _f.asEdit(self, effects.rigidSolver, kwargs, 'interpenetrationCheck', val)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -38900,7 +38900,7 @@ class RigidSolver(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39005,21 +39005,21 @@ class Sampler(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39027,14 +39027,14 @@ class Sampler(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39042,7 +39042,7 @@ class Sampler(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39063,21 +39063,21 @@ class Script(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39085,14 +39085,14 @@ class Script(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39100,7 +39100,7 @@ class Script(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39121,21 +39121,21 @@ class SelectionListOperator(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39143,14 +39143,14 @@ class SelectionListOperator(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39158,7 +39158,7 @@ class SelectionListOperator(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39182,21 +39182,21 @@ class SequenceManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39204,7 +39204,7 @@ class SequenceManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -39236,7 +39236,7 @@ class SequenceManager(DependNode):
         res = _f.asQuery(self, animation.sequenceManager, kwargs, 'writableSequencer')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39244,7 +39244,7 @@ class SequenceManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39265,21 +39265,21 @@ class Sequencer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39287,14 +39287,14 @@ class Sequencer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39302,7 +39302,7 @@ class Sequencer(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39323,21 +39323,21 @@ class SetRange(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39345,14 +39345,14 @@ class SetRange(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39360,7 +39360,7 @@ class SetRange(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39381,21 +39381,21 @@ class ShaderGlow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39403,14 +39403,14 @@ class ShaderGlow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39418,7 +39418,7 @@ class ShaderGlow(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -39439,21 +39439,21 @@ class ShadingDependNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -39461,14 +39461,14 @@ class ShadingDependNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -39476,7 +39476,7 @@ class ShadingDependNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40391,21 +40391,21 @@ class Shot(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -40444,7 +40444,7 @@ class Shot(DependNode):
         res = _f.asQuery(self, animation.shot, kwargs, 'clipZeroOffset')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -40661,7 +40661,7 @@ class Shot(DependNode):
         res = _f.asQuery(self, animation.shot, kwargs, 'unlinkAudio')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -40669,7 +40669,7 @@ class Shot(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40878,21 +40878,21 @@ class SimpleTestNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -40900,14 +40900,14 @@ class SimpleTestNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -40915,7 +40915,7 @@ class SimpleTestNode(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40936,21 +40936,21 @@ class SimpleVolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -40958,14 +40958,14 @@ class SimpleVolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -40973,7 +40973,7 @@ class SimpleVolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -40994,21 +40994,21 @@ class SkinBinding(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41016,14 +41016,14 @@ class SkinBinding(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41031,7 +41031,7 @@ class SkinBinding(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41055,21 +41055,21 @@ class Snapshot(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41077,7 +41077,7 @@ class Snapshot(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
@@ -41109,7 +41109,7 @@ class Snapshot(DependNode):
         res = _f.asQuery(self, animation.snapshot, kwargs, 'update')
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41117,7 +41117,7 @@ class Snapshot(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41159,21 +41159,21 @@ class StrokeGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41181,14 +41181,14 @@ class StrokeGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41196,7 +41196,7 @@ class StrokeGlobals(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41217,21 +41217,21 @@ class SubdBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41239,14 +41239,14 @@ class SubdBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41254,7 +41254,7 @@ class SubdBase(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41500,21 +41500,21 @@ class SubdivCollapse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41522,14 +41522,14 @@ class SubdivCollapse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41537,7 +41537,7 @@ class SubdivCollapse(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41558,21 +41558,21 @@ class SubdivComponentId(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41580,14 +41580,14 @@ class SubdivComponentId(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41595,7 +41595,7 @@ class SubdivComponentId(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41616,21 +41616,21 @@ class SubdivReverseFaces(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41638,14 +41638,14 @@ class SubdivReverseFaces(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41653,7 +41653,7 @@ class SubdivReverseFaces(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41674,21 +41674,21 @@ class SubdivToPoly(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41696,14 +41696,14 @@ class SubdivToPoly(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41711,7 +41711,7 @@ class SubdivToPoly(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41732,21 +41732,21 @@ class SurfaceLuminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41754,14 +41754,14 @@ class SurfaceLuminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41769,7 +41769,7 @@ class SurfaceLuminance(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41790,21 +41790,21 @@ class SurfaceShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41812,14 +41812,14 @@ class SurfaceShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41827,7 +41827,7 @@ class SurfaceShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41848,21 +41848,21 @@ class TexLattice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41870,14 +41870,14 @@ class TexLattice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41885,7 +41885,7 @@ class TexLattice(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41906,21 +41906,21 @@ class TextureToGeom(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41928,14 +41928,14 @@ class TextureToGeom(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -41943,7 +41943,7 @@ class TextureToGeom(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -41974,21 +41974,21 @@ class Time(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -41996,14 +41996,14 @@ class Time(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -42011,7 +42011,7 @@ class Time(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -42825,21 +42825,21 @@ class TimeFunction(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -42847,14 +42847,14 @@ class TimeFunction(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -42862,7 +42862,7 @@ class TimeFunction(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -42883,21 +42883,21 @@ class TimeToUnitConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -42905,14 +42905,14 @@ class TimeToUnitConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -42920,7 +42920,7 @@ class TimeToUnitConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -42989,21 +42989,21 @@ class ToonLineAttributes(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43011,14 +43011,14 @@ class ToonLineAttributes(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43026,7 +43026,7 @@ class ToonLineAttributes(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43052,21 +43052,21 @@ class UnitConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43074,14 +43074,14 @@ class UnitConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43089,7 +43089,7 @@ class UnitConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43110,21 +43110,21 @@ class UnitToTimeConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43132,14 +43132,14 @@ class UnitToTimeConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43147,7 +43147,7 @@ class UnitToTimeConversion(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43168,21 +43168,21 @@ class Unknown(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43190,14 +43190,14 @@ class Unknown(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43205,7 +43205,7 @@ class Unknown(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43226,21 +43226,21 @@ class UvChooser(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43248,14 +43248,14 @@ class UvChooser(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43263,7 +43263,7 @@ class UvChooser(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43284,21 +43284,21 @@ class ViewColorManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43306,14 +43306,14 @@ class ViewColorManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43321,7 +43321,7 @@ class ViewColorManager(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43342,21 +43342,21 @@ class VolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43364,14 +43364,14 @@ class VolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43379,7 +43379,7 @@ class VolumeShader(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
@@ -43400,21 +43400,21 @@ class WtAddMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affected instead.')
     def getAffectedAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.affects instead.')
     def getAffectedByAttributes(self, attr):
         # type: (general.PyNode) -> List[general.PyNode]
         do, final_do, outTypes = _f.getDoArgs([attr], [('attr', 'MObject', 'in', None), ('affectedByAttributes', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getAffectedByAttributes', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use listAliases instead.')
     def getAliasList(self):
         # type: () -> Tuple[bool, List[unicode]]
         do, final_do, outTypes = _f.getDoArgs([], [('strArray', 'MStringArray', 'out', None)])
@@ -43422,14 +43422,14 @@ class WtAddMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use inputs/outputs, or general.listConnections instead.')
     def getConnections(self):
         # type: () -> List[general.Attribute]
         do, final_do, outTypes = _f.getDoArgs([], [('array', 'MPlugArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'getConnections', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.getAlias instead.')
     def plugsAlias(self, plug):
         # type: (general.Attribute) -> unicode
         do, final_do, outTypes = _f.getDoArgs([plug], [('plug', 'MPlug', 'in', None)])
@@ -43437,7 +43437,7 @@ class WtAddMatrix(DependNode):
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
 
-    @_f.deprecated
+    @_f.deprecated('Use Attribute.setAlias instead.')
     def setAlias(self, alias, name, plug, add=True):
         # type: (unicode, unicode, general.Attribute, bool) -> bool
         do, final_do, outTypes = _f.getDoArgs([alias, name, plug, add], [('alias', 'MString', 'in', None), ('name', 'MString', 'in', None), ('plug', 'MPlug', 'in', None), ('add', 'bool', 'in', None)])
