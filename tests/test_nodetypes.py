@@ -2950,6 +2950,26 @@ class testCase_AnimCurve(TestCaseExtended):
             cmds.keyTangent(g=1, inTangentType=origGlobalIn)
             cmds.keyTangent(g=1, outTangentType=origGlobalOut)
 
+        # test findClosest... I'm lazy, I didn't want to make a separate test
+        # for findClosest...
+
+        # first, make sure we find the right value if we're exactly on it...
+        for i, inVal in enumerate(inputs):
+            self.assertEqual(curve.findClosest(inVal), i)
+        # Now try some more intermediate values...
+        # inputs = (-1, 1, 3, 100)
+        self.assertEqual(curve.findClosest(-1e10), 0)
+        self.assertEqual(curve.findClosest(-1.1), 0)
+        self.assertEqual(curve.findClosest(-.01), 0)
+        self.assertEqual(curve.findClosest(.00002), 1)
+        self.assertEqual(curve.findClosest(.09), 1)
+        self.assertEqual(curve.findClosest(1.5), 1)
+        self.assertEqual(curve.findClosest(2.5), 2)
+        self.assertEqual(curve.findClosest(50), 2)
+        self.assertEqual(curve.findClosest(51.6), 3)
+        self.assertEqual(curve.findClosest(99.0), 3)
+        self.assertEqual(curve.findClosest(3.8743e10), 3)
+
     def test_addKeyTA(self):
         self.assertAddKey("animCurveTA")
 

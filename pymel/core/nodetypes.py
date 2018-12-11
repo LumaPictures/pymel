@@ -9661,6 +9661,18 @@ class AnimCurve(DependNode):
         uiUnit = _api.MTime.uiUnit()
         return datatypes.Time(timeValue.asUnits(uiUnit), uiUnit)
 
+    @_f.addApiDocs(_api.MFnAnimCurve, 'findClosest', 0)
+    def findClosestT(self, time):
+        # type: (datatypes.Time) -> int
+        time = datatypes.Time._inCast(time)
+        return self.__apimfn__().findClosest(time)
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'findClosest', 1)
+    def findClosestU(self, unitlessInput):
+        # type: (float) -> int
+        unitlessInput = float(unitlessInput)
+        return self.__apimfn__().findClosest(unitlessInput)
+
     def numKeyframes(self):
         # just because MFnAnimCurve.numKeyframes is deprecated...
         return self.numKeys()
@@ -9923,136 +9935,80 @@ class AnimCurve(DependNode):
 class AnimCurveTA(AnimCurve):
     addKey = AnimCurve.addKeyTU
     evaluate = AnimCurve.evaluateTU
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveTA'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class AnimCurveTL(AnimCurve):
     addKey = AnimCurve.addKeyTU
     evaluate = AnimCurve.evaluateTU
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveTL'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class AnimCurveTT(AnimCurve):
     addKey = AnimCurve.addKeyTT
     evaluate = AnimCurve.evaluateTT
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveTT'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class AnimCurveTU(AnimCurve):
     addKey = AnimCurve.addKeyTU
     evaluate = AnimCurve.evaluateTU
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveTU'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class AnimCurveUA(AnimCurve):
     addKey = AnimCurve.addKeyUU
     evaluate = AnimCurve.evaluateUU
+    findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveUA'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class AnimCurveUL(AnimCurve):
     addKey = AnimCurve.addKeyUU
     evaluate = AnimCurve.evaluateUU
+    findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveUL'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class AnimCurveUT(AnimCurve):
     addKey = AnimCurve.addKeyUT
     evaluate = AnimCurve.evaluateUT
+    findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveUT'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class AnimCurveUU(AnimCurve):
     addKey = AnimCurve.addKeyUU
     evaluate = AnimCurve.evaluateUU
+    findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
     __melnode__ = u'animCurveUU'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
@@ -10062,20 +10018,13 @@ class ResultCurve(AnimCurve):
 # ------ Do not edit below this line --------
     __melnode__ = u'resultCurve'
     __slots__ = ()
-
-    @_f.deprecated
-    def findClosest(self, time):
-        # type: (datatypes.Time) -> int
-        do, final_do, outTypes = _f.getDoArgs([time], [('time', 'MTime', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'findClosest', final_do)
-        res = _f.ApiArgUtil._castResult(self, res, 'int', None)
-        return res
 # ------ Do not edit above this line --------
 
 
 class ResultCurveTimeToAngular(ResultCurve):
     addKey = AnimCurve.addKeyTU
     evaluate = AnimCurve.evaluateTU
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'resultCurveTimeToAngular'
     __slots__ = ()
@@ -10085,6 +10034,7 @@ class ResultCurveTimeToAngular(ResultCurve):
 class ResultCurveTimeToLinear(ResultCurve):
     addKey = AnimCurve.addKeyTU
     evaluate = AnimCurve.evaluateTU
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'resultCurveTimeToLinear'
     __slots__ = ()
@@ -10094,6 +10044,7 @@ class ResultCurveTimeToLinear(ResultCurve):
 class ResultCurveTimeToTime(ResultCurve):
     addKey = AnimCurve.addKeyTT
     evaluate = AnimCurve.evaluateTT
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'resultCurveTimeToTime'
     __slots__ = ()
@@ -10103,6 +10054,7 @@ class ResultCurveTimeToTime(ResultCurve):
 class ResultCurveTimeToUnitless(ResultCurve):
     addKey = AnimCurve.addKeyTU
     evaluate = AnimCurve.evaluateTU
+    findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
     __melnode__ = u'resultCurveTimeToUnitless'
     __slots__ = ()
