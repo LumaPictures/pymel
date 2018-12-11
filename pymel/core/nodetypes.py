@@ -1754,15 +1754,6 @@ class DagNode(Entity):
         """
         return DagNode('|' + self.longName()[1:].split('|')[0])
 
-    # For some reason, this wasn't defined on Transform...?
-    # maya seems to have a bug right now (2016.53) that causes crashes when
-    # accessing MDagPaths after creating an instance, so not enabling this
-    # at the moment...
-    # def getAllPaths(self):
-    #     dagPaths = _api.MDagPathArray()
-    #     self.__apimfn__().getAllPaths(dagPaths)
-    #     return [DagNode(dagPaths[i]) for i in xrange(dagPaths.length())]
-
     def hasParent(self, parent):
         '''
         Modifications:
