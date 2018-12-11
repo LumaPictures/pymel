@@ -46,40 +46,84 @@ def warn(*args, **kwargs):
     return warnings.warn(stacklevel=stacklevel, *args, **kwargs)
 
 
-def deprecated(funcOrMessage, className=None):
-    """the decorator can either receive parameters or the function directly.
+def deprecated(funcOrMessage=None, className=None):
+    """Decorates a function so that it prints a deprecation warning when called.
 
-    If passed a message, the message will be appended to the standard deprecation warning and should serve to further
-    clarify why the function is being deprecated and/or suggest an alternative function
+    The decorator can either receive parameters or the function directly.
 
-    the className parameter is optional and should be included if the function is a method, since the name of the class
-    cannot be automatically determined.
+    Parameters
+    ----------
+    funcOrMessage : Union[str, Callable[..., Any], None]
+        If passed a message, the message will be appended to the standard
+        deprecation warning and should serve to further clarify why the function
+        is being deprecated and/or suggest an alternative function. In this
+        case, the return result of this function is another decorator (with the
+        ammended message), which then needs to be fed the function to be
+        decorated. Otherwise, funcOrMessage should be the func to be decorated,
+        and the return result is decorated version of funcOrMessage
+    className : Union[str, False, None]
+        If given as a str, then the decorated function is asssumed to be method,
+        and the name is printed as "module.className.funcName".  If False, it
+        is assumed to NOT be a method, and the name is printed as
+        "module.funcName".  If None, then the decorator will try to
+        automatically determine whether the passed function is a method, and if
+        so, what it's className is.
     """
+    import inspect
+
     #@decorator
     def deprecated2(func):
+        useClassName = False
         info = dict(
             name=func.__name__,
             module=func.__module__)
 
+        if className is None:
+            isClassMethod = False
+            isMethod = False
+
+            args = inspect.getargspec(func).args
+            if args:
+                if args[0] == 'cls':
+                    isClassMethod = True
+                elif args[0] == 'self':
+                    isMethod = True
+            if isClassMethod or isMethod:
+                useClassName = True
+        elif className is not False:
+            useClassName = True
+            info['className'] = className
+
+        if useClassName:
+            objName = '%(module)s.%(className)s.%(name)s'
+        else:
+            objName = '%(module)s.%(name)s'
+        message2 = message.format(objName=objName)
+
         def deprecationLoggedFunc(*args, **kwargs):
-            warnings.warn(message % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
+            if useClassName and className is None:
+                if isClassMethod:
+                    info['className'] = args[0].__name__
+                else:
+                    info['className'] = type(args[0]).__name__
+            warnings.warn(message2 % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
             return func(*args, **kwargs)
 
         deprecationLoggedFunc.__name__ = func.__name__
         deprecationLoggedFunc.__module__ = func.__module__
-        deprecationLoggedFunc.__doc__ = message % info + '\n'
+        deprecationLoggedFunc.__doc__ = message % info
         deprecationLoggedFunc._func_before_deprecation = func
         if func.__doc__:
-            deprecationLoggedFunc.__doc__ += '\n' + func.__doc__
+            deprecationLoggedFunc.__doc__ += '\n\n' + func.__doc__
         return deprecationLoggedFunc
 
-    if className:
-        objName = '%(module)s.' + className + '.%(name)s'
-    else:
-        objName = '%(module)s.%(name)s'
-    basemessage = message = "The function '" + objName + "' is deprecated and will become unavailable in future pymel versions"
+
+    basemessage = "The function '{objName}' is deprecated and will become unavailable in future pymel versions"
     # check if the decorator got a 'message' parameter
-    if isinstance(funcOrMessage, basestring):
+    if funcOrMessage is None:
+        message = basemessage
+        return deprecated2
+    elif isinstance(funcOrMessage, basestring):
         message = basemessage + '. ' + funcOrMessage
         return deprecated2
     else:
