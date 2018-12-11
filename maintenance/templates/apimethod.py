@@ -2,7 +2,7 @@
 @classmethod
 {% endif %}
 {% if method.deprecated %}
-@_f.deprecated
+{{ method.deprecated }}
 {% else %}
 @_f.addApiDocs(_api.{{ method.apiClass }}, '{{ method.apiName }}')
 {% endif %}

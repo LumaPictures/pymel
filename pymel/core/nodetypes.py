@@ -2355,7 +2355,7 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'getConnectedSetsAndMembers', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.maya_deprecated
     def getObjectColor(self):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MFnDagNode, 'objectColor')
@@ -2477,7 +2477,7 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setObjectColorType', final_do)
         return res
 
-    @_f.deprecated
+    @_f.maya_deprecated
     def setUseObjectColor(self, useObjectColor):
         # type: (bool) -> None
         do, final_do, outTypes = _f.getDoArgs([useObjectColor], [('useObjectColor', 'bool', 'in', None)])
@@ -2496,7 +2496,7 @@ class DagNode(Entity):
         res = _f.getProxyResult(self, _api.MFnDagNode, 'usingHiliteColor')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
-    @_f.deprecated
+    @_f.maya_deprecated
     def usingObjectColor(self):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnDagNode, 'usingObjectColor')
@@ -5951,7 +5951,7 @@ class NurbsSurface(SurfaceShape):
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'getKnotsInV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
+    @_f.maya_deprecated
     def getParamAtPoint(self, atThisPoint, space='preTransform'):
         # type: (datatypes.Point, datatypes.Space.Space) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([atThisPoint, space], [('atThisPoint', 'MPoint', 'in', None), ('paramU', 'double', 'out', None), ('paramV', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
@@ -20403,7 +20403,7 @@ class Assembly(DagContainer):
         res = _f.asQuery(self, general.assembly, kwargs, 'defaultType')
         return res
 
-    @_f.deprecated
+    @_f.maya_deprecated
     def getInitialRep(self):
         # type: () -> unicode
         res = _f.getProxyResult(self, _api.MFnAssembly, 'getInitialRep')

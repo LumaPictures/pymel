@@ -1366,12 +1366,11 @@ class ApiMethodGenerator(MelMethodGenerator):
                         if so, we keep it, but mark it deprecated'''
                         wasEnabled = self.methodWasFormerlyEnabled(basePymelName)
                         if wasEnabled:
-                            # FIXME: add unique deprecation message
                             _logger.info(
                                 "{}.{}: Adding disabled method as deprecated."
                                 " Used by older versions of pymel".format(
                                     self.classname, pymelName))
-                            deprecated.append(yieldTuple)
+                            deprecated.append(yieldTuple + ("@_f.deprecated",))
                         return wasEnabled
 
                     if classShouldBeSkipped:
@@ -1385,12 +1384,12 @@ class ApiMethodGenerator(MelMethodGenerator):
                                 "{}.{} has been manually disabled, skipping"
                                 .format(self.classname, pymelName))
                     elif info[overloadIndex].get('deprecated', False):
-                        deprecated.append(yieldTuple)
+                        deprecated.append(yieldTuple + ("@_f.maya_deprecated",))
                     else:
                         yield yieldTuple + (False,)
 
                 for yieldTuple in deprecated:
-                    yield yieldTuple + (True,)
+                    yield yieldTuple
 
             for (methodName, pymelName, basePymelName, overloadIndex, aliases,
                  properties, deprecated) \

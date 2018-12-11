@@ -21,9 +21,8 @@ import maya.mel as mm
 import pymel.api as api
 import pymel.util as util
 from pymel.util.conditions import Always, Condition
-from pymel.internal.pwarnings import deprecated
 import pymel.versions as versions
-from pymel.internal.pwarnings import deprecated
+from pymel.internal.pwarnings import deprecated, maya_deprecated
 
 # Module imports
 from . import apicache

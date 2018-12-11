@@ -46,7 +46,10 @@ def warn(*args, **kwargs):
     return warnings.warn(stacklevel=stacklevel, *args, **kwargs)
 
 
-def deprecated(funcOrMessage=None, className=None):
+def deprecated(funcOrMessage=None, className=None,
+               baseMessage="The function '{objName}' is deprecated and will"
+                           " become unavailable in future pymel versions",
+               warningType=FutureWarning):
     """Decorates a function so that it prints a deprecation warning when called.
 
     The decorator can either receive parameters or the function directly.
@@ -68,6 +71,13 @@ def deprecated(funcOrMessage=None, className=None):
         "module.funcName".  If None, then the decorator will try to
         automatically determine whether the passed function is a method, and if
         so, what it's className is.
+    baseMessage : Optional[str]
+        Message which will be combined with the optional message (in
+        funcOrMessage) to form the final message. Maybe set to None to ensure
+        only the message (in funcOrMessage) is printed.
+    warningType : Type[Warning]
+        Warning class to raise. Note that DeprecationWarning is ignored by
+        default.
     """
     import inspect
 
@@ -106,7 +116,8 @@ def deprecated(funcOrMessage=None, className=None):
                     info['className'] = args[0].__name__
                 else:
                     info['className'] = type(args[0]).__name__
-            warnings.warn(message2 % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
+            # add to the stack-level so that this wrapper func is skipped
+            warnings.warn(message2 % info, warningType, stacklevel=2)
             return func(*args, **kwargs)
 
         deprecationLoggedFunc.__name__ = func.__name__
@@ -117,18 +128,28 @@ def deprecated(funcOrMessage=None, className=None):
             deprecationLoggedFunc.__doc__ += '\n\n' + func.__doc__
         return deprecationLoggedFunc
 
-
-    basemessage = "The function '{objName}' is deprecated and will become unavailable in future pymel versions"
     # check if the decorator got a 'message' parameter
     if funcOrMessage is None:
-        message = basemessage
+        message = baseMessage
         return deprecated2
     elif isinstance(funcOrMessage, basestring):
-        message = basemessage + '. ' + funcOrMessage
+        if baseMessage is None:
+            message = funcOrMessage
+        else:
+            message = baseMessage + '. ' + funcOrMessage
         return deprecated2
     else:
-        message = basemessage
+        message = baseMessage
         return deprecated2(funcOrMessage)
+
+
+def maya_deprecated(
+        funcOrMessage=None, className=None,
+        baseMessage="The function '{objName}' has been deprecated by maya and"
+                    " may become unavailable in future maya versions",
+        warningType=DeprecationWarning):
+    return deprecated(funcOrMessage=funcOrMessage, className=className,
+                      baseMessage=baseMessage, warningType=warningType)
 
 if __name__ == '__main__':
     import doctest
