@@ -4154,6 +4154,13 @@ class Transform(DagNode):
         res = _f.getProxyResult(self, _api.MFnTransform, 'rotateBy', final_do)
         return res
 
+    @_f.addApiDocs(_api.MFnTransform, 'rotateByQuaternion')
+    def _rotateByQuaternion(self, x, y, z, w, space='transform'):
+        # type: (float, float, float, float, datatypes.Space.Space) -> None
+        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
+        return res
+
     @_f.addApiDocs(_api.MFnTransform, 'scaleBy')
     def _scaleBy(self, scale):
         # type: (Tuple[float, float, float]) -> None
@@ -4863,13 +4870,6 @@ class DynBase(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
-
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
@@ -5268,13 +5268,6 @@ class Constraint(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
 
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
@@ -10523,13 +10516,6 @@ class HikHandle(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
 
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
@@ -19758,13 +19744,6 @@ class BaseGeometryVarGroup(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
-
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
@@ -20318,13 +20297,6 @@ class DagContainer(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
 
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
@@ -21892,13 +21864,6 @@ class HikGroundPlane(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
-
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
@@ -21917,13 +21882,6 @@ class HikIKEffector(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
 
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
@@ -22301,13 +22259,6 @@ class LodGroup(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
-
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
@@ -22326,13 +22277,6 @@ class Nucleus(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
 
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
@@ -22353,13 +22297,6 @@ class Place3dTexture(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
 
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
-
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
@@ -22378,13 +22315,6 @@ class RigidConstraint(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
 
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
@@ -22409,13 +22339,6 @@ class UnknownTransform(Transform):
         do, final_do, outTypes = _f.getDoArgs([space], [('x', 'double', 'out', None), ('y', 'double', 'out', None), ('z', 'double', 'out', None), ('w', 'double', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'getRotationQuaternion', final_do)
         return _f.processApiResult(res, outTypes, do)
-
-    @_f.deprecated
-    def rotateByQuaternion(self, x, y, z, w, space='transform'):
-        # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnTransform, 'rotateByQuaternion', final_do)
-        return res
 
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
