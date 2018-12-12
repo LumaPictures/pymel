@@ -5,8 +5,17 @@ A quick example::
 
     from pymel.api.plugins import Command
     class testCmd(Command):
+        @classmethod
+        def createSyntax(cls):
+            syntax = om.MSyntax()
+            # the node type name
+            syntax.addArg(om.MSyntax.kString)
+            return syntax
+
         def doIt(self, args):
-            print "doIt..."
+            argParser =  om.MArgParser(self.syntax(), args)
+            arg = argParser.commandArgumentString(0)
+            print "doing it: {}".format(arg)
 
     testCmd.register()
     cmds.testCmd()
