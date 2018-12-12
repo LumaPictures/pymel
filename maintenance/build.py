@@ -1969,6 +1969,7 @@ def _deleteImportedCoreModules():
             del pymel.core
 
 def generateAll(allowNonWindows=False):
+    import copy
     import linecache
 
     # by default, we only allow building these from windows, because we need to
@@ -1976,6 +1977,7 @@ def generateAll(allowNonWindows=False):
     if not allowNonWindows and os.name != 'nt':
         raise ValueError("must build on windows - for testing, set allowNonWindows=True")
 
+    origBridgeData = copy.deepcopy(factories._apiMelBridgeCacheInst.contents())
     factories.building = True
     try:
 
@@ -2018,6 +2020,10 @@ def generateAll(allowNonWindows=False):
                                force=True)
     finally:
         factories.building = False
+
+    # check to see if bridge data change, write it out if it did
+    if origBridgeData != factories._apiMelBridgeCacheInst.contents():
+        factories._apiMelBridgeCacheInst.save()
 
 
 def getParser():

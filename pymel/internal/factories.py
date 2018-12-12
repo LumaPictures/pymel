@@ -506,6 +506,10 @@ if docstringMode == 'html':
 
 def _getApiOverrideData(classname, pymelName):
     data = apiToMelData.get((classname, pymelName))
+    if data is not None:
+        origName = data.get('origName')
+        if origName:
+            return _getApiOverrideData(classname, origName)
     if data is None:
         # return defaults
         data = {}
@@ -516,6 +520,7 @@ def _getApiOverrideData(classname, pymelName):
 
 
 def _getApiOverrideNameAndData(classname, pymelName):
+    origName = pymelName
     data = _getApiOverrideData(classname, pymelName)
     explicitRename = False
     nameType = data.get('useName', 'API')
@@ -526,6 +531,14 @@ def _getApiOverrideNameAndData(classname, pymelName):
     else:
         pymelName = nameType
         explicitRename = True
+    # FIXME: think we don't need explicitRename - think we really only care
+    # if name changed, not if it was an "explicit" rename, and so caller can
+    # just compare returned name with passed in name... but I need to confirm
+    # that won't change anything, don't have time to do that now
+    if origName != pymelName:
+        renamedData = apiToMelData.setdefault((classname, pymelName), {})
+        if 'origName' not in renamedData:
+            renamedData['origName'] = origName
     return pymelName, data, explicitRename
 
 
