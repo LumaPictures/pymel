@@ -630,8 +630,8 @@ class LazyLoadModule(types.ModuleType):
             # the creation of the lazy module!
             print 'foo is:', lazyModule.foo
 
-        mod = lazyLoadModule(__name__, globals())
-        mod._addattr( 'foo', str, 'bar' )
+        mod = LazyLoadModule(__name__, globals())
+        mod._lazyModule_addAttr( 'foo', str, 'bar' )
         sys.modules[__name__] = mod
 
         # create a reference to the LazyLoadModule in this module's
@@ -678,7 +678,20 @@ class LazyLoadModule(types.ModuleType):
             setattr(obj, self.name, self.newobj)
             return self.newobj
 
-    def __init__(self, name, contents):
+    # because the lazy-loaded objects need to be installed on the CLASS, not on
+    # an instance, we need to ensure that all LazyLoadModules are subclasses, to
+    # ensure that they aren't polluting each other's namespaces
+    def __new__(cls, name, contents, autoSubClass=True):
+        # because the lazy-loaded objects need to be installed on the CLASS,
+        # not on an instance, we need to ensure that all LazyLoadModules are
+        # subclasses, to ensure that they aren't polluting each other's
+        # namespaces.  So we automatically generate a new subclass...
+        if autoSubClass:
+            subclassName = name.replace('.', '_') + cls.__name__
+            cls = type(subclassName, (cls,), {})
+        return super(LazyLoadModule, cls).__new__(cls, name)
+
+    def __init__(self, name, contents, autoSubClass=True):
         types.ModuleType.__init__(self, name)
         self.__dict__.update(contents)
         self._lazyGlobals = contents  # globals of original module
