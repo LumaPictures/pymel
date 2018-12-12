@@ -117,6 +117,12 @@ Additions
   MQuaternion or four separate floats
 - DependNode.deleteAttr now accepts Attribute objects (first verifying that it
   is an attribute on the same node as self)
+- Added a DependNode.typeName classmethod - similar to DependNode.type /
+  general.nodeType, but unlike those, it does not require an actual instance of
+  a node, or call any mel / api functions - instead, it just returns the type
+  that the given class wraps.  When called from an instance, should always give
+  the same result as DependNode.type, since pymel always ensures that the most
+  specific node class is used to create any PyNode
 
 ----------------------------------
 Bug Fixes

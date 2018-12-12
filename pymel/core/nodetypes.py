@@ -362,6 +362,12 @@ class DependNode(general.PyNode):
 # -------------------------
     type = general.nodeType
 
+    @classmethod
+    def typeName(cls):
+        """Similar to type / nodeType, but a classmethod that does no dynamic
+        querying"""
+        return cls.__melnode__
+
     def referenceFile(self):
         # type: () -> Optional[_FileReference]
         """referenceQuery -file
@@ -1106,12 +1112,6 @@ class DependNode(general.PyNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setName', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
-
-    @_f.addApiDocs(_api.MFnDependencyNode, 'typeName')
-    def typeName(self):
-        # type: () -> unicode
-        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'typeName')
-        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
 
