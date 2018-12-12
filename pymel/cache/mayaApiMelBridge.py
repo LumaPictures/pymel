@@ -656,6 +656,14 @@
   ('GeoConnector', 'getConnections'): {'backwards_compatibility_enabled': 'Use inputs/outputs, or general.listConnections instead.'},
   ('GeoConnector', 'plugsAlias'): {'backwards_compatibility_enabled': 'Use Attribute.getAlias instead.'},
   ('GeoConnector', 'setAlias'): {'backwards_compatibility_enabled': 'Use Attribute.setAlias instead.'},
+  # 'split' isn't from MFnGeometry filter, but from the various mel deformer
+  # commands (skinCluster, lattice, etc) - but they check up the chain, so
+  # we can disable here
+  # We disable because a) it conflicts with the string "split" wrap, and
+  # b) it's not very useful as a method - it can only be used in create mode
+  # (not applicable) or edit if there is no geometry attached (how often do you
+  # have no geo attached to a deformer?)
+  ('GeometryFilter', 'split'): {'melEnabled': False},
   ('GlobalCacheControl', 'findAlias'): {'backwards_compatibility_enabled': True},
   ('GlobalCacheControl', 'getAffectedAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affected instead.'},
   ('GlobalCacheControl', 'getAffectedByAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affects instead.'},
@@ -800,6 +808,11 @@
   ('JointFfd', 'getConnections'): {'backwards_compatibility_enabled': 'Use inputs/outputs, or general.listConnections instead.'},
   ('JointFfd', 'plugsAlias'): {'backwards_compatibility_enabled': 'Use Attribute.getAlias instead.'},
   ('JointFfd', 'setAlias'): {'backwards_compatibility_enabled': 'Use Attribute.setAlias instead.'},
+  # We disable split because a) it conflicts with the string "split" wrap, and
+  # b) it's not very useful as a method - it can only be used in create mode
+  # (not applicable) or edit if there is no geometry attached (how often do you
+  # have no geo attached to a deformer?)
+  ('Lattice', 'split'): {'melEnabled': False},
   ('LightInfo', 'findAlias'): {'backwards_compatibility_enabled': True},
   ('LightInfo', 'getAffectedAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affected instead.'},
   ('LightInfo', 'getAffectedByAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affects instead.'},
@@ -1602,10 +1615,10 @@
   ('Time', 'getConnections'): {'backwards_compatibility_enabled': 'Use inputs/outputs, or general.listConnections instead.'},
   ('Time', 'plugsAlias'): {'backwards_compatibility_enabled': 'Use Attribute.getAlias instead.'},
   ('Time', 'setAlias'): {'backwards_compatibility_enabled': 'Use Attribute.setAlias instead.'},
-  ('TimeEditorAnimSource', 'attribute'): {'melName': 'populateAttribute'},
-  ('TimeEditorClip', 'addAttribute'): {'melName': 'addClipAttribute'},
-  ('TimeEditorClip', 'attribute'): {'melName': 'populateAttribute'},
-  ('TimeEditorClip', 'removeAttribute'): {'melName': 'removeClipAttribute'},
+  ('TimeEditorAnimSource', 'attribute'): {'melEnabled': True, 'melName': 'populateAttribute'},
+  ('TimeEditorClip', 'addAttribute'): {'melEnabled': True, 'melName': 'addClipAttribute'},
+  ('TimeEditorClip', 'attribute'): {'melEnabled': True, 'melName': 'populateAttribute'},
+  ('TimeEditorClip', 'removeAttribute'): {'melEnabled': True, 'melName': 'removeClipAttribute'},
   ('TimeFunction', 'findAlias'): {'backwards_compatibility_enabled': True},
   ('TimeFunction', 'getAffectedAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affected instead.'},
   ('TimeFunction', 'getAffectedByAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affects instead.'},

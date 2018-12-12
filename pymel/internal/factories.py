@@ -513,9 +513,6 @@ def _getApiOverrideData(classname, pymelName):
     if data is None:
         # return defaults
         data = {}
-        if pymelName in EXCLUDE_METHODS:
-            data['enabled'] = False
-            data['melEnabled'] = False
     return data
 
 

@@ -1060,12 +1060,7 @@ class MelMethodGenerator(object):
                         and  methodType != 'mel'):
                     return None
 
-
-                melEnabled = bridgeInfo.get('melEnabled')
-                if melEnabled is not None:
-                    return melName if melEnabled else None
-                # if the api method is enabled that means we skip it here.
-                if self.isApiEnabled(methodName, default=False):
+                if not self.isMelEnabled(methodName):
                     return None
                 return melName
 
@@ -1141,6 +1136,22 @@ class MelMethodGenerator(object):
                 return methodType
         return None
 
+    def isMelEnabled(self, methodName, default=True):
+        for parentClass in self.classnameMRO():
+            overrideData = factories._getApiOverrideData(parentClass,
+                                                         methodName)
+            melEnabled = overrideData.get('melEnabled')
+            if melEnabled is not None:
+                # if we ever get any result for melEnabled, before we find an
+                # api-enabled result, then that takes precedence
+                return melEnabled
+            apiEnabled = overrideData.get('enabled')
+            if apiEnabled is not None:
+                return not apiEnabled
+        if methodName in factories.EXCLUDE_METHODS:
+            return False
+        return default
+
     def isMelMethod(self, methodName):
         """
         Determine if the passed method name exists on a parent class as a mel method
@@ -1151,9 +1162,11 @@ class MelMethodGenerator(object):
         for parentClass in self.classnameMRO():
             overrideData = factories._getApiOverrideData(parentClass,
                                                          methodName)
-            enabled = overrideData.get('enabled')
-            if enabled is not None:
-                return enabled
+            apiEnabled = overrideData.get('enabled')
+            if apiEnabled is not None:
+                return apiEnabled
+        if methodName in factories.EXCLUDE_METHODS:
+            return False
         return default
 
     def docstring(self, melCmdName):
