@@ -1233,6 +1233,19 @@ class ApiMethodGenerator(MelMethodGenerator):
             self.attrs[enumName] = VersionedCaches.assignmentFromVersionDict(
                 enumName, byVersion)
 
+    def _hasExistingImplementation(self, apiName, pymelName):
+        # First, check to see if there's a manual override of this method
+        # on the existing class.
+        if (self.existingClass is not None
+                and pymelName in self.existingClass.__dict__):
+            return True
+
+        # if we've already made a method for THIS class
+        if pymelName in self.methods:
+            return True
+
+        return pymelName in self.herited
+
     def getAPIData(self):
         """
         Add methods from API functions
@@ -1399,18 +1412,14 @@ class ApiMethodGenerator(MelMethodGenerator):
                     in non_deprecated_methods_first():
                 assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (self.classname, methodName, pymelName)
 
-                if pymelName not in self.herited and (self.existingClass is None or pymelName not in self.existingClass.__dict__):
-                    if pymelName not in self.methods:
-                        #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
-                        doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
-                                            proxy=self.proxy, overloadIndex=overloadIndex,
-                                            deprecated=deprecated, aliases=aliases,
-                                            properties=properties)
-                        if doc:
-                            self.addApiMethod(pymelName, basePymelName, doc)
-                        #else: _logger.info("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-                    #else: _logger.info("%s.%s: already defined, skipping" % (apicls.__name__, methodName))
-                #else: _logger.info("%s.%s already herited, skipping (existingClass %s)" % (apicls.__name__, methodName, hasattr(self.existingClass, pymelName)))
+                if not self._hasExistingImplementation(methodName, pymelName):
+                    #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
+                    doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
+                                        proxy=self.proxy, overloadIndex=overloadIndex,
+                                        deprecated=deprecated, aliases=aliases,
+                                        properties=properties)
+                    if doc:
+                        self.addApiMethod(pymelName, basePymelName, doc)
 
             # no reason to re-add enums for backward compatibility
             if not classShouldBeSkipped:
