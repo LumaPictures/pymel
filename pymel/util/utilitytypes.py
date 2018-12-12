@@ -589,8 +589,7 @@ class LazyLoadModule(types.ModuleType):
 
         import sys
         mod = LazyLoadModule(__name__, globals())
-        mod._addattr( 'foo', str, 'bar' )
-        sys.modules[__name__] = mod
+        mod._lazyModule_addAttr( 'foo', str, 'bar' )
 
     One caveat of this technique is that if a user imports everything from your
     lazy module ( .e.g from module import * ), it will cause all lazy attributes
@@ -617,13 +616,8 @@ class LazyLoadModule(types.ModuleType):
             # the creation of the lazy module!
             print 'foo is:', lazyModule.foo
 
-        mod = LazyLoadModule(__name__, globals())
-        mod._lazyModule_addAttr( 'foo', str, 'bar' )
-        sys.modules[__name__] = mod
-
-        # create a reference to the LazyLoadModule in this module's
-        # global space
-        lazyModule = sys.modules[__name__]
+        lazyModule = LazyLoadModule(__name__, globals())
+        lazyModule._lazyModule_addAttr( 'foo', str, 'bar' )
 
         # define something which relies on something in the lazy module
         fooExpanded = lazyModule.foo + '... now with MORE!'

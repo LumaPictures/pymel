@@ -3937,15 +3937,14 @@ def _createPyNodes():
             _factories.addPyNode(dynModule, mayaType, parentMayaType,
                                  immediate=immediate)
 
-    sys.modules[__name__] = dynModule
+    return dynModule
 
 
 # Initialize Pymel classes to API types lookup
 #_startTime = time.time()
-_createPyNodes()
+dynModule = _createPyNodes()
 #_logger.debug( "Initialized Pymel PyNodes types list in %.2f sec" % time.time() - _startTime )
 
-dynModule = sys.modules[__name__]
 # def listToMSelection( objs ):
 #    sel = _api.MSelectionList()
 #    for obj in objs:
