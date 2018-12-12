@@ -2011,7 +2011,7 @@ def generateAll(allowNonWindows=False):
 
         generator.generateUIFunctions()
 
-        generator.generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', suffix='\n_addTypeNames()\n')
+        generator.generateTypes(iterPyNodeText(), 'pymel.core.nodetypes', suffix='\ndynModule = _addTypeNames()\n')
         generator.generateTypes(iterUIText(), 'pymel.core.uitypes', suffix='\n_addTypeNames()\n')
         generator.generateTypes(iterApiTypeText(), 'pymel.core.general')
         generator.generateTypes(iterApiDataTypeText(), 'pymel.core.datatypes')
