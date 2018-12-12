@@ -102,7 +102,8 @@ def _addPluginCommand(pluginName, funcName):
 
     if funcName not in _pluginData[pluginName].setdefault('commands', []):
         _pluginData[pluginName]['commands'].append(funcName)
-    _logger.debug("Adding command: %s" % funcName)
+    _logger.debug("Adding plugin command: {} (plugin: {})".format(funcName,
+                                                                  pluginName))
     #_logger.debug("adding new command:", funcName)
     _factories.cmdlist[funcName] = _cmdcache.getCmdInfoBasic(funcName)
     _factories.cmdlist[funcName]['plugin'] = pluginName
@@ -133,7 +134,8 @@ def _addPluginNode(pluginName, mayaType):
 
     if mayaType not in _pluginData[pluginName].setdefault('dependNodes', []):
         _pluginData[pluginName]['dependNodes'].append(mayaType)
-    _logger.debug("Adding node: %s" % mayaType)
+    _logger.debug("Adding plugin node: {} (plugin: {})".format(mayaType,
+                                                               pluginName))
     extraAttrs = _plugins.pyNodeMethods.get(pluginName, {}).get(mayaType, {})
     return _factories.addCustomPyNode(nodetypes, mayaType, extraAttrs=extraAttrs)
 
@@ -161,6 +163,18 @@ def _removePluginNode(pluginName, node):
     _factories.removePyNode(nodetypes, node)
 
 
+def _stripPluginExt(pluginName):
+    if not pluginName:
+        return pluginName
+    def stripExt(name, ext):
+        if name.lower().endswith(ext):
+            name = name[:-len(ext)]
+        return name
+    for ext in ('.mll', '.so', '.dylib', '.py', '.pyc'):
+        pluginName = stripExt(pluginName, ext)
+    return pluginName
+
+
 def _pluginLoaded(*args):
     global _pluginData
 
@@ -169,6 +183,7 @@ def _pluginLoaded(*args):
         pluginName = args[0][1]
     else:
         pluginName = args[0]
+    pluginName = _stripPluginExt(pluginName)
 
     if not pluginName:
         return
@@ -290,6 +305,7 @@ def _pluginUnloaded(*args):
         pluginName = args[0][0]
     else:
         pluginName = args[0]
+    pluginName = _stripPluginExt(pluginName)
 
     _logger.debug("Plugin unloaded: %s" % pluginName)
 
@@ -301,14 +317,15 @@ def _pluginUnloaded(*args):
         # Commands
         commands = data.pop('commands', [])
         if commands:
-            _logger.debug("Removing commands: %s", ', '.join(commands))
+            _logger.debug("Removing plugin commands: {}".format(
+                ', '.join(commands)))
             for command in commands:
                 _removePluginCommand(pluginName, command)
 
         # Nodes
         nodes = data.pop('dependNodes', [])
         if nodes:
-            _logger.debug("Removing nodes: %s" % ', '.join(nodes))
+            _logger.debug("Removing plugin nodes: {}".format(', '.join(nodes)))
             for node in nodes:
                 _removePluginNode(pluginName, node)
 
