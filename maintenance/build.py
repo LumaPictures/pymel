@@ -1399,11 +1399,6 @@ class ApiMethodGenerator(MelMethodGenerator):
                     in non_deprecated_methods_first():
                 assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (self.classname, methodName, pymelName)
 
-                # TODO: some methods are being wrapped for the base class,
-                # and all their children - ie, MFnTransform.transformation()
-                # gets wrapped for Transform, Place3dTexture,
-                # HikGroundPlane, etc...
-                # Figure out why this happens, and stop it!
                 if pymelName not in self.herited and (self.existingClass is None or pymelName not in self.existingClass.__dict__):
                     if pymelName not in self.methods:
                         #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
