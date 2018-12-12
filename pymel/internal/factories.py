@@ -2817,6 +2817,15 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
     if not undoable:
         docstring += '\n**Undo is not currently supported for this method**\n'
 
+    pymelClassName = apiClassNameToPymelClassName(apiClassName)
+    overrideData = _getApiOverrideData(pymelClassName, methodName)
+    aliases = overrideData.get('aliases')
+    if aliases:
+        aliases = set(aliases)
+        aliases.add(methodName)
+        aliases = sorted(aliases)
+        docstring += '\nAliases: {}\n'.format(', '.join(aliases))
+
     if origDocstring:
         docstring = origDocstring + '\n' + docstring
 
