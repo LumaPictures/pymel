@@ -9312,13 +9312,6 @@ class ShadingEngine(ObjectSet):
 # ------ Do not edit below this line --------
     __melnode__ = u'shadingEngine'
     __slots__ = ()
-
-    @_f.deprecated
-    def getMembers(self, flatten=False):
-        # type: (bool) -> SelectionSet
-        do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
-        return _f.processApiResult(res, outTypes, do)
 # ------ Do not edit above this line --------
 
 
@@ -9474,13 +9467,6 @@ class AnimLayer(ObjectSet):
     def getMaxLayers(self, **kwargs):
         res = _f.asQuery(self, animation.animLayer, kwargs, 'maxLayers')
         return res
-
-    @_f.deprecated
-    def getMembers(self, flatten=False):
-        # type: (bool) -> SelectionSet
-        do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('animLayer', 'mute')
     def getMute(self, **kwargs):
@@ -22442,24 +22428,10 @@ class THobjectSet(ObjectSet):
     __melnode__ = u'THobjectSet'
     __slots__ = ()
 
-    @_f.deprecated
-    def getMembers(self, flatten=False):
-        # type: (bool) -> SelectionSet
-        do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
 
 class BakeSet(ObjectSet):
     __melnode__ = u'bakeSet'
     __slots__ = ()
-
-    @_f.deprecated
-    def getMembers(self, flatten=False):
-        # type: (bool) -> SelectionSet
-        do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
 
 class TextureBakeSet(BakeSet):
@@ -22654,13 +22626,6 @@ class CreaseSet(ObjectSet):
     __melnode__ = u'creaseSet'
     __slots__ = ()
 
-    @_f.deprecated
-    def getMembers(self, flatten=False):
-        # type: (bool) -> SelectionSet
-        do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
-        return _f.processApiResult(res, outTypes, do)
-
 
 class KeyingGroup(ObjectSet):
     __melcmd__ = staticmethod(animation.keyingGroup)
@@ -22710,13 +22675,6 @@ class KeyingGroup(ObjectSet):
     def getFacets(self, **kwargs):
         res = _f.asQuery(self, animation.keyingGroup, kwargs, 'facets')
         return res
-
-    @_f.deprecated
-    def getMembers(self, flatten=False):
-        # type: (bool) -> SelectionSet
-        do, final_do, outTypes = _f.getDoArgs([flatten], [('members', 'MSelectionList', 'out', None), ('flatten', 'bool', 'in', None)])
-        res = _f.getProxyResult(self, _api.MFnSet, 'getMembers', final_do)
-        return _f.processApiResult(res, outTypes, do)
 
     @_f.addMelDocs('keyingGroup', 'minimizeRotation')
     def getMinimizeRotation(self, **kwargs):
