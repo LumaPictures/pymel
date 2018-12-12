@@ -507,7 +507,6 @@
   ('DeleteUVSet', 'setAlias'): {'backwards_compatibility_enabled': 'Use Attribute.setAlias instead.'},
   ('DependNode', 'addExternalContentForFileAttr'): {'enabled': False},
   ('DependNode', 'classification'): {'enabled': False},
-  ('DependNode', 'create'): {'overloadIndex': 2},
   ('DependNode', 'dgCallbackIds'): {'enabled': False},
   ('DependNode', 'findAlias'): {'enabled': False},
   ('DependNode', 'findPlug'): {'enabled': False},

@@ -1702,21 +1702,17 @@ def getPyNodeGenerator(mayaType, existingClass, pyNodeTypeName, parentMayaTypes,
 
     def getCachedPymelType(nodeType):
         # type: (str) -> str
-        if nodeType == 'general.PyNode':
-            assert mayaType == 'dependNode'
-            return 'general.PyNode'
+        result = nt.mayaTypeNameToPymelTypeName.get(nodeType)
+        if result is None:
+            # FIXME:
+            # _logger.raiseLog(_logger.WARNING,
+            #                  'trying to create PyNode for maya type %r, but could'
+            #                  ' not find a registered PyNode for parent type %r' % (
+            #                      mayaType, parentMayaType))
+            # unicode is not liked by metaNode
+            return str(util.capitalize(nodeType))
         else:
-            result = nt.mayaTypeNameToPymelTypeName.get(nodeType)
-            if result is None:
-                # FIXME:
-                # _logger.raiseLog(_logger.WARNING,
-                #                  'trying to create PyNode for maya type %r, but could'
-                #                  ' not find a registered PyNode for parent type %r' % (
-                #                      mayaType, parentMayaType))
-                # unicode is not liked by metaNode
-                return str(util.capitalize(nodeType))
-            else:
-                return result
+            return result
 
     parentPymelTypes = [getCachedPymelType(p) for p in parentMayaTypes]
     childPymelTypes = [getCachedPymelType(c) for c in childMayaTypes]
@@ -1855,7 +1851,7 @@ def iterPyNodeText():
         existingClass = getattr(nt, pyNodeTypeName, None)
 
         if mayaType == 'dependNode':
-            parents = ['general.PyNode']
+            parents = []
         elif existingClass is not None:
             # sometimes - ie, due to maya bugs where a node type isn't
             # compatible with the MFn class of one of it's parents - we'll
@@ -1868,7 +1864,11 @@ def iterPyNodeText():
             if existingParentType and existingParentType != parents[0]:
                 parents = [existingParentType] + list(parentsDict[existingParentType])
 
-        parentMayaType = parents[0]
+        if parents:
+            parentMayaType = parents[0]
+        else:
+            assert mayaType == 'dependNode'
+            parentMayaType = 'general.PyNode'
         if parentMayaType is None:
             _logger.warning("could not find parent node: %s", mayaType)
             continue
