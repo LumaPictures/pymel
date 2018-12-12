@@ -628,6 +628,13 @@
   ('Flow', 'getConnections'): {'backwards_compatibility_enabled': 'Use inputs/outputs, or general.listConnections instead.'},
   ('Flow', 'plugsAlias'): {'backwards_compatibility_enabled': 'Use Attribute.getAlias instead.'},
   ('Flow', 'setAlias'): {'backwards_compatibility_enabled': 'Use Attribute.setAlias instead.'},
+  # disabled for now because a) it wasn't enabled previously (hidden by
+  # ProxyUnicode.index), and b) it has a bunch of different overloads - if we
+  # want to enable it, we should probably make a manual wrapper which decides
+  # which form to use depending on what it's fed - and maybe at least split into
+  # two methods - coordsToIndex, and indexToCoords?
+  # This might be a good idea, but don't want to tackle it now...
+  ('FluidShape', 'index'): {'enabled': False},
   ('FourByFourMatrix', 'findAlias'): {'backwards_compatibility_enabled': True},
   ('FourByFourMatrix', 'getAffectedAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affected instead.'},
   ('FourByFourMatrix', 'getAffectedByAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affects instead.'},

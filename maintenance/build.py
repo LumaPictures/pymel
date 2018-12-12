@@ -925,6 +925,8 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
 
 class MelMethodGenerator(object):
     classToMethodTypes = util.defaultdict(dict)
+    for method in methodNames(util.ProxyUnicode):
+        classToMethodTypes['DependNode'][method] = 'str'
 
     def __init__(self, classname, existingClass, parentClasses, parentMethods):
         # type: (str, Type, Iterable[str], Iterable[str]) -> None
@@ -1041,7 +1043,8 @@ class MelMethodGenerator(object):
             #   we always override mel-generated flags, as there's no guarantee
             #   that, ie, rowLayout -dragCallback won't have
             #   some extra functionality as compared to layout -dragCallback.
-            filterAttrs.update(x for x in self.herited if not self.isMelMethod(x))
+            filterAttrs.update(x for x in self.herited
+                               if self.methodType(x) not in ('str', 'mel'))
             # # instead, we only filter out a specific set of methods, if they're
             # # implemented on ancestors
             # filterAttrs.update({'getParent'}.intersection(self.herited))
@@ -1052,12 +1055,12 @@ class MelMethodGenerator(object):
                 melName = bridgeInfo.get('melName', methodName)
 
                 methodType = self.methodType(melName)
-                if methodType not in (None, 'mel'):
+                if methodType == 'api':
                     return None
                 if melName in filterAttrs:
                     return None
                 if (hasattr(self.existingClass, melName)
-                        and  methodType != 'mel'):
+                        and  methodType not in ('mel', 'str')):
                     return None
 
                 if not self.isMelEnabled(methodName):
@@ -1151,12 +1154,6 @@ class MelMethodGenerator(object):
         if methodName in factories.EXCLUDE_METHODS:
             return False
         return default
-
-    def isMelMethod(self, methodName):
-        """
-        Determine if the passed method name exists on a parent class as a mel method
-        """
-        return self.methodType(methodName) == 'mel'
 
     def isApiEnabled(self, methodName, default=True):
         for parentClass in self.classnameMRO():
@@ -1257,7 +1254,14 @@ class ApiMethodGenerator(MelMethodGenerator):
         if pymelName in self.methods:
             return True
 
-        return pymelName in self.herited
+        if pymelName not in self.herited:
+            return False
+
+        # If it's inherited from ProxyUnicode, we still want to override it
+        if self.methodType(pymelName) == 'str':
+            return False
+
+        return True
 
     def getAPIData(self):
         """
