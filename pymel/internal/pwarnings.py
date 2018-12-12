@@ -32,10 +32,22 @@ warnings.formatwarning = formatwarning
 #
 #warnings.showwarning = showwarning
 
+# Subclass just to allow users to configure filtering of pymel-specific
+# deprecations
+class PymelBaseWarning(Warning):
+    pass
 
-class ExecutionWarning (UserWarning):
+class ExecutionWarning (UserWarning, PymelBaseWarning):
 
     """ Simple Warning class that doesn't print any information besides warning message """
+
+# Subclass from FutureWarning so it's displayed by default
+class PymelFutureWarning(FutureWarning, PymelBaseWarning):
+    pass
+
+# Subclass from DeprecationWarning so it's not displayed by default
+class MayaDeprecationWarning(DeprecationWarning, PymelBaseWarning):
+    pass
 
 
 def warn(*args, **kwargs):
@@ -49,7 +61,7 @@ def warn(*args, **kwargs):
 def deprecated(funcOrMessage=None, className=None,
                baseMessage="The function '{objName}' is deprecated and will"
                            " become unavailable in future pymel versions",
-               warningType=FutureWarning):
+               warningType=PymelFutureWarning):
     """Decorates a function so that it prints a deprecation warning when called.
 
     The decorator can either receive parameters or the function directly.
@@ -147,7 +159,7 @@ def maya_deprecated(
         funcOrMessage=None, className=None,
         baseMessage="The function '{objName}' has been deprecated by maya and"
                     " may become unavailable in future maya versions",
-        warningType=DeprecationWarning):
+        warningType=MayaDeprecationWarning):
     return deprecated(funcOrMessage=funcOrMessage, className=className,
                       baseMessage=baseMessage, warningType=warningType)
 
