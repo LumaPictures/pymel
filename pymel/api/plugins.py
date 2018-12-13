@@ -1070,10 +1070,25 @@ def mayaPlugins():
     import pymel.mayautils
 
     mayaLoc = pymel.mayautils.getMayaLocation()
+    # always include some plugins in the list of maya plugins, even though
+    # they're installed in a different dir
+    plugins = ['mtoa']
     # need to set to os.path.realpath to get a 'canonical' path for string comparison...
-    plugins = []
     pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
-    for pluginPath in [x for x in pluginPaths if x.startswith(mayaLoc) and os.path.isdir(x)]:
+
+    def isMayaPluginDir(path):
+        if not os.path.isdir(path):
+            return False
+        if path.startswith(mayaLoc):
+            return True
+        if os.path.altsep:
+            path = path.replace(os.path.altsep, os.path.sep)
+        # if it's a bifrost plugin dir, return true
+        return 'bifrost' in [x.lower() for x in path.split(os.path.sep)]
+
+    for pluginPath in pluginPaths:
+        if not isMayaPluginDir(pluginPath):
+            continue
         for x in os.listdir(pluginPath):
             if os.path.isfile(os.path.join(pluginPath, x)):
                 if not maya.cmds.pluginInfo(x, q=1, loaded=1):
@@ -1089,12 +1104,29 @@ def loadAllMayaPlugins():
     '''
     import logging
     logger = logging.getLogger('pymel')
-    logger.debug("loading all maya plugins...")
-    for plugin in mayaPlugins():
-        try:
-            maya.cmds.loadPlugin(plugin, quiet=1)
-        except RuntimeError:
-            pass
+    # we iterate through the list multiple times, because some plugins won't
+    # load until other plugins are loaded first... we stop if we've loaded all
+    # plugins, or we went through a pass where no plugins were successfully
+    # loaded
+    unloadedPlugins = set(mayaPlugins())
+    loadedAPlugin = True
+    passNum = 0
+    while unloadedPlugins and loadedAPlugin:
+        passNum += 1
+        logger.debug("loading all maya plugins (pass {})...".format(passNum))
+        loadedAPlugin = False
+        thisPass = unloadedPlugins
+        unloadedPlugins = []
+        for plugin in thisPass:
+            try:
+                logger.debug("attempting to load: {}".format(plugin))
+                maya.cmds.loadPlugin(plugin, quiet=1)
+            except RuntimeError:
+                logger.debug("...failed")
+                unloadedPlugins.append(plugin)
+            else:
+                logger.debug("...success!")
+                loadedAPlugin = True
     logger.debug("...done loading all maya plugins")
 
 
