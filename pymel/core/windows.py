@@ -1886,7 +1886,7 @@ def menuItem(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'cmd', 'command', 'commandModifier', 'ddc', 'dmc', 'dragDoubleClickCommand', 'dragMenuCommand', 'ec', 'echoCommand', 'ecr', 'enableCommandRepeat', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce']:
+    for key in ['c', 'cmd', 'command', 'commandModifier', 'ddc', 'dmc', 'dragDoubleClickCommand', 'dragMenuCommand', 'ec', 'echoCommand', 'ecr', 'enableCommandRepeat', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'rtc', 'runTimeCommand']:
         try:
             cb = kwargs[key]
             if callable(cb):

@@ -343,6 +343,8 @@ lsThroughFilter = _factories.addCmdDocs(lsThroughFilter)
 
 makebot = _factories.getCmdFunc('makebot')
 
+mayaHasRenderSetup = _factories.getCmdFunc('mayaHasRenderSetup')
+
 @_factories.addCmdDocs
 def nodeIconButton(*args, **kwargs):
     if len(args):

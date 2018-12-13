@@ -925,6 +925,13 @@ def polyRemesh(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+@_factories.addCmdDocs
+def polyRetopo(*args, **kwargs):
+    res = cmds.polyRetopo(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    return res
+
 polySelect = _factories.getCmdFunc('polySelect')
 
 polySelectConstraint = _factories.getCmdFunc('polySelectConstraint')

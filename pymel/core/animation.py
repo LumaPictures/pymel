@@ -212,9 +212,21 @@ applyTake = _factories.getCmdFunc('applyTake')
 
 autoKeyframe = _factories.getCmdFunc('autoKeyframe')
 
+backgroundEvaluationManager = _factories.getCmdFunc('backgroundEvaluationManager')
+
 bakeClip = _factories.getCmdFunc('bakeClip')
 
-bakeDeformer = _factories.getCmdFunc('bakeDeformer')
+@_factories.addCmdDocs
+def bakeDeformer(*args, **kwargs):
+    for flag in ['customRangeOfMotion', 'rom']:
+        try:
+            rawVal = kwargs[flag]
+        except KeyError:
+            continue
+        else:
+            kwargs[flag] = _factories.convertTimeValues(rawVal)
+    res = cmds.bakeDeformer(*args, **kwargs)
+    return res
 
 @_factories.addCmdDocs
 def bakeResults(*args, **kwargs):

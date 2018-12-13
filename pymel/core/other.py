@@ -518,6 +518,10 @@ def _getParserClass(strObj):
 
 TanimLayer = _factories.getCmdFunc('TanimLayer')
 
+TrenderSetupStates = _factories.getCmdFunc('TrenderSetupStates')
+
+adpAnalyticsDialog = _factories.getCmdFunc('adpAnalyticsDialog')
+
 adskAsset = _factories.getCmdFunc('adskAsset')
 
 adskAssetLibrary = _factories.getCmdFunc('adskAssetLibrary')
@@ -565,8 +569,6 @@ clearShear = _factories.getCmdFunc('clearShear')
 copyNode = _factories.getCmdFunc('copyNode')
 
 crashInfoCmd = _factories.getCmdFunc('crashInfoCmd')
-
-customerInvolvementProgram = _factories.getCmdFunc('customerInvolvementProgram')
 
 dagCommandWrapper = _factories.getCmdFunc('dagCommandWrapper')
 
@@ -654,6 +656,8 @@ licenseCheck = _factories.getCmdFunc('licenseCheck')
 
 manipComponentPivot = _factories.getCmdFunc('manipComponentPivot')
 
+manipComponentUpdate = _factories.getCmdFunc('manipComponentUpdate')
+
 mayaDpiSettingAction = _factories.getCmdFunc('mayaDpiSettingAction')
 
 memoryDiag = _factories.getCmdFunc('memoryDiag')
@@ -701,8 +705,6 @@ polyToCurve = _factories.getCmdFunc('polyToCurve')
 polyUVStackSimilarShellsCmd = _factories.getCmdFunc('polyUVStackSimilarShellsCmd')
 
 polyWarpImage = _factories.getCmdFunc('polyWarpImage')
-
-printStudio = _factories.getCmdFunc('printStudio')
 
 psdConvSolidTxOptions = _factories.getCmdFunc('psdConvSolidTxOptions')
 
@@ -755,5 +757,7 @@ testPa = _factories.getCmdFunc('testPa')
 testPassContribution = _factories.getCmdFunc('testPassContribution')
 
 texSculptCacheSync = _factories.getCmdFunc('texSculptCacheSync')
+
+timeSliderCustomDraw = _factories.getCmdFunc('timeSliderCustomDraw')
 
 webViewCmd = _factories.getCmdFunc('webViewCmd')
