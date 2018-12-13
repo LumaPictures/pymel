@@ -172,7 +172,7 @@ class JawJoint(CustomJointBase):
 virtualClasses.register( LegJoint, nameRequired=False )
 virtualClasses.register( JawJoint, nameRequired=False )
 
-def testJoint():
+def test_Joint():
     # make some regular joints
     pm.nt.Joint()
     pm.nt.Joint()
@@ -182,11 +182,14 @@ def testJoint():
 
     # now list the joints and see which ones are our special joints
     res = pm.ls(type='joint')
+    results = []
     for x in res:
         if isinstance(x, LegJoint ):
-            x.kick()
+            results.append(x.kick())
         elif isinstance(x, JawJoint ):
-            x.munch()
+            results.append(x.munch())
+    assert results.count("kiyaah!") == 1
+    assert results.count("nom nom nom...") == 1
 
 
 #-------------------------------------------------------------------------------
@@ -194,7 +197,9 @@ def testJoint():
 class MyRamp(pm.nt.Ramp):
     """This is an example of how to replace a node.  Use this technique with care"""
     def ramp(self):
-        print "ramp!"
+        msg = "ramp!"
+        print msg
+        return msg
 
     @staticmethod
     def _isVirtual(obj, name):
@@ -206,7 +211,7 @@ class MyRamp(pm.nt.Ramp):
 virtualClasses.register( MyRamp, nameRequired=False )
 
 
-def testMib():
+def test_Mib():
     n = pm.createNode('ramp')
     assert isinstance(n, MyRamp)
-    n.ramp()
+    assert n.ramp() == "ramp!"
