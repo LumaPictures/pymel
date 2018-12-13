@@ -167,7 +167,7 @@ def main(argv):
         os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
         # These will make maya surround all "translated" strings with ","... and I
         # believe make it always use the english (or perhaps the raw, before-lookup)
-        # value. In any case, it makes the tests more consitent, regardless of
+        # value. In any case, it makes the tests more consistent, regardless of
         # language, and some of the doctests (ie, pymel.core.language) require it
         os.environ['MAYA_PSEUDOTRANS_MODE'] = '5'
         os.environ['MAYA_PSEUDOTRANS_VALUE'] = ','
