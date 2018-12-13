@@ -874,9 +874,6 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
     if not hasattr(apiClass, apiMethodName):
         # pre-2019 caches had some entries that should have been stripped
         # ('NO CACHE SUPPORT') when parsing, but weren't...
-        if versions.current() >= versions.v2019:
-            raise RuntimeError("Attempting to wrap {}.{}, which does not exist"
-                               .format(apiClassName, apiMethodName))
         return
 
     argHelper = factories.ApiArgUtil(apiClassName, apiMethodName, overloadIndex)
