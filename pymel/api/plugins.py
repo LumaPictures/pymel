@@ -181,7 +181,7 @@ mpxNamesToApiEnumNames = {
     'MPxRepMgr': 'kPluginRepMgr',  # guessed?
     'MPxRepresentation': 'kPluginRepresentation',  # guessed?
     'MPxAssembly': 'kAssembly',
-    'MPxBlendShape': 'kPluginSkinCluster',  # auto
+    'MPxBlendShape': 'kPluginBlendShape',  # auto
     'MPxGeometryFilter': 'kPluginGeometryFilter',  # auto
     'MPxMotionPathNode': 'kPluginMotionPathNode',  # auto
     'MPxSkinCluster': 'kPluginSkinCluster',  # auto
