@@ -2877,12 +2877,9 @@ class MetaMayaTypeRegistry(util.metaReadOnlyAttr):
                 apicls = None
                 proxy = True
 
-        if not building:
-            # dataclasses multiply inherit their API class (but don't include
-            # them when we're building because the inherited methods will
-            # prevent overrides from being generated)
-            if not proxy and apicls is not None and apicls not in bases:
-                bases = bases + (apicls,)
+        # dataclasses multiply inherit their API class
+        if not proxy and apicls is not None and apicls not in bases:
+            bases = bases + (apicls,)
 
         newcls = super(MetaMayaTypeRegistry, cls).__new__(cls, classname, bases, classdict)
 
