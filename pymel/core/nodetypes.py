@@ -25098,6 +25098,12 @@ class BlendShape(GeometryFilter):
         res = _f.asQuery(self, animation.blendShape, kwargs, 'deformerTools')
         return res
 
+    @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'envelope')
+    def getEnvelope(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'envelope')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
     @_f.addMelDocs('blendShape', 'exclusive')
     def getExclusive(self, **kwargs):
         res = _f.asQuery(self, animation.blendShape, kwargs, 'exclusive')
@@ -25235,6 +25241,13 @@ class BlendShape(GeometryFilter):
     @_f.addMelDocs('blendShape', 'resetTargetDelta')
     def resetTargetDelta(self, val=True, **kwargs):
         return _f.asEdit(self, animation.blendShape, kwargs, 'resetTargetDelta', val)
+
+    @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'setEnvelope')
+    def setEnvelope(self, envelope):
+        # type: (float) -> None
+        do, final_do, outTypes = _f.processApiArgs([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
+        res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'setEnvelope', final_do)
+        return res
 
     @_f.addMelDocs('blendShape', 'geometry')
     def setGeometry(self, val=True, **kwargs):
@@ -26491,6 +26504,12 @@ class Wire(WeightGeometryFilter):
         res = _f.asQuery(self, animation.wire, kwargs, 'dropoffDistance')
         return res
 
+    @_f.addApiDocs(_api.MFnWireDeformer, 'envelope')
+    def getEnvelope(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnWireDeformer, 'envelope')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
     @_f.addMelDocs('wire', 'exclusive')
     def getExclusive(self, **kwargs):
         res = _f.asQuery(self, animation.wire, kwargs, 'exclusive')
@@ -26605,6 +26624,13 @@ class Wire(WeightGeometryFilter):
     @_f.addMelDocs('wire', 'dropoffDistance')
     def setDropoffDistance(self, val=True, **kwargs):
         return _f.asEdit(self, animation.wire, kwargs, 'dropoffDistance', val)
+
+    @_f.addApiDocs(_api.MFnWireDeformer, 'setEnvelope')
+    def setEnvelope(self, envelope):
+        # type: (float) -> None
+        do, final_do, outTypes = _f.processApiArgs([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
+        res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setEnvelope', final_do)
+        return res
 
     @_f.addMelDocs('wire', 'geometry')
     def setGeometry(self, val=True, **kwargs):
@@ -37943,6 +37969,12 @@ class Reference(DependNode):
         res = _f.getProxyResult(self, _api.MFnReference, 'isLoaded')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MFnReference, 'isLocked')
+    def isReferenceLocked(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MFnReference, 'isLocked')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
     @_f.addApiDocs(_api.MFnReference, 'nodes')
     def nodes(self):
         # type: () -> List[general.PyNode]
@@ -39653,6 +39685,12 @@ class Anisotropic(Reflect):
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'correlationY')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
+    @_f.addApiDocs(_api.MFnAnisotropyShader, 'refractiveIndex')
+    def getFresnelRefractiveIndex(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'refractiveIndex')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'rotateAngle')
     def getRotateAngle(self):
         # type: () -> float
@@ -39696,6 +39734,13 @@ class Anisotropic(Reflect):
         # type: (float) -> None
         do, final_do, outTypes = _f.processApiArgs([correl_y], [('correl_y', 'float', 'in', None)], self.getCorrelationY, self.setCorrelationY, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setCorrelationY', final_do)
+        return res
+
+    @_f.addApiDocs(_api.MFnAnisotropyShader, 'setRefractiveIndex')
+    def setFresnelRefractiveIndex(self, refractive_index):
+        # type: (float) -> None
+        do, final_do, outTypes = _f.processApiArgs([refractive_index], [('refractive_index', 'float', 'in', None)], self.getFresnelRefractiveIndex, self.setFresnelRefractiveIndex, [])
+        res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setRefractiveIndex', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setRotateAngle')

@@ -50,6 +50,31 @@ env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
 
 
+class NewOverrideError(RuntimeError):
+    def __init__(self, methodNamesToBridgeKeys):
+        self.methodNamesToBridgeKeys = methodNamesToBridgeKeys
+
+    def __str__(self):
+        methodsAndKeys = []
+        for method in sorted(self.methodNamesToBridgeKeys):
+            bridgeKey = self.methodNamesToBridgeKeys[method]
+            methodsAndKeys.append('  {!r} / {!r}'.format(method, bridgeKey))
+        methodsAndKeys = '\n'.join(methodsAndKeys)
+
+        return (
+            "Found api methods with the same name as an already-implemented method\n"
+            "higher in the hierarchy. You must decide what you want to do, and\n"
+            "record it in the ApiMelBridgeCache.apiToMelData. For each method,\n"
+            "either:\n"
+            "  a) you want to override the earlier implementation, in which\n"
+            "     case you should use {'override': True}\n"
+            "  b) you want to ignore the override, in which case you should use\n"
+            "     {'enable': False}\n"
+            "  c) you want to rename the method so there is no conflict, in which\n"
+            "     case you should use {'useName': 'newName'}\n"
+            "Found methods / apiToMelData-keys:\n"
+            + methodsAndKeys)
+
 def underscoreSortKey(val):
     '''Sort key to make underscores come before numbers / letters'''
     if isinstance(val, basestring):
@@ -846,6 +871,14 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
     Optional[dict]
     """
     apiClassName = apiClass.__name__
+    if not hasattr(apiClass, apiMethodName):
+        # pre-2019 caches had some entries that should have been stripped
+        # ('NO CACHE SUPPORT') when parsing, but weren't...
+        if versions.current() >= versions.v2019:
+            raise RuntimeError("Attempting to wrap {}.{}, which does not exist"
+                               .format(apiClassName, apiMethodName))
+        return
+
     argHelper = factories.ApiArgUtil(apiClassName, apiMethodName, overloadIndex)
     undoable = True  # controls whether we print a warning in the docs
 
@@ -1202,6 +1235,7 @@ class ApiMethodGenerator(MelMethodGenerator):
         self.existingClass = existingClass
         self.childClasses = childClasses
         self.apicls = self.getApiCls()
+        self.overrideErrors = []
 
     def methodWasFormerlyEnabled(self, pymelName):
         """
@@ -1257,11 +1291,57 @@ class ApiMethodGenerator(MelMethodGenerator):
         if pymelName not in self.herited:
             return False
 
+        # ok, it was in the list of herited methods - check if it's an
+        # explicit override on this apicls
+        if apiName not in self.apicls.__dict__:
+            return False
+
         # If it's inherited from ProxyUnicode, we still want to override it
         if self.methodType(pymelName) == 'str':
             return False
 
-        return True
+        # Even if a method is already in a super-class, we still may
+        # want to wrap it, if it's an explicit override of the the
+        # parent class's method. For instance, suppose we have
+        # MFnTriceratops which inherits from MFnDinosaur, both of which
+        # implement an .isAKiller() method.  (MFnDinosaur.isAKiller()
+        # returns True if the dinosaur is a carnivore, but
+        # MFnTriceratops overrides that behavior to return True if it's
+        # killed a TRex in one-on-one combat!) When wrapping
+        # pm.nt.Triceratops, we may still want to wrap
+        # MFnTriceratops.isAKiller, even though we already have an
+        # implementation from pm.nt.Dinosaur / MFnDinosaur.
+
+        # Of course, it's also possible that the two functions represent
+        # two totally different things - maybe
+        # MFnTriceratops.isAKiller() returns True iff the dino in
+        # question is a member of the rock band, "The Killers". (Which
+        # everyone knows has a strict Triceratops-only-members rule.)
+        # If this is the case, we may want to provide an alternate name
+        # for the new method, instead of override the parent
+        # implementation, so both methods are accessible.  These
+        # overrides come up infrequently enough that we require the user
+        # to manually specify what they want when it happens - either
+        # by setting the override to enable=False (in which case it will
+        # use the inherited parent implementation), override=True (in
+        # which case it will re-wrap and override the parent), or by providing
+        # a rename with, ie, useName='isMemberOfKillersBand'.
+
+        # Note: the only current place this happens is with
+        # MFnDependencyNode.isLocked / MFnReference.isLocked, so this
+        # code is more about flagging any future occurrences of this.
+
+        # check if we've explicitly flagged this as an override
+        overrideData = factories._getApiOverrideData(self.classname, pymelName)
+        if overrideData.get('override'):
+            return False
+
+        # We don't know what to do - raise an error, ask user to decide
+        methodsToBridgeKeys = {
+            '{}.{}'.format(self.apicls.__name__, apiName): (self.classname,
+                                                            pymelName),
+        }
+        raise NewOverrideError(methodsToBridgeKeys)
 
     def getAPIData(self):
         """
@@ -1429,14 +1509,18 @@ class ApiMethodGenerator(MelMethodGenerator):
                     in non_deprecated_methods_first():
                 assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (self.classname, methodName, pymelName)
 
-                if not self._hasExistingImplementation(methodName, pymelName):
-                    #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
-                    doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
-                                        proxy=self.proxy, overloadIndex=overloadIndex,
-                                        deprecated=deprecated, aliases=aliases,
-                                        properties=properties)
-                    if doc:
-                        self.addApiMethod(pymelName, basePymelName, doc)
+                try:
+                    if not self._hasExistingImplementation(methodName, pymelName):
+                        #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
+                        doc = wrapApiMethod(self.apicls, methodName, newName=pymelName,
+                                            proxy=self.proxy, overloadIndex=overloadIndex,
+                                            deprecated=deprecated, aliases=aliases,
+                                            properties=properties)
+                        if doc:
+                            self.addApiMethod(pymelName, basePymelName, doc)
+                except NewOverrideError as e:
+                    self.overrideErrors.append(e)
+                    continue
 
             # no reason to re-add enums for backward compatibility
             if not classShouldBeSkipped:
@@ -1870,6 +1954,9 @@ def iterPyNodeText():
             realChildren[parent].add(mayaType)
         parentsDict[mayaType] = parents
 
+    # accumulate OverrideErrors so we can print them all out at once
+    overrideErrors = []
+
     for mayaType, parents, _ in factories.nodeHierarchy:
         children = realChildren[mayaType]
 
@@ -1914,11 +2001,18 @@ def iterPyNodeText():
                 yield text, template
                 heritedMethods[mayaType] = parentMethods.union(methods)
                 apiClasses[mayaType] = template.apicls
+                overrideErrors.extend(template.overrideErrors)
 
     # wrap any other datatype classes that don't correspond to a depend node
     # ...ie, SelectionSet / MSelectionList
     for text, template in iterModuleApiDataTypeText(pymel.core.nodetypes):
         yield text, template
+
+    if overrideErrors:
+        allMethodsToKeys = {}
+        for e in overrideErrors:
+            allMethodsToKeys.update(e.methodNamesToBridgeKeys)
+        raise NewOverrideError(allMethodsToKeys)
 
 
 def iterUIText():
