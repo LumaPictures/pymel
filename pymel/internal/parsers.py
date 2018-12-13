@@ -777,7 +777,7 @@ class ApiDocParser(object):
                 '/=': '__idiv__',
                 '/': '__div__',
                 '==': '__eq__',
-                '!=': '__neq__',
+                '!=': '__ne__',
                 '[]': '__getitem__'}.get(op, None)
         return methodName
 
