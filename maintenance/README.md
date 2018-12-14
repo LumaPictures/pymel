@@ -132,7 +132,7 @@ Building an Official PyMEL Release
       export PATH=$PATH:$MAYA_LOCATION/bin
       ./pymel_test_output.bash --warnings-as-errors 2>&1 | tee pymelTestOut.txt
       ```
-  - note that the "--warnings-as-errors" option (or it's short-form, "-w") is
+  - note that the "--warnings-as-errors" option (or it's short-form, "-W") is
     recommended for the first try, as it can alert you to pending deprecations
     or other problems you might otherwise miss - but if it's
     causing too many problems, you may omit it
@@ -141,7 +141,7 @@ Building an Official PyMEL Release
     - on windows:
 
       ```
-      pymel_test_output.bat -w --gui
+      pymel_test_output.bat -W --gui
       ```
       
       again, look at the contents of pymelTestOut.txt in a text editor
@@ -150,7 +150,7 @@ Building an Official PyMEL Release
 
       ```
       export PATH=$PATH:$MAYA_LOCATION/bin
-      ./pymel_test_output.bash -w --gui  2>&1 | tee pymelTestOut.txt
+      ./pymel_test_output.bash -W --gui  2>&1 | tee pymelTestOut.txt
       ```
 
 

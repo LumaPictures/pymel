@@ -30,7 +30,7 @@ def getParser():
         the test modules''', default=testsDir)
     parser.add_argument('--pymel-root', help='''The base directory of the pymel
         source repository''', default=pymelRoot)
-    parser.add_argument('-w', '--warnings-as-errors', action='store_true',
+    parser.add_argument('-W', '--warnings-as-errors', action='store_true',
                         help="Treat DeprecationWarning and FutureWarning as"
                              " errors")
     return parser
@@ -92,14 +92,30 @@ def isMayaOutput(stream):
 
 
 def pytest_test(argv, warnings_as_errors=False):
-    import warnings
-    if warnings_as_errors:
-        warnings.simplefilter("error", DeprecationWarning)
-        warnings.simplefilter("error", FutureWarning)
-
     import pytest
+    import warnings
+
     argv[0] = 'pytest'
     argv[1:1] = ['-vv', '--doctest-modules']  # verbose
+
+    if warnings_as_errors:
+        # TODO: possibly get rid of our own flag entirely, and require
+        # pytest >= 3.1?
+
+        # what we do depends on pytest version - pytest >= 3.1 has it's own
+        # controls for handling warnings, and trying to handle them ourselves
+        # will get overridden by pytest
+        pytest_ver = pytest.__version__.split('.')
+        pytest_ver = tuple(int(x) if x.isdigit() else x for x in pytest_ver)
+        if pytest_ver >= (3, 1):
+            argv.extend(['-W', 'error::PendingDeprecationWarning'])
+            argv.extend(['-W', 'error::DeprecationWarning'])
+            argv.extend(['-W', 'error::FutureWarning'])
+        else:
+            warnings.simplefilter("error", PendingDeprecationWarning)
+            warnings.simplefilter("error", DeprecationWarning)
+            warnings.simplefilter("error", FutureWarning)
+
     origStdOut = sys.stdout
     wrappedStdout = None
     if inGui():
