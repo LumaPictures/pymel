@@ -207,6 +207,7 @@ Bug Fixes
 - nodetypes: make TransferAttribute use MFnWeightGeometryFilter
 - nodetypes: AnimCurve.addKey / evaluate / AnimCurve.findClosest now work for
   all curve types, not just time-to-float types
+- nodetypes: fix for creation of Locator() - thanks bob-white!
 
 
 ==================================
