@@ -68,6 +68,32 @@ moduleCmds = None
 # global variable that indicates if we're building templates
 building = False
 
+
+class MissingInCacheError(Exception):
+    pass
+
+
+class MelCommandMissingError(MissingInCacheError):
+    def __init__(self, cmdName):
+        self.cmdName = cmdName
+
+    def str(self):
+        return "mel command {} cannot be found - perhaps it is not available" \
+               " in this version of maya?".format(self.cmdName)
+
+
+class ApiMethodMissingError(MissingInCacheError):
+    def __init__(self, apiClassName, methodName):
+        self.apiClassName = apiClassName
+        self.methodName = methodName
+
+    def str(self):
+        return "method {} of {} cannot be found - perhaps it is not available" \
+               " in this version of maya?".format(self.methodName,
+                                                  self.apiClassName)
+
+
+
 # Though the global variables and the attributes on _apiCacheInst SHOULD
 # always point to the same objects - ie,
 #    _apiCacheInst.apiClassInfo is apiClassInfo
@@ -618,7 +644,10 @@ def addCmdDocs(func, cmdName=None):
 
 
 def addCmdDocsCallback(cmdName, docstring=''):
-    return docBuilderCls(cmdName).build(docstring)
+    try:
+        return docBuilderCls(cmdName).build(docstring)
+    except MelCommandMissingError as e:
+        return str(e)
 
 
 if docstringMode == 'html':
@@ -1597,8 +1626,7 @@ class ApiArgUtil(object):
             try:
                 methodInfoList = apiClassInfo[apiClassName]['methods'][methodName]
             except KeyError:
-                raise TypeError("method %s of %s cannot be found" %
-                                (methodName, apiClassName))
+                raise ApiMethodMissingError(apiClassName, methodName)
             else:
                 for i, methodInfo in enumerate(methodInfoList):
 
@@ -2738,7 +2766,11 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
                        origDocstring=''):
     apiClassName = apiClass.__name__
 
-    argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
+    try:
+        argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
+    except ApiMethodMissingError as e:
+        return str(e)
+
     inArgs = argHelper.inArgs()
     outArgs = argHelper.outArgs()
     argList = argHelper.argList()

@@ -14,11 +14,14 @@ class DocstringBuilder(object):
     DOC_WIDTH = 120
 
     def __init__(self, cmdName, indentation='    '):
-        import pymel.internal.factories
-        pymel.internal.factories.loadCmdCache()
-        pymel.internal.factories.loadCmdDocCache()
+        import pymel.internal.factories as factories
+        factories.loadCmdCache()
+        factories.loadCmdDocCache()
         self.cmdName = cmdName
-        self.cmdInfo = pymel.internal.factories.cmdlist[cmdName]
+        try:
+            self.cmdInfo = factories.cmdlist[cmdName]
+        except KeyError:
+            raise factories.MelCommandMissingError(cmdName)
         self.indentation = indentation
 
     def startFlagSection(self):
