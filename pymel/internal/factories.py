@@ -2275,6 +2275,8 @@ class ApiUndo(object):
         if not self.undoStateCallbackId:
             self.installUndoStateCallbacks()
 
+        assert undoName is None or isinstance(undoName, str)
+
         if not cmds.undoInfo(q=1, state=1):
             # if undo is off, don't add to the undo queue
             return
