@@ -166,8 +166,8 @@ Additions
   ensures that the most specific node class is used to create any PyNode
 - util.enum: EnumValue objects now have a __hash__, and so can be stored in dicts / sets
 - versions: add v2018_1, v2018_1, v2018_2, v2019_3, v2019
-- general: added getDefault method to Attribute class
-- language: allow optionvars to save long types
+- general: added getDefault method to Attribute class - thanks Bob White!
+- language: allow optionvars to save long types - thanks Jordan Hueckstaedt!
 - all: standardize on numpy-style docstrings with PEP484 type annotations.
 - general: allow adding of 2 (1-dimensional) components - ie, you can now add
   two MeshVertex objects, containing verts for the same mesh, together to get
@@ -194,6 +194,7 @@ Bug Fixes
   attrs
 - datatypes: fix getPlugValue for Angle and Time plugs (would error previously)
 - core: Added defensive code to prevent callback id leaks in some scenarios
+  ...thanks David Lassonde!
 - nodetypes: THblendShape was incorrectly mapped to kPluginSkinCluster
 - nodetypes: fix DagNode.exists() (was raising error in some situations)
 - general: fix indexing components with an iterable - ie, myMesh.f[(1,2,5)]
