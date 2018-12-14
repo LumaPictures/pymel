@@ -656,6 +656,8 @@ class DependNode(general.PyNode):
     # away and then finding it again on the shape, saves time for the DagNode
     # case)
     def _attr(self, attr, allowOtherNode):
+        if not isinstance(attr, str):
+            attr = str(attr)
         # return Attribute( '%s.%s' % (self, attr) )
         try:
             if '.' in attr or '[' in attr:
