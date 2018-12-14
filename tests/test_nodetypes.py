@@ -2203,31 +2203,31 @@ class testCase_transform(TestCaseExtended):
             # Check dt.EulerRotation input
             euler = pm.dt.EulerRotation(10, 20, 30)
             self.trans.setRotation(euler)
-            self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(euler, self.trans.attr('rotate').get())
 
             # Check dt.Quaternion input
             euler = pm.dt.EulerRotation(5, 15, -16)
             quat = pm.dt.Quaternion(euler.asQuaternion())
             self.trans.setRotation(quat)
-            self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(euler, self.trans.attr('rotate').get())
 
             # Check api.MEulerRotation input
             angles = (10, 20, 30)
             euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
             self.trans.setRotation(euler)
-            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(angles, self.trans.attr('rotate').get())
 
             # Check api.MQuaternion input
             angles = (5, 15, -16)
             euler = pm.api.MEulerRotation(*[math.radians(x) for x in angles])
             quat = euler.asQuaternion()
             self.trans.setRotation(quat)
-            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(angles, self.trans.attr('rotate').get())
 
             # Check list of size 3 input
             angles = (10, 20, 30)
             self.trans.setRotation(angles)
-            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(angles, self.trans.attr('rotate').get())
 
             # Check list of size 4 input
             angles = (5, 15, -16)
@@ -2235,17 +2235,17 @@ class testCase_transform(TestCaseExtended):
             quat = pm.dt.Quaternion(euler.asQuaternion())
             quatVals = list(quat)
             self.trans.setRotation(quatVals)
-            self.checkRotationsEqual(angles, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(angles, self.trans.attr('rotate').get())
 
             #Check dt.EulerRotation when euler rotation order non-standard
             origAngles = (10, 20, 30, 'YXZ')
             euler = pm.dt.EulerRotation(*origAngles)
             self.trans.setRotation(euler)
             euler.reorderIt('XYZ')
-            self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(euler, self.trans.attr('rotate').get())
             self.trans.setRotationOrder('YXZ', True)
             try:
-                self.checkRotationsEqual(origAngles[:3], self.trans.attr('rotate').get())
+                self.assertRotationsEqual(origAngles[:3], self.trans.attr('rotate').get())
             finally:
                 self.trans.setRotationOrder('XYZ', False)
 
@@ -2256,17 +2256,17 @@ class testCase_transform(TestCaseExtended):
             try:
                 self.trans.setRotation(euler)
                 euler.reorderIt('ZYX')
-                self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+                self.assertRotationsEqual(euler, self.trans.attr('rotate').get())
             finally:
                 self.trans.setRotationOrder('XYZ', True)
-            self.checkRotationsEqual(origAngles[:3], self.trans.attr('rotate').get())
+            self.assertRotationsEqual(origAngles[:3], self.trans.attr('rotate').get())
 
             # Check dt.EulerRotation input with radian angles
             degAngles = (5, 15, -16)
             radAngles = [math.radians(x) for x in degAngles]
             euler = pm.dt.EulerRotation(*radAngles, unit='radians')
             self.trans.setRotation(euler)
-            self.checkRotationsEqual(degAngles, self.trans.attr('rotate').get())
+            self.assertRotationsEqual(degAngles, self.trans.attr('rotate').get())
         finally:
             pm.currentUnit(angle=oldUnit)
 
@@ -2275,13 +2275,13 @@ class testCase_transform(TestCaseExtended):
         euler = pm.dt.EulerRotation(5, 15, -16)
         quat = pm.dt.Quaternion(euler.asQuaternion())
         self.trans.rotateByQuaternion(quat)
-        self.checkRotationsEqual(euler, self.trans.attr('rotate').get())
+        self.assertRotationsEqual(euler, self.trans.attr('rotate').get())
         self.trans.rotateByQuaternion(quat)
         eulerSquared = (quat * quat).asEulerRotation()
         eulerSquared.unit = pm.dt.Angle.getUIUnit()
-        self.checkRotationsEqual(eulerSquared, self.trans.attr('rotate').get())
+        self.assertRotationsEqual(eulerSquared, self.trans.attr('rotate').get())
 
-    def checkRotationsEqual(self, rot1, rot2):
+    def assertRotationsEqual(self, rot1, rot2):
         if not len(rot1) == len(rot2):
             raise ValueError("rotation values must have same length: %r, %r" % (rot1, rot2))
         for i, (aVal, bVal) in enumerate(zip(rot1, rot2)):
@@ -2292,21 +2292,21 @@ class testCase_transform(TestCaseExtended):
     def test_rotateOrientation(self):
         # test that getRotateOrientation / setRotateOrientation work
         noRot = pm.dt.Quaternion.identity
-        self.assertEqual(noRot, self.trans.getRotateOrientation())
+        self.assertRotationsEqual(noRot, self.trans.getRotateOrientation())
         rot1 = pm.dt.Quaternion(pm.dt.Vector(1, 0, 0), pm.dt.Vector(1,2,3))
         rot2 = pm.dt.Quaternion(pm.dt.Vector(1, 0, 0), .5)
         self.trans.setRotateOrientation(rot1, balance=False)
-        self.assertEqual(rot1, self.trans.getRotateOrientation())
+        self.assertRotationsEqual(rot1, self.trans.getRotateOrientation())
         self.trans.setRotateOrientation(rot2, balance=False)
-        self.assertEqual(rot2, self.trans.getRotateOrientation())
+        self.assertRotationsEqual(rot2, self.trans.getRotateOrientation())
         pm.undo()
-        self.assertEqual(rot1, self.trans.getRotateOrientation())
+        self.assertRotationsEqual(rot1, self.trans.getRotateOrientation())
         pm.undo()
-        self.assertEqual(noRot, self.trans.getRotateOrientation())
+        self.assertRotationsEqual(noRot, self.trans.getRotateOrientation())
         pm.redo()
-        self.assertEqual(rot1, self.trans.getRotateOrientation())
+        self.assertRotationsEqual(rot1, self.trans.getRotateOrientation())
         pm.redo()
-        self.assertEqual(rot2, self.trans.getRotateOrientation())
+        self.assertRotationsEqual(rot2, self.trans.getRotateOrientation())
 
 
 class testCase_nurbsSurface(TestCaseExtended):
