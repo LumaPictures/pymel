@@ -180,6 +180,8 @@ class UndoChunk(object):
     def __enter__(self):
         if self.name:
             cmds.undoInfo(openChunk=1, chunkName=self.name)
+        else:
+            cmds.undoInfo(openChunk=1)
         return self
 
     def __exit__(*args, **kwargs):
