@@ -59,27 +59,18 @@ class Singleton(type):
     """
     def __new__(mcl, classname, bases, classdict):
 
-        # newcls =  super(Singleton, mcl).__new__(mcl, classname, bases, classdict)
-
         # redefine __new__
         def __new__(cls, *p, **k):
             if '_the_instance' not in cls.__dict__:
                 cls._the_instance = super(newcls, cls).__new__(cls, *p, **k)
-            return cls._the_instance
-        newdict = {'__new__': __new__}
-        # define __init__ if it has not been defined in the class being created
-
-        def __init__(self, *p, **k):
-            cls = self.__class__
+            self = cls._the_instance
             if p:
                 if hasattr(self, 'clear'):
                     self.clear()
                 else:
-                    super(newcls, self).__init__()
-                super(newcls, self).__init__(*p, **k)
-        if '__init__' not in classdict:
-            newdict['__init__'] = __init__
-        # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
+                    self.__init__()
+            return self
+        newdict = {'__new__': __new__}
         for k in classdict:
             if k in newdict:
                 warnings.warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
