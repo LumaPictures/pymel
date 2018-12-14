@@ -11,22 +11,24 @@ Version 1.1.0
 ----------------------------------
 Non-Backward Compatible Changes
 ----------------------------------
-- AttributeSpec.parent() now returns None instead of erroring
-- datatypes.Quaternion.asEulerRotation now returns a datatypes.EulerRotation
+- removed support for maya versions before 2017
+- general: AttributeSpec.parent() now returns None instead of erroring
+- datatypes: Quaternion.asEulerRotation now returns a datatypes.EulerRotation
   as intended, instead of OpenMaya.MEulerRotation; since dt.EulerRotation
   inherits from om.MEulerRotation, they should mostly be compatible, but if you
   need a om.MEulerRotation, just cast directly - ie,
   om.MEulerRotation(dt.Quaternion().asEulerRotation())
-- OptionMenuGrp.getParent() now returns a PyUI object, instead of a string,
-  as intended.  This brings it's behavior in line with most other
-  PyUI.getParent() calls, including RowLayout.getParent() and Layout.getParent(),
+- uitypes: OptionMenuGrp.getParent() now returns a PyUI object, instead of a
+  string, as intended.  This brings it's behavior in line with most other PyUI
+  .getParent() calls, including RowLayout.getParent() and Layout.getParent(),
   from which OptionMenuGrp inherits
-- PopupMenu.getItemArray() now returns PyUI objects, instead of strings, as
-  intended.  This brings it's behavior in line with Menu.getItemArray(), from
-  which it inherits
-- Due to a bug, the following methods were wrapped on a random scattering of
-  subclasses, of the named classes. They were ever intended to be wrapped at
-  all.  They are all being removed - exact methods and reasoning below:
+- uitypes: PopupMenu.getItemArray() now returns PyUI objects, instead of
+  strings, as intended.  This brings it's behavior in line with Menu
+  .getItemArray(), from which it inherits
+- nodetypes: Due to a bug, the following methods were wrapped on a random
+  scattering of subclasses of the named classes. They were ever intended to be
+  wrapped at all.  They are all being removed - exact methods and reasoning
+  below:
 
   - **DagNode.setObject**: dangerous - changes the node we're wrapping out from
     underneath us
@@ -53,36 +55,72 @@ Non-Backward Compatible Changes
 ----------------------------------
 Changes
 ----------------------------------
-- AttributeDefaults renamed to AttributeSpec, which better reflects what it is:
-  a specification for the type on an attribute, not associated with any single
-  node.  The AttributeDefaults name is preserved as an alias for backwards
-  compatibility.
-- The following methods were removed from Shape: model, removeChild, and
-  removeChildAt. They were never intended to be wrapped, and were non-
+- all: The basic way methods and commands are wrapped has been altered.
+  Formerly, all items were wrapped dynamically, at runtime; now, they are
+  wrapped and "baked", using templates, when a pymel release is made. The end
+  result should be code that is more much readable and understandable for end
+  users.
+- general: AttributeDefaults renamed to AttributeSpec, which better reflects
+  what it is: a specification for the type on an attribute, not associated with
+  any single node.  The AttributeDefaults name is preserved as an alias for
+  backwards compatibility.
+- nodetypes: Due to a bug, the following methods were wrapped on a random
+  scattering of subclasses of the named classes. They were ever intended to be
+  wrapped at all.  They are being marked as deprecated, and will raise a
+  warning, if used on any of the subclasses for which they are implemented:
+
+    DependNode.findAlias, DependNode.getAffectedAttributes, DependNode
+    .getAffectedByAttributes, DependNode.getAliasList, DependNode
+    .getConnections, DependNode.plugsAlias, DependNode.setAlias, Transform
+    .getRotationQuaternion, Transform.setRotationQuaternion
+
+- nodetypes: The following methods were removed from Shape: model, removeChild,
+  and removeChildAt. They were never intended to be wrapped, and were non-
   functional, so removing them should not introduce any backwards-compatibility
   issues.
-- Shape.getAllPaths was moved from Shape to DagNode, and marked deprecated. It
-  was only wrapped as a result of a bug, it has a misleading name (it returns
-  PyNodes, not paths), and is functionally equivalent to getInstances().
-  However, since it may have been in use, and we don't wish to break backward
-  compatibility, we are marking it as deprecated.  We are moving it to DagNode,
-  instead of Shape, because the fact that it was defined on Shape and not
-  Transform made it give incorrect / misleading results.  This is because
-  the Transform node will check it's first shape for attributes it can't find
-  defined on itself - the net result is that, even though it's not defined on
-  Transform, if it had a shape, it would "appear" to be, but return the
-  "wrong" results - ie PyNodes corresponding to all instances of the first
-  shape, NOT the transform itself.
-- AnimCurve.timedAnimCurveTypeForPlug/unitlessAnimCurveTypeForPlug turned into
-  classmethods, as they don't require / operate on a specific AnimCurve
+- nodetypes:Shape.getAllPaths was moved from Shape to DagNode, and marked
+  deprecated. It was only wrapped as a result of a bug, it has a misleading name
+  (it returns PyNodes, not paths), and is functionally equivalent to
+  getInstances(). However, since it may have been in use, and we don't wish to
+  break backward compatibility, we are marking it as deprecated.  We are moving
+  it to DagNode, instead of Shape, because the fact that it was defined on
+  Shape and not Transform made it give incorrect / misleading results.  This is
+  because the Transform node will check it's first shape for attributes it
+  can't find defined on itself - the net result is that, even though it's not
+  defined on Transform, if it had a shape, it would "appear" to be, but return
+  the "wrong" results - ie PyNodes corresponding to all instances of the
+  first shape, NOT the transform itself.
+- nodetypes: AnimCurve.timedAnimCurveTypeForPlug/unitlessAnimCurveTypeForPlug
+  turned into classmethods, as they don't require / operate on a specific
+  AnimCurve
+- conf: add a new setting to pymel.conf, "deleted_pynode_name_access", to
+  to control the behavior when a deleted node's name is queried / used.  The
+  current behavior - of issuing a warning, but returning the old name - is now
+  deprecated, and at some point the default will be changed to "error", which
+  will cause pymel to raise a DeletedMayaNodeError.  If you wish to keep the
+  old behavior - and not be nagged that it may be changed at some point the
+  future - change the setting to "warn".  You may also set it to "ignore" if you
+  want to not even issue a warning. (The current default setting is
+  "warn_deprecated", which will behave just like "warn", except with an
+  additional FutureWarning to remind you to change the setting in pymel.conf)
+- util: Singleton: eliminate DeprecationWarning for object.__init__(*p, **k)
+- nodetypes: tweak new constraint-weight-query syntax - we now allow
+  constraint(q=1, weight=True), instead of constraint(q=1, weight=[]); also,
+  may use a tuple (or other non-list iterable) for weight
+
+- general: remove unused kwargs for Attribute.affects/affected
+- uitypes: make a base PyUIContainer parent class for Layout and Window
 
 ----------------------------------
 Additions
 ----------------------------------
-- AttributeSpec may now be constructed from a string (which names an
+- all: Add maya-2019 support
+- all: python-3 / "typing" style type comments added to many / most commands
+  and methods
+- general: AttributeSpec may now be constructed from a string (which names an
   existing Attribute), an Attribute, an MPlug, or another AttributeSpec.
   DependNode.attrSpec now also accepts all these objects as well.
-- Many layout flags were were not wrapped on uitypes.Layout; they now are,
+- uitypes: Many layout flags were were not wrapped on Layout; they now are,
   which also means all sub-classes inherit these methods as well (though many
   subclasses already had their own overrides for many of these commands). The
   full set of new methods on Layout is:
@@ -96,39 +134,80 @@ Additions
     setHighlightColor, setManage, setPreventOverride, setVisible,
     setVisibleChangeCommand, setWidth, statusBarMessage
 
-- Some api method wraps were re-enabled on DependNode, DagNode, and ObjectSet.
-  Formerly, some of these methods were implemented on some subclasses of these
-  node types; they are now uniformly available on the base node.  Note that some
-  of these methods represent new functionality, while others merely duplicate
-  existing functionality (ie, DagNode.partialPathName <=> DagNode.name);
-  however, we wanted to provide a uniform interface, and did not want to break
-  backward compatibility, so they were enabled on their base classes. The set of
-  new methods is:
+- nodetypes: Some api method wraps were re-enabled on DependNode, DagNode, and
+  ObjectSet. Formerly, some of these methods were implemented on some
+  subclasses of these node types; they are now uniformly available on the base
+  node.  Note that some of these methods represent new functionality, while
+  others merely duplicate existing functionality (ie, DagNode.partialPathName
+  <=> DagNode.name); however, we wanted to provide a uniform interface, and did
+  not want to break backward compatibility, so they were enabled on their base
+  classes. The set of new methods is:
 
+    Camera.getFarClippingPlane, Camera.setFarClippingPlane,
+    Camera.getNearClippingPlane, Camera.setNearClippingPlane,
     DagNode.fullPathName, DagNode.isInstancedAttribute, DagNode.partialPathName,
     DagNode.setInstanceable, DependNode.allocateFlag, DependNode.attributeClass,
     DependNode.deallocateAllFlags, DependNode.deallocateFlag,
     DependNode.dgCallbacks, DependNode.dgTimer, DependNode.dgTimerOff,
     DependNode.dgTimerOn, DependNode.dgTimerQueryState, DependNode.dgTimerReset,
     DependNode.getAliasAttr, DependNode.hasAttribute, DependNode.isNewAttribute,
-    DependNode.setFlag, DependNode.typeName, ObjectSet.isMember
+    DependNode.removeAttribute, DependNode.setFlag, DependNode.typeName,
+    ObjectSet.addMember, ObjectSet.isMember, ObjectSet.removeMember
 
-- Transform.rotateByQuaternion added, and accepts either a Quaternion/
-  MQuaternion or four separate floats
-- DependNode.deleteAttr now accepts Attribute objects (first verifying that it
-  is an attribute on the same node as self)
-- Added a DependNode.typeName classmethod - similar to DependNode.type /
-  general.nodeType, but unlike those, it does not require an actual instance of
-  a node, or call any mel / api functions - instead, it just returns the type
-  that the given class wraps.  When called from an instance, should always give
-  the same result as DependNode.type, since pymel always ensures that the most
-  specific node class is used to create any PyNode
+- nodetypes: Transform.rotateByQuaternion added, and accepts either a
+  Quaternion/MQuaternion or four separate floats
+- nodetypes: DependNode.deleteAttr now accepts Attribute objects (first
+  verifying that it is an attribute on the same node as self)
+- nodetypes: Added a DependNode.typeName classmethod - similar to
+  DependNode.type / general.nodeType, but unlike those, it does not require an
+  actual instance of a node, or call any mel / api functions - instead, it just
+  returns the type that the given class wraps.  When called from an instance,
+  should always give the same result as DependNode.type, since pymel always
+  ensures that the most specific node class is used to create any PyNode
+- util.enum: EnumValue objects now have a __hash__, and so can be stored in dicts / sets
+- versions: add v2018_1, v2018_1, v2018_2, v2019_3, v2019
+- general: added getDefault method to Attribute class
+- language: allow optionvars to save long types
+- all: standardize on numpy-style docstrings with PEP484 type annotations.
+- general: allow adding of 2 (1-dimensional) components - ie, you can now add
+  two MeshVertex objects, containing verts for the same mesh, together to get
+  a new MeshVertex object representing their union
+- nodetypes: add Transform.getRotateOrientation / setRotateOrientation
+  these are distinct from the existing getRotateAxis / setRotateAxis
+  (from MEL), because they operate on quaternions, which are what the
+  transform "actually" stores under the hood - and so it seems potentially
+  useful to give direct access.
+- general: expand types of objects that AttributeSpec constructor accepts -
+  str, Attribute object, AttributeSpec object, MPlug, MObject
+- nodetypes: make DependNode.deleteAttr work with Attribute
+- datatypes: expand set of things you can construct a Quaternion with: lists
+  of floats, ints, another Quaternion, an MQuaternion, axis-angle, rotate
+  vector-to-vector
+- nodetypes: added an undoable Camera.setNearFarClippingPlanes
+- system: UndoChunk can take an optional chunk "name" to show up in undo list
 
 ----------------------------------
 Bug Fixes
 ----------------------------------
 - uitypes.OptionMenu.getItemArray() now fixed, and returns PyUI objects
-- fixed issue with DependNode.attrSpec incorrectly caching dynamic attrs
+- nodetypes: fixed issue with DependNode.attrSpec incorrectly caching dynamic
+  attrs
+- datatypes: fix getPlugValue for Angle and Time plugs (would error previously)
+- core: Added defensive code to prevent callback id leaks in some scenarios
+- nodetypes: THblendShape was incorrectly mapped to kPluginSkinCluster
+- nodetypes: fix DagNode.exists() (was raising error in some situations)
+- general: fix indexing components with an iterable - ie, myMesh.f[(1,2,5)]
+- nodetypes: fix for ikHandle not returning PyNodes (issue #410)
+- general: fix for parenting with grouping of args; fixes issue #406
+- virtual nodes: fix for plugins.PyNodeMethod
+- nodetypes: fix for creating PyNode wraps for node types added outside of
+  plugin init - ie, some mtoa nodes get created outside of the plugin init
+- core: fix for plugin unloaded callback when using plugin name with extension -
+  ie, pm.unloadPlugin("myPlugin.py")
+- nodetypes: make TransferAttribute use MFnWeightGeometryFilter
+- nodetypes: AnimCurve.addKey / evaluate / AnimCurve.findClosest now work for
+  all curve types, not just time-to-float types
+
 
 ==================================
 Version 1.0.10
