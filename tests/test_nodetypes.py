@@ -3410,10 +3410,15 @@ class testCase_invalidNode(unittest.TestCase):
         pm.newFile(f=1)
 
     def test_invalidNodeName(self):
+        import warnings
         oldNode = pm.group(name='foo')
         self.assertEqual(oldNode.name(), 'foo')
         pm.delete(oldNode)
-        self.assertEqual(oldNode.name(), 'foo')
+        # this will raise a Future warning - disable that for now, in case
+        # we have --warnings-as-errors set
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            self.assertEqual(oldNode.name(), 'foo')
 
 
 #def test_units():

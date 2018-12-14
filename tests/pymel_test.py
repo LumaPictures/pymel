@@ -30,6 +30,9 @@ def getParser():
         the test modules''', default=testsDir)
     parser.add_argument('--pymel-root', help='''The base directory of the pymel
         source repository''', default=pymelRoot)
+    parser.add_argument('-w', '--warnings-as-errors', action='store_true',
+                        help="Treat DeprecationWarning and FutureWarning as"
+                             " errors")
     return parser
 
 _PYTHON_DOT_NAME_RE = re.compile(r'[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)+')
@@ -88,7 +91,12 @@ def isMayaOutput(stream):
     return streamCls.__name__ == 'Output' and streamCls.__module__ == 'maya'
 
 
-def pytest_test(argv, **kwargs):
+def pytest_test(argv, warnings_as_errors=False):
+    import warnings
+    if warnings_as_errors:
+        warnings.simplefilter("error", DeprecationWarning)
+        warnings.simplefilter("error", FutureWarning)
+
     import pytest
     argv[0] = 'pytest'
     argv[1:1] = ['-vv', '--doctest-modules']  # verbose
@@ -208,7 +216,7 @@ def main(argv):
         print "using pymel from: %s" % inspect.getsourcefile(pymel)
 
         try:
-            pytest_test(argv)
+            pytest_test(argv, warnings_as_errors=parsed.warnings_as_errors)
         finally:
             os.chdir(oldPath)
     finally:
