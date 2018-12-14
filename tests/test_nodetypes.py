@@ -2639,6 +2639,17 @@ class testCase_MeshFace(unittest.TestCase, MeshComponentTesterMixin):
         self.assertEqual(result, expected)
 
 
+class testCase_Locator(unittest.TestCase):
+    def setUp(self):
+        cmds.file(f=1, new=1)
+
+    def test_createFromClass(self):
+        self.assertFalse(cmds.ls(type='locator'))
+        locNode = pm.nt.Locator()
+        self.assertIsInstance(locNode, pm.nt.Locator)
+        self.assertEqual(cmds.ls(type='locator'), [locNode.name()])
+
+
 class testCase_ConstraintAngleOffsetQuery(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
