@@ -120,7 +120,7 @@ class test_PMTypes(unittest.TestCase):
     def testMVector_IOBAssign(self):
         def IOBtest():
             self.u = pm.datatypes.Vector(pm.datatypes.VectorN(1, 2, 3, 4))
-        self.failUnlessRaises(TypeError,IOBtest)  # fails with TypeError, was expecting ValueError
+        self.assertRaises(TypeError,IOBtest)  # fails with TypeError, was expecting ValueError
 
     def testMVector_in(self):
         self.assert_(1.0 in self.eu)
@@ -232,7 +232,7 @@ class test_PMTypes(unittest.TestCase):
 
         def AxisValTest(): # Axis must be value '0' for all Vectors
             pm.datatypes.length([1, 2, 3, 4], 1)
-        self.failUnlessRaises(ValueError,AxisValTest)  # ValueError: axis 0 is the only valid axis for a VectorN, 1 invalid
+        self.assertRaises(ValueError,AxisValTest)  # ValueError: axis 0 is the only valid axis for a VectorN, 1 invalid
 
     def testMVector_sqlength(self):
         self.u = pm.datatypes.Vector(1,2,3)
@@ -939,7 +939,7 @@ class test_PMTypes(unittest.TestCase):
             self.m.formated()
         #   cannot initialize a Matrix of shape (4, 4) from list of 20,
         #   would cause truncation errors, use an explicit resize or trim"
-        self.failUnlessRaises(TypeError, Matrix_fromRange_Test)
+        self.assertRaises(TypeError, Matrix_fromRange_Test)
 
 #        self.m = datatypes.Matrix()
 #        def MatrixSetTest1():
@@ -947,8 +947,8 @@ class test_PMTypes(unittest.TestCase):
 #        def MatrixSetTest2():
 #            self.m.shape = 2
 #
-#        self.failUnlessRaises(ValueError, MatrixSetTest1)
-#        self.failUnlessRaises(ValueError, MatrixSetTest2)
+#        self.assertRaises(ValueError, MatrixSetTest1)
+#        self.assertRaises(ValueError, MatrixSetTest2)
 
     def testMatrix_formated(self) :
         self.m = pm.datatypes.Matrix()
@@ -1020,7 +1020,7 @@ class test_PMTypes(unittest.TestCase):
 
         def Matrix_badTrim_Test():
             self.m.trim(shape=(3,3)) # TODO should fail
-        self.failUnlessRaises(TypeError, Matrix_badTrim_Test) # new shape (3, 3) should not be compatible with class Matrix
+        self.assertRaises(TypeError, Matrix_badTrim_Test) # new shape (3, 3) should not be compatible with class Matrix
 
     def testMatrix_columnAccess(self):
         self.m = pm.datatypes.Matrix.identity
@@ -1028,7 +1028,7 @@ class test_PMTypes(unittest.TestCase):
 
         def Matrix_badRow():
             self.m.nrow = 3
-        self.failUnlessRaises(TypeError, Matrix_badRow)
+        self.assertRaises(TypeError, Matrix_badRow)
 
     def testMatrix_rowAccess(self):
         self.assertEquals(self.m.nrow, 4)
@@ -1126,7 +1126,7 @@ class test_PMTypes(unittest.TestCase):
         # datatypes.Vector:5 and matrix:shape(4,4) are not able to conform for a 'VectorN * MatrixN' multiplication
         def VectorN_test():
             self.v = pm.datatypes.VectorN([1, 2, 3, 4, 5])* self.m
-        self.failUnlessRaises(ValueError, VectorN_test)
+        self.assertRaises(ValueError, VectorN_test)
 
         # element wise multiplication
         self.m = pm.datatypes.Matrix(range(1, 17))
@@ -1166,7 +1166,7 @@ class test_PMTypes(unittest.TestCase):
         def setToProduct_test():
             self.m.setToProduct(self.m, self.M)
         # cannot initialize a Matrix of shape (4, 4) from shape (4, 5) - truncation errors
-        self.failUnlessRaises(TypeError, setToProduct_test)
+        self.assertRaises(TypeError, setToProduct_test)
 
         # isEquivalent() should evaluate as false
         self.assertFalse(self.m.isEquivalent(self.m * self.M))
@@ -1334,8 +1334,8 @@ class test_PMTypes(unittest.TestCase):
         def setShape_test2():
             self.m.shape = 2
         # these currently don't error out the way they should. TODO
-        self.failUnlessRaises(TypeError, setShape_test1())
-        self.failUnlessRaises(TypeError, setShape_test2())
+        self.assertRaises(TypeError, setShape_test1())
+        self.assertRaises(TypeError, setShape_test2())
 
         # setToProduct # TODO :: File "<stdin>", line 1, in <module> TypeError: in method 'MMatrix_setToProduct', argument 2 of type 'MMatrix const &'
         self.n = pm.api.MMatrix()
