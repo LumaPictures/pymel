@@ -2943,15 +2943,19 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
         in classdict.
         """
         nodeType = classdict['__melnode__']
-        infoCmd = False
-        try:
-            nodeCmd = cmdcache.nodeTypeToNodeCommand[nodeType]
-        except KeyError:
+        nodeCmd = classdict.get('__melcmd__')
+        if nodeCmd:
+            infoCmd = classdict.get('__melcmd_isinfo__', False)
+        else:
+            infoCmd = False
             try:
-                nodeCmd = nodeTypeToInfoCommand[nodeType]
-                infoCmd = True
+                nodeCmd = cmdcache.nodeTypeToNodeCommand[nodeType]
             except KeyError:
-                nodeCmd = nodeType
+                try:
+                    nodeCmd = nodeTypeToInfoCommand[nodeType]
+                    infoCmd = True
+                except KeyError:
+                    nodeCmd = nodeType
         return nodeCmd, infoCmd
 
 
