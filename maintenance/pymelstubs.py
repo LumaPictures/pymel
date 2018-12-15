@@ -3,14 +3,34 @@ import os.path
 import sys
 from maintenance.stubs import packagestubs
 
+# these caused hangs or crashes in 2019
+DEFAULT_SKIP_REGEX = r'(maya\.api\._.*)'
 
-def pymelstubs(extensions=('py', 'pypredef', 'pi'),
+
+def copyDir(src, dest):
+    # ignore if the source dir doesn't exist...
+    if os.path.isdir(src):
+        import shutil
+        if os.path.isdir(dest):
+            shutil.rmtree(dest)
+        elif os.path.isfile(dest):
+            raise RuntimeError(
+                "A file called %s existed (expected a dir "
+                "or nothing)" % dest)
+        shutil.copytree(src, dest)
+    elif os.path.isfile(src):
+        raise RuntimeError(
+            "A file called %s existed (expected a dir "
+            "or nothing)" % src)
+
+
+def pymelstubs(extensions=('py', 'pypredef', 'pi', 'pyi'),
                modules=('pymel', 'maya', 'PySide2', 'shiboken2'),
-               skip_module_regex=None,
+               skip_module_regex=DEFAULT_SKIP_REGEX,
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
 
-    Can build Python Interface files (pi) with extension='pi' for IDEs like 
+    Can build Python Interface files (pi) with extension='pi' for IDEs like
     wing.
     """
 
@@ -27,7 +47,26 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         'maya.precomp': set(['precompmodule']),
     }
 
+    def fixOutput(module, text):
+        if module.__name__ == 'PySide2.QtQuick':
+            text = text.replace('<QQuickItemGrabResult >', '')
+        return text
+
     def filterImports(current, modules, imported, importall_modules):
+        """
+        Parameters
+        ----------
+        current : str
+        modules : List[Tuple[ModuleType, List[str]]
+        imported : List[Tuple[ModuleType, List[str], ModuleType]
+        importall_modules : List[ModuleType]
+
+        Returns
+        -------
+        modules : List[Tuple[ModuleType, List[str]]
+        imported : List[Tuple[ModuleType, List[str], ModuleType]
+        importall_modules : List[ModuleType]
+        """
         if importall_modules:  # from MODULE import *
             # special-case handling for pymel.internal.pmcmds, which ends up
             # with a bunch of 'from pymel.core.X import *' commands
@@ -55,7 +94,8 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
                          skip_module_regex=skip_module_regex,
                          import_exclusions=importExclusions,
                          import_filter=filterImports,
-                         debugmodules={'pymel.core'}, stubmodules=modules)
+                         debugmodules={'pymel.core'}, stubmodules=modules,
+                         text_filter=fixOutput)
 
         except Exception as err:
             import traceback
@@ -66,21 +106,6 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi'),
         # useful to put on the path of non-maya python interpreters, in
         # situations where you want to be able to import the "dummy" maya/pymel
         # stubs, but still have acces to the handy non-maya-required pymel.util
-        def copyDir(src, dest):
-            # ignore if the source dir doesn't exist...
-            if os.path.isdir(src):
-                import shutil
-                if os.path.isdir(dest):
-                    shutil.rmtree(dest)
-                elif os.path.isfile(dest):
-                    raise RuntimeError(
-                        "A file called %s existed (expected a dir "
-                        "or nothing)" % dest)
-                shutil.copytree(src, dest)
-            elif os.path.isfile(src):
-                raise RuntimeError(
-                    "A file called %s existed (expected a dir "
-                    "or nothing)" % src)
 
         pyDir = os.path.join(outputdir, 'py')
         pyRealUtilDir = os.path.join(outputdir, 'pyRealUtil')
