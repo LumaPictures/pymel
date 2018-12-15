@@ -5195,6 +5195,9 @@ class RenderLayer(DependNode):
         cmds.editRenderLayerGlobals(currentRenderLayer=self)
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnRenderLayer
+    __melcmd__ = staticmethod(rendering.createRenderLayer)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = 'createRenderLayer'
     __melnode__ = u'renderLayer'
     __slots__ = ()
 
@@ -5319,6 +5322,9 @@ class DisplayLayer(DependNode):
     def setCurrent(self):
         cmds.editDisplayLayerMembers(currentDisplayLayer=self)
 # ------ Do not edit below this line --------
+    __melcmd__ = staticmethod(general.createDisplayLayer)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = 'createDisplayLayer'
     __melnode__ = u'displayLayer'
     __slots__ = ()
 
