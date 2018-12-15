@@ -5160,6 +5160,15 @@ class FluidEmitter(PointEmitter):
 
 
 class RenderLayer(DependNode):
+    # this way, when we create it it's automatically hooked up to the
+    # renderLayerManager
+    __melcmd__ = 'createRenderLayer'
+
+    def __new__(cls, *args, **kwargs):
+        if not args and 'empty' not in kwargs and 'e' not in kwargs:
+            # want to default to empty=False, to match former creation behavior
+            kwargs['e'] = True
+        return super(RenderLayer, cls).__new__(cls, *args, **kwargs)
 
     def listMembers(self, fullNames=True):
         if fullNames:
@@ -5285,6 +5294,15 @@ class RenderLayer(DependNode):
 
 
 class DisplayLayer(DependNode):
+    # this way, when we create it it's automatically hooked up to the
+    # displayLayerManager
+    __melcmd__ = 'createDisplayLayer'
+
+    def __new__(cls, *args, **kwargs):
+        if not args and 'empty' not in kwargs and 'e' not in kwargs:
+            # want to default to empty=False, to match former creation behavior
+            kwargs['e'] = True
+        return super(DisplayLayer, cls).__new__(cls, *args, **kwargs)
 
     def listMembers(self, fullNames=True):
         if fullNames:
@@ -5295,8 +5313,8 @@ class DisplayLayer(DependNode):
     def addMembers(self, members, noRecurse=True):
         cmds.editDisplayLayerMembers(self, members, noRecurse=noRecurse)
 
-    def removeMembers(self, members):
-        cmds.editDisplayLayerMembers(self, members, remove=True)
+    def removeMembers(self, members, noRecurse=True):
+        cmds.editDisplayLayerMembers('defaultLayer', members, noRecurse=noRecurse)
 
     def setCurrent(self):
         cmds.editDisplayLayerMembers(currentDisplayLayer=self)
