@@ -185,6 +185,10 @@ Additions
   vector-to-vector
 - nodetypes: added an undoable Camera.setNearFarClippingPlanes
 - system: UndoChunk can take an optional chunk "name" to show up in undo list
+- nodetypes: make creation of RenderLayer() / DisplayLayer() use mel cmds
+  this way, they are hooked up to renderLayerManager / displayLayerManager
+  also, gives more options on creation. However, they are created empty by
+  default, to match old behavior
 
 ----------------------------------
 Bug Fixes
@@ -209,6 +213,7 @@ Bug Fixes
 - nodetypes: AnimCurve.addKey / evaluate / AnimCurve.findClosest now work for
   all curve types, not just time-to-float types
 - nodetypes: fix for creation of Locator() - thanks bob-white!
+- nodetypes: fix DisplayLayer.removeMembers - thanks Akshay!
 
 
 ==================================
