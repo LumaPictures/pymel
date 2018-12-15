@@ -176,7 +176,7 @@ def get_class(obj):
     classes...
     '''
     cls = type(obj)
-    if cls == types.InstanceType:
+    if cls is types.InstanceType:
         cls = obj.__class__
     return cls
 
@@ -862,7 +862,7 @@ class StubDoc(Doc):
             self.contents.extend(['', ''])
 
         # typing module for type-checking in e.g. PyCharm
-        result += 'if False:\n    from typing import Dict, List, Tuple, Union, Optional\n'
+        self.contents.append('if False:\n    from typing import Dict, List, Tuple, Union, Optional\n')
 
         if classes:
             # sort in order of resolution
@@ -1529,7 +1529,6 @@ class StubDoc(Doc):
 
 class PEP484StubDoc(StubDoc):
     PASS = '...'
-    UNKNOWN_SIGNATURE = '(...)'
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('imports_precede_classes', False)
@@ -1553,16 +1552,19 @@ class PEP484StubDoc(StubDoc):
         if name in ['__metaclass__']:
             return ''
 
+        typ = None
         if name == '__all__':
             value = pprint.pformat(obj)
-            typ = None
         else:
             # value = self.docother_data_repr(obj)
             value = None
             if inspect.isclass(obj):
                 typ = 'Type[%s]' % self.classname(obj, modname=mod)
             else:
-                typ = self.classname(obj.__class__, modname=mod)
+                try:
+                    typ = self.classname(obj.__class__, modname=mod)
+                except (AttributeError, TypeError):
+                    pass
 
         assert name is not None, "Name of object %r is None" % obj
         if name == 'None':
@@ -1759,8 +1761,24 @@ class PEP484StubDoc(StubDoc):
 def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                  skip_module_regex=None, import_exclusions=None,
                  import_filter=None, debugmodules=None, type_data=None,
-                 stubmodules=None):
+                 stubmodules=None, text_filter=None):
+    """
+    Parameters
+    ----------
+    packagename : str
+    outputdir : str
+    extensions : Iterable[str]
+    skip_module_regex
+    import_exclusions
+    import_filter : Callable[[], ]
+    debugmodules
+    type_data
+    stubmodules
 
+    Returns
+    -------
+
+    """
     def get_python_file(modname, extension, ispkg):
         basedir = os.path.join(outputdir, extension)
         if extension == 'pypredef':
@@ -1819,6 +1837,8 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                 type_data=type_data)
 
             contents = stubgen.docmodule(mod, stubmodules=stubmodules)
+            if text_filter:
+                contents = text_filter(mod, contents)
 
             basedir = os.path.join(outputdir, extension)
             if extension == 'pypredef':

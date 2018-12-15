@@ -196,9 +196,9 @@ Indicated by this error:
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
     os.environ['PYMEL_DOCSTRINGS_MODE'] = 'stubs'
-    import maintenance.stubs
-    reload(maintenance.stubs)
-    maintenance.stubs.pymelstubs()
+    import maintenance.pymelstubs
+    reload(maintenance.pymelstubs)
+    maintenance.pymelstubs.pymelstubs()
     ```
 
   - test the new stubs: from shell in the pymel base directory, do:
@@ -208,7 +208,7 @@ Indicated by this error:
     ```
 
     be sure to run the test using the same major version of python as maya
-    (2.6, 2.7, etc), so that any references to functions and classes in the
+    (2.6, 2.7, 3.7!? etc), so that any references to functions and classes in the
     standard library are found.
 
 
