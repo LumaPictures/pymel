@@ -1732,15 +1732,21 @@ class NodeTypeGenerator(ApiMethodGenerator):
         Derives the command name from the mel node name - so '__melnode__' must already be set
         in classdict.
         """
-        infoCmd = False
-        try:
-            nodeCmd = factories.cmdcache.nodeTypeToNodeCommand[self.mayaType]
-        except KeyError:
+        nodeCmd = None
+        if self.existingClass is not None:
+            nodeCmd = getattr(self.existingClass, '__melcmdname__', None)
+        if nodeCmd:
+            infoCmd = getattr(self.existingClass, '__melcmd_isinfo__', False)
+        else:
+            infoCmd = False
             try:
-                nodeCmd = factories.nodeTypeToInfoCommand[self.mayaType]
-                infoCmd = True
+                nodeCmd = factories.cmdcache.nodeTypeToNodeCommand[self.mayaType]
             except KeyError:
-                nodeCmd = self.mayaType
+                try:
+                    nodeCmd = factories.nodeTypeToInfoCommand[self.mayaType]
+                    infoCmd = True
+                except KeyError:
+                    nodeCmd = self.mayaType
         return nodeCmd, infoCmd
 
 

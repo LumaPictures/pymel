@@ -5162,7 +5162,7 @@ class FluidEmitter(PointEmitter):
 class RenderLayer(DependNode):
     # this way, when we create it it's automatically hooked up to the
     # renderLayerManager
-    __melcmd__ = 'createRenderLayer'
+    __melcmdname__ = 'createRenderLayer'
 
     def __new__(cls, *args, **kwargs):
         if not args and 'empty' not in kwargs and 'e' not in kwargs:
@@ -5296,7 +5296,7 @@ class RenderLayer(DependNode):
 class DisplayLayer(DependNode):
     # this way, when we create it it's automatically hooked up to the
     # displayLayerManager
-    __melcmd__ = 'createDisplayLayer'
+    __melcmdname__ = 'createDisplayLayer'
 
     def __new__(cls, *args, **kwargs):
         if not args and 'empty' not in kwargs and 'e' not in kwargs:
