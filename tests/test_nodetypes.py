@@ -2637,7 +2637,7 @@ class testCase_rename(TestCaseExtended):
         self.assertEqual('sphere3', sphere1.nodeName())
         self.assertEqual('myNS:sphere4', sphere2.nodeName())
 
-class testCase_renderLayers(TestCaseExtended):
+class testCase_RenderLayer(TestCaseExtended):
     def setUp(self):
         pm.newFile(f=1)
         self.cube = pm.polyCube()[0]
@@ -2705,6 +2705,72 @@ class testCase_renderLayers(TestCaseExtended):
             self.assertEqual(widthAttr.get(), origVal)
             pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
             self.assertEqual(widthAttr.get(), origVal)
+
+    def test_create_addedToManager(self):
+        layer = pm.nt.RenderLayer(name='myLayer')
+        otherLayer = pm.createNode('renderLayer', name='otherLayer')
+        managedLayers = pm.Attribute('renderLayerManager.renderLayerId').outputs()
+        self.assertIn(layer, managedLayers)
+        self.assertNotIn(otherLayer, managedLayers)
+
+    def test_create_selected(self):
+        A = pm.createNode('transform', name='A')
+        self.assertEqual(pm.ls(selection=1), [A])
+        layerEmpty1 = pm.nt.RenderLayer()
+        self.assertFalse(layerEmpty1.listMembers())
+
+        pm.select(A)
+        layerSel = pm.nt.RenderLayer(empty=False)
+        self.assertEqual(layerSel.listMembers(), [A])
+
+        pm.select(A)
+        layerEmpty2 = pm.nt.RenderLayer(empty=True)
+        self.assertFalse(layerEmpty2.listMembers())
+
+
+class testCase_DisplayLayer(unittest.TestCase):
+    def setUp(self):
+        cmds.file(f=1, new=1)
+
+    def test_create_addedToManager(self):
+        layer = pm.nt.DisplayLayer(name='myLayer')
+        otherLayer = pm.createNode('displayLayer', name='otherLayer')
+        managedLayers = pm.Attribute('layerManager.displayLayerId').outputs()
+        self.assertIn(layer, managedLayers)
+        self.assertNotIn(otherLayer, managedLayers)
+
+    def test_create_selected(self):
+        A = pm.createNode('transform', name='A')
+        self.assertEqual(pm.ls(selection=1), [A])
+        layerEmpty1 = pm.nt.DisplayLayer()
+        self.assertFalse(layerEmpty1.listMembers())
+
+        pm.select(A)
+        layerSel = pm.nt.DisplayLayer(empty=False)
+        self.assertEqual(layerSel.listMembers(), [A])
+
+        pm.select(A)
+        layerEmpty2 = pm.nt.DisplayLayer(empty=True)
+        self.assertFalse(layerEmpty2.listMembers())
+
+    def test_addRemove(self):
+        A = pm.createNode('transform', name='A')
+        B = pm.createNode('transform', name='B')
+        C = pm.createNode('transform', name='C')
+        D = pm.createNode('transform', name='D')
+        E = pm.createNode('transform', name='E')
+
+        layer = pm.nt.DisplayLayer(name='myLayer')
+        self.assertFalse(layer.listMembers())
+        layer.addMembers(A)
+        self.assertEqual(set(layer.listMembers()), {A})
+        layer.addMembers([B, C, D])
+        self.assertEqual(set(layer.listMembers()), {A, B, C, D})
+        layer.removeMembers(C)
+        self.assertEqual(set(layer.listMembers()), {A, B, D})
+        layer.removeMembers([A, D])
+        self.assertEqual(set(layer.listMembers()), {B})
+
 
 class testCase_Character(unittest.TestCase):
     def setUp(self):
