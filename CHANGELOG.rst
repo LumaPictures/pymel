@@ -60,6 +60,8 @@ Changes
   wrapped and "baked", using templates, when a pymel release is made. The end
   result should be code that is more much readable and understandable for end
   users.
+- all: Converted to a new .py/.pyc.zip cache format. Improved pymel import
+  times, in addition to being more readable/diffable/maintainable
 - general: AttributeDefaults renamed to AttributeSpec, which better reflects
   what it is: a specification for the type on an attribute, not associated with
   any single node.  The AttributeDefaults name is preserved as an alias for
