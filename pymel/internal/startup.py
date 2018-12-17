@@ -545,13 +545,42 @@ def _pyload(filename):
     return _pycodeload(compile(text, filename, "exec"))
 
 
-def _pyzipdump(data, filename):
+def _getpycbytes(source):
+    import py_compile
+    import tempfile
+
+    # tried using NamedTemporaryFile, but got perm errors from
+    # py_compile.compile
+    pyfd, pyPath = tempfile.mkstemp(suffix='.py', prefix="py_cache_temp")
+    try:
+        with os.fdopen(pyfd, "wb") as pyf:
+            pyf.write(source)
+        pycfd, pycPath = tempfile.mkstemp(suffix='.pyc',
+                                          prefix="pyc_cache_temp")
+        os.close(pycfd)
+        try:
+            py_compile.compile(pyPath, pycPath, doraise=True)
+            with open(pycPath, 'rb') as pycf:
+                return pycf.read()
+        finally:
+            os.remove(pycPath)
+    finally:
+        os.remove(pyPath)
+
+
+def _pyczipdump(data, filename, pyc=True):
     import zipfile
     inZipPath = os.path.basename(filename)
     if inZipPath.lower().endswith('.zip'):
         inZipPath = inZipPath[:-len('.zip')]
+
+    bytes = _getpycbytes(_pyformatdump(data))
     with zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(inZipPath, _pyformatdump(data))
+        zf.writestr(inZipPath, bytes)
+
+
+def _pyzipdump(data, filename):
+    return _pyczipdump(data, filename, pyc=False)
 
 
 def _pyzipload(filename):
@@ -571,6 +600,7 @@ class PymelCache(object):
 
     FORMATS = [
         CacheFormat('.py', _pyload, _pydump),
+        CacheFormat('.pyc.zip', _pyzipload, _pyczipdump),
         CacheFormat('.py.zip', _pyzipload, _pyzipdump),
         CacheFormat('.bin', _pickleload, _pickledump),
         CacheFormat('.zip', picklezip.load, picklezip.dump),
