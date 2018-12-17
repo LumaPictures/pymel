@@ -1,4 +1,6 @@
-{'TanimLayer': '',
+version = (1, 1)
+
+data = {'TanimLayer': '',
  'TrenderSetupStates': '',
  'aaf2fcp': "import maya.cmds as cmds\n\n\nhandle = cmds.aaf2fcp(srcFile='c:/tmp/test.aaf', dstPath='c:/tmp')\ndestinationFile = cmds.aff2fcp(getFileName=handle)\ncmds.aaf2fcp(waitCompletion=handle)\ncmds.aaf2fcp(terminate=handle,deleteFile=False)",
  'about': 'import maya.cmds as cmds\n\ncmds.about( )\n\nversion = cmds.about(v=True)',

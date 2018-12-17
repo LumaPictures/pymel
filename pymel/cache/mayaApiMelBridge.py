@@ -51,8 +51,9 @@
 #
 # In nearly all cases, we opted to simply add aliases for the "failed" renames.
 
+version = (1, 1)
 
-({('AbstractBaseCreate', 'findAlias'): {'backwards_compatibility_enabled': True},
+data = ({('AbstractBaseCreate', 'findAlias'): {'backwards_compatibility_enabled': True},
   ('AbstractBaseCreate', 'getAffectedAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affected instead.'},
   ('AbstractBaseCreate', 'getAffectedByAttributes'): {'backwards_compatibility_enabled': 'Use Attribute.affects instead.'},
   ('AbstractBaseCreate', 'getAliasList'): {'backwards_compatibility_enabled': 'Use listAliases instead.'},

@@ -4,7 +4,6 @@ that maya is initialized in standalone mode.
 """
 import os.path
 import sys
-import gzip
 import glob
 import inspect
 import pprint
@@ -517,19 +516,49 @@ def _pydump(data, filename, opener=open):
     with opener(filename, mode='wb') as file:
         file.write(pprint.pformat(data))
 
+# (1, 0) - initial version, that used "eval" instead of exec - didn't contain
+#          explicit version
+# (1, 1) - version that uses "exec" - ie, data = [...]; has a version as well
+PY_CACHE_FORMAT_VERSION = (1, 1)
 
-def _pyload(filename, opener=open):
-    with opener(filename, mode='rb') as file:
+
+def _pyformatdump(data):
+    return 'version = {!r}\n\ndata = {}'.format(PY_CACHE_FORMAT_VERSION,
+                                                pprint.pformat(data))
+
+
+def _pycodeload(code):
+    globs = {}
+    exec(code, globs)
+    # we ignore globs['version'] for now... there for potential future changes
+    return globs['data']
+
+
+def _pydump(data, filename):
+    with open(filename, mode='wb') as file:
+        file.write(_pyformatdump(data))
+
+
+def _pyload(filename):
+    with open(filename, mode='rb') as file:
         text = file.read()
-    return eval(text)
+    return _pycodeload(compile(text, filename, "exec"))
 
 
 def _pyzipdump(data, filename):
-    return _pydump(data, filename, opener=gzip.open)
+    import zipfile
+    inZipPath = os.path.basename(filename)
+    if inZipPath.lower().endswith('.zip'):
+        inZipPath = inZipPath[:-len('.zip')]
+    with zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(inZipPath, _pyformatdump(data))
 
 
 def _pyzipload(filename):
-    return _pyload(filename, opener=gzip.open)
+    import zipimport
+    importer = zipimport.zipimporter(filename)
+    moduleName = os.path.basename(filename).split('.')[0]
+    return _pycodeload(importer.get_code(moduleName))
 
 
 CacheFormat = namedtuple('CacheFormat', ['ext', 'reader', 'writer'])
