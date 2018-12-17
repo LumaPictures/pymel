@@ -966,7 +966,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
         super(ApiMelBridgeCache, self).write(data, ext=ext)
 
         if noComments is None:
-            print "original {} had no comments, no need to strip".format(cls.NAME)
+            print "original {} had no comments, no need to strip".format(self.NAME)
         else:
             # if we had comments, try to apply them now
             self.applyComments(''.join(origLines), noComments,
