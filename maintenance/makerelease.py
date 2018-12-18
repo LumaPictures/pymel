@@ -215,6 +215,22 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     check_call(args)
     assert os.path.isdir(release_dir)
 
+    sys.path.insert(0, release_dir)
+    try:
+        import pymel
+        try:
+            print "release pymel version is: %r" % pymel.__version__
+            assert pymel.__file__.startswith(src_root)
+            if pymel.__version__ != baseVer:
+                raise RuntimeError("current release version {} does not match release"
+                                   " version {}".format(pymel.__version__, baseVer))
+            assert pymel.__version__ == baseVer
+        finally:
+            unload_pymel_modules()
+    finally:
+        sys.path.pop(0)
+
+
     def rmprefix(folder, prefix):
         for item in os.listdir(folder):
             if item.startswith(prefix):
