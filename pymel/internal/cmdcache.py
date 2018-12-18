@@ -376,6 +376,7 @@ def fixCodeExamples(style='maya', force=False):
 
     TODO: auto backup and restore of maya prefs
     """
+    import pymel.core.windows as windows
 
     manipSize = cmds.manipOptions(q=1, handleSize=1)[0]
     manipScale = cmds.manipOptions(q=1, scale=1)[0]
@@ -395,7 +396,14 @@ def fixCodeExamples(style='maya', force=False):
                 'ogsRender', 'webBrowser', 'deleteAttrPattern', 'grabColor']
     allCmds.difference_update(manualCmds)
     sortedCmds = manualCmds + sorted(allCmds)
+
+    frozen_globals = dict(globals())
+    frozen_locals = dict(locals())
+
     for command in sortedCmds:
+        globals = dict(frozen_globals)
+        locals = dict(frozen_locals)
+
         example = examples[command]
 
         if not force and command in processedExamples:
@@ -466,7 +474,7 @@ def fixCodeExamples(style='maya', force=False):
                             if statement:
                                 try:
                                     #_logger.debug("executing %s", statement)
-                                    exec('\n'.join(statement))
+                                    exec('\n'.join(statement), globals, locals)
                                     # reset statement
                                     statement = []
                                 except Exception, e:
@@ -480,7 +488,7 @@ def fixCodeExamples(style='maya', force=False):
                             except:
                                 #_logger.debug("failed evaluating:", str(e))
                                 try:
-                                    exec(line)
+                                    exec(line, globals, locals)
                                 except (Exception, TypeError), e:
                                     _logger.info("stopping evaluation %s", str(e))  # of %s on line %r" % (command, line)
                                     evaluate = False
