@@ -269,9 +269,15 @@ def makerelease(full_ver, maintenance=THIS_DIR):
 
     print "zipping"
     with zipfile.ZipFile(release_zip, "w") as f:
+        # this means that the root inside of the zip will be, ie,
+        # "pymel-1.1.0rc1".  We're doing this for legacy reasons - that's the
+        # way it was packaged previously...
+        relroot = dirname(release_dir)
         for root, dirs, files in os.walk(release_dir):
             for name in files:
-                f.write(join(root, name))
+                fullpath = join(root, name)
+                relpath = os.path.relpath(fullpath, relroot)
+                f.write(fullpath, relpath)
 
 
 def get_parser():
