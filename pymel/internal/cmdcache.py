@@ -401,8 +401,8 @@ def fixCodeExamples(style='maya', force=False):
     frozen_locals = dict(locals())
 
     for command in sortedCmds:
-        globals = dict(frozen_globals)
-        locals = dict(frozen_locals)
+        globs = dict(frozen_globals)
+        locs = dict(frozen_locals)
 
         example = examples[command]
 
@@ -474,7 +474,7 @@ def fixCodeExamples(style='maya', force=False):
                             if statement:
                                 try:
                                     #_logger.debug("executing %s", statement)
-                                    exec('\n'.join(statement), globals, locals)
+                                    exec('\n'.join(statement), globs, locs)
                                     # reset statement
                                     statement = []
                                 except Exception, e:
@@ -488,7 +488,7 @@ def fixCodeExamples(style='maya', force=False):
                             except:
                                 #_logger.debug("failed evaluating:", str(e))
                                 try:
-                                    exec(line, globals, locals)
+                                    exec(line, globs, locs)
                                 except (Exception, TypeError), e:
                                     _logger.info("stopping evaluation %s", str(e))  # of %s on line %r" % (command, line)
                                     evaluate = False
