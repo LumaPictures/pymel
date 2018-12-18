@@ -245,7 +245,7 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     rmprefix(release_dir, '.git')
 
     # make .pyc.zip versions of caches
-    make_new_caches(release_dir, src_root)
+    make_new_caches(release_dir)
 
     rmtree(join(release_dir, "maintenance"))
 
