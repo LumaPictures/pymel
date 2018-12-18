@@ -254,7 +254,8 @@ Indicated by this error:
   - When maya launches, and the "What's new" window pops up, uncheck the
     option to "Show this at startup" 
   - Once in maya, open a script editor, and paste the following, but DO NOT
-    EXECUTE it yet (we are simply saving it to our script editor prefs):
+    EXECUTE it yet (we are simply saving it to our script editor prefs) - also,
+    be sure to edit the pymel path to your dev install of pymel:
     
     ```python
     import sys, os
