@@ -228,20 +228,34 @@ Indicated by this error:
 
 ## 8) Build Docs
 
-  - WARNING: When I last attempted to build the docs on windows, the inheritance
-    graphs were not generated properly, despite the fact that graphviz was
-    installed, and the proper executable path was passed into
-    `docs.build(graphviz_dot=...)`.  As a result, I just ended up building the
-    docs on Linux, where the graphs were generated correctly.  Would like to
-    track down why this isn't working on Windows at some point, but may just
-    keep building the docs on Linux for now...
+### 8a) Build the processed examples
 
   - if you need to rebuild all the examples, delete `pymel/cache/mayaCmdsExamples.zip`.
-    Be warned that the next step will cause your computer to freak out and
-    possibly crash as it runs all of the examples from the Autodesk docs.
-    Simply restart Maya and repeat until you get all the way through.
-
-  - process new autodesk doc examples and add them to the examples cache:
+  
+  - We then want to create a new/default MAYA_APP_DIR, then lock it so it's
+    perms can't be changed. To do this, first:
+    
+    - In windows:
+    
+      ```
+      cd %USERPROFILE%\Documents
+      mkdir maya_fixCodeExamples
+      set MAYA_APP_DIR=%USERPROFILE%\Documents\maya_fixCodeExamples
+      maya
+      ```
+    - In Linux/MacOS:
+      ```bash
+      cd ~
+      mkdir maya_fixCodeExamples
+      export MAYA_APP_DIR=~\maya_fixCodeExamples
+      maya
+      ```
+      
+  - When maya launches, and the "What's new" window pops up, uncheck the
+    option to "Show this at startup" 
+  - Once in maya, open a script editor, and paste the following, but DO NOT
+    EXECUTE it yet (we are simply saving it to our script editor prefs):
+    
     ```python
     import sys, os
     pymelPath = r'/Volumes/sv-dev01/devRepo/chad/pymel'   # ...or wherever YOUR pymel version is installed
@@ -255,6 +269,51 @@ Indicated by this error:
     import pymel.internal.cmdcache as cmdcache
     cmdcache.fixCodeExamples()
     ```
+  - Change any other settings you might want saved, before we lock them
+    - ie, I recommend in the script editor menus, turning on "History" >
+    "Show stack trace" in case something goes wrong
+  - Quit maya (which should cause it to save it's prefs)
+  - Lock the perms of the prefs folder - running the examples can change a lot
+    of stuff, and we want to make sure none of it is saved:
+    - In windows:
+      ```
+      REM lock perms so it can't be written to - if you just deny "write",
+      REM user can still delete, which some of the pref saving routines do!
+      REM (ie, when saving scriptEditorTemp, it first deletes all entries,
+      REM then tries to write!)
+      icacls maya_fixCodeExamples /deny %USERNAME%:(OI)(CI)(DE,DC,WD,AD,WA,WEA)
+      ```
+      - if you want to restore write perms later, run this:
+        ```
+        icacls maya_fixCodeExamples /remove:d %USERNAME%
+        ```
+        
+    - in Linux/MacOS:
+      ```bash
+      chmod -R u-w maya_fixCodeExamples
+      ```
+      - if you want to restore write perms later, run this:
+        ```
+        chmod -R u+w maya_fixCodeExamples
+        ```
+
+  - Be warned that the next step will cause your computer to freak out and
+    possibly crash as it runs all of the examples from the Autodesk docs.
+    Simply restart Maya and repeat until you get all the way through.
+
+  - To process new autodesk doc examples and add them to the examples cache,
+    relaunch maya and run the python script command you pasted in earlier.
+
+
+### 8b) Build the docs
+
+  - WARNING: When I last attempted to build the docs on windows, the inheritance
+    graphs were not generated properly, despite the fact that graphviz was
+    installed, and the proper executable path was passed into
+    `docs.build(graphviz_dot=...)`.  As a result, I just ended up building the
+    docs on Linux, where the graphs were generated correctly.  Would like to
+    track down why this isn't working on Windows at some point, but may just
+    keep building the docs on Linux for now...
 
   - copy the list of internal commands provided by autodesk to `docs/internalCmds.txt`,
     or `docs/internalCommandList.txt`
