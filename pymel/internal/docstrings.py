@@ -174,6 +174,7 @@ class RstDocstringBuilder(DocstringBuilder):
         # docstring += makerow( ['']*len(widths), widths )
         # closing separator
         s += self.rowsep
+        return s
 
     def addFooter(self):
         footer = super(RstDocstringBuilder, self).addFooter()
