@@ -376,6 +376,7 @@ def fixCodeExamples(style='maya', force=False):
 
     TODO: auto backup and restore of maya prefs
     """
+    import shutil
     import pymel.core.windows as windows
 
     manipSize = cmds.manipOptions(q=1, handleSize=1)[0]
@@ -400,129 +401,209 @@ def fixCodeExamples(style='maya', force=False):
     frozen_globals = dict(globals())
     frozen_locals = dict(locals())
 
-    for command in sortedCmds:
-        globs = dict(frozen_globals)
-        locs = dict(frozen_locals)
+    succeeded = []
+    failed = []
+    skipped = []
 
-        example = examples[command]
-
-        if not force and command in processedExamples:
-            _logger.info("%s: already completed. skipping." % command)
-            continue
-
-        _logger.info("Starting command %s", command)
-
-        if style == 'doctest':
-            DOC_TEST_SKIP = ' #doctest: +SKIP'
-        else:
-            DOC_TEST_SKIP = ''
-
-        # change from cmds to pymel
-        reg = re.compile(r'\bcmds\.')
-        example = example.replace('import maya.cmds as cmds', 'import pymel.core as pm' + DOC_TEST_SKIP, 1)
-        example = reg.sub('pm.', example)
-
-        # example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
-
-        lines = example.split('\n')
-        if len(lines) == 1:
-            _logger.info("removing empty example for command %s", command)
-            examples.pop(command)
-            processedExamples[command] = ''
-            # write out after each success so that if we crash we don't have to start from scratch
-            CmdProcessedExamplesCache().write(processedExamples)
-            continue
-
-        if command in skipCmds:
-            example = '\n'.join(lines)
+    crashTempDir = startup._moduleJoin('cache', 'processedExamplesTemp')
+    if os.path.isdir(crashTempDir):
+        # If there are results in this dir, it's because we crashed last time
+        # we ran. Read in the results here, and add them to the
+        # processedExamples
+        for command in os.listdir(crashTempDir):
+            commandPath = os.path.join(crashTempDir, command)
+            with open(commandPath, "rb") as f:
+                example = f.read()
             processedExamples[command] = example
-            # write out after each success so that if we crash we don't have to start from scratch
-            CmdProcessedExamplesCache().write(processedExamples)
+            os.remove(commandPath)
+        # Now write out the results in the temp dir, into the processed cache
+        CmdProcessedExamplesCache().write(processedExamples)
+    else:
+        os.mkdir(crashTempDir)
 
-        # lines.insert(1, 'pm.newFile(f=1) #fresh scene')
-        # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
-        cmds.file(new=1, f=1)
+    def addProcessedExample(command, example):
+        # first, write the temp result, in case we crash
+        # Note that we COULD simply write to the CmdProcessedExamplesCache()
+        # every time through, but this slows down the process considerably,
+        # especially near the end, as we are having to re-write out ALL
+        # the data, every time. It's much faster to just write out each temp
+        # result to it's own file, then batch gather and add if we do crash.
+        tempPath = os.path.join(crashTempDir, command)
+        with open(tempPath, "wb") as f:
+            f.write(example)
+        # then add to the in-memory processedExamples
+        processedExamples[command] = example
 
-        newlines = []
-        statement = []
+    command = None
+    example = None
+    commandsEvaluated = set()
+    crashJournalPath = CmdProcessedExamplesCache.path() + '.crashjournal.txt'
+    crashedCommand = None
+    if os.path.isfile(crashJournalPath):
+        with open(crashJournalPath, "r") as f:
+            crashedCommand = f.read()
+        os.remove(crashJournalPath)
 
-        # narrowed down the commands that cause maya to crash to these prefixes
-        if re.match('(dis)|(dyn)|(poly)', command):
-            evaluate = False
-        elif command in skipCmds:
-            evaluate = False
-        else:
-            evaluate = True
+    def tryExec(source):
+        if command == crashedCommand:
+            # if last time we tried to run this command, but it crashed, AND
+            # it was the FIRST command we tried to run, then we assume it will
+            # crash again and skip it.
+            _logger.info("skipping evaluation of command {} because it crashed"
+                         " as the first command run".format(command))
+            return False
 
-        # gives a little leniency for where spaces are placed in the result line
-        resultReg = re.compile('# Result:\s*(.*) #$')
-        try:  # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
-            for i, line in enumerate(lines):
-                res = None
-                # replace with pymel results  '# Result: 1 #'
-                m = resultReg.match(line)
-                if m:
-                    if evaluate is False:
-                        line = m.group(1)
-                        newlines.append('    ' + line)
-                else:
-                    if evaluate:
-                        if line.strip().endswith(':') or line.startswith(' ') or line.startswith('\t'):
-                            statement.append(line)
-                        else:
-                            # evaluate the compiled statement using exec, which can do multi-line if statements and so on
-                            if statement:
-                                try:
-                                    #_logger.debug("executing %s", statement)
-                                    exec('\n'.join(statement), globs, locs)
-                                    # reset statement
-                                    statement = []
-                                except Exception, e:
-                                    _logger.info("stopping evaluation %s", str(e))  # of %s on line %r" % (command, line)
-                                    evaluate = False
-                            try:
-                                _logger.debug("evaluating: %r" % line)
-                                res = eval(line)
-                                #if res is not None: _logger.info("result", repr(repr(res)))
-                                # else: _logger.info("no result")
-                            except:
-                                #_logger.debug("failed evaluating:", str(e))
-                                try:
-                                    exec(line, globs, locs)
-                                except (Exception, TypeError), e:
-                                    _logger.info("stopping evaluation %s", str(e))  # of %s on line %r" % (command, line)
-                                    evaluate = False
-                    if style == 'doctest':
-                        if line.startswith(' ') or line.startswith('\t'):
-                            newlines.append('    ... ' + line)
-                        else:
-                            newlines.append('    >>> ' + line + DOC_TEST_SKIP)
-
-                        if res is not None:
-                            newlines.append('    ' + repr(res))
-                    else:
-                        newlines.append('    ' + line)
-                        if res is not None:
-                            newlines.append('    # Result: %r #' % (res,))
-
-            if evaluate:
-                _logger.info("successful evaluation! %s", command)
-
-            example = '\n'.join(newlines)
-            processedExamples[command] = example
-        except Exception, e:
-            raise
-            #_logger.info("FAILED: %s: %s" % (command, e) )
-        else:
-            # write out after each success so that if we crash we don't have to start from scratch
-            CmdProcessedExamplesCache().write(processedExamples)
-
-        # cleanup opened windows
-        for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
+        commandsEvaluated.add(command)
+        # if this is the first command we've tried to evaluate, then
+        # write the the crash journal.  Note that we don't write to the crash
+        # journal for any commands OTHER than the first command, because:
+        #     1) it's possible that a command ONLY crashes due to interaction
+        #        with other commands previously run, and it might run
+        #        successfully if it's the first command run
+        #     2) If we crash on any command other than the first, we should at
+        #        least have added some more entries to the processedExamples,
+        #        which gets written out to disk on every command. This means
+        #        that non-first-run commands that crash will either eventually
+        #        start working (because some other command it interacts with is
+        #        no longer run), or become the the first command run, at which
+        #        point they will be skipped the next run
+        if len(commandsEvaluated) == 1:
+            with open(crashJournalPath, "w") as f:
+                f.write(command)
+        try:
+            # _logger.debug("executing %s", source)
             try:
-                cmds.deleteUI(ui, window=True)
-            except:
-                pass
+                exec(source, globs, locs)
+                return True
+            except Exception, e:
+                _logger.info("stopping evaluation of command {}: {}".format(
+                    command, e))
+                _logger.info("full example:\n{}".format(example))
+                if source != example:
+                    _logger.info("failed line(s):\n{}".format(source))
+                return False
+        finally:
+            # because we remove the journal in a finally block, it should ONLY
+            # get left around if we hard crash inside the try (or there's some
+            # sort of ioerror / perms error when we try to remove)
+            if len(commandsEvaluated) == 1:
+                os.remove(crashJournalPath)
+
+    try:
+        for command in sortedCmds:
+            if not force and command in processedExamples:
+                _logger.info("%s: already completed. skipping." % command)
+                continue
+
+            # within a command, we want to re-use globals and locals, so
+            # each line can add to it, but
+            globs = dict(frozen_globals)
+            locs = dict(frozen_locals)
+
+            example = examples[command]
+
+            _logger.info("Starting command %s", command)
+
+            if style == 'doctest':
+                DOC_TEST_SKIP = ' #doctest: +SKIP'
+            else:
+                DOC_TEST_SKIP = ''
+
+            # change from cmds to pymel
+            reg = re.compile(r'\bcmds\.')
+            example = example.replace('import maya.cmds as cmds', 'import pymel.core as pm' + DOC_TEST_SKIP, 1)
+            example = reg.sub('pm.', example)
+
+            # example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
+
+            lines = example.split('\n')
+            if len(lines) == 1:
+                _logger.info("removing empty example for command %s", command)
+                examples.pop(command)
+                addProcessedExample(command, '')
+                continue
+
+            skip = False
+            if command in skipCmds:
+                example = '\n'.join(lines)
+                addProcessedExample(command, example)
+                skip = True
+
+            # lines.insert(1, 'pm.newFile(f=1) #fresh scene')
+            # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
+            cmds.file(new=1, f=1)
+
+            newlines = []
+            statement = []
+
+            # narrowed down the commands that cause maya to crash to these prefixes
+            if re.match('(dis)|(dyn)|(poly)', command):
+                skip = True
+
+            evaluate = not skip
+
+            # gives a little leniency for where spaces are placed in the result line
+            resultReg = re.compile('# Result:\s*(.*) #$')
+            try:  # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
+                for i, line in enumerate(lines):
+                    res = None
+                    # replace with pymel results  '# Result: 1 #'
+                    m = resultReg.match(line)
+                    if m:
+                        if evaluate is False:
+                            line = m.group(1)
+                            newlines.append('    ' + line)
+                    else:
+                        if evaluate:
+                            if line.strip().endswith(':') or line.startswith(' ') or line.startswith('\t'):
+                                statement.append(line)
+                            else:
+                                # evaluate the compiled statement using exec, which can do multi-line if statements and so on
+                                if statement:
+                                    evaluate = tryExec('\n'.join(statement))
+                                    if evaluate:
+                                        # reset statement
+                                        statement = []
+                                if evaluate:
+                                    evaluate = tryExec(line)
+                        if style == 'doctest':
+                            if line.startswith(' ') or line.startswith('\t'):
+                                newlines.append('    ... ' + line)
+                            else:
+                                newlines.append('    >>> ' + line + DOC_TEST_SKIP)
+
+                            if res is not None:
+                                newlines.append('    ' + repr(res))
+                        else:
+                            newlines.append('    ' + line)
+                            if res is not None:
+                                newlines.append('    # Result: %r #' % (res,))
+
+                if skip:
+                    skipped.append(command)
+                elif evaluate:
+                    _logger.info("successful evaluation! %s", command)
+                    succeeded.append(command)
+                else:
+                    failed.append((command, example))
+
+                example = '\n'.join(newlines)
+                addProcessedExample(command, example)
+            except Exception, e:
+                raise
+                #_logger.info("FAILED: %s: %s" % (command, e) )
+
+            # cleanup opened windows
+            for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
+                try:
+                    cmds.deleteUI(ui, window=True)
+                except:
+                    pass
+    finally:
+        # clean up the temp dir
+        shutil.rmtree(crashTempDir)
+        # then write out the final version of the cache, since we didn't crash!
+        CmdProcessedExamplesCache().write(processedExamples)
 
     _logger.info("Done Fixing Examples")
 
@@ -533,6 +614,11 @@ def fixCodeExamples(style='maya', force=False):
     cmds.animDisplay(e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
 
     # CmdExamplesCache(examples)
+    return {
+        'succeeded': succeeded,
+        'failed': failed,
+        'skipped': skipped,
+    }
 
 
 def getModuleCommandList(category, version=None):
