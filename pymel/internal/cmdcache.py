@@ -444,14 +444,14 @@ def fixCodeExamples(style='maya', force=False):
             crashedCommand = f.read()
         os.remove(crashJournalPath)
 
-    def tryExec(source):
+    def tryEval(source, execOnly=False):
         if command == crashedCommand:
             # if last time we tried to run this command, but it crashed, AND
             # it was the FIRST command we tried to run, then we assume it will
             # crash again and skip it.
             _logger.info("skipping evaluation of command {} because it crashed"
                          " as the first command run".format(command))
-            return False
+            return False, None
 
         commandsEvaluated.add(command)
         # if this is the first command we've tried to evaluate, then
@@ -473,21 +473,30 @@ def fixCodeExamples(style='maya', force=False):
         try:
             # _logger.debug("executing %s", source)
             try:
+                if not execOnly:
+                    try:
+                        res = eval(source, globs, locs)
+                        return True, res
+                    except Exception:
+                        pass
                 exec(source, globs, locs)
-                return True
+                return True, None
             except Exception, e:
                 _logger.info("stopping evaluation of command {}: {}".format(
                     command, e))
                 _logger.info("full example:\n{}".format(example))
                 if source != example:
                     _logger.info("failed line(s):\n{}".format(source))
-                return False
+                return False, None
         finally:
             # because we remove the journal in a finally block, it should ONLY
             # get left around if we hard crash inside the try (or there's some
             # sort of ioerror / perms error when we try to remove)
             if len(commandsEvaluated) == 1:
                 os.remove(crashJournalPath)
+
+    def tryExec(source):
+        return tryEval(source, execOnly=True)[0]
 
     try:
         for command in sortedCmds:
@@ -567,7 +576,7 @@ def fixCodeExamples(style='maya', force=False):
                                         # reset statement
                                         statement = []
                                 if evaluate:
-                                    evaluate = tryExec(line)
+                                    evaluate, res = tryEval(line)
                         if style == 'doctest':
                             if line.startswith(' ') or line.startswith('\t'):
                                 newlines.append('    ... ' + line)
