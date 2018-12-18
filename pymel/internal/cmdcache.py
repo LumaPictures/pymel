@@ -517,7 +517,9 @@ def fixCodeExamples(style='maya', force=False):
             # example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
 
             lines = example.split('\n')
-            if len(lines) == 1:
+            nonEmptyLines = any(x for x in lines if x.strip()
+                                and not x.strip().startswith('#'))
+            if not nonEmptyLines:
                 _logger.info("removing empty example for command %s", command)
                 examples.pop(command)
                 addProcessedExample(command, '')
