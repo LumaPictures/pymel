@@ -522,12 +522,13 @@ simpleCommandWraps = {
 
 if docstringMode == 'html':
     examples = cmdcache.CmdProcessedExamplesCache().read()
-    for cmd, example in examples.iteritems():
-        try:
-            cmdlist[cmd]['example'] = example
-        except KeyError:
-            print "found an example for an unknown command:", cmd
-            pass
+    if examples:
+        for cmd, example in examples.iteritems():
+            try:
+                cmdlist[cmd]['example'] = example
+            except KeyError:
+                print "found an example for an unknown command:", cmd
+                pass
 
 
 def _getApiOverrideData(classname, pymelName):
