@@ -250,8 +250,9 @@ Indicated by this error:
     if sys.path[0] != pymelPath:
         sys.path.insert(0, pymelPath)
     os.environ['PYMEL_DOCSTRINGS_MODE'] = 'html'
-    import pymel.internal.cmdcache as cmdcache
+    import pymel
     assert pymel.__file__.startswith(pymelPath)
+    import pymel.internal.cmdcache as cmdcache
     cmdcache.fixCodeExamples()
     ```
 
