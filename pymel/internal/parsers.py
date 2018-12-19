@@ -322,7 +322,13 @@ class CommandDocParser(HTMLParser):
 
     def handle_entityref(self, name):
         if self.active == 'examples':
-            self.example += r'"'
+            result = self.unescape("&" + name + ";")
+            if isinstance(result, unicode):
+                try:
+                    result = result.encode("ascii")
+                except UnicodeEncodeError:
+                    pass
+            self.example += result
 
     def handle_data(self, data):
         if not self.active:
