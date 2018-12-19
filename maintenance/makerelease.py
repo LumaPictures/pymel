@@ -249,6 +249,13 @@ def makerelease(full_ver, maintenance=THIS_DIR):
 
     rmtree(join(release_dir, "maintenance"))
 
+    # byte-compile .pyc files. especially important with new templated pymel,
+    # as the files in core are quite large, so if end users don't have write
+    # access to wherever pymel is installed, they'll definitely want them
+    # pre-compiled
+    import compileall
+    compileall.compile_dir(release_dir)
+
     print "copying docs"
     rmtree(join(release_dir, 'docs'))
     copytree(join(src_root, 'docs', 'build', baseVer),
