@@ -308,14 +308,6 @@ Indicated by this error:
 
 ### 8b) Build the docs
 
-  - WARNING: When I last attempted to build the docs on windows, the inheritance
-    graphs were not generated properly, despite the fact that graphviz was
-    installed, and the proper executable path was passed into
-    `docs.build(graphviz_dot=...)`.  As a result, I just ended up building the
-    docs on Linux, where the graphs were generated correctly.  Would like to
-    track down why this isn't working on Windows at some point, but may just
-    keep building the docs on Linux for now...
-
   - copy the list of internal commands provided by autodesk to `docs/internalCmds.txt`,
     or `docs/internalCommandList.txt`
 

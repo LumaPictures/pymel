@@ -215,8 +215,13 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
     opts += '-b html -d build/doctrees'.split()
 
     # set some defaults
-    if not kwargs.get('graphviz_dot', None):
+    dot = kwargs.get('graphviz_dot')
+    if dot is None:
         kwargs['graphviz_dot'] = find_dot()
+    else:
+        if not os.path.isfile(dot):
+            raise RuntimeError("passed in graphviz_dot binary did not exist:"
+                               " {}".format(dot))
 
     for key, value in kwargs.iteritems():
         opts.append('-D')
