@@ -154,6 +154,43 @@ def copy_changelog():
     whatsnew = os.path.join(pymel_root, 'docs', 'source', 'whats_new.rst')
     shutil.copy2(changelog, whatsnew)
 
+class NoSubprocessWindow(object):
+    '''Context manager to make subprocess not open a new window by default, on
+    windows.
+
+    On windows, whenever a subprocess launches, it opens a window by default.
+    Since our sphinx build will be launch a LOT of "dot.exe" subprocess,
+    this effectively hijacks the computer while we are building the docs,
+    since each new window steals focus. It also slows down doc generation.
+    We monkey-patch subprocess to not open a window by default on windows.
+    '''
+    def __enter__(self):
+        import inspect
+        import subprocess
+        if os.name == 'nt':
+            origInit = subprocess.Popen.__init__.im_func
+            self.origInit = origInit
+
+            argspec = inspect.getargspec(self.origInit)
+            creationflags_index = argspec.args.index('creationflags')
+            CREATE_NO_WINDOW_FLAG = 0x08000000
+
+            def __init__(self, *args, **kwargs):
+                if (len(args) <= creationflags_index
+                        and 'creationflags' not in kwargs):
+                    kwargs['creationflags'] = CREATE_NO_WINDOW_FLAG
+                    return origInit(self, *args, **kwargs)
+
+            subprocess.Popen.__init__ = __init__
+        else:
+            self.origInit = None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        import subprocess
+        if self.origInit is not None:
+            subprocess.Popen.__init__ = self.origInit
+
+
 def build(clean=True, opts=None, filenames=None, **kwargs):
     from sphinx import main as sphinx_build
     print "building %s - %s" % (docsdir, datetime.datetime.now())
@@ -190,6 +227,8 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
     if filenames is not None:
         opts.extend(filenames)
     print "sphinx_build({!r})".format(opts)
-    sphinx_build(opts)
+
+    with NoSubprocessWindow():
+        sphinx_build(opts)
     print "...done building %s - %s" % (docsdir, datetime.datetime.now())
 
