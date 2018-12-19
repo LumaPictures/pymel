@@ -292,10 +292,9 @@ def getCmdInfo(command, version, python=True):
         else:
             docloc = os.path.join(docloc, 'Commands/%s.html' % (command))
 
-        f = open(docloc)
-        parser = CommandDocParser(command)
-        parser.feed(f.read())
-        f.close()
+        with open(docloc) as f:
+            parser = CommandDocParser(command)
+            parser.feed(f.read())
 
         example = parser.example
         example = example.rstrip()
@@ -377,7 +376,23 @@ def fixCodeExamples(style='maya', force=False):
     TODO: auto backup and restore of maya prefs
     """
     import shutil
+
+    # some imports to get things into global / local namespaces
+    import pymel
+    import pymel.core as pm
     import pymel.core.windows as windows
+    import maya.mel
+
+    frozen_globals = dict(globals())
+    # get a few more things into globals, as opposed to just locals. This is
+    # in case there are functions defined, in the source - these will only have
+    # access to globals, not locals
+    frozen_globals['windows'] = windows
+    frozen_globals['pm'] = pm
+    frozen_globals['pymel'] = pymel
+    frozen_globals['maya'] = maya
+
+    frozen_locals = dict(locals())
 
     manipSize = cmds.manipOptions(q=1, handleSize=1)[0]
     manipScale = cmds.manipOptions(q=1, scale=1)[0]
@@ -397,9 +412,6 @@ def fixCodeExamples(style='maya', force=False):
                 'ogsRender', 'webBrowser', 'deleteAttrPattern', 'grabColor']
     allCmds.difference_update(manualCmds)
     sortedCmds = manualCmds + sorted(allCmds)
-
-    frozen_globals = dict(globals())
-    frozen_locals = dict(locals())
 
     succeeded = []
     failed = []
