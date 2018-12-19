@@ -27,7 +27,7 @@ else:
     from pymel.core.uitypes import *
     from pymel.core.nodetypes import *
 
-version = pymel.__version__.rsplit('.',1)[0]
+version = pymel.__version__
 SOURCE = 'source'
 BUILD_ROOT = 'build'
 BUILD = os.path.join(BUILD_ROOT, version)

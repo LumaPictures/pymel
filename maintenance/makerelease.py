@@ -251,7 +251,7 @@ def makerelease(full_ver, maintenance=THIS_DIR):
 
     print "copying docs"
     rmtree(join(release_dir, 'docs'))
-    copytree(join(src_root, 'docs', 'build', '1.0'),
+    copytree(join(src_root, 'docs', 'build', baseVer),
              join(release_dir, 'docs'))
 
     print "copying stubs"
