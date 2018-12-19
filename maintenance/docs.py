@@ -195,7 +195,7 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
     from sphinx import main as sphinx_build
     print "building %s - %s" % (docsdir, datetime.datetime.now())
 
-    if not os.path.isdir(gendir):
+    if clean or not os.path.isdir(gendir):
         generate(clean=clean)
 
     os.chdir( docsdir )
