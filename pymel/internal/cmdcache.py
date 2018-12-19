@@ -574,7 +574,6 @@ def fixCodeExamples(style='maya', force=False):
                     m = resultReg.match(line)
                     if m:
                         if evaluate is False:
-                            line = m.group(1)
                             newlines.append('    ' + line)
                     else:
                         if evaluate:
