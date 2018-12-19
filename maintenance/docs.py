@@ -196,7 +196,7 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
     print "building %s - %s" % (docsdir, datetime.datetime.now())
 
     if not os.path.isdir(gendir):
-        generate()
+        generate(clean=clean)
 
     os.chdir( docsdir )
     if clean:
