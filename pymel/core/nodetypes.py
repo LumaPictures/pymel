@@ -1193,7 +1193,7 @@ class DependNode(general.PyNode):
     @_f.addApiDocs(_api.MFnDependencyNode, 'setIcon')
     def setIcon(self, filename):
         # type: (unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([filename], [('filename', 'MString', 'in', None)], self.getIcon, self.setIcon, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([filename], [('filename', 'MString', 'in', None)], self.getIcon, self.setIcon, [])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setIcon', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -1201,7 +1201,7 @@ class DependNode(general.PyNode):
     @_f.addApiDocs(_api.MFnDependencyNode, 'setLocked')
     def setLocked(self, lock):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([lock], [('lock', 'bool', 'in', None)], self.isLocked, self.setLocked, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([lock], [('lock', 'bool', 'in', None)], self.isLocked, self.setLocked, [])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setLocked', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -1209,7 +1209,7 @@ class DependNode(general.PyNode):
     @_f.addApiDocs(_api.MFnDependencyNode, 'setName')
     def setName(self, name, createNamespace=False):
         # type: (unicode, bool) -> unicode
-        do, final_do, outTypes, undoItem = _f.processApiArgs([name, createNamespace], [('name', 'MString', 'in', None), ('createNamespace', 'bool', 'in', None)], self.getName, self.setName, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([name, createNamespace], [('name', 'MString', 'in', None), ('createNamespace', 'bool', 'in', None)], self.getName, self.setName, [])
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setName', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -2567,7 +2567,7 @@ class DagNode(Entity):
     @_f.addApiDocs(_api.MFnDagNode, 'setInstanceable')
     def setInstanceable(self, how):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([how], [('how', 'bool', 'in', None)], self.isInstanceable, self.setInstanceable, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([how], [('how', 'bool', 'in', None)], self.isInstanceable, self.setInstanceable, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setInstanceable', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -2575,7 +2575,7 @@ class DagNode(Entity):
     @_f.addApiDocs(_api.MFnDagNode, 'setIntermediateObject')
     def setIntermediateObject(self, isIntermediate):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([isIntermediate], [('isIntermediate', 'bool', 'in', None)], self.isIntermediateObject, self.setIntermediateObject, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([isIntermediate], [('isIntermediate', 'bool', 'in', None)], self.isIntermediateObject, self.setIntermediateObject, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setIntermediateObject', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -2584,7 +2584,7 @@ class DagNode(Entity):
     @_f.addApiDocs(_api.MFnDagNode, 'setObjectColorType')
     def setObjectColorType(self, type):
         # type: (DagNode.MObjectColorType) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([type], [('type', ('MFnDagNode', 'MObjectColorType'), 'in', None)], self.getObjectColorType, self.setObjectColorType, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([type], [('type', ('MFnDagNode', 'MObjectColorType'), 'in', None)], self.getObjectColorType, self.setObjectColorType, [])
         res = _f.getProxyResult(self, _api.MFnDagNode, 'setObjectColorType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3221,7 +3221,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setAspectRatio')
     def setAspectRatio(self, aspectRatio):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([aspectRatio], [('aspectRatio', 'double', 'in', None)], self.getAspectRatio, self.setAspectRatio, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([aspectRatio], [('aspectRatio', 'double', 'in', None)], self.getAspectRatio, self.setAspectRatio, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setAspectRatio', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3229,7 +3229,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setCameraScale')
     def setCameraScale(self, scale):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([scale], [('scale', 'double', 'in', None)], self.getCameraScale, self.setCameraScale, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([scale], [('scale', 'double', 'in', None)], self.getCameraScale, self.setCameraScale, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setCameraScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3237,7 +3237,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setCenterOfInterest')
     def setCenterOfInterest(self, dist):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfInterest, self.setCenterOfInterest, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfInterest, self.setCenterOfInterest, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setCenterOfInterest', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3245,7 +3245,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setCenterOfInterestPoint')
     def setCenterOfInterestPoint(self, centerOfInterest, space='preTransform'):
         # type: (datatypes.Point, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([centerOfInterest, space], [('centerOfInterest', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCenterOfInterestPoint, self.setCenterOfInterestPoint, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([centerOfInterest, space], [('centerOfInterest', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCenterOfInterestPoint, self.setCenterOfInterestPoint, ['space'])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setCenterOfInterestPoint', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3253,7 +3253,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setClippingPlanes')
     def setClippingPlanes(self, ClippingPlanes):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([ClippingPlanes], [('ClippingPlanes', 'bool', 'in', None)], self.isClippingPlanes, self.setClippingPlanes, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([ClippingPlanes], [('ClippingPlanes', 'bool', 'in', None)], self.isClippingPlanes, self.setClippingPlanes, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setClippingPlanes', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3261,7 +3261,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setDepthOfField')
     def setDepthOfField(self, depthOfField):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([depthOfField], [('depthOfField', 'bool', 'in', None)], self.isDepthOfField, self.setDepthOfField, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([depthOfField], [('depthOfField', 'bool', 'in', None)], self.isDepthOfField, self.setDepthOfField, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setDepthOfField', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3273,7 +3273,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setDisplayFilmGate')
     def setDisplayFilmGate(self, displayFilmGate):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([displayFilmGate], [('displayFilmGate', 'bool', 'in', None)], self.isDisplayFilmGate, self.setDisplayFilmGate, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([displayFilmGate], [('displayFilmGate', 'bool', 'in', None)], self.isDisplayFilmGate, self.setDisplayFilmGate, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setDisplayFilmGate', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3289,7 +3289,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setDisplayGateMask')
     def setDisplayGateMask(self, displayGateMask):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([displayGateMask], [('displayGateMask', 'bool', 'in', None)], self.isDisplayGateMask, self.setDisplayGateMask, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([displayGateMask], [('displayGateMask', 'bool', 'in', None)], self.isDisplayGateMask, self.setDisplayGateMask, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setDisplayGateMask', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3309,7 +3309,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setEyePoint')
     def setEyePoint(self, eyeLocation, space='preTransform'):
         # type: (datatypes.Point, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([eyeLocation, space], [('eyeLocation', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getEyePoint, self.setEyePoint, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([eyeLocation, space], [('eyeLocation', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getEyePoint, self.setEyePoint, ['space'])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setEyePoint', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3317,7 +3317,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFStop')
     def setFStop(self, fStop):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([fStop], [('fStop', 'double', 'in', None)], self.getFStop, self.setFStop, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([fStop], [('fStop', 'double', 'in', None)], self.getFStop, self.setFStop, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFStop', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3325,7 +3325,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFarClippingPlane')
     def setFarClippingPlane(self, dFar):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([dFar], [('dFar', 'double', 'in', u'linear')], self.getFarClippingPlane, self.setFarClippingPlane, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dFar], [('dFar', 'double', 'in', u'linear')], self.getFarClippingPlane, self.setFarClippingPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFarClippingPlane', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3334,7 +3334,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFarFocusDistance')
     def setFarFocusDistance(self, farFocusDistance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([farFocusDistance], [('farFocusDistance', 'double', 'in', u'linear')], self.getFarFocusDistance, self.setFarFocusDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([farFocusDistance], [('farFocusDistance', 'double', 'in', u'linear')], self.getFarFocusDistance, self.setFarFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFarFocusDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3342,7 +3342,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFilmFit')
     def setFilmFit(self, filmFit):
         # type: (Camera.FilmFit) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([filmFit], [('filmFit', ('MFnCamera', 'FilmFit'), 'in', None)], self.getFilmFit, self.setFilmFit, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([filmFit], [('filmFit', ('MFnCamera', 'FilmFit'), 'in', None)], self.getFilmFit, self.setFilmFit, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmFit', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3350,7 +3350,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFilmFitOffset')
     def setFilmFitOffset(self, filmFitOffset):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([filmFitOffset], [('filmFitOffset', 'double', 'in', None)], self.getFilmFitOffset, self.setFilmFitOffset, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([filmFitOffset], [('filmFitOffset', 'double', 'in', None)], self.getFilmFitOffset, self.setFilmFitOffset, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmFitOffset', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3358,7 +3358,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFilmRollOrder')
     def setFilmRollOrder(self, filmRollOrder):
         # type: (Camera.RollOrder) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([filmRollOrder], [('filmRollOrder', ('MFnCamera', 'RollOrder'), 'in', None)], self.getFilmRollOrder, self.setFilmRollOrder, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([filmRollOrder], [('filmRollOrder', ('MFnCamera', 'RollOrder'), 'in', None)], self.getFilmRollOrder, self.setFilmRollOrder, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmRollOrder', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3366,7 +3366,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFilmRollValue')
     def setFilmRollValue(self, filmRollValue):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([filmRollValue], [('filmRollValue', 'double', 'in', None)], self.getFilmRollValue, self.setFilmRollValue, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([filmRollValue], [('filmRollValue', 'double', 'in', None)], self.getFilmRollValue, self.setFilmRollValue, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmRollValue', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3374,7 +3374,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFilmTranslateH')
     def setFilmTranslateH(self, translate):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([translate], [('translate', 'double', 'in', None)], self.getFilmTranslateH, self.setFilmTranslateH, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([translate], [('translate', 'double', 'in', None)], self.getFilmTranslateH, self.setFilmTranslateH, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmTranslateH', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3382,7 +3382,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFilmTranslateV')
     def setFilmTranslateV(self, translate):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([translate], [('translate', 'double', 'in', None)], self.getFilmTranslateV, self.setFilmTranslateV, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([translate], [('translate', 'double', 'in', None)], self.getFilmTranslateV, self.setFilmTranslateV, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFilmTranslateV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3390,7 +3390,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFocalLength')
     def setFocalLength(self, focalLength):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([focalLength], [('focalLength', 'double', 'in', None)], self.getFocalLength, self.setFocalLength, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([focalLength], [('focalLength', 'double', 'in', None)], self.getFocalLength, self.setFocalLength, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFocalLength', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3398,7 +3398,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFocusDistance')
     def setFocusDistance(self, distance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([distance], [('distance', 'double', 'in', u'linear')], self.getFocusDistance, self.setFocusDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([distance], [('distance', 'double', 'in', u'linear')], self.getFocusDistance, self.setFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFocusDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3410,7 +3410,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalFieldOfView')
     def setHorizontalFieldOfView(self, fov):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([fov], [('fov', 'double', 'in', u'angular')], self.getHorizontalFieldOfView, self.setHorizontalFieldOfView, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([fov], [('fov', 'double', 'in', u'angular')], self.getHorizontalFieldOfView, self.setHorizontalFieldOfView, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalFieldOfView', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3418,7 +3418,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalFilmAperture')
     def setHorizontalFilmAperture(self, hFilmAperture):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hFilmAperture], [('hFilmAperture', 'double', 'in', None)], self.getHorizontalFilmAperture, self.setHorizontalFilmAperture, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hFilmAperture], [('hFilmAperture', 'double', 'in', None)], self.getHorizontalFilmAperture, self.setHorizontalFilmAperture, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalFilmAperture', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3426,7 +3426,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalFilmOffset')
     def setHorizontalFilmOffset(self, hOffset):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hOffset], [('hOffset', 'double', 'in', None)], self.getHorizontalFilmOffset, self.setHorizontalFilmOffset, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hOffset], [('hOffset', 'double', 'in', None)], self.getHorizontalFilmOffset, self.setHorizontalFilmOffset, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalFilmOffset', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3434,7 +3434,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalPan')
     def setHorizontalPan(self, hPan):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hPan], [('hPan', 'double', 'in', None)], self.getHorizontalPan, self.setHorizontalPan, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hPan], [('hPan', 'double', 'in', None)], self.getHorizontalPan, self.setHorizontalPan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalPan', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3442,7 +3442,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalRollPivot')
     def setHorizontalRollPivot(self, horizontalRollPivot):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([horizontalRollPivot], [('horizontalRollPivot', 'double', 'in', u'linear')], self.getHorizontalRollPivot, self.setHorizontalRollPivot, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([horizontalRollPivot], [('horizontalRollPivot', 'double', 'in', u'linear')], self.getHorizontalRollPivot, self.setHorizontalRollPivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalRollPivot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3450,7 +3450,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalShake')
     def setHorizontalShake(self, hOffset):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hOffset], [('hOffset', 'double', 'in', None)], self.getHorizontalShake, self.setHorizontalShake, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hOffset], [('hOffset', 'double', 'in', None)], self.getHorizontalShake, self.setHorizontalShake, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalShake', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3462,7 +3462,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setLensSqueezeRatio')
     def setLensSqueezeRatio(self, aspectRatio):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([aspectRatio], [('aspectRatio', 'double', 'in', None)], self.getLensSqueezeRatio, self.setLensSqueezeRatio, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([aspectRatio], [('aspectRatio', 'double', 'in', None)], self.getLensSqueezeRatio, self.setLensSqueezeRatio, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setLensSqueezeRatio', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3474,7 +3474,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setMotionBlur')
     def setMotionBlur(self, motionBlur):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([motionBlur], [('motionBlur', 'bool', 'in', None)], self.isMotionBlur, self.setMotionBlur, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([motionBlur], [('motionBlur', 'bool', 'in', None)], self.isMotionBlur, self.setMotionBlur, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setMotionBlur', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3483,7 +3483,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setNearClippingPlane')
     def setNearClippingPlane(self, dNear):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClippingPlane, self.setNearClippingPlane, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClippingPlane, self.setNearClippingPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearClippingPlane', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3492,7 +3492,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setNearFocusDistance')
     def setNearFocusDistance(self, nearFocusDistance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([nearFocusDistance], [('nearFocusDistance', 'double', 'in', u'linear')], self.getNearFocusDistance, self.setNearFocusDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([nearFocusDistance], [('nearFocusDistance', 'double', 'in', u'linear')], self.getNearFocusDistance, self.setNearFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFocusDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3500,7 +3500,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setIsOrtho')
     def setOrtho(self, orthoState):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([orthoState], [('orthoState', 'bool', 'in', None)], self.isOrtho, self.setOrtho, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([orthoState], [('orthoState', 'bool', 'in', None)], self.isOrtho, self.setOrtho, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setIsOrtho', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3508,7 +3508,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setOrthoWidth')
     def setOrthoWidth(self, orthoWidth):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([orthoWidth], [('orthoWidth', 'double', 'in', None)], self.getOrthoWidth, self.setOrthoWidth, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([orthoWidth], [('orthoWidth', 'double', 'in', None)], self.getOrthoWidth, self.setOrthoWidth, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setOrthoWidth', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3516,7 +3516,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setOverscan')
     def setOverscan(self, overscan):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([overscan], [('overscan', 'double', 'in', None)], self.getOverscan, self.setOverscan, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([overscan], [('overscan', 'double', 'in', None)], self.getOverscan, self.setOverscan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setOverscan', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3524,7 +3524,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setPanZoomEnabled')
     def setPanZoomEnabled(self, enabled):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getPanZoomEnabled, self.setPanZoomEnabled, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enabled], [('enabled', 'bool', 'in', None)], self.getPanZoomEnabled, self.setPanZoomEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setPanZoomEnabled', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3532,7 +3532,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setPostScale')
     def setPostScale(self, sf):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([sf], [('sf', 'double', 'in', None)], self.getPostScale, self.setPostScale, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([sf], [('sf', 'double', 'in', None)], self.getPostScale, self.setPostScale, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setPostScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3540,7 +3540,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setPreScale')
     def setPreScale(self, sf):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([sf], [('sf', 'double', 'in', None)], self.getPreScale, self.setPreScale, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([sf], [('sf', 'double', 'in', None)], self.getPreScale, self.setPreScale, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setPreScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3548,7 +3548,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setRenderPanZoom')
     def setRenderPanZoom(self, render):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([render], [('render', 'bool', 'in', None)], self.getRenderPanZoom, self.setRenderPanZoom, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([render], [('render', 'bool', 'in', None)], self.getRenderPanZoom, self.setRenderPanZoom, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setRenderPanZoom', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3556,7 +3556,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setShakeEnabled')
     def setShakeEnabled(self, enabled):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getShakeEnabled, self.setShakeEnabled, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enabled], [('enabled', 'bool', 'in', None)], self.getShakeEnabled, self.setShakeEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShakeEnabled', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3564,7 +3564,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setShakeOverscan')
     def setShakeOverscan(self, overscan):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([overscan], [('overscan', 'double', 'in', None)], self.getShakeOverscan, self.setShakeOverscan, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([overscan], [('overscan', 'double', 'in', None)], self.getShakeOverscan, self.setShakeOverscan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShakeOverscan', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3572,7 +3572,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setShakeOverscanEnabled')
     def setShakeOverscanEnabled(self, enabled):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getShakeOverscanEnabled, self.setShakeOverscanEnabled, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enabled], [('enabled', 'bool', 'in', None)], self.getShakeOverscanEnabled, self.setShakeOverscanEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShakeOverscanEnabled', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3580,7 +3580,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setShutterAngle')
     def setShutterAngle(self, shutterAngle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([shutterAngle], [('shutterAngle', 'double', 'in', u'angular')], self.getShutterAngle, self.setShutterAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shutterAngle], [('shutterAngle', 'double', 'in', u'angular')], self.getShutterAngle, self.setShutterAngle, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShutterAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3592,7 +3592,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setStereoHIT')
     def setStereoHIT(self, hit):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hit], [('hit', 'double', 'in', None)], self.getStereoHIT, self.setStereoHIT, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hit], [('hit', 'double', 'in', None)], self.getStereoHIT, self.setStereoHIT, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setStereoHIT', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3600,7 +3600,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setStereoHITEnabled')
     def setStereoHITEnabled(self, enabled):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enabled], [('enabled', 'bool', 'in', None)], self.getStereoHITEnabled, self.setStereoHITEnabled, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enabled], [('enabled', 'bool', 'in', None)], self.getStereoHITEnabled, self.setStereoHITEnabled, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setStereoHITEnabled', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3608,7 +3608,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setTumblePivot')
     def setTumblePivot(self, point):
         # type: (datatypes.Point) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([point], [('point', 'MPoint', 'in', None)], self.getTumblePivot, self.setTumblePivot, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([point], [('point', 'MPoint', 'in', None)], self.getTumblePivot, self.setTumblePivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setTumblePivot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3616,7 +3616,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setUsePivotAsLocalSpace')
     def setUsePivotAsLocalSpace(self, how):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([how], [('how', 'bool', 'in', None)], self.getUsePivotAsLocalSpace, self.setUsePivotAsLocalSpace, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([how], [('how', 'bool', 'in', None)], self.getUsePivotAsLocalSpace, self.setUsePivotAsLocalSpace, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setUsePivotAsLocalSpace', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3624,7 +3624,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalFieldOfView')
     def setVerticalFieldOfView(self, fov):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([fov], [('fov', 'double', 'in', u'angular')], self.getVerticalFieldOfView, self.setVerticalFieldOfView, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([fov], [('fov', 'double', 'in', u'angular')], self.getVerticalFieldOfView, self.setVerticalFieldOfView, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalFieldOfView', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3632,7 +3632,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalFilmAperture')
     def setVerticalFilmAperture(self, vFilmAperture):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vFilmAperture], [('vFilmAperture', 'double', 'in', None)], self.getVerticalFilmAperture, self.setVerticalFilmAperture, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vFilmAperture], [('vFilmAperture', 'double', 'in', None)], self.getVerticalFilmAperture, self.setVerticalFilmAperture, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalFilmAperture', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3640,7 +3640,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalFilmOffset')
     def setVerticalFilmOffset(self, vOffset):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vOffset], [('vOffset', 'double', 'in', None)], self.getVerticalFilmOffset, self.setVerticalFilmOffset, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vOffset], [('vOffset', 'double', 'in', None)], self.getVerticalFilmOffset, self.setVerticalFilmOffset, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalFilmOffset', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3648,7 +3648,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalLock')
     def setVerticalLock(self, lockFlag):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([lockFlag], [('lockFlag', 'bool', 'in', None)], self.isVerticalLock, self.setVerticalLock, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([lockFlag], [('lockFlag', 'bool', 'in', None)], self.isVerticalLock, self.setVerticalLock, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalLock', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3656,7 +3656,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalPan')
     def setVerticalPan(self, vPan):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vPan], [('vPan', 'double', 'in', None)], self.getVerticalPan, self.setVerticalPan, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vPan], [('vPan', 'double', 'in', None)], self.getVerticalPan, self.setVerticalPan, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalPan', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3664,7 +3664,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalRollPivot')
     def setVerticalRollPivot(self, verticalRollPivot):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([verticalRollPivot], [('verticalRollPivot', 'double', 'in', u'linear')], self.getVerticalRollPivot, self.setVerticalRollPivot, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([verticalRollPivot], [('verticalRollPivot', 'double', 'in', u'linear')], self.getVerticalRollPivot, self.setVerticalRollPivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalRollPivot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3672,7 +3672,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalShake')
     def setVerticalShake(self, vOffset):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vOffset], [('vOffset', 'double', 'in', None)], self.getVerticalShake, self.setVerticalShake, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vOffset], [('vOffset', 'double', 'in', None)], self.getVerticalShake, self.setVerticalShake, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalShake', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3688,7 +3688,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setZoom')
     def setZoom(self, zoom):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([zoom], [('zoom', 'double', 'in', None)], self.getZoom, self.setZoom, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([zoom], [('zoom', 'double', 'in', None)], self.getZoom, self.setZoom, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setZoom', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4336,7 +4336,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setRotateOrientation')
     def _setRotateOrientation(self, quat, space, balance=True):
         # type: (datatypes.Quaternion, datatypes.Space.Space, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([quat, space, balance], [('quat', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotateOrientation, self._setRotateOrientation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([quat, space, balance], [('quat', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotateOrientation, self._setRotateOrientation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotateOrientation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4344,7 +4344,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setRotatePivot')
     def _setRotatePivot(self, point, space, balance=True):
         # type: (datatypes.Point, datatypes.Space.Space, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotatePivot, self._setRotatePivot, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getRotatePivot, self._setRotatePivot, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotatePivot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4352,7 +4352,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setRotatePivotTranslation')
     def _setRotatePivotTranslation(self, vector, space):
         # type: (datatypes.Vector, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotatePivotTranslation, self._setRotatePivotTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotatePivotTranslation, self._setRotatePivotTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotatePivotTranslation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4360,7 +4360,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setRotation')
     def _setRotation(self, quaternion, space='transform'):
         # type: (datatypes.Quaternion, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([quaternion, space], [('quaternion', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotation, self._setRotation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([quaternion, space], [('quaternion', 'MQuaternion', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotation, self._setRotation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4368,7 +4368,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setScale')
     def _setScale(self, scale):
         # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([scale], [('scale', 'double__array3', 'in', None)], self.getScale, self._setScale, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([scale], [('scale', 'double__array3', 'in', None)], self.getScale, self._setScale, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4376,7 +4376,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setScalePivot')
     def _setScalePivot(self, point, space, balance=True):
         # type: (datatypes.Point, datatypes.Space.Space, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getScalePivot, self._setScalePivot, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self._getScalePivot, self._setScalePivot, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setScalePivot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4384,7 +4384,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setScalePivotTranslation')
     def _setScalePivotTranslation(self, vector, space):
         # type: (datatypes.Vector, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getScalePivotTranslation, self._setScalePivotTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getScalePivotTranslation, self._setScalePivotTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setScalePivotTranslation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4392,7 +4392,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setShear')
     def _setShear(self, shear):
         # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([shear], [('shear', 'double__array3', 'in', None)], self.getShear, self._setShear, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shear], [('shear', 'double__array3', 'in', None)], self.getShear, self._setShear, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setShear', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4400,7 +4400,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setTranslation')
     def _setTranslation(self, vector, space):
         # type: (datatypes.Vector, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getTranslation, self._setTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getTranslation, self._setTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setTranslation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4440,7 +4440,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'enableLimit')
     def enableLimit(self, type, flag):
         # type: (Transform.LimitType, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([type, flag], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('flag', 'bool', 'in', None)], self.isLimited, self.enableLimit, ['type'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([type, flag], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('flag', 'bool', 'in', None)], self.isLimited, self.enableLimit, ['type'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'enableLimit', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4535,7 +4535,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'set')
     def set(self, transform):
         # type: (datatypes.TransformationMatrix) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([transform], [('transform', 'MTransformationMatrix', 'in', None)], self.transformation, self.set, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transform], [('transform', 'MTransformationMatrix', 'in', None)], self.transformation, self.set, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'set', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4544,7 +4544,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setLimit')
     def setLimit(self, type, value):
         # type: (Transform.LimitType, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([type, value], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('value', 'double', 'in', u'linear')], self.limitValue, self.setLimit, ['type'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([type, value], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('value', 'double', 'in', u'linear')], self.limitValue, self.setLimit, ['type'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setLimit', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4556,7 +4556,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setRestPosition')
     def setRestPosition(self, matrix):
         # type: (datatypes.TransformationMatrix) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([matrix], [('matrix', 'MTransformationMatrix', 'in', None)], self.getRestPosition, self.setRestPosition, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([matrix], [('matrix', 'MTransformationMatrix', 'in', None)], self.getRestPosition, self.setRestPosition, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRestPosition', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4568,7 +4568,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setRotationOrder')
     def setRotationOrder(self, order, reorder):
         # type: (datatypes.TransformationMatrix.RotationOrder, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([order, reorder], [('order', ('MTransformationMatrix', 'RotationOrder'), 'in', None), ('reorder', 'bool', 'in', None)], self.getRotationOrder, self.setRotationOrder, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([order, reorder], [('order', ('MTransformationMatrix', 'RotationOrder'), 'in', None), ('reorder', 'bool', 'in', None)], self.getRotationOrder, self.setRotationOrder, [])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationOrder', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4858,7 +4858,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setDegreesOfFreedom')
     def setDegreesOfFreedom(self, freeInX, freeInY, freeInZ):
         # type: (bool, bool, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([freeInX, freeInY, freeInZ], [('freeInX', 'bool', 'in', None), ('freeInY', 'bool', 'in', None), ('freeInZ', 'bool', 'in', None)], self.getDegreesOfFreedom, self.setDegreesOfFreedom, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([freeInX, freeInY, freeInZ], [('freeInX', 'bool', 'in', None), ('freeInY', 'bool', 'in', None), ('freeInZ', 'bool', 'in', None)], self.getDegreesOfFreedom, self.setDegreesOfFreedom, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setDegreesOfFreedom', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4890,7 +4890,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampXRange')
     def setMaxRotateDampXRange(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampXRange, self.setMaxRotateDampXRange, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampXRange, self.setMaxRotateDampXRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampXRange', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4898,7 +4898,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampXStrength')
     def setMaxRotateDampXStrength(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampXStrength, self.setMaxRotateDampXStrength, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampXStrength, self.setMaxRotateDampXStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampXStrength', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4906,7 +4906,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampYRange')
     def setMaxRotateDampYRange(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampYRange, self.setMaxRotateDampYRange, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampYRange, self.setMaxRotateDampYRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampYRange', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4914,7 +4914,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampYStrength')
     def setMaxRotateDampYStrength(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampYStrength, self.setMaxRotateDampYStrength, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampYStrength, self.setMaxRotateDampYStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampYStrength', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4922,7 +4922,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampZRange')
     def setMaxRotateDampZRange(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampZRange, self.setMaxRotateDampZRange, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampZRange, self.setMaxRotateDampZRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampZRange', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4930,7 +4930,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMaxRotateDampZStrength')
     def setMaxRotateDampZStrength(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampZStrength, self.setMaxRotateDampZStrength, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMaxRotateDampZStrength, self.setMaxRotateDampZStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMaxRotateDampZStrength', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4938,7 +4938,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampXRange')
     def setMinRotateDampXRange(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampXRange, self.setMinRotateDampXRange, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampXRange, self.setMinRotateDampXRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampXRange', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4946,7 +4946,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampXStrength')
     def setMinRotateDampXStrength(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampXStrength, self.setMinRotateDampXStrength, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampXStrength, self.setMinRotateDampXStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampXStrength', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4954,7 +4954,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampYRange')
     def setMinRotateDampYRange(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampYRange, self.setMinRotateDampYRange, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampYRange, self.setMinRotateDampYRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampYRange', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4962,7 +4962,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampYStrength')
     def setMinRotateDampYStrength(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampYStrength, self.setMinRotateDampYStrength, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampYStrength, self.setMinRotateDampYStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampYStrength', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4970,7 +4970,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampZRange')
     def setMinRotateDampZRange(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampZRange, self.setMinRotateDampZRange, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampZRange, self.setMinRotateDampZRange, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampZRange', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4978,7 +4978,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setMinRotateDampZStrength')
     def setMinRotateDampZStrength(self, angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampZStrength, self.setMinRotateDampZStrength, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([angle], [('angle', 'double', 'in', None)], self.getMinRotateDampZStrength, self.setMinRotateDampZStrength, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setMinRotateDampZStrength', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4986,7 +4986,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setOrientation')
     def setOrientation(self, quaternion):
         # type: (datatypes.Quaternion) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([quaternion], [('quaternion', 'MQuaternion', 'in', None)], self.getOrientation, self.setOrientation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([quaternion], [('quaternion', 'MQuaternion', 'in', None)], self.getOrientation, self.setOrientation, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setOrientation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4994,7 +4994,7 @@ class Joint(Transform):
     @_f.maya_deprecated
     def setPreferedAngle(self, rotation):
         # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([rotation], [('rotation', 'double__array3', 'in', None)], self.getPreferedAngle, self.setPreferedAngle, ['rotation'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([rotation], [('rotation', 'double__array3', 'in', None)], self.getPreferedAngle, self.setPreferedAngle, ['rotation'])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setPreferedAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5002,7 +5002,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setPreferredAngle')
     def setPreferredAngle(self, rotation):
         # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([rotation], [('rotation', 'double__array3', 'in', None)], self.getPreferredAngle, self.setPreferredAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([rotation], [('rotation', 'double__array3', 'in', None)], self.getPreferredAngle, self.setPreferredAngle, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setPreferredAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5022,7 +5022,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setScaleOrientation')
     def setScaleOrientation(self, quaternion):
         # type: (datatypes.Quaternion) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([quaternion], [(u'quaternion', 'MQuaternion', u'in', None)], self.getScaleOrientation, self.setScaleOrientation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([quaternion], [(u'quaternion', 'MQuaternion', u'in', None)], self.getScaleOrientation, self.setScaleOrientation, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setScaleOrientation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5030,7 +5030,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setSegmentScale')
     def setSegmentScale(self, scale):
         # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([scale], [('scale', 'double__array3', 'in', None)], self.getSegmentScale, self.setSegmentScale, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([scale], [('scale', 'double__array3', 'in', None)], self.getSegmentScale, self.setSegmentScale, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setSegmentScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5038,7 +5038,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setStiffness')
     def setStiffness(self, stiffness):
         # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([stiffness], [('stiffness', 'double__array3', 'in', None)], self.getStiffness, self.setStiffness, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([stiffness], [('stiffness', 'double__array3', 'in', None)], self.getStiffness, self.setStiffness, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setStiffness', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5085,7 +5085,7 @@ class DynBase(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5509,7 +5509,7 @@ class Constraint(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5849,7 +5849,7 @@ class NurbsCurve(CurveShape):
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setCV')
     def setCV(self, index, pt, space='preTransform'):
         # type: (int, datatypes.Point, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, pt, space], [('index', 'uint', 'in', None), ('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCV, self.setCV, ['index', 'space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, pt, space], [('index', 'uint', 'in', None), ('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCV, self.setCV, ['index', 'space'])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setCV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5857,7 +5857,7 @@ class NurbsCurve(CurveShape):
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setCVs')
     def setCVs(self, array, space='preTransform'):
         # type: (List[datatypes.Point], datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([array, space], [('array', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCVs, self.setCVs, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([array, space], [('array', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCVs, self.setCVs, ['space'])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setCVs', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5865,7 +5865,7 @@ class NurbsCurve(CurveShape):
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setKnot')
     def setKnot(self, index, param):
         # type: (int, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, param], [('index', 'uint', 'in', None), ('param', 'double', 'in', None)], self.getKnot, self.setKnot, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, param], [('index', 'uint', 'in', None), ('param', 'double', 'in', None)], self.getKnot, self.setKnot, ['index'])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setKnot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5873,7 +5873,7 @@ class NurbsCurve(CurveShape):
     @_f.addApiDocs(_api.MFnNurbsCurve, 'setKnots')
     def setKnots(self, array, startIndex, endIndex):
         # type: (List[float], int, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnots, self.setKnots, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnots, self.setKnots, [])
         res = _f.getProxyResult(self, _api.MFnNurbsCurve, 'setKnots', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -6462,7 +6462,7 @@ class NurbsSurface(SurfaceShape):
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setCV')
     def setCV(self, indexU, indexV, pt, space='preTransform'):
         # type: (int, int, datatypes.Point, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([indexU, indexV, pt, space], [('indexU', 'uint', 'in', None), ('indexV', 'uint', 'in', None), ('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCV, self.setCV, ['indexU', 'indexV', 'space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([indexU, indexV, pt, space], [('indexU', 'uint', 'in', None), ('indexV', 'uint', 'in', None), ('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCV, self.setCV, ['indexU', 'indexV', 'space'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setCV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -6470,7 +6470,7 @@ class NurbsSurface(SurfaceShape):
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setCVs')
     def setCVs(self, array, space='preTransform'):
         # type: (List[datatypes.Point], datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([array, space], [('array', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCVs, self.setCVs, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([array, space], [('array', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getCVs, self.setCVs, ['space'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setCVs', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -6478,7 +6478,7 @@ class NurbsSurface(SurfaceShape):
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotInU')
     def setKnotInU(self, index, param):
         # type: (int, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, param], [(u'index', 'int', 'in', None), (u'param', 'double', u'in', None)], self.getKnotInU, self.setKnotInU, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, param], [(u'index', 'int', 'in', None), (u'param', 'double', u'in', None)], self.getKnotInU, self.setKnotInU, ['index'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotInU', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -6486,7 +6486,7 @@ class NurbsSurface(SurfaceShape):
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotInV')
     def setKnotInV(self, index, param):
         # type: (int, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, param], [('index', 'uint', 'in', None), ('param', 'double', 'in', None)], self.getKnotInV, self.setKnotInV, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, param], [('index', 'uint', 'in', None), ('param', 'double', 'in', None)], self.getKnotInV, self.setKnotInV, ['index'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotInV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -6494,7 +6494,7 @@ class NurbsSurface(SurfaceShape):
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotsInU')
     def setKnotsInU(self, array, startIndex, endIndex):
         # type: (List[float], int, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnotsInU, self.setKnotsInU, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnotsInU, self.setKnotsInU, [])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotsInU', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -6502,7 +6502,7 @@ class NurbsSurface(SurfaceShape):
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotsInV')
     def setKnotsInV(self, array, startIndex, endIndex):
         # type: (List[float], int, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnotsInV, self.setKnotsInV, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([array, startIndex, endIndex], [('array', 'MDoubleArray', 'in', None), ('startIndex', 'uint', 'in', None), ('endIndex', 'uint', 'in', None)], self.getKnotsInV, self.setKnotsInV, [])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotsInV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7593,7 +7593,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setCheckSamePointTwice')
     def setCheckSamePointTwice(self, check=True):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([check], [('check', 'bool', 'in', None)], self.getCheckSamePointTwice, self.setCheckSamePointTwice, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([check], [('check', 'bool', 'in', None)], self.getCheckSamePointTwice, self.setCheckSamePointTwice, [])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setCheckSamePointTwice', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7601,7 +7601,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setColor')
     def setColor(self, colorId, color, colorSet=None):
         # type: (int, datatypes.Color, unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([colorId, color, colorSet], [('colorId', 'int', 'in', None), ('color', 'MColor', 'in', None), ('colorSet', 'MString', 'in', None)], self.getColor, self.setColor, ['colorId', 'colorSet', 'defaultUnsetColor'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([colorId, color, colorSet], [('colorId', 'int', 'in', None), ('color', 'MColor', 'in', None), ('colorSet', 'MString', 'in', None)], self.getColor, self.setColor, ['colorId', 'colorSet', 'defaultUnsetColor'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7609,7 +7609,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setIsColorClamped')
     def setColorClamped(self, colorSet, clamped):
         # type: (unicode, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([colorSet, clamped], [('colorSet', 'MString', 'in', None), ('clamped', 'bool', 'in', None)], self.isColorClamped, self.setColorClamped, ['colorSet'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([colorSet, clamped], [('colorSet', 'MString', 'in', None), ('clamped', 'bool', 'in', None)], self.isColorClamped, self.setColorClamped, ['colorSet'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setIsColorClamped', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7617,7 +7617,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setColors')
     def setColors(self, colorArray, colorSet=None):
         # type: (List[datatypes.Color], unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([colorArray, colorSet], [('colorArray', 'MColorArray', 'in', None), ('colorSet', 'MString', 'in', None)], self.getColors, self.setColors, ['colorSet', 'defaultUnsetColor'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([colorArray, colorSet], [('colorArray', 'MColorArray', 'in', None), ('colorSet', 'MString', 'in', None)], self.getColors, self.setColors, ['colorSet', 'defaultUnsetColor'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setColors', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7625,7 +7625,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setCurrentColorSetName')
     def setCurrentColorSetName(self, setName, modifier=None, currentSelection=None):
         # type: (unicode, datatypes.DGModifier, SelectionSet) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)], self.getCurrentColorSetName, self.setCurrentColorSetName, ['instance'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)], self.getCurrentColorSetName, self.setCurrentColorSetName, ['instance'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setCurrentColorSetName', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7633,7 +7633,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setCurrentUVSetName')
     def setCurrentUVSetName(self, setName, modifier=None, currentSelection=None):
         # type: (unicode, datatypes.DGModifier, SelectionSet) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)], self.getCurrentUVSetName, self.setCurrentUVSetName, ['instance'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)], self.getCurrentUVSetName, self.setCurrentUVSetName, ['instance'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setCurrentUVSetName', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7641,7 +7641,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setDisplayColors')
     def setDisplayColors(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getDisplayColors, self.setDisplayColors, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getDisplayColors, self.setDisplayColors, [])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setDisplayColors', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7691,7 +7691,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setNormals')
     def setNormals(self, normals, space='preTransform'):
         # type: (List[datatypes.FloatVector], datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([normals, space], [('normals', 'MFloatVectorArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getNormals, self.setNormals, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([normals, space], [('normals', 'MFloatVectorArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getNormals, self.setNormals, ['space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setNormals', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7699,7 +7699,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setPoint')
     def setPoint(self, vertexId, pos, space='preTransform'):
         # type: (int, datatypes.Point, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vertexId, pos, space], [('vertexId', 'int', 'in', None), ('pos', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['vertexId', 'space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vertexId, pos, space], [('vertexId', 'int', 'in', None), ('pos', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['vertexId', 'space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setPoint', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7707,7 +7707,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setPoints')
     def setPoints(self, vertexArray, space='preTransform'):
         # type: (List[datatypes.Point], datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vertexArray, space], [(u'vertexArray', 'MPointArray', u'in', None), (u'space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vertexArray, space], [(u'vertexArray', 'MPointArray', u'in', None), (u'space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setPoints', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7729,7 +7729,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setUV')
     def setUV(self, uvId, u, v, uvSet=None):
         # type: (int, float, float, unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([uvId, u, v, uvSet], [('uvId', 'int', 'in', None), ('u', 'float', 'in', None), ('v', 'float', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['uvId', 'uvSet'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([uvId, u, v, uvSet], [('uvId', 'int', 'in', None), ('u', 'float', 'in', None), ('v', 'float', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['uvId', 'uvSet'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setUV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7737,7 +7737,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setUVs')
     def setUVs(self, uArray, vArray, uvSet=None):
         # type: (List[float], List[float], unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([uArray, vArray, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([uArray, vArray, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setUVs', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7752,7 +7752,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setVertexNormal')
     def setVertexNormal(self, normalIn, vertexId, space='preTransform', modifier=None):
         # type: (datatypes.Vector, int, datatypes.Space.Space, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([normalIn, vertexId, space, modifier], [('normalIn', 'MVector', 'in', None), ('vertexId', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getVertexNormal, self.setVertexNormal, ['vertexId', 'space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([normalIn, vertexId, space, modifier], [('normalIn', 'MVector', 'in', None), ('vertexId', 'int', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getVertexNormal, self.setVertexNormal, ['vertexId', 'space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setVertexNormal', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -8169,7 +8169,7 @@ class Lattice(ControlPoint):
     @_f.addApiDocs(_api.MFnLattice, 'setDivisions')
     def setDivisions(self, s, t, u):
         # type: (int, int, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([s, t, u], [('s', 'uint', 'in', None), ('t', 'uint', 'in', None), ('u', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([s, t, u], [('s', 'uint', 'in', None), ('t', 'uint', 'in', None), ('u', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
         res = _f.getProxyResult(self, _api.MFnLattice, 'setDivisions', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -8559,7 +8559,7 @@ class Particle(DeformableShape):
     @_f.addApiDocs(_api.MFnParticleSystem, 'setCount')
     def setCount(self, count):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([count], [('count', 'uint', 'in', None)], self.getCount, self.setCount, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([count], [('count', 'uint', 'in', None)], self.getCount, self.setCount, [])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'setCount', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -8579,7 +8579,7 @@ class Particle(DeformableShape):
     @_f.addApiDocs(_api.MFnParticleSystem, 'setPerParticleAttribute')
     def setPerParticleAttribute(self, attrName, array):
         # type: (unicode, List[datatypes.Vector]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([attrName, array], [('attrName', 'MString', 'in', None), ('array', 'MVectorArray', 'in', None)], self.getPerParticleAttribute, self.setPerParticleAttribute, ['attrName'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([attrName, array], [('attrName', 'MString', 'in', None), ('array', 'MVectorArray', 'in', None)], self.getPerParticleAttribute, self.setPerParticleAttribute, ['attrName'])
         res = _f.getProxyResult(self, _api.MFnParticleSystem, 'setPerParticleAttribute', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -9487,7 +9487,7 @@ class ObjectSet(Entity):
     @_f.addApiDocs(_api.MFnSet, 'setAnnotation')
     def setAnnotation(self, annotation):
         # type: (unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([annotation], [('annotation', 'MString', 'in', None)], self.getAnnotation, self.setAnnotation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([annotation], [('annotation', 'MString', 'in', None)], self.getAnnotation, self.setAnnotation, [])
         res = _f.getProxyResult(self, _api.MFnSet, 'setAnnotation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10128,7 +10128,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setIsBreakdown')
     def setBreakdown(self, index, isBreakdown, change=None):
         # type: (int, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, isBreakdown, change], [('index', 'uint', 'in', None), ('isBreakdown', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isBreakdown, self.setBreakdown, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, isBreakdown, change], [('index', 'uint', 'in', None), ('isBreakdown', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isBreakdown, self.setBreakdown, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setIsBreakdown', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10136,7 +10136,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setInTangentType')
     def setInTangentType(self, index, tangentType, change=None):
         # type: (int, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getInTangentType, self.setInTangentType, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getInTangentType, self.setInTangentType, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setInTangentType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10144,7 +10144,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setOutTangentType')
     def setOutTangentType(self, index, tangentType, change=None):
         # type: (int, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getOutTangentType, self.setOutTangentType, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getOutTangentType, self.setOutTangentType, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setOutTangentType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10152,7 +10152,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setPostInfinityType')
     def setPostInfinityType(self, infinityType, change=None):
         # type: (AnimCurve.InfinityType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPostInfinityType, self.setPostInfinityType, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPostInfinityType, self.setPostInfinityType, [])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setPostInfinityType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10160,7 +10160,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setPreInfinityType')
     def setPreInfinityType(self, infinityType, change=None):
         # type: (AnimCurve.InfinityType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPreInfinityType, self.setPreInfinityType, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPreInfinityType, self.setPreInfinityType, [])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setPreInfinityType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10175,7 +10175,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTangentsLocked')
     def setTangentsLocked(self, index, locked, change=None):
         # type: (int, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTangentsLocked, self.setTangentsLocked, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTangentsLocked, self.setTangentsLocked, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTangentsLocked', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10183,7 +10183,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTime')
     def setTime(self, index, time, change=None):
         # type: (int, datatypes.Time, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, time, change], [('index', 'uint', 'in', None), ('time', 'MTime', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTime, self.setTime, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, time, change], [('index', 'uint', 'in', None), ('time', 'MTime', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTime, self.setTime, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTime', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10191,7 +10191,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setUnitlessInput')
     def setUnitlessInput(self, index, unitlessInput, change=None):
         # type: (int, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, unitlessInput, change], [('index', 'uint', 'in', None), ('unitlessInput', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getUnitlessInput, self.setUnitlessInput, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, unitlessInput, change], [('index', 'uint', 'in', None), ('unitlessInput', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getUnitlessInput, self.setUnitlessInput, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setUnitlessInput', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10199,7 +10199,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setValue')
     def setValue(self, index, value, change=None):
         # type: (int, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, value, change], [('index', 'uint', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getValue, self.setValue, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, value, change], [('index', 'uint', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getValue, self.setValue, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setValue', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10214,7 +10214,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setIsWeighted')
     def setWeighted(self, isWeighted, change=None):
         # type: (bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([isWeighted, change], [('isWeighted', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isWeighted, self.setWeighted, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([isWeighted, change], [('isWeighted', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isWeighted, self.setWeighted, [])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setIsWeighted', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10222,7 +10222,7 @@ class AnimCurve(DependNode):
     @_f.addApiDocs(_api.MFnAnimCurve, 'setWeightsLocked')
     def setWeightsLocked(self, index, locked, change=None):
         # type: (int, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getWeightsLocked, self.setWeightsLocked, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getWeightsLocked, self.setWeightsLocked, ['index'])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeightsLocked', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10455,7 +10455,7 @@ class GeometryFilter(DependNode):
     @_f.addApiDocs(_api.MFnGeometryFilter, 'setEnvelope')
     def setEnvelope(self, envelope):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'setEnvelope', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10729,7 +10729,7 @@ class SkinCluster(GeometryFilter):
     @_f.addApiDocs(_api.MFnSkinCluster, 'setBlendWeights')
     def setBlendWeights(self, path, components, weights):
         # type: (general.PyNode, general.PyNode, List[float]) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([path, components, weights], [(u'path', 'MDagPath', 'in', None), (u'components', 'MObject', 'in', None), (u'weights', 'MDoubleArray', u'in', None)], self.getBlendWeights, self.setBlendWeights, ['path', 'components'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([path, components, weights], [(u'path', 'MDagPath', 'in', None), (u'components', 'MObject', 'in', None), (u'weights', 'MDoubleArray', u'in', None)], self.getBlendWeights, self.setBlendWeights, ['path', 'components'])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'setBlendWeights', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10815,7 +10815,7 @@ class HikHandle(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -15969,7 +15969,7 @@ class AnimClip(DependNode):
     @_f.addApiDocs(_api.MFnClip, 'setAbsoluteChannelSettings')
     def setAbsoluteChannelSettings(self, absoluteChannels, mod=None):
         # type: (List[int], datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([absoluteChannels, mod], [('absoluteChannels', 'MIntArray', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getAbsoluteChannelSettings, self.setAbsoluteChannelSettings, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([absoluteChannels, mod], [('absoluteChannels', 'MIntArray', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getAbsoluteChannelSettings, self.setAbsoluteChannelSettings, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setAbsoluteChannelSettings', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -15977,7 +15977,7 @@ class AnimClip(DependNode):
     @_f.addApiDocs(_api.MFnClip, 'setEnabled')
     def setEnabled(self, val, mod=None):
         # type: (bool, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([val, mod], [('val', 'bool', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getEnabled, self.setEnabled, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([val, mod], [('val', 'bool', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getEnabled, self.setEnabled, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setEnabled', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -15992,7 +15992,7 @@ class AnimClip(DependNode):
     @_f.addApiDocs(_api.MFnClip, 'setPostCycle')
     def setPostCycle(self, cycle, mod=None):
         # type: (float, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cycle, mod], [('cycle', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getPostCycle, self.setPostCycle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cycle, mod], [('cycle', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getPostCycle, self.setPostCycle, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setPostCycle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16000,7 +16000,7 @@ class AnimClip(DependNode):
     @_f.addApiDocs(_api.MFnClip, 'setPreCycle')
     def setPreCycle(self, cycle, mod=None):
         # type: (float, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cycle, mod], [('cycle', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getPreCycle, self.setPreCycle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cycle, mod], [('cycle', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getPreCycle, self.setPreCycle, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setPreCycle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16008,7 +16008,7 @@ class AnimClip(DependNode):
     @_f.addApiDocs(_api.MFnClip, 'setScale')
     def setScale(self, scale, mod=None):
         # type: (float, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([scale, mod], [('scale', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getScale, self.setScale, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([scale, mod], [('scale', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getScale, self.setScale, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16023,7 +16023,7 @@ class AnimClip(DependNode):
     @_f.addApiDocs(_api.MFnClip, 'setStartFrame')
     def setStartFrame(self, start, mod=None):
         # type: (datatypes.Time, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([start, mod], [('start', 'MTime', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getStartFrame, self.setStartFrame, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([start, mod], [('start', 'MTime', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getStartFrame, self.setStartFrame, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setStartFrame', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16031,7 +16031,7 @@ class AnimClip(DependNode):
     @_f.addApiDocs(_api.MFnClip, 'setWeight')
     def setWeight(self, wt, mod=None):
         # type: (float, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([wt, mod], [('wt', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getWeight, self.setWeight, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([wt, mod], [('wt', 'double', 'in', None), ('mod', 'MDGModifier', 'in', None)], self.getWeight, self.setWeight, [])
         res = _f.getProxyResult(self, _api.MFnClip, 'setWeight', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16877,7 +16877,7 @@ class CameraSet(DependNode):
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerActive')
     def setLayerActive(self, index, isActive):
         # type: (int, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, isActive], [('index', 'uint', 'in', None), ('isActive', 'bool', 'in', None)], self.isLayerActive, self.setLayerActive, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, isActive], [('index', 'uint', 'in', None), ('isActive', 'bool', 'in', None)], self.isLayerActive, self.setLayerActive, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerActive', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16885,7 +16885,7 @@ class CameraSet(DependNode):
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerCamera')
     def setLayerCamera(self, index, camera):
         # type: (int, general.PyNode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, camera], [('index', 'uint', 'in', None), ('camera', 'MDagPath', 'in', None)], self.getLayerCamera, self.setLayerCamera, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, camera], [('index', 'uint', 'in', None), ('camera', 'MDagPath', 'in', None)], self.getLayerCamera, self.setLayerCamera, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerCamera', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16893,7 +16893,7 @@ class CameraSet(DependNode):
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerClearDepthValue')
     def setLayerClearDepthValue(self, index, depth):
         # type: (int, bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, depth], [('index', 'uint', 'in', None), ('depth', 'bool', 'in', None)], self.getLayerClearDepthValue, self.setLayerClearDepthValue, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, depth], [('index', 'uint', 'in', None), ('depth', 'bool', 'in', None)], self.getLayerClearDepthValue, self.setLayerClearDepthValue, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerClearDepthValue', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16901,7 +16901,7 @@ class CameraSet(DependNode):
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerOrder')
     def setLayerOrder(self, index, order):
         # type: (int, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, order], [('index', 'uint', 'in', None), ('order', 'int', 'in', None)], self.getLayerOrder, self.setLayerOrder, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, order], [('index', 'uint', 'in', None), ('order', 'int', 'in', None)], self.getLayerOrder, self.setLayerOrder, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerOrder', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -16909,7 +16909,7 @@ class CameraSet(DependNode):
     @_f.addApiDocs(_api.MFnCameraSet, 'setLayerSceneData')
     def setLayerSceneData(self, index, set):
         # type: (int, general.PyNode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, set], [('index', 'uint', 'in', None), ('set', 'MObject', 'in', None)], self.getLayerSceneData, self.setLayerSceneData, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, set], [('index', 'uint', 'in', None), ('set', 'MObject', 'in', None)], self.getLayerSceneData, self.setLayerSceneData, ['index'])
         res = _f.getProxyResult(self, _api.MFnCameraSet, 'setLayerSceneData', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18272,7 +18272,7 @@ class FluidShape(SurfaceShape):
     @_f.addApiDocs(_api.MFnFluid, 'setColorMode')
     def setColorMode(self, method):
         # type: (Fluid.ColorMethod) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([method], [('method', ('MFnFluid', 'ColorMethod'), 'in', None)], self.getColorMode, self.setColorMode, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([method], [('method', ('MFnFluid', 'ColorMethod'), 'in', None)], self.getColorMode, self.setColorMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setColorMode', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18280,7 +18280,7 @@ class FluidShape(SurfaceShape):
     @_f.addApiDocs(_api.MFnFluid, 'setCoordinateMode')
     def setCoordinateMode(self, method):
         # type: (Fluid.CoordinateMethod) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([method], [('method', ('MFnFluid', 'CoordinateMethod'), 'in', None)], self.getCoordinateMode, self.setCoordinateMode, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([method], [('method', ('MFnFluid', 'CoordinateMethod'), 'in', None)], self.getCoordinateMode, self.setCoordinateMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setCoordinateMode', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18288,7 +18288,7 @@ class FluidShape(SurfaceShape):
     @_f.addApiDocs(_api.MFnFluid, 'setDensityMode')
     def setDensityMode(self, method, gradient):
         # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getDensityMode, self.setDensityMode, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getDensityMode, self.setDensityMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setDensityMode', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18296,7 +18296,7 @@ class FluidShape(SurfaceShape):
     @_f.addApiDocs(_api.MFnFluid, 'setFalloffMode')
     def setFalloffMode(self, method):
         # type: (Fluid.FalloffMethod) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([method], [('method', ('MFnFluid', 'FalloffMethod'), 'in', None)], self.getFalloffMode, self.setFalloffMode, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([method], [('method', ('MFnFluid', 'FalloffMethod'), 'in', None)], self.getFalloffMode, self.setFalloffMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setFalloffMode', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18304,7 +18304,7 @@ class FluidShape(SurfaceShape):
     @_f.addApiDocs(_api.MFnFluid, 'setFuelMode')
     def setFuelMode(self, method, gradient):
         # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getFuelMode, self.setFuelMode, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getFuelMode, self.setFuelMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setFuelMode', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18319,7 +18319,7 @@ class FluidShape(SurfaceShape):
     @_f.addApiDocs(_api.MFnFluid, 'setTemperatureMode')
     def setTemperatureMode(self, method, gradient):
         # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getTemperatureMode, self.setTemperatureMode, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getTemperatureMode, self.setTemperatureMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setTemperatureMode', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18327,7 +18327,7 @@ class FluidShape(SurfaceShape):
     @_f.addApiDocs(_api.MFnFluid, 'setVelocityMode')
     def setVelocityMode(self, method, gradient):
         # type: (Fluid.FluidMethod, Fluid.FluidGradient) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getVelocityMode, self.setVelocityMode, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([method, gradient], [('method', ('MFnFluid', 'FluidMethod'), 'in', None), ('gradient', ('MFnFluid', 'FluidGradient'), 'in', None)], self.getVelocityMode, self.setVelocityMode, [])
         res = _f.getProxyResult(self, _api.MFnFluid, 'setVelocityMode', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18894,7 +18894,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setCenterOfIllumination')
     def setCenterOfIllumination(self, dist):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfIllumination, self.setCenterOfIllumination, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfIllumination, self.setCenterOfIllumination, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setCenterOfIllumination', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18902,7 +18902,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setColor')
     def setColor(self, col):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([col], [('col', 'MColor', 'in', None)], self.getColor, self.setColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([col], [('col', 'MColor', 'in', None)], self.getColor, self.setColor, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18910,7 +18910,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setIntensity')
     def setIntensity(self, intens):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([intens], [('intens', 'float', 'in', None)], self.getIntensity, self.setIntensity, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([intens], [('intens', 'float', 'in', None)], self.getIntensity, self.setIntensity, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setIntensity', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18918,7 +18918,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setNumShadowSamples')
     def setNumShadowSamples(self, num_shadow_samples):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([num_shadow_samples], [('num_shadow_samples', 'short', 'in', None)], self.getNumShadowSamples, self.setNumShadowSamples, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([num_shadow_samples], [('num_shadow_samples', 'short', 'in', None)], self.getNumShadowSamples, self.setNumShadowSamples, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setNumShadowSamples', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18926,7 +18926,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setOpticalFXvisibility')
     def setOpticalFXvisibility(self, visibility):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([visibility], [('visibility', 'MColor', 'in', None)], self.getOpticalFXvisibility, self.setOpticalFXvisibility, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([visibility], [('visibility', 'MColor', 'in', None)], self.getOpticalFXvisibility, self.setOpticalFXvisibility, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setOpticalFXvisibility', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18934,7 +18934,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setRayDepthLimit')
     def setRayDepthLimit(self, ray_depth_limit):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([ray_depth_limit], [('ray_depth_limit', 'short', 'in', None)], self.getRayDepthLimit, self.setRayDepthLimit, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([ray_depth_limit], [('ray_depth_limit', 'short', 'in', None)], self.getRayDepthLimit, self.setRayDepthLimit, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setRayDepthLimit', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18942,7 +18942,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setShadowColor')
     def setShadowColor(self, shadow_color):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([shadow_color], [('shadow_color', 'MColor', 'in', None)], self.getShadowColor, self.setShadowColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shadow_color], [('shadow_color', 'MColor', 'in', None)], self.getShadowColor, self.setShadowColor, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setShadowColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -18950,7 +18950,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setUseRayTraceShadows')
     def setUseRayTraceShadows(self, useRayTraceShadows):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([useRayTraceShadows], [('useRayTraceShadows', 'bool', 'in', None)], self.getUseRayTraceShadows, self.setUseRayTraceShadows, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([useRayTraceShadows], [('useRayTraceShadows', 'bool', 'in', None)], self.getUseRayTraceShadows, self.setUseRayTraceShadows, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setUseRayTraceShadows', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19035,7 +19035,7 @@ class AmbientLight(RenderLight):
     @_f.addApiDocs(_api.MFnAmbientLight, 'setAmbientShade')
     def setAmbientShade(self, ambient_shade):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([ambient_shade], [('ambient_shade', 'float', 'in', None)], self.getAmbientShade, self.setAmbientShade, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([ambient_shade], [('ambient_shade', 'float', 'in', None)], self.getAmbientShade, self.setAmbientShade, [])
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'setAmbientShade', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19043,7 +19043,7 @@ class AmbientLight(RenderLight):
     @_f.addApiDocs(_api.MFnAmbientLight, 'setCastSoftShadows')
     def setCastSoftShadows(self, cast_soft_shadows):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cast_soft_shadows], [('cast_soft_shadows', 'bool', 'in', None)], self.getCastSoftShadows, self.setCastSoftShadows, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cast_soft_shadows], [('cast_soft_shadows', 'bool', 'in', None)], self.getCastSoftShadows, self.setCastSoftShadows, [])
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'setCastSoftShadows', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19059,7 +19059,7 @@ class AmbientLight(RenderLight):
     @_f.addApiDocs(_api.MFnAmbientLight, 'setShadowRadius')
     def setShadowRadius(self, shadow_radius):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([shadow_radius], [('shadow_radius', 'float', 'in', None)], self.getShadowRadius, self.setShadowRadius, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shadow_radius], [('shadow_radius', 'float', 'in', None)], self.getShadowRadius, self.setShadowRadius, [])
         res = _f.getProxyResult(self, _api.MFnAmbientLight, 'setShadowRadius', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19087,7 +19087,7 @@ class NonAmbientLightShapeNode(RenderLight):
     @_f.addApiDocs(_api.MFnNonAmbientLight, 'setDecayRate')
     def setDecayRate(self, decay_rate):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([decay_rate], [('decay_rate', 'short', 'in', None)], self.getDecayRate, self.setDecayRate, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([decay_rate], [('decay_rate', 'short', 'in', None)], self.getDecayRate, self.setDecayRate, [])
         res = _f.getProxyResult(self, _api.MFnNonAmbientLight, 'setDecayRate', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19155,7 +19155,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setCastSoftShadows')
     def setCastSoftShadows(self, cast_soft_shadows):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cast_soft_shadows], [('cast_soft_shadows', 'bool', 'in', None)], self.getCastSoftShadows, self.setCastSoftShadows, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cast_soft_shadows], [('cast_soft_shadows', 'bool', 'in', None)], self.getCastSoftShadows, self.setCastSoftShadows, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setCastSoftShadows', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19163,7 +19163,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapBias')
     def setDepthMapBias(self, depth_map_bias):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([depth_map_bias], [('depth_map_bias', 'float', 'in', None)], self.getDepthMapBias, self.setDepthMapBias, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([depth_map_bias], [('depth_map_bias', 'float', 'in', None)], self.getDepthMapBias, self.setDepthMapBias, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapBias', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19171,7 +19171,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapFilterSize')
     def setDepthMapFilterSize(self, depth_map_filter_size):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([depth_map_filter_size], [('depth_map_filter_size', 'short', 'in', None)], self.getDepthMapFilterSize, self.setDepthMapFilterSize, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([depth_map_filter_size], [('depth_map_filter_size', 'short', 'in', None)], self.getDepthMapFilterSize, self.setDepthMapFilterSize, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapFilterSize', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19179,7 +19179,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapFocus')
     def setDepthMapFocus(self, depth_map_focus):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([depth_map_focus], [('depth_map_focus', 'float', 'in', None)], self.getDepthMapFocus, self.setDepthMapFocus, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([depth_map_focus], [('depth_map_focus', 'float', 'in', None)], self.getDepthMapFocus, self.setDepthMapFocus, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapFocus', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19187,7 +19187,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapResolution')
     def setDepthMapResolution(self, depth_map_resolution):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([depth_map_resolution], [('depth_map_resolution', 'short', 'in', None)], self.getDepthMapResolution, self.setDepthMapResolution, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([depth_map_resolution], [('depth_map_resolution', 'short', 'in', None)], self.getDepthMapResolution, self.setDepthMapResolution, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapResolution', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19195,7 +19195,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setDepthMapWidthFocus')
     def setDepthMapWidthFocus(self, depth_map_width_focus):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([depth_map_width_focus], [('depth_map_width_focus', 'float', 'in', None)], self.getDepthMapWidthFocus, self.setDepthMapWidthFocus, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([depth_map_width_focus], [('depth_map_width_focus', 'float', 'in', None)], self.getDepthMapWidthFocus, self.setDepthMapWidthFocus, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setDepthMapWidthFocus', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19203,7 +19203,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setShadowRadius')
     def setShadowRadius(self, shadow_radius):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([shadow_radius], [('shadow_radius', 'float', 'in', None)], self.getShadowRadius, self.setShadowRadius, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shadow_radius], [('shadow_radius', 'float', 'in', None)], self.getShadowRadius, self.setShadowRadius, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setShadowRadius', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19211,7 +19211,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setUseDepthMapAutoFocus')
     def setUseDepthMapAutoFocus(self, use_depth_map_auto_focus):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([use_depth_map_auto_focus], [('use_depth_map_auto_focus', 'bool', 'in', None)], self.getUseDepthMapAutoFocus, self.setUseDepthMapAutoFocus, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([use_depth_map_auto_focus], [('use_depth_map_auto_focus', 'bool', 'in', None)], self.getUseDepthMapAutoFocus, self.setUseDepthMapAutoFocus, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setUseDepthMapAutoFocus', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19219,7 +19219,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'setUseDepthMapShadows')
     def setUseDepthMapShadows(self, use_depth_map):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([use_depth_map], [('use_depth_map', 'bool', 'in', None)], self.getUseDepthMapShadows, self.setUseDepthMapShadows, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([use_depth_map], [('use_depth_map', 'bool', 'in', None)], self.getUseDepthMapShadows, self.setUseDepthMapShadows, [])
         res = _f.getProxyResult(self, _api.MFnNonExtendedLight, 'setUseDepthMapShadows', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19284,7 +19284,7 @@ class DirectionalLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnDirectionalLight, 'setShadowAngle')
     def setShadowAngle(self, shadow_angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([shadow_angle], [('shadow_angle', 'float', 'in', None)], self.getShadowAngle, self.setShadowAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shadow_angle], [('shadow_angle', 'float', 'in', None)], self.getShadowAngle, self.setShadowAngle, [])
         res = _f.getProxyResult(self, _api.MFnDirectionalLight, 'setShadowAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19292,7 +19292,7 @@ class DirectionalLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnDirectionalLight, 'setUseLightPosition')
     def setUseLightPosition(self, use_light_position):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([use_light_position], [('use_light_position', 'bool', 'in', None)], self.getUseLightPosition, self.setUseLightPosition, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([use_light_position], [('use_light_position', 'bool', 'in', None)], self.getUseLightPosition, self.setUseLightPosition, [])
         res = _f.getProxyResult(self, _api.MFnDirectionalLight, 'setUseLightPosition', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19407,7 +19407,7 @@ class VolumeLight(PointLight):
     @_f.addApiDocs(_api.MFnVolumeLight, 'setArc')
     def setArc(self, arc):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([arc], [('arc', 'float', 'in', None)], self.getArc, self.setArc, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([arc], [('arc', 'float', 'in', None)], self.getArc, self.setArc, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setArc', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19415,7 +19415,7 @@ class VolumeLight(PointLight):
     @_f.addApiDocs(_api.MFnVolumeLight, 'setConeEndRadius')
     def setConeEndRadius(self, cone_end_radius):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cone_end_radius], [('cone_end_radius', 'float', 'in', None)], self.getConeEndRadius, self.setConeEndRadius, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cone_end_radius], [('cone_end_radius', 'float', 'in', None)], self.getConeEndRadius, self.setConeEndRadius, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setConeEndRadius', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19423,7 +19423,7 @@ class VolumeLight(PointLight):
     @_f.addApiDocs(_api.MFnVolumeLight, 'setEmitAmbient')
     def setEmitAmbient(self, emit_ambient):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([emit_ambient], [('emit_ambient', 'bool', 'in', None)], self.getEmitAmbient, self.setEmitAmbient, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([emit_ambient], [('emit_ambient', 'bool', 'in', None)], self.getEmitAmbient, self.setEmitAmbient, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setEmitAmbient', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19431,7 +19431,7 @@ class VolumeLight(PointLight):
     @_f.addApiDocs(_api.MFnVolumeLight, 'setLightShape')
     def setLightShape(self, light_shape):
         # type: (VolumeLight.MLightShape) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([light_shape], [('light_shape', ('MFnVolumeLight', 'MLightShape'), 'in', None)], self.getLightShape, self.setLightShape, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([light_shape], [('light_shape', ('MFnVolumeLight', 'MLightShape'), 'in', None)], self.getLightShape, self.setLightShape, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setLightShape', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19439,7 +19439,7 @@ class VolumeLight(PointLight):
     @_f.addApiDocs(_api.MFnVolumeLight, 'setShadowAngle')
     def setShadowAngle(self, shadow_angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([shadow_angle], [('shadow_angle', 'float', 'in', None)], self.getShadowAngle, self.setShadowAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shadow_angle], [('shadow_angle', 'float', 'in', None)], self.getShadowAngle, self.setShadowAngle, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setShadowAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19447,7 +19447,7 @@ class VolumeLight(PointLight):
     @_f.addApiDocs(_api.MFnVolumeLight, 'setVolumeLightDirection')
     def setVolumeLightDirection(self, volume_light_direction):
         # type: (VolumeLight.MLightDirection) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([volume_light_direction], [('volume_light_direction', ('MFnVolumeLight', 'MLightDirection'), 'in', None)], self.getVolumeLightDirection, self.setVolumeLightDirection, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([volume_light_direction], [('volume_light_direction', ('MFnVolumeLight', 'MLightDirection'), 'in', None)], self.getVolumeLightDirection, self.setVolumeLightDirection, [])
         res = _f.getProxyResult(self, _api.MFnVolumeLight, 'setVolumeLightDirection', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19570,7 +19570,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setBarnDoorAngle')
     def setBarnDoorAngle(self, which_door, barn_door_angle):
         # type: (SpotLight.MBarnDoor, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([which_door, barn_door_angle], [('which_door', ('MFnSpotLight', 'MBarnDoor'), 'in', None), ('barn_door_angle', 'double', 'in', u'angular')], self.getBarnDoorAngle, self.setBarnDoorAngle, ['which_door'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([which_door, barn_door_angle], [('which_door', ('MFnSpotLight', 'MBarnDoor'), 'in', None), ('barn_door_angle', 'double', 'in', u'angular')], self.getBarnDoorAngle, self.setBarnDoorAngle, ['which_door'])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setBarnDoorAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19578,7 +19578,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setBarnDoors')
     def setBarnDoors(self, barn_doors):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([barn_doors], [('barn_doors', 'bool', 'in', None)], self.getBarnDoors, self.setBarnDoors, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([barn_doors], [('barn_doors', 'bool', 'in', None)], self.getBarnDoors, self.setBarnDoors, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setBarnDoors', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19590,7 +19590,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setConeAngle')
     def setConeAngle(self, cone_angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cone_angle], [('cone_angle', 'double', 'in', u'angular')], self.getConeAngle, self.setConeAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cone_angle], [('cone_angle', 'double', 'in', u'angular')], self.getConeAngle, self.setConeAngle, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setConeAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19598,7 +19598,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setDropOff')
     def setDropOff(self, drop_off):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([drop_off], [('drop_off', 'double', 'in', None)], self.getDropOff, self.setDropOff, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([drop_off], [('drop_off', 'double', 'in', None)], self.getDropOff, self.setDropOff, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setDropOff', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19606,7 +19606,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setEndDistance')
     def setEndDistance(self, which_region, end_distance):
         # type: (SpotLight.MDecayRegion, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([which_region, end_distance], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None), ('end_distance', 'float', 'in', None)], self.getEndDistance, self.setEndDistance, ['which_region'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([which_region, end_distance], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None), ('end_distance', 'float', 'in', None)], self.getEndDistance, self.setEndDistance, ['which_region'])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setEndDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19618,7 +19618,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setPenumbraAngle')
     def setPenumbra(self, penumbra_angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([penumbra_angle], [('penumbra_angle', 'double', 'in', u'angular')], self.getPenumbra, self.setPenumbra, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([penumbra_angle], [('penumbra_angle', 'double', 'in', u'angular')], self.getPenumbra, self.setPenumbra, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setPenumbraAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19630,7 +19630,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setStartDistance')
     def setStartDistance(self, which_region, start_distance):
         # type: (SpotLight.MDecayRegion, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([which_region, start_distance], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None), ('start_distance', 'float', 'in', None)], self.getStartDistance, self.setStartDistance, ['which_region'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([which_region, start_distance], [('which_region', ('MFnSpotLight', 'MDecayRegion'), 'in', None), ('start_distance', 'float', 'in', None)], self.getStartDistance, self.setStartDistance, ['which_region'])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setStartDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19642,7 +19642,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setUseDecayRegions')
     def setUseDecayRegions(self, use_decay_regions):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([use_decay_regions], [('use_decay_regions', 'bool', 'in', None)], self.getUseDecayRegions, self.setUseDecayRegions, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([use_decay_regions], [('use_decay_regions', 'bool', 'in', None)], self.getUseDecayRegions, self.setUseDecayRegions, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setUseDecayRegions', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -20099,7 +20099,7 @@ class BaseGeometryVarGroup(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -20654,7 +20654,7 @@ class DagContainer(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -20957,7 +20957,7 @@ class Assembly(DagContainer):
     @_f.addApiDocs(_api.MFnAssembly, 'setRepLabel')
     def setRepLabel(self, representation, label):
         # type: (unicode, unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([representation, label], [('representation', 'MString', 'in', None), ('label', 'MString', 'in', None)], self.getRepLabel, self.setRepLabel, ['representation'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([representation, label], [('representation', 'MString', 'in', None), ('label', 'MString', 'in', None)], self.getRepLabel, self.setRepLabel, ['representation'])
         res = _f.getProxyResult(self, _api.MFnAssembly, 'setRepLabel', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21068,7 +21068,7 @@ class Field(DynBase):
     @_f.addApiDocs(_api.MFnField, 'setAttenuation')
     def setAttenuation(self, atten):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([atten], [('atten', 'double', 'in', None)], self.getAttenuation, self.setAttenuation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([atten], [('atten', 'double', 'in', None)], self.getAttenuation, self.setAttenuation, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setAttenuation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21076,7 +21076,7 @@ class Field(DynBase):
     @_f.addApiDocs(_api.MFnField, 'setMagnitude')
     def setMagnitude(self, mag):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([mag], [('mag', 'double', 'in', None)], self.getMagnitude, self.setMagnitude, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([mag], [('mag', 'double', 'in', None)], self.getMagnitude, self.setMagnitude, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setMagnitude', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21084,7 +21084,7 @@ class Field(DynBase):
     @_f.addApiDocs(_api.MFnField, 'setMaxDistance')
     def setMaxDistance(self, dist):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([dist], [('dist', 'double', 'in', u'linear')], self.getMaxDistance, self.setMaxDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', u'linear')], self.getMaxDistance, self.setMaxDistance, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setMaxDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21092,7 +21092,7 @@ class Field(DynBase):
     @_f.addApiDocs(_api.MFnField, 'setPerVertex')
     def setPerVertex(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getPerVertex, self.setPerVertex, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getPerVertex, self.setPerVertex, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setPerVertex', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21100,7 +21100,7 @@ class Field(DynBase):
     @_f.addApiDocs(_api.MFnField, 'setUseMaxDistance')
     def setUseMaxDistance(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getUseMaxDistance, self.setUseMaxDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getUseMaxDistance, self.setUseMaxDistance, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setUseMaxDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21218,7 +21218,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setComponentOnly')
     def setComponentOnly(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getComponentOnly, self.setComponentOnly, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getComponentOnly, self.setComponentOnly, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setComponentOnly', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21226,7 +21226,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setDirection')
     def setDirection(self, airDirection):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([airDirection], [('airDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([airDirection], [('airDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setDirection', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21246,7 +21246,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setEnableSpread')
     def setEnableSpread(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getEnableSpread, self.setEnableSpread, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getEnableSpread, self.setEnableSpread, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setEnableSpread', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21254,7 +21254,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setInheritRotation')
     def setInheritRotation(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getInheritRotation, self.setInheritRotation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getInheritRotation, self.setInheritRotation, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setInheritRotation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21262,7 +21262,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setInheritVelocity')
     def setInheritVelocity(self, velocity):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([velocity], [('velocity', 'double', 'in', None)], self.getInheritVelocity, self.setInheritVelocity, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([velocity], [('velocity', 'double', 'in', None)], self.getInheritVelocity, self.setInheritVelocity, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setInheritVelocity', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21274,7 +21274,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setSpeed')
     def setSpeed(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getSpeed, self.setSpeed, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', None)], self.getSpeed, self.setSpeed, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setSpeed', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21282,7 +21282,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setSpread')
     def setSpread(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'double', 'in', u'angular')], self.getSpread, self.setSpread, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', u'angular')], self.getSpread, self.setSpread, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setSpread', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21383,7 +21383,7 @@ class DragField(Field):
     @_f.addApiDocs(_api.MFnDragField, 'setDirection')
     def setDirection(self, dragDirection):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([dragDirection], [('dragDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dragDirection], [('dragDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnDragField, 'setDirection', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21407,7 +21407,7 @@ class DragField(Field):
     @_f.addApiDocs(_api.MFnDragField, 'setUseDirection')
     def setUseDirection(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getUseDirection, self.setUseDirection, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getUseDirection, self.setUseDirection, [])
         res = _f.getProxyResult(self, _api.MFnDragField, 'setUseDirection', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21486,7 +21486,7 @@ class GravityField(Field):
     @_f.addApiDocs(_api.MFnGravityField, 'setDirection')
     def setDirection(self, gravityDirection):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([gravityDirection], [('gravityDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([gravityDirection], [('gravityDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnGravityField, 'setDirection', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21538,7 +21538,7 @@ class NewtonField(Field):
     @_f.addApiDocs(_api.MFnNewtonField, 'setMinDistance')
     def setMinDistance(self, distance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([distance], [('distance', 'double', 'in', None)], self.getMinDistance, self.setMinDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([distance], [('distance', 'double', 'in', None)], self.getMinDistance, self.setMinDistance, [])
         res = _f.getProxyResult(self, _api.MFnNewtonField, 'setMinDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21558,7 +21558,7 @@ class RadialField(Field):
     @_f.addApiDocs(_api.MFnRadialField, 'setType')
     def setRadialType(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getRadialType, self.setRadialType, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', None)], self.getRadialType, self.setRadialType, [])
         res = _f.getProxyResult(self, _api.MFnRadialField, 'setType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21638,7 +21638,7 @@ class TurbulenceField(Field):
     @_f.addApiDocs(_api.MFnTurbulenceField, 'setFrequency')
     def setFrequency(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getFrequency, self.setFrequency, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', None)], self.getFrequency, self.setFrequency, [])
         res = _f.getProxyResult(self, _api.MFnTurbulenceField, 'setFrequency', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21654,7 +21654,7 @@ class TurbulenceField(Field):
     @_f.addApiDocs(_api.MFnTurbulenceField, 'setPhase')
     def setPhase(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getPhase, self.setPhase, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', None)], self.getPhase, self.setPhase, [])
         res = _f.getProxyResult(self, _api.MFnTurbulenceField, 'setPhase', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21749,7 +21749,7 @@ class UniformField(Field):
     @_f.addApiDocs(_api.MFnUniformField, 'setDirection')
     def setDirection(self, uniformDirection):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([uniformDirection], [('uniformDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([uniformDirection], [('uniformDirection', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnUniformField, 'setDirection', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21949,7 +21949,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setDirection')
     def setDirection(self, direction):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([direction], [('direction', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([direction], [('direction', 'MVector', 'in', None)], self.getDirection, self.setDirection, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setDirection', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21969,7 +21969,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setDirectionalSpeed')
     def setDirectionalSpeed(self, speed):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getDirectionalSpeed, self.setDirectionalSpeed, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([speed], [('speed', 'double', 'in', None)], self.getDirectionalSpeed, self.setDirectionalSpeed, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setDirectionalSpeed', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21977,7 +21977,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setInvertAttenuation')
     def setInvertAttenuation(self, enable):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([enable], [('enable', 'bool', 'in', None)], self.getInvertAttenuation, self.setInvertAttenuation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([enable], [('enable', 'bool', 'in', None)], self.getInvertAttenuation, self.setInvertAttenuation, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setInvertAttenuation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21985,7 +21985,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAlongAxis')
     def setSpeedAlongAxis(self, speed):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAlongAxis, self.setSpeedAlongAxis, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([speed], [('speed', 'double', 'in', None)], self.getSpeedAlongAxis, self.setSpeedAlongAxis, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAlongAxis', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21993,7 +21993,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAroundAxis')
     def setSpeedAroundAxis(self, speed):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAroundAxis, self.setSpeedAroundAxis, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([speed], [('speed', 'double', 'in', None)], self.getSpeedAroundAxis, self.setSpeedAroundAxis, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAroundAxis', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22001,7 +22001,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAwayFromAxis')
     def setSpeedAwayFromAxis(self, speed):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAwayFromAxis, self.setSpeedAwayFromAxis, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([speed], [('speed', 'double', 'in', None)], self.getSpeedAwayFromAxis, self.setSpeedAwayFromAxis, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAwayFromAxis', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22009,7 +22009,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setSpeedAwayFromCenter')
     def setSpeedAwayFromCenter(self, speed):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([speed], [('speed', 'double', 'in', None)], self.getSpeedAwayFromCenter, self.setSpeedAwayFromCenter, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([speed], [('speed', 'double', 'in', None)], self.getSpeedAwayFromCenter, self.setSpeedAwayFromCenter, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setSpeedAwayFromCenter', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22021,7 +22021,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulence')
     def setTurbulence(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getTurbulence, self.setTurbulence, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', None)], self.getTurbulence, self.setTurbulence, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulence', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22029,7 +22029,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulenceFrequency')
     def setTurbulenceFrequency(self, value):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'MVector', 'in', None)], self.getTurbulenceFrequency, self.setTurbulenceFrequency, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'MVector', 'in', None)], self.getTurbulenceFrequency, self.setTurbulenceFrequency, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulenceFrequency', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22049,7 +22049,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulenceOffset')
     def setTurbulenceOffset(self, value):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'MVector', 'in', None)], self.getTurbulenceOffset, self.setTurbulenceOffset, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'MVector', 'in', None)], self.getTurbulenceOffset, self.setTurbulenceOffset, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulenceOffset', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22069,7 +22069,7 @@ class VolumeAxisField(Field):
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'setTurbulenceSpeed')
     def setTurbulenceSpeed(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'double', 'in', None)], self.getTurbulenceSpeed, self.setTurbulenceSpeed, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', None)], self.getTurbulenceSpeed, self.setTurbulenceSpeed, [])
         res = _f.getProxyResult(self, _api.MFnVolumeAxisField, 'setTurbulenceSpeed', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22148,7 +22148,7 @@ class VortexField(Field):
     @_f.addApiDocs(_api.MFnVortexField, 'setAxis')
     def setAxis(self, axisVector):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([axisVector], [('axisVector', 'MVector', 'in', None)], self.getAxis, self.setAxis, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([axisVector], [('axisVector', 'MVector', 'in', None)], self.getAxis, self.setAxis, [])
         res = _f.getProxyResult(self, _api.MFnVortexField, 'setAxis', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22228,7 +22228,7 @@ class HikEffector(Transform):
     @_f.addApiDocs(_api.MFnHikEffector, 'setEffColor')
     def setEffColor(self, color):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([color], [('color', 'MColor', 'in', None)], self.getEffColor, self.setEffColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([color], [('color', 'MColor', 'in', None)], self.getEffColor, self.setEffColor, [])
         res = _f.getProxyResult(self, _api.MFnHikEffector, 'setEffColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22236,7 +22236,7 @@ class HikEffector(Transform):
     @_f.addApiDocs(_api.MFnHikEffector, 'setPivotOffset')
     def setPivotOffset(self, vector):
         # type: (datatypes.Vector) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([vector], [('vector', 'MVector', 'in', None)], self.getPivotOffset, self.setPivotOffset, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector], [('vector', 'MVector', 'in', None)], self.getPivotOffset, self.setPivotOffset, [])
         res = _f.getProxyResult(self, _api.MFnHikEffector, 'setPivotOffset', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22256,7 +22256,7 @@ class HikGroundPlane(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22276,7 +22276,7 @@ class HikIKEffector(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22418,7 +22418,7 @@ class IkHandle(Transform):
     @_f.addApiDocs(_api.MFnIkHandle, 'setEffector')
     def setEffector(self, effectorPath):
         # type: (general.PyNode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([effectorPath], [('effectorPath', 'MDagPath', 'in', None)], self.getEffector, self.setEffector, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([effectorPath], [('effectorPath', 'MDagPath', 'in', None)], self.getEffector, self.setEffector, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setEffector', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22445,7 +22445,7 @@ class IkHandle(Transform):
     @_f.addApiDocs(_api.MFnIkHandle, 'setPriority')
     def setPriority(self, priority):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([priority], [('priority', 'uint', 'in', None)], self.getPriority, self.setPriority, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([priority], [('priority', 'uint', 'in', None)], self.getPriority, self.setPriority, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setPriority', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22465,7 +22465,7 @@ class IkHandle(Transform):
     @_f.addApiDocs(_api.MFnIkHandle, 'setSolver')
     def setSolver(self, solver):
         # type: (general.PyNode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([solver], [('solver', 'MObject', 'in', None)], self.getSolver, self.setSolver, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([solver], [('solver', 'MObject', 'in', None)], self.getSolver, self.setSolver, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setSolver', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22473,7 +22473,7 @@ class IkHandle(Transform):
     @_f.addApiDocs(_api.MFnIkHandle, 'setStartJoint')
     def setStartJoint(self, jointPath):
         # type: (general.PyNode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([jointPath], [('jointPath', 'MDagPath', 'in', None)], self.getStartJoint, self.setStartJoint, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([jointPath], [('jointPath', 'MDagPath', 'in', None)], self.getStartJoint, self.setStartJoint, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setStartJoint', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22488,7 +22488,7 @@ class IkHandle(Transform):
     @_f.addApiDocs(_api.MFnIkHandle, 'setStickiness')
     def setStickiness(self, stickiness):
         # type: (IkHandle.Stickiness) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([stickiness], [('stickiness', ('MFnIkHandle', 'Stickiness'), 'in', None)], self.getStickiness, self.setStickiness, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([stickiness], [('stickiness', ('MFnIkHandle', 'Stickiness'), 'in', None)], self.getStickiness, self.setStickiness, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setStickiness', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22504,7 +22504,7 @@ class IkHandle(Transform):
     @_f.addApiDocs(_api.MFnIkHandle, 'setWeight')
     def setWeight(self, weight):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([weight], [('weight', 'double', 'in', None)], self.getWeight, self.setWeight, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([weight], [('weight', 'double', 'in', None)], self.getWeight, self.setWeight, [])
         res = _f.getProxyResult(self, _api.MFnIkHandle, 'setWeight', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22659,7 +22659,7 @@ class LodGroup(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22679,7 +22679,7 @@ class Nucleus(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22699,7 +22699,7 @@ class Place3dTexture(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22719,7 +22719,7 @@ class RigidConstraint(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -22749,7 +22749,7 @@ class UnknownTransform(Transform):
     @_f.deprecated('Use setRotation, and pass in a Quaternion object, instead.')
     def setRotationQuaternion(self, x, y, z, w, space='transform'):
         # type: (float, float, float, float, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z, w, space], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -24889,7 +24889,7 @@ class Expression(DependNode):
     @_f.addApiDocs(_api.MFnExpression, 'setAnimated')
     def setAnimated(self, value=False):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([value], [('value', 'bool', 'in', None)], self.isAnimated, self.setAnimated, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'bool', 'in', None)], self.isAnimated, self.setAnimated, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setAnimated', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -24901,7 +24901,7 @@ class Expression(DependNode):
     @_f.addApiDocs(_api.MFnExpression, 'setDefaultObject')
     def setDefaultObject(self, object):
         # type: (general.PyNode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([object], [('object', 'MObject', 'in', None)], self.getDefaultObject, self.setDefaultObject, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([object], [('object', 'MObject', 'in', None)], self.getDefaultObject, self.setDefaultObject, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setDefaultObject', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -24909,7 +24909,7 @@ class Expression(DependNode):
     @_f.addApiDocs(_api.MFnExpression, 'setExpression')
     def setExpression(self, expression):
         # type: (unicode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([expression], [('expression', 'MString', 'in', None)], self.getExpression, self.setExpression, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([expression], [('expression', 'MString', 'in', None)], self.getExpression, self.setExpression, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setExpression', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -24929,7 +24929,7 @@ class Expression(DependNode):
     @_f.addApiDocs(_api.MFnExpression, 'setUnitConversion')
     def setUnitConversion(self, conversion):
         # type: (Expression.UnitConversion) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([conversion], [('conversion', ('MFnExpression', 'UnitConversion'), 'in', None)], self.getUnitConversion, self.setUnitConversion, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([conversion], [('conversion', ('MFnExpression', 'UnitConversion'), 'in', None)], self.getUnitConversion, self.setUnitConversion, [])
         res = _f.getProxyResult(self, _api.MFnExpression, 'setUnitConversion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -25585,7 +25585,7 @@ class BlendShape(GeometryFilter):
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'setEnvelope')
     def setEnvelope(self, envelope):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'setEnvelope', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -25597,7 +25597,7 @@ class BlendShape(GeometryFilter):
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'setOrigin')
     def setOrigin(self, space):
         # type: (BlendShapeDeformer.Origin) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([space], [('space', ('MFnBlendShapeDeformer', 'Origin'), 'in', None)], self.getOrigin, self.setOrigin, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([space], [('space', ('MFnBlendShapeDeformer', 'Origin'), 'in', None)], self.getOrigin, self.setOrigin, [])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'setOrigin', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -25625,7 +25625,7 @@ class BlendShape(GeometryFilter):
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'setWeight')
     def setWeight(self, index, weight):
         # type: (int, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([index, weight], [('index', 'uint', 'in', None), ('weight', 'float', 'in', None)], self.getWeight, self.setWeight, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, weight], [('index', 'uint', 'in', None), ('weight', 'float', 'in', None)], self.getWeight, self.setWeight, ['index'])
         res = _f.getProxyResult(self, _api.MFnBlendShapeDeformer, 'setWeight', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -26369,7 +26369,7 @@ class Ffd(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'setDivisions')
     def setDivisions(self, x, y, z):
         # type: (int, int, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z], [('x', 'uint', 'in', None), ('y', 'uint', 'in', None), ('z', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([x, y, z], [('x', 'uint', 'in', None), ('y', 'uint', 'in', None), ('z', 'uint', 'in', None)], self.getDivisions, self.setDivisions, [])
         res = _f.getProxyResult(self, _api.MFnLatticeDeformer, 'setDivisions', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -26965,7 +26965,7 @@ class Wire(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnWireDeformer, 'setCrossingEffect')
     def setCrossingEffect(self, crossingEffect):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([crossingEffect], [('crossingEffect', 'float', 'in', None)], self.getCrossingEffect, self.setCrossingEffect, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([crossingEffect], [('crossingEffect', 'float', 'in', None)], self.getCrossingEffect, self.setCrossingEffect, [])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setCrossingEffect', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -26977,7 +26977,7 @@ class Wire(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnWireDeformer, 'setEnvelope')
     def setEnvelope(self, envelope):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([envelope], [('envelope', 'float', 'in', None)], self.getEnvelope, self.setEnvelope, [])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setEnvelope', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -26993,7 +26993,7 @@ class Wire(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnWireDeformer, 'setHoldingShape')
     def setHoldingShape(self, wireIndex, holdingShape):
         # type: (int, general.PyNode) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([wireIndex, holdingShape], [('wireIndex', 'uint', 'in', None), ('holdingShape', 'MObject', 'in', None)], self.getHoldingShape, self.setHoldingShape, ['wireIndex'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([wireIndex, holdingShape], [('wireIndex', 'uint', 'in', None), ('holdingShape', 'MObject', 'in', None)], self.getHoldingShape, self.setHoldingShape, ['wireIndex'])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setHoldingShape', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -27005,7 +27005,7 @@ class Wire(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnWireDeformer, 'setLocalIntensity')
     def setLocalIntensity(self, localIntensity):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([localIntensity], [('localIntensity', 'float', 'in', None)], self.getLocalIntensity, self.setLocalIntensity, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([localIntensity], [('localIntensity', 'float', 'in', None)], self.getLocalIntensity, self.setLocalIntensity, [])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setLocalIntensity', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -27013,7 +27013,7 @@ class Wire(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnWireDeformer, 'setRotation')
     def setRotation(self, rotation):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([rotation], [('rotation', 'float', 'in', None)], self.getRotation, self.setRotation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([rotation], [('rotation', 'float', 'in', None)], self.getRotation, self.setRotation, [])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setRotation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -27029,7 +27029,7 @@ class Wire(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnWireDeformer, 'setWireDropOffDistance')
     def setWireDropOffDistance(self, wireIndex, dropOff):
         # type: (int, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([wireIndex, dropOff], [('wireIndex', 'uint', 'in', None), ('dropOff', 'float', 'in', None)], self.getWireDropOffDistance, self.setWireDropOffDistance, ['wireIndex'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([wireIndex, dropOff], [('wireIndex', 'uint', 'in', None), ('dropOff', 'float', 'in', None)], self.getWireDropOffDistance, self.setWireDropOffDistance, ['wireIndex'])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setWireDropOffDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -27037,7 +27037,7 @@ class Wire(WeightGeometryFilter):
     @_f.addApiDocs(_api.MFnWireDeformer, 'setWireScale')
     def setWireScale(self, wireIndex, scale):
         # type: (int, float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([wireIndex, scale], [('wireIndex', 'uint', 'in', None), ('scale', 'float', 'in', None)], self.getWireScale, self.setWireScale, ['wireIndex'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([wireIndex, scale], [('wireIndex', 'uint', 'in', None), ('scale', 'float', 'in', None)], self.getWireScale, self.setWireScale, ['wireIndex'])
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'setWireScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -27976,7 +27976,7 @@ class IkSolver(DependNode):
     @_f.addApiDocs(_api.MFnIkSolver, 'setMaxIterations')
     def setMaxIterations(self, maxIters):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([maxIters], [('maxIters', 'uint', 'in', None)], self.getMaxIterations, self.setMaxIterations, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([maxIters], [('maxIters', 'uint', 'in', None)], self.getMaxIterations, self.setMaxIterations, [])
         res = _f.getProxyResult(self, _api.MFnIkSolver, 'setMaxIterations', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -27988,7 +27988,7 @@ class IkSolver(DependNode):
     @_f.addApiDocs(_api.MFnIkSolver, 'setTolerance')
     def setTolerance(self, tolerance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([tolerance], [('tolerance', 'double', 'in', None)], self.getTolerance, self.setTolerance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([tolerance], [('tolerance', 'double', 'in', None)], self.getTolerance, self.setTolerance, [])
         res = _f.getProxyResult(self, _api.MFnIkSolver, 'setTolerance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28801,7 +28801,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setBank')
     def setBank(self, bank):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([bank], [('bank', 'bool', 'in', None)], self.getBank, self.setBank, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([bank], [('bank', 'bool', 'in', None)], self.getBank, self.setBank, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setBank', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28809,7 +28809,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setBankScale')
     def setBankScale(self, bankScale):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([bankScale], [('bankScale', 'double', 'in', None)], self.getBankScale, self.setBankScale, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([bankScale], [('bankScale', 'double', 'in', None)], self.getBankScale, self.setBankScale, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setBankScale', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28817,7 +28817,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setBankThreshold')
     def setBankThreshold(self, bankThreshold):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([bankThreshold], [('bankThreshold', 'double', 'in', None)], self.getBankThreshold, self.setBankThreshold, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([bankThreshold], [('bankThreshold', 'double', 'in', None)], self.getBankThreshold, self.setBankThreshold, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setBankThreshold', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28825,7 +28825,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setFollow')
     def setFollow(self, on, modifier=None):
         # type: (bool, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([on, modifier], [('on', 'bool', 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getFollow, self.setFollow, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([on, modifier], [('on', 'bool', 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getFollow, self.setFollow, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setFollow', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28833,7 +28833,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setFollowAxis')
     def setFollowAxis(self, axis):
         # type: (MotionPath.Axis) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([axis], [('axis', ('MFnMotionPath', 'Axis'), 'in', None)], self.getFollowAxis, self.setFollowAxis, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([axis], [('axis', ('MFnMotionPath', 'Axis'), 'in', None)], self.getFollowAxis, self.setFollowAxis, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setFollowAxis', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28841,7 +28841,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setInverseNormal')
     def setInverseNormal(self, invert):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([invert], [('invert', 'bool', 'in', None)], self.getInverseNormal, self.setInverseNormal, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([invert], [('invert', 'bool', 'in', None)], self.getInverseNormal, self.setInverseNormal, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setInverseNormal', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28849,7 +28849,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setPathObject')
     def setPathObject(self, pathObject, modifier=None):
         # type: (general.PyNode, datatypes.DGModifier) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([pathObject, modifier], [('pathObject', 'MDagPath', 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getPathObject, self.setPathObject, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([pathObject, modifier], [('pathObject', 'MDagPath', 'in', None), ('modifier', 'MDGModifier', 'in', None)], self.getPathObject, self.setPathObject, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setPathObject', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28857,7 +28857,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setUEnd')
     def setUEnd(self, end):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([end], [('end', 'double', 'in', None)], self.getUEnd, self.setUEnd, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([end], [('end', 'double', 'in', None)], self.getUEnd, self.setUEnd, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUEnd', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28865,7 +28865,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setUStart')
     def setUStart(self, start):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([start], [('start', 'double', 'in', None)], self.getUStart, self.setUStart, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([start], [('start', 'double', 'in', None)], self.getUStart, self.setUStart, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUStart', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28873,7 +28873,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setUTimeEnd')
     def setUTimeEnd(self, end):
         # type: (datatypes.Time) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([end], [('end', 'MTime', 'in', None)], self.getUTimeEnd, self.setUTimeEnd, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([end], [('end', 'MTime', 'in', None)], self.getUTimeEnd, self.setUTimeEnd, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUTimeEnd', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28881,7 +28881,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setUTimeStart')
     def setUTimeStart(self, start):
         # type: (datatypes.Time) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([start], [('start', 'MTime', 'in', None)], self.getUTimeStart, self.setUTimeStart, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([start], [('start', 'MTime', 'in', None)], self.getUTimeStart, self.setUTimeStart, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUTimeStart', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28889,7 +28889,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setUpAxis')
     def setUpAxis(self, axis):
         # type: (MotionPath.Axis) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([axis], [('axis', ('MFnMotionPath', 'Axis'), 'in', None)], self.getUpAxis, self.setUpAxis, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([axis], [('axis', ('MFnMotionPath', 'Axis'), 'in', None)], self.getUpAxis, self.setUpAxis, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUpAxis', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -28897,7 +28897,7 @@ class MotionPath(DependNode):
     @_f.addApiDocs(_api.MFnMotionPath, 'setUseNormal')
     def setUseNormal(self, use):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([use], [('use', 'bool', 'in', None)], self.getUseNormal, self.setUseNormal, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([use], [('use', 'bool', 'in', None)], self.getUseNormal, self.setUseNormal, [])
         res = _f.getProxyResult(self, _api.MFnMotionPath, 'setUseNormal', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -38400,7 +38400,7 @@ class Reference(DependNode):
     @_f.addApiDocs(_api.MFnReference, 'setIgnoreReferenceEdits')
     def setIgnoreReferenceEdits(self, ignoreEdits):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([ignoreEdits], [('ignoreEdits', 'bool', 'in', None)], self.getIgnoreReferenceEdits, self.setIgnoreReferenceEdits, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([ignoreEdits], [('ignoreEdits', 'bool', 'in', None)], self.getIgnoreReferenceEdits, self.setIgnoreReferenceEdits, [])
         res = _api.MFnReference.setIgnoreReferenceEdits(*final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39924,7 +39924,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setAmbientColor')
     def setAmbientColor(self, ambient_color):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([ambient_color], [('ambient_color', 'MColor', 'in', None)], self.getAmbientColor, self.setAmbientColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([ambient_color], [('ambient_color', 'MColor', 'in', None)], self.getAmbientColor, self.setAmbientColor, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setAmbientColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39932,7 +39932,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setColor')
     def setColor(self, col):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([col], [('col', 'MColor', 'in', None)], self.getColor, self.setColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([col], [('col', 'MColor', 'in', None)], self.getColor, self.setColor, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39940,7 +39940,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setDiffuseCoeff')
     def setDiffuseCoeff(self, diffuse_coeff):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([diffuse_coeff], [('diffuse_coeff', 'float', 'in', None)], self.getDiffuseCoeff, self.setDiffuseCoeff, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([diffuse_coeff], [('diffuse_coeff', 'float', 'in', None)], self.getDiffuseCoeff, self.setDiffuseCoeff, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setDiffuseCoeff', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39948,7 +39948,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setGlowIntensity')
     def setGlowIntensity(self, glow_intensity):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([glow_intensity], [('glow_intensity', 'float', 'in', None)], self.getGlowIntensity, self.setGlowIntensity, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([glow_intensity], [('glow_intensity', 'float', 'in', None)], self.getGlowIntensity, self.setGlowIntensity, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setGlowIntensity', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39956,7 +39956,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setHideSource')
     def setHideSource(self, hide_source):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hide_source], [('hide_source', 'bool', 'in', None)], self.getHideSource, self.setHideSource, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hide_source], [('hide_source', 'bool', 'in', None)], self.getHideSource, self.setHideSource, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setHideSource', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39964,7 +39964,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setIncandescence')
     def setIncandescence(self, incand):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([incand], [('incand', 'MColor', 'in', None)], self.getIncandescence, self.setIncandescence, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([incand], [('incand', 'MColor', 'in', None)], self.getIncandescence, self.setIncandescence, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setIncandescence', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39972,7 +39972,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setRefractedRayDepthLimit')
     def setRefractedRayDepthLimit(self, refracted_ray_depth_limit):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([refracted_ray_depth_limit], [('refracted_ray_depth_limit', 'short', 'in', None)], self.getRefractedRayDepthLimit, self.setRefractedRayDepthLimit, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([refracted_ray_depth_limit], [('refracted_ray_depth_limit', 'short', 'in', None)], self.getRefractedRayDepthLimit, self.setRefractedRayDepthLimit, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setRefractedRayDepthLimit', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39980,7 +39980,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setRefractiveIndex')
     def setRefractiveIndex(self, refractive_index):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([refractive_index], [('refractive_index', 'float', 'in', None)], self.getRefractiveIndex, self.setRefractiveIndex, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([refractive_index], [('refractive_index', 'float', 'in', None)], self.getRefractiveIndex, self.setRefractiveIndex, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setRefractiveIndex', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39988,7 +39988,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setRtRefractedColor')
     def setRtRefractedColor(self, rt_refracted_color):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([rt_refracted_color], [('rt_refracted_color', 'bool', 'in', None)], self.getRtRefractedColor, self.setRtRefractedColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([rt_refracted_color], [('rt_refracted_color', 'bool', 'in', None)], self.getRtRefractedColor, self.setRtRefractedColor, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setRtRefractedColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -39996,7 +39996,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setTranslucenceCoeff')
     def setTranslucenceCoeff(self, translucence_coeff):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([translucence_coeff], [('translucence_coeff', 'float', 'in', None)], self.getTranslucenceCoeff, self.setTranslucenceCoeff, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([translucence_coeff], [('translucence_coeff', 'float', 'in', None)], self.getTranslucenceCoeff, self.setTranslucenceCoeff, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setTranslucenceCoeff', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40004,7 +40004,7 @@ class Lambert(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLambertShader, 'setTransparency')
     def setTransparency(self, transp):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([transp], [('transp', 'MColor', 'in', None)], self.getTransparency, self.setTransparency, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transp], [('transp', 'MColor', 'in', None)], self.getTransparency, self.setTransparency, [])
         res = _f.getProxyResult(self, _api.MFnLambertShader, 'setTransparency', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40042,7 +40042,7 @@ class Reflect(Lambert):
     @_f.addApiDocs(_api.MFnReflectShader, 'setReflectedColor')
     def setReflectedColor(self, reflected_color):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([reflected_color], [('reflected_color', 'MColor', 'in', None)], self.getReflectedColor, self.setReflectedColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([reflected_color], [('reflected_color', 'MColor', 'in', None)], self.getReflectedColor, self.setReflectedColor, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setReflectedColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40050,7 +40050,7 @@ class Reflect(Lambert):
     @_f.addApiDocs(_api.MFnReflectShader, 'setReflectedRayDepthLimit')
     def setReflectedRayDepthLimit(self, reflected_ray_depth_limit):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([reflected_ray_depth_limit], [('reflected_ray_depth_limit', 'short', 'in', None)], self.getReflectedRayDepthLimit, self.setReflectedRayDepthLimit, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([reflected_ray_depth_limit], [('reflected_ray_depth_limit', 'short', 'in', None)], self.getReflectedRayDepthLimit, self.setReflectedRayDepthLimit, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setReflectedRayDepthLimit', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40058,7 +40058,7 @@ class Reflect(Lambert):
     @_f.addApiDocs(_api.MFnReflectShader, 'setReflectivity')
     def setReflectivity(self, reflect):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([reflect], [('reflect', 'float', 'in', None)], self.getReflectivity, self.setReflectivity, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([reflect], [('reflect', 'float', 'in', None)], self.getReflectivity, self.setReflectivity, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setReflectivity', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40066,7 +40066,7 @@ class Reflect(Lambert):
     @_f.addApiDocs(_api.MFnReflectShader, 'setSpecularColor')
     def setSpecularColor(self, specular_color):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([specular_color], [('specular_color', 'MColor', 'in', None)], self.getSpecularColor, self.setSpecularColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular_color], [('specular_color', 'MColor', 'in', None)], self.getSpecularColor, self.setSpecularColor, [])
         res = _f.getProxyResult(self, _api.MFnReflectShader, 'setSpecularColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40128,7 +40128,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setAnisotropicReflectivity')
     def setAnisotropicReflectivity(self, anisotropic_reflectivity):
         # type: (bool) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([anisotropic_reflectivity], [('anisotropic_reflectivity', 'bool', 'in', None)], self.getAnisotropicReflectivity, self.setAnisotropicReflectivity, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([anisotropic_reflectivity], [('anisotropic_reflectivity', 'bool', 'in', None)], self.getAnisotropicReflectivity, self.setAnisotropicReflectivity, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setAnisotropicReflectivity', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40136,7 +40136,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setCorrelationX')
     def setCorrelationX(self, correl_x):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([correl_x], [('correl_x', 'float', 'in', None)], self.getCorrelationX, self.setCorrelationX, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([correl_x], [('correl_x', 'float', 'in', None)], self.getCorrelationX, self.setCorrelationX, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setCorrelationX', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40144,7 +40144,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setCorrelationY')
     def setCorrelationY(self, correl_y):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([correl_y], [('correl_y', 'float', 'in', None)], self.getCorrelationY, self.setCorrelationY, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([correl_y], [('correl_y', 'float', 'in', None)], self.getCorrelationY, self.setCorrelationY, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setCorrelationY', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40152,7 +40152,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setRefractiveIndex')
     def setFresnelRefractiveIndex(self, refractive_index):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([refractive_index], [('refractive_index', 'float', 'in', None)], self.getFresnelRefractiveIndex, self.setFresnelRefractiveIndex, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([refractive_index], [('refractive_index', 'float', 'in', None)], self.getFresnelRefractiveIndex, self.setFresnelRefractiveIndex, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setRefractiveIndex', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40160,7 +40160,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setRotateAngle')
     def setRotateAngle(self, rotate_angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([rotate_angle], [('rotate_angle', 'float', 'in', None)], self.getRotateAngle, self.setRotateAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([rotate_angle], [('rotate_angle', 'float', 'in', None)], self.getRotateAngle, self.setRotateAngle, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setRotateAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40168,7 +40168,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setRoughness')
     def setRoughness(self, roughness):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([roughness], [('roughness', 'float', 'in', None)], self.getRoughness, self.setRoughness, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([roughness], [('roughness', 'float', 'in', None)], self.getRoughness, self.setRoughness, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setRoughness', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40176,7 +40176,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setTangentUCamera')
     def setTangentUCamera(self, tangu_camera):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([tangu_camera], [('tangu_camera', 'MColor', 'in', None)], self.getTangentUCamera, self.setTangentUCamera, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([tangu_camera], [('tangu_camera', 'MColor', 'in', None)], self.getTangentUCamera, self.setTangentUCamera, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setTangentUCamera', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40184,7 +40184,7 @@ class Anisotropic(Reflect):
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'setTangentVCamera')
     def setTangentVCamera(self, tangv_camera):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([tangv_camera], [('tangv_camera', 'MColor', 'in', None)], self.getTangentVCamera, self.setTangentVCamera, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([tangv_camera], [('tangv_camera', 'MColor', 'in', None)], self.getTangentVCamera, self.setTangentVCamera, [])
         res = _f.getProxyResult(self, _api.MFnAnisotropyShader, 'setTangentVCamera', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40210,7 +40210,7 @@ class Blinn(Reflect):
     @_f.addApiDocs(_api.MFnBlinnShader, 'setEccentricity')
     def setEccentricity(self, eccentr):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([eccentr], [('eccentr', 'float', 'in', None)], self.getEccentricity, self.setEccentricity, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([eccentr], [('eccentr', 'float', 'in', None)], self.getEccentricity, self.setEccentricity, [])
         res = _f.getProxyResult(self, _api.MFnBlinnShader, 'setEccentricity', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40218,7 +40218,7 @@ class Blinn(Reflect):
     @_f.addApiDocs(_api.MFnBlinnShader, 'setSpecularRollOff')
     def setSpecularRollOff(self, specular_rolloff):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([specular_rolloff], [('specular_rolloff', 'float', 'in', None)], self.getSpecularRollOff, self.setSpecularRollOff, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular_rolloff], [('specular_rolloff', 'float', 'in', None)], self.getSpecularRollOff, self.setSpecularRollOff, [])
         res = _f.getProxyResult(self, _api.MFnBlinnShader, 'setSpecularRollOff', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40243,7 +40243,7 @@ class Phong(Reflect):
     @_f.addApiDocs(_api.MFnPhongShader, 'setCosPower')
     def setCosPower(self, cos_power):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cos_power], [('cos_power', 'float', 'in', None)], self.getCosPower, self.setCosPower, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cos_power], [('cos_power', 'float', 'in', None)], self.getCosPower, self.setCosPower, [])
         res = _f.getProxyResult(self, _api.MFnPhongShader, 'setCosPower', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40275,7 +40275,7 @@ class PhongE(Reflect):
     @_f.addApiDocs(_api.MFnPhongEShader, 'setHighlightSize')
     def setHighlightSize(self, highlight_size):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([highlight_size], [('highlight_size', 'float', 'in', None)], self.getHighlightSize, self.setHighlightSize, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([highlight_size], [('highlight_size', 'float', 'in', None)], self.getHighlightSize, self.setHighlightSize, [])
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'setHighlightSize', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40283,7 +40283,7 @@ class PhongE(Reflect):
     @_f.addApiDocs(_api.MFnPhongEShader, 'setRoughness')
     def setRoughness(self, roughness):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([roughness], [('roughness', 'float', 'in', None)], self.getRoughness, self.setRoughness, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([roughness], [('roughness', 'float', 'in', None)], self.getRoughness, self.setRoughness, [])
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'setRoughness', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40291,7 +40291,7 @@ class PhongE(Reflect):
     @_f.addApiDocs(_api.MFnPhongEShader, 'setWhiteness')
     def setWhiteness(self, whiteness):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([whiteness], [('whiteness', 'MColor', 'in', None)], self.getWhiteness, self.setWhiteness, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([whiteness], [('whiteness', 'MColor', 'in', None)], self.getWhiteness, self.setWhiteness, [])
         res = _f.getProxyResult(self, _api.MFnPhongEShader, 'setWhiteness', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40347,7 +40347,7 @@ class LayeredShader(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLayeredShader, 'setColor')
     def setColor(self, col, lIndex=0):
         # type: (datatypes.Color, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([col, lIndex], [('col', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getColor, self.setColor, ['lIndex'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([col, lIndex], [('col', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getColor, self.setColor, ['lIndex'])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40355,7 +40355,7 @@ class LayeredShader(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLayeredShader, 'setCompositingFlag')
     def setCompositingFlag(self, cflag):
         # type: (int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([cflag], [('cflag', 'short', 'in', None)], self.getCompositingFlag, self.setCompositingFlag, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cflag], [('cflag', 'short', 'in', None)], self.getCompositingFlag, self.setCompositingFlag, [])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setCompositingFlag', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40363,7 +40363,7 @@ class LayeredShader(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLayeredShader, 'setGlowColor')
     def setGlowColor(self, glow_color, lIndex=0):
         # type: (datatypes.Color, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([glow_color, lIndex], [('glow_color', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getGlowColor, self.setGlowColor, ['lIndex'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([glow_color, lIndex], [('glow_color', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getGlowColor, self.setGlowColor, ['lIndex'])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setGlowColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40371,7 +40371,7 @@ class LayeredShader(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLayeredShader, 'setHardwareColor')
     def setHardwareColor(self, hardware_color):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hardware_color], [('hardware_color', 'MColor', 'in', None)], self.getHardwareColor, self.setHardwareColor, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hardware_color], [('hardware_color', 'MColor', 'in', None)], self.getHardwareColor, self.setHardwareColor, [])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setHardwareColor', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40379,7 +40379,7 @@ class LayeredShader(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLayeredShader, 'setHardwareShader')
     def setHardwareShader(self, hardware_shader):
         # type: (datatypes.Color) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([hardware_shader], [('hardware_shader', 'MColor', 'in', None)], self.getHardwareShader, self.setHardwareShader, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([hardware_shader], [('hardware_shader', 'MColor', 'in', None)], self.getHardwareShader, self.setHardwareShader, [])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setHardwareShader', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -40387,7 +40387,7 @@ class LayeredShader(ShadingDependNode):
     @_f.addApiDocs(_api.MFnLayeredShader, 'setTransparency')
     def setTransparency(self, transp, lIndex=0):
         # type: (datatypes.Color, int) -> None
-        do, final_do, outTypes, undoItem = _f.processApiArgs([transp, lIndex], [('transp', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getTransparency, self.setTransparency, ['lIndex'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transp, lIndex], [('transp', 'MColor', 'in', None), ('lIndex', 'uint', 'in', None)], self.getTransparency, self.setTransparency, ['lIndex'])
         res = _f.getProxyResult(self, _api.MFnLayeredShader, 'setTransparency', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res

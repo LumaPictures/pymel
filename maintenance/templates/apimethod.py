@@ -10,7 +10,7 @@ def {{ method.name }}({{ method.signature }}):
     {{ method.typeComment }}
 {% if method.argList %}
   {% if method.undoable %}
-    do, final_do, outTypes, undoItem = _f.processApiArgs([{{ method.inArgs }}], {{ method.argList }}, self.{{ method.getter }}, self.{{ method.name }}, {{ method.getterInArgs}})
+    do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([{{ method.inArgs }}], {{ method.argList }}, self.{{ method.getter }}, self.{{ method.name }}, {{ method.getterInArgs}})
   {% else %}
     do, final_do, outTypes = _f.getDoArgs([{{ method.inArgs }}], {{ method.argList }})
   {% endif %}

@@ -2506,7 +2506,7 @@ def getDoArgs(args, argList):
 
 
 # FIXME: if we reframe getterInArgs as a set of indices, then we can omit the argument names in generated functions, which are quite long
-def processApiArgs(args, argList, getter, setter, getterInArgs):
+def getDoArgsGetterUndo(args, argList, getter, setter, getterInArgs):
     # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]], Callable, Callable, List[str]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]]]
     """
     Parameters
