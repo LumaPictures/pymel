@@ -786,8 +786,17 @@ class SubItemCache(PymelCache):
         for name in self._CACHE_NAMES:
             self.initVal(name)
 
-    def cacheNames(self):
-        return tuple(self._CACHE_NAMES)
+    @classmethod
+    def cacheNames(cls):
+        return tuple(cls._CACHE_NAMES)
+
+    @classmethod
+    def itemType(cls, name):
+        return cls.ITEM_TYPES.get(name, cls.DEFAULT_TYPE)
+
+    @classmethod
+    def itemIndex(cls, name):
+        return cls._CACHE_NAMES.index(name)
 
     def initVal(self, name):
         itemType = self.itemType(name)
@@ -796,12 +805,6 @@ class SubItemCache(PymelCache):
         else:
             val = itemType()
         setattr(self, name, val)
-
-    def itemType(self, name):
-        return self.ITEM_TYPES.get(name, self.DEFAULT_TYPE)
-
-    def itemIndex(self, name):
-        return self._CACHE_NAMES.index(name)
 
     def build(self):
         """
