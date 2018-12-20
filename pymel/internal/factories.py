@@ -2390,6 +2390,25 @@ class ApiRedoUndoItem(ApiUndoItem):
     def undoIt(self):
         self._undoer(*self._undo_args, **self._undo_kwargs)
 
+
+class MAnimCurveChangeUndoItem(ApiRedoUndoItem):
+    """
+    Specialization of ApiRedoUndoItem for MAnimCurveChange objects.
+
+    Basically just removes some boilerplate for construction of an
+    ApiRedoUndoItem from an MAnimCurveChange object
+    """
+    __slots__ = ['_curveChange']
+
+    def __init__(self, curveChangeObj):
+        super(MAnimCurveChangeUndoItem, self).__init__(
+            curveChangeObj.redoIt, (), curveChangeObj.undoIt, ())
+        self._curveChange = curveChangeObj
+
+    def __repr__(self):
+        return '{}({!r})'.format(type(self).__name__, self._curveChange)
+
+
 _DEBUG_API_WRAPS = False
 if _DEBUG_API_WRAPS:
     _apiMethodWraps = {}

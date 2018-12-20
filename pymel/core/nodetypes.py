@@ -9739,7 +9739,7 @@ class AnimCurve(DependNode):
         tangentOutType = self.TangentType.getIndex(tangentOutType)
         change = _api.MAnimCurveChange()
         res = self.__apimfn__().addKey(time, value, tangentInType, tangentOutType, change)
-        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        undoItem = _factories.MAnimCurveChangeUndoItem(change)
         _factories.apiUndo.append(undoItem, undoName="addKeyTU")
         return res
 
@@ -9752,7 +9752,7 @@ class AnimCurve(DependNode):
         tangentOutType = self.TangentType.getIndex(tangentOutType)
         change = _api.MAnimCurveChange()
         res = self.__apimfn__().addKey(timeInput, timeValue, tangentInType, tangentOutType, change)
-        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        undoItem = _factories.MAnimCurveChangeUndoItem(change)
         _factories.apiUndo.append(undoItem, undoName="addKeyTT")
         return res
 
@@ -9765,7 +9765,7 @@ class AnimCurve(DependNode):
         tangentOutType = self.TangentType.getIndex(tangentOutType)
         change = _api.MAnimCurveChange()
         res = self.__apimfn__().addKey(unitlessInput, value, tangentInType, tangentOutType, change)
-        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        undoItem = _factories.MAnimCurveChangeUndoItem(change)
         _factories.apiUndo.append(undoItem, undoName="addKeyUU")
         return res
 
@@ -9778,7 +9778,7 @@ class AnimCurve(DependNode):
         tangentOutType = self.TangentType.getIndex(tangentOutType)
         change = _api.MAnimCurveChange()
         res = self.__apimfn__().addKey(unitlessInput, timeValue, tangentInType, tangentOutType, change)
-        undoItem = _factories.ApiRedoUndoItem(change.redoIt, (), change.undoIt, ())
+        undoItem = _factories.MAnimCurveChangeUndoItem(change)
         _factories.apiUndo.append(undoItem, undoName="addKeyUT")
         return res
 
