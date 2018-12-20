@@ -9837,7 +9837,7 @@ class AnimLayer(ObjectSet):
 class AnimCurve(DependNode):
 
     def addKeys(self, time, values, tangentInType='linear',
-                tangentOutType='linear', unit=None):
+                tangentOutType='linear', unit=None, keepExistingKeys=False):
         if not unit:
             unit = _api.MTime.uiUnit()
         times = _api.MTimeArray()
@@ -9846,10 +9846,15 @@ class AnimCurve(DependNode):
         keys = _api.MDoubleArray()
         for value in values:
             keys.append(value)
-        infoObj = _factories.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values']
-        return self.__apimfn__().addKeys(times, keys,
-                                         infoObj.getIndex('kTangent' + tangentInType.capitalize()),
-                                         infoObj.getIndex('kTangent' + tangentOutType.capitalize()))
+        tangentInType = self.TangentType.getIndex(tangentInType)
+        tangentOutType = self.TangentType.getIndex(tangentOutType)
+        change = _api.MAnimCurveChange()
+        result = self.__apimfn__().addKeys(
+            times, keys, tangentInType, tangentOutType, keepExistingKeys,
+            change)
+        undoItem = _factories.MAnimCurveChangeUndoItem(change)
+        _factories.apiUndo.append(undoItem, undoName="addKeys")
+        return result
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'addKey', 0)
     def addKeyTU(self, time, value, tangentInType='global_', tangentOutType='global_'):
