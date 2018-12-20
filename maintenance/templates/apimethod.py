@@ -9,8 +9,10 @@
 def {{ method.name }}({{ method.signature }}):
     {{ method.typeComment }}
 {% if method.argList %}
-  {% if method.undoable %}
+  {% if method.undoType == 'getter' %}
     do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([{{ method.inArgs }}], {{ method.argList }}, self.{{ method.getter }}, self.{{ method.name }}, {{ method.getterInArgs}})
+  {% elif method.undoType == 'MAnimCurveChange' %}
+    do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([{{method.inArgs}}], {{method.argList}})
   {% else %}
     do, final_do, outTypes = _f.getDoArgs([{{ method.inArgs }}], {{ method.argList }})
   {% endif %}
@@ -21,7 +23,7 @@ def {{ method.name }}({{ method.signature }}):
   {% else %}
     res = _api.{{ method.apiClass }}.{{ method.apiName }}(self, *final_do)
   {% endif %}
-  {% if method.undoable %}
+  {% if method.undoType %}
     if undoItem is not None: _f.apiUndo.append(undoItem)
   {% endif %}
   {% if method.returnType %}

@@ -1903,6 +1903,8 @@ class ApiArgUtil(object):
             return pymelName
 
         for x in inArgs:
+            if types[x] == 'MAnimCurveChange':
+                continue
             args.append(getType(types[x]))
 
         comment = '# type: (%s)' % ', '.join(args)
@@ -2085,20 +2087,14 @@ class ApiArgUtil(object):
         defaults = []
         defaultInfo = self.methodInfo['defaults']
         inArgs = self.methodInfo['inArgs']
+        argInfo = self.argInfo()
         nargs = len(inArgs)
-        for i, arg in enumerate(inArgs):
+        for arg in inArgs:
+            if argInfo[arg]['type'] == 'MAnimCurveChange':
+                continue
+
             if arg in defaultInfo:
                 default = defaultInfo[arg]
-
-            # FIXME : these defaults should probably not be set here since this is supposed to be
-            # a "dumb" registry of data.  perhaps move them to the controlPanel
-
-            # set MSpace.Space enum to object space by default, but only if it is the last arg or
-            # the next arg has a default ( i.e. kwargs must always come after args )
-#            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
-#                (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
-#                    default = apicache.ApiEnum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
-
             else:
                 continue
 
@@ -2489,8 +2485,11 @@ def getDoArgs(args, argList):
     inCount = totalCount = 0
     for _, argtype, direction, unit in argList:
         if direction == 'in':
-            arg = ApiArgUtil._castInput(args[inCount], argtype, unit)
-            inCount += 1
+            if argtype == 'MAnimCurveChange':
+                arg = api.MAnimCurveChange()
+            else:
+                arg = ApiArgUtil._castInput(args[inCount], argtype, unit)
+                inCount += 1
         else:
             arg = ApiArgUtil.initReference(argtype)
             outTypeList.append((argtype, totalCount))
@@ -2530,6 +2529,7 @@ def getDoArgsGetterUndo(args, argList, getter, setter, getterInArgs):
     outTypeList : List[Tuple[str, int]]
         list of (argument type, index), used by processApiResult to retrieve
         output values from do_args
+    undoItem : ApiUndoItem
     """
     undoEnabled = cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
 
@@ -2541,6 +2541,49 @@ def getDoArgsGetterUndo(args, argList, getter, setter, getterInArgs):
 
     if undoEnabled:
         undoItem = ApiUndoItem(setter, do_args, undo_args)
+    else:
+        undoItem = None
+    return do_args, final_do_args, outTypeList, undoItem
+
+
+def getDoArgsAnimCurveUndo(args, argList):
+    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]]]
+    """
+    Parameters
+    ----------
+    args : List[Any]
+        argument values
+    argList : List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]
+
+    Returns
+    -------
+    do_args : List[Any]
+    final_do_args : List[Any]
+        Arguments prepped to be passed to the API method.
+        Same as above but with SafeApiPtr converted
+    out_type_list : List[Tuple[str, int]]
+        list of (argument type, index)
+    undoItem : ApiUndoItem
+    """
+    undoEnabled = cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
+
+    do_args, final_do_args, outTypeList = getDoArgs(args, argList)
+
+    if undoEnabled:
+        # find the position of the curve change arg...
+        inArgIndex = 0
+        curveChangeIndex = 0
+        for argName, argType, direction, unit in argList:
+            if direction == 'in':
+                if argType == 'MAnimCurveChange':
+                    curveChangeIndex = inArgIndex
+                    break
+                inArgIndex += 1
+        else:
+            raise RuntimeError("Could not find input MAnimCurveChange argument"
+                               " in arglist: {}".format(argList))
+        curveChange = do_args[curveChangeIndex]
+        undoItem = MAnimCurveChangeUndoItem(curveChange)
     else:
         undoItem = None
     return do_args, final_do_args, outTypeList, undoItem

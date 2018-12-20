@@ -9985,10 +9985,11 @@ class AnimCurve(DependNode):
         TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11)], multiKeys=True)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'addKeysWithTangents')
-    def addKeysWithTangents(self, timeArray, valueArray, tangentInType='global_', tangentOutType='global_', tangentInTypeArray=None, tangentOutTypeArray=None, tangentInXArray=None, tangentInYArray=None, tangentOutXArray=None, tangentOutYArray=None, tangentsLockedArray=None, weightsLockedArray=None, convertUnits=True, keepExistingKeys=False, change=None):
-        # type: (List[datatypes.Time], List[float], AnimCurve.TangentType, AnimCurve.TangentType, List[int], List[int], List[float], List[float], List[float], List[float], List[int], List[int], bool, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([timeArray, valueArray, tangentInType, tangentOutType, tangentInTypeArray, tangentOutTypeArray, tangentInXArray, tangentInYArray, tangentOutXArray, tangentOutYArray, tangentsLockedArray, weightsLockedArray, convertUnits, keepExistingKeys, change], [('timeArray', 'MTimeArray', 'in', None), ('valueArray', 'MDoubleArray', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentInTypeArray', 'MIntArray', 'in', None), ('tangentOutTypeArray', 'MIntArray', 'in', None), ('tangentInXArray', 'MDoubleArray', 'in', None), ('tangentInYArray', 'MDoubleArray', 'in', None), ('tangentOutXArray', 'MDoubleArray', 'in', None), ('tangentOutYArray', 'MDoubleArray', 'in', None), ('tangentsLockedArray', 'MIntArray', 'in', None), ('weightsLockedArray', 'MIntArray', 'in', None), ('convertUnits', 'bool', 'in', None), ('keepExistingKeys', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+    def addKeysWithTangents(self, timeArray, valueArray, tangentInType='global_', tangentOutType='global_', tangentInTypeArray=None, tangentOutTypeArray=None, tangentInXArray=None, tangentInYArray=None, tangentOutXArray=None, tangentOutYArray=None, tangentsLockedArray=None, weightsLockedArray=None, convertUnits=True, keepExistingKeys=False):
+        # type: (List[datatypes.Time], List[float], AnimCurve.TangentType, AnimCurve.TangentType, List[int], List[int], List[float], List[float], List[float], List[float], List[int], List[int], bool, bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([timeArray, valueArray, tangentInType, tangentOutType, tangentInTypeArray, tangentOutTypeArray, tangentInXArray, tangentInYArray, tangentOutXArray, tangentOutYArray, tangentsLockedArray, weightsLockedArray, convertUnits, keepExistingKeys], [('timeArray', 'MTimeArray', 'in', None), ('valueArray', 'MDoubleArray', 'in', None), ('tangentInType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentOutType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('tangentInTypeArray', 'MIntArray', 'in', None), ('tangentOutTypeArray', 'MIntArray', 'in', None), ('tangentInXArray', 'MDoubleArray', 'in', None), ('tangentInYArray', 'MDoubleArray', 'in', None), ('tangentOutXArray', 'MDoubleArray', 'in', None), ('tangentOutYArray', 'MDoubleArray', 'in', None), ('tangentsLockedArray', 'MIntArray', 'in', None), ('weightsLockedArray', 'MIntArray', 'in', None), ('convertUnits', 'bool', 'in', None), ('keepExistingKeys', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'addKeysWithTangents', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'animCurveType')
@@ -10066,10 +10067,11 @@ class AnimCurve(DependNode):
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'insertKey')
-    def insertKey(self, time, breakdown=False, change='nullptr'):
-        # type: (datatypes.Time, bool, datatypes.AnimCurveChange) -> int
-        do, final_do, outTypes = _f.getDoArgs([time, breakdown, change], [('time', 'MTime', 'in', None), ('breakdown', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+    def insertKey(self, time, breakdown=False):
+        # type: (datatypes.Time, bool) -> int
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([time, breakdown], [('time', 'MTime', 'in', None), ('breakdown', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'insertKey', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return res
 
@@ -10112,117 +10114,121 @@ class AnimCurve(DependNode):
         return _f.ApiArgUtil._castResult(self, res, 'uint', None)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'remove')
-    def remove(self, index, change=None):
-        # type: (int, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([index, change], [('index', 'uint', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+    def remove(self, index):
+        # type: (int) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index], [('index', 'uint', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'remove', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setAngle')
-    def setAngle(self, index, angle, inTangent, change=None):
-        # type: (int, datatypes.Angle, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([index, angle, inTangent, change], [('index', 'uint', 'in', None), ('angle', 'MAngle', 'in', None), ('inTangent', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+    def setAngle(self, index, angle, inTangent):
+        # type: (int, datatypes.Angle, bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, angle, inTangent], [('index', 'uint', 'in', None), ('angle', 'MAngle', 'in', None), ('inTangent', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setAngle', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setIsBreakdown')
-    def setBreakdown(self, index, isBreakdown, change=None):
-        # type: (int, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, isBreakdown, change], [('index', 'uint', 'in', None), ('isBreakdown', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isBreakdown, self.setBreakdown, ['index'])
+    def setBreakdown(self, index, isBreakdown):
+        # type: (int, bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, isBreakdown], [('index', 'uint', 'in', None), ('isBreakdown', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setIsBreakdown', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setInTangentType')
-    def setInTangentType(self, index, tangentType, change=None):
-        # type: (int, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getInTangentType, self.setInTangentType, ['index'])
+    def setInTangentType(self, index, tangentType):
+        # type: (int, AnimCurve.TangentType) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, tangentType], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setInTangentType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setOutTangentType')
-    def setOutTangentType(self, index, tangentType, change=None):
-        # type: (int, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, tangentType, change], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getOutTangentType, self.setOutTangentType, ['index'])
+    def setOutTangentType(self, index, tangentType):
+        # type: (int, AnimCurve.TangentType) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, tangentType], [('index', 'uint', 'in', None), ('tangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setOutTangentType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setPostInfinityType')
-    def setPostInfinityType(self, infinityType, change=None):
-        # type: (AnimCurve.InfinityType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPostInfinityType, self.setPostInfinityType, [])
+    def setPostInfinityType(self, infinityType):
+        # type: (AnimCurve.InfinityType) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([infinityType], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setPostInfinityType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setPreInfinityType')
-    def setPreInfinityType(self, infinityType, change=None):
-        # type: (AnimCurve.InfinityType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([infinityType, change], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getPreInfinityType, self.setPreInfinityType, [])
+    def setPreInfinityType(self, infinityType):
+        # type: (AnimCurve.InfinityType) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([infinityType], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setPreInfinityType', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTangentTypes')
-    def setTangentTypes(self, indexArray, inTangentType='global_', outTangentType='global_', change=None):
-        # type: (List[int], AnimCurve.TangentType, AnimCurve.TangentType, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([indexArray, inTangentType, outTangentType, change], [('indexArray', 'MIntArray', 'in', None), ('inTangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('outTangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+    def setTangentTypes(self, indexArray, inTangentType='global_', outTangentType='global_'):
+        # type: (List[int], AnimCurve.TangentType, AnimCurve.TangentType) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([indexArray, inTangentType, outTangentType], [('indexArray', 'MIntArray', 'in', None), ('inTangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('outTangentType', ('MFnAnimCurve', 'TangentType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTangentTypes', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTangentsLocked')
-    def setTangentsLocked(self, index, locked, change=None):
-        # type: (int, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTangentsLocked, self.setTangentsLocked, ['index'])
+    def setTangentsLocked(self, index, locked):
+        # type: (int, bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, locked], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTangentsLocked', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setTime')
-    def setTime(self, index, time, change=None):
-        # type: (int, datatypes.Time, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, time, change], [('index', 'uint', 'in', None), ('time', 'MTime', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getTime, self.setTime, ['index'])
+    def setTime(self, index, time):
+        # type: (int, datatypes.Time) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, time], [('index', 'uint', 'in', None), ('time', 'MTime', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setTime', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setUnitlessInput')
-    def setUnitlessInput(self, index, unitlessInput, change=None):
-        # type: (int, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, unitlessInput, change], [('index', 'uint', 'in', None), ('unitlessInput', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getUnitlessInput, self.setUnitlessInput, ['index'])
+    def setUnitlessInput(self, index, unitlessInput):
+        # type: (int, float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, unitlessInput], [('index', 'uint', 'in', None), ('unitlessInput', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setUnitlessInput', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setValue')
-    def setValue(self, index, value, change=None):
-        # type: (int, float, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, value, change], [('index', 'uint', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getValue, self.setValue, ['index'])
+    def setValue(self, index, value):
+        # type: (int, float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, value], [('index', 'uint', 'in', None), ('value', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setValue', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setWeight')
-    def setWeight(self, index, weight, inTangent, change=None):
-        # type: (int, float, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes = _f.getDoArgs([index, weight, inTangent, change], [('index', 'uint', 'in', None), ('weight', 'double', 'in', None), ('inTangent', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+    def setWeight(self, index, weight, inTangent):
+        # type: (int, float, bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, weight, inTangent], [('index', 'uint', 'in', None), ('weight', 'double', 'in', None), ('inTangent', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeight', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setIsWeighted')
-    def setWeighted(self, isWeighted, change=None):
-        # type: (bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([isWeighted, change], [('isWeighted', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.isWeighted, self.setWeighted, [])
+    def setWeighted(self, isWeighted):
+        # type: (bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([isWeighted], [('isWeighted', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setIsWeighted', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'setWeightsLocked')
-    def setWeightsLocked(self, index, locked, change=None):
-        # type: (int, bool, datatypes.AnimCurveChange) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, locked, change], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)], self.getWeightsLocked, self.setWeightsLocked, ['index'])
+    def setWeightsLocked(self, index, locked):
+        # type: (int, bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, locked], [('index', 'uint', 'in', None), ('locked', 'bool', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setWeightsLocked', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res

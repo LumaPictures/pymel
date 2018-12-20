@@ -877,7 +877,6 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         return
 
     argHelper = factories.ApiArgUtil(apiClassName, apiMethodName, overloadIndex)
-    undoable = True  # controls whether we print a warning in the docs
 
     pymelName = argHelper.getPymelName()
 
@@ -890,8 +889,25 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
     inArgs = argHelper.inArgs()
     outArgs = argHelper.outArgs()
     argList = argHelper.argList()
+    unitType = argHelper.methodInfo['returnInfo'].get('unitType', None)
+    returnType = argHelper.methodInfo['returnType']
+    argInfo = argHelper.methodInfo['argInfo']
 
+    inArgs = [arg for arg in inArgs
+              if argInfo[arg]['type'] != 'MAnimCurveChange']
+
+    # undoType controls how/if we get an UndoItem
+    # ...and also whether we print a warning in the docs
+    undoType = None
     getterArgHelper = argHelper.getGetterInfo()
+    if getterArgHelper is not None:
+        undoType = 'getter'
+    numCurveChanges = 0
+    for argName, argType, direction in argList:
+        if argType == 'MAnimCurveChange' and direction == 'in':
+            numCurveChanges += 1
+    if numCurveChanges == 1:
+        undoType = 'MAnimCurveChange'
 
     if argHelper.hasOutput():
         # query method ( getter )
@@ -921,9 +937,6 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         elif t is not None:
             return str(t)
 
-    unitType = argHelper.methodInfo['returnInfo'].get('unitType', None)
-    returnType = argHelper.methodInfo['returnType']
-    argInfo = argHelper.methodInfo['argInfo']
 
     def getUnit(n):
         return argInfo[n].get('unitType', None)
@@ -942,7 +955,7 @@ def wrapApiMethod(apiClass, apiMethodName, newName=None, proxy=True,
         'classmethod': argHelper.isStatic(),
         'getterInArgs': getterInArgs,
         'proxy': proxy,
-        'undoable': getterArgHelper is not None,
+        'undoType': undoType,
         'returnType': repr(convertTypeArg(returnType)) if returnType else None,
         'unitType': repr(str(unitType)) if unitType else None,
         'deprecated': deprecated,
