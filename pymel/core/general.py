@@ -4457,8 +4457,9 @@ class Attribute(PyNode):
     @_f.addApiDocs(_api.MPlug, 'setLocked')
     def _setLocked(self, locked):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([locked], [('locked', 'bool', 'in', None)], self.isLocked, self._setLocked, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([locked], [('locked', 'bool', 'in', None)], self.isLocked, self._setLocked, [])
         res = _f.getProxyResult(self, _api.MPlug, 'setLocked', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MPlug, 'destinations')
@@ -4667,29 +4668,33 @@ class Attribute(PyNode):
     @_f.addApiDocs(_api.MPlug, 'setCaching')
     def setCaching(self, isCaching):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([isCaching], [('isCaching', 'bool', 'in', None)], self.isCaching, self.setCaching, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([isCaching], [('isCaching', 'bool', 'in', None)], self.isCaching, self.setCaching, [])
         res = _f.getProxyResult(self, _api.MPlug, 'setCaching', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MPlug, 'setKeyable')
     def setKeyable(self, keyable):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([keyable], [('keyable', 'bool', 'in', None)], self.isKeyable, self.setKeyable, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([keyable], [('keyable', 'bool', 'in', None)], self.isKeyable, self.setKeyable, [])
         res = _f.getProxyResult(self, _api.MPlug, 'setKeyable', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MPlug, 'setNumElements')
     def setNumElements(self, elements):
         # type: (int) -> None
-        do, final_do, outTypes = _f.processApiArgs([elements], [('elements', 'uint', 'in', None)], self.getNumElements, self.setNumElements, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([elements], [('elements', 'uint', 'in', None)], self.getNumElements, self.setNumElements, [])
         res = _f.getProxyResult(self, _api.MPlug, 'setNumElements', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MPlug, 'setChannelBox')
     def showInChannelBox(self, inChannelBox):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([inChannelBox], [('inChannelBox', 'bool', 'in', None)], self.isInChannelBox, self.showInChannelBox, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([inChannelBox], [('inChannelBox', 'bool', 'in', None)], self.isInChannelBox, self.showInChannelBox, [])
         res = _f.getProxyResult(self, _api.MPlug, 'setChannelBox', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MPlug, 'source')
@@ -6361,22 +6366,25 @@ class MeshVertex(MItComponent1D):
     @_f.addApiDocs(_api.MItMeshVertex, 'setPosition')
     def setPosition(self, point, space='preTransform'):
         # type: (datatypes.Point, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([point, space], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([point, space], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'setPosition', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshVertex, 'setUV')
     def setUV(self, uvPoint, uvSet=None):
         # type: (Tuple[float, float], unicode) -> None
-        do, final_do, outTypes = _f.processApiArgs([uvPoint, uvSet], [('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['uvSet'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([uvPoint, uvSet], [('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'setUV', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshVertex, 'setUVs')
     def setUVs(self, uArray, vArray, faceIds, uvSet=None):
         # type: (List[float], List[float], List[int], unicode) -> None
-        do, final_do, outTypes = _f.processApiArgs([uArray, vArray, faceIds, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('faceIds', 'MIntArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([uArray, vArray, faceIds, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('faceIds', 'MIntArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'setUVs', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshVertex, 'translateBy')
@@ -6524,8 +6532,9 @@ class MeshEdge(MItComponent1D):
     @_f.addApiDocs(_api.MItMeshEdge, 'setPoint')
     def setPoint(self, point, index, space='preTransform'):
         # type: (datatypes.Point, int, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
         res = _f.getProxyResult(self, _api.MItMeshEdge, 'setPoint', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshEdge, 'setSmoothing')
@@ -6895,29 +6904,33 @@ class MeshFace(MItComponent1D):
     @_f.addApiDocs(_api.MItMeshPolygon, 'setPoint')
     def setPoint(self, point, index, space='preTransform'):
         # type: (datatypes.Point, int, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([point, index, space], [('point', 'MPoint', 'in', None), ('index', 'uint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoint, self.setPoint, ['index', 'space'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setPoint', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setPoints')
     def setPoints(self, pointArray, space='preTransform'):
         # type: (List[datatypes.Point], datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([pointArray, space], [('pointArray', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([pointArray, space], [('pointArray', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setPoints', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setUV')
     def setUV(self, vertexId, uvPoint, uvSet=None):
         # type: (int, Tuple[float, float], unicode) -> None
-        do, final_do, outTypes = _f.processApiArgs([vertexId, uvPoint, uvSet], [('vertexId', 'int', 'in', None), ('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['vertex', 'uvSet'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([vertexId, uvPoint, uvSet], [('vertexId', 'int', 'in', None), ('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['vertex', 'uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setUV', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setUVs')
     def setUVs(self, uArray, vArray, uvSet=None):
         # type: (List[float], List[float], unicode) -> None
-        do, final_do, outTypes = _f.processApiArgs([uArray, vArray, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([uArray, vArray, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setUVs', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'updateSurface')
@@ -7252,8 +7265,9 @@ class NurbsCurveCV(MItComponent1D):
     @_f.addApiDocs(_api.MItCurveCV, 'setPosition')
     def setPosition(self, pt, space='preTransform'):
         # type: (datatypes.Point, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([pt, space], [('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([pt, space], [('pt', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPosition, self.setPosition, ['space'])
         res = _f.getProxyResult(self, _api.MItCurveCV, 'setPosition', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MItCurveCV, 'translateBy')
@@ -7888,29 +7902,33 @@ Modifications:
     @_f.addApiDocs(_api.MFnAttribute, 'setAffectsAppearance')
     def setAffectsAppearance(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getAffectsAppearance, self.setAffectsAppearance, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getAffectsAppearance, self.setAffectsAppearance, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setAffectsAppearance', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setAffectsWorldSpace')
     def setAffectsWorldSpace(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isAffectsWorldSpace, self.setAffectsWorldSpace, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isAffectsWorldSpace, self.setAffectsWorldSpace, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setAffectsWorldSpace', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setArray')
     def setArray(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isArray, self.setArray, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isArray, self.setArray, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setArray', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setCached')
     def setCached(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isCached, self.setCached, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isCached, self.setCached, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setCached', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setChannelBox')
@@ -7923,50 +7941,57 @@ Modifications:
     @_f.addApiDocs(_api.MFnAttribute, 'setConnectable')
     def setConnectable(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isConnectable, self.setConnectable, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isConnectable, self.setConnectable, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setConnectable', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setDisconnectBehavior')
     def setDisconnectBehavior(self, behavior):
         # type: (nt.Attribute.DisconnectBehavior) -> None
-        do, final_do, outTypes = _f.processApiArgs([behavior], [('behavior', ('MFnAttribute', 'DisconnectBehavior'), 'in', None)], self.getDisconnectBehavior, self.setDisconnectBehavior, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([behavior], [('behavior', ('MFnAttribute', 'DisconnectBehavior'), 'in', None)], self.getDisconnectBehavior, self.setDisconnectBehavior, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setDisconnectBehavior', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setHidden')
     def setHidden(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isHidden, self.setHidden, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isHidden, self.setHidden, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setHidden', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setIndeterminant')
     def setIndeterminant(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isIndeterminant, self.setIndeterminant, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isIndeterminant, self.setIndeterminant, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setIndeterminant', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setIndexMatters')
     def setIndexMatters(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getIndexMatters, self.setIndexMatters, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getIndexMatters, self.setIndexMatters, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setIndexMatters', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setInternal')
     def setInternal(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getInternal, self.setInternal, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getInternal, self.setInternal, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setInternal', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setKeyable')
     def setKeyable(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isKeyable, self.setKeyable, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isKeyable, self.setKeyable, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setKeyable', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setNiceNameOverride')
@@ -7979,64 +8004,73 @@ Modifications:
     @_f.addApiDocs(_api.MFnAttribute, 'setProxyAttribute')
     def setProxyAttribute(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isProxyAttribute, self.setProxyAttribute, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isProxyAttribute, self.setProxyAttribute, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setProxyAttribute', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setReadable')
     def setReadable(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isReadable, self.setReadable, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isReadable, self.setReadable, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setReadable', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setRenderSource')
     def setRenderSource(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isRenderSource, self.setRenderSource, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isRenderSource, self.setRenderSource, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setRenderSource', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setStorable')
     def setStorable(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isStorable, self.setStorable, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isStorable, self.setStorable, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setStorable', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setUsedAsColor')
     def setUsedAsColor(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isUsedAsColor, self.setUsedAsColor, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isUsedAsColor, self.setUsedAsColor, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setUsedAsColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setUsedAsFilename')
     def setUsedAsFilename(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isUsedAsFilename, self.setUsedAsFilename, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isUsedAsFilename, self.setUsedAsFilename, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setUsedAsFilename', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setUsesArrayDataBuilder')
     def setUsesArrayDataBuilder(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getUsesArrayDataBuilder, self.setUsesArrayDataBuilder, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.getUsesArrayDataBuilder, self.setUsesArrayDataBuilder, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setUsesArrayDataBuilder', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setWorldSpace')
     def setWorldSpace(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isWorldSpace, self.setWorldSpace, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isWorldSpace, self.setWorldSpace, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setWorldSpace', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'setWritable')
     def setWritable(self, state):
         # type: (bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isWritable, self.setWritable, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([state], [('state', 'bool', 'in', None)], self.isWritable, self.setWritable, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setWritable', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'shortName')

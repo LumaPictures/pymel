@@ -2631,58 +2631,66 @@ class TransformationMatrix(Matrix):
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotatePivot')
     def setRotatePivot(self, point, space, balance):
         # type: (Point, Space.Space, bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self.getRotatePivot, self.setRotatePivot, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self.getRotatePivot, self.setRotatePivot, ['space'])
         res = _api.MTransformationMatrix.setRotatePivot(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotatePivotTranslation')
     def setRotatePivotTranslation(self, vector, space):
         # type: (Vector, Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotatePivotTranslation, self.setRotatePivotTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getRotatePivotTranslation, self.setRotatePivotTranslation, ['space'])
         res = _api.MTransformationMatrix.setRotatePivotTranslation(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotationOrientation')
     def setRotationOrientation(self, q):
         # type: (Quaternion) -> TransformationMatrix
-        do, final_do, outTypes = _f.processApiArgs([q], [('q', 'MQuaternion', 'in', None)], self.getRotationOrientation, self.setRotationOrientation, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([q], [('q', 'MQuaternion', 'in', None)], self.getRotationOrientation, self.setRotationOrientation, [])
         res = _api.MTransformationMatrix.setRotationOrientation(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         res = _f.ApiArgUtil._castResult(self, res, 'MTransformationMatrix', None)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setRotationQuaternion')
     def setRotationQuaternion(self, x, y, z, w):
         # type: (float, float, float, float) -> None
-        do, final_do, outTypes = _f.processApiArgs([x, y, z, w], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, [])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([x, y, z, w], [('x', 'double', 'in', None), ('y', 'double', 'in', None), ('z', 'double', 'in', None), ('w', 'double', 'in', None)], self.getRotationQuaternion, self.setRotationQuaternion, [])
         res = _api.MTransformationMatrix.setRotationQuaternion(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setScale')
     def setScale(self, scale, space):
         # type: (Tuple[float, float, float], Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([scale, space], [('scale', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getScale, self.setScale, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([scale, space], [('scale', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getScale, self.setScale, ['space'])
         res = _api.MTransformationMatrix.setScale(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setScalePivot')
     def setScalePivot(self, point, space, balance):
         # type: (Point, Space.Space, bool) -> None
-        do, final_do, outTypes = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self.getScalePivot, self.setScalePivot, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([point, space, balance], [('point', 'MPoint', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('balance', 'bool', 'in', None)], self.getScalePivot, self.setScalePivot, ['space'])
         res = _api.MTransformationMatrix.setScalePivot(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setScalePivotTranslation')
     def setScalePivotTranslation(self, vector, space):
         # type: (Vector, Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getScalePivotTranslation, self.setScalePivotTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getScalePivotTranslation, self.setScalePivotTranslation, ['space'])
         res = _api.MTransformationMatrix.setScalePivotTranslation(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setShear')
     def setShear(self, shear, space):
         # type: (Tuple[float, float, float], Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([shear, space], [('shear', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getShear, self.setShear, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([shear, space], [('shear', 'double__array3', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getShear, self.setShear, ['space'])
         res = _api.MTransformationMatrix.setShear(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
     @_f.addApiDocs(_api.MTransformationMatrix, 'setToRotationAxis')
@@ -2695,8 +2703,9 @@ class TransformationMatrix(Matrix):
     @_f.addApiDocs(_api.MTransformationMatrix, 'setTranslation')
     def setTranslation(self, vector, space):
         # type: (Vector, Space.Space) -> None
-        do, final_do, outTypes = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getTranslation, self.setTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.processApiArgs([vector, space], [('vector', 'MVector', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getTranslation, self.setTranslation, ['space'])
         res = _api.MTransformationMatrix.setTranslation(self, *final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 # ------ Do not edit above this line --------
 

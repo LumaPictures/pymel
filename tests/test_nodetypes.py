@@ -2338,6 +2338,22 @@ class testCase_camera(unittest.TestCase):
     def setUp(self):
         pm.newFile(f=1)
 
+    def test_failedSetNear_noUndoCreated(self):
+        # api-wrapped commands that error should not create an api undo item!
+        cam = pm.createNode('camera')
+        cam.setNearClippingPlane(.01)
+        pm.flushUndo()
+        self.assertEqual(cam.getNearClippingPlane(), .01)
+        cam.setNearClippingPlane(.02)
+        self.assertEqual(cam.getNearClippingPlane(), .02)
+        self.assertRaises(RuntimeError, cam.setNearClipPlane, -5)
+        self.assertEqual(cam.getNearClippingPlane(), .02)
+        # this undo shouldn't undo our failed attemp tto set the near clip
+        # plane... instead, it should undo the last successful thng we did,
+        # which was change it from .01 to .02
+        pm.undo()
+        self.assertEqual(cam.getNearClippingPlane(), .01)
+
     def test_setNearFarClippingPlanes(self):
         cam = pm.createNode('camera')
         near = cam.attr('nearClipPlane')

@@ -201,6 +201,8 @@ Bug Fixes
 - datatypes: fix getPlugValue for Angle and Time plugs (would error previously)
 - core: Added defensive code to prevent callback id leaks in some scenarios
   ...thanks David Lassonde!
+- core: fixed bug where api commands that errored would still create an undo
+  entry
 - nodetypes: THblendShape was incorrectly mapped to kPluginSkinCluster
 - nodetypes: fix DagNode.exists() (was raising error in some situations)
 - general: fix indexing components with an iterable - ie, myMesh.f[(1,2,5)]

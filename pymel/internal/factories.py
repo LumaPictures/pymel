@@ -2541,8 +2541,9 @@ def processApiArgs(args, argList, getter, setter, getterInArgs):
 
     if undoEnabled:
         undoItem = ApiUndoItem(setter, do_args, undo_args)
-        apiUndo.append(undoItem)
-    return do_args, final_do_args, outTypeList
+    else:
+        undoItem = None
+    return do_args, final_do_args, outTypeList, undoItem
 
 
 def processApiResult(result, outTypeList, do_args):
