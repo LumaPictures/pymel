@@ -166,6 +166,13 @@ Additions
   returns the type that the given class wraps.  When called from an instance,
   should always give the same result as DependNode.type, since pymel always
   ensures that the most specific node class is used to create any PyNode
+- nodetypes: Undo support added to a number of AnimCurve methods:
+
+    addKeys, addKeysWithTangents, insertKey, remove, setAngle, setBreakdown,
+    setInTangentType, setOutTangentType, setPostInfinityType,
+    setPreInfinityType, setTangentTypes, setTangentsLocked, setTime,
+    setUnitlessInput, setValue, setWeight, setWeighted, setWeightsLocked
+
 - util.enum: EnumValue objects now have a __hash__, and so can be stored in dicts / sets
 - versions: add v2018_1, v2018_1, v2018_2, v2019_3, v2019
 - general: added getDefault method to Attribute class - thanks Bob White!

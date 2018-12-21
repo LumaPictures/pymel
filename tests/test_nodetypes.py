@@ -3068,6 +3068,80 @@ class testCase_AnimCurve(TestCaseExtended):
         self.assertEqual(pm.nt.AnimCurve.unitlessAnimCurveTypeForPlug(persp.displayLocalAxis),
                          pm.nt.AnimCurve.AnimCurveType.UU)
 
+    def test_undo(self):
+        curve = pm.nt.AnimCurveTL()
+
+        def assertKeys(expectedTimes, expectedVals):
+            numKeys = len(expectedTimes)
+            self.assertEqual(numKeys, len(expectedVals))
+            self.assertEqual(numKeys, curve.numKeys())
+            times = []
+            vals = []
+            for i in xrange(numKeys):
+                times.append(curve.getTime(i))
+                vals.append(curve.getValue(i))
+            self.assertEqual(times, expectedTimes)
+            self.assertEqual(vals, expectedVals)
+
+        assertKeys([], [])
+
+        origTimes = [0, 10, 20, 30, 40]
+        origVals = [0, 1, 2, 3, 4]
+        curve.addKeys(origTimes, origVals)
+        assertKeys(origTimes, origVals)
+
+        pm.undo()
+        assertKeys([], [])
+        pm.redo()
+        assertKeys(origTimes, origVals)
+
+        curve.remove(2)
+        newTimes1 = [0, 10, 30, 40]
+        newVals1 = [0, 1, 3, 4]
+        assertKeys(newTimes1, newVals1)
+
+        curve.setTime(1, 8)
+        newTimes2 = [0, 8, 30, 40]
+        newVals2 = [0, 1, 3, 4]
+        assertKeys(newTimes2, newVals2)
+
+        curve.setValue(0, 82)
+        newTimes3 = [0, 8, 30, 40]
+        newVals3 = [82, 1, 3, 4]
+        assertKeys(newTimes3, newVals3)
+
+        pm.undo()
+        assertKeys(newTimes2, newVals2)
+        pm.undo()
+        assertKeys(newTimes1, newVals1)
+        pm.undo()
+        assertKeys(origTimes, origVals)
+
+        # we don't undo the addKeys, because there's a maya bug that makes
+        # the other MAnimCurveChanges (or at least the setTime one?) not work
+        # See here for reproduction details:
+        #    https://gist.github.com/elrond79/9ca6750b1c7f5b748d7f19cf62405b2e
+        #pm.undo()
+        #assertKeys([], [])
+        #pm.redo()
+        #assertKeys(origTimes, origVals)
+
+        pm.redo()
+        assertKeys(newTimes1, newVals1)
+        pm.redo()
+        assertKeys(newTimes2, newVals2)
+        pm.redo()
+        assertKeys(newTimes3, newVals3)
+
+        pm.undo()
+        assertKeys(newTimes2, newVals2)
+        pm.redo()
+        assertKeys(newTimes3, newVals3)
+        pm.undo()
+        assertKeys(newTimes2, newVals2)
+        pm.redo()
+        assertKeys(newTimes3, newVals3)
+
 
 class testCase_rename(TestCaseExtended):
     def setUp(self):
