@@ -612,16 +612,12 @@ class ApiDocParser(object):
                     if self._isMethodNameRe.match(origGetMethod):
                         newSetMethod = 'set' + origGetMethod[2:]  # remove 'is' #member[5:]
                         pymelNames[setMethod] = newSetMethod
-                        for info in self.methods[setMethod]:
-                            info['pymelName'] = newSetMethod
                         addSetGetPair(setMethod, origGetMethod)
 
                     # fix get
                     else:
                         newGetMethod = 'g' + setMethod[1:]  # remove 's'
                         pymelNames[origGetMethod] = newGetMethod
-                        for info in self.methods[origGetMethod]:
-                            info['pymelName'] = newGetMethod
                         addSetGetPair(setMethod, origGetMethod)
 
                 else:
@@ -1028,9 +1024,11 @@ class ApiDocParser(object):
             'methods': dict(self.methods),
             'enums': self.enums,
             'pymelEnums': self.pymelEnums,
-            'pymelMethods': pymelNames,
-            'invertibles': invertibles,
         }
+        if pymelNames:
+            parsed['pymelMethods'] = pymelNames
+        if invertibles:
+            parsed['invertibles'] = invertibles
         if self.constants:
             parsed['constants'] = self.constants
         return parsed

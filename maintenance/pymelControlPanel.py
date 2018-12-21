@@ -292,7 +292,7 @@ class ClassFrame(object):
 
             with pm.tabLayout() as tab:
 
-                invertibles = factories.apiClassInfo[self.apiClassName]['invertibles']
+                invertibles = factories.apiClassInfo[self.apiClassName].get('invertibles', [])
                 usedMethods = []
                 with pm.formLayout() as pairdForm:
                     tab.setTabLabel( [pairdForm, 'Paired'] )
@@ -356,7 +356,7 @@ class MethodRow(object):
                  methodInfoList):
         self.parent = parent
         self.className = className
-        self.methodName = methodInfoList[0].get('pymelName', apiMethodName)
+        self.methodName = factories.apiClassInfo[apiClassName].get('pymelMethods', {}).get(apiMethodName, apiMethodName)
         self.apiClassName = apiClassName
         self.apiMethodName = apiMethodName
         self.methodInfoList = methodInfoList

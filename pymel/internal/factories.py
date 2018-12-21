@@ -1623,9 +1623,13 @@ class ApiArgUtil(object):
         self.apiClassName = apiClassName
         self.methodName = methodName
 
+        classInfo = apiClassInfo[apiClassName]
+        self.basePymelName = classInfo.get('pymelMethods', {}).get(methodName,
+                                                                 methodName)
+
         if methodIndex is None:
             try:
-                methodInfoList = apiClassInfo[apiClassName]['methods'][methodName]
+                methodInfoList = classInfo['methods'][methodName]
             except KeyError:
                 raise ApiMethodMissingError(apiClassName, methodName)
             else:
@@ -1791,7 +1795,7 @@ class ApiArgUtil(object):
         return self.methodInfo['returnType']
 
     def getPymelName(self):
-        pymelName = self.methodInfo.get('pymelName', self.methodName)
+        pymelName = self.basePymelName
         try:
             pymelClassName = apiClassNamesToPyNodeNames[self.apiClassName]
         except KeyError:
@@ -3127,7 +3131,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             #                 # _logger.debug("Checking method %s" % (methodName))
             #
             #                 try:
-            #                     pymelName = info[0]['pymelName']
+            #                     pymelName = classInfo.get('pymelMethods', {})[methodName]
             #                     removeAttrs.append(methodName)
             #                 except KeyError:
             #                     pymelName = methodName

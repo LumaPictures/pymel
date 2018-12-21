@@ -1427,7 +1427,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                 for methodName, info in classInfo['methods'].iteritems():
 
                     try:
-                        basePymelName = info[0]['pymelName']
+                        basePymelName = classInfo.get('pymelMethods', {})[methodName]
                         self.removeAttrs.append(methodName)
                     except KeyError:
                         basePymelName = methodName

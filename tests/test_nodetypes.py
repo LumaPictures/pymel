@@ -517,11 +517,7 @@ class TestInvertibles(object):
             info = classInfo['methods'][methodName]
         except KeyError:
             return None
-        try:
-            methodName = info[0]['pymelName']
-        except KeyError:
-            pass
-
+        methodName = classInfo.get('pymelMethods', {}).get(methodName, methodName)
         methodName, data, _ = factories._getApiOverrideNameAndData( pyClassName, methodName )
         try:
             overloadIndex = data.get('overloadIndex', 0)
@@ -563,7 +559,7 @@ class TestInvertibles(object):
                 #print className, apiClassName
 
                 classInfo = factories.apiClassInfo[apiClassName]
-                invertibles = classInfo['invertibles']
+                invertibles = classInfo.get('invertibles', [])
                 #print invertibles
 
                 for setMethod, getMethod in invertibles:
