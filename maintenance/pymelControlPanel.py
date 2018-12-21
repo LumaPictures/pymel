@@ -563,7 +563,7 @@ class MethodRow(object):
         if self.overloadPrecedenceColl:
             items = self.overloadPrecedenceColl.getCollectionItemArray()
             try:
-                val = self.data['overloadIndex']
+                val = self.data.get('overloadIndex', 0)
 
                 if val is None:
                     logger.info( "no wrappable options for method %s" % self.methodName )

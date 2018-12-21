@@ -524,7 +524,7 @@ class TestInvertibles(object):
 
         methodName, data, _ = factories._getApiOverrideNameAndData( pyClassName, methodName )
         try:
-            overloadIndex = data['overloadIndex']
+            overloadIndex = data.get('overloadIndex', 0)
             info = info[overloadIndex]
         except (KeyError, TypeError):
             return None

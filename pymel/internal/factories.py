@@ -3136,7 +3136,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             #
             #                 # if classname == 'DependNode' and pymelName in ('setName','getName'):
             #                 #                        raise Exception('debug')
-            #                 overloadIndex = overrideData.get('overloadIndex', None)
+            #                 overloadIndex = overrideData.get('overloadIndex', 0)
             #                 if overloadIndex is None:
             #                     #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
             #                     continue
