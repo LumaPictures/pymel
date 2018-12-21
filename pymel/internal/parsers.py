@@ -583,18 +583,20 @@ class ApiDocParser(object):
 
     def getPymelMethodNames(self):
         pymelNames = {}
-        pairs = {}
         pairsList = []
 
         def addSetGetPair(setmethod, getMethod):
+            # if None of the setMethods has any args, it's not usable in a get /
+            # set pair...
+            if not any(info['args'] for info in self.methods[setMethod]):
+                return
+
             pairsList.append((setMethod, getMethod))
             # pair 'set' with 'is/get'
-            pairs[setMethod] = getMethod
             for info in self.methods[setMethod]:
                 info['inverse'] = (getMethod, True)
 
             # pair 'is/get' with 'set'
-            pairs[getMethod] = setMethod
             for info in self.methods[getMethod]:
                 info['inverse'] = (setMethod, False)
 
