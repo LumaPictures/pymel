@@ -594,54 +594,77 @@ class TestInvertibles(object):
                                  getter, setArgTypes)
 
     def testInvert(self, pynode, apiClassName, setMethod, setter, getter, setArgTypes):
+        import types
+
         print "testing %s.%s" % (pynode.__name__, setMethod)
+
+        # if getter / setter are classmethods, we will get them as
+        # bound args
+        def isBoundMethod(obj):
+            return isinstance(obj, types.MethodType) and obj.__self__ is not None
+
+        if isBoundMethod(getter):
+            # they should either BOTH be classmethods, or neither
+            assert isBoundMethod(setter)
+            isClassMethod = True
+        else:
+            assert not isBoundMethod(setter)
+            isClassMethod = False
+
         sys.stdout.flush()
         sys.stdout.flush()
         melnodeName = pynode.__melnode__
-        if issubclass(pynode, pm.nt.GeometryShape):
-            if pynode is pm.nt.Mesh :
-                obj = pm.polyCube()[0].getShape()
-                obj.createColorSet( 'thingie' )
-            elif pynode is pm.nt.Subdiv:
-                obj = pm.polyToSubdiv( pm.polyCube()[0].getShape())[0].getShape()
-            elif pynode is pm.nt.NurbsSurface:
-                obj = pm.sphere()[0].getShape()
-            elif pynode is pm.nt.NurbsCurve:
-                obj = pm.circle()[0].getShape()
+
+        if not isClassMethod:
+            if issubclass(pynode, pm.nt.GeometryShape):
+                if pynode is pm.nt.Mesh :
+                    obj = pm.polyCube()[0].getShape()
+                    obj.createColorSet( 'thingie' )
+                elif pynode is pm.nt.Subdiv:
+                    obj = pm.polyToSubdiv( pm.polyCube()[0].getShape())[0].getShape()
+                elif pynode is pm.nt.NurbsSurface:
+                    obj = pm.sphere()[0].getShape()
+                elif pynode is pm.nt.NurbsCurve:
+                    obj = pm.circle()[0].getShape()
+                else:
+                    pytest.skip("incompatible node type")
             else:
-                pytest.skip("incompatible node type")
-        else:
-            #print "creating: %s" % melnodeName
-            obj = pm.createNode( melnodeName )
+                #print "creating: %s" % melnodeName
+                obj = pm.createNode( melnodeName )
 
         try:
             try:
                 if apiClassName == 'MFnMesh' and setMethod == 'setUVs':
-                    args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
+                    setArgs = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
                 elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
-                    args = [ [ [.5,.5,.5] ]*obj.numColors() ]
+                    setArgs = [ [ [.5,.5,.5] ]*obj.numColors() ]
                 elif apiClassName == 'MFnMesh' and setMethod == 'setColor':
                     obj.setColors( [ [.5,.5,.5] ]*obj.numVertices() )
-                    args = [ 1, [1,0,0] ]
+                    setArgs = [ 1, [1,0,0] ]
                 elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
                     obj.createColorSet(setMethod + '_ColorSet' )
-                    args = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
+                    setArgs = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
 
                 elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
-                    args = [ 6, 4.5 ]
+                    setArgs = [ 6, 4.5 ]
                 elif setMethod == 'setIcon':
-                    args = [ 'polyCylinder.png' ]
+                    setArgs = [ 'polyCylinder.png' ]
                 else:
-                    args = [ self.getTypedArg(typ) for typ in setArgTypes ]
-                #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
-                args = [obj] + args
+                    setArgs = [ self.getTypedArg(typ) for typ in setArgTypes ]
+                #descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in setArgs] ) )
+
+                if isClassMethod:
+                    getArgs = []
+                else:
+                    getArgs = [obj]
+                    setArgs = [obj] + setArgs
 
                 if getter:
-                    oldVal = getter(obj)
-                setter( *args )
+                    oldVal = getter(*getArgs)
+                setter( *setArgs )
                 cmds.undo()
                 if getter:
-                    newVal = getter(obj)
+                    newVal = getter(*getArgs)
 
                     if isinstance(newVal, float):
                         assert oldVal == pytest.approx(newVal, abs=1e-12)
