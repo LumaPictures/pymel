@@ -40,7 +40,8 @@ def test_dynload_modules():
             module_name = os.path.splitext( os.path.basename(f))[0]
             __import__( module_name , globals(), locals() )
         except ImportError, e:
-            msg = str(e)
+            # % formatter deals with unicode, but keeps str if not unicode
+            msg = '%s' % e
             if msg.startswith('lib'):
                 msg += '. create a symbolic link pointing to an existing version of this lib'
             print "Warning: Could not import module %s: %s" % ( module_name, msg)

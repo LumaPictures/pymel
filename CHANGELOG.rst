@@ -225,6 +225,8 @@ Bug Fixes
   all curve types, not just time-to-float types
 - nodetypes: fix for creation of Locator() - thanks bob-white!
 - nodetypes: fix DisplayLayer.removeMembers - thanks Akshay!
+- general: deal with connectAttr error that contains unicode
+  (https://github.com/LumaPictures/pymel/issues/402)
 
 
 ==================================

@@ -68,7 +68,7 @@ try:
     try:
         pathModule = __import__(moduleName, globals(), locals(), [''])
     except Exception, e:
-        _logger.warning("Could not import %r module containing custom base Path class: %s" % (moduleName, str(e)))
+        _logger.warning("Could not import %r module containing custom base Path class: %s" % (moduleName, e))
         raise AssertionError
 
     try:

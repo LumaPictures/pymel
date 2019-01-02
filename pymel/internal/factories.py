@@ -648,7 +648,8 @@ def addCmdDocsCallback(cmdName, docstring=''):
     try:
         return docBuilderCls(cmdName).build(docstring)
     except MelCommandMissingError as e:
-        return str(e)
+        # % formatter deals with unicode, but keeps strings str if not unicode
+        return '%s' % e
 
 
 if docstringMode == 'html':
@@ -2839,7 +2840,8 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
     try:
         argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
     except ApiMethodMissingError as e:
-        return str(e)
+        # % formatter deals with unicode, but keeps strings str if not unicode
+        return '%s' % e
 
     inArgs = argHelper.inArgs()
     outArgs = argHelper.outArgs()

@@ -236,7 +236,7 @@ def connectAttr(source, destination, **kwargs):
         try:
             cmds.connectAttr(source, destination, **kwargs)
         except RuntimeError, e:
-            if str(e) != 'Maya command error':
+            if unicode(e) != 'Maya command error':
                 # we only want to pass on a certain connection error.  all others we re-raise
                 raise e
     else:

@@ -129,7 +129,8 @@ def addWrappedCmd(cmdname, cmd=None):
         try:
             res = new_cmd(*new_args, **new_kwargs)
         except objectErrorType, e:
-            m = objectErrorReg.match(str(e))
+            # % formatter deals with unicode, but keeps str if not unicode
+            m = objectErrorReg.match('%s' % e)
             if m:
                 import pymel.core.general
                 obj = m.group(1)
