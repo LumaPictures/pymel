@@ -997,8 +997,10 @@ class MelMethodGenerator(object):
             if self.existingClass is None or not hasattr(self.existingClass, key):
                 self.attrs.setdefault(key, Assignment(key, value))
 
-    def assign(self, name, value):
-        self.attrs[name] = Assignment(name, value)
+    def assign(self, name, value, force=False):
+        if (force or self.existingClass is None
+                or name not in self.existingClass.__dict__):
+            self.attrs[name] = Assignment(name, value)
 
     def addMethod(self, name, methodType, data=None, **kwargs):
         self.classToMethodTypes[self.classname][name] = methodType
