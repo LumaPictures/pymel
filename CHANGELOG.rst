@@ -230,6 +230,8 @@ Bug Fixes
 - nodetypes: fix DisplayLayer.removeMembers - thanks Akshay!
 - general: deal with connectAttr error that contains unicode
   (https://github.com/LumaPictures/pymel/issues/402)
+- nodetypes: fix bug when creating AngleBetween node
+  (https://github.com/LumaPictures/pymel/issues/416)
 
 
 ==================================
