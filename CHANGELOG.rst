@@ -112,6 +112,9 @@ Changes
 
 - general: remove unused kwargs for Attribute.affects/affected
 - uitypes: make a base PyUIContainer parent class for Layout and Window
+- mel2py: removed findMelOnlyCommands(), as it wasn't working, unused, and never
+  intended to be publicly exposed.
+  (https://github.com/LumaPictures/pymel/issues/412)
 
 ----------------------------------
 Additions

@@ -565,27 +565,3 @@ def mel2py(input, outputDir=None,
 
     succCnt = 0
 
-
-def findMelOnlyCommands():
-    """
-    Using maya's documentation, find commands which were not ported to python.
-    """
-
-    docs = util.path(_factories.mayaDocsLocation())
-    melCmds = set([x.namebase for x in (docs / 'Commands').files('*.html')])
-    pyCmds = set([x.namebase for x in (docs / 'CommandsPython').files('*.html')])
-    result = []
-    for cmd in sorted(melCmds.difference(pyCmds)):
-        typ = pymel.mel.whatIs(cmd)
-        if typ.startswith('Script') or typ.startswith('Mel'):
-            typ = 'Mel'
-        try:
-            func = getattr(pymel, cmd)
-            info = func.__module__
-        except AttributeError:
-            if hasattr(melparse.builtin_module, cmd):
-                info = 'builtin'
-            else:
-                info = melparse.proc_remap.has_key(cmd)
-        result.append((cmd, typ, info))
-    return result
