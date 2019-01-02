@@ -593,6 +593,7 @@ class TestInvertibles(object):
                     yield name, (pynode, apiClassName, setMethod, setter,
                                  getter, setArgTypes)
 
+    @pytest.mark.filterwarnings("ignore::pymel.internal.pwarnings.PymelBaseDeprecationWarning")
     def testInvert(self, pynode, apiClassName, setMethod, setter, getter, setArgTypes):
         import types
 

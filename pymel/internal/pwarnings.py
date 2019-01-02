@@ -41,12 +41,15 @@ class ExecutionWarning (UserWarning, PymelBaseWarning):
 
     """ Simple Warning class that doesn't print any information besides warning message """
 
+class PymelBaseDeprecationWarning(PymelBaseWarning):
+    pass
+
 # Subclass from FutureWarning so it's displayed by default
-class PymelFutureWarning(FutureWarning, PymelBaseWarning):
+class PymelFutureWarning(FutureWarning, PymelBaseDeprecationWarning):
     pass
 
 # Subclass from DeprecationWarning so it's not displayed by default
-class MayaDeprecationWarning(DeprecationWarning, PymelBaseWarning):
+class MayaDeprecationWarning(DeprecationWarning, PymelBaseDeprecationWarning):
     pass
 
 
