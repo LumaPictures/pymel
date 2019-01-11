@@ -6,11 +6,9 @@ stages:
 test_2018.1_batch:
   stage : test
   script :
-  tags: [internal]
+  tags: [internal, linux]
   script:
-  - setpkg pyexternal
-  - export MAYA_LOCATION=/usr/autodesk/maya2018.1-x64
-  - export PATH=$PATH:$MAYA_LOCATION/bin
+  - setpkg -c pyexternal maya
   - cd tests
   - ./pymel_test_output.bash
 
