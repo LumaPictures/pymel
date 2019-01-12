@@ -139,94 +139,97 @@ def runOverriddenModule(modName, callingFileFunc, globals):
 
 runOverriddenModule(__name__, lambda: None, globals())
 
-# ...then monkey patch it!
+if not globals().get('_pymel_patched') and '_origShellLogHandler' not in globals():
+    # ...then monkey patch it!
 
-# first, allow setting of the stream for the shellLogHandler based on an env.
-# variable...
+    # first, allow setting of the stream for the shellLogHandler based on an env.
+    # variable...
 
-_origShellLogHandler = shellLogHandler
+    _origShellLogHandler = shellLogHandler
 
-def shellLogHandler(*args, **kwargs):
-    handler = _origShellLogHandler(*args, **kwargs)
-    shellStream = os.environ.get('MAYA_SHELL_LOGGER_STREAM')
-    if shellStream is not None:
-        shellStream = getattr(sys, shellStream, None)
+    def shellLogHandler(*args, **kwargs):
+        handler = _origShellLogHandler(*args, **kwargs)
+        shellStream = os.environ.get('MAYA_SHELL_LOGGER_STREAM')
         if shellStream is not None:
-            handler.stream = shellStream
-    return handler
+            shellStream = getattr(sys, shellStream, None)
+            if shellStream is not None:
+                handler.stream = shellStream
+        return handler
 
-# ...then, override the formatGuiException method to better deal with IOError /
-# OSError formatting
+    # ...then, override the formatGuiException method to better deal with IOError /
+    # OSError formatting
 
-def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
-    """
-    Format a trace stack into a string.
+    def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
+        """
+        Format a trace stack into a string.
 
-        exceptionType   : Type of exception
-        exceptionObject : Detailed exception information
-        traceBack       : Exception traceback stack information
-        detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
-                          
-    To perform an action when an exception occurs without modifying Maya's 
-    default printing of exceptions, do the following::
-    
-        import maya.utils
-        def myExceptCB(etype, value, tb, detail=2):
-            # do something here...
-            return maya.utils._formatGuiException(etype, value, tb, detail)
-        maya.utils.formatGuiException = myExceptCB
-        
-    """
-    # originally, this code used
-    #    exceptionMsg = unicode(exceptionObject.args[0])
-    # Unfortunately, the problem with this is that the first arg is NOT always
-    # the string message - ie, witness
-    #    IOError(2, 'No such file or directory', 'non_existant.file')
-    # So, instead, we always just use:
-    #    exceptionMsg = unicode(exceptionObject).strip()
-    # Unfortunately, for python 2.6 and before, this has some issues:
-    #    >>> str(IOError(2, 'foo', 'bar'))
-    #    "[Errno 2] foo: 'bar'"
-    #    >>> unicode(IOError(2, 'foo', 'bar'))
-    #    u"(2, 'foo')"
-    # However, 2014+ uses 2.7, and even for 2013, "(2, 'foo')" is still better
-    # than just "2"...
+            exceptionType   : Type of exception
+            exceptionObject : Detailed exception information
+            traceBack       : Exception traceback stack information
+            detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
 
-    if issubclass(exceptionType, SyntaxError):
-        # syntax errors are unique, in that str(syntaxError) will include line
-        # number info, which is what detail == 0 is trying to avoid...
-        exceptionMsg = unicode(exceptionObject.args[0])
-    else:
-        exceptionMsg = unicode(exceptionObject).strip()
-    if detail == 0:
-        result = exceptionType.__name__ + ': ' + exceptionMsg
-    else:
-        # extract a process stack from the tracekback object
-        tbStack = traceback.extract_tb(traceBack)
-        tbStack = _fixConsoleLineNumbers(tbStack)
-        if detail == 1:
-            # format like MEL error with line number
-            if tbStack:
-                file, line, func, text = tbStack[-1]
-                result = u'%s: file %s line %s: %s' % (exceptionType.__name__, file, line, exceptionMsg)
-            else:
-                result = exceptionMsg
-        else: # detail == 2
-            # format the exception
-            excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
-            # traceback may have failed to decode a unicode exception value
-            # if so, we will swap the unicode back in
-            if len(excLines) > 0:
-                excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
-            # format the traceback stack
-            tbLines = _decodeStack( traceback.format_list(tbStack) )
-            if len(tbStack) > 0:
-                tbLines.insert(0, u'Traceback (most recent call last):\n')
+        To perform an action when an exception occurs without modifying Maya's
+        default printing of exceptions, do the following::
 
-            # prefix the message to the stack trace so that it will be visible in
-            # the command line
-            result = ''.join( _prefixTraceStack([exceptionMsg+'\n'] + tbLines + excLines) )
-    return result
+            import maya.utils
+            def myExceptCB(etype, value, tb, detail=2):
+                # do something here...
+                return maya.utils._formatGuiException(etype, value, tb, detail)
+            maya.utils.formatGuiException = myExceptCB
 
-# store a local unmodified copy
-_formatGuiException = formatGuiException
+        """
+        # originally, this code used
+        #    exceptionMsg = unicode(exceptionObject.args[0])
+        # Unfortunately, the problem with this is that the first arg is NOT always
+        # the string message - ie, witness
+        #    IOError(2, 'No such file or directory', 'non_existant.file')
+        # So, instead, we always just use:
+        #    exceptionMsg = unicode(exceptionObject).strip()
+        # Unfortunately, for python 2.6 and before, this has some issues:
+        #    >>> str(IOError(2, 'foo', 'bar'))
+        #    "[Errno 2] foo: 'bar'"
+        #    >>> unicode(IOError(2, 'foo', 'bar'))
+        #    u"(2, 'foo')"
+        # However, 2014+ uses 2.7, and even for 2013, "(2, 'foo')" is still better
+        # than just "2"...
+
+        if issubclass(exceptionType, SyntaxError):
+            # syntax errors are unique, in that str(syntaxError) will include line
+            # number info, which is what detail == 0 is trying to avoid...
+            exceptionMsg = unicode(exceptionObject.args[0])
+        else:
+            exceptionMsg = unicode(exceptionObject).strip()
+        if detail == 0:
+            result = exceptionType.__name__ + ': ' + exceptionMsg
+        else:
+            # extract a process stack from the tracekback object
+            tbStack = traceback.extract_tb(traceBack)
+            tbStack = _fixConsoleLineNumbers(tbStack)
+            if detail == 1:
+                # format like MEL error with line number
+                if tbStack:
+                    file, line, func, text = tbStack[-1]
+                    result = u'%s: file %s line %s: %s' % (exceptionType.__name__, file, line, exceptionMsg)
+                else:
+                    result = exceptionMsg
+            else: # detail == 2
+                # format the exception
+                excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
+                # traceback may have failed to decode a unicode exception value
+                # if so, we will swap the unicode back in
+                if len(excLines) > 0:
+                    excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
+                # format the traceback stack
+                tbLines = _decodeStack( traceback.format_list(tbStack) )
+                if len(tbStack) > 0:
+                    tbLines.insert(0, u'Traceback (most recent call last):\n')
+
+                # prefix the message to the stack trace so that it will be visible in
+                # the command line
+                result = ''.join( _prefixTraceStack([exceptionMsg+'\n'] + tbLines + excLines) )
+        return result
+
+    # store a local unmodified copy
+    _formatGuiException = formatGuiException
+
+    _pymel_patched = True
