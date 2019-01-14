@@ -21,7 +21,7 @@ release_la:
   - master
   - develop
   script:
-  - /luma/pipe/shell/cron/gitlab_release.sh
+  - /luma/pipe/shell/gitlab/gitlab_release.sh
 
 release_mel:
   stage: release
@@ -32,4 +32,4 @@ release_mel:
   - master
   - develop
   script:
-  - /luma/pipe/shell/cron/gitlab_release.sh
+  - /luma/pipe/shell/gitlab/gitlab_release.sh
