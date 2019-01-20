@@ -36,6 +36,7 @@ def surface(*args, **kwargs):
 
 # ------ Do not edit below this line --------
 
+
 addMetadata = _factories.getCmdFunc('addMetadata')
 
 @_factories.addCmdDocs
@@ -59,6 +60,7 @@ def angleBetween(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 applyMetadata = _factories.getCmdFunc('applyMetadata')
 
 @_factories.addCmdDocs
@@ -77,6 +79,7 @@ def arclen(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 arubaNurbsToPoly = _factories.getCmdFunc('arubaNurbsToPoly')
 
@@ -108,6 +111,7 @@ def bevelPlus(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 bezierAnchorPreset = _factories.getCmdFunc('bezierAnchorPreset')
 
 bezierAnchorState = _factories.getCmdFunc('bezierAnchorState')
@@ -118,6 +122,7 @@ def bezierCurveToNurbs(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 bezierInfo = _factories.getCmdFunc('bezierInfo')
 
@@ -132,6 +137,7 @@ def boundary(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 canCreateManip = _factories.getCmdFunc('canCreateManip')
 
 changeSubdivComponentDisplayLevel = _factories.getCmdFunc('changeSubdivComponentDisplayLevel')
@@ -144,6 +150,7 @@ def circle(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 circularFillet = _factories.getCmdFunc('circularFillet')
 
@@ -161,6 +168,7 @@ def closeSurface(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 coarsenSubdivSelectionList = _factories.getCmdFunc('coarsenSubdivSelectionList')
 
 @_factories.addCmdDocs
@@ -169,6 +177,7 @@ def cone(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 constructionHistory = _factories.getCmdFunc('constructionHistory')
 
@@ -190,6 +199,7 @@ def curveIntersect(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 curveOnSurface = _factories.getCmdFunc('curveOnSurface')
 
 @_factories.addCmdDocs
@@ -198,6 +208,7 @@ def cylinder(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 dataStructure = _factories.getCmdFunc('dataStructure')
 
@@ -214,6 +225,7 @@ def detachSurface(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 doubleProfileBirailSurface = _factories.getCmdFunc('doubleProfileBirailSurface')
 
@@ -256,6 +268,7 @@ def filletCurve(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 filterExpand = _factories.getCmdFunc('filterExpand')
 
 @_factories.addCmdDocs
@@ -264,6 +277,7 @@ def fitBspline(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 freeFormFillet = _factories.getCmdFunc('freeFormFillet')
 
@@ -285,6 +299,7 @@ def grid(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 hardenPointCurve = _factories.getCmdFunc('hardenPointCurve')
 
 hasMetadata = _factories.getCmdFunc('hasMetadata')
@@ -305,6 +320,7 @@ def insertKnotSurface(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 intersect = _factories.getCmdFunc('intersect')
 
 @_factories.addCmdDocs
@@ -313,6 +329,7 @@ def loft(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 makeSingleSurface = _factories.getCmdFunc('makeSingleSurface')
 
@@ -342,6 +359,7 @@ def nurbsCurveToBezier(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 nurbsEditUV = _factories.getCmdFunc('nurbsEditUV')
 
 @_factories.addCmdDocs
@@ -351,6 +369,7 @@ def nurbsPlane(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 nurbsSelect = _factories.getCmdFunc('nurbsSelect')
 
 @_factories.addCmdDocs
@@ -359,6 +378,7 @@ def nurbsSquare(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 nurbsToPoly = _factories.getCmdFunc('nurbsToPoly')
 
@@ -371,6 +391,7 @@ def nurbsToSubdiv(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 nurbsToSubdivPref = _factories.getCmdFunc('nurbsToSubdivPref')
 
 nurbsUVSet = _factories.getCmdFunc('nurbsUVSet')
@@ -382,6 +403,7 @@ def offsetCurve(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 offsetCurveOnSurface = _factories.getCmdFunc('offsetCurveOnSurface')
 
 @_factories.addCmdDocs
@@ -391,6 +413,7 @@ def offsetSurface(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 planarSrf = _factories.getCmdFunc('planarSrf')
 
 @_factories.addCmdDocs
@@ -399,6 +422,7 @@ def plane(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 pointCurveConstraint = _factories.getCmdFunc('pointCurveConstraint')
 
@@ -421,6 +445,7 @@ def polyAppendVertex(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyAutoProjection = _factories.getCmdFunc('polyAutoProjection')
 
@@ -446,6 +471,7 @@ def polyBevel3(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyBlendColor = _factories.getCmdFunc('polyBlendColor')
 
@@ -477,6 +503,7 @@ def polyCBoolOp(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyCacheMonitor = _factories.getCmdFunc('polyCacheMonitor')
 
 polyCanBridgeEdge = _factories.getCmdFunc('polyCanBridgeEdge')
@@ -497,6 +524,7 @@ def polyCircularize(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyCircularizeEdge = _factories.getCmdFunc('polyCircularizeEdge')
 
 polyCircularizeFace = _factories.getCmdFunc('polyCircularizeFace')
@@ -507,6 +535,7 @@ def polyClean(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyClipboard = _factories.getCmdFunc('polyClipboard')
 
@@ -523,6 +552,7 @@ def polyCollapseEdge(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyCollapseFacet = _factories.getCmdFunc('polyCollapseFacet')
 
@@ -551,6 +581,7 @@ def polyColorPerVertex(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyColorSet = _factories.getCmdFunc('polyColorSet')
 
 polyCompare = _factories.getCmdFunc('polyCompare')
@@ -569,6 +600,7 @@ def polyConnectComponents(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyContourProjection = _factories.getCmdFunc('polyContourProjection')
 
 @_factories.addCmdDocs
@@ -584,6 +616,7 @@ def polyCrease(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyCreateFacet = _factories.getCmdFunc('polyCreateFacet')
 
@@ -608,6 +641,7 @@ def polyCylinder(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyCylindricalProjection = _factories.getCmdFunc('polyCylindricalProjection')
 
 @_factories.addCmdDocs
@@ -631,6 +665,7 @@ def polyDelVertex(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyDuplicateAndConnect = _factories.getCmdFunc('polyDuplicateAndConnect')
 
 @_factories.addCmdDocs
@@ -647,6 +682,7 @@ def polyEditEdgeFlow(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyEditUV = _factories.getCmdFunc('polyEditUV')
 
 polyEditUVShell = _factories.getCmdFunc('polyEditUVShell')
@@ -659,6 +695,7 @@ def polyExtrudeEdge(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyExtrudeFacet = _factories.getCmdFunc('polyExtrudeFacet')
 
@@ -683,6 +720,7 @@ def polyFlipUV(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyForceUV = _factories.getCmdFunc('polyForceUV')
 
 polyGeoSampler = _factories.getCmdFunc('polyGeoSampler')
@@ -693,6 +731,7 @@ def polyHelix(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyHole = _factories.getCmdFunc('polyHole')
 
@@ -720,6 +759,7 @@ def polyLayoutUV(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyListComponentConversion = _factories.getCmdFunc('polyListComponentConversion')
 
@@ -758,6 +798,7 @@ def polyMergeEdge(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyMergeFacet = _factories.getCmdFunc('polyMergeFacet')
 
 @_factories.addCmdDocs
@@ -766,6 +807,7 @@ def polyMergeUV(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyMergeVertex = _factories.getCmdFunc('polyMergeVertex')
 
@@ -777,6 +819,7 @@ def polyMoveEdge(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyMoveFacet = _factories.getCmdFunc('polyMoveFacet')
 
@@ -800,6 +843,7 @@ def polyMoveVertex(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyMultiLayoutUV = _factories.getCmdFunc('polyMultiLayoutUV')
 
@@ -831,6 +875,7 @@ def polyOptUvs(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyOptions = _factories.getCmdFunc('polyOptions')
 
 polyOutput = _factories.getCmdFunc('polyOutput')
@@ -848,6 +893,7 @@ def polyPipe(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyPlanarProjection = _factories.getCmdFunc('polyPlanarProjection')
 
@@ -893,6 +939,7 @@ def polyProjectCurve(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyProjection = _factories.getCmdFunc('polyProjection')
 
 @_factories.addCmdDocs
@@ -908,6 +955,7 @@ def polyQuad(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyQueryBlindData = _factories.getCmdFunc('polyQueryBlindData')
 
@@ -931,6 +979,7 @@ def polyRetopo(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polySelect = _factories.getCmdFunc('polySelect')
 
@@ -959,6 +1008,7 @@ def polySeparate(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polySetToFaceNormal = _factories.getCmdFunc('polySetToFaceNormal')
 
 @_factories.addCmdDocs
@@ -967,6 +1017,7 @@ def polySewEdge(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polySlideEdge = _factories.getCmdFunc('polySlideEdge')
 
@@ -991,6 +1042,7 @@ def polySphere(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polySphericalProjection = _factories.getCmdFunc('polySphericalProjection')
 
 @_factories.addCmdDocs
@@ -1014,6 +1066,7 @@ def polySplitRing(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polySplitVertex = _factories.getCmdFunc('polySplitVertex')
 
 @_factories.addCmdDocs
@@ -1022,6 +1075,7 @@ def polyStraightenUVBorder(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polySubdivideEdge = _factories.getCmdFunc('polySubdivideEdge')
 
@@ -1055,6 +1109,7 @@ def polyTriangulate(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 polyUVCoverage = _factories.getCmdFunc('polyUVCoverage')
 
 polyUVOverlap = _factories.getCmdFunc('polyUVOverlap')
@@ -1065,6 +1120,7 @@ def polyUVRectangle(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 polyUVSet = _factories.getCmdFunc('polyUVSet')
 
@@ -1098,6 +1154,7 @@ def projectTangent(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 propMove = _factories.getCmdFunc('propMove')
 
 querySubdiv = _factories.getCmdFunc('querySubdiv')
@@ -1115,6 +1172,7 @@ def rebuildSurface(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 refineSubdivSelectionList = _factories.getCmdFunc('refineSubdivSelectionList')
 
@@ -1146,6 +1204,7 @@ def roundConstantRadius(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 setXformManip = _factories.getCmdFunc('setXformManip')
 
 showMetadata = _factories.getCmdFunc('showMetadata')
@@ -1159,6 +1218,7 @@ def smoothCurve(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 smoothTangentSurface = _factories.getCmdFunc('smoothTangentSurface')
 
 @_factories.addCmdDocs
@@ -1167,6 +1227,7 @@ def sphere(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 squareSurface = _factories.getCmdFunc('squareSurface')
 
@@ -1183,6 +1244,7 @@ def subdCleanTopology(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 subdCollapse = _factories.getCmdFunc('subdCollapse')
 
 subdDuplicateAndConnect = _factories.getCmdFunc('subdDuplicateAndConnect')
@@ -1195,6 +1257,7 @@ def subdLayoutUV(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 subdListComponentConversion = _factories.getCmdFunc('subdListComponentConversion')
 
@@ -1211,6 +1274,7 @@ def subdMapSewMove(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 subdMatchTopology = _factories.getCmdFunc('subdMatchTopology')
 
@@ -1231,6 +1295,7 @@ def subdiv(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 subdivCrease = _factories.getCmdFunc('subdivCrease')
 
 subdivDisplaySmoothness = _factories.getCmdFunc('subdivDisplaySmoothness')
@@ -1243,6 +1308,7 @@ def surface(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 textCurves = _factories.getCmdFunc('textCurves')
 
@@ -1262,6 +1328,7 @@ def transferAttributes(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 transferShadingSets = _factories.getCmdFunc('transferShadingSets')
 
 @_factories.addCmdDocs
@@ -1270,6 +1337,7 @@ def trim(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 unfold = _factories.getCmdFunc('unfold')
 
@@ -1281,5 +1349,6 @@ def untrim(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 uvSnapshot = _factories.getCmdFunc('uvSnapshot')

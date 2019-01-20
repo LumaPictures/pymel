@@ -261,8 +261,8 @@ def resolvePath(melobj, recurse=False, exclude=(), melPathOnly=False, basePackag
             fileGood = True
             for badFile in exclude:
                 if f.samepath(badFile) \
-                   or (badFile.isdir()
-                       and f.canonicalpath().startswith(badFile)):
+                   or (badFile.isdir() and
+                       f.canonicalpath().startswith(badFile)):
                     fileGood = False
             if fileGood:
                 filteredFiles.append(f)
@@ -564,4 +564,3 @@ def mel2py(input, outputDir=None,
         print "%d files imported without error" % (importCnt)
 
     succCnt = 0
-

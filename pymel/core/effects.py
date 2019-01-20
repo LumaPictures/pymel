@@ -46,6 +46,7 @@ def arrayMapper(*args, **kwargs):
         res = res[0]
     return res
 
+
 collision = _factories.getCmdFunc('collision')
 
 colorAtPoint = _factories.getCmdFunc('colorAtPoint')
@@ -66,6 +67,7 @@ def connectDynamic(*args, **kwargs):
     res = cmds.connectDynamic(*args, **kwargs)
     return res
 
+
 constrain = _factories.getCmdFunc('constrain')
 
 @_factories.addCmdDocs
@@ -77,6 +79,7 @@ def drag(*args, **kwargs):
     if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
         res = res[0]
     return res
+
 
 dynCache = _factories.getCmdFunc('dynCache')
 
@@ -108,6 +111,7 @@ def dynPaintEditor(*args, **kwargs):
             pass
     res = cmds.dynPaintEditor(*args, **kwargs)
     return res
+
 
 dynPref = _factories.getCmdFunc('dynPref')
 
@@ -146,6 +150,7 @@ def expression(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 expressionEditorListen = _factories.getCmdFunc('expressionEditorListen')
 
 fluidCacheInfo = _factories.getCmdFunc('fluidCacheInfo')
@@ -159,6 +164,7 @@ def fluidEmitter(*args, **kwargs):
     if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
         res = res[0]
     return res
+
 
 fluidVoxelInfo = _factories.getCmdFunc('fluidVoxelInfo')
 
@@ -180,6 +186,7 @@ def gravity(*args, **kwargs):
         res = res[0]
     return res
 
+
 loadFluid = _factories.getCmdFunc('loadFluid')
 
 @_factories.addCmdDocs
@@ -196,6 +203,7 @@ def nParticle(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 nSoft = _factories.getCmdFunc('nSoft')
 
 newton = _factories.getCmdFunc('newton')
@@ -208,6 +216,7 @@ def particle(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 particleExists = _factories.getCmdFunc('particleExists')
 
@@ -237,6 +246,7 @@ def rigidSolver(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 runup = _factories.getCmdFunc('runup')
 
 saveFluid = _factories.getCmdFunc('saveFluid')
@@ -264,6 +274,7 @@ def stroke(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 truncateFluidCache = _factories.getCmdFunc('truncateFluidCache')
 

@@ -63,6 +63,7 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
     '''Like a standard lazy load  module, but with dynamic PyNode class creation
     '''
     _checkedForNewReservedTypes = False
+
     @classmethod
     def _unwrappedNodeTypes(cls):
         # get node types, but avoid checking inheritance for all nodes for
@@ -128,7 +129,7 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
                 plugin = cmds.pluginInfo(pluginPath, q=1, name=1)
             except RuntimeError:
                 # if we can't find a plugin
-                pyNodeName =_factories.addCustomPyNode(self, mayaType)
+                pyNodeName = _factories.addCustomPyNode(self, mayaType)
             else:
                 pyNodeName = pymel.core._addPluginNode(plugin, mayaType)
             if pyNodeName != name:
@@ -440,7 +441,7 @@ class DependNode(general.PyNode):
     def listPresets(self):
         kwargs = {'list': True}
         return cmds.nodePreset(**kwargs)
-#}
+# }
 
 # -------------------------
 # xxx{    Info
@@ -473,7 +474,7 @@ class DependNode(general.PyNode):
         return general.getClassification(self.type(), **kwargs)
         # return self.__apimfn__().classification( self.type() )
 
-#}
+# }
 # -------------------------
 # xxx{   Connections
 # -------------------------
@@ -552,7 +553,7 @@ class DependNode(general.PyNode):
         """
         return self.future(type='shadingEngine')
 
-#}
+# }
 # -------------------------
 # xxx{    Attributes
 # -------------------------
@@ -872,12 +873,13 @@ class DependNode(general.PyNode):
                 in _util.listForNone(cmds.attributeInfo(self.name(), **kwargs))]
 
 
-#}
+# }
 # ----------------------------------------
 # xxx{ Name Info and Manipulation
 # ----------------------------------------
 
 # Now just wraps NameParser functions
+
 
     def stripNum(self):
         # type: () -> unicode
@@ -1846,6 +1848,7 @@ class DagNode(Entity):
 # -------------------------------
 # xxx{  Path Info and Modification
 # -------------------------------
+
     def root(self):
         # type: () -> unicode
         """rootOf
@@ -2308,7 +2311,7 @@ class DagNode(Entity):
         """
         return self.addChild(child, **kwargs)
 
-#}
+# }
     #instance = instance
 
     # -------------------------
@@ -2339,8 +2342,8 @@ class DagNode(Entity):
     def isVisible(self, checkOverride=True):
         if not self.attr('visibility').get():
             return False
-        if (checkOverride and self.attr('overrideEnabled').get()
-                and not self.attr('overrideVisibility').get()):
+        if (checkOverride and self.attr('overrideEnabled').get() and
+                not self.attr('overrideVisibility').get()):
             return False
         parent = self.getParent()
         if not parent:
@@ -3932,6 +3935,7 @@ class Transform(DagNode):
 #    def setShearingOld( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 
+
     @_factories.addMelDocs('xform', 'rotateAxis')
     def setMatrix(self, val, **kwargs):
         """xform -scale"""
@@ -4015,6 +4019,7 @@ class Transform(DagNode):
 #    def getRotatePivotOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
+
     @_factories.addApiDocs(_api.MFnTransform, 'setRotatePivot')
     def setRotatePivot(self, point, space='object', balance=True, **kwargs):
         space = self._getSpaceArg(space, kwargs)
@@ -4039,6 +4044,7 @@ class Transform(DagNode):
 #    @_factories.queryflag('xform','rotation')
 #    def getRotationOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
+
 
     @_factories.addApiDocs(_api.MFnTransform, 'setRotation')
     def setRotation(self, rotation, space='object', **kwargs):
@@ -4195,7 +4201,7 @@ class Transform(DagNode):
         # space is currently ignored, and transform is always used, according to
         # docs; however, allow the kwarg for backwards compat
         return self._setRotateOrientation(quat, space=space,
-            balance=balance)
+                                          balance=balance)
 
 #    @_factories.queryflag('xform','shear')
 #    def getShearOld( self, **kwargs ):
@@ -9367,7 +9373,7 @@ class ObjectSet(Entity):
         selSet.intersection(other)
         return selSet
 
-        #raise TypeError, 'Cannot perform intersection with non-iterable type %s' % type(other)
+        # raise TypeError, 'Cannot perform intersection with non-iterable type %s' % type(other)
 
     def intersection(self, other):
         sel = self.getIntersection(other)
@@ -10316,7 +10322,6 @@ class AnimCurveUU(AnimCurve):
     __melnode__ = u'animCurveUU'
     __slots__ = ()
 # ------ Do not edit above this line --------
-
 
 
 class ResultCurve(AnimCurve):

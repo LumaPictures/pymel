@@ -904,7 +904,7 @@ class autoparsed(type):
                 parserdict['tokensDict'] = tokensDict
 
                 # the rule is named after the class
-                doc = '''%s : %s ''' % ( classname, tokenBasename )
+                doc = '''%s : %s ''' % (classname, tokenBasename)
                 #class _parser( Parser ): pass
 
                 def rule(self, p):

@@ -239,7 +239,7 @@ def format_command(command, args, t):
             #  Flag ------------------------------------------------------------
             if flagmatch:
                 if numArgs > 0:
-                    #raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
+                    # raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
                     if t.lexer.verbose >= 1:
                         print 'reached a new flag before receiving all necessary args for last flag'
                     kwargs[currFlag] = '1'
@@ -907,11 +907,12 @@ def hasNonCommentPyCode(pyCode):
 
 #  Mel lookup data -------------------------------------------------------------
 
+
 # dictionary of functions used to remap procedures to python commands
 proc_remap = {
 
     # strings
-    #'capitalizeString'         : ('string', lambda x, t: '%s.capitalize()'     % (x[0]) ), # not equiv
+    # 'capitalizeString'         : ('string', lambda x, t: '%s.capitalize()'     % (x[0]) ), # not equiv
     'capitalizeString': ('string', lambda x, t: '%sutil.capitalize(%s)' % (t.lexer.pymel_namespace, x[0])),
     'strip': ('string', lambda x, t: '%s.strip()' % (x[0])),
     'appendStringArray': (None, lambda x, t: '%s += %s[:%s]' % (x[0], x[1], x[2])),
@@ -922,7 +923,7 @@ proc_remap = {
     'stringArrayInsertAtIndex': (None, lambda x, t: '%s.insert(%s,%s)' % (x[1], x[0], x[2])),
     'stringArrayRemove': ('string[]', lambda x, t: '[x for x in %s if x not in %s]' % (x[1], x[0])),
     'stringArrayRemoveAtIndex': ('string[]', lambda x, t: '%s.pop(%s)' % (x[1], x[0])),
-    #'stringArrayRemove'        : lambda x, t: 'filter( lambda x: x not in %s, %s )' % (x[0],x[1]) ),
+    # 'stringArrayRemove'        : lambda x, t: 'filter( lambda x: x not in %s, %s )' % (x[0],x[1]) ),
     'stringToStringArray': ('string[]', lambda x, t: '%s.split(%s)' % (x[0], x[1])),
     'startsWith': ('int', lambda x, t: '%s.startswith(%s)' % (x[0], x[1])),
     'endsWith': ('int', lambda x, t: '%s.endswith(%s)' % (x[0], x[1])),
@@ -971,7 +972,7 @@ proc_remap = {
     'fread': ('string', format_fread),
 
 
-    #'filetest'                : lambda x, t: (  (  t.lexer.imported_modules.add('os'),  # add os module for access()
+    # 'filetest'                : lambda x, t: (  (  t.lexer.imported_modules.add('os'),  # add os module for access()
     #                                        {     '-r' : "Path(%(path)s).access(os.R_OK)",
     #                                            '-l' : "Path(%(path)s).islink()",
     #                                            '-w' : "Path(%(path)s).access(os.W_OK)",
@@ -997,7 +998,7 @@ proc_remap = {
                                         }[x[0]] % {'path': x[1]})
                                       )[1]),
 
-    #'sysFile'                : lambda x, t: {     '-delete'    : "Path(%(path)s).remove()",
+    # 'sysFile'                : lambda x, t: {     '-delete'    : "Path(%(path)s).remove()",
     #                                            '-del'        : "Path(%(path)s).remove()",
     #                                            '-rename'    : "Path(%(path)s).move(%(param)s)",
     #                                            '-ren'        : "Path(%(path)s).move(%(param)s)",
@@ -1099,6 +1100,7 @@ class BatchData(object):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
+
 global batchData
 batchData = BatchData()
 
@@ -1154,6 +1156,7 @@ class Comment(object):
             return format_multiline_string_comment(self)
 
 #  Parsing rules ----------------------------------------------------------------
+
 
 """
 translation_unit
@@ -1904,11 +1907,11 @@ def p_iteration_statement_2(t):
 
     """
 
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # for( init_expr; cond_expr; update_expr
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # for( iterator=start; iterator(relop)stop; iterator(+/-=)step )
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
 
     # regular expression for a variable
     var_reg = re.compile(r'[A-Za-z_][\w_]*')
@@ -1936,9 +1939,9 @@ def p_iteration_statement_2(t):
         t[0] = format_held_comments(t, 'for') + t[0]
 
     if len(cond_exprs) == 1 and len(init_exprs) >= 1 and len(update_exprs) >= 1:
-        #---------------------------------------------
+        # ---------------------------------------------
         # Conditional Expression  --> End
-        #---------------------------------------------
+        # ---------------------------------------------
         # the conditional expression becomes the end value of a range() function
         # there can be only one variable driven by the range expression, so there can be only one coniditional expression
         end = None
@@ -1951,9 +1954,9 @@ def p_iteration_statement_2(t):
 
         cond_vars = set(filter(var_reg.match, cond_buf))
 
-        #---------------------------------------------
+        # ---------------------------------------------
         # Update Expression --> Step
-        #---------------------------------------------
+        # ---------------------------------------------
         # The initialization is optional, so the next most important expression is the update expression.
         iterator = None
         step = None
@@ -2007,9 +2010,9 @@ def p_iteration_statement_2(t):
         elif cond_relop == '<=':
             end = end + '+1'
 
-        #---------------------------------------------
+        # ---------------------------------------------
         # initialization --> start
-        #---------------------------------------------
+        # ---------------------------------------------
         start = None
         init_reg = re.compile('\s*=\s*')
 
@@ -2463,7 +2466,7 @@ def p_procedure(t):
 def p_procedure_expression_list(t):
     '''procedure_expression_list : constant_expression
                                | procedure_expression_list COMMA constant_expression'''
-    #| procedure_expression_list COMMA comment command_expression'''
+    # | procedure_expression_list COMMA comment command_expression'''
 
     #t[0] = assemble(t, 'p_procedure_expression_list', matchFormatting=False )
 
@@ -2965,7 +2968,7 @@ def p_error(t):
 lexer = lex.lex(module=mellex)
 
 _outputdir = tempfile.gettempdir()
-parser = yacc.yacc(method='''LALR''', debug=0, outputdir=_outputdir )
+parser = yacc.yacc(method='''LALR''', debug=0, outputdir=_outputdir)
 
 
 class MelParseError(Exception):
@@ -3094,6 +3097,7 @@ class MelParser(object):
             return translatedStr
         finally:
             self.lexer.raw_parse_data = None
+
 
 scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan, outputdir=_outputdir)
 

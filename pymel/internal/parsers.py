@@ -52,8 +52,8 @@ def mayaIsRunning():
 def mayaDocsLocation(version=None):
     docLocation = os.environ.get('MAYA_DOC_DIR')
 
-    if (not docLocation and (version is None or version == versions.installName())
-            and mayaIsRunning()):
+    if (not docLocation and (version is None or version == versions.installName()) and
+            mayaIsRunning()):
         # Return the doc location for the running version of maya
         from maya.cmds import showHelp
         docLocation = showHelp("", q=True, docs=True)
@@ -160,9 +160,9 @@ def strip_tags(html):
     return s.get_data()
 
 
-#---------------------------------------------------------------
+# ---------------------------------------------------------------
 #        Doc Parser
-#---------------------------------------------------------------
+# ---------------------------------------------------------------
 
 
 class CommandDocParser(HTMLParser):
@@ -286,7 +286,7 @@ class CommandDocParser(HTMLParser):
             if tag == 'a':
                 name = attrmap.get('name', None)
                 if name == 'hFlags':
-                    #_logger.debug('ACTIVE')
+                    # _logger.debug('ACTIVE')
                     self.active = 'flag'
                 elif name == 'hExamples':
                     #_logger.debug("start examples")
@@ -355,11 +355,11 @@ class CommandDocParser(HTMLParser):
             data = data.replace('*', '\*')  # for reStructuredText
             if '{' not in data and '}' not in data:
                 self.description += data
-            #_logger.debug(data)
+            # _logger.debug(data)
             #self.active = False
         elif self.active == 'examples' and data != 'Python examples':
-            #_logger.debug("Example\n")
-            #_logger.debug(data)
+            # _logger.debug("Example\n")
+            # _logger.debug(data)
             data = data.replace('\r\n', '\n')
             self.example += data
             #self.active = False
@@ -480,11 +480,11 @@ class CommandModuleDocParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         try:
             attrs = attrs[0]
-            #_logger.debug(attrs)
+            # _logger.debug(attrs)
             if tag == 'a' and attrs[0] == 'href':
                 cmd = attrs[1].split("'")[1].split('.')[0]
                 self.cmdList.append(cmd)
-                #_logger.debug(cmd)
+                # _logger.debug(cmd)
         except IndexError:
             return
 
@@ -710,18 +710,18 @@ class ApiDocParser(object):
             #     class/pymelName, then use that as the default
             #   otherwise, use the pymel equivalent of whatever the original
             #     api default was
-            if (pymelName in defaultsSet
+            if (pymelName in defaultsSet or
                     # need to check val not in defaults, or else we can override
                     # a value set due to defaultsSet
-                    or (val not in defaults and apiName == apiEnum.getKey(val))):
+                    (val not in defaults and apiName == apiEnum.getKey(val))):
                 defaults[val] = pymelName
         return util.Enum(apiEnum.name, pymelKeyDict, multiKeys=True,
                          defaultKeys=defaults)
 
     def isBadEnum(self, type):
-        return (type[0].isupper() and 'Ptr' not in type
-                and not hasattr(self.apiModule, type)
-                and type not in self.OTHER_TYPES + self.MISSING_TYPES + self.NOT_TYPES)
+        return (type[0].isupper() and 'Ptr' not in type and
+                not hasattr(self.apiModule, type) and
+                type not in self.OTHER_TYPES + self.MISSING_TYPES + self.NOT_TYPES)
 
     def handleEnums(self, type):
         if type is None:
@@ -809,8 +809,8 @@ class ApiDocParser(object):
                 # '1.0 / 24.0'
                 if isinstance(rawValue, basestring) and rawValue.count('/') == 1:
                     numerator, divisor = rawValue.split('/')
-                    return (self.parseValue(numerator, valueType)
-                            / self.parseValue(divisor, valueType))
+                    return (self.parseValue(numerator, valueType) /
+                            self.parseValue(divisor, valueType))
                 # '1.0e-5F'  --> '1.0e-5'
                 elif rawValue.endswith(('F', 'f')):
                     return float(rawValue[:-1])
@@ -990,7 +990,7 @@ class ApiDocParser(object):
                       'outArgs': outArgs,
                       'doc': standardizeWhitespace(methodDoc),
                       'defaults': defaults,
-                      #'directions' : directions,
+                      # 'directions' : directions,
                       'types': types,
                       'static': self.isStaticMethod(),
                       'typeQualifiers': typeQualifiers,
@@ -1403,7 +1403,7 @@ class XmlApiDocParser(ApiDocParser):
                 # otherwise, we error (for now)
                 raise ValueError("Found repeated param names, and non-repated"
                                  " name placement did not match declared names:"
-                                " {}".format(", ".join(sorted(foundParamNameRepeated))))
+                                 " {}".format(", ".join(sorted(foundParamNameRepeated))))
 
         for name, param in zip(paramDescriptionNames, paramDescriptions):
             allNames = param.find('parameternamelist').findall('parametername')
@@ -1431,9 +1431,9 @@ class XmlApiDocParser(ApiDocParser):
         if missingParamDocs:
             wereMissingAll = len(missingParamDocs) == len(names)
             for missing in list(missingParamDocs):
-                if (types[missing] == 'MStatus'
-                        and ('*' in typeQualifiers[missing]
-                             or '&' in typeQualifiers[missing])):
+                if (types[missing] == 'MStatus' and
+                        ('*' in typeQualifiers[missing] or
+                             '&' in typeQualifiers[missing])):
                     missingParamDocs.remove(missing)
                     directions[missing] = 'out'
                     continue
@@ -1496,8 +1496,8 @@ class XmlApiDocParser(ApiDocParser):
             # Protected virtual funcs may not be exposed if the method they override
             # isn't public, but better to be overly inclusive
             protection = func.attrib.get('prot')
-            if (protection == 'public' or
-                    (protection == 'protected' and func.attrib.get('virt') == 'virtual')):
+            if (protection == 'public'
+                    or (protection == 'protected' and func.attrib.get('virt') == 'virtual')):
                 self.parseMethod(func)
 
 
@@ -1822,5 +1822,3 @@ class HtmlApiDocParser(ApiDocParser):
     def parseBody(self):
         for proto in self.soup.body.findAll('div', **{'class': 'memproto'}):
             self.parseMethod(proto)
-
-

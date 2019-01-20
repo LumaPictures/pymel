@@ -110,6 +110,7 @@ def _setTypeKwargFromExtension(path, kwargs, mode='write'):
             if fileType and fileType != 'None':
                 kwargs['type'] = fileType
 
+
 # Bring the MGlobal.display* methods into this namespace, for convenience
 displayError = _OpenMaya.MGlobal.displayError
 displayWarning = _OpenMaya.MGlobal.displayWarning
@@ -240,12 +241,17 @@ class Namespace(unicode):
     def __cmp__(self, other):
         return cmp(self.strip(":"), str(other).strip(":"))
 
-    __eq__ = lambda self, other: self.__cmp__(other) == 0
-    __ne__ = lambda self, other: self.__cmp__(other) != 0
-    __le__ = lambda self, other: self.__cmp__(other) <= 0
-    __lt__ = lambda self, other: self.__cmp__(other) < 0
-    __ge__ = lambda self, other: self.__cmp__(other) >= 0
-    __gt__ = lambda self, other: self.__cmp__(other) > 0
+    def __eq__(self, other): return self.__cmp__(other) == 0
+
+    def __ne__(self, other): return self.__cmp__(other) != 0
+
+    def __le__(self, other): return self.__cmp__(other) <= 0
+
+    def __lt__(self, other): return self.__cmp__(other) < 0
+
+    def __ge__(self, other): return self.__cmp__(other) >= 0
+
+    def __gt__(self, other): return self.__cmp__(other) > 0
 
     def splitAll(self):
         # type: () -> List[unicode]
@@ -870,6 +876,7 @@ class FileInfo(collections.MutableMapping):
 
     has_key = collections.MutableMapping.__contains__
 
+
 fileInfo = FileInfo()
 
 
@@ -1071,6 +1078,7 @@ def listReferences(parentReference=None, recursive=False, namespaces=False,
                                loaded=loaded,
                                unloaded=unloaded))
 
+
 listReferences.__doc__ += iterReferences.__doc__
 
 # def getReferences( reference=None, recursive=False, namespaces=True, refNodes=False, asDict=True ):
@@ -1124,7 +1132,7 @@ def getReferences(parentReference=None, recursive=False):
                                recursive=recursive, namespaces=True,
                                refNodes=False))
 
-#@decorator
+# @decorator
 # def suspendReferenceUpdates(func):
 #    def suspendedRefUpdateFunc(*args, **kw):
 #        ReferenceCache.deferReferenceUpdates(True)
@@ -1814,6 +1822,7 @@ def referenceQuery(*args, **kwargs):
             args[0] = args[0].refNode
         return cmds.referenceQuery(*args, **kwargs)
 
+
 import general
 import other
 
@@ -2164,6 +2173,7 @@ def isModified():
 
 # ------ Do not edit below this line --------
 
+
 aaf2fcp = _factories.getCmdFunc('aaf2fcp')
 
 allNodeTypes = _factories.getCmdFunc('allNodeTypes')
@@ -2228,6 +2238,7 @@ def devicePanel(*args, **kwargs):
     res = cmds.devicePanel(*args, **kwargs)
     return res
 
+
 dgInfo = _factories.getCmdFunc('dgInfo')
 
 dgValidateCurve = _factories.getCmdFunc('dgValidateCurve')
@@ -2268,6 +2279,7 @@ def exportEdits(*args, **kwargs):
     res = cmds.exportEdits(*args, **kwargs)
     return res
 
+
 fcheck = _factories.getCmdFunc('fcheck')
 
 @_factories.addCmdDocs
@@ -2286,6 +2298,7 @@ def fileBrowserDialog(*args, **kwargs):
     res = cmds.fileBrowserDialog(*args, **kwargs)
     return res
 
+
 fileDialog = _factories.getCmdFunc('fileDialog')
 
 @_factories.addCmdDocs
@@ -2303,6 +2316,7 @@ def fileDialog2(*args, **kwargs):
             pass
     res = cmds.fileDialog2(*args, **kwargs)
     return res
+
 
 fileInfo = _factories.addCmdDocs(fileInfo, cmdName='fileInfo')
 
@@ -2358,6 +2372,7 @@ def loadPlugin(*args, **kwargs):
     res = cmds.loadPlugin(*args, **kwargs)
     return res
 
+
 melInfo = _factories.getCmdFunc('melInfo')
 
 memory = _factories.getCmdFunc('memory')
@@ -2410,6 +2425,7 @@ def preloadRefEd(*args, **kwargs):
     res = cmds.preloadRefEd(*args, **kwargs)
     return res
 
+
 profiler = _factories.getCmdFunc('profiler')
 
 profilerTool = _factories.getCmdFunc('profilerTool')
@@ -2450,6 +2466,7 @@ def referenceEdit(*args, **kwargs):
     res = cmds.referenceEdit(*args, **kwargs)
     return res
 
+
 _referenceQuery = referenceQuery
 
 @_factories.addCmdDocs
@@ -2467,6 +2484,7 @@ def referenceQuery(*args, **kwargs):
             pass
     res = _referenceQuery(*args, **kwargs)
     return res
+
 
 rehash = _factories.getCmdFunc('rehash')
 
@@ -2505,6 +2523,7 @@ def sceneEditor(*args, **kwargs):
             pass
     res = cmds.sceneEditor(*args, **kwargs)
     return res
+
 
 sceneUIReplacement = _factories.getCmdFunc('sceneUIReplacement')
 
@@ -2553,6 +2572,7 @@ def unloadPlugin(*args, **kwargs):
             pass
     res = cmds.unloadPlugin(*args, **kwargs)
     return res
+
 
 warning = _factories.getCmdFunc('warning')
 

@@ -244,9 +244,9 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
 
     _mm.eval(procDef)
     return procName
-#--------------------------------------------------------
+# --------------------------------------------------------
 #  Scripted Command Wrapper
-#--------------------------------------------------------
+# --------------------------------------------------------
 
 
 def _shortnameByCaps(name):

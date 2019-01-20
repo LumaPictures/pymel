@@ -1595,5 +1595,6 @@ class CaseInsensitivePattern(unicode):
     def normcase(self):
         return __import__('ntpath').normcase
 
+
 # migrating to PEP8 compliance
 Path = path

@@ -46,7 +46,7 @@ def keyframe(*args, **kwargs):
         - if both valueChange and timeChange are queried, the result will be a list of (time,value) pairs
     """
     res = _util.listForNone(cmds.keyframe(*args, **kwargs))
-    if kwargs.get('query', kwargs.get('q', False) ) and \
+    if kwargs.get('query', kwargs.get('q', False)) and \
             kwargs.get('valueChange', kwargs.get('vc', False)) and kwargs.get('timeChange', kwargs.get('tc', False)):
         return list(_util.pairIter(res))
     return res
@@ -86,8 +86,8 @@ def _constraint(func):
                             # 'weight=True' - while this is somewhat more
                             # confusing, continue to support it for backwards
                             # compatibility
-                            _util.isIterable(targetObjects)
-                            and not targetObjects):
+                            _util.isIterable(targetObjects) and
+                            not targetObjects):
                         targetObjects = func(constraint, q=1, targetList=1)
                     elif _util.isIterable(targetObjects):
                         # convert to list, in case it isn't one
@@ -143,9 +143,9 @@ def ikHandle(*args, **kwargs):
             res = _factories.toPyNode(res)
         elif kwargs.get('jointList', kwargs.get('jl', False)):
             res = _factories.toPyNodeList(res)
-    elif (not kwargs.get('edit', kwargs.get('e', False))
-            and isinstance(res, list) and len(res) == 2
-            and all(isinstance(x, basestring) for x in res)):
+    elif (not kwargs.get('edit', kwargs.get('e', False)) and
+            isinstance(res, list) and len(res) == 2 and
+            all(isinstance(x, basestring) for x in res)):
         handleName, effectorName = res
         # ikHandle doesn't support a parent kwarg, so result should always be
         # grouped under the world...
@@ -163,6 +163,7 @@ def ikHandle(*args, **kwargs):
     return res
 
 # ------ Do not edit below this line --------
+
 
 _aimConstraint = aimConstraint
 
@@ -192,6 +193,7 @@ def animCurveEditor(*args, **kwargs):
     res = cmds.animCurveEditor(*args, **kwargs)
     return res
 
+
 animDisplay = _factories.getCmdFunc('animDisplay')
 
 @_factories.addCmdDocs
@@ -205,6 +207,7 @@ def animLayer(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 animView = _factories.getCmdFunc('animView')
 
@@ -252,6 +255,7 @@ def bakeSimulation(*args, **kwargs):
     res = cmds.bakeSimulation(*args, **kwargs)
     return res
 
+
 bindSkin = _factories.getCmdFunc('bindSkin')
 
 @_factories.addCmdDocs
@@ -260,6 +264,7 @@ def blendShape(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 blendShapeEditor = _factories.getCmdFunc('blendShapeEditor')
 
@@ -312,6 +317,7 @@ def bufferCurve(*args, **kwargs):
     res = cmds.bufferCurve(*args, **kwargs)
     return res
 
+
 buildBookmarkMenu = _factories.getCmdFunc('buildBookmarkMenu')
 
 buildKeyframeMenu = _factories.getCmdFunc('buildKeyframeMenu')
@@ -330,6 +336,7 @@ def characterMap(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 characterize = _factories.getCmdFunc('characterize')
 
 @_factories.addCmdDocs
@@ -338,6 +345,7 @@ def choice(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 clip = _factories.getCmdFunc('clip')
 
@@ -377,6 +385,7 @@ def combinationShape(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 connectJoint = _factories.getCmdFunc('connectJoint')
 
 @_factories.addCmdDocs
@@ -385,6 +394,7 @@ def controller(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 copyDeformerWeights = _factories.getCmdFunc('copyDeformerWeights')
 
@@ -401,6 +411,7 @@ def copyKey(*args, **kwargs):
             kwargs[flag] = _factories.convertTimeValues(rawVal)
     res = cmds.copyKey(*args, **kwargs)
     return res
+
 
 copySkinWeights = _factories.getCmdFunc('copySkinWeights')
 
@@ -424,6 +435,7 @@ def dagPose(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 defineDataServer = _factories.getCmdFunc('defineDataServer')
 
@@ -449,6 +461,7 @@ def deltaMush(*args, **kwargs):
             res = res[0]
     return res
 
+
 deviceManager = _factories.getCmdFunc('deviceManager')
 
 disconnectJoint = _factories.getCmdFunc('disconnectJoint')
@@ -461,6 +474,7 @@ def dropoffLocator(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 effector = _factories.getCmdFunc('effector')
 
@@ -509,6 +523,7 @@ def flow(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 freezeOptions = _factories.getCmdFunc('freezeOptions')
 
 @_factories.addCmdDocs
@@ -517,6 +532,7 @@ def geomBind(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 _geometryConstraint = geometryConstraint
 
@@ -530,6 +546,7 @@ def geometryConstraint(*args, **kwargs):
         res = res[0]
     return res
 
+
 hikGlobals = _factories.getCmdFunc('hikGlobals')
 
 _ikHandle = ikHandle
@@ -540,6 +557,7 @@ def ikHandle(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 ikHandleDisplayScale = _factories.getCmdFunc('ikHandleDisplayScale')
 
@@ -556,6 +574,7 @@ def ikSystem(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 ikSystemInfo = _factories.getCmdFunc('ikSystemInfo')
 
@@ -582,6 +601,7 @@ def jointCluster(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 jointDisplayScale = _factories.getCmdFunc('jointDisplayScale')
 
 @_factories.addCmdDocs
@@ -602,6 +622,7 @@ def keyTangent(*args, **kwargs):
             kwargs[flag] = _factories.convertTimeValues(rawVal)
     res = cmds.keyTangent(*args, **kwargs)
     return res
+
 
 _keyframe = keyframe
 
@@ -663,6 +684,7 @@ def lattice(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 listAnimatable = _factories.addCmdDocs(listAnimatable)
 
 marker = _factories.getCmdFunc('marker')
@@ -683,6 +705,7 @@ def movOut(*args, **kwargs):
     res = cmds.movOut(*args, **kwargs)
     return res
 
+
 movieInfo = _factories.getCmdFunc('movieInfo')
 
 @_factories.addCmdDocs
@@ -699,6 +722,7 @@ def nonLinear(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 _normalConstraint = normalConstraint
 
 @_factories.addCmdDocs
@@ -710,6 +734,7 @@ def normalConstraint(*args, **kwargs):
     if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
         res = res[0]
     return res
+
 
 _orientConstraint = orientConstraint
 
@@ -729,6 +754,7 @@ def pairBlend(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 _parentConstraint = parentConstraint
 
@@ -754,6 +780,7 @@ def pasteKey(*args, **kwargs):
     res = cmds.pasteKey(*args, **kwargs)
     return res
 
+
 pathAnimation = _factories.getCmdFunc('pathAnimation')
 
 percent = _factories.getCmdFunc('percent')
@@ -776,6 +803,7 @@ def pointConstraint(*args, **kwargs):
         res = res[0]
     return res
 
+
 _pointOnPolyConstraint = pointOnPolyConstraint
 
 @_factories.addCmdDocs
@@ -788,6 +816,7 @@ def pointOnPolyConstraint(*args, **kwargs):
         res = res[0]
     return res
 
+
 _poleVectorConstraint = poleVectorConstraint
 
 @_factories.addCmdDocs
@@ -799,6 +828,7 @@ def poleVectorConstraint(*args, **kwargs):
     if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
         res = res[0]
     return res
+
 
 polyUniteSkinned = _factories.getCmdFunc('polyUniteSkinned')
 
@@ -821,6 +851,7 @@ def posePanel(*args, **kwargs):
             pass
     res = cmds.posePanel(*args, **kwargs)
     return res
+
 
 readTake = _factories.getCmdFunc('readTake')
 
@@ -865,6 +896,7 @@ def sculpt(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 sculptTarget = _factories.getCmdFunc('sculptTarget')
 
 @_factories.addCmdDocs
@@ -873,6 +905,7 @@ def sequenceManager(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 setDrivenKeyframe = _factories.getCmdFunc('setDrivenKeyframe')
 
@@ -909,6 +942,7 @@ def shot(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 shotRipple = _factories.getCmdFunc('shotRipple')
 
 @_factories.addCmdDocs
@@ -922,6 +956,7 @@ def simplify(*args, **kwargs):
             kwargs[flag] = _factories.convertTimeValues(rawVal)
     res = cmds.simplify(*args, **kwargs)
     return res
+
 
 skeletonEmbed = _factories.getCmdFunc('skeletonEmbed')
 
@@ -939,6 +974,7 @@ def skinCluster(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 skinPercent = _factories.getCmdFunc('skinPercent')
 
@@ -967,6 +1003,7 @@ def softMod(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 sound = _factories.getCmdFunc('sound')
 
@@ -1021,6 +1058,7 @@ def timeEditorAnimSource(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 timeEditorBakeClips = _factories.getCmdFunc('timeEditorBakeClips')
 
 @_factories.addCmdDocs
@@ -1029,6 +1067,7 @@ def timeEditorClip(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 timeEditorClipLayer = _factories.getCmdFunc('timeEditorClipLayer')
 
@@ -1066,6 +1105,7 @@ def timeWarp(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 ubercam = _factories.getCmdFunc('ubercam')
 
 volumeBind = _factories.getCmdFunc('volumeBind')
@@ -1076,6 +1116,7 @@ def wire(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 wrinkle = _factories.getCmdFunc('wrinkle')
 

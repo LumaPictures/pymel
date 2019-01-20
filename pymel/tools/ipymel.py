@@ -316,9 +316,9 @@ def pymel_name_completer(self, event, dagOnly=False):
 
     matches = None
 
-    #--------------
+    # --------------
     # Attributes
-    #--------------
+    # --------------
     if not dagOnly:
         attr_match = ATTR_RE.match(nametext)
     else:
@@ -335,9 +335,9 @@ def pymel_name_completer(self, event, dagOnly=False):
         else:
             matches = complete_node_with_attr(node, attr)
 
-    #--------------
+    # --------------
     # Nodes
-    #--------------
+    # --------------
     else:
         # we don't yet have a full node
         if '|' not in nametext or (nametext.startswith('|') and nametext.count('|') == 1):
@@ -591,6 +591,7 @@ class DagTree(TreePager):
 
         return name
 
+
 # formerly: magic_dag
 dag_parser = OptionParser()
 dag_parser.add_option("-d", type="int", dest="maxdepth")
@@ -626,6 +627,7 @@ class DGHistoryTree(TreePager):
         import pymel.core as pm
         roots = pm.listConnections(root, plugs=True, connections=True, source=True, destination=False, sourceFirst=True)
         return TreePager.make_tree(self, roots)
+
 
 # formerly: magic_dghist
 dg_parser = OptionParser()
@@ -805,6 +807,7 @@ def sigint_plugin_loaded_callback(*args):
     #   ( [ pathToPlugin, pluginName ], clientData )
     install_sigint_handler()
 
+
 sigint_plugin_loaded_callback_id = None
 
 DAG_MAGIC_COMPLETER_RE = re.compile(r"(?P<preamble>%dag\s+)(?P<namematch>(?P<previous_parts>([a-zA-Z0-9:_]*\|)*)(?P<current_part>[a-zA-Z0-9:_]*))$")
@@ -892,6 +895,7 @@ def main():
         shell = IPython.Shell.start()
         setup(shell)
         shell.mainloop()
+
 
 if __name__ == '__main__':
     main()

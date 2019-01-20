@@ -88,7 +88,8 @@ def isMapping(obj):
     """
     return operator.isMappingType(obj)
 
-clsname = lambda x: type(x).__name__
+
+def clsname(x): return type(x).__name__
 
 
 def convertListArgs(args):
@@ -659,9 +660,9 @@ def mergeCascadingDicts(from_dict, to_dict, allowDictToListMerging=False,
     """
     listMerge = allowDictToListMerging and isinstance(to_dict, list)
     if listMerge:
-        contains = lambda key: isinstance(key, int) and 0 <= key < len(to_dict)
+        def contains(key): return isinstance(key, int) and 0 <= key < len(to_dict)
     else:
-        contains = lambda key: key in to_dict
+        def contains(key): return key in to_dict
 
     for key, from_val in from_dict.iteritems():
         # print key, from_val

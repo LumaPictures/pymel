@@ -139,14 +139,14 @@ def pythonToMelCmd(*commandAndArgs, **kwargs):
                 flagInfo = flags[key]
             elif key in shortFlags:
                 flagInfo = flags[shortFlags[key]]
-            if (flagInfo and flagInfo.get('args') == bool
-                    and flagInfo.get('numArgs') == 0):
+            if (flagInfo and flagInfo.get('args') == bool and
+                    flagInfo.get('numArgs') == 0):
                 # we have a boolean argument that takes no args!
                 # doing something like '-q 1' will raise an error, just
                 # do '-q'
                 strFlags.append('-%s' % key)
-            elif (isinstance(val, (tuple, list))
-                    and len(val) == flagInfo.get('numArgs')):
+            elif (isinstance(val, (tuple, list)) and
+                    len(val) == flagInfo.get('numArgs')):
                 strFlags.append('-%s %s' %
                                 (key, ' '.join(pythonToMel(x) for x in val)))
             else:
@@ -795,6 +795,7 @@ class Env(object):
         self.animEndTime = playbackTimes[3]
     playbackTimes = property(getPlaybackTimes, setPlaybackTimes)
 
+
 env = Env()
 
 
@@ -991,7 +992,7 @@ class Mel(object):
     def mprint(cls, *args):
         """mel print command in case the python print command doesn't cut it"""
         # print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args)))
-        _mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
+        _mm.eval(r"""print (%s);""" % pythonToMel(' '.join(map(str, args))) + '\n')
 
     @classmethod
     def source(cls, script, language='mel'):
@@ -1012,7 +1013,7 @@ class Mel(object):
         """
 
         if language == 'mel':
-            cls.eval( """source "%s";""" % script )
+            cls.eval("""source "%s";""" % script)
 
         elif language == 'python':
             script = util.path(script)
@@ -1160,7 +1161,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""error %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def warning(msg, showLineNumber=False):
@@ -1168,7 +1169,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""warning %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def trace(msg, showLineNumber=False):
@@ -1176,7 +1177,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""trace %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def tokenize(*args):
@@ -1300,6 +1301,7 @@ def callbacks(*args, **kwargs):
     res = cmds.callbacks(*args, **kwargs)
     return res
 
+
 evalEcho = _factories.getCmdFunc('evalEcho')
 
 evalNoSelectNotify = _factories.getCmdFunc('evalNoSelectNotify')
@@ -1331,6 +1333,7 @@ def scriptJob(*args, **kwargs):
             pass
     res = cmds.scriptJob(*args, **kwargs)
     return res
+
 
 sortCaseInsensitive = _factories.getCmdFunc('sortCaseInsensitive')
 

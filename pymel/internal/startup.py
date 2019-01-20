@@ -229,22 +229,22 @@ def initMEL():
     # TODO : use cmds.internalVar to get paths
     # got this startup sequence from autodesk support
     startup = [
-        #'defaultRunTimeCommands.mel',  # sourced automatically
+        # 'defaultRunTimeCommands.mel',  # sourced automatically
         # os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
         'createPreferencesOptVars.mel',
         'createGlobalOptVars.mel',
         os.path.join(prefsDir, 'userPrefs.mel') if prefsDir else None,
         'initialStartup.mel',
-        #$HOME/Documents/maya/projects/default/workspace.mel
+        # $HOME/Documents/maya/projects/default/workspace.mel
         'initialPlugins.mel',
-        #'initialGUI.mel', #GUI
-        #'initialLayout.mel', #GUI
+        # 'initialGUI.mel', #GUI
+        # 'initialLayout.mel', #GUI
         # os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
         # os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
-        #'hotkeySetup.mel', #GUI
+        # 'hotkeySetup.mel', #GUI
         'namedCommandSetup.mel',
         os.path.join(prefsDir, 'userNamedCommands.mel') if prefsDir else None,
-        #'initAfter.mel', #GUI
+        # 'initAfter.mel', #GUI
         os.path.join(prefsDir, 'pluginPrefs.mel') if prefsDir else None
     ]
     if pymel_options.get('skip_initial_plugins', False):
@@ -483,9 +483,9 @@ def encodeFix():
                     _logger.debug("Unable to import maya.app.baseUI")
 
 
-#===============================================================================
+# ===============================================================================
 # Cache utilities
-#===============================================================================
+# ===============================================================================
 
 
 def getImportableObject(importableName):
@@ -515,6 +515,7 @@ def _pickleload(filename):
 def _pydump(data, filename, opener=open):
     with opener(filename, mode='wb') as file:
         file.write(pprint.pformat(data))
+
 
 # (1, 0) - initial version, that used "eval" instead of exec - didn't contain
 #          explicit version
@@ -873,9 +874,9 @@ class SubItemCache(PymelCache):
     def contents(self):
         return tuple(getattr(self, x) for x in self.cacheNames())
 
-#===============================================================================
+# ===============================================================================
 # Config stuff
-#===============================================================================
+# ===============================================================================
 
 
 def getConfigFile():
@@ -914,5 +915,6 @@ def parsePymelConfig():
     d['preferred_python_qt_binding'] = d['preferred_python_qt_binding'].lower()
 
     return d
+
 
 pymel_options = parsePymelConfig()

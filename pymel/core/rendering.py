@@ -125,6 +125,7 @@ def ambientLight(*args, **kwargs):
 
 # ------ Do not edit below this line --------
 
+
 _ambientLight = ambientLight
 
 @_factories.addCmdDocs
@@ -133,6 +134,7 @@ def ambientLight(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 assignViewportFactories = _factories.getCmdFunc('assignViewportFactories')
 
@@ -151,6 +153,7 @@ def batchRender(*args, **kwargs):
             pass
     res = cmds.batchRender(*args, **kwargs)
     return res
+
 
 binMembership = _factories.getCmdFunc('binMembership')
 
@@ -185,6 +188,7 @@ def cameraView(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 checkDefaultRenderGlobals = _factories.getCmdFunc('checkDefaultRenderGlobals')
 
@@ -222,6 +226,7 @@ def defaultLightListCheckBox(*args, **kwargs):
     res = cmds.defaultLightListCheckBox(*args, **kwargs)
     return res
 
+
 _directionalLight = directionalLight
 
 @_factories.addCmdDocs
@@ -230,6 +235,7 @@ def directionalLight(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
 
 displacementToPoly = _factories.getCmdFunc('displacementToPoly')
 
@@ -259,6 +265,7 @@ def exclusiveLightCheckBox(*args, **kwargs):
     res = cmds.exclusiveLightCheckBox(*args, **kwargs)
     return res
 
+
 frameBufferName = _factories.getCmdFunc('frameBufferName')
 
 getRenderDependencies = _factories.getCmdFunc('getRenderDependencies')
@@ -276,6 +283,7 @@ def hwReflectionMap(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 hwRender = _factories.getCmdFunc('hwRender')
 
 hwRenderLoad = _factories.getCmdFunc('hwRenderLoad')
@@ -291,6 +299,7 @@ def imagePlane(*args, **kwargs):
         if kwargs.get('query', kwargs.get('q', False)) and not unpackFlags.isdisjoint(kwargs):
             res = res[0]
     return res
+
 
 iprEngine = _factories.getCmdFunc('iprEngine')
 
@@ -333,6 +342,7 @@ def lightList(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 lightlink = _factories.getCmdFunc('lightlink')
 
 listCameras = _factories.getCmdFunc('listCameras')
@@ -361,6 +371,7 @@ def nodeIconButton(*args, **kwargs):
     res = cmds.nodeIconButton(*args, **kwargs)
     return res
 
+
 nodePreset = _factories.getCmdFunc('nodePreset')
 
 ogsRender = _factories.getCmdFunc('ogsRender')
@@ -380,6 +391,7 @@ def pointLight(*args, **kwargs):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
 
+
 preferredRenderer = _factories.getCmdFunc('preferredRenderer')
 
 @_factories.addCmdDocs
@@ -398,6 +410,7 @@ def prepareRender(*args, **kwargs):
     res = cmds.prepareRender(*args, **kwargs)
     return res
 
+
 projectionManip = _factories.getCmdFunc('projectionManip')
 
 @_factories.addCmdDocs
@@ -415,6 +428,7 @@ def psdChannelOutliner(*args, **kwargs):
             pass
     res = cmds.psdChannelOutliner(*args, **kwargs)
     return res
+
 
 psdEditTextureFile = _factories.getCmdFunc('psdEditTextureFile')
 
@@ -437,6 +451,7 @@ def rampColorPort(*args, **kwargs):
             pass
     res = cmds.rampColorPort(*args, **kwargs)
     return res
+
 
 render = _factories.getCmdFunc('render')
 
@@ -490,6 +505,7 @@ def renderer(*args, **kwargs):
     res = cmds.renderer(*args, **kwargs)
     return res
 
+
 resolutionNode = _factories.getCmdFunc('resolutionNode')
 
 roll = _factories.getCmdFunc('roll')
@@ -535,6 +551,7 @@ def spotLightPreviewPort(*args, **kwargs):
     res = cmds.spotLightPreviewPort(*args, **kwargs)
     return res
 
+
 surfaceSampler = _factories.getCmdFunc('surfaceSampler')
 
 surfaceShaderList = _factories.getCmdFunc('surfaceShaderList')
@@ -556,6 +573,7 @@ def textureWindow(*args, **kwargs):
             pass
     res = cmds.textureWindow(*args, **kwargs)
     return res
+
 
 track = _factories.getCmdFunc('track')
 

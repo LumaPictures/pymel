@@ -874,7 +874,7 @@ class MayaShortName(NameParsed):
     def setBaseName(self, name):
         """Set the name of the object.  Should not include namespace"""
         return self.setSubItem(-1, name)
-    basename = property( getBaseName, setBaseName, doc=""" The short node name without any namespace of the Maya short object name """ )
+    basename = property(getBaseName, setBaseName, doc=""" The short node name without any namespace of the Maya short object name """)
 
     def addPrefix(self, prefix):
         """Add a prefix to the node name. This must produce a valid maya name (no separators allowed)."""
@@ -893,7 +893,7 @@ class MayaShortName(NameParsed):
     def setNamespace(self, namespace):
         "Set the namespace. The provided namespace may be nested and should including a trailing colon unless it is empty."""
         self.setSubItem(0, namespace)
-    namespace = property( getBaseNamespace, setNamespace, doc=""" The namespace name (full) of the Maya short object name """ )
+    namespace = property(getBaseNamespace, setNamespace, doc=""" The namespace name (full) of the Maya short object name """)
 
     def isAbsoluteNamespace(self):
         """ True if this object is specified in an absolute namespace """

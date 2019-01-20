@@ -256,6 +256,7 @@ class ReporterDict(dict):
                 return val
         raise KeyError  # , str(lookupName)
 
+
 reporters = ReporterDict({})
 #reporters = {}
 

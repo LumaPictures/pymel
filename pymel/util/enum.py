@@ -49,7 +49,7 @@ original arguments used to create the enumeration:
 
 __author_name__ = "Ben Finney"
 __author_email__ = "ben+python@benfinney.id.au"
-#__author__ = "%s <%s>" % (__author_name__, __author_email__) # confuses epydoc
+# __author__ = "%s <%s>" % (__author_name__, __author_email__) # confuses epydoc
 __date__ = "2007-01-24"
 __copyright__ = "Copyright © %s %s" % (
     __date__.split('-')[0], __author_name__
@@ -328,7 +328,7 @@ class Enum(object):
 
     def _valTuples(self):
         return tuple((key, val._asTuple())
-            for (key, val) in self._values.iteritems())
+                     for (key, val) in self._values.iteritems())
 
     def __eq__(self, other):
         if not isinstance(other, Enum):
@@ -502,6 +502,7 @@ class Enum(object):
             keyStrings = tuple(v.key for v in self._values.itervalues())
             super(Enum, self).__setattr__('_keyStrings', keyStrings)
         return self._keyStrings
+
 
 # strangely this is required to fix a crash when referencing pymel from mypy
 EnumType = Enum

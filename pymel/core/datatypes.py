@@ -2164,7 +2164,7 @@ class Quaternion(Matrix):
 
         def isVectorLike(x):
             return isinstance(x, (_api.MVector, Vector)) \
-                    or hasattr(x, '__len__') and len(x) == 3
+                or hasattr(x, '__len__') and len(x) == 3
 
         if args:
             # allow both forms for arguments
@@ -2183,7 +2183,6 @@ class Quaternion(Matrix):
                 quat.assign(EulerRotation(*args, **kwargs))
                 args = quat
                 # allow to initialize directly from 3 rotations and a rotation order
-
 
             # axis-angle - want to authorize
             # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
@@ -3587,7 +3586,6 @@ class BoundingBox(_api.MBoundingBox):
     d = property(depth)
 
 
-
 #_factories.ApiTypeRegister.register( 'MVector', Vector )
 #_factories.ApiTypeRegister.register( 'MMatrix', Matrix )
 #_factories.ApiTypeRegister.register( 'MPoint', Point )
@@ -3599,7 +3597,7 @@ _factories.ApiTypeRegister.register('MDistance', Distance, outCast=Distance._out
 _factories.ApiTypeRegister.register('MAngle', Angle, outCast=Angle._outCast)
 
 
-#_floatUpConvertDict = {_api.MFloatArray:_api.MDoubleArray,
+# _floatUpConvertDict = {_api.MFloatArray:_api.MDoubleArray,
 #                       _api.MFloatMatrix:_api.MMatrix,
 #                       _api.MFloatPoint:_api.MPoint,
 #                       _api.MFloatPointArray:_api.MPointArray,
@@ -3955,7 +3953,7 @@ def _testMVector():
     u[0] = 10
     print repr(u)
     # Vector([10.0, 20.0, 30.0])
-    print (10 in u)
+    print(10 in u)
     # True
     print list(u)
     # [10.0, 20.0, 30.0]
@@ -4090,15 +4088,15 @@ def _testMVector():
     w = u + [0.01, 0.01, 0.01]
     print repr(w)
     # Vector([1.01, 2.01, 3.01])
-    print (u == u)
+    print(u == u)
     # True
-    print (u == w)
+    print(u == w)
     # False
-    print (u == Vector(1.0, 2.0, 3.0))
+    print(u == Vector(1.0, 2.0, 3.0))
     # True
-    print (u == [1.0, 2.0, 3.0])
+    print(u == [1.0, 2.0, 3.0])
     # False
-    print (u == Point(1.0, 2.0, 3.0))
+    print(u == Point(1.0, 2.0, 3.0))
     # False
     print u.isEquivalent([1.0, 2.0, 3.0])
     # True
@@ -4454,7 +4452,7 @@ def _testMPoint():
     # 0.785398163397
     print p.distanceTo(q)
     # 0.765309087885
-    print (q - p).length()
+    print(q - p).length()
     # 0.765309087885
     print cotan(Point.origin, p, q)
     # 1.0
@@ -4658,7 +4656,7 @@ def _testMMatrix():
     print "Matrix class", dir(Matrix)
     m = Matrix()
     print m.formated()
-    #[[1.0, 0.0, 0.0, 0.0],
+    # [[1.0, 0.0, 0.0, 0.0],
     # [0.0, 1.0, 0.0, 0.0],
     # [0.0, 0.0, 1.0, 0.0],
     # [0.0, 0.0, 0.0, 1.0]]
@@ -4701,21 +4699,21 @@ def _testMMatrix():
     # inits
     m = Matrix(range(16))
     print m.formated()
-    #[[0.0, 1.0, 2.0, 3.0],
+    # [[0.0, 1.0, 2.0, 3.0],
     # [4.0, 5.0, 6.0, 7.0],
     # [8.0, 9.0, 10.0, 11.0],
     # [12.0, 13.0, 14.0, 15.0]]
     M = Array(range(16), shape=(8, 2))
     m = Matrix(M)
     print m.formated()
-    #[[0.0, 1.0, 2.0, 3.0],
+    # [[0.0, 1.0, 2.0, 3.0],
     # [4.0, 5.0, 6.0, 7.0],
     # [8.0, 9.0, 10.0, 11.0],
     # [12.0, 13.0, 14.0, 15.0]]
     M = MatrixN(range(9), shape=(3, 3))
     m = Matrix(M)
     print m.formated()
-    #[[0.0, 1.0, 2.0, 0.0],
+    # [[0.0, 1.0, 2.0, 0.0],
     # [3.0, 4.0, 5.0, 0.0],
     # [6.0, 7.0, 8.0, 0.0],
     # [0.0, 0.0, 0.0, 1.0]]
@@ -4736,13 +4734,13 @@ def _testMMatrix():
     t.setTranslation(Vector(1, 2, 3), _api.MSpace.kWorld)
     m = Matrix(t)
     print m.formated()
-    #[[1.0, 0.0, 0.0, 0.0],
+    # [[1.0, 0.0, 0.0, 0.0],
     # [0.0, 1.0, 0.0, 0.0],
     # [0.0, 0.0, 1.0, 0.0],
     # [1.0, 2.0, 3.0, 1.0]]
     m = Matrix(m, a30=10)
     print m.formated()
-    #[[1.0, 0.0, 0.0, 0.0],
+    # [[1.0, 0.0, 0.0, 0.0],
     # [0.0, 1.0, 0.0, 0.0],
     # [0.0, 0.0, 1.0, 0.0],
     # [10.0, 2.0, 3.0, 1.0]]
@@ -4759,7 +4757,7 @@ def _testMMatrix():
     print repr(M)
     # MatrixN([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
     print M.formated()
-    #[[1.0, 0.0, 0.0],
+    # [[1.0, 0.0, 0.0],
     # [0.0, 1.0, 0.0],
     # [0.0, 0.0, 1.0]]
     try:
@@ -4783,7 +4781,7 @@ def _testMMatrix():
 
     m = Matrix(MatrixN(range(9), shape=(3, 3)).trimmed(shape=(4, 4), value=10))
     print m.formated()
-    #[[0.0, 1.0, 2.0, 10.0],
+    # [[0.0, 1.0, 2.0, 10.0],
     # [3.0, 4.0, 5.0, 10.0],
     # [6.0, 7.0, 8.0, 10.0],
     # [10.0, 10.0, 10.0, 10.0]]
@@ -4794,11 +4792,11 @@ def _testMMatrix():
     # [0.0, 1.0, 2.0, 10.0]
     m[0] = 10
     print m.formated()
-    #[[10.0, 10.0, 10.0, 10.0],
+    # [[10.0, 10.0, 10.0, 10.0],
     # [3.0, 4.0, 5.0, 10.0],
     # [6.0, 7.0, 8.0, 10.0],
     # [10.0, 10.0, 10.0, 10.0]]
-    print (10 in m)
+    print(10 in m)
     # True
     print list(m)
     # [Array([10.0, 10.0, 10.0, 10.0]), Array([3.0, 4.0, 5.0, 10.0]), Array([6.0, 7.0, 8.0, 10.0]), Array([10.0, 10.0, 10.0, 10.0])]
@@ -4819,7 +4817,7 @@ def _testMMatrix():
     m = Matrix([0.0, 4.1633363423443383e-17, -0.5, 0.0, 0.25881904510252079, 0.96592582628906831, 1.3877787807814459e-16, 0.0, 1.9318516525781366, -0.51763809020504159, 0.0, 0.0, 1.0, 2.0, 3.0, 1.0])
     print "m:"
     print round(m, 2).formated()
-    #[[0.0, 0.0, -0.5, 0.0],
+    # [[0.0, 0.0, -0.5, 0.0],
     # [0.26, 0.97, 0.0, 0.0],
     # [1.93, -0.52, 0.0, 0.0],
     # [1.0, 2.0, 3.0, 1.0]]
@@ -4869,7 +4867,7 @@ def _testMMatrix():
     print "m = Matrix(range(1, 17))"
     m = Matrix(range(1, 17))
     print m.formated()
-    #[[1.0, 2.0, 3.0, 4.0],
+    # [[1.0, 2.0, 3.0, 4.0],
     # [5.0, 6.0, 7.0, 8.0],
     # [9.0, 10.0, 11.0, 12.0],
     # [13.0, 14.0, 15.0, 16.0]]
@@ -4880,14 +4878,14 @@ def _testMMatrix():
     print "M = MatrixN(range(20), shape=(4, 5))"
     M = MatrixN(range(1, 21), shape=(4, 5))
     print M.formated()
-    #[[1, 2, 3, 4, 5],
+    # [[1, 2, 3, 4, 5],
     # [6, 7, 8, 9, 10],
     # [11, 12, 13, 14, 15],
     # [16, 17, 18, 19, 20]]
     print "m*M"
     n = m * M
-    print (n).formated()
-    #[[110.0, 120.0, 130.0, 140.0, 150.0],
+    print(n).formated()
+    # [[110.0, 120.0, 130.0, 140.0, 150.0],
     # [246.0, 272.0, 298.0, 324.0, 350.0],
     # [382.0, 424.0, 466.0, 508.0, 550.0],
     # [518.0, 576.0, 634.0, 692.0, 750.0]]
@@ -4895,8 +4893,8 @@ def _testMMatrix():
     # MatrixN
     print "m*2"
     n = m * 2
-    print (n).formated()
-    #[[2.0, 4.0, 6.0, 8.0],
+    print(n).formated()
+    # [[2.0, 4.0, 6.0, 8.0],
     # [10.0, 12.0, 14.0, 16.0],
     # [18.0, 20.0, 22.0, 24.0],
     # [26.0, 28.0, 30.0, 32.0]]
@@ -4904,8 +4902,8 @@ def _testMMatrix():
     # Matrix
     print "2*m"
     n = 2 * m
-    print (n).formated()
-    #[[2.0, 4.0, 6.0, 8.0],
+    print(n).formated()
+    # [[2.0, 4.0, 6.0, 8.0],
     # [10.0, 12.0, 14.0, 16.0],
     # [18.0, 20.0, 22.0, 24.0],
     # [26.0, 28.0, 30.0, 32.0]]
@@ -4913,8 +4911,8 @@ def _testMMatrix():
     # Matrix
     print "m+2"
     n = m + 2
-    print (n).formated()
-    #[[3.0, 4.0, 5.0, 6.0],
+    print(n).formated()
+    # [[3.0, 4.0, 5.0, 6.0],
     # [7.0, 8.0, 9.0, 10.0],
     # [11.0, 12.0, 13.0, 14.0],
     # [15.0, 16.0, 17.0, 18.0]]
@@ -4922,8 +4920,8 @@ def _testMMatrix():
     # Matrix
     print "2+m"
     n = 2 + m
-    print (n).formated()
-    #[[3.0, 4.0, 5.0, 6.0],
+    print(n).formated()
+    # [[3.0, 4.0, 5.0, 6.0],
     # [7.0, 8.0, 9.0, 10.0],
     # [11.0, 12.0, 13.0, 14.0],
     # [15.0, 16.0, 17.0, 18.0]]
@@ -4942,13 +4940,13 @@ def _testMMatrix():
     m = Matrix([0.0, 4.1633363423443383e-17, -0.5, 0.0, 0.25881904510252079, 0.96592582628906831, 1.3877787807814459e-16, 0.0, 1.9318516525781366, -0.51763809020504159, 0.0, 0.0, 1.0, 2.0, 3.0, 1.0])
     print "m:"
     print round(m, 2).formated()
-    #[[0.0, 0.0, -0.5, 0.0],
+    # [[0.0, 0.0, -0.5, 0.0],
     # [0.26, 0.97, 0.0, 0.0],
     # [1.93, -0.52, 0.0, 0.0],
     # [1.0, 2.0, 3.0, 1.0]]
     print "m.transpose():"
     print round(m.transpose(), 2).formated()
-    #[[0.0, 0.26, 1.93, 1.0],
+    # [[0.0, 0.26, 1.93, 1.0],
     # [0.0, 0.97, -0.52, 2.0],
     # [-0.5, 0.0, 0.0, 3.0],
     # [0.0, 0.0, 0.0, 1.0]]
@@ -4957,25 +4955,25 @@ def _testMMatrix():
     # False
     print "m.inverse():"
     print round(m.inverse(), 2).formated()
-    #[[0.0, 0.26, 0.48, 0.0],
+    # [[0.0, 0.26, 0.48, 0.0],
     # [0.0, 0.97, -0.13, 0.0],
     # [-2.0, 0.0, 0.0, 0.0],
     # [6.0, -2.19, -0.22, 1.0]]
     print "m.adjoint():"
     print round(m.adjoint(), 2).formated()
-    #[[0.0, 0.26, 0.48, 0.0],
+    # [[0.0, 0.26, 0.48, 0.0],
     # [0.0, 0.97, -0.13, 0.0],
     # [-2.0, 0.0, -0.0, 0.0],
     # [6.0, -2.19, -0.22, 1.0]]
     print "m.adjugate():"
     print round(m.adjugate(), 2).formated()
-    #[[0.0, 0.26, 0.48, 0.0],
+    # [[0.0, 0.26, 0.48, 0.0],
     # [0.0, 0.97, -0.13, 0.0],
     # [-2.0, 0.0, -0.0, 0.0],
     # [6.0, -2.19, -0.22, 1.0]]
     print "m.homogenize():"
     print round(m.homogenize(), 2).formated()
-    #[[0.0, 0.0, -1.0, 0.0],
+    # [[0.0, 0.0, -1.0, 0.0],
     # [0.26, 0.97, 0.0, 0.0],
     # [0.97, -0.26, -0.0, 0.0],
     # [1.0, 2.0, 3.0, 1.0]]
@@ -4990,13 +4988,13 @@ def _testMMatrix():
     # 1.0
     print "m.weighted(0.5):"
     print round(m.weighted(0.5), 2).formated()
-    #[[0.53, 0.0, -0.53, 0.0],
+    # [[0.53, 0.0, -0.53, 0.0],
     # [0.09, 0.99, 0.09, 0.0],
     # [1.05, -0.2, 1.05, 0.0],
     # [0.5, 1.0, 1.5, 1.0]]
     print "m.blend(Matrix.identity, 0.5):"
     print round(m.blend(Matrix.identity, 0.5), 2).formated()
-    #[[0.53, 0.0, -0.53, 0.0],
+    # [[0.53, 0.0, -0.53, 0.0],
     # [0.09, 0.99, 0.09, 0.0],
     # [1.05, -0.2, 1.05, 0.0],
     # [0.5, 1.0, 1.5, 1.0]]
@@ -5024,7 +5022,7 @@ def _testMTransformationMatrix():
     print "TransformationMatrix class", dir(TransformationMatrix)
     m = TransformationMatrix()
     print m.formated()
-    #[[1.0, 0.0, 0.0, 0.0],
+    # [[1.0, 0.0, 0.0, 0.0],
     # [0.0, 1.0, 0.0, 0.0],
     # [0.0, 0.0, 1.0, 0.0],
     # [0.0, 0.0, 0.0, 1.0]]

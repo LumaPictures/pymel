@@ -31,6 +31,7 @@ def artAttrCtx(*args, **kwargs):
             break
     return res
 
+
 artAttrPaintVertexCtx = _factories.getCmdFunc('artAttrPaintVertexCtx')
 
 artAttrSkinPaintCtx = _factories.getCmdFunc('artAttrSkinPaintCtx')
@@ -60,6 +61,7 @@ def artUserPaintCtx(*args, **kwargs):
             pass
     res = cmds.artUserPaintCtx(*args, **kwargs)
     return res
+
 
 blendCtx = _factories.getCmdFunc('blendCtx')
 
@@ -163,6 +165,7 @@ def draggerContext(*args, **kwargs):
     res = cmds.draggerContext(*args, **kwargs)
     return res
 
+
 drawExtrudeFacetCtx = _factories.getCmdFunc('drawExtrudeFacetCtx')
 
 dynPaintCtx = _factories.getCmdFunc('dynPaintCtx')
@@ -235,6 +238,7 @@ def manipMoveContext(*args, **kwargs):
     res = cmds.manipMoveContext(*args, **kwargs)
     return res
 
+
 manipMoveLimitsCtx = _factories.getCmdFunc('manipMoveLimitsCtx')
 
 @_factories.addCmdDocs
@@ -253,6 +257,7 @@ def manipRotateContext(*args, **kwargs):
     res = cmds.manipRotateContext(*args, **kwargs)
     return res
 
+
 manipRotateLimitsCtx = _factories.getCmdFunc('manipRotateLimitsCtx')
 
 @_factories.addCmdDocs
@@ -270,6 +275,7 @@ def manipScaleContext(*args, **kwargs):
             pass
     res = cmds.manipScaleContext(*args, **kwargs)
     return res
+
 
 manipScaleLimitsCtx = _factories.getCmdFunc('manipScaleLimitsCtx')
 
@@ -351,6 +357,7 @@ def scriptCtx(*args, **kwargs):
     res = cmds.scriptCtx(*args, **kwargs)
     return res
 
+
 sculptMeshCacheCtx = _factories.getCmdFunc('sculptMeshCacheCtx')
 
 selectContext = _factories.getCmdFunc('selectContext')
@@ -410,6 +417,7 @@ def showManipCtx(*args, **kwargs):
             pass
     res = cmds.showManipCtx(*args, **kwargs)
     return res
+
 
 skinBindCtx = _factories.getCmdFunc('skinBindCtx')
 
@@ -494,6 +502,7 @@ def userCtx(*args, **kwargs):
             pass
     res = cmds.userCtx(*args, **kwargs)
     return res
+
 
 view2dToolCtx = _factories.getCmdFunc('view2dToolCtx')
 

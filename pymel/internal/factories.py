@@ -93,7 +93,6 @@ class ApiMethodMissingError(MissingInCacheError):
                                                   self.apiClassName)
 
 
-
 # Though the global variables and the attributes on _apiCacheInst SHOULD
 # always point to the same objects - ie,
 #    _apiCacheInst.apiClassInfo is apiClassInfo
@@ -217,7 +216,7 @@ pyNodeTypesHierarchy = {}
 #: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
 #: these commands require special treatment during class generation because, for them the 'create' mode is the same as other node's 'edit' mode
 nodeTypeToInfoCommand = {
-    #'mesh' : 'polyEvaluate',
+    # 'mesh' : 'polyEvaluate',
     'transform': 'xform'
 }
 
@@ -446,7 +445,7 @@ simpleCommandWraps = {
     'textScrollList': [(util.listForNone,
                         Flag('query', 'q') &
                         (Flag('selectIndexedItem', 'sii') |
-                         Flag('allItems', 'ai') |
+                           Flag('allItems', 'ai') |
                          Flag('selectItem', 'si')))
                        ],
 
@@ -469,7 +468,7 @@ simpleCommandWraps = {
     'skinCluster': [(toPyNodeList,
                      Flag('query', 'q') &
                      (Flag('geometry', 'g') |
-                      Flag('deformerTools', 'dt') |
+                        Flag('deformerTools', 'dt') |
                       Flag('influence', 'inf') |
                       Flag('weightedInfluence', 'wi'))),
                     ],
@@ -483,7 +482,7 @@ simpleCommandWraps = {
                   (toPyNodeList,
                    Flag('query', 'q') &
                    (Flag('children', 'c') |
-                    Flag('attribute', 'at') |
+                      Flag('attribute', 'at') |
                     Flag('bestAnimLayer', 'blr') |
                     Flag('animCurves', 'anc') |
                     Flag('baseAnimCurves', 'bac') |
@@ -948,7 +947,7 @@ def convertTimeValues(rawVal):
     if (isinstance(rawVal, (list, tuple))
             and 1 <= len(rawVal) <= 2
             and all(isinstance(x, (basestring, int, long, float))
-                    for x in rawVal)):
+                for x in rawVal)):
         values = list(rawVal)
     else:
         values = [rawVal]
@@ -1132,9 +1131,9 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
 
         newFunc.__doc__ = doc
 
-    #----------------------------
+    # ----------------------------
     # UI commands with callbacks
-    #----------------------------
+    # ----------------------------
 
     callbackFlags = cmdInfo.get('callbackFlags', None)
     if callbackFlags:
@@ -1215,6 +1214,8 @@ def createflag(cmdName, flag):
         wrappedMelFunc.__module__ = method.__module__
         return wrappedMelFunc
     return create_decorator
+
+
 '''
 def secondaryflag( cmdName, flag ):
     """query flag decorator"""
@@ -1344,7 +1345,7 @@ def addMelDocs(cmdName, flag=None):
 
 def listForNoneQuery(res, kwargs, flags):
     "convert a None to an empty list on the given query flags"
-    if res is None and kwargs.get('query', kwargs.get('q', False ) ) and \
+    if res is None and kwargs.get('query', kwargs.get('q', False)) and \
             bool([True for long, short in flags if kwargs.get(long, kwargs.get(short, False))]):
         return []
     return res
@@ -1626,7 +1627,7 @@ class ApiArgUtil(object):
 
         classInfo = apiClassInfo[apiClassName]
         self.basePymelName = classInfo.get('pymelMethods', {}).get(methodName,
-                                                                 methodName)
+                                                                   methodName)
 
         if methodIndex is None:
             try:
@@ -1978,7 +1979,7 @@ class ApiArgUtil(object):
 
     @staticmethod
     def fromInternalUnits(result, returnType, unit=None):
-        #_logger.debug(unit)
+        # _logger.debug(unit)
         if unit == 'linear' or returnType in ('MPoint', 'MFloatPoint'):
             unitCast = ApiTypeRegister.outCast['MDistance']
             if util.isIterable(result):
@@ -1986,7 +1987,7 @@ class ApiArgUtil(object):
             else:
                 result = unitCast(None, result)
         elif unit == 'angular':
-            #_logger.debug("angular")
+            # _logger.debug("angular")
             unitCast = ApiTypeRegister.outCast['MAngle']
             if util.isIterable(result):
                 result = [unitCast(None, val) for val in result]
@@ -2079,7 +2080,7 @@ class ApiArgUtil(object):
             return None
 
         f = ApiTypeRegister.refCast[argtype]
-        #_logger.debug("castReferenceResult")
+        # _logger.debug("castReferenceResult")
         #_logger.debug( "%s %s %s" % (f, argtype, outArg) )
         if f is None:
             return outArg
@@ -2386,7 +2387,6 @@ class ApiRedoUndoItem(ApiUndoItem):
         if self._undo_kwargs:
             args.append('undoKwargs={!r}'.format(self._undo_kwargs))
         return '{}({})'.format(type(self).__name__, ', '.join(args))
-
 
     def undoIt(self):
         self._undoer(*self._undo_args, **self._undo_kwargs)
@@ -3195,7 +3195,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             #             #_logger.debug("getting from %s" % bases[0])
             #             # newcls will be defined by the time this is called...
             #             return super(newcls, self).__getattribute__(name)
-            #   
+            #
             #         classdict['__getattribute__'] = __getattribute__
 
         # create the new class
@@ -3208,9 +3208,9 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
                 return MetaMayaTypeWrapper.ClassConstant(attr)
             except Exception, e:
                 _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
-        #------------------------
+        # ------------------------
         # Class Constants
-        #------------------------
+        # ------------------------
         # if hasattr(newcls, 'apicls'):
         #     # type (api type) used for the storage of data
         #     apicls = newcls.apicls
@@ -3768,6 +3768,7 @@ def removeMayaType(mayaType):
     _apiCacheInst.removeMayaType(mayaType, globals())
     _setApiCacheGlobals()
 
+
 VirtualClassInfo = util.namedtuple('VirtualClassInfo',
                                    'vclass parent nameRequired isVirtual preCreate create postCreate')
 
@@ -3978,6 +3979,7 @@ class VirtualClassManager(object):
         Given a virtual class, returns it's registered VirtualClassInfo
         '''
         return self._byVirtualClass.get(vclass)
+
 
 virtualClasses = VirtualClassManager()
 

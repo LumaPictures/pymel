@@ -151,20 +151,20 @@ UI_COMMANDS = """attrColorSliderGrp        attrControlGrp
 #: creation commands whose names do not match the type of node they return require this dict
 #: to resolve which command the class should wrap
 nodeTypeToNodeCommand = {
-    #'failed'            : 'clip',
-    #'failed'            : 'clipSchedule',
+    # 'failed'            : 'clip',
+    # 'failed'            : 'clipSchedule',
     'airField': 'air',
     'dragField': 'drag',
     'emitter': 'emitter',
     'turbulenceField': 'turbulence',
-    #'failed' : 'effector',
+    # 'failed' : 'effector',
     'volumeAxisField': 'volumeAxis',
     'uniformField': 'uniform',
     'gravityField': 'gravity',
-    #'failed'            : 'event',
-    #'failed'            : 'pointCurveConstraint',
-    #'failed'            : 'deformer',
-    #'failed'            : 'constrain',
+    # 'failed'            : 'event',
+    # 'failed'            : 'pointCurveConstraint',
+    # 'failed'            : 'deformer',
+    # 'failed'            : 'constrain',
     'locator': 'spaceLocator',
     'vortexField': 'vortex',
     'makeNurbTorus': 'torus',
@@ -220,10 +220,10 @@ def getCmdInfoBasic(command):
         # certain commands on certain platforms have an empty first line
         if not synopsis:
             synopsis = lines.pop(0)
-        #_logger.debug(synopsis)
+        # _logger.debug(synopsis)
         if lines:
             lines.pop(0)  # 'Flags'
-            #_logger.debug(lines)
+            # _logger.debug(lines)
 
             for line in lines:
                 line = line.replace('(Query Arg Mandatory)', '')
@@ -235,7 +235,7 @@ def getCmdInfoBasic(command):
                     multiuse = True
                 except ValueError:
                     multiuse = False
-                #_logger.debug(tokens)
+                # _logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
 
                     args = [typemap.get(x.lower(), util.uncapitalize(x)) for x in tokens[2:]]
@@ -313,16 +313,16 @@ def getCmdInfo(command, version, python=True):
         for flag, flagInfo in parser.flags.iteritems():
             if flagInfo.get('args') == bool and flagInfo.get('numArgs') == 1:
                 basicFlagInfo = basicFlags.get(flag, {})
-                if (basicFlagInfo.get('args') == bool
-                        and basicFlagInfo.get('numArgs') == 0):
+                if (basicFlagInfo.get('args') == bool and
+                        basicFlagInfo.get('numArgs') == 0):
                     flagInfo['numArgs'] = 0
 
         if command in secondaryFlags:
             for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
                 #_logger.debug(command, "2nd", secondaryFlag)
                 flags[secondaryFlag]['modified'] = modifiedList
-                #_logger.debug(sorted(modifiedList))
-                #_logger.debug(sorted(parser.flags.keys()))
+                # _logger.debug(sorted(modifiedList))
+                # _logger.debug(sorted(parser.flags.keys()))
                 for primaryFlag in modifiedList:
                     #_logger.debug(command, "1st", primaryFlag)
                     if 'secondaryFlags' in parser.flags[primaryFlag]:
@@ -345,8 +345,8 @@ def getCmdInfo(command, version, python=True):
                 if 'args' in basicFlagData and 'numargs' in basicFlagData:
                     flagData['args'] = basicFlagData['args']
                     flagData['numArgs'] = basicFlagData['numArgs']
-                    if ('multiuse' in basicFlagData.get('modes', [])
-                            and 'multiuse' not in flagData.get('modes', [])):
+                    if ('multiuse' in basicFlagData.get('modes', []) and
+                            'multiuse' not in flagData.get('modes', [])):
                         flagData.setdefault('modes', []).append('multiuse')
 
         shortFlags = basicInfo['shortFlags']
@@ -364,7 +364,7 @@ def getCmdInfo(command, version, python=True):
         _logger.debug("could not find docs for %s" % command)
         return basicInfo
 
-        #raise IOError, "cannot find maya documentation directory"
+        # raise IOError, "cannot find maya documentation directory"
 
 
 def fixCodeExamples(style='maya', force=False):
@@ -538,8 +538,8 @@ def fixCodeExamples(style='maya', force=False):
             # example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
 
             lines = example.split('\n')
-            nonEmptyLines = any(x for x in lines if x.strip()
-                                and not x.strip().startswith('#'))
+            nonEmptyLines = any(x for x in lines if x.strip() and
+                                not x.strip().startswith('#'))
             if not nonEmptyLines:
                 _logger.info("removing empty example for command %s", command)
                 examples.pop(command)
@@ -630,7 +630,7 @@ def fixCodeExamples(style='maya', force=False):
     _logger.info("Done Fixing Examples")
 
     # restore manipulators and anim options
-    print [manipSize, manipScale]
+    print[manipSize, manipScale]
     cmds.manipOptions(handleSize=manipSize, scale=manipScale)
     print animOptions
     cmds.animDisplay(e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
@@ -686,9 +686,10 @@ def getModule(funcName, knownModuleCmds):
                 module = 'other'
     return module
 
-#-----------------------------------------------
+
+# -----------------------------------------------
 #  Command Help Documentation
-#-----------------------------------------------
+# -----------------------------------------------
 _cmdArgMakers = {}
 
 
@@ -732,9 +733,9 @@ def cmdArgMakers(force=False):
          }
 
     constraintCmds = [x for x in dir(cmds)
-                      if x.endswith('onstraint')
-                      and not cmds.runTimeCommand(x, q=1, exists=1)
-                      and x != 'polySelectConstraint']
+                      if x.endswith('onstraint') and
+                      not cmds.runTimeCommand(x, q=1, exists=1) and
+                      x != 'polySelectConstraint']
 
     for constrCmd in constraintCmds:
         if constrCmd not in _cmdArgMakers:
@@ -812,9 +813,9 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
         constrObj = None
         if nodeCmd:
 
-            #------------------
+            # ------------------
             # CREATION
-            #------------------
+            # ------------------
             obj = nodeCreationCmd(func, funcName)
 
             if isinstance(obj, list):
@@ -841,9 +842,9 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
     else:
         objType = cmds.objectType(obj)
-        #------------------
+        # ------------------
         # TESTING
-        #------------------
+        # ------------------
 
         #(func, args, data) = cmdList[funcName]
         #(usePyNode, baseClsName, nodeName)
@@ -871,7 +872,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                 modes = flagInfo['modes']
                 testModes = False
             except KeyError, msg:
-                #raise KeyError, '%s: %s' % (flag, msg)
+                # raise KeyError, '%s: %s' % (flag, msg)
                 #_logger.debug(flag, "Testing modes")
                 flagInfo['modes'] = []
                 modes = []
@@ -898,9 +899,9 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
                         # there are certain patterns of asymmetry which we can safely correct:
-                        singleItemList = (isinstance(resultType, list)
-                                          and len(resultType) == 1
-                                          and 'multiuse' not in flagInfo.get('modes', []))
+                        singleItemList = (isinstance(resultType, list) and
+                                          len(resultType) == 1 and
+                                          'multiuse' not in flagInfo.get('modes', []))
 
                         # [bool] --> bool
                         if singleItemList and resultType[0] == argtype:
@@ -1313,7 +1314,7 @@ class CmdCache(startup.SubItemCache):
         # convert from string class names to class objects
         def isTypeStr(obj):
             return isinstance(obj, basestring) and obj.startswith('<type ') \
-                   and obj.endswith('>')
+                and obj.endswith('>')
 
         def fromTypeStr(typeStr):
             return startup.getImportableObject(typeStr[len('<type '):-1])

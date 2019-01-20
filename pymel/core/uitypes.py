@@ -311,6 +311,7 @@ def toPySideMenuItem(mayaName):
     if ptr is not None:
         return pysideWrapInstance(long(ptr), qtwidgets.QAction)
 
+
 # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
 try:
     import sip

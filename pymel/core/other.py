@@ -52,7 +52,7 @@ class NameParser(unicode):
 
         return AttributeName('%s.%s' % (self, attr))
 
-        #raise AttributeNameError, 'AttributeName does not exist %s' % attr
+        # raise AttributeNameError, 'AttributeName does not exist %s' % attr
 
     def stripNamespace(self, levels=0):
         """
@@ -477,6 +477,7 @@ class DagNodeName(DependNodeName):
 #        except:
 #            return self
 
+
     def nodeName(self):
         """basename"""
         return self.split('|')[-1]
@@ -506,7 +507,7 @@ def _getParserClass(strObj):
             #                return comps.__getitem__(obj.item(asSlice=1))
             #            else:
             #                return obj
-            #===================================================================
+            # ===================================================================
 
         elif '|' in strObj:
             newcls = DagNodeName
@@ -515,6 +516,7 @@ def _getParserClass(strObj):
     return newcls
 
 # ------ Do not edit below this line --------
+
 
 TanimLayer = _factories.getCmdFunc('TanimLayer')
 
@@ -543,6 +545,7 @@ def adskAssetListUI(*args, **kwargs):
             pass
     res = cmds.adskAssetListUI(*args, **kwargs)
     return res
+
 
 agFormatIn = _factories.getCmdFunc('agFormatIn')
 
@@ -612,6 +615,7 @@ def flagTest(*args, **kwargs):
     res = cmds.flagTest(*args, **kwargs)
     return res
 
+
 flushIdleQueue = _factories.getCmdFunc('flushIdleQueue')
 
 flushThumbnailCache = _factories.getCmdFunc('flushThumbnailCache')
@@ -645,6 +649,7 @@ def imageWindowEditor(*args, **kwargs):
             pass
     res = cmds.imageWindowEditor(*args, **kwargs)
     return res
+
 
 interactionStyle = _factories.getCmdFunc('interactionStyle')
 
@@ -730,6 +735,7 @@ def repeatLast(*args, **kwargs):
     res = cmds.repeatLast(*args, **kwargs)
     return res
 
+
 retimeHelper = _factories.getCmdFunc('retimeHelper')
 
 @_factories.addCmdDocs
@@ -743,6 +749,7 @@ def selectKeyframe(*args, **kwargs):
             kwargs[flag] = _factories.convertTimeValues(rawVal)
     res = cmds.selectKeyframe(*args, **kwargs)
     return res
+
 
 subdDisplayMode = _factories.getCmdFunc('subdDisplayMode')
 

@@ -15,9 +15,9 @@ from pymel.api.plugins import mpxNamesToApiEnumNames
 
 _logger = _plogging.getLogger(__name__)
 
-#===============================================================================
+# ===============================================================================
 # Utility classes
-#===============================================================================
+# ===============================================================================
 
 
 class ApiEnum(tuple):
@@ -43,9 +43,9 @@ def _defaultdictdict(cls, val=None):
     else:
         return _util.defaultdict(dict, val)
 
-#===============================================================================
+# ===============================================================================
 # ghost objects
-#===============================================================================
+# ===============================================================================
 
 
 class GhostObjsOkHere(object):
@@ -173,16 +173,16 @@ class _GhostObjMaker(object):
                     madeGhost = True
 
             if obj is not None:
-                if (self.manipError
-                        and (obj.hasFn(api.MFn.kManipulator)
-                             or obj.hasFn(api.MFn.kManipContainer)
-                             or obj.hasFn(api.MFn.kPluginManipContainer)
-                             or obj.hasFn(api.MFn.kPluginManipulatorNode)
-                             or obj.hasFn(api.MFn.kManipulator2D)
-                             or obj.hasFn(api.MFn.kManipulator3D)
-                             or obj.hasFn(api.MFn.kManip2DContainer)
+                if (self.manipError and
+                            (obj.hasFn(api.MFn.kManipulator) or
+                             obj.hasFn(api.MFn.kManipContainer) or
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         obj.hasFn(api.MFn.kPluginManipContainer) or
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         obj.hasFn(api.MFn.kPluginManipulatorNode) or
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         obj.hasFn(api.MFn.kManipulator2D) or
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         obj.hasFn(api.MFn.kManipulator3D) or
+                             obj.hasFn(api.MFn.kManip2DContainer)
                              )
-                    ):
+                        ):
                     raise ManipNodeTypeError
 
                 if madeGhost and not (self.dagGhosts and self.dgGhosts):
@@ -258,9 +258,10 @@ class _GhostObjMaker(object):
                 if delDg:
                     dgMod.doIt()
 
-#===============================================================================
+
+# ===============================================================================
 # Utilities for query maya node info
-#===============================================================================
+# ===============================================================================
 _ABSTRACT_SUFFIX = ' (abstract)'
 _ASSET_PREFIX = 'adskAssetInstanceNode_'
 
@@ -432,6 +433,7 @@ def _getAllMayaTypes(**kwargs):
     kwargs['abstract'] = True
     return _getMayaTypes(**kwargs)
 
+
 _fixedLineages = {}
 _cachedInheritances = {}
 
@@ -547,9 +549,9 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
                 _cachedInheritances[thisNode] = thisLineage
     return lineage
 
-#===============================================================================
+# ===============================================================================
 # Name utilities
-#===============================================================================
+# ===============================================================================
 
 
 def nodeToApiName(nodeName):
@@ -568,6 +570,7 @@ def getLowerCaseMapping(names):
         else:
             uniqueLowerNames[lowerType] = name
     return uniqueLowerNames, multiLowerNames
+
 
 API_NAME_MODIFIERS = {
     'base': '',
@@ -597,9 +600,9 @@ API_NAME_MODIFIERS = [(re.compile(find), replace)
 
 apiSuffixes = ['', 'node', 'shape', 'shapenode']
 
-#===============================================================================
+# ===============================================================================
 # Cache classes
-#===============================================================================
+# ===============================================================================
 
 
 class BaseApiClassInfoCache(startup.SubItemCache):
@@ -896,7 +899,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
         revertedText = readcache()
         if revertedText != origText:
             commitcache(origText,
-                 "writing uncomitted state before {} cache was re-written"
+                        "writing uncomitted state before {} cache was re-written"
                         .format(cls.NAME))
 
         # ok, now commit the no-comment state, since this is the common
@@ -1072,7 +1075,6 @@ class ApiCache(BaseApiClassInfoCache):
         for key, val in enumsToTypes.viewitems():
             if predicate(val):
                 enumsToTypes[key] = converter(val)
-
 
     def fromRawData(self, data):
         # convert from string class names to class objects
@@ -1491,7 +1493,7 @@ class ApiCache(BaseApiClassInfoCache):
 
         # fill out the data structures
         self._buildApiTypesList()
-        #_buildMayaTypesList()
+        # _buildMayaTypesList()
 
         self._buildApiRelationships()
 

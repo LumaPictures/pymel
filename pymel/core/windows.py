@@ -57,6 +57,7 @@ def _lsUI(**kwargs):
         kwargs['tail'] = tail
     return _util.listForNone(cmds.lsUI(**kwargs))
 
+
 # all optionMenus are popupMenus, but not all popupMenus are optionMenus
 _commandsToUITypes = {
     'optionMenu': 'popupMenu',
@@ -88,6 +89,7 @@ Modified:
     import uitypes
     return [uitypes.PyUI(x) for x in _lsUI(**kwargs)]
 
+
 scriptTableCmds = {}
 
 
@@ -113,7 +115,7 @@ Maya Bug Fix:
 
             procCmd = """global proc string %s( int $row, int $column ) {
                             return python(%s.scriptTableCmds['%s'](" + $row + "," + $column + ")");}
-                      """ %  (procName, thisModuleCmd, key)
+                      """ % (procName, thisModuleCmd, key)
             mel.eval(procCmd)
             scriptTableCmds[key] = cb
 
@@ -133,7 +135,7 @@ Maya Bug Fix:
             # instead!
             procCmd = """global proc int %s( int $row, int $column, string $val) {
                             return python("%s.scriptTableCmds['%s'](" + $row + "," + $column + ",'" + $val + "')");}
-                      """ %  (procName, thisModuleCmd, key)
+                      """ % (procName, thisModuleCmd, key)
             mel.eval(procCmd)
             scriptTableCmds[key] = cc
 
@@ -447,7 +449,7 @@ def menu(*args, **kwargs):
     Modifications
       - added ability to query parent
     """
-    if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
+    if (kwargs.get('query', False) or kwargs.get('q', False)) \
             and (kwargs.get('parent', False) or kwargs.get('p', False)):
         name = unicode(args[0])
         if '|' not in name:
@@ -459,8 +461,8 @@ def menu(*args, **kwargs):
 
     result = cmds.menu(*args, **kwargs)
 
-    if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
-            and ( kwargs.get('itemArray', False) or kwargs.get('ia', False) ) \
+    if (kwargs.get('query', False) or kwargs.get('q', False)) \
+            and (kwargs.get('itemArray', False) or kwargs.get('ia', False)) \
             and result is None:
         result = []
     return result
@@ -1820,6 +1822,7 @@ def formLayout(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.FormLayout)
     return res
 
+
 _menu = menu
 
 @_factories.addCmdDocs
@@ -2373,6 +2376,7 @@ def glRenderEditor(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.GlRenderEditor)
     return res
+
 
 _scriptTable = scriptTable
 
@@ -2948,6 +2952,7 @@ def palettePort(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.PalettePort)
     return res
 
+
 saveShelf = _factories.getCmdFunc('saveShelf')
 
 @_factories.addCmdDocs
@@ -2965,6 +2970,7 @@ def runTimeCommand(*args, **kwargs):
             pass
     res = cmds.runTimeCommand(*args, **kwargs)
     return res
+
 
 saveAllShelves = _factories.getCmdFunc('saveAllShelves')
 
@@ -2999,6 +3005,7 @@ def flowLayout(*args, **kwargs):
             pass
     res = cmds.flowLayout(*args, **kwargs)
     return res
+
 
 toggleWindowVisibility = _factories.getCmdFunc('toggleWindowVisibility')
 
@@ -3058,6 +3065,7 @@ def hotkeyCheck(*args, **kwargs):
     res = cmds.hotkeyCheck(*args, **kwargs)
     return res
 
+
 deleteUI = _factories.getCmdFunc('deleteUI')
 
 @_factories.addCmdDocs
@@ -3076,6 +3084,7 @@ def rangeControl(*args, **kwargs):
     res = cmds.rangeControl(*args, **kwargs)
     return res
 
+
 overrideModifier = _factories.getCmdFunc('overrideModifier')
 
 @_factories.addCmdDocs
@@ -3093,6 +3102,7 @@ def webBrowser(*args, **kwargs):
             pass
     res = cmds.webBrowser(*args, **kwargs)
     return res
+
 
 workspaceControlState = _factories.getCmdFunc('workspaceControlState')
 
@@ -3164,6 +3174,7 @@ def treeLister(*args, **kwargs):
     res = cmds.treeLister(*args, **kwargs)
     return res
 
+
 objectTypeUI = _factories.getCmdFunc('objectTypeUI')
 
 menuSetPref = _factories.getCmdFunc('menuSetPref')
@@ -3185,6 +3196,7 @@ def timeControl(*args, **kwargs):
             pass
     res = cmds.timeControl(*args, **kwargs)
     return res
+
 
 multiTouch = _factories.getCmdFunc('multiTouch')
 
@@ -3210,6 +3222,7 @@ def hotkey(*args, **kwargs):
     res = cmds.hotkey(*args, **kwargs)
     return res
 
+
 windowPref = _factories.getCmdFunc('windowPref')
 
 lsUI = _factories.addCmdDocs(lsUI)
@@ -3229,6 +3242,7 @@ def colorInputWidgetGrp(*args, **kwargs):
             pass
     res = cmds.colorInputWidgetGrp(*args, **kwargs)
     return res
+
 
 canCreateCaddyManip = _factories.getCmdFunc('canCreateCaddyManip')
 
@@ -3266,6 +3280,7 @@ def nameCommand(*args, **kwargs):
     res = cmds.nameCommand(*args, **kwargs)
     return res
 
+
 minimizeApp = _factories.getCmdFunc('minimizeApp')
 
 loadUI = _factories.getCmdFunc('loadUI')
@@ -3283,6 +3298,7 @@ def annotate(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 setUITemplate = _factories.getCmdFunc('setUITemplate')
 
@@ -3322,6 +3338,7 @@ def falloffCurveAttr(*args, **kwargs):
     res = cmds.falloffCurveAttr(*args, **kwargs)
     return res
 
+
 editor = _factories.getCmdFunc('editor')
 
 showSelectionInTitle = _factories.getCmdFunc('showSelectionInTitle')
@@ -3352,6 +3369,7 @@ def timeFieldGrp(*args, **kwargs):
     res = cmds.timeFieldGrp(*args, **kwargs)
     return res
 
+
 componentEditor = _factories.getCmdFunc('componentEditor')
 
 @_factories.addCmdDocs
@@ -3369,6 +3387,7 @@ def dockControl(*args, **kwargs):
             pass
     res = cmds.dockControl(*args, **kwargs)
     return res
+
 
 mayaDpiSetting = _factories.getCmdFunc('mayaDpiSetting')
 
@@ -3389,6 +3408,7 @@ def headsUpDisplay(*args, **kwargs):
             pass
     res = cmds.headsUpDisplay(*args, **kwargs)
     return res
+
 
 setMenuMode = _factories.getCmdFunc('setMenuMode')
 
@@ -3426,6 +3446,7 @@ def falloffCurve(*args, **kwargs):
     res = cmds.falloffCurve(*args, **kwargs)
     return res
 
+
 panelHistory = _factories.getCmdFunc('panelHistory')
 
 @_factories.addCmdDocs
@@ -3460,6 +3481,7 @@ def hudSlider(*args, **kwargs):
     res = cmds.hudSlider(*args, **kwargs)
     return res
 
+
 savePrefObjects = _factories.getCmdFunc('savePrefObjects')
 
 linearPrecision = _factories.getCmdFunc('linearPrecision')
@@ -3479,6 +3501,7 @@ def swatchDisplayPort(*args, **kwargs):
             pass
     res = cmds.swatchDisplayPort(*args, **kwargs)
     return res
+
 
 hotkeySet = _factories.getCmdFunc('hotkeySet')
 
@@ -3540,6 +3563,7 @@ def treeView(*args, **kwargs):
     res = cmds.treeView(*args, **kwargs)
     return res
 
+
 artBuildPaintMenu = _factories.getCmdFunc('artBuildPaintMenu')
 
 @_factories.addCmdDocs
@@ -3590,6 +3614,7 @@ def timePort(*args, **kwargs):
     res = cmds.timePort(*args, **kwargs)
     return res
 
+
 _getPanel = getPanel
 
 @_factories.addCmdDocs
@@ -3601,6 +3626,7 @@ def getPanel(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 loadPrefObjects = _factories.getCmdFunc('loadPrefObjects')
 
@@ -3623,6 +3649,7 @@ def hotkeyEditorPanel(*args, **kwargs):
             pass
     res = cmds.hotkeyEditorPanel(*args, **kwargs)
     return res
+
 
 setParent = _factories.addCmdDocs(setParent)
 
@@ -3651,5 +3678,6 @@ def toolBar(*args, **kwargs):
             pass
     res = cmds.toolBar(*args, **kwargs)
     return res
+
 
 autoLayout.__doc__ = formLayout.__doc__

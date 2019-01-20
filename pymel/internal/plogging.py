@@ -21,9 +21,9 @@ PYMEL_CONF_ENV_VAR = 'PYMEL_CONF'
 PYMEL_LOGLEVEL_ENV_VAR = 'PYMEL_LOGLEVEL'
 PYMEL_ERRORLEVEL_ENV_VAR = 'PYMEL_ERRORLEVEL'
 
-#===============================================================================
+# ===============================================================================
 # DEFAULT FORMAT SETUP
-#===============================================================================
+# ===============================================================================
 
 
 def _fixMayaOutput():
@@ -41,6 +41,7 @@ def _fixMayaOutput():
                     pass
             maya.Output = MayaOutput()
             sys.stdout = maya.Output
+
 
 _fixMayaOutput()
 
@@ -66,6 +67,7 @@ def getLogConfigFile():
     if os.path.isfile(configFile):
         return configFile
     return getConfigFile()
+
 
 assert hasattr(maya.utils, 'shellLogHandler'), "If you manually installed pymel, ensure " \
     "that pymel comes before Maya's site-packages directory on PYTHONPATH / sys.path.  " \
@@ -179,6 +181,7 @@ def _addOldHandlers(logger, oldHandlers, secName, configParser):
             if handler not in logger.handlers:
                 logger.addHandler(handler)
 
+
 maya.utils.shellLogHandler()
 
 pymelLogFileConfig(getLogConfigFile())
@@ -219,6 +222,7 @@ def getLogger(name):
         setattr(logger, logEnumValue.key, logEnumValue.index)
     return logger
 
+
 # keep as an enumerator so that we can keep the order
 logLevels = util.EnumType('logLevels', dict([(getLevelName(n), n) for n in range(0, CRITICAL + 1, 10)]))
 
@@ -238,12 +242,13 @@ def levelToName(level):
     except ValueError:
         return str(level)
 
+
 environLogLevelOverride(pymelLogger)
 
 
-#===============================================================================
+# ===============================================================================
 # DECORATORS
-#===============================================================================
+# ===============================================================================
 
 def timed(level=DEBUG):
     import time
@@ -263,9 +268,9 @@ def timed(level=DEBUG):
     return timedWithLevel
 
 
-#===============================================================================
+# ===============================================================================
 # INIT TO USER'S PREFERENCE
-#===============================================================================
+# ===============================================================================
 
 
 def _setupLevelPreferenceHook():
@@ -303,9 +308,10 @@ def _setupLevelPreferenceHook():
     setLevelHook.__name__ = func.__name__
     pymelLogger.setLevel = setLevelHook
 
-#===============================================================================
+
+# ===============================================================================
 # ERROR LOGGER
-#===============================================================================
+# ===============================================================================
 ERRORLEVEL = None
 ERRORLEVEL_DEFAULT = logging.ERROR
 
@@ -359,4 +365,4 @@ def addErrorLog(logger):
         logger.raiseLog = instanceErrorLog
     return logger
 
-#_setupLevelPreferenceHook()
+# _setupLevelPreferenceHook()

@@ -94,9 +94,9 @@ import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
 import maya.cmds
 
-#===============================================================================
+# ===============================================================================
 # Errors
-#===============================================================================
+# ===============================================================================
 
 
 class PluginError(Exception):
@@ -114,9 +114,10 @@ class AlreadyRegisteredError(PluginRegistryError):
 class NotRegisteredError(PluginRegistryError):
     pass
 
-#===============================================================================
+# ===============================================================================
 # General Info
-#===============================================================================
+# ===============================================================================
+
 
 # Gives a map from an MPx class name to it's enum name in MPxNode.Type
 # Because different versions of maya may not have all these MPxNodes, we need
@@ -320,6 +321,7 @@ def _suggestNewMPxValues(classes=None):
         prints(dict((k, v) for k, v in mpxToMaya.items() if k in mpxToEnum))
         # pprint.pprint(mpxToMaya)
 
+
 _allMPx = None
 
 
@@ -334,6 +336,7 @@ def allMPx():
             _allMPx.append(cls)
     return _allMPx
 
+
 # We want to make sure we know if maya adds a new MPx class!
 _new = [_mpx.__name__ for _mpx in allMPx() if _mpx not in mpxClassesToMpxEnums]
 if _new:
@@ -342,9 +345,9 @@ if _new:
     _logger.raiseLog(_logger.WARNING, 'found new MPx classes: %s. Run pymel.api.plugins._suggestNewMPxValues()'
                      % ', '.join(_new))
 
-#===============================================================================
+# ===============================================================================
 # Plugin Registration / loading
-#===============================================================================
+# ===============================================================================
 
 registered = set()
 
@@ -421,9 +424,9 @@ def uninitializePlugin(mobject):
         obj.deregisterCommand(plugin)
     registered = set()
 
-#===============================================================================
+# ===============================================================================
 # Plugin Mixin Classes
-#===============================================================================
+# ===============================================================================
 
 
 class BasePluginMixin(object):
@@ -541,9 +544,9 @@ class BasePluginMixin(object):
     def isRegistered(cls):
         return bool(cls._getRegisteredPluginObj())
 
-#===============================================================================
+# ===============================================================================
 # Plugin Classes - inherit from these!
-#===============================================================================
+# ===============================================================================
 
 
 class Command(BasePluginMixin, mpx.MPxCommand):
@@ -712,7 +715,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
                 ('forcedUpdate', om.MDGMessage.addForceUpdateCallback),
                 ('nodeAdded', om.MDGMessage.addNodeAddedCallback),
                 ('nodeRemoved', om.MDGMessage.addNodeRemovedCallback),
-                #('connectionMade', om.MDGMessage.addConnectionCallback), # conflicts with MPxNode.connectionMade
+                # ('connectionMade', om.MDGMessage.addConnectionCallback), # conflicts with MPxNode.connectionMade
                 ('preConnectionMade', om.MDGMessage.addPreConnectionCallback)]:
             if hasattr(cls, cbname):
                 cb = getattr(cls, cbname)
@@ -750,6 +753,7 @@ class DependNode(BasePluginMixin, mpx.MPxNode):
         # MPxPolyTrg returns True
         return False
 
+
 # new in 2014
 if hasattr(mpx, 'MPxAssembly'):
     class Assembly(DependNode, mpx.MPxAssembly):
@@ -784,6 +788,7 @@ class FluidEmitterNode(EmitterNode, mpx.MPxFluidEmitterNode):
 class FieldNode(DependNode, mpx.MPxFieldNode):
     pass
 
+
 # new in 2016
 if hasattr(mpx, 'MPxGeometryFilter'):
     class GeometryFilter(DependNode, mpx.MPxGeometryFilter):
@@ -817,6 +822,7 @@ class ManipContainer(DependNode, mpx.MPxManipContainer):
 class ManipulatorNode(DependNode, mpx.MPxManipulatorNode):
     pass
 
+
 # new in 2016
 if hasattr(mpx, 'MPxMotionPathNode'):
     class MotionPathNode(DependNode, mpx.MPxMotionPathNode):
@@ -837,6 +843,7 @@ class PolyTrg(DependNode, mpx.MPxPolyTrg):
 
 class SpringNode(DependNode, mpx.MPxSpringNode):
     pass
+
 
 # new in 2016
 if hasattr(mpx, 'MPxSkinCluster'):
@@ -875,9 +882,9 @@ class Transform(DependNode, mpx.MPxTransform):
 #    class Representation(DependNode, mpx.MPxRepresentation): pass
 
 
-#===============================================================================
+# ===============================================================================
 # Plugin Class Helpers
-#===============================================================================
+# ===============================================================================
 
 class PyNodeMethod(object):
 
@@ -904,9 +911,9 @@ class PyNodeMethod(object):
         self.name = name
 
 
-#===============================================================================
+# ===============================================================================
 # Querying Plugin Hierarchy
-#===============================================================================
+# ===============================================================================
 
 def _buildPluginHierarchy(dummyClasses=None):
     '''Dynamically query the mel node hierarchy for all plugin node types
@@ -1055,15 +1062,15 @@ class _DummyPluginNodesMaker(object):
 #    except:
 #        pass
 #
-#_repoplulate()
+# _repoplulate()
 
 
 # when we reload, should we deregister all plugins??? or maybe we can just repopulate registered
-#_unloadPlugin()
+# _unloadPlugin()
 
-#==============================================================================
+# ==============================================================================
 # Utility functions
-#==============================================================================
+# ==============================================================================
 
 def mayaPlugins():
     '''all maya plugins in the maya install directory'''
@@ -1158,6 +1165,7 @@ def unloadAllPlugins(skipErrors=False, exclude=('DirectConnect',)):
                     raise
     logger.debug("...done unloading all plugins")
 
+
 # It's not possible to query all plugin commands that a plugin registers with
 # pluginInfo, so this holds a list of plugin commands that we still want to
 # wrap.
@@ -1172,7 +1180,7 @@ UNREPORTED_COMMANDS = {
     'controlCommand': {},
     'constraintCommand': {},
     'tool': {},  # Tool replacing contextCommand to match Maya implementation
-    #'other':{}, # just to hold any commands we may want that don't fall in other categories
+    # 'other':{}, # just to hold any commands we may want that don't fall in other categories
 }
 
 

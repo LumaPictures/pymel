@@ -22,6 +22,7 @@ def formatwarning(message, category, filename, lineno, line=None):
 #                s += (u"#\t %s" % line)
     return s
 
+
 warnings.formatwarning = formatwarning
 
 # def showwarning(message, category, filename, lineno, file=None, line=None):
@@ -96,7 +97,7 @@ def deprecated(funcOrMessage=None, className=None,
     """
     import inspect
 
-    #@decorator
+    # @decorator
     def deprecated2(func):
         useClassName = False
         info = dict(
@@ -165,6 +166,7 @@ def maya_deprecated(
         warningType=MayaDeprecationWarning):
     return deprecated(funcOrMessage=funcOrMessage, className=className,
                       baseMessage=baseMessage, warningType=warningType)
+
 
 if __name__ == '__main__':
     import doctest

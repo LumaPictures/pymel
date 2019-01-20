@@ -39,7 +39,8 @@ import uitypes as ui
 # was used, which made all the uitypes available in this namespace
 # We may consider deprecating or removing these at some point, so don't rely on
 # these always being there!
-_uitypes_names = ['AnimCurveEditor', 'AnimDisplay', 'AttrColorSliderGrp',
+_uitypes_names = [
+    'AnimCurveEditor', 'AnimDisplay', 'AttrColorSliderGrp',
     'AttrControlGrp', 'AttrEnumOptionMenu', 'AttrEnumOptionMenuGrp',
     'AttrFieldGrp', 'AttrFieldSliderGrp', 'AttrNavigationControlGrp',
     'AttributeMenu', 'BlendShapeEditor', 'BlendShapePanel', 'Button', 'Canvas',
@@ -67,7 +68,9 @@ _uitypes_names = ['AnimCurveEditor', 'AnimDisplay', 'AttrColorSliderGrp',
     'ShelfButton', 'ShelfLayout', 'ShelfTabLayout', 'ShellField',
     'SymbolButton', 'SymbolCheckBox', 'TabLayout', 'Text', 'TextCurves',
     'TextField', 'TextFieldButtonGrp', 'TextFieldGrp', 'ToolButton',
-    'ToolCollection', 'Visor']
+    'ToolCollection', 'Visor'
+]
+
 if not _factories.building:
     for _uiname in _uitypes_names:
         setattr(nodetypes, _uiname, getattr(uitypes, _uiname))
@@ -166,6 +169,7 @@ def _removePluginNode(pluginName, node):
 def _stripPluginExt(pluginName):
     if not pluginName:
         return pluginName
+
     def stripExt(name, ext):
         if name.lower().endswith(ext):
             name = name[:-len(ext)]
@@ -262,8 +266,8 @@ def _pluginLoaded(*args):
         # not
 
         # Detect if we are currently opening/importing a file and load as a callback versus execute now
-        if (_api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile() or
-                _api.MFileIO.isReferencingFile()):
+        if (_api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile()
+                or _api.MFileIO.isReferencingFile()):
             if _api.MFileIO.isReferencingFile():
                 _logger.debug("Installing temporary plugin-loaded nodes callback - PostSceneRead")
                 id = _api.MEventMessage.addEventCallback('PostSceneRead', addPluginPyNodes)

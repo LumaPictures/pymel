@@ -215,6 +215,7 @@ def t_ID(t):
 #    r'([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?'
 #    return t
 
+
 # Integer literal
 #t_ICONST = r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
 t_ICONST = r'(0x[a-fA-F0-9]*)|\d+'

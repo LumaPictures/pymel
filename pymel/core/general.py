@@ -1373,7 +1373,7 @@ def nodeType(node, **kwargs):
         #     actually be a single item list, which cmds.nodeType accepts as a
         #    valid arg
         return cmds.nodeType(node, **kwargs)
-        #raise TypeError, "Invalid input %r." % node
+        # raise TypeError, "Invalid input %r." % node
 
     if kwargs.get('apiType', kwargs.get('_api', False)):
         return node.__apimobject__().apiTypeStr()
@@ -1883,6 +1883,7 @@ def duplicate(*args, **kwargs):
 #  - returns wrapped classes
 #    """
 #    return map(PyNode, cmds.instance( *args, **kwargs ) )
+
 
 '''
 def attributeInfo( *args, **kwargs ):
@@ -2825,6 +2826,7 @@ class PyNode(_util.ProxyUnicode):
 
     future = listFuture
 
+
 # This was supposed to be removed in the 1.0 update, but somehow got left out...
 deprecated_str_methods = ['__getitem__']
 strDeprecateDecorator = _warnings.deprecated('Convert to string first using str() or PyNode.name()', 'PyNode')
@@ -2843,6 +2845,7 @@ def _deprecatePyNode():
 
     for method in deprecated_str_methods:
         makeDeprecatedMethod(method)
+
 
 _deprecatePyNode()
 
@@ -3743,7 +3746,7 @@ class Attribute(PyNode):
         kwargs.pop('attribute', None)
         kwargs.pop('at', None)
         return cmds.setKeyframe(self, **kwargs)
-#}
+# }
 # ---------------------
 # xxx{ Info and Modification
 # ---------------------
@@ -4078,7 +4081,7 @@ class Attribute(PyNode):
         if isinstance(result, list) and len(result) == 1 and not self.isCompound():
             return result[0]
         return result
-#}
+# }
 # -------------------------
 # xxx{ Ranges
 # -------------------------
@@ -4275,7 +4278,7 @@ class Attribute(PyNode):
 #            lambda x: Attribute( self.node() + '.' + x ),
 #            _util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
 #                )
-#}
+# }
 # -------------------------
 # xxx{ Relatives
 # -------------------------
@@ -5251,7 +5254,7 @@ class DimensionedComponent(Component):
         # a dag node, we have problems
         return (self._ALLOW_COMPLETE_SHORTCUT
                 and not issubclass(_api.MFnDagNode,
-                                   type(self.node().__apimfn__())))
+                               type(self.node().__apimfn__())))
 
     def _standardizeIndices(self, indexObjs, allowIterable=True, label=None,
                             allowComplete=True):
@@ -6940,6 +6943,7 @@ class MeshFace(MItComponent1D):
         return res
 # ------ Do not edit above this line --------
 
+
 if not _factories.building:
     MeshFace.numVertices = MeshFace.polygonVertexCount
 
@@ -7403,7 +7407,7 @@ class NurbsSurfaceRange(NurbsSurfaceIsoparm):
         # either is a single value, you get an isoparm
         if (not isinstance(item, (slice, HashableSlice)) or
             (self.currentDimension() == 1 and
-             not isinstance(self._partialIndex[0], (slice, HashableSlice)))):
+                not isinstance(self._partialIndex[0], (slice, HashableSlice)))):
             return NurbsSurfaceIsoparm(self._node, self._partialIndex + (item,))
         else:
             return super(NurbsSurfaceRange, self)._getitem_overrideable(item)
@@ -8080,6 +8084,7 @@ Modifications:
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
+
 # For backwards compatibility, provide an "AttributeDefaults" alias for
 # AttributeSpec
 AttributeDefaults = AttributeSpec
@@ -8120,6 +8125,7 @@ class Scene(object):
 
         return PyNode(obj)
 
+
 SCENE = Scene()
 
 # ------ Do not edit below this line --------
@@ -8159,6 +8165,7 @@ def assembly(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
+
 
 attributeInfo = _factories.getCmdFunc('attributeInfo')
 
@@ -8216,6 +8223,7 @@ def commandPort(*args, **kwargs):
     res = cmds.commandPort(*args, **kwargs)
     return res
 
+
 connectAttr = _factories.addCmdDocs(connectAttr)
 
 connectionInfo = _factories.getCmdFunc('connectionInfo')
@@ -8231,6 +8239,7 @@ def container(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 containerBind = _factories.getCmdFunc('containerBind')
 
@@ -8257,6 +8266,7 @@ def createDisplayLayer(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 createNode = _factories.addCmdDocs(createNode)
 
@@ -8304,6 +8314,7 @@ def distanceDimension(*args, **kwargs):
             break
     return res
 
+
 duplicate = _factories.addCmdDocs(duplicate)
 
 editDisplayLayerGlobals = _factories.getCmdFunc('editDisplayLayerGlobals')
@@ -8336,6 +8347,7 @@ def instance(*args, **kwargs):
             break
     return res
 
+
 instanceable = _factories.getCmdFunc('instanceable')
 
 _instancer = instancer
@@ -8346,6 +8358,7 @@ def instancer(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
+
 
 isConnected = _factories.getCmdFunc('isConnected')
 
@@ -8364,6 +8377,7 @@ def listAttr(*args, **kwargs):
             res = func(res)
             break
     return res
+
 
 listAttrPatterns = _factories.getCmdFunc('listAttrPatterns')
 
@@ -8410,6 +8424,7 @@ def paramDimension(*args, **kwargs):
         res = _factories.maybeConvert(res, PyNode)
     return res
 
+
 paramLocator = _factories.getCmdFunc('paramLocator')
 
 parent = _factories.addCmdDocs(parent)
@@ -8420,6 +8435,7 @@ def partition(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
+
 
 performanceOptions = _factories.getCmdFunc('performanceOptions')
 
@@ -8469,6 +8485,7 @@ def selectKey(*args, **kwargs):
     res = cmds.selectKey(*args, **kwargs)
     return res
 
+
 selectMode = _factories.getCmdFunc('selectMode')
 
 selectPref = _factories.getCmdFunc('selectPref')
@@ -8505,6 +8522,7 @@ def spaceLocator(*args, **kwargs):
         res = res[0]
     return res
 
+
 suitePrefs = _factories.getCmdFunc('suitePrefs')
 
 symmetricModelling = _factories.getCmdFunc('symmetricModelling')
@@ -8538,6 +8556,7 @@ def toolPropertyWindow(*args, **kwargs):
             pass
     res = cmds.toolPropertyWindow(*args, **kwargs)
     return res
+
 
 transformCompare = _factories.getCmdFunc('transformCompare')
 
@@ -8573,6 +8592,7 @@ def assignCommand(*args, **kwargs):
     res = cmds.assignCommand(*args, **kwargs)
     return res
 
+
 commandEcho = _factories.getCmdFunc('commandEcho')
 
 @_factories.addCmdDocs
@@ -8581,6 +8601,7 @@ def condition(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, PyNode)
     return res
+
 
 evalDeferred = _factories.getCmdFunc('evalDeferred')
 

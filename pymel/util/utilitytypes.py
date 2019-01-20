@@ -194,6 +194,7 @@ class metaStatic(Singleton):
 
         return newcls
 
+
 try:
     from collections import defaultdict
 except:
@@ -370,6 +371,7 @@ class metaReadOnlyAttr(type):
 
         return newcls
 
+
 NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__',
                      '__class__', '__weakref__', '__subclasshook__',
                      '__reduce_ex__', '__reduce__', '__dict__', '__sizeof__',
@@ -377,7 +379,7 @@ NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__'
 
 
 def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
-               remove=(), makeDefaultInit = False, sourceIsImmutable=True,
+               remove=(), makeDefaultInit=False, sourceIsImmutable=True,
                module=None):
     # type: (type, str, str, str, Iterable[str], bool, bool, Any) -> None
     """
@@ -455,7 +457,7 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 
         def _methodWrapper(method):
             # print method
-            #@functools.wraps(f)
+            # @functools.wraps(f)
             def wrapper(self, *args, **kwargs):
                 return method(getattr(self, dataFuncName)(), *args, **kwargs)
 
@@ -498,7 +500,7 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
             if ((inspect.ismethoddescriptor(attrValue) or
                  inspect.ismethod(attrValue)) and
                 not isinstance(cls.__dict__.get(attrName, None),
-                               (classmethod, staticmethod))):
+                                   (classmethod, staticmethod))):
                 try:
                     setattr(Proxy, attrName, _methodWrapper(attrValue))
                 except AttributeError:
@@ -898,6 +900,7 @@ class LazyDocString(types.StringType):
     def __repr__(self):
         return repr(str(self))
 
+
 for _name, _method in inspect.getmembers(types.StringType, inspect.isroutine):
     if _name.startswith('_'):
         continue
@@ -1234,6 +1237,7 @@ class propertycache(object):
         result = self.func(ownerInstance)
         setattr(ownerInstance, self.name, result)
         return result
+
 
 # unit test with doctest
 if __name__ == '__main__':
