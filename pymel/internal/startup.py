@@ -253,7 +253,29 @@ def initMEL():
         _logger.info("Skipping loading Initial Plugins")
         startup.remove('initialPlugins.mel')
 
+    import maya.mel
+
+    callbacks = om.MCallbackIdArray()
+    toDelete = []
+
+    # initialStartup.mel will run a `file -f -new`.  This is dangerous, for
+    # obvoius resons, so we disable all file news while we run these...
+    def rejectNewCallback(boolPtr_retCode, clientData):
+        om.MScriptUtil.setBool(boolPtr_retCode, False)
+
+    callbacks.append(om.MSceneMessage.addCheckCallback(
+        om.MSceneMessage.kBeforeNewCheck, rejectNewCallback))
+
     try:
+        # additionally, userPrefs.mel will apparently create a bunch of ikSolver
+        # nodes (apparently just to set some global ik prefs?)
+        # make sure we clean those up...
+        def logIkSolverCreation(nodeObj, clientData):
+            toDelete.append(om.MObjectHandle(nodeObj))
+
+        callbacks.append(om.MDGMessage.addNodeAddedCallback(
+            logIkSolverCreation, "ikSolver"))
+
         for f in startup:
             _logger.debug("running: %s" % f)
             if f is not None:
@@ -268,11 +290,19 @@ def initMEL():
                     #import pymel.core.language as lang
                     #lang.mel.source( f.encode(encoding)  )
 
-                    import maya.mel
                     maya.mel.eval('source "%s"' % f.encode(encoding))
 
     except Exception, e:
         _logger.error("could not perform Maya initialization sequence: failed on %s: %s" % (f, e))
+    finally:
+        om.MMessage.removeCallbacks(callbacks)
+
+        # clean up the created ik solvers
+        dgMod = om.MDGModifier()
+        for objHandle in toDelete:
+            if objHandle.isValid():
+                dgMod.deleteNode(objHandle.object())
+        dgMod.doIt()
 
     try:
         # make sure it exists
