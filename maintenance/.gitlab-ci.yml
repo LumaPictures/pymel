@@ -1,35 +1,4 @@
-
-stages:
-- test
-- release
-
-test_2018.1_batch:
-  stage : test
-  script :
-  tags: [internal, linux]
-  script:
-  - setpkg -c pyexternal maya
-  - cd tests
-  - ./pymel_test_output.bash
-
-release_la:
-  stage: release
-  variables:
-    GIT_STRATEGY: fetch
-  tags: [internal, la]
-  only:
-  - master
-  - develop
-  script:
-  - /luma/pipe/shell/gitlab/gitlab_release.sh
-
-release_mel:
-  stage: release
-  variables:
-    GIT_STRATEGY: fetch
-  tags: [internal, mel]
-  only:
-  - master
-  - develop
-  script:
-  - /luma/pipe/shell/gitlab/gitlab_release.sh
+include:
+  - project: 'dev/pipe'
+    ref: luma
+    file: '/shell/gitlab/pymel.gitlab-ci.yml'
