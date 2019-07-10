@@ -148,7 +148,7 @@ def pytest_test(argv, warnings_as_errors=False):
     if wrappedStdout is not None:
         sys.stdout = wrappedStdout
     try:
-        pytest.main(args=argv[1:])
+        return pytest.main(args=argv[1:])
     finally:
         if wrappedStdout is not None:
             sys.stdout = origStdOut
@@ -232,7 +232,7 @@ def main(argv):
         print "using pymel from: %s" % inspect.getsourcefile(pymel)
 
         try:
-            pytest_test(argv, warnings_as_errors=parsed.warnings_as_errors)
+            return pytest_test(argv, warnings_as_errors=parsed.warnings_as_errors)
         finally:
             os.chdir(oldPath)
     finally:
@@ -244,4 +244,4 @@ def main(argv):
             print "...restored maya gui sys.stderr"
 
 if __name__ == '__main__':
-    main(sys.argv)
+    sys.exit(main(sys.argv))
