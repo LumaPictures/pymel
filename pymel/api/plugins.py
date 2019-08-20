@@ -137,6 +137,10 @@ mpxNamesToEnumNames = {
     'MPxHardwareShader': 'kHardwareShader',
     'MPxHwShaderNode': 'kHwShaderNode',
     'MPxTransform': 'kTransformNode',
+    # this is a temp entity - same as MPxTransform, but with fixed / added API
+    # for bounding boxes; since not 100% binary / ABI compatible, added as
+    # a new class in 2019.2.  Will replace the "standard" MPxTransform in 2020
+    'MPxTransform_BoundingBox': 'kTransformNode',
     'MPxObjectSet': 'kObjectSet',
     'MPxFluidEmitterNode': 'kFluidEmitterNode',
     'MPxImagePlane': 'kImagePlaneNode',
@@ -171,6 +175,7 @@ mpxNamesToApiEnumNames = {
     'MPxHardwareShader': 'kPluginHardwareShader',
     'MPxHwShaderNode': 'kPluginHwShaderNode',
     'MPxTransform': 'kPluginTransformNode',
+    'MPxTransform_BoundingBox': 'kPluginTransformNode',
     'MPxObjectSet': 'kPluginObjectSet',
     'MPxFluidEmitterNode': 'kPluginEmitterNode',
     'MPxImagePlane': 'kPluginImagePlaneNode',
@@ -205,6 +210,7 @@ mpxNamesToMayaNodes = {
     'MPxHardwareShader': u'THhardwareShader',
     'MPxHwShaderNode': u'THhwShader',
     'MPxTransform': u'THcustomTransform',
+    'MPxTransform_BoundingBox': u'THcustomTransform',
     'MPxObjectSet': u'THobjectSet',
     'MPxFluidEmitterNode': u'THfluidEmitter',
     'MPxImagePlane': u'THimagePlane',
