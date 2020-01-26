@@ -13,8 +13,8 @@ import pymel.util as util
 import pymel.versions as versions
 
 # Module imports
-from . import plogging
-from . import startup
+from pymel.core import plogging
+from pymel.core import startup
 
 _logger = plogging.getLogger(__name__)
 

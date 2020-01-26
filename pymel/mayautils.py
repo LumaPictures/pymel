@@ -117,7 +117,7 @@ def getMayaLocation(version=None):
                 loc = try_loc
             else:
                 _logger.warn("No Maya found for version %s" % version)
-                loc = None
+                return None
 
     return loc
 

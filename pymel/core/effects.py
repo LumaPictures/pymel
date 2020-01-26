@@ -1,8 +1,11 @@
 """Functions related to fx"""
 
 import pymel.internal.factories as _factories
-import general as _general
-import pymel.internal.pmcmds as cmds
+import pymel.core.general as _general
+if False:
+    from maya import cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 # ------ Do not edit below this line --------
 

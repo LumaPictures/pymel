@@ -25,11 +25,11 @@ import pymel.versions as versions
 from pymel.internal.pwarnings import deprecated, maya_deprecated
 
 # Module imports
-from . import apicache
-from . import cmdcache
-from . import plogging
-from . import pmcmds
-from . import docstrings
+from pymel.core import apicache
+from pymel.core import cmdcache
+from pymel.core import plogging
+from pymel.core import pmcmds
+from pymel.core import docstrings
 
 if False:
     from typing import *
@@ -2511,7 +2511,7 @@ def getDoArgs(args, argList):
 
 # FIXME: if we reframe getterInArgs as a set of indices, then we can omit the argument names in generated functions, which are quite long
 def getDoArgsGetterUndo(args, argList, getter, setter, getterInArgs):
-    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]], Callable, Callable, List[str]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]]]
+    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]], Callable, Callable, List[str]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]], ApiUndoItem]
     """
     Parameters
     ----------
@@ -2552,7 +2552,7 @@ def getDoArgsGetterUndo(args, argList, getter, setter, getterInArgs):
 
 
 def getDoArgsAnimCurveUndo(args, argList):
-    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]]]
+    # type: (List[Any], List[Tuple[str, Union[str, Tuple[str, str]], str, Optional[str]]]) -> Tuple[List[Any], List[Any], List[Tuple[str, int]], ApiUndoItem]
     """
     Parameters
     ----------
@@ -3195,7 +3195,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             #             #_logger.debug("getting from %s" % bases[0])
             #             # newcls will be defined by the time this is called...
             #             return super(newcls, self).__getattribute__(name)
-            #   
+            #
             #         classdict['__getattribute__'] = __getattribute__
 
         # create the new class
@@ -3664,7 +3664,7 @@ def addCustomPyNode(module, mayaType, extraAttrs=None):
 
 
 def getPymelTypeName(mayaTypeName, create=True):
-    # type: (str) -> str
+    # type: (str, bool) -> str
     pymelTypeName = mayaTypeNameToPymelTypeName.get(mayaTypeName)
     if pymelTypeName is None and create:
         pymelTypeName = str(util.capitalize(mayaTypeName))

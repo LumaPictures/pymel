@@ -2,10 +2,13 @@
 
 import pymel.util as _util
 import pymel.internal.factories as _factories
-import general as _general
+import pymel.core.general as _general
 import pymel.versions as versions
 
-import pymel.internal.pmcmds as cmds
+if False:
+    from maya import cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
 def currentTime(*args, **kwargs):

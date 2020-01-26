@@ -2,21 +2,26 @@ import os
 import sys
 import re
 import pymel.util as _util
-import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal.startup as _startup
 import pymel.internal as _internal
 import pymel.versions as _versions
 import maya.mel as _mm
 
-import animation
-import effects
-import general
-import modeling
-import other
-import rendering
-import system
-import windows
+from pymel.core import animation
+from pymel.core import effects
+from pymel.core import general
+from pymel.core import modeling
+from pymel.core import other
+from pymel.core import rendering
+from pymel.core import system
+from pymel.core import windows
+
+if False:
+    from typing import *
+    import maya.cmds as cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 _f = _factories
 
@@ -37,7 +42,7 @@ def _addTypeNames():
 
 def _resolveUIFunc(name):
     if isinstance(name, basestring):
-        import windows
+        from pymel.core import windows
         try:
             return getattr(windows, name)
         except AttributeError:
@@ -435,7 +440,7 @@ class PyUI(unicode):
                                                        ScriptedPanel,
                                                        RadioCollection,
                                                        ToolCollection)):
-                    import windows
+                    from pymel.core import windows
                     try:
                         if issubclass(newcls, Layout):
                             parent = windows.layout(name, q=1, p=1)
@@ -4562,7 +4567,7 @@ class MainProgressBar(ProgressBar):
                     break
     '''
     def __new__(cls, minValue=0, maxValue=100, interruptable=True):
-        # type: (int, int, bool) -> None
+        # type: (int, int, bool) -> MainProgressBar
         """
 
         Parameters
@@ -4608,7 +4613,7 @@ class VectorFieldGrp(FloatFieldGrp):
         return FloatFieldGrp.__new__(cls, name, create=False, *args, **kwargs)
 
     def getVector(self):
-        import datatypes
+        import pymel.core.datatypes as datatypes
         x = cmds.floatFieldGrp(self, q=1, v1=True)
         y = cmds.floatFieldGrp(self, q=1, v2=True)
         z = cmds.floatFieldGrp(self, q=1, v3=True)
@@ -4624,7 +4629,7 @@ class PathButtonGrp(TextFieldButtonGrp):
     def __new__(cls, name=None, create=False, *args, **kwargs):
 
         if create:
-            import windows
+            from pymel.core import windows
 
             kwargs.pop('bl', None)
             kwargs['buttonLabel'] = 'Browse'
@@ -4640,7 +4645,7 @@ class PathButtonGrp(TextFieldButtonGrp):
                 if f:
                     cmds.textFieldButtonGrp(name, e=1, text=f, forceChangeCommand=True)
 
-            import windows
+            from pymel.core import windows
             cb = windows.Callback(setPathCB, name)
             cmds.textFieldButtonGrp(name, e=1, buttonCommand=cb)
 
@@ -4651,7 +4656,7 @@ class PathButtonGrp(TextFieldButtonGrp):
         self.setText(path, **kwargs)
 
     def getPath(self):
-        import system
+        from pymel.core import system
         return system.Path(self.getText())
 
 

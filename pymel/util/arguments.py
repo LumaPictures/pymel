@@ -10,6 +10,9 @@ import itertools
 
 from utilitytypes import ProxyUnicode
 
+if False:
+    from typing import *
+
 # some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
 # doing a hasattr(obj, '__iter__') test will fail for objects that implement __getitem__, but not __iter__, so try iter(obj)
 
@@ -499,16 +502,16 @@ class ChangedKey(object):
 
 def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
                           useChangedKeys=False):
-    # type: (dict, list, or tuple, dict, list, or tuple, str or None or False, bool, bool) -> Tuple[set, set, set, dict]
+    # type: (Union[dict, list, tuple], Union[dict, list, tuple], Union[str, bool, None], bool, bool) -> Tuple[set, set, set, dict]
     '''compares two cascading dicts
 
     Parameters
     ----------
-    dict1 : dict, list, or tuple
+    dict1 : Union[dict, list, tuple]
         the first object to compare
-    dict2 : dict, list, or tuple
+    dict2 : Union[dict, list, tuple]
         the second object to compare
-    encoding : `str` or None or False
+    encoding : Union[str, bool, None]
         controls how comparisons are made when one value is a str, and one is a
         unicode; if None, then comparisons are simply made with == (so ascii
         characters will compare equally); if the value False, then unicode and

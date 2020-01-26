@@ -3,7 +3,11 @@ Runtime commands. These are kept in their own namespace to prevent conflict with
 """
 
 import pymel.internal.factories as _factories
-import pymel.internal.pmcmds as cmds
+if False:
+    from maya import cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
+
 
 # ------ Do not edit below this line --------
 
