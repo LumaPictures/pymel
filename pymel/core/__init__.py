@@ -17,23 +17,23 @@ _pmcmds.addAllWrappedCmds()
 
 import pymel.api as _api
 import pymel.api.plugins as _plugins
-from general import *
-from context import *
-from system import *
-from windows import *
-from animation import *
-from effects import *
-from modeling import *
-from rendering import *
-from language import *
-from other import *
+from pymel.core.general import *
+from pymel.core.context import *
+from pymel.core.system import *
+from pymel.core.windows import *
+from pymel.core.animation import *
+from pymel.core.effects import *
+from pymel.core.modeling import *
+from pymel.core.rendering import *
+from pymel.core.language import *
+from pymel.core.other import *
 
-import nodetypes
-import nodetypes as nt
-import datatypes
-import datatypes as dt
-import uitypes
-import uitypes as ui
+import pymel.core.nodetypes as nodetypes
+import pymel.core.nodetypes as nt
+import pymel.core.datatypes as datatypes
+import pymel.core.datatypes as dt
+import pymel.core.uitypes as uitypes
+import pymel.core.uitypes as ui
 
 # This is for backwards incompatibility due to a bug in the way LazyLoadModule
 # was used, which made all the uitypes available in this namespace

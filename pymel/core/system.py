@@ -49,11 +49,13 @@ from pymel.util.decoration import decorator
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
-import pymel.internal.pmcmds as cmds
 import pymel.versions as versions
-
 if False:
     from typing import *
+    from maya import cmds
+    import pymel.core.nodetypes as nt
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 _logger = _internal.getLogger(__name__)
 
@@ -504,7 +506,7 @@ def namespaceInfo(*args, **kwargs):
         res = _util.listForNone(res)
 
     if pyNodeWrap:
-        import general
+        import pymel.core.general
         nodes = []
         for x in res:
             try:
@@ -959,7 +961,7 @@ def iterReferences(parentReference=None, recursive=False, namespaces=False,
     -------
     Iterator[Union[FileReference, Tuple[unicode, FileReference], Tuple[unicode, FileReference, nt.Reference]]]
     """
-    import general
+    import pymel.core.general
 
     validRecurseTypes = ('breadth', 'width')
     if recurseType not in validRecurseTypes:
@@ -1084,8 +1086,8 @@ listReferences.__doc__ += iterReferences.__doc__
 #    :type recursive: bool
 #
 #    """
-#    import general
-#    import other
+#    import pymel.core.general
+#    from pymel.core import other
 # if asDict:
 ##        assert not (namespaces and refNodes)
 #
@@ -1167,8 +1169,8 @@ def getReferences(parentReference=None, recursive=False):
 #    @classmethod
 #    def refresh(cls):
 #
-#        import general
-#        import other
+#        import pymel.core.general
+#        from pymel.core import other
 #
 #        cls.byNamespace.clear()
 #        cls.byRefNode.clear()
@@ -1306,7 +1308,7 @@ class FileReference(object):
 #    there should be little need for the paths, except for displaying to the user.
 
     def __init__(self, pathOrRefNode=None, namespace=None, refnode=None):
-        import general
+        import pymel.core.general
         import nodetypes
         # for speed reasons, we use raw maya.cmds, instead of pmcmds, for some
         # calls here...
@@ -1384,7 +1386,7 @@ class FileReference(object):
 #        # refFile --> namespace:  refNode.namespace() + cmds.file( refFile, q=1, namespace=1)
 #        self._refNode = None
 #
-#        import general
+#        import pymel.core.general
 #        if unresolvedPath:
 #            # check to ensure it's legit
 #            assert path in ReferenceCache.byFullPath,  "%s is not a valid reference file" % path
@@ -1638,7 +1640,7 @@ class FileReference(object):
 
     @_factories.addMelDocs('referenceQuery', 'nodes')
     def nodes(self, recursive=False):
-        import general
+        import pymel.core.general
         nodes = cmds.referenceQuery(str(self.refNode), nodes=1, dagPath=1)
         if not nodes:
             nodes = []
@@ -1814,8 +1816,8 @@ def referenceQuery(*args, **kwargs):
             args[0] = args[0].refNode
         return cmds.referenceQuery(*args, **kwargs)
 
-import general
-import other
+import pymel.core.general as general
+import pymel.core.other as other
 
 
 def _safeEval(s):

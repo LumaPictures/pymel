@@ -8,15 +8,21 @@ import functools
 import traceback
 
 import pymel.util as _util
-import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as _versions
 
 from pymel.internal.factories import Callback, CallbackWithArgs
 
-from language import mel, melGlobals
-from system import Path as _Path
+from pymel.core.language import mel, melGlobals
+from pymel.core.system import Path as _Path
+
+if False:
+    from typing import *
+    from maya import cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
+
 # Don't import uitypes  - we want to finish setting up the commands in this
 # module before creating the uitypes classes; this way, the methods on the
 # uitypes classes can use the functions from THIS module, and inherit things
@@ -186,7 +192,7 @@ def getPanel(*args, **kwargs):
 #    """
 #    res = cmds.modelEditor(*args, **kwargs)
 #    if kwargs.get('query', kwargs.get('q')) and kwargs.get( 'camera', kwargs.get('cam')):
-#        import general
+#        import pymel.core.general
 #        return general.PyNode(res)
 #    return res
 
@@ -278,7 +284,7 @@ class PopupError(Exception):
     """
     def __new__(cls, msgOrException, title='Error', button='Ok', msg=None,
                 icon='critical'):
-        # type: (Union[str, Exception], str, str, Optional[str], str) -> None
+        # type: (Union[str, Exception], str, str, Optional[str], str) -> PopupError
         """
         Parameters
         ----------

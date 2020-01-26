@@ -6,8 +6,12 @@ as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `Attrib
 import re
 import inspect
 
-import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
+if False:
+    from maya import cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
+
 
 
 # -------------------------

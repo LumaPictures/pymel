@@ -1,8 +1,11 @@
 """functions related to modeling"""
 
 import pymel.internal.factories as _factories
-import pymel.internal.pmcmds as cmds
-import general as _general
+import pymel.core.general as _general
+if False:
+    from maya import cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
 def pointPosition(*args, **kwargs):

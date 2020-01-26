@@ -5,21 +5,24 @@ import sys
 import os
 import inspect
 from getpass import getuser as _getuser
-import system
+from pymel.core import system
 import collections
 
 import maya.mel as _mm
 import maya.cmds as _mc
 
 import pymel.util as util
-import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal.cmdcache as _cmdcache
-import pymel.api as _api
-import datatypes
+import pymel.core.datatypes as datatypes
 
 if False:
     from typing import *
+    from maya import cmds
+    import maya.OpenMaya as _api
+else:
+    import pymel.api as _api
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 # -------------------------
 # Mel <---> Python Glue
@@ -266,7 +269,13 @@ def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
 # using append or extend will not update the mel variable
 
 # we only inherit from dict for backward-compatability...
-class MelGlobals(collections.MutableMapping, dict):
+if False:
+    _Parent = object
+else:
+    _Parent = dict
+
+
+class MelGlobals(collections.MutableMapping, _Parent):
 
     """ A dictionary-like class for getting and setting global variables between mel and python.
 

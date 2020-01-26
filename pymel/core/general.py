@@ -13,14 +13,12 @@ import itertools
 import inspect
 import collections
 
-import pymel.internal.pmcmds as cmds
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal.pwarnings as _warnings
 import pymel.internal.startup as _startup
-import pymel.api as _api
 import pymel.versions as _versions
-import datatypes
+import pymel.core.datatypes as datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
 from pymel.util.enum import Enum
@@ -28,7 +26,13 @@ from pymel.util.enum import Enum
 if False:
     from typing import *
     import pymel.core.nodetypes as nodetypes
+    import pymel.core.nodetypes as nt
     import pymel.core.other as other
+    from maya import cmds
+    import maya.OpenMaya as _api
+else:
+    import pymel.api as _api
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 _logger = _getLogger(__name__)
 
@@ -4084,60 +4088,68 @@ class Attribute(PyNode):
 # -------------------------
 
     def getSoftMin(self):
-        # type: () -> float
+        # type: () -> Optional[float]
         """attributeQuery -softMin
             Returns None if softMin does not exist.
 
         Returns
         -------
-        float
+        Optional[float]
         """
         if cmds.attributeQuery(self.attrName(), node=self.node(),
                                softMinExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        softMin=True)[0]
+        else:
+            return None
 
     def getSoftMax(self):
-        # type: () -> float
+        # type: () -> Optional[float]
         """attributeQuery -softMax
             Returns None if softMax does not exist.
 
         Returns
         -------
-        float
+        Optional[float]
         """
         if cmds.attributeQuery(self.attrName(), node=self.node(),
                                softMaxExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        softMax=True)[0]
+        else:
+            return None
 
     def getMin(self):
-        # type: () -> float
+        # type: () -> Optional[float]
         """attributeQuery -min
             Returns None if min does not exist.
 
         Returns
         -------
-        float
+        Optional[float]
         """
         if cmds.attributeQuery(self.attrName(), node=self.node(),
                                minExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        min=True)[0]
+        else:
+            return None
 
     def getMax(self):
-        # type: () -> float
+        # type: () -> Optional[float]
         """attributeQuery -max
             Returns None if max does not exist.
 
         Returns
         -------
-        float
+        Optional[float]
         """
         if cmds.attributeQuery(self.attrName(), node=self.node(),
                                maxExists=True):
             return cmds.attributeQuery(self.attrName(), node=self.node(),
                                        max=True)[0]
+        else:
+            return None
 
     def getSoftRange(self):
         # type: () -> List[float]
@@ -4823,7 +4835,7 @@ class Component(PyNode):
     __metaclass__ = _factories.MetaMayaTypeRegistry
     _mfncompclass = _api.MFnComponent
     _apienum__ = _api.MFn.kComponent
-    _ComponentLabel__ = None
+    _ComponentLabel__ = None  # type: str
 
     # Maya 2008 and earlier have no kUint64SingleIndexedComponent /
     # MFnUint64SingleIndexedComponent...
@@ -5230,7 +5242,7 @@ class DimensionedComponent(Component):
         selList.getDagPath(0, dagPath, compMobj)
         return _api.MObjectHandle(compMobj)
 
-    VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
+    VALID_SINGLE_INDEX_TYPES = ()  # re-define in derived!
 
     # For situations in which we want a component object to represent ALL the
     # possible components of that type - ie, all the vertices - it is a LOT

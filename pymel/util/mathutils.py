@@ -3,6 +3,9 @@
 from __builtin__ import round as _round
 import math
 
+if False:
+    from typing import *
+
 # to be able to call conjugate, real and imag on all numericals
 
 

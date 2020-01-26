@@ -2,9 +2,12 @@
 
 import pymel.util as _util
 import pymel.internal.factories as _factories
-import general as _general
-import language as _language
-import pymel.internal.pmcmds as cmds
+import pymel.core.general as _general
+import pymel.core.language as _language
+if False:
+    from maya import cmds
+else:
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
 def shadingNode(*args, **kwargs):

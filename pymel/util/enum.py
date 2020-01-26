@@ -195,7 +195,7 @@ class Enum(object):
     """ Enumerated type """
 
     def __init__(self, name, keys, **kwargs):
-        # type: (str, Union[Dict[str, int], Iterable[str]], **Any) -> None
+        # type: (str, Union[Dict[str, int], Iterable[str], Iterable[Tuple[str, int]]], **Any) -> None
         """ Create an enumeration instance
 
         Parameters

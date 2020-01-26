@@ -11,6 +11,9 @@ import maya.mel as _mm
 import maya.OpenMayaMPx as mpx
 import maya.OpenMaya as om
 
+if False:
+    from typing import *
+
 MAX_VAR_ARGS = 10
 MAX_FLAG_ARGS = 6
 
@@ -38,19 +41,24 @@ def _getFunction(function):
 
 
 def getMelArgs(function, exactMelType=True):
-    # type: (callable or str, Any) -> default}, {argName : description})
+    # type: (Union[Callable, str], Any) -> Tuple[Tuple[str, str], Dict[str, Any], Dict[str, str]]
     """Inspect the arguments of a python function and return the cloesst
     compatible MEL arguments.
 
-    Returns
-    -------
-    ``((argName, melType ), {argName : default}, {argName : description})``
-
     Parameters
     ----------
-    function : callable or str
+    function : Union[Callable, str]
         This can be a callable python object or the full, dotted path to the
         callable object as a string.
+
+    Returns
+    -------
+    melArgs : Tuple[str, str]
+        (argName, melType)
+    melArgDefaults : Dict[str, Any]
+        {argName : default}
+    parsedDescr : Dict[str, str]
+        {argName : description}
     """
 
     melArgs = []
@@ -61,41 +69,10 @@ def getMelArgs(function, exactMelType=True):
 
     function = _getFunction(function)
 
-    funcName = function.__name__
-    moduleName = function.__module__
-
     args, varargs, kwargs, defaults = inspect.getargspec(function)
     if inspect.ismethod(function):
         # remove self/cls
         args = args[1:]
-#    # epydoc docstring parsing
-#    try:
-#        import epydoc.docbuilder
-#    except ImportError:
-#        pass
-#    else:
-#        try:
-#            docindex = epydoc.docbuilder.build_doc_index( [moduleName], parse=True, introspect=True, add_submodules=False)
-#            linker = epydoc.markup.DocstringLinker()
-#            api_doc = docindex.get_valdoc( moduleName + '.' + funcName )
-#        except Exception, msg:
-#            print "epydoc parsing failed: %s" % msg
-#        else:
-#            arg_types = api_doc.arg_types
-#            #print api_doc.arg_descrs
-#            #print arg_types
-#            for arg, descr in api_doc.arg_descrs:
-#                # filter out args that are not actually in our function.  that means currently no support for *args and **kwargs
-#                # not yet sure why, but the keys to arg_types are lists
-#                arg = arg[0]
-#                if arg in args: # or kwargs:
-#                    parsedDescr[arg] = descr.to_plaintext( linker )
-#                    try:
-#                        argtype = arg_types[ arg ].to_plaintext( linker )
-#                        parsedTypes[arg] = getMelType( pyType=argtype, exactMelType=exactMelType )
-#                        #print arg, argtype, parsedTypes.get(arg)
-#                    except KeyError: pass
-
     try:
         ndefaults = len(defaults)
     except:
@@ -112,14 +89,6 @@ def getMelArgs(function, exactMelType=True):
             default = defaults[i - offset]
             melType = getMelType(default, exactOnly=exactMelType)
             # a mel type of None means there is no mel analogue for this python object
-#            if not isValidMelType( melType ):
-#                # if it's None, then we go to parsed docs
-#                if melType is None:
-#                    melType = parsedTypes.get( arg, None )
-#                try:
-#                    default = default.__repr__()
-#                except AttributeError:
-#                    default = str(default)
             melArgDefaults[arg] = default
         else:
             # args without defaults
@@ -132,6 +101,7 @@ def getMelArgs(function, exactMelType=True):
 
 
 def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, argTypes=None):
+    # type: (Callable, Any, str, bool, Any) -> str
     """This is a work in progress.  It generates and sources a mel procedure which wraps the passed
     python function.  Theoretically useful for calling your python scripts in scenarios where Maya
     does not yet support python callbacks.
@@ -150,8 +120,9 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
         - *args : not yet implemented
         - **kwargs : not likely to be implemented
 
-
-    function
+    Parameters
+    ----------
+    function : Callable
         This can be a callable python object or the full, dotted path to the callable object as a string.
 
         If passed as a python object, the object's __name__ and __module__ attribute must point to a valid module
@@ -159,11 +130,9 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
 
         If a string representing the python object is passed, it should include all packages and sub-modules, along
         with the function's name:  'path.to.myFunc'
-
-    procName
+    procName : str
         Optional name of the mel procedure to be created.  If None, the name of the function will be used.
-
-    evaluateInputs
+    evaluateInputs : bool
         If True (default), string arguments passed to the generated mel procedure will be evaluated as python code, allowing
         you to pass a more complex python objects as an argument. For example:
 
@@ -179,6 +148,10 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
             myFuncWrapper("[ 1, 2, 3]");
 
         the string "[1,2,3]" will be converted to a python list [1,2,3] before it is executed by the python function myFunc
+
+    Returns
+    -------
+    str
     """
 
     function = _getFunction(function)
@@ -486,11 +459,14 @@ class WrapperCommand(plugins.Command):
         return argValues
 
     def parseFlagArgs(self, argData):
-        # type: (Any) -> a list of (flagLongName, flagArgList) tuples
+        # type: (Any) -> List[Tuple[str, List[str]]]
         """
         cycle through known flags looking for any that have been set.
 
-        :rtype: a list of (flagLongName, flagArgList) tuples
+        Returns
+        -------
+        List[Tuple[str, List[str]]]
+            a list of (flagLongName, flagArgList) tuples
         """
 
         argValues = []
@@ -522,7 +498,7 @@ class WrapperCommand(plugins.Command):
 def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
               excludeFlags=[], includeFlagArgs=None, excludeFlagArgs={},
               nonUniqueName='warn', invalidName='warn'):
-    # type: (Any, str, bool, list of str, Any, dict from str to list of str, dict from str to list of str, 'force', 'warn', 'skip', or 'error', 'force', 'warn', 'skip', or 'error') -> None
+    # type: (Any, str, bool, List[str], List[str], Dict[str, List[str]], Dict[str, List[str]], str, str) -> None
     """
     Create a MEL command from a python function or class.
 
@@ -586,18 +562,20 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
         whether or not to automatically register the generated command.  If
         False, you will have to manually call the `register` method of the
         returned `WrapperCommand` instance
-    includeFlags : list of str
+    includeFlags : List[str]
         list of flags to include. if given, other flags will be ignored
-    exludeFlags : list of str
+    excludeFlags : List[str]
         list of flags to exclude
-    includeFlagArgs : dict from str to list of str
+    includeFlagArgs : Dict[str, List[str]]
         for each flag, a list of arg names to include; if given, other args will
         be ignored
-    excludeFlagArgs : dict from str to list of str
+    excludeFlagArgs : Dict[str, List[str]]
         for each flag, a list of arg names to exclude
-    nonUniqueName : 'force', 'warn', 'skip', or 'error'
+    nonUniqueName : str
+        {'force', 'warn', 'skip', or 'error'}
         what to do if a flag name is not unique
-    invalidName: 'force', 'warn', 'skip', or 'error'
+    invalidName: str
+        {'force', 'warn', 'skip', or 'error'}
         what to do if a flag name is invalid
 
     """

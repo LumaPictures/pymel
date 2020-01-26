@@ -9,15 +9,13 @@ import itertools
 import math
 
 import pymel.util as _util
-import pymel.internal.pmcmds as cmds  # @UnresolvedImport
+
 import pymel.internal.factories as _factories
-import pymel.api as _api  # @UnresolvedImport
 import pymel.internal.apicache as _apicache
 import pymel.internal.pwarnings as _warnings
 from pymel.internal import getLogger as _getLogger
 from pymel.internal.startup import pymel_options as _pymel_options
-import datatypes
-_logger = _getLogger(__name__)
+import pymel.core.datatypes as datatypes
 
 # to make sure Maya is up
 import pymel.internal as internal
@@ -26,23 +24,28 @@ import pymel.versions as versions
 from maya.cmds import about as _about
 import maya.mel as mm
 
-#from general import *
-import animation
-import effects
-import general
-import modeling
-import other
-import rendering
-import system
-import windows
+from pymel.core import animation
+from pymel.core import effects
+from pymel.core import general
+from pymel.core import modeling
+from pymel.core import other
+from pymel.core import rendering
+from pymel.core import system
+from pymel.core import windows
 
-from animation import listAnimatable as _listAnimatable
-from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
+from pymel.core.animation import listAnimatable as _listAnimatable
+from pymel.core.system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 from pymel.util.enum import Enum
 
 if False:
     from typing import *
+    from maya import cmds
+    import maya.OpenMaya as _api
+else:
+    import pymel.api as _api
+    import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
+_logger = _getLogger(__name__)
 _thisModule = sys.modules[__name__]
 
 _f = _factories
@@ -964,7 +967,7 @@ class DependNode(general.PyNode):
         """
         _factories.registerVirtualClass(cls, nameRequired)
 # ------ Do not edit below this line --------
-    __melnode__ = 'dependNode'
+    __melnode__ = u'dependNode'
     __slots__ = ()
     MAttrClass = Enum('MAttrClass', [('localDynamicAttr', 1), ('kLocalDynamicAttr', 1), ('normalAttr', 2), ('kNormalAttr', 2), ('extensionAttr', 3), ('kExtensionAttr', 3), ('invalidAttr', 4), ('kInvalidAttr', 4)], multiKeys=True)
     MdgTimerMetric = Enum('MdgTimerMetric', [('metric_callback', 0), ('kTimerMetric_callback', 0), ('metric_compute', 1), ('kTimerMetric_compute', 1), ('metric_dirty', 2), ('kTimerMetric_dirty', 2), ('metric_draw', 3), ('kTimerMetric_draw', 3), ('metric_fetch', 4), ('kTimerMetric_fetch', 4), ('metric_callbackViaAPI', 5), ('kTimerMetric_callbackViaAPI', 5), ('metric_callbackNotViaAPI', 6), ('kTimerMetric_callbackNotViaAPI', 6), ('metric_computeDuringCallback', 7), ('kTimerMetric_computeDuringCallback', 7), ('metric_computeNotDuringCallback', 8), ('kTimerMetric_computeNotDuringCallback', 8), ('metrics', 9), ('kTimerMetrics', 9)], multiKeys=True)
@@ -1241,19 +1244,17 @@ class DagNode(Entity):
 
     __apicls__ = _api.MFnDagNode
 
-#    def __init__(self, *args, **kwargs ):
-#        self.apicls.__init__(self, self.__apimdagpath__() )
-    _componentAttributes = {}
+    _componentAttributes = {}  # type: Dict[str, Union[tuple, type]]
 
     def comp(self, compName):
-        # type: (Any) -> general.Component
+        # type: (Any) -> Optional[general.Component]
         """
         Will retrieve a Component object for this node; similar to
         DependNode.attr(), but for components.
 
         Returns
         -------
-        general.Component
+        Optional[general.Component]
         """
         if compName in self._componentAttributes:
             compClass = self._componentAttributes[compName]
@@ -1282,7 +1283,7 @@ class DagNode(Entity):
                 return shape.comp(compName)
 
     def listComp(self, names=False):
-        # type: (bool) -> None
+        # type: (bool) -> List[str]
         """Will return a list of all component objects for this object
 
         Is to .comp() what .listAttr() is to .attr(); will NOT check the shape
@@ -1294,6 +1295,10 @@ class DagNode(Entity):
             By default, will return a list of actual usabale pymel Component
             objects; if you just want a list of string names which would
             be compatible with .comp(), set names to True
+
+        Returns
+        -------
+        List[str]
         """
         keys = sorted(self._componentAttributes.keys())
         if names:
@@ -4133,11 +4138,11 @@ class Transform(DagNode):
 
     @_factories.addApiDocs(_api.MFnTransform, 'rotateByQuaternion')
     def rotateByQuaternion(self, xOrQuaternion, y=None, z=None, w=None, space='transform'):
+        # type: (Union[float, Quaternion, List[float], Tuple[float]], float, float, float, datatypes.Space.Space) -> None
         '''
         Modifications:
           - may feed in a single Quaternion object/list/tuple instead of 4 separate floats
         '''
-        # type: (Union[float, Quaternion, List[float], Tuple[float]], float, float, float, datatypes.Space.Space) -> None
         if isinstance(xOrQuaternion, (int, float)):
             x = xOrQuaternion
         else:
@@ -4252,7 +4257,7 @@ class Transform(DagNode):
     __apicls__ = _api.MFnTransform
     __melcmd__ = staticmethod(general.xform)
     __melcmd_isinfo__ = True
-    __melcmdname__ = 'xform'
+    __melcmdname__ = u'xform'
     __melnode__ = u'transform'
     __slots__ = ()
     LimitType = Enum('LimitType', [('scaleMinX', 0), ('kScaleMinX', 0), ('scaleMaxX', 1), ('kScaleMaxX', 1), ('scaleMinY', 2), ('kScaleMinY', 2), ('scaleMaxY', 3), ('kScaleMaxY', 3), ('scaleMinZ', 4), ('kScaleMinZ', 4), ('scaleMaxZ', 5), ('kScaleMaxZ', 5), ('shearMinXY', 6), ('kShearMinXY', 6), ('shearMaxXY', 7), ('kShearMaxXY', 7), ('shearMinXZ', 8), ('kShearMinXZ', 8), ('shearMaxXZ', 9), ('kShearMaxXZ', 9), ('shearMinYZ', 10), ('kShearMinYZ', 10), ('shearMaxYZ', 11), ('kShearMaxYZ', 11), ('rotateMinX', 12), ('kRotateMinX', 12), ('rotateMaxX', 13), ('kRotateMaxX', 13), ('rotateMinY', 14), ('kRotateMinY', 14), ('rotateMaxY', 15), ('kRotateMaxY', 15), ('rotateMinZ', 16), ('kRotateMinZ', 16), ('rotateMaxZ', 17), ('kRotateMaxZ', 17), ('translateMinX', 18), ('kTranslateMinX', 18), ('translateMaxX', 19), ('kTranslateMaxX', 19), ('translateMinY', 20), ('kTranslateMinY', 20), ('translateMaxY', 21), ('kTranslateMaxY', 21), ('translateMinZ', 22), ('kTranslateMinZ', 22), ('translateMaxZ', 23), ('kTranslateMaxZ', 23)], multiKeys=True)
