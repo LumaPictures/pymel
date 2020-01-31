@@ -11,6 +11,9 @@ It controls:
 
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import inspect, re, os
 import pymel.core as pm
 import pymel.internal.factories as factories
@@ -365,7 +368,7 @@ class MethodRow(object):
         try:
             enabledArray = self.getEnabledArray()
         except:
-            print self.apiClassName, self.apiMethodName
+            print(self.apiClassName, self.apiMethodName)
             raise
         # DEFAULT VALUES
 
@@ -387,7 +390,7 @@ class MethodRow(object):
 
 
         # useName mode
-        if not self.data.has_key( 'useName' ):
+        if 'useName' not in self.data:
             self.data['useName'] = 'API'
         else:
             # correct old values
@@ -400,11 +403,11 @@ class MethodRow(object):
                 self.data['useName'] = str(useNameVal)
 
         # correct old values
-        if self.data.has_key('overloadPrecedence'):
+        if 'overloadPrecedence' in self.data:
             self.data['overloadIndex'] = self.data.pop('overloadPrecedence')
 
         # correct old values
-        if self.data.has_key('melName'):
+        if 'melName' in self.data:
             #logger.debug( "correcting melName %s %s %s" % (self.className, self.methodName, str(self.data['melName']) ) )
             self.data['melName'] = str(self.data['melName'])
 
@@ -438,7 +441,7 @@ class MethodRow(object):
 
     def updateMelNames(self, melMethods):
         # melName
-        if not self.data.has_key( 'melName' ):
+        if 'melName' not in self.data:
             match = None
             for method in melMethods:
                 methreg = re.compile(method.replace('*', '.{0,1}') + '$')
@@ -636,12 +639,12 @@ class MethodRow(object):
         if oldMelName:
             self.uncrossReference( oldMelName )
         if newMelName == '[None]':
-            print "removing melName"
+            print("removing melName")
             self.data.pop('melName',None)
             self.parent.parent.unassignMelMethod( oldMelName )
             self.melNameTextField.setText('')
         else:
-            print "adding melName", newMelName
+            print("adding melName", newMelName)
             self.crossReference( newMelName )
             self.data['melName'] = newMelName
             self.parent.parent.assignMelMethod( newMelName )

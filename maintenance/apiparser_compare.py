@@ -2,6 +2,9 @@
 '''Tools for writing out the apiClassInfo parsed from docs, and comparing
 
 Written for transitioning to doxygen-xml docs, so we can compare to old results'''
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import argparse
 import inspect
@@ -213,7 +216,7 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False,
             try:
                 info = parser.parse(name)
                 apiClassInfo[name] = info
-            except (IOError, OSError, ValueError, IndexError), e:
+            except (IOError, OSError, ValueError, IndexError) as e:
                 import errno
 
                 baseMsg = "failed to parse docs for %r:" % name
@@ -241,9 +244,9 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False,
             os.makedirs(outputDir)
         for className, classData in apiClassInfo.iteritems():
             classFile = os.path.join(outputDir, className + '.py')
-            print "writing: {}".format(classFile)
+            print("writing: {}".format(classFile))
             writeClassInfo(classData, classFile)
-    print "done"
+    print("done")
 
 
 class Transform(object):
@@ -417,15 +420,15 @@ class Processor(object):
         return processedItems
 
     def processFile(self, className, path, outPath):
-        print "Processing: {}...".format(path),
+        print("Processing: {}...".format(path), end=' ')
         try:
             classInfo = readClassInfo(path)
             self.applyXforms(className, classInfo)
             writeClassInfo(classInfo, outPath)
-            print "Wrote {}".format(outPath),
+            print("Wrote {}".format(outPath), end=' ')
         finally:
             # add the newline
-            print
+            print()
 
     def applyXforms(self, className, classInfo):
         for xform in self.xforms:
@@ -589,7 +592,7 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False,
         processedItems.append(processor.processDir(
             inputDir, classes=classes, skipPreprocess=skipPreprocess))
 
-    print "finished pre-processing..."
+    print("finished pre-processing...")
 
     names = [set(x) for x in processedItems]
     combined = names[0].intersection(names[1])
@@ -598,10 +601,10 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False,
 
     for dirNames, sourceDir, missing in zip(names, dirs, allMissing):
         if missing:
-            print "Following {} items were missing in {}:".format(len(missing),
-                                                                  sourceDir)
+            print("Following {} items were missing in {}:".format(len(missing),
+                                                                  sourceDir))
             for name in sorted(missing):
-                print '  {}'.format(name)
+                print('  {}'.format(name))
 
     allDiffs = OrderedDict()
     same = []
@@ -623,18 +626,18 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False,
             same.append(name)
 
     if allDiffs:
-        print "Following {} items had differences:".format(len(allDiffs))
+        print("Following {} items had differences:".format(len(allDiffs)))
         for name, diffs in allDiffs.iteritems():
             changeCounts = DiffProcessor.countChanges(diffs)
-            print '  {0} ({1[0]} added, {1[1]} removed, {1[2]} changed)'.format(
-                name, changeCounts)
+            print('  {0} ({1[0]} added, {1[1]} removed, {1[2]} changed)'.format(
+                name, changeCounts))
             # from pprint import pprint
             # pprint(diffs)
 
-    print "Found {} identical items".format(len(same))
+    print("Found {} identical items".format(len(same)))
     if showSame:
         for name in same:
-            print '  {}'.format(name)
+            print('  {}'.format(name))
 
 
 def parse_cmd(args):

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import unittest, sys
 
 import maya.mel
@@ -8,23 +11,23 @@ from pymel.tools.mel2py import mel2pyStr
 class TestStrings(unittest.TestCase):
     def assertMelAndPyStringsEqual(self, melString, verbose=False):
         if verbose:
-            print "Original mel string:"
-            print melString
+            print("Original mel string:")
+            print(melString)
 
         #melCmd = '$tempStringVar = %s; print $tempStringVar; $tempStringVar = $tempStringVar;' % melString
         melCmd = '$tempStringVar = %s;' % melString
         strFromMMEval = maya.mel.eval(melCmd)
 
         if verbose:
-            print "Decoded through maya.mel:"
-            print strFromMMEval
+            print("Decoded through maya.mel:")
+            print(strFromMMEval)
 
-        exec mel2pyStr(melCmd)
+        exec(mel2pyStr(melCmd))
         strFromPy2Mel = tempStringVar
 
         if verbose:
-            print "Decoded through py2mel:"
-            print strFromPy2Mel
+            print("Decoded through py2mel:")
+            print(strFromPy2Mel)
 
         self.assertEqual(strFromMMEval, strFromPy2Mel)
 

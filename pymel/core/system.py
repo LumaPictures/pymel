@@ -34,6 +34,9 @@ the results::
     Path('...test.ma')
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 import sys
 import os
@@ -69,14 +72,14 @@ try:
     className = buf[-1]
     try:
         pathModule = __import__(moduleName, globals(), locals(), [''])
-    except Exception, e:
+    except Exception as e:
         _logger.warning("Could not import %r module containing custom base Path class: %s" % (moduleName, e))
         raise AssertionError
 
     try:
         pathClass = getattr(pathModule, className)
         _logger.info("Using custom path class %s" % (basePathName))
-    except AttributeError, e:
+    except AttributeError as e:
         _logger.warning("Custom path class %s could not be found in module %s" % (className, pathModule))
         raise AssertionError
 except (KeyError, AssertionError):
@@ -417,7 +420,7 @@ class Namespace(unicode):
                             _logger.warning("Preserving %r, which was parented under %r" % (c, o))
                             try:
                                 c.setParent(world=True)
-                            except Exception, e:
+                            except Exception as e:
                                 if haltOnError:
                                     raise
                                 _logger.error("Could not preserve %r (%s)" % (c, e))
@@ -647,7 +650,7 @@ class WorkspaceEntryDict(object):
     def __getitem__(self, item):
         res = cmds.workspace(**{self.entryType + 'Entry': item})
         if not res:
-            raise KeyError, item
+            raise KeyError(item)
         return res
 
     def __setitem__(self, item, value):
@@ -1312,7 +1315,7 @@ class FileReference(object):
 
     def __init__(self, pathOrRefNode=None, namespace=None, refnode=None):
         import pymel.core.general
-        import nodetypes
+        from . import nodetypes
         # for speed reasons, we use raw maya.cmds, instead of pmcmds, for some
         # calls here...
         import maya.cmds as mcmds
@@ -1357,7 +1360,7 @@ class FileReference(object):
                         # way to test / filter out shared nodes...)
                         pass
             if self._refNode is None:
-                raise RuntimeError, "Could not find a reference with the namespace %r" % namespace
+                raise RuntimeError("Could not find a reference with the namespace %r" % namespace)
 
         elif refnode:
             self._refNode = general.PyNode(refnode)
@@ -1450,7 +1453,7 @@ class FileReference(object):
         for x in cmds.file(self, q=1, reference=1):
             try:
                 res[namespace + cmds.file(x, q=1, namespace=1)] = FileReference(x)
-            except Exception, e:
+            except Exception as e:
                 _logger.warn("Could not get namespace for '%s': %s" % (x, e))
         return res
 
@@ -1767,7 +1770,7 @@ def referenceQuery(*args, **kwargs):
       the other defaults to the opposite value.
     """
     if kwargs.get("editStrings", kwargs.get("es")):
-        from general import PyNode, MayaNodeError, MayaAttributeError
+        from .general import PyNode, MayaNodeError, MayaAttributeError
 
         fr = None
         if isinstance(args[0], FileReference):

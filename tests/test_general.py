@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys, os, inspect, unittest, logging
 import types
 import maya.OpenMaya as om
@@ -258,7 +261,7 @@ class testCase_mayaLockAttr(unittest.TestCase):
         self.temp = os.path.join(tempfile.gettempdir(), 'referencesTest')
         if not os.path.isdir(self.temp):
             os.makedirs(self.temp)
-        print "created temp dir: %s" % self.temp
+        print("created temp dir: %s" % self.temp)
 
         # Refs:
         #  sphere.ma
@@ -270,7 +273,7 @@ class testCase_mayaLockAttr(unittest.TestCase):
 
 
         # create sphere file
-        print "sphere file"
+        print("sphere file")
 #        cmds.file(new=1, f=1)
         pm.newFile(f=1)
         sphere = pm.polySphere()[0]
@@ -282,7 +285,7 @@ class testCase_mayaLockAttr(unittest.TestCase):
 
         self.sphereFile = pm.saveAs( os.path.join( self.temp, 'sphere.ma' ), f=1 )
 
-        print "master file"
+        print("master file")
         pm.newFile(f=1)
         self.sphereRef1 = pm.createReference( self.sphereFile, namespace='sphere1' )
         self.sphereRef2 = pm.createReference( self.sphereFile, namespace='sphere2' )
@@ -362,7 +365,7 @@ class testCase_enumAttr(unittest.TestCase):
                      enumName='First:Second:Third', keyable=True)
 
     def test_setString(self):
-        print "self.attr:", self.attr
+        print("self.attr:", self.attr)
         setAttr(self.attr, 'Second')
         self.assertEqual(1, getAttr(self.attr))
         setAttr(self.attr, 'Third', asString=1)
@@ -459,7 +462,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         cube = polyCube()[0]
         torus = polyTorus()[0]
         sphere | cube | torus
-        print torus.fullPath()
+        print(torus.fullPath())
 
     #def test05_dagNode_getParent(self):
     def test06_instances(self):
@@ -506,20 +509,20 @@ class testCase_nodesAndAttributes(unittest.TestCase):
                       ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
                       ('%s.penumbraAngle' % self.light, 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
                      ]
-        print
+        print()
         for attrName, getMethodName, setMethodName, realValue in testPairs:
             at = PyNode(attrName)
             node = at.node()
             getter = getattr( node, getMethodName )
             setter = getattr( node, setMethodName )
 
-            print repr(at)
-            print "Real Value:", repr(realValue)
+            print(repr(at))
+            print("Real Value:", repr(realValue))
             # set attribute using "safe" method
             at.set( realValue )
             # get attribute using wrapped api method
             gotValue = getter()
-            print "Got Value:", repr(gotValue)
+            print("Got Value:", repr(gotValue))
             # compare
             self.assertEqual( realValue, gotValue )
 
@@ -656,10 +659,10 @@ class testCase_apiUndo(unittest.TestCase):
             chunkName = cmds.undoInfo(q=1, chunkName=1)
             if not chunkName:
                 break
-            print "closing chunk: {}".format(chunkName)
+            print("closing chunk: {}".format(chunkName))
             cmds.undoInfo(closeChunk=1)
         else:
-            print "WARNING - hit maximum number of open undo chunks: {}".format(chunksClosed + 1)
+            print("WARNING - hit maximum number of open undo chunks: {}".format(chunksClosed + 1))
 
         setAttr( 'persp.focalLength', 35 )
         setAttr( 'top.focalLength', 35 )
@@ -1637,7 +1640,7 @@ class test_lazyDocs(unittest.TestCase):
                 try:
                     str(obj.__doc__)
                 except Exception:
-                    print "errored getting docstring for {}".format(name)
+                    print("errored getting docstring for {}".format(name))
                     raise
 
 

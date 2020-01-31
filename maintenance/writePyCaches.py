@@ -1,9 +1,12 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 #!/usr/bin/env mayapy
 import pymel.internal.apicache as apicache
 import pymel.internal.cmdcache as cmdcache
-print apicache
+print(apicache)
 import pymel.internal.startup
-print pymel.internal.startup
+print(pymel.internal.startup)
 
 logger = pymel.internal.startup._logger
 
@@ -46,14 +49,14 @@ for cacheClass in cacheClasses:
     diffs = compareCascadingDicts(data, newData)[-1]
 
     if not diffs:
-        print "Yay!!! no diffs!"
+        print("Yay!!! no diffs!")
     else:
-        print "Boo... still diffs..."
+        print("Boo... still diffs...")
 
         diffPath = cacheInst.path(ext='.diff')
         with open(diffPath, 'w') as f:
             f.write(pformat(diffs))
-        print "wrote diffs to: {}".format(diffPath)
+        print("wrote diffs to: {}".format(diffPath))
         break
 
 

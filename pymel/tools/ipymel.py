@@ -28,10 +28,13 @@ add the following line to the 'main' function of $HOME/.ipython/ipy_user_conf.py
 
 Author: Chad Dombrova
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 from optparse import OptionParser
 try:
     import maya
-except ImportError, e:
+except ImportError as e:
     print("ipymel can only be setup if the maya package can be imported")
     raise e
 
@@ -642,7 +645,7 @@ def dghist(self, parameter_s=''):
 
     options, args = dg_parser.parse_args(parameter_s.split())
     if not args:
-        print "must pass in nodes to display the history of"
+        print("must pass in nodes to display the history of")
         return
 
     colors = get_colors(self)
@@ -698,7 +701,7 @@ def openf(self, parameter_s=''):
         try:
             ps = ip.ev('_sh[%d]' % nn)
         except IndexError:
-            print 'The requested directory does not exist in history.'
+            print('The requested directory does not exist in history.')
             return
         else:
             opts = {}

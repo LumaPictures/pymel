@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import unittest
 
 import pymel.util.arguments as arguments
@@ -154,7 +157,7 @@ class testCase_compareCascadingDicts(unittest.TestCase):
         self.assertEqual(both, set([1, 'foo']))
         self.assertEqual(only1, set())
         self.assertEqual(only2, set())
-        print 'diff:', diff
+        print('diff:', diff)
         self.assertEqual(diff, {1:{0:'samuel', 1:'jackson', 2:arguments.RemovedKey('Fer')}})
         arguments.mergeCascadingDicts( diff, orig )
         self.assertEqual(orig, {1:{0:'samuel', 1:'jackson', 2:arguments.RemovedKey('Fer')}, 'foo':'bar'})

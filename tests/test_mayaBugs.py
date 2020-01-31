@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import os
 import unittest
@@ -166,10 +169,10 @@ class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
                 def __getattribute__(self, name):
                     # don't just use 'normal' repr, as that will
                     # call __getattribute__!
-                    print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
+                    print("__getattribute__(%s, %r)" % (object.__repr__(self), name))
                     return super(InfoBaseClass, self).__getattribute__(name)
                 def __setattr__(self, name, val):
-                    print "__setattr__(%r, %r, %r)" % (self, name, val)
+                    print("__setattr__(%r, %r, %r)" % (self, name, val))
                     return super(InfoBaseClass, self).__setattr__(name, val)
 
             class MyClass1(InfoBaseClass):
@@ -177,17 +180,17 @@ class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
                     self._bar = 'not set'
 
                 def _setBar(self, val):
-                    print "setting bar to:", val
+                    print("setting bar to:", val)
                     self._bar = val
                 def _getBar(self):
-                    print "getting bar..."
+                    print("getting bar...")
                     return self._bar
                 bar = property(_getBar, _setBar)
 
             foo1 = MyClass1()
             # works like we expect...
             foo1.bar = 7
-            print "foo1.bar:", foo1.bar
+            print("foo1.bar:", foo1.bar)
             self.assertTrue(foo1.bar == 7)
 
             class MyClass2(MyClass1, om.MMatrix): pass
@@ -200,7 +203,7 @@ class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
             # instead of calling the super's __setattr__, which would
             # use the property, inserts it into the object's __dict__
             # manually
-            print "foo2.bar:", foo2.bar
+            print("foo2.bar:", foo2.bar)
             self.assertTrue(foo2.bar == 7)
 
             # Starting in Maya2018 (at least on windows?), many wrapped datatypes
@@ -210,24 +213,24 @@ class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
             # any properties, and ensure that our property still overrides theirs...
             class MyEulerClass1(InfoBaseClass):
                 def _setOrder(self, val):
-                    print "setting order to:", val
+                    print("setting order to:", val)
                     self._order = val
                 def _getOrder(self):
-                    print "getting order..."
+                    print("getting order...")
                     return self._order
                 order = property(_getOrder, _setOrder)
 
             er1 = MyEulerClass1()
             # works like we expect...
             er1.order = "new order"
-            print "er1.order:", er1.order
+            print("er1.order:", er1.order)
             self.assertTrue(er1.order == "new order")
 
             class MyEulerClass2(MyEulerClass1, om.MEulerRotation): pass
 
             er2 = MyEulerClass2()
             er2.order = "does it work?"
-            print "er2.order:", er2.order
+            print("er2.order:", er2.order)
             self.assertTrue(er2.order == "does it work?")
 
         except Exception:
@@ -510,7 +513,7 @@ class TestMFnCompatibility(unittest.TestCase):
 
         try:
             mfnType(mobj)
-        except Exception, e:
+        except Exception as e:
             self.fail("{} did not support {}".format(nodeType,
                                                      mfnType.__name__))
 

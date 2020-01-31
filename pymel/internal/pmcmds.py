@@ -13,6 +13,9 @@ simply add a __melobject__ function that returns a mel-friendly result and pass 
 The wrapped commands in this module are the starting point for any other pymel customizations.
 
 '''
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import inspect
 import sys
@@ -37,7 +40,7 @@ objectErrorReg = re.compile(',?No object matches name: ,?(.*)$')
 
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
-        print "wrapped function for %s" % function.__name__
+        print("wrapped function for %s" % function.__name__)
         return function(*args, **kwargs)
     newFunc.__name__ = function.__name__
     newFunc.__doc__ = function.__doc__
@@ -56,14 +59,14 @@ def getCmdName(inFunc):
                 os.path.join('maya', 'app', 'commands') in sourceFile):
             # Here's where it gets tricky... this is a fairly big hack, highly
             # dependent on the exact implementation of maya.app.commands.stubFunc...
-            freevars = inFunc.func_code.co_freevars
+            freevars = inFunc.__code__.co_freevars
             # in python 2.5, tuples don't have index / find methods
             if not hasattr(freevars, 'index'):
                 freevars = list(freevars)
             freeVarIndex = freevars.index('command')
             if freeVarIndex:
                 raise ValueError('could not find a command var in %s' % cmdName)
-            cmdName = inFunc.func_closure[freeVarIndex].cell_contents
+            cmdName = inFunc.__closure__[freeVarIndex].cell_contents
     return cmdName
 
 
@@ -128,7 +131,7 @@ def addWrappedCmd(cmdname, cmd=None):
         # print new_args, new_kwargs
         try:
             res = new_cmd(*new_args, **new_kwargs)
-        except objectErrorType, e:
+        except objectErrorType as e:
             # % formatter deals with unicode, but keeps str if not unicode
             m = objectErrorReg.match('%s' % e)
             if m:
@@ -157,7 +160,7 @@ def addWrappedCmd(cmdname, cmd=None):
     else:
         newname = str(cmdname)
 
-    old_code = wrappedCmd.func_code
+    old_code = wrappedCmd.__code__
     # want to change the name, not just of the func, but of the underlying
     # code object - this makes it much easier to get useful information when
     # using cProfile
@@ -179,10 +182,10 @@ def addWrappedCmd(cmdname, cmd=None):
                               old_code.co_freevars,
                               old_code.co_cellvars)
     wrappedCmd = types.FunctionType(new_code,
-                                    wrappedCmd.func_globals,
+                                    wrappedCmd.__globals__,
                                     str(newname),  # unicode no good
-                                    wrappedCmd.func_defaults,
-                                    wrappedCmd.func_closure)
+                                    wrappedCmd.__defaults__,
+                                    wrappedCmd.__closure__)
     wrappedCmd.__doc__ = cmd.__doc__
 
     # for debugging, to make sure commands got wrapped...

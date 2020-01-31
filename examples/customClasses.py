@@ -86,6 +86,9 @@ decorators you should read up on them before using this feature.
         and registration will fail if the user defines an override for them;
         this set includes __init__, __new__, and __str__.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 # Note - all of this, below the 'warning', is copied from the docstring for
 # VirtualClassManger.register - keep it in sync!
 
@@ -158,14 +161,14 @@ class CustomJointBase(pm.nt.Joint):
 class LegJoint(CustomJointBase):
     _jointClassID = 'joint_leg'
     def kick(self):
-        print "%s is kicking" % self.name()
+        print("%s is kicking" % self.name())
         return "kiyaah!"
 
 
 class JawJoint(CustomJointBase):
     _jointClassID = 'joint_jaw'
     def munch(self):
-        print "%s is munching" % self.name()
+        print("%s is munching" % self.name())
         return "nom nom nom..."
 
 # we don't need to register CustomJointBase because it's just an abstract class to help us easily make our other virtual nodes
@@ -198,7 +201,7 @@ class MyRamp(pm.nt.Ramp):
     """This is an example of how to replace a node.  Use this technique with care"""
     def ramp(self):
         msg = "ramp!"
-        print msg
+        print(msg)
         return msg
 
     @staticmethod

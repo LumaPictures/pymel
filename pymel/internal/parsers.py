@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 import re
 import os.path
 import platform
@@ -7,7 +10,7 @@ import xml.etree.cElementTree as ET
 
 import pymel.util as util
 import pymel.versions as versions
-import plogging
+from . import plogging
 from pymel.mayautils import getMayaLocation
 
 try:
@@ -273,7 +276,7 @@ class CommandDocParser(HTMLParser):
                         break
 
                 self.emptyModeFlags = []
-        except KeyError, msg:
+        except KeyError as msg:
             pass
             #_logger.debug(self.currFlag, msg)
 
@@ -375,7 +378,7 @@ class NodeHierarchyDocParser(HTMLParser):
     def parse(self):
         docloc = mayaDocsLocation(self.version)
         if not os.path.isdir(docloc):
-            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
+            raise IOError("Cannot find maya documentation. Expected to find it at %s" % docloc)
 
         f = open(os.path.join(docloc, 'Nodes/index_hierarchy.html'))
         try:
@@ -547,7 +550,7 @@ class ApiDocParser(object):
         self.docloc = docLocation
         self.enumClass = enumClass
         if not os.path.isdir(self.docloc):
-            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+            raise IOError("Cannot find maya documentation. Expected to find it at %s" % self.docloc)
         self.strict = strict
 
         self.enums = {}
@@ -577,7 +580,7 @@ class ApiDocParser(object):
 
     def xprint(self, *args):
         if self.verbose:
-            print self.formatMsg(*args)
+            print(self.formatMsg(*args))
 
     def getPymelMethodNames(self):
         pymelNames = {}
@@ -914,7 +917,7 @@ class ApiDocParser(object):
 
         try:
             directions, docs, methodDoc, returnDoc, deprecated = self.parseMethodArgs(returnType, names, types, typeQualifiers)
-        except AssertionError, msg:
+        except AssertionError as msg:
             if self.strict:
                 raise
             _logger.error(self.formatMsg("FAILED", str(msg)))
@@ -1015,8 +1018,8 @@ class ApiDocParser(object):
         try:
             self.parseBody()
         except:
-            print "To reproduce run:\n%r.parse(%r)" % (self, apiClassName)
-            print self.formatMsg("Unknown error")
+            print("To reproduce run:\n%r.parse(%r)" % (self, apiClassName))
+            print(self.formatMsg("Unknown error"))
             raise
 
         pymelNames, invertibles = self.getPymelMethodNames()
@@ -1135,7 +1138,7 @@ class XmlApiDocParser(ApiDocParser):
                         # 'int2', we make the second one 'int__array2'
                         parsedType = parsedType + '__array' + numbuf[1]
                     else:
-                        print "this is not a bracketed number", repr(brackets), parsedType
+                        print("this is not a bracketed number", repr(brackets), parsedType)
 
             types[paramName] = parsedType
             typeQualifiers[paramName] = qualifiers
@@ -1553,7 +1556,7 @@ class HtmlApiDocParser(ApiDocParser):
                         # 'int2', we make the second one 'int__array2'
                         type = type + '__array' + numbuf[1]
                     else:
-                        print "this is not a bracketed number", repr(brackets), joined
+                        print("this is not a bracketed number", repr(brackets), joined)
 
                 if default is not None:
                     default = self.parseValue(default, type)

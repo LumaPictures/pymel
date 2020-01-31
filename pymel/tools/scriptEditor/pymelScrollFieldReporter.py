@@ -18,6 +18,9 @@ window;
         pymelScrollFieldReporter;
 showWindow;
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 
 import sys
@@ -325,7 +328,7 @@ def cmdCallback(nativeMsg, messageType, data):
             try:
                 #convertedMsg = mel2py.mel2pyStr( nativeMsg )
                 convertedMsg = mparser.parse(nativeMsg)
-            except Exception, msg:
+            except Exception as msg:
                 syntaxError = True
                 pass
         else:
@@ -336,7 +339,7 @@ def cmdCallback(nativeMsg, messageType, data):
         try:
             #convertedMsg = mel2py.mel2pyStr( nativeMsg )
             convertedMsg = mparser.parse(nativeMsg)
-        except Exception, msg:
+        except Exception as msg:
             pass
     else:
         try:
@@ -506,14 +509,14 @@ def initializePlugin(mobject):
     mplugin = OpenMayaMPx.MFnPlugin(mobject)
 
     if OpenMaya.MGlobal.mayaVersion() == '8.5':
-        raise NotImplementedError, "pymelScrollFieldReporter is only supported in Maya 2008 and later."
+        raise NotImplementedError("pymelScrollFieldReporter is only supported in Maya 2008 and later.")
     try:
         mplugin.registerCommand(kPluginCmdName, cmdCreator, syntaxCreator)
 
         global messageIdSet
         global messageId
         if (messageIdSet):
-            print "Message callback already installed"
+            print("Message callback already installed")
         else:
             # print "Installing callback message"
             messageId = createCallback('')

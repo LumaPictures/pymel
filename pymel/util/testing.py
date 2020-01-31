@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import os
 import types
@@ -123,7 +126,7 @@ def setupUnittestModule(moduleName, suiteFuncName=SUITE_FUNC_NAME, testMainName=
 
     for name in dir(module):
         obj = getattr(module, name)
-        if (isinstance(obj, (type, types.ClassType)) and
+        if (isinstance(obj, type) and
                 issubclass(obj, TestCase) and
                 filterTestCases and
                 filterTestCases(obj)):
