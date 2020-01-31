@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import pymel.core as pm
 
 """
@@ -37,7 +40,7 @@ def startPipe( basename='pipe',
 			connectorThickness = .2,
 			connectorOffset = .001
 			):
-	print basename
+	print(basename)
 	i=1
 	name = basename + str(i)
 	while pm.ls( name + '_Jnt0'):
@@ -149,12 +152,12 @@ def extendPipe( jointLength=1 ):
 		curr = num
 		new = int(currJnt.nextUniqueName().extractNum())
 
-		print "extending from", currJnt, new
+		print("extending from", currJnt, new)
 
 		branchNum = len(currJnt.getChildren())
 		#print '%s has %s children' % (currJnt, branchNum)
 		if branchNum:
-			print "new segment is a branching joint"
+			print("new segment is a branching joint")
 			currJnt.addAttr( 'pipeLengthInBtwn%s' % branchNum, min=0 )
 			#currJnt.attr( 'pipeLengthInBtwn%s' % branchNum ).showInChannelBox(1)
 
@@ -429,7 +432,7 @@ def extendPipe( jointLength=1 ):
 
 			}
 			#print expr
-			print 'editing %s_PipeExpr%s' % (name, new)
+			print('editing %s_PipeExpr%s' % (name, new))
 			#expression( '%s_PipeExpr%s' % (name, curr), e=1, s=expr, ae=1  )
 			pm.expression( s=expr, ae=1, n = '%s_PipeExpr%s' % (name, new)  )
 
@@ -455,7 +458,7 @@ def extendPipe( jointLength=1 ):
 				'curr'	: 	new,
 				'name': 	name
 			}
-			print 'creating %s_PipeExpr1' % (name)
+			print('creating %s_PipeExpr1' % (name))
 			pm.expression( s=expr, ae=1, n = '%s_PipeExpr1' % (name))
 
 		'''

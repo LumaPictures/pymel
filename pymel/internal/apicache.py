@@ -1,4 +1,7 @@
 """ Imports Maya API methods in the 'api' namespace, and defines various utilities for Python<->API communication """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 import inspect
@@ -9,8 +12,8 @@ import itertools
 import pymel.api as api
 import pymel.versions as versions
 import pymel.util as _util
-import startup
-import plogging as _plogging
+from . import startup
+from . import plogging as _plogging
 from pymel.api.plugins import mpxNamesToApiEnumNames
 
 _logger = _plogging.getLogger(__name__)
@@ -87,7 +90,7 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # ... however, this seems to no longer be the case, and the deleteNode calls are apparently
     # harmful
     if type(dagMod) is not api.MDagModifier or type(dgMod) is not api.MDGModifier:
-        raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
+        raise ValueError("Need a valid MDagModifier and MDGModifier or cannot return a valid MObject")
 
     # Regardless of whether we're making a DG or DAG node, make a parent first -
     # for some reason, this ensures good cleanup (don't ask me why...??)
@@ -100,7 +103,7 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         # DagNode
         try:
             obj = dagMod.createNode(mayaType, parent)
-        except Exception, err:
+        except Exception as err:
             _logger.debug("Error trying to create ghost node for '%s': %s" % (mayaType, err))
             return None
 
@@ -234,7 +237,7 @@ class _GhostObjMaker(object):
                     else:
                         mfnDep.setObject(obj)
                         names.append(mfnDep.name())
-                print names
+                print(names)
                 #import maya.cmds as cmds
                 # cmds.delete(names)
 
@@ -489,7 +492,7 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
     try:
         assert (mayaType == 'node' and lineage == []) or lineage[-1] == mayaType
     except Exception:
-        print mayaType, lineage
+        print(mayaType, lineage)
         raise
 
     if len(set(lineage)) != len(lineage):
@@ -530,7 +533,7 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
         if len(set(lineage)) != len(lineage):
             # cyclical lineage:  first discovered with xgen nodes.
             # might be a result of multiple inheritance being returned strangely by nodeType.
-            print mayaType, lineage
+            print(mayaType, lineage)
             _logger.raiseLog(_logger.WARNING, "lineage for node %s is cyclical: %s" % (mayaType, lineage))
             _cachedInheritances[mayaType] = lineage
             # don't cache any of the parents
@@ -796,8 +799,8 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
         newText = readcache()
         if newText == origText:
             # nothing was changed, we can quit
-            print "No changes made to {} - no need to apply comments".format(
-                cls.NAME)
+            print("No changes made to {} - no need to apply comments".format(
+                cls.NAME))
             return
 
         # we assume user has git installed, and this source file is part of a
@@ -918,18 +921,18 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
             output = gitout(['merge', COMMENT_APPLY_BRANCH,
                              '-m', "merge in comments"])
         except subprocess.CalledProcessError as e:
-            print '!' * 80
-            print e
-            print e.output
-            print "Error during merge - run the following to resolve the"
-            print "merge conflict manually with mergetool, then commit the"
-            print "result, and finally clean up your repo:"
-            print
-            print "git mergetool"
-            print 'git commit -m "merge in comments"'
-            print "git checkout {}".format(oldBranch)
-            print 'git checkout {} -- "{}"'.format(CACHE_CHANGES_BRANCH, newPath)
-            print "git branch -D {}".format(' '.join(TEMP_BRANCHES))
+            print('!' * 80)
+            print(e)
+            print(e.output)
+            print("Error during merge - run the following to resolve the")
+            print("merge conflict manually with mergetool, then commit the")
+            print("result, and finally clean up your repo:")
+            print()
+            print("git mergetool")
+            print('git commit -m "merge in comments"')
+            print("git checkout {}".format(oldBranch))
+            print('git checkout {} -- "{}"'.format(CACHE_CHANGES_BRANCH, newPath))
+            print("git branch -D {}".format(' '.join(TEMP_BRANCHES)))
             return
 
         # since everything worked, do some cleanup!
@@ -966,7 +969,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
         super(ApiMelBridgeCache, self).write(data, ext=ext)
 
         if noComments is None:
-            print "original {} had no comments, no need to strip".format(self.NAME)
+            print("original {} had no comments, no need to strip".format(self.NAME))
         else:
             # if we had comments, try to apply them now
             self.applyComments(''.join(origLines), noComments,
@@ -1319,7 +1322,7 @@ class ApiCache(BaseApiClassInfoCache):
                 try:
                     info = parser.parse(name)
                     self.apiClassInfo[name] = info
-                except (IOError, OSError, ValueError, IndexError), e:
+                except (IOError, OSError, ValueError, IndexError) as e:
                     import errno
                     baseMsg = "failed to parse docs for %r:" % name
                     if isinstance(e, (IOError, OSError)) and e.errno == errno.ENOENT:

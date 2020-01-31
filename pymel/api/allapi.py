@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import weakref
 
 import pymel.util as util
@@ -439,7 +442,7 @@ def toComponentMObject(dagPath):
         comp = mit.currentItem()
         # merge is True
         sel.add(dagPath, comp, True)
-        mit.next()
+        next(mit)
     sel.getDagPath(0, dagPath, component)
     return component
 
@@ -506,7 +509,7 @@ def MItNodes(*args, **kwargs):
     iterObj = MItDependencyNodes(typeFilter)
     while not iterObj.isDone():
         yield (iterObj.thisNode())
-        iterObj.next()
+        next(iterObj)
 
 
 # Iterators on nodes connections using MItDependencyGraph (ie listConnections/ listHistory)
@@ -537,7 +540,7 @@ def MItGraph(nodeOrPlug, *args, **kwargs):
     elif isValidMNode(nodeOrPlug):
         startObj = nodeOrPlug
     else:
-        raise ValueError, "'%s' is not a valid Node or Plug" % MObjectName(nodeOrPlug)
+        raise ValueError("'%s' is not a valid Node or Plug" % MObjectName(nodeOrPlug))
     upstream = kwargs.get('upstream', False)
     breadth = kwargs.get('breadth', False)
     plug = kwargs.get('plug', False)
@@ -577,7 +580,7 @@ def MItGraph(nodeOrPlug, *args, **kwargs):
     # iterates and yields MObjects
     while not iterObj.isDone():
         yield (iterObj.thisNode())
-        iterObj.next()
+        next(iterObj)
 
 
 # Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
@@ -605,7 +608,7 @@ def MItDag(root=None, *args, **kwargs):
     elif isValidMDagNode(root):
         startObj = root
     else:
-        raise ValueError, "'%s' is not a valid Dag Node" % MObjectName(root)
+        raise ValueError("'%s' is not a valid Dag Node" % MObjectName(root))
     breadth = kwargs.get('breadth', False)
     underworld = kwargs.get('underworld', False)
     prune = kwargs.get('prune', False)
@@ -669,7 +672,7 @@ def MItDag(root=None, *args, **kwargs):
                 for i in range(nbDagPath):
                     dPath = MDagPath(dPathArray[i])
                     yield dPath
-            iterObj.next()
+            next(iterObj)
     elif path:
         while not iterObj.isDone():
             if iterObj.isInstanced(True):
@@ -683,7 +686,7 @@ def MItDag(root=None, *args, **kwargs):
                 dPath = MDagPath()
                 iterObj.getPath(dPath)
                 yield dPath
-            iterObj.next()
+            next(iterObj)
     else:
         while not iterObj.isDone():
             obj = iterObj.currentItem()
@@ -693,7 +696,7 @@ def MItDag(root=None, *args, **kwargs):
                     instance.append(obj)
             else:
                 yield obj
-            iterObj.next()
+            next(iterObj)
 
 
 # Essentially duplicated in datatypes - only difference is

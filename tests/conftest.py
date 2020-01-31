@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import os
 import sys
 import inspect
@@ -23,5 +26,5 @@ def pytest_collection_modifyitems(session, config, items):
             continue
     newlen = len(items)
     if newlen != origlen:
-        print "Deleted {} items - {} items left".format(origlen - newlen,
-                                                        newlen)
+        print("Deleted {} items - {} items left".format(origlen - newlen,
+                                                        newlen))

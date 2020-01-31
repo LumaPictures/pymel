@@ -2,6 +2,9 @@
 
 #TODO: support OS's other than OSX. revert to default prefs
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys, os
 versions = '2008 2009 2010 2011'.split()
 
@@ -11,7 +14,7 @@ mayapy = '/Applications/Autodesk/maya%(version)s/Maya.app/Contents/bin/mayapy'
 
 def rebuild():
     for version in versions:
-        print "rebuilding ", version
+        print("rebuilding ", version)
         os.system( 'cd ' + pymeldir + ';' + mayapy % locals() + ' ' + sys.argv[0] + ' test' )
 
 def delete(caches):
@@ -21,10 +24,10 @@ def delete(caches):
                 cache = 'maya' + cache[0].upper() + cache[1:]
             cachefile = os.path.join( pymeldir, 'pymel', 'cache', cache + version + '.zip')
             if os.path.exists(cachefile):
-                print "removing", cachefile
+                print("removing", cachefile)
                 os.remove( cachefile )
             else:
-                print "does not exist", cachefile
+                print("does not exist", cachefile)
 
 def load():
     sys.path.insert(0,pymeldir)

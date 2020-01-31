@@ -5,6 +5,9 @@
 Created from the ansi c example included with ply, which is based on the grammar in K&R, 2nd Ed.
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 
 import sys
@@ -13,7 +16,7 @@ import re
 import os.path
 import tempfile
 import string
-import mellex
+from . import mellex
 
 try:
     from pymel.util.external.ply import *
@@ -27,12 +30,12 @@ from pymel.util.utilitytypes import TwoWayDict
 import pymel
 import pymel.util as util
 import pymel.internal.factories as factories
-import melscan
+from . import melscan
 
 try:
     from pymel.core import *
 except ImportError:
-    print "maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support"
+    print("maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support")
 
 #mutableStr = proxyClass(str, 'mutableStr', module=__name__)
 
@@ -174,7 +177,7 @@ def format_command(command, args, t):
         args[0] = args[0][1:-1]
 
     if t.lexer.verbose:
-        print 'p_command: input_list', command, args
+        print('p_command: input_list', command, args)
 
     # commands with custom replacements
     try:
@@ -241,7 +244,7 @@ def format_command(command, args, t):
                 if numArgs > 0:
                     #raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
                     if t.lexer.verbose >= 1:
-                        print 'reached a new flag before receiving all necessary args for last flag'
+                        print('reached a new flag before receiving all necessary args for last flag')
                     kwargs[currFlag] = '1'
                     numArgs = 0
 
@@ -436,10 +439,10 @@ def format_command(command, args, t):
         res = t.lexer.pymel_namespace + res
         return res
 
-    except KeyError, key:
+    except KeyError as key:
 
         try:
-            print command, args
+            print(command, args)
             # remove string encapsulation
             subCmd = eval(args.pop(0))
             # in rare cases this might end up bing -e or -pi, which evaluate to numbers
@@ -448,7 +451,7 @@ def format_command(command, args, t):
             formattedSubCmd = format_command(subCmd, args, t)
             return '%s(%s)' % (command, formattedSubCmd)
         except (NameError, AssertionError):
-            print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
+            print("Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command))
             return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
 
@@ -503,7 +506,7 @@ def format_assignment_value(val, typ):
         try:
             typ = val.type
         except:
-            print "NO TYPE", val
+            print("NO TYPE", val)
 
     return val
 
@@ -546,12 +549,12 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
     #
 
     if t.lexer.verbose >= 2:
-        print "--------"
-        print "%s - line %d" % (funcname, t.lexer.lineno)
-        print "original token:\n%s" % list(str(x) for x in t)
-        print "result:\n%s" % res
+        print("--------")
+        print("%s - line %d" % (funcname, t.lexer.lineno))
+        print("original token:\n%s" % list(str(x) for x in t))
+        print("result:\n%s" % res)
     elif t.lexer.verbose == 1:
-        print funcname, res, t.lexer.lineno
+        print(funcname, res, t.lexer.lineno)
     # elif t.lexer.verbose >= 1:
     #    print 'assembled', funcname
 
@@ -637,7 +640,7 @@ def format_comments(comments):
 
 def append_comments(t, funcname=''):
     if t.lexer.verbose:
-        print "appending comments:", funcname, t.lexer.comment_queue
+        print("appending comments:", funcname, t.lexer.comment_queue)
     t[0] += format_comments(t.lexer.comment_queue)
     t.lexer.comment_queue = []
 
@@ -650,8 +653,8 @@ def format_held_comments(t, funcname=''):
     # commentList = ['# ' + x for x in commentList]
 
     if t.lexer.verbose:
-        print t.lexer.comment_queue_hold
-        print "adding held comments:", funcname, commentList
+        print(t.lexer.comment_queue_hold)
+        print("adding held comments:", funcname, commentList)
 
     return format_comments(commentList)
 
@@ -863,7 +866,7 @@ def _melProc_to_pyModule(t, procedure):
             try:
                 proc_list, global_procs, local_procs = cbParser.parse(data)
             except lex.LexError:
-                print "Error parsing mel file:", melfile
+                print("Error parsing mel file:", melfile)
                 global_procs = {}
             # print "global procs", global_procs
             for proc, procInfo in global_procs.items():
@@ -885,7 +888,7 @@ def _melProc_to_pyModule(t, procedure):
 
 def vprint(t, *args):
     if t.lexer.verbose:
-        print args
+        print(args)
 
 
 def toList(t):
@@ -1039,7 +1042,7 @@ melCmdFlagList = {
 
 #: mel commands which were not ported to python; if we find one of these in pymel, we'll assume it's a replacement
 melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs']
-melCmdList = [x for x in melCmdList if not proc_remap.has_key(x) and (hasattr(pymel, x) or hasattr(builtin_module, x))]
+melCmdList = [x for x in melCmdList if x not in proc_remap and (hasattr(pymel, x) or hasattr(builtin_module, x))]
 
 #  Token -----------------------------------------------------------------------
 
@@ -1229,7 +1232,7 @@ def p_seen_func(t):
 def p_hold_comments(t):
     '''hold_comments :'''
     if t.lexer.verbose:
-        print "holding", t.lexer.comment_queue
+        print("holding", t.lexer.comment_queue)
     t.lexer.comment_queue_hold.append(t.lexer.comment_queue)
     t.lexer.comment_queue = []
 
@@ -2224,11 +2227,11 @@ def p_assignment_expression(t):
 
             # remove array brackets:  string[]
             if t[2] and t[1].endswith('[]'):
-                raise NotImplementedError, "I didn't think we'd make it here. the line below seems very wrong."
+                raise NotImplementedError("I didn't think we'd make it here. the line below seems very wrong.")
                 #t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
 
             elif t[2] in ['=', ' = '] and t.lexer.expression_only:
-                raise TypeError, "This mel code is not capable of being translated as a python expression"
+                raise TypeError("This mel code is not capable of being translated as a python expression")
 
             # fill in the append string:
             #    start:        $foo[size($foo)] = $bar
@@ -2625,21 +2628,21 @@ def p_primary_expression(t):
                           |    numerical_constant'''
     t[0] = assemble(t, 'p_primary_expression')
     if t.lexer.verbose >= 2:
-        print "p_primary_expression", t[0]
+        print("p_primary_expression", t[0])
 
 
 def p_primary_expression1(t):
     '''primary_expression :     SCONST'''
     t[0] = Token(t[1], 'string', t.lexer.lineno)
     if t.lexer.verbose >= 2:
-        print "p_primary_expression", t[0]
+        print("p_primary_expression", t[0])
 
 
 def p_primary_expression2(t):
     '''primary_expression :     variable'''
     t[0] = t[1]
     if t.lexer.verbose >= 2:
-        print "p_primary_expression", t[0]
+        print("p_primary_expression", t[0])
 
     # print "mapping", t[1], t.lexer.type_map.get(t[1], None)
     # print "p_primary_expression", t[0]
@@ -2682,7 +2685,7 @@ def p_boolean_true(t):
                 | YES '''
     t[0] = 'True'
     if t.lexer.verbose >= 2:
-        print "p_boolean_true", t[0]
+        print("p_boolean_true", t[0])
 
 
 def p_boolean_false(t):
@@ -2691,7 +2694,7 @@ def p_boolean_false(t):
                 | NO '''
     t[0] = 'False'
     if t.lexer.verbose >= 2:
-        print "p_boolean_false", t[0]
+        print("p_boolean_false", t[0])
 
 
 def p_variable(t):
@@ -2717,7 +2720,7 @@ def p_variable(t):
         t[0] = Token(var, typ, t.lexer.lineno)
 
     if t.lexer.verbose >= 2:
-        print "p_variable", t[0]
+        print("p_variable", t[0])
 
 
 def p_variable_vector_component(t):
@@ -2725,7 +2728,7 @@ def p_variable_vector_component(t):
     t[1] = t[1].lstrip('$')
     t[0] = Token(t[1] + t[2], 'float', t.lexer.lineno)
     if t.lexer.verbose >= 2:
-        print "p_variable_vector_component", t[0]
+        print("p_variable_vector_component", t[0])
 
 # command_statement
 # -- difference between a comamnd_statement and a command:
@@ -2866,7 +2869,7 @@ def p_object_list(t):
 def p_object_1(t):
     '''object    : ID'''
     if t.lexer.verbose >= 1:
-        print 'p_object_1', t[1]
+        print('p_object_1', t[1])
     # print t[1], t.lexpos(1), len(t[1]), t.lexpos(1)+len(t[1])
     t[0] = Token(t[1], 'string', lexspan=(t.lexpos(1), t.lexpos(1) + len(t[1]) - 1))
     #t[0] = assemble(t, 'p_object_1')
@@ -2881,7 +2884,7 @@ def p_object_2(t):
     '''object    : ID LBRACKET expression RBRACKET'''
     # print t.lexpos(1), t.lexpos(2),t.lexpos(3),t.lexpos(4)
     if t.lexer.verbose >= 1:
-        print 'p_object_2'
+        print('p_object_2')
     t[0] = Token(t[1] + t[2] + t[3] + t[4], 'string', lexspan=(t.lexpos(1), t.lexpos(4)))
     #t[0] = assemble(t, 'p_object_2')
 
@@ -2929,7 +2932,7 @@ def p_empty(t):
 
 def _error(t):
     if t.lexer.verbose:
-        print "Error parsing script, attempting to read forward and restart parser"
+        print("Error parsing script, attempting to read forward and restart parser")
     while 1:
         tok = yacc.token()             # Get the next token
         if not tok or tok.type == 'RBRACE':
@@ -2939,7 +2942,7 @@ def _error(t):
 
 def p_error(t):
     if t is None:
-        raise ValueError, 'script has no contents'
+        raise ValueError('script has no contents')
 
     if t.type in ('COMMENT', 'COMMENT_BLOCK'):
         # print "Removing Comment", t.value
@@ -3044,7 +3047,7 @@ class MelParser(object):
                     tok = lex.token()
                     if not tok:
                         break      # No more input
-                    print tok
+                    print(tok)
 
             prev_modules = self.lexer.imported_modules.copy()
 

@@ -1,4 +1,7 @@
 """functions related to animation"""
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 import pymel.util as _util
 import pymel.internal.factories as _factories
@@ -131,7 +134,7 @@ def ikHandle(*args, **kwargs):
         - always converts to PyNodes in create mode, even though results are
           non-unique short names
     """
-    import nodetypes
+    from . import nodetypes
     from maya.OpenMaya import MGlobal
 
     res = cmds.ikHandle(*args, **kwargs)

@@ -163,8 +163,11 @@ over non-sequence'. just email me with commands that are giving you problems and
 quickly as i can.
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
-import melparse
+from . import melparse
 try:
     from pymel.util.external.ply.lex import LexError
 except ImportError:
@@ -251,7 +254,7 @@ def resolvePath(melobj, recurse=False, exclude=(), melPathOnly=False, basePackag
             assert info != 'Unknown', "If providing a procedure or a short file name, ensure the appropriate script is sourced"
             melfile = util.path(info)
             files = [melfile.truepath()]
-        except Exception, msg:
+        except Exception as msg:
             log.warning("Could not determine mel script from input '%s': %s." % (filepath, msg))
     if exclude:
         for i, badFile in enumerate(exclude):
@@ -378,7 +381,7 @@ def melInfo(input):
     # TODO: change this to use _getInputFiles, with an option to prevent recursing directories
     res = resolvePath(input)
     if len(res) != 1:
-        raise ValueError, "input must be a mel script or a known procedure from a sourced mel script."
+        raise ValueError("input must be a mel script or a known procedure from a sourced mel script.")
     f = res[0][1]
 
     cbParser = melparse.MelScanner()
@@ -484,7 +487,7 @@ def mel2py(input, outputDir=None,
 
     currentFiles = _getInputFiles(input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage)
     if not currentFiles:
-        raise ValueError, "Could not find any scripts to operate on. Please pass a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure"
+        raise ValueError("Could not find any scripts to operate on. Please pass a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure")
     _updateCurrentModules(currentFiles)
 
     _makePackages()
@@ -492,18 +495,18 @@ def mel2py(input, outputDir=None,
     importCnt = 0
     succeeded = []
     for moduleName, melfile in batchData.currentModules.iteritems():
-        print melfile, moduleName
+        print(melfile, moduleName)
 
         if melfile in batchData.scriptPath_to_moduleText:
-            print "Using pre-converted mel script", melfile
+            print("Using pre-converted mel script", melfile)
             converted = batchData.scriptPath_to_moduleText[melfile]
 
         else:
             data = melfile.bytes()
-            print "Converting mel script", melfile
+            print("Converting mel script", melfile)
             try:
                 converted = mel2pyStr(data, moduleName, pymelNamespace=pymelNamespace, verbosity=verbosity)
-            except melparse.MelParseError, e:
+            except melparse.MelParseError as e:
                 if e.file is None:
                     e.file = melfile
                 raise
@@ -524,7 +527,7 @@ def mel2py(input, outputDir=None,
                 currOutDir = currOutDir.joinpath(*splitModule[:-1])
 
         pyfile = currOutDir.joinpath(splitModule[-1] + '.py')
-        print "Writing converted python script: %s" % pyfile
+        print("Writing converted python script: %s" % pyfile)
         pyfile.write_bytes(converted)
         succeeded.append(pyfile)
 
@@ -536,26 +539,26 @@ def mel2py(input, outputDir=None,
         #
     if test:
         for pyfile in succeeded:
-            print "Testing", pyfile
+            print("Testing", pyfile)
             try:
                 __import__(pyfile.namebase)
-            except (SyntaxError, IndentationError), msg:
-                print 'A syntax error exists in this file that will need to be manually fixed: %s' % msg
-            except RuntimeError, msg:
-                print 'This file has code which executed on import and failed: %s' % msg
-            except ImportError, msg:
-                print '%s' % msg
-            except Exception, msg:
-                print 'This file has code which executed on import and failed: %s' % msg
+            except (SyntaxError, IndentationError) as msg:
+                print('A syntax error exists in this file that will need to be manually fixed: %s' % msg)
+            except RuntimeError as msg:
+                print('This file has code which executed on import and failed: %s' % msg)
+            except ImportError as msg:
+                print('%s' % msg)
+            except Exception as msg:
+                print('This file has code which executed on import and failed: %s' % msg)
             else:
                 importCnt += 1
 
     succCnt = len(succeeded)
-    print "%d total processed for conversion" % len(batchData.currentModules)
-    print "%d files succeeded" % succCnt
-    print "%d files failed" % (len(batchData.currentModules) - succCnt)
+    print("%d total processed for conversion" % len(batchData.currentModules))
+    print("%d files succeeded" % succCnt)
+    print("%d files failed" % (len(batchData.currentModules) - succCnt))
     if test:
-        print "%d files imported without error" % (importCnt)
+        print("%d files imported without error" % (importCnt))
 
     succCnt = 0
 

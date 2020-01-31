@@ -1,4 +1,7 @@
 #!/usr/bin/env mayapy
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import os
 import pipes
@@ -156,7 +159,7 @@ def pytest_test(argv, doctest=True, warnings=True):
 
     # the test excludes are handled by conftest.py, since I couldn't find
     # a way to exclude them from the "command line"
-    print " ".join(pipes.quote(x) for x in argv)
+    print(" ".join(pipes.quote(x) for x in argv))
 
     if wrappedStdout is not None:
         sys.stdout = wrappedStdout
@@ -175,11 +178,11 @@ def main(argv):
     saved_stderr = None
     if parsed.gui_stdout:
         if isMayaOutput(sys.stderr):
-            print "Redirecting sys.stderr to sys.__stderr__..."
+            print("Redirecting sys.stderr to sys.__stderr__...")
             saved_stderr = sys.stderr
             sys.stderr = sys.__stderr__
         if isMayaOutput(sys.stdout):
-            print "Redirecting sys.stdout to sys.__stdout__..."
+            print("Redirecting sys.stdout to sys.__stdout__...")
             saved_stdout = sys.stdout
             sys.stdout = sys.__stdout__
 
@@ -235,7 +238,7 @@ def main(argv):
             melCmd = 'python("{}")'.format(pyCmd.replace('\\', '\\\\')
                                            .replace('"', r'\"'))
             mayaArgs = [mayaBin, '-command', melCmd]
-            print mayaArgs
+            print(mayaArgs)
             sys.exit(subprocess.call(mayaArgs))
 
         argv = [argv[0]] + extra_args
@@ -245,7 +248,7 @@ def main(argv):
         os.chdir( pymelRoot )
 
         import pymel
-        print "using pymel from: %s" % inspect.getsourcefile(pymel)
+        print("using pymel from: %s" % inspect.getsourcefile(pymel))
 
         try:
             return pytest_test(argv, doctest=parsed.doctest,
@@ -255,10 +258,10 @@ def main(argv):
     finally:
         if saved_stdout is not None:
             sys.stdout = saved_stdout
-            print "...restored maya gui sys.stdout"
+            print("...restored maya gui sys.stdout")
         if saved_stderr is not None:
             sys.stderr = saved_stderr
-            print "...restored maya gui sys.stderr"
+            print("...restored maya gui sys.stderr")
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

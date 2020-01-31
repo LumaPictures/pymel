@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import re
 import itertools
 from pprint import pprint
@@ -19,16 +22,16 @@ lsTypes = cmds.ls(nodeTypes=1)
 num = len(lsTypes)
 lsTypes = set(lsTypes)
 assert num == len(lsTypes), "The result of ls(nodeTypes=1) contained duplicates"
-print num
+print(num)
 
-print 'got ls(nodeTypes=1), confirmed no dupes'
+print('got ls(nodeTypes=1), confirmed no dupes')
 
 realTypes = lsTypes
 
 try:
     allTypesReal = cmds.allNodeTypes()
 except RuntimeError:
-    print "Error calling allNodeTypes() !!"
+    print("Error calling allNodeTypes() !!")
     allTypesReal = None
     realAndAbstract = lsTypes
     abstractTypes = None
@@ -37,13 +40,13 @@ else:
     num = len(allTypesReal)
     allTypesReal = set(allTypesReal)
     assert num == len(allTypesReal), "The result of allNodeTypes() contained duplicates"
-    print num
+    print(num)
 
-    print 'got allNodeTypes(), confirmed no dupes'
+    print('got allNodeTypes(), confirmed no dupes')
 
     assert lsTypes == allTypesReal, "ls(nodeTypes=1) and allNodeTypes() returned different result"
 
-    print 'confirmed allNodeTypes() == ls(nodeTypes=1)'
+    print('confirmed allNodeTypes() == ls(nodeTypes=1)')
 
     abstractSuffix = ' (abstract)'
     rawRealAndAbstract = cmds.allNodeTypes(includeAbstract=True)
@@ -58,7 +61,7 @@ else:
     assert len(abstractTypes) + len(realTypes) == len(realAndAbstract)
 
 
-    print 'got allNodeTypes(includeAbstract=True), separated nodes into real + abstract'
+    print('got allNodeTypes(includeAbstract=True), separated nodes into real + abstract')
 # TODO - make and load a plugin which makes one of every possible plugin node
 # type...
 
@@ -119,9 +122,9 @@ goodInheritances = {}
 for nodeType in realAndAbstract:
     try:
         inheritance = cmds.nodeType( nodeType, inherited=True, isTypeName=True)
-    except Exception, e:
-        print "error caught:"
-        print e
+    except Exception as e:
+        print("error caught:")
+        print(e)
         inheritance = e
     inheritances[nodeType] = inheritance
     if not inheritance or isinstance(inheritance, Exception):
@@ -130,12 +133,12 @@ for nodeType in realAndAbstract:
         goodInheritances[nodeType] = inheritance
 
 if badInheritances:
-    print "#" * 60
-    print "Warning!!!"
-    print "errors in getting inheritance for following node types:"
+    print("#" * 60)
+    print("Warning!!!")
+    print("errors in getting inheritance for following node types:")
     for x in badInheritances:
-        print "   ", x
-    print "#" * 60
+        print("   ", x)
+    print("#" * 60)
 
 #print getApiTypes(mobjDict['polyMoveUVManip'])
 
@@ -146,10 +149,10 @@ for nodeType, inheritance in goodInheritances.iteritems():
         if x not in realAndAbstract:
             discoveredNodes.add(x)
 if discoveredNodes:
-    print "#" * 60
-    print "Warning!!!"
-    print "%s nodes were not in realAndAbstract" % ', '.join(discoveredNodes)
-    print "#" * 60
+    print("#" * 60)
+    print("Warning!!!")
+    print("%s nodes were not in realAndAbstract" % ', '.join(discoveredNodes))
+    print("#" * 60)
 allKnownNodes = realAndAbstract | discoveredNodes
 
 def compareTrees(tree1, tree2):
@@ -222,30 +225,30 @@ for name, data in nonManipTree.iteritems():
             continue
     nonManipNonPlugin[name] = data
 
-print "trees equal?"
+print("trees equal?")
 
 only1, only2, diff = compareTrees(nonManipNonPlugin, factories.nodeHierarchy)
 
-print
-print "-" * 60
-print "only1:"
+print()
+print("-" * 60)
+print("only1:")
 pprint(list(only1))
-print "-" * 60
-print
+print("-" * 60)
+print()
 
-print
-print "-" * 60
-print "only2:"
+print()
+print("-" * 60)
+print("only2:")
 pprint(list(only2))
-print "-" * 60
-print
+print("-" * 60)
+print()
 
-print
-print "-" * 60
-print "diff:"
+print()
+print("-" * 60)
+print("diff:")
 #pprint(diff)
-print "-" * 60
-print
+print("-" * 60)
+print()
 
 #===============================================================================
 # api type hierarchy info
@@ -276,12 +279,12 @@ with apicache._GhostObjMaker(toCreate, manipError=False, multi=True) as typeToOb
 assert mayaToApi.get('containerBase') == 'kContainerBase'
 
 if unknownTypes:
-    print "#" * 60
-    print "Warning!!!"
-    print "could not create the following node types (which SHOULD be createable):"
+    print("#" * 60)
+    print("Warning!!!")
+    print("could not create the following node types (which SHOULD be createable):")
     for x in sorted(unknownTypes):
-        print "   ", x
-    print "#" * 60
+        print("   ", x)
+    print("#" * 60)
 
 ac = apicache.ApiCache()
 ac._buildApiTypesList()
@@ -440,20 +443,20 @@ uniqueLowerMaya, multiLowerMaya = getLowerCaseMapping(allKnownNodes)
 uniqueLowerApi, multiLowerApi = getLowerCaseMapping(allApiTypes)
 
 if multiLowerMaya:
-    print "#" * 60
-    print "Warning!!!"
-    print "maya node names differed only in case:"
+    print("#" * 60)
+    print("Warning!!!")
+    print("maya node names differed only in case:")
     for types in multiLowerMaya.itervalues():
-        print "    %s" % ', '.join(types)
-    print "#" * 60
+        print("    %s" % ', '.join(types))
+    print("#" * 60)
 
 if multiLowerApi:
-    print "#" * 60
-    print "Warning!!!"
-    print "api type names differed only in case:"
+    print("#" * 60)
+    print("Warning!!!")
+    print("api type names differed only in case:")
     for types in multiLowerApi.itervalues():
-        print "    %s" % ', '.join(types)
-    print "#" * 60
+        print("    %s" % ', '.join(types))
+    print("#" * 60)
 
 modifiers = {
              'base':'',
@@ -488,13 +491,13 @@ def guessApiTypeByName(nodeName, debug=False):
     apiName = nodeToApiName(nodeName)
     if apiName in allApiTypes:
         if debug:
-            print 'basic transform worked!'
+            print('basic transform worked!')
         return apiName
 
     lowerNode = nodeName.lower()
     if lowerNode not in uniqueLowerMaya:
         if debug:
-            print 'lower-case node name not unique...'
+            print('lower-case node name not unique...')
         return None
 
     # now, try with various modifications...
@@ -510,7 +513,7 @@ def guessApiTypeByName(nodeName, debug=False):
             for find, replace in modifyCombo:
                 baseName = find.sub(replace, baseName)
             if debug:
-                print [x[0].pattern for x in modifyCombo], baseName
+                print([x[0].pattern for x in modifyCombo], baseName)
             if not baseName:
                 # if we've eliminated the name with our changes - ie,
                 # 'shape' would go to '' - then skip
@@ -529,7 +532,7 @@ def guessApiTypeByName(nodeName, debug=False):
                     if apiWithSuffix in uniqueLowerApi:
                         possibleApiNames.add(uniqueLowerApi[apiWithSuffix])
     if debug:
-        print possibleApiNames
+        print(possibleApiNames)
 
     if len(possibleApiNames) == 1:
         return list(possibleApiNames)[0]
@@ -650,17 +653,17 @@ for currentTree in nodeTreeObj.preorder():
     mayaToAllApi[mayaType] = sorted(allApi)
 
 if nameAncestorConflicts:
-    print "#" * 60
-    print "Warning!!!"
-    print "had conflicting name / common ancestor guess for these maya nodes:"
+    print("#" * 60)
+    print("Warning!!!")
+    print("had conflicting name / common ancestor guess for these maya nodes:")
     for mayaType, (nameGuess, ancestorGuess) in nameAncestorConflicts.iteritems():
-        print "    %20s - %20s / %s" % (mayaType, nameGuess, ancestorGuess)
-    print "#" * 60
+        print("    %20s - %20s / %s" % (mayaType, nameGuess, ancestorGuess))
+    print("#" * 60)
 
 if multiplePossibilities:
-    print "#" * 60
-    print "Warning!!!"
-    print "could not find a unique api type for these nodes:"
+    print("#" * 60)
+    print("Warning!!!")
+    print("could not find a unique api type for these nodes:")
     for mayaType in sorted(multiplePossibilities):
-        print "    %20s - %s" % (mayaType, ', '.join(sorted(multiplePossibilities[mayaType])))
-    print "#" * 60
+        print("    %20s - %s" % (mayaType, ', '.join(sorted(multiplePossibilities[mayaType]))))
+    print("#" * 60)

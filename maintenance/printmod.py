@@ -1,6 +1,9 @@
 #!/usr/bin/env mayapy
 '''Print out a contents of the core pymel modules in a text format that can be diffed
 '''
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import sys
 import pydoc
@@ -177,7 +180,7 @@ def writemods(branch, output, modules=None):
         # __import__ will return the original module, while we want the
         # LazyLoadModule that replaces it
         mod = sys.modules[fullname]
-        print mod
+        print(mod)
         path = os.path.join(outpath, '{}.txt'.format(fullname))
         with open(path, 'w') as f:
             printobj(fullname, mod, file=f)
@@ -235,7 +238,7 @@ def main(argv=None):
     except Exception as e:
         if args.traceback:
             raise
-        print e
+        print(e)
         return 1
     return 0
 

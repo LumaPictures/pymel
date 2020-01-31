@@ -135,6 +135,9 @@ and seek(1, -1), since then I can reliably do a ungetch-like thing.
 scanf("%s") can be dangerous in a hostile environment, since it's very
 possible for something to pass in a huge string without spaces.  So use
 an explicit width instead if you can help it."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 
 import sys
@@ -196,7 +199,7 @@ class CharacterBufferFromIterable(CharacterBuffer):
     def getch(self):
         if self.lastChar == '':
             try:
-                return self.iterator.next()
+                return next(self.iterator)
             except StopIteration:
                 return ''
         else:
@@ -273,7 +276,7 @@ def makeCharBuffer(thing):
     elif isIterable(thing):
         return CharacterBufferFromIterable(thing)
     else:
-        raise ValueError, ("Can't coerse %r to CharacterBuffer" % thing)
+        raise ValueError("Can't coerse %r to CharacterBuffer" % thing)
 
 
 class CappedBuffer(CharacterBuffer):
@@ -407,7 +410,7 @@ def handleDecimalInt(buffer, optional=False, allowLeadingWhitespace=True):
     except ValueError:
         if optional:
             return None
-        raise FormatError, ("invalid literal characters: %s" % ''.join(chars))
+        raise FormatError("invalid literal characters: %s" % ''.join(chars))
 
 
 def handleOct(buffer):
@@ -417,7 +420,7 @@ def handleOct(buffer):
     try:
         return int(''.join(chars), 8)
     except ValueError:
-        raise FormatError, ("invalid literal characters: %s" % ''.join(chars))
+        raise FormatError("invalid literal characters: %s" % ''.join(chars))
 
 
 def handleInt(buffer, base=0):
@@ -430,7 +433,7 @@ def handleInt(buffer, base=0):
     try:
         return int(''.join(chars), base)
     except ValueError:
-        raise FormatError, ("invalid literal characters: %s" % ''.join(chars))
+        raise FormatError("invalid literal characters: %s" % ''.join(chars))
 
 
 def handleHex(buffer):
@@ -451,7 +454,7 @@ def handleFloat(buffer, allowLeadingWhitespace=True):
     try:
         return float(''.join(chars))
     except ValueError:
-        raise FormatError, ("invalid literal characters: %s" % ''.join(chars))
+        raise FormatError("invalid literal characters: %s" % ''.join(chars))
 
 
 def handleChars(buffer,
@@ -468,7 +471,7 @@ def handleChars(buffer,
     else:
         if optional:
             return None
-        raise FormatError, ("Empty buffer.")
+        raise FormatError(("Empty buffer."))
 
 
 def handleString(buffer, allowLeadingWhitespace=True):
@@ -488,7 +491,7 @@ def makeHandleLiteral(literal):
             buffer.ungetch(ch)
             if optional:
                 return None
-            raise FormatError, ("%s != %s" % (literal, ch))
+            raise FormatError("%s != %s" % (literal, ch))
     return f
 
 
@@ -527,8 +530,8 @@ class CompiledPattern:
                 if value is not None:
                     results.append(value)
             return tuple(results)
-        except FormatError, e:
-            raise IncompleteCaptureError, (e, tuple(results))
+        except FormatError as e:
+            raise IncompleteCaptureError(e, tuple(results))
 
     def __repr__(self):
         return "compile(%r)" % self.formatString
@@ -579,7 +582,7 @@ def _compileFormat(formatBuffer):
         return handler
     else:
         # At this point, since we couldn't figure out the format, die loudly.
-        raise FormatError, ("Invalid format character %s" % formatCh)
+        raise FormatError("Invalid format character %s" % formatCh)
 
 
 _FORMAT_HANDLERS = {'d': handleDecimalInt,

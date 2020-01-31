@@ -1,4 +1,7 @@
 """Functions related to rendering"""
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 import pymel.util as _util
 import pymel.internal.factories as _factories
@@ -24,7 +27,7 @@ def createSurfaceShader(shadertype, name=None):
     # print classification
 
     newShader = None
-    import nodetypes
+    from . import nodetypes
     # if 'shader/surface' in classification:
     if 'rendernode/mentalray/material' in classification:
         newShader = nodetypes.DependNode(_language.mel.mrCreateCustomNode("-asShader", "", shadertype))

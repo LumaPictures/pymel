@@ -1,6 +1,9 @@
 """
 Contains all context command functions (previously 'ctx').
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import pymel.internal.factories as _factories
 if False:

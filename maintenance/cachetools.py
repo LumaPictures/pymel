@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 #from pymel.core import factories
 #from pymel.all import mayautils
 import pprint
@@ -23,8 +26,8 @@ def separateExampleCache():
         except KeyError:
             fail += 1
             pass
-    print "succeeded", succ
-    print "failed   ", fail
+    print("succeeded", succ)
+    print("failed   ", fail)
 
     mayautils.writeCache( (factories.cmdlist,
                           factories.nodeHierarchy,
@@ -156,7 +159,7 @@ def reduceShortFlags():
     for cmdName, cmdInfo in factories.cmdlist.iteritems():
         if 'shortFlags' in cmdInfo:
             d = {}
-            print cmdName
+            print(cmdName)
             for flag, flagInfo in cmdInfo['shortFlags'].iteritems():
                 if isinstance(flagInfo, dict):
                     d[flag] = flagInfo['longname']
@@ -166,7 +169,7 @@ def reduceShortFlags():
                     raise TypeError
             cmdInfo['shortFlags'] = d
             succ += 1
-    print "reduced", succ
+    print("reduced", succ)
     mayautils.writeCache( (factories.cmdlist,
                           factories.nodeHierarchy,
                           factories.uiClassList,
@@ -199,11 +202,11 @@ def mergedTest():
     s1 = time.time()
     for cache, useVersion in caches:
         mayautils.loadCache(cache, useVersion=useVersion)
-    print time.time()-s1
+    print(time.time()-s1)
 
     s2 = time.time()
     mayautils.loadCache('mayaAll')
-    print time.time() - s2
+    print(time.time() - s2)
 
 
 def compressAll():
@@ -224,25 +227,25 @@ def decompress():
     for i in range(num):
         for cache, useVersion in caches2:
             data = mayautils.loadCache(cache, useVersion=useVersion, compressed=False)
-    print "compress=0, docstrings=1:", time.time()-s
+    print("compress=0, docstrings=1:", time.time()-s)
 
     s1 = time.time()
     for i in range(num):
         for cache, useVersion in caches:
             data = mayautils.loadCache(cache, useVersion=useVersion, compressed=False)
-    print "compress=0, docstrings=0:", time.time()-s1
+    print("compress=0, docstrings=0:", time.time()-s1)
 
     s1 = time.time()
     for i in range(num):
         for cache, useVersion in caches2:
             data = mayautils.loadCache(cache, useVersion=useVersion, compressed=True)
-    print "compress=1, docstrings=1:", time.time()-s1
+    print("compress=1, docstrings=1:", time.time()-s1)
 
     s1 = time.time()
     for i in range(num):
         for cache, useVersion in caches:
             data = mayautils.loadCache(cache, useVersion=useVersion, compressed=True)
-    print "compress=1, docstrings=0:", time.time()-s1
+    print("compress=1, docstrings=0:", time.time()-s1)
 
 def prepdiff(cache, outputDir='' ):
     pprintCache(cache, True, outputDir)
@@ -252,7 +255,7 @@ def pprintCache(cache, compressed, outputDir):
     useVersion = dict(caches).get(cache,True)
     data = mayautils.loadCache(cache, useVersion=useVersion, compressed=compressed)
     fname = os.path.realpath(os.path.join('', cache+ ('_zip.txt' if compressed else '_bin.txt') ) )
-    print "writing to", fname
+    print("writing to", fname)
     f = open(fname, 'w')
 
     pprint.pprint( data, f)
@@ -268,39 +271,39 @@ def compareDicts(dict1, dict2, showDiff=True, showOnlys=False, indent=0):
     both = v1 & v2
     only1 = v1 - both
     only2 = v2 - both
-    print "\t" * indent, "both:", len(both)
-    print "\t" * indent, "only1:", len(only1)
-    print "\t" * indent, "only2:", len(only2)
+    print("\t" * indent, "both:", len(both))
+    print("\t" * indent, "only1:", len(only1))
+    print("\t" * indent, "only2:", len(only2))
 
     differences = {}
     for mayaType in both:
         if dict1[mayaType] != dict2[mayaType]:
             differences[mayaType] = (dict1[mayaType], dict2[mayaType])
-    print "\t" * indent, "differences:", len(differences)
+    print("\t" * indent, "differences:", len(differences))
 
     #print "\t" * indent, "*" * 60
     if showDiff and differences:
-        print "\t" * indent, "different: (%d)" % len(differences)
+        print("\t" * indent, "different: (%d)" % len(differences))
         for key in sorted(differences):
-            print "\t" * indent, key, ':',
+            print("\t" * indent, key, ':', end=' ')
             diff1, diff2 = differences[key]
             subDict1 = subDict2 = None
             if type(diff1) == type(diff2) and isinstance(diff1, (dict, list, tuple)):
-                print
+                print()
                 compareDicts(diff1, diff2, showDiff=showDiff, showOnlys=showOnlys, indent=indent+1)
             else:
-                print diff1, '-', diff2
+                print(diff1, '-', diff2)
         #print "\t" * indent, "*" * 60
     if showOnlys:
         if only1:
-            print "\t" * indent, "only1: (%d)" % len(only1)
+            print("\t" * indent, "only1: (%d)" % len(only1))
             for x in only1:
-                print "\t" * indent, x
+                print("\t" * indent, x)
             #print "\t" * indent, "*" * 60
         if only2:
-            print "\t" * indent, "only2: (%d)" % len(only2)
+            print("\t" * indent, "only2: (%d)" % len(only2))
             for x in only2:
-                print "\t" * indent, x
+                print("\t" * indent, x)
     #print "\t" * indent, "*" * 60
     return both, only1, only2, differences
 
@@ -431,7 +434,7 @@ def convertPymelEnums(docLocation=None):
     badByCache = {}
     enumsByCache = {}
     for cachePath in caches:
-        print "checking enum data for: %s" % cachePath
+        print("checking enum data for: %s" % cachePath)
         raw = pm.util.picklezip.load(unicode(cachePath))
         rawCaches[cachePath] = raw
         classEnums, classPyEnums, bad = checkEnumConsistency(raw, parser=parser)
@@ -440,17 +443,17 @@ def convertPymelEnums(docLocation=None):
         enumsByCache[cachePath] = {'api':classEnums, 'py':classPyEnums}
     if badByCache:
         pprint.pprint(badByCache)
-        print "Do you want to continue converting pymel enums? (y/n)"
-        print "(Pymel values will be altered to match the api values)"
+        print("Do you want to continue converting pymel enums? (y/n)")
+        print("(Pymel values will be altered to match the api values)")
         answer = raw_input().lower().strip()
         if not answer or answer[0] != 'y':
-            print "aborting cache update"
+            print("aborting cache update")
             return
     fixedKeys = []
     deletedEnums = []
     for cachePath, raw in rawCaches.iteritems():
-        print '=' * 60
-        print "Fixing: %s" % cachePath
+        print('=' * 60)
+        print("Fixing: %s" % cachePath)
         apiClassInfo = raw[-1]
         apiEnums = enumsByCache[cachePath]['api']
         pyEnums = enumsByCache[cachePath]['py']
@@ -460,16 +463,16 @@ def convertPymelEnums(docLocation=None):
             assert(set(apiEnumsForClass.keys()) == set(pyEnumsForClass.keys()))
             for enumName, apiEnum in apiEnumsForClass.iteritems():
                 fullEnumName = '%s.%s' % (className, enumName)
-                print fullEnumName
+                print(fullEnumName)
 
                 # first, find any "bad" values - ie, values whose index is None
                 # - and delete them
                 badKeys = [key for key, index in apiEnum._keys.iteritems()
                            if index is None]
                 if badKeys:
-                    print "!!!!!!!!"
-                    print "fixing bad keys in %s - %s" % (fullEnumName, badKeys)
-                    print "!!!!!!!!"
+                    print("!!!!!!!!")
+                    print("fixing bad keys in %s - %s" % (fullEnumName, badKeys))
+                    print("!!!!!!!!")
                     assert(None in apiEnum._values)
                     valueDocs =  apiClassInfo[className]['enums'][enumName]['valueDocs']
                     for badKey in badKeys:
@@ -478,7 +481,7 @@ def convertPymelEnums(docLocation=None):
                     del apiEnum._values[None]
 
                     if not apiEnum._keys:
-                        print "enum empty after removing bad keys - deleting..."
+                        print("enum empty after removing bad keys - deleting...")
                         del apiClassInfo[className]['enums'][enumName]
                         del apiClassInfo[className]['pymelEnums'][enumName]
                         deletedEnums.append(fullEnumName)

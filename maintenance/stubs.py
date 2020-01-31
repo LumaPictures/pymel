@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 from pydoc import *         #@UnusedWildImport
 import pydoc, sys, pprint   #@Reimport
 import __builtin__
@@ -128,8 +131,8 @@ def subpackages(packagemod, skip_regex=None):
                     print("importing %s" % (modname,))
                 try:
                     mod = importer.find_module(modname).load_module(modname)
-                except Exception, e:
-                    print "error importing %s: %s" % (modname, e)
+                except Exception as e:
+                    print("error importing %s: %s" % (modname, e))
                     mod = None
             else:
                 mod = sys.modules[modname]
@@ -286,7 +289,7 @@ class ModuleNamesVisitor(ast.NodeVisitor):
                          ast.ImportFrom,
                          ast.For,
                          ast.With,
-                         ast.TryExcept,
+                         ast.TryExcept
                         )):
             self.add_names(node)
 
@@ -554,7 +557,7 @@ class StubDoc(Doc):
             try:
                 parents = [x for x in child_class.__bases__]
             except Exception:
-                print "problem iterating %s.__bases__" % child_class
+                print("problem iterating %s.__bases__" % child_class)
                 parents = (object,)
             class_parents[id(child_class)] = parents
 
@@ -831,7 +834,7 @@ class StubDoc(Doc):
                 for import_name in names:
                     realname = getattr(obj, '__name__', None)
                     if not realname:
-                        print "Warning - could not get a name for module %s" % obj
+                        print("Warning - could not get a name for module %s" % obj)
                         continue
                     if realname == this_name:
                         continue
@@ -897,13 +900,13 @@ class StubDoc(Doc):
 
             for i, line in enumerate(classres):
                 if u'\xa0' in line:
-                    print "bad char"
+                    print("bad char")
                     for j in range(max(i-10, 0), min(i+10, len(classres))):
                         if j == i:
-                            print '-'*80
-                        print classres[j]
+                            print('-'*80)
+                        print(classres[j])
                         if j == i:
-                            print '-'*80
+                            print('-'*80)
                     classres[i] = ''.join(line.split(u'\xa0'))
 
             self.contents.extend(classres)
@@ -1073,7 +1076,7 @@ class StubDoc(Doc):
                     missing = True
                     newmodname = realmodule
                 elif verbose:
-                    print "newmodname", newmodname, realmodule, self.maybe_modules
+                    print("newmodname", newmodname, realmodule, self.maybe_modules)
                 if missing:
                     self.missing_modules.add(realmodule)
                     self.add_to_module_map(realmodule, realmodule)
@@ -1307,7 +1310,7 @@ class StubDoc(Doc):
                                 finalNamePieces.append(nextPiece)
                             currentObj = getattr(currentObj, nextPiece)
                     if not foundObj:
-                        print "WARNING: Not a known module: %r" % realmodule
+                        print("WARNING: Not a known module: %r" % realmodule)
                 else:
                     if modname:
                         # it's possible that we got a module, but that the repr
@@ -1354,7 +1357,7 @@ class StubDoc(Doc):
 
         if inspect.ismethod(obj):
             method = obj
-            obj = obj.im_func
+            obj = obj.__func__
         else:
             method = None
 
@@ -1369,7 +1372,7 @@ class StubDoc(Doc):
             decl = '@classmethod\n' + decl
 
         if (realname == '__getattr__' and method and
-                    method.im_class.__name__ == 'Mel'):
+                    method.__self__.__class__.__name__ == 'Mel'):
             # special case handling for pymel.core.language.Mel.__getattr__,
             # so that if you do pm.mel.someMelFunction, it thinks it's valid
             return decl + '\n' + self.indent('return lambda *args: None') + '\n\n'
@@ -1451,7 +1454,7 @@ class StubDoc(Doc):
         currname = currmodule.__name__
 
         if importmodule in self.module_excludes.get(currname, ()):
-            print "%s had %s in module_excludes" % (currname, importmodule)
+            print("%s had %s in module_excludes" % (currname, importmodule))
             return ''
 
         if asname == '*':
@@ -1468,13 +1471,13 @@ class StubDoc(Doc):
             importname = realname
             fromname = ''
             if currname in self.debugmodules:
-                print '\t %-30s %-30s %s' % (realname, importname, asname)
+                print('\t %-30s %-30s %s' % (realname, importname, asname))
 
             # test for siblings - needed to avoid circular imports
             if len(realparts) == len(currparts):
                 if realparts[:-1] == currparts[:-1] and not ispkg:
                     if currname in self.debugmodules:
-                        print "\t\tsibling"
+                        print("\t\tsibling")
                     fromname = '.'
                     importname = realparts[-1]
             # test if importing a child - ie, pymel may have a .core attribute,
@@ -1493,8 +1496,8 @@ class StubDoc(Doc):
                         # this name is in the expected module names...
                         if not self._module_has_static_name(currmodule, asname):
                             if currname in self.debugmodules:
-                                print "\t\tparent, and not in static module " \
-                                      "names - no import"
+                                print("\t\tparent, and not in static module " \
+                                      "names - no import")
                             return ''
 
                     # if we're doing a renamed parent import, we want to make it
@@ -1503,7 +1506,7 @@ class StubDoc(Doc):
                     importname = '.'.join(realparts[len(currparts):])
 
             if verbose:
-                print "adding", realname, asname, importname
+                print("adding", realname, asname, importname)
 
             self.add_to_module_map(realname, asname if asname else importname)
             if importname in self.import_substitutions:
@@ -1518,7 +1521,7 @@ class StubDoc(Doc):
 
     def import_obj_text(self, importmodule, importname, asname):
         if importname in self.OBJECT_IMPORT_EXCLUDES.get(importmodule, ()):
-            print "%s had %s in OBJECT_IMPORT_EXCLUDES" % (importmodule, importname)
+            print("%s had %s in OBJECT_IMPORT_EXCLUDES" % (importmodule, importname))
             return ''
 
         result = 'from %s import %s' % (importmodule, importname)
@@ -1811,7 +1814,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
                 if not os.path.isdir(parent_dir):
                     os.makedirs(parent_dir)
                 if not os.path.isfile(parent_file):
-                    print "making empty %s" % parent_file
+                    print("making empty %s" % parent_file)
                     # this will "touch" the file - ie, create an empty one
                     with open(parent_file, 'a'):
                         pass
@@ -1826,7 +1829,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             continue
 
         if verbose:
-            print modname, ": starting"
+            print(modname, ": starting")
 
         for extension in extensions:
             stub_class = PEP484StubDoc if extension == 'pyi' else StubDoc
@@ -1853,14 +1856,14 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             curdir = os.path.dirname(curfile)
             if not os.path.isdir(curdir):
                 os.makedirs(curdir)
-            print "\t ...writing %s" % curfile
+            print("\t ...writing %s" % curfile)
             with open(curfile, 'w') as f:
                 f.write(contents)
 
         if verbose:
-            print modname, ": done"
+            print(modname, ": done")
     if verbose:
-        print "done"
+        print("done")
 
 
 # don't start name with test - don't want it automatically run by nose
@@ -1868,21 +1871,21 @@ def stubstest(pystubdir, extensions, doprint=True):
     '''Test the stubs modules.
     '''
     def importError(modname):
-        print 'error importing %s:' % modname
+        print('error importing %s:' % modname)
         import traceback
         bad.append((modname, traceback.format_exc()))
 
     bad = []
     for ext in extensions:
         stubdir = os.path.realpath(os.path.join(pystubdir, ext))
-        print "Testing all modules in: %s" % stubdir
+        print("Testing all modules in: %s" % stubdir)
         sys.path.insert(0, stubdir)
         try:
             for importer, modname, ispkg in \
                     pkgutil.walk_packages(path=[stubdir],
                                           onerror=importError):
                 if verbose:
-                    print 'testing %s' % modname
+                    print('testing %s' % modname)
                 try:
                     # Don't use the importer returned by walk_packages, as it
                     # doesn't always properly update parent packages's
@@ -1892,8 +1895,8 @@ def stubstest(pystubdir, extensions, doprint=True):
                     # ...and find that pymel had no attribute 'all'
                     #importer.find_module(modname).load_module(modname)
                     mod = __import__(modname, globals(), locals(), [])
-                except Exception, error:
-                    print 'Error: found bad module: %s - %s' % (modname, error)
+                except Exception as error:
+                    print('Error: found bad module: %s - %s' % (modname, error))
                     importError(modname)
                 else:
                     modfile = os.path.dirname(os.path.realpath(mod.__file__))
@@ -1902,11 +1905,11 @@ def stubstest(pystubdir, extensions, doprint=True):
                               "in stub dir:\n   %s\n   %s" % (modfile, stubdir))
         finally:
             sys.path.pop(0)
-    print 'done walking modules'
+    print('done walking modules')
     if doprint:
         for modname, error in bad:
-            print '*' * 60
-            print 'could not import %s:\n%s' % (modname, error)
+            print('*' * 60)
+            print('could not import %s:\n%s' % (modname, error))
     return bad
 
 

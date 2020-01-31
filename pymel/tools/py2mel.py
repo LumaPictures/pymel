@@ -1,6 +1,9 @@
 """
 Convert python callables into MEL procedures
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import inspect
 import re
 import types
@@ -32,7 +35,7 @@ def _getFunction(function):
     elif callable(function):
         func = function
     else:
-        raise TypeError, "argument must be a callable python object or the full, dotted path to the callable object as a string."
+        raise TypeError("argument must be a callable python object or the full, dotted path to the callable object as a string.")
 
     return func
 
@@ -172,10 +175,10 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
             for i, argType in enumerate(tmp):
                 argTypes[argList[i][0]] = argType
         else:
-            raise ValueError, "argTypes must be iterable or mapping type"
+            raise ValueError("argTypes must be iterable or mapping type")
         for argType in argTypes.values():
             if not isValidMelType(argType):
-                raise TypeError, "%r is not a valid mel type: %s" % (argType, ', '.join(MELTYPES))
+                raise TypeError("%r is not a valid mel type: %s" % (argType, ', '.join(MELTYPES)))
     else:
         argTypes = {}
 
@@ -290,10 +293,10 @@ def _nonUniqueName(longname, shortname, shortNames, operation):
     if operation in ['skip', 'warn', 'error'] and shortname in shortNames:
         message = "default short name %r for flag %r is taken" % (shortname, longname)
         if operation == 'warn':
-            print 'warning: ' + message
+            print('warning: ' + message)
             return False
         elif operation == 'skip':
-            print 'skipping: ' + message
+            print('skipping: ' + message)
             return True
         else:
             raise TypeError(message)
@@ -303,10 +306,10 @@ def _invalidName(commandName, longname, operation):
     if len(longname) < 4 and operation in ['skip', 'warn', 'error']:
         message = 'long flag names must be at least 4 characters long: %s -%r' % (commandName, longname.lower())
         if operation == 'warn':
-            print 'warning: ' + message
+            print('warning: ' + message)
             return False
         elif operation == 'skip':
-            print 'skipping: ' + message
+            print('skipping: ' + message)
             return True
         else:
             raise TypeError(message)
@@ -368,7 +371,7 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
     # object.__init__ is a 'slot wrapper', but can't find that type defined
     # anywhere...
     if isinstance(obj, (types.BuiltinFunctionType, type(object.__init__),
-                        types.NoneType)):
+                        type(None))):
         maxArgs = 0
     elif isinstance(obj, property):
         # enable edit and query to determine what the user intends to do with this get/set property
@@ -476,12 +479,12 @@ class WrapperCommand(plugins.Command):
                 canEdit = self._flagInfo[flag].get('canEdit', False)
                 if argData.isQuery():
                     if not canQuery:
-                        raise SyntaxError, 'cannot use the query flag with %s' % flag
+                        raise SyntaxError('cannot use the query flag with %s' % flag)
                 elif argData.isEdit():
                     if not canEdit:
-                        raise SyntaxError, 'cannot use the query edit with %s' % flag
+                        raise SyntaxError('cannot use the query edit with %s' % flag)
                 elif canQuery or canEdit:
-                    raise SyntaxError, 'the %s flag must be used with either query or edit' % flag
+                    raise SyntaxError('the %s flag must be used with either query or edit' % flag)
 
                 flagArgs = []
                 maxArgs = self._flagInfo[flag]['maxArgs']
@@ -737,7 +740,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
                             raise RuntimeError('flag %s for command %s may only have one arg' % (longname, commandName))
                         res = setattr(inst, methodName, flagArgs[0])
                     else:
-                        raise SyntaxError, "properties must either be edited or queried"
+                        raise SyntaxError("properties must either be edited or queried")
             return self.setResult(res)
 
     dummyCommand.__name__ = commandName

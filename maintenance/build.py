@@ -1,6 +1,9 @@
 '''
 Regenerate the core modules using parsed data and templates
 '''
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import compileall
 import inspect
@@ -687,7 +690,7 @@ class ModuleGenerator(object):
 
         lines.append(START_MARKER)
 
-        print "writing reset", source
+        print("writing reset", source)
         with open(source, 'w') as f:
             f.write('\n'.join(lines))
         self.moduleLines[module] = lines
@@ -714,7 +717,7 @@ class ModuleGenerator(object):
         lines.extend(new.split('\n'))
 
         path = _getModulePath(module)
-        print "writing to", path
+        print("writing to", path)
         with open(path, 'w') as f:
             f.write('\n'.join(lines))
 
@@ -810,7 +813,7 @@ class ModuleGenerator(object):
         if suffix:
             text += suffix
 
-        print "writing to", source
+        print("writing to", source)
         with open(source, 'w') as f:
             f.write(text)
 
@@ -1117,7 +1120,7 @@ class MelMethodGenerator(object):
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
                     continue
 
-                if flagInfo.has_key('modes'):
+                if 'modes' in flagInfo:
                     # flags which are not in maya docs will have not have a modes list unless they
                     # have passed through testNodeCmds
                     # continue
@@ -1440,7 +1443,7 @@ class ApiMethodGenerator(MelMethodGenerator):
                     #     print self.classname, pymelName, basePymelName, methodName, renamed, overrideData
 
                     if not self.VALID_NAME.match(pymelName) or keyword.iskeyword(pymelName):
-                        print "Invalid name", self.classname, methodName, info
+                        print("Invalid name", self.classname, methodName, info)
                         continue
 
                     overloadIndex = overrideData.get('overloadIndex', 0)
@@ -1583,9 +1586,9 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         # this!
         setattr = self.apicls.__dict__.get('__setattr__')
         if setattr is not None and getattr(setattr, '__name__', None) == 'apiSetAttrWrap':
-            internal_vars = dict(zip(setattr.func_code.co_freevars,
+            internal_vars = dict(zip(setattr.__code__.co_freevars,
                                      (x.cell_contents for x in
-                                      setattr.func_closure)))
+                                      setattr.__closure__)))
             origSetAttr = internal_vars['origSetAttr']
             self.apicls.__setattr__ = origSetAttr
         if factories.MetaMayaTypeWrapper._hasApiSetAttrBug(self.apicls):
@@ -1603,7 +1606,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
-            print "make constant", self.classname, self.existingClass, attr
+            print("make constant", self.classname, self.existingClass, attr)
             return Literal('_f.ClassConstant(%r)' % list(attr))
 
         # -----------------------
@@ -2171,7 +2174,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
 
-    print "Only use this for testing - for final generation, use a GUI maya"
+    print("Only use this for testing - for final generation, use a GUI maya")
     pymeldir = os.path.dirname(THIS_DIR)
     sys.path.insert(0, pymeldir)
 

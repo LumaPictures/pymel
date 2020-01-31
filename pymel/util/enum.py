@@ -46,6 +46,9 @@ original arguments used to create the enumeration:
     >>> shirt_colour.index
     2
 """
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 __author_name__ = "Ben Finney"
 __author_email__ = "ben+python@benfinney.id.au"
@@ -68,8 +71,7 @@ class EnumException(Exception):
 
     def __init__(self):
         if self.__class__ is EnumException:
-            raise NotImplementedError, \
-                "%s is an abstract class for subclassing" % self.__class__
+            raise NotImplementedError("%s is an abstract class for subclassing" % self.__class__)
 
 
 class EnumEmptyError(AssertionError, EnumException):
@@ -326,7 +328,7 @@ class Enum(object):
             keyDict[key] = val
             try:
                 super(Enum, self).__setattr__(key, value)
-            except TypeError, e:
+            except TypeError as e:
                 raise EnumBadKeyError(key)
 
         for key, val in extraKeys.iteritems():
@@ -467,13 +469,13 @@ class Enum(object):
             if key in self._values:
                 return key
             else:
-                raise ValueError, "invalid enumerator index: %r" % (key,)
+                raise ValueError("invalid enumerator index: %r" % (key,))
         else:
             # got a key: retrieving index
             try:
                 return self._keys[str(key)]
             except:
-                raise ValueError, "invalid enumerator key: %r" % (key,)
+                raise ValueError("invalid enumerator key: %r" % (key,))
 
     def getKey(self, index):
         """
@@ -503,13 +505,13 @@ class Enum(object):
             try:
                 return self._values[index].key
             except:
-                raise ValueError, "invalid enumerator index: %r" % index
+                raise ValueError("invalid enumerator index: %r" % index)
         else:
             # got a potential key : checking if it's valid
             if str(index) in self._keys:
                 return index
             else:
-                raise ValueError, "invalid enumerator key: %r" % index
+                raise ValueError("invalid enumerator key: %r" % index)
 
     def values(self):
         "return a list of `EnumValue`s"
@@ -529,7 +531,7 @@ class Enum(object):
 # strangely this is required to fix a crash when referencing pymel from mypy
 EnumType = Enum
 
-import utilitytypes
+from . import utilitytypes
 
 
 class EnumDict(utilitytypes.EquivalencePairs):
@@ -636,13 +638,13 @@ class EnumDict(utilitytypes.EquivalencePairs):
             if key in self.values():
                 return key
             else:
-                raise ValueError, "invalid enumerator value: %r" % key
+                raise ValueError("invalid enumerator value: %r" % key)
         else:
             # got a key: retrieving index
             try:
                 return dict.__getitem__(self, key)
             except KeyError:
-                raise ValueError, "invalid enumerator key: %r" % key
+                raise ValueError("invalid enumerator key: %r" % key)
 
     def key(self, index):
         """

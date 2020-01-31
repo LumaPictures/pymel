@@ -1,6 +1,9 @@
 """
 Commonly used utilities
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 import os
 import re
@@ -9,7 +12,7 @@ import platform
 import pkgutil
 import inspect
 from re import escape
-from path import path
+from .path import path
 #-----------------------------------------------
 #  Pymel Internals
 #-----------------------------------------------
@@ -126,7 +129,7 @@ def timer(command='pass', number=10, setup='import pymel'):
     import timeit
     t = timeit.Timer(command, setup)
     time = t.timeit(number=number)
-    print "command took %.2f sec to execute" % time
+    print("command took %.2f sec to execute" % time)
     return time
 
 
@@ -168,7 +171,7 @@ def toZip(directory, zipFile):
     directory = path(directory)
 
     for subdir in directory.dirs('[a-z]*') + [directory]:
-        print "adding ", subdir
+        print("adding ", subdir)
         for fname in subdir.files('[a-z]*'):
             archiveName = fname.replace(directory, '')
             z.write(fname, archiveName, zipfile.ZIP_DEFLATED)
@@ -195,8 +198,8 @@ def subpackages(packagemod):
             if modname not in sys.modules:
                 try:
                     mod = importer.find_module(modname).load_module(modname)
-                except Exception, e:
-                    print "error importing %s: %s" % (modname, e)
+                except Exception as e:
+                    print("error importing %s: %s" % (modname, e))
                     mod = None
             else:
                 mod = sys.modules[modname]

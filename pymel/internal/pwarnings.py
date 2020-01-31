@@ -4,6 +4,9 @@ and define a UserWarning class that does only print it's message (no line or mod
 
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import warnings
 from warnings import formatwarning, linecache
 
