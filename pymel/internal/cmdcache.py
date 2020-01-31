@@ -16,8 +16,11 @@ import pymel.util as util
 import pymel.versions as versions
 
 # Module imports
-from pymel.core import plogging
-from pymel.core import startup
+from . import plogging
+from . import startup
+
+if False:
+    from typing import *
 
 _logger = plogging.getLogger(__name__)
 
@@ -39,9 +42,12 @@ moduleCommandAdditions = {
                 'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
 }
 
-#: secondary flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
-#: because the maya docs do not specify in any parsable way which flags are secondary modifiers, we must maintain this dictionary.
-#: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
+# secondary flags can only be used in conjunction with other flags so we must
+# exclude them when creating classes from commands. because the maya docs do
+# not specify in any parsable way which flags are secondary modifiers, we must
+# maintain this dictionary. once this list is reliable enough and includes
+# default values, we can use them as keyword arguments in the class methods
+# that they modify.
 secondaryFlags = {
     'xform': (('absolute', None, []),
               ('relative', None, []),
@@ -151,8 +157,8 @@ UI_COMMANDS = """attrColorSliderGrp        attrControlGrp
                 cmdScrollFieldReporter    cmdShell
                 nameField                 palettePort """.split()
 
-#: creation commands whose names do not match the type of node they return require this dict
-#: to resolve which command the class should wrap
+#: creation commands whose names do not match the type of node they return
+# require this dict to resolve which command the class should wrap
 nodeTypeToNodeCommand = {
     #'failed'            : 'clip',
     #'failed'            : 'clipSchedule',
@@ -367,8 +373,6 @@ def getCmdInfo(command, version, python=True):
         _logger.debug("could not find docs for %s" % command)
         return basicInfo
 
-        #raise IOError, "cannot find maya documentation directory"
-
 
 def fixCodeExamples(style='maya', force=False):
     """cycle through all examples from the maya docs, replacing maya.cmds with pymel and inserting pymel output.
@@ -556,7 +560,9 @@ def fixCodeExamples(style='maya', force=False):
                 skip = True
 
             # lines.insert(1, 'pm.newFile(f=1) #fresh scene')
-            # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
+            # create a fresh scene. this does not need to be in the docstring
+            # unless we plan on using it in doctests, which is probably
+            # unrealistic
             cmds.file(new=1, f=1)
 
             newlines = []
@@ -570,7 +576,8 @@ def fixCodeExamples(style='maya', force=False):
 
             # gives a little leniency for where spaces are placed in the result line
             resultReg = re.compile('# Result:\s*(.*) #$')
-            try:  # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
+            try:  # funky things can happen when executing maya code: some
+                # exceptions somehow occur outside the eval/exec
                 for i, line in enumerate(lines):
                     res = None
                     # replace with pymel results  '# Result: 1 #'
@@ -583,7 +590,8 @@ def fixCodeExamples(style='maya', force=False):
                             if line.strip().endswith(':') or line.startswith(' ') or line.startswith('\t'):
                                 statement.append(line)
                             else:
-                                # evaluate the compiled statement using exec, which can do multi-line if statements and so on
+                                # evaluate the compiled statement using exec,
+                                # which can do multi-line if statements and so on
                                 if statement:
                                     evaluate = tryExec('\n'.join(statement))
                                     if evaluate:
@@ -823,7 +831,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
             if isinstance(obj, list):
                 _logger.debug("Return %s", obj)
                 if len(obj) == 1:
-                    _logger.info("%s: creation return values need unpacking" % funcName)
+                    _logger.info("%s: creation return values need unpacking" %
+                                 funcName)
                     cmdInfo['resultNeedsUnpacking'] = True
                 elif not obj:
                     raise ValueError("returned object is an empty list")
@@ -907,20 +916,23 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
                         # [bool] --> bool
                         if singleItemList and resultType[0] == argtype:
-                            _logger.info("%s, %s: query flag return values need unpacking" % (funcName, flag))
+                            _logger.info("%s, %s: query flag return values "
+                                         "need unpacking" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             val = val[0]
 
                         # [int] --> bool
                         elif singleItemList and argtype in _castList and resultType[0] in _castList:
-                            _logger.info("%s, %s: query flag return values need unpacking and casting" % (funcName, flag))
+                            _logger.info("%s, %s: query flag return values "
+                                         "need unpacking and casting" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             flagInfo['resultNeedsCasting'] = True
                             val = argtype(val[0])
 
                         # int --> bool
                         elif argtype in _castList and resultType in _castList:
-                            _logger.info("%s, %s: query flag return values need casting" % (funcName, flag))
+                            _logger.info("%s, %s: query flag return values "
+                                         "need casting" % (funcName, flag))
                             flagInfo['resultNeedsCasting'] = True
                             val = argtype(val)
                         else:
@@ -970,7 +982,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
                 #_logger.debug("Args:", argtype)
                 try:
-                    # we use the value returned from query above as defaults for putting back in as edit args
+                    # we use the value returned from query above as defaults
+                    # for putting back in as edit args
                     # but if the return was empty we need to produce something to test on.
                     # NOTE: this is just a guess
                     if val is None:
@@ -1072,6 +1085,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
 
 def _getNodeHierarchy(version=None):
+    # type: (...) -> List[Tuple[str, Tuple[str, ...], Tuple[str, ...]]]
     """
     get node hierarchy as a list of 3-value tuples:
         ( nodeType, parents, children )
@@ -1104,14 +1118,20 @@ def _getNodeHierarchy(version=None):
                 parent = inheritance[i - 1]
 
             if child in parentTree:
-                assert parentTree[child] == parent, "conflicting parents: node type '%s' previously determined parent was '%s'. now '%s'" % (child, parentTree[child], parent)
+                assert parentTree[child] == parent, (
+                        "conflicting parents: node type '%s' previously "
+                        "determined parent was '%s'. now '%s'" %
+                        (child, parentTree[child], parent))
             else:
                 parentTree[child] = parent
     nodeHierarchyTree = trees.treeFromDict(parentTree)
     # sort the tree, so we have consistent / comparable results
     nodeHierarchyTree.sort()
-    return [(x.value, tuple(y.value for y in x.parents()), tuple(y.value for y in x.childs()))
-            for x in nodeHierarchyTree.preorder()]
+    return [
+        (x.value,
+         tuple(y.value for y in x.parents()),
+         tuple(y.value for y in x.childs()))
+        for x in nodeHierarchyTree.preorder()]
 
 
 class CmdExamplesCache(startup.PymelCache):
@@ -1206,6 +1226,7 @@ class CmdCache(startup.SubItemCache):
         self.moduleCmds.update({'other': [], 'runtime': [], 'context': [], 'uiClass': []})
 
         def addCommand(funcName):
+            # type: (str) -> None
             _logger.debug('adding command: %s' % funcName)
             module = getModule(funcName, tmpModuleCmds)
 
@@ -1231,23 +1252,26 @@ class CmdCache(startup.SubItemCache):
 
             self.cmdlist[funcName] = cmdInfo
 
-#            # func, args, (usePyNode, baseClsName, nodeName)
-#            # args = dictionary of command flags and their data
-#            # usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
-#            # baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
-#            # nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
-#            try:
-#                self.cmdlist[funcName] = args, pymelCmdsList[funcName] )
-#            except KeyError:
-#                # context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
-#                if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
-#                     self.cmdlist[funcName] = (funcName, args, (False, None, None) )
-#                else:
-#                    self.cmdlist[funcName] = (funcName, args, () )
+            # # func, args, (usePyNode, baseClsName, nodeName)
+            # # args = dictionary of command flags and their data
+            # # usePyNode = determines whether the class returns its 'nodeName'
+            # # or uses PyNode to dynamically return
+            # # baseClsName = for commands which should generate a class, this is
+            # # the name of the superclass to inherit nodeName = most creation
+            # # commands return a node of the same name, this option is provided for the exceptions
+            # try:
+            #    self.cmdlist[funcName] = args, pymelCmdsList[funcName] )
+            # except KeyError:
+            #    # context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
+            #    if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
+            #         self.cmdlist[funcName] = (funcName, args, (False, None, None) )
+            #    else:
+            #        self.cmdlist[funcName] = (funcName, args, () )
 
         for funcName, _ in tmpCmdlist:
             if funcName in pluginCommands:
-                _logger.debug("command %s was a plugin command that should have been unloaded - skipping" % funcName)
+                _logger.debug("command %s was a plugin command that should "
+                              "have been unloaded - skipping" % funcName)
                 continue
             addCommand(funcName)
 

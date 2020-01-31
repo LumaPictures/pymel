@@ -25,7 +25,7 @@ from .arguments import (
 from .utilitytypes import (
     Singleton, defaultdict, metaStatic, defaultlist, ModuleInterceptor,
     readonly, metaReadOnlyAttr, proxyClass, ProxyUnicode, universalmethod,
-    LazyLoadModule, LazyDocStringError, LazyDocString, TwoWayDict,
+    LazyLoadModule, LazyDocStringError, LazyDocString, addLazyDocString, TwoWayDict,
     EquivalencePairs, alias, propertycache)
 from .arrays import *
 from .enum import *

@@ -835,11 +835,13 @@ class FileInfo(collections.MutableMapping):
         pass
 
     def __getitem__(self, item):
+        # type: (str) -> str
         result = cmds.fileInfo(item, q=1)
         if not result:
             raise KeyError(item)
         elif len(result) > 1:
-            raise RuntimeError("error getting fileInfo for key %r - more than one value returned" % item)
+            raise RuntimeError("error getting fileInfo for key %r - "
+                               "more than one value returned" % item)
         else:
             if isinstance(result[0], str):
                 return result[0].decode('string_escape')
