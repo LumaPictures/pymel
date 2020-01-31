@@ -4,12 +4,13 @@ Functions and classes related to scripting, including `MelGlobals` and `Mel`
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+import collections
+import collections.abc
 import sys
 import os
 import inspect
 from getpass import getuser as _getuser
 from pymel.core import system
-import collections
 
 import maya.mel as _mm
 import maya.cmds as _mc
@@ -56,6 +57,7 @@ def _flatten(iterables):
 
 
 def pythonToMel(arg):
+    # type: (str) -> str
     """
     convert a python object to a string representing an equivalent value in mel
 
@@ -74,8 +76,8 @@ def pythonToMel(arg):
     if isinstance(arg, datatypes.Vector):
         return '<<%f,%f,%f>>' % (arg[0], arg[1], arg[2])
     if util.isIterable(arg):
-        if util.isMapping(arg):
-            arg = list(_flatten(arg.iteritems()))
+        if isinstance(arg, collections.abc.Mapping):
+            arg = list(_flatten(arg.items()))
         else:
             arg = list(_flatten(arg))
         forceString = False
@@ -97,7 +99,7 @@ def pythonToMel(arg):
     return '"%s"' % cmds.encodeString(str(arg))
 
 
-def pythonToMelCmd(*commandAndArgs, **kwargs):
+def pythonToMelCmd(command, *args, **kwargs):
     '''Given a mel command name, and a set of python args / kwargs, return
     a mel string used to call the given command.
 
@@ -108,17 +110,11 @@ def pythonToMelCmd(*commandAndArgs, **kwargs):
     but this caused problems with the mel "button" function, which has a
     "command" flag.
     '''
-    if not commandAndArgs:
-        raise TypeError("pythonToMelCmd needs at least one arg, the"
-                        " mel command name")
-    command = commandAndArgs[0]
-    args = commandAndArgs[1:]
-
     strArgs = [pythonToMel(arg) for arg in args]
 
     if kwargs:
         # keyword args trigger us to format as a command rather than a procedure
-        strFlags = []
+        strFlags = []  # type: List[str]
         if command in _factories.cmdlist:
             flags = _factories.cmdlist[command]['flags']
             shortFlags = _factories.cmdlist[command]['shortFlags']

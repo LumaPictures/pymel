@@ -3307,12 +3307,7 @@ class Unit(float):
             value = value.asUnits(unit)
         elif isinstance(value, cls):
             value = value.asUnit(unit)
-        #data = cls.apicls(value, unit)
-        # the float representation uses internal units so that arithmetics work
-        #newobj = float.__new__(cls, data.asUnit(cls.apicls.internalUnit()))
-        #newobj = float.__new__(cls, data.asUnit(unit))
         newobj = float.__new__(cls, value)
-        #ewobj._data = data
         newobj._unit = unit
         newobj._data = cls.apicls(value, unit)
         return newobj
