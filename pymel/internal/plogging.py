@@ -1,4 +1,7 @@
 "pymel logging functions"
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import os
 
@@ -58,7 +61,7 @@ def getConfigFile():
     configFile = os.path.join(moduleDir, "pymel.conf")
     if os.path.isfile(configFile):
         return configFile
-    raise IOError, "Could not find pymel.conf"
+    raise IOError("Could not find pymel.conf")
 
 
 def getLogConfigFile():
@@ -257,7 +260,7 @@ def timed(level=DEBUG):
             res = func(*arg, **kwargs)
             t = time.time() - t  # convert to seconds float
             strSecs = time.strftime("%M:%S.", time.localtime(t)) + ("%.3f" % t).split(".")[-1]
-            logger.log(level, 'Function %s(...) - finished in %s seconds' % (func.func_name, strSecs))
+            logger.log(level, 'Function %s(...) - finished in %s seconds' % (func.__name__, strSecs))
             return res
         return timedFunction
     return timedWithLevel
@@ -295,7 +298,7 @@ def _setupLevelPreferenceHook():
             # save the preference as a string name, for human readability
             # we need to use MGlobal because cmds.optionVar might not exist yet
             MGlobal.setOptionVarValue(LOGLEVEL_OPTVAR, levelName)
-        except Exception, e:
+        except Exception as e:
             pymelLogger.warning("Log Level could not be saved to the user-prefs ('%s')" % e)
         return ret
 

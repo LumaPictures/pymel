@@ -1,4 +1,7 @@
 "The primary module for maya commands and node classes"
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 import sys
 import pymel as _pymel
@@ -81,7 +84,7 @@ toQtControl = windows.toQtControl = ui.toQtControl
 toQtMenuItem = windows.toQtMenuItem = ui.toQtMenuItem
 toQtWindow = windows.toQtWindow = ui.toQtWindow
 
-import runtime
+from . import runtime
 
 import maya.cmds as cmds
 
@@ -125,7 +128,7 @@ def _addPluginCommand(pluginName, funcName):
                 setattr(sys.modules['pymel.all'], funcName, func)
         else:
             _logger.warning("failed to create function")
-    except Exception, msg:
+    except Exception as msg:
         _logger.warning("exception: %s" % str(msg))
 
 

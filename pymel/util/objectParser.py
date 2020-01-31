@@ -13,6 +13,9 @@
     execute -> compare;
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 import re
 import inspect
@@ -21,16 +24,16 @@ import os
 import tempfile
 import types
 try:
-    import external.ply.lex as lex
-    import external.ply.yacc as yacc
+    import pymel.util.external.ply.lex as lex
+    import pymel.util.external.ply.yacc as yacc
 except ImportError:
     import ply.lex as lex
     import ply.yacc as yacc
 
-from common import capitalize, uncapitalize
+from .common import capitalize, uncapitalize
 import warnings
-from arguments import *
-from utilitytypes import *
+from pymel.util.arguments import *
+from pymel.util.utilitytypes import *
 
 
 # increase from 0 to 1 or 2 for more debug feedback
@@ -123,13 +126,13 @@ class Parsed(ProxyUni):
                 if inspect.isclass(parser):
                     parsername = parser.__name__
                     if not issubclass(parser, Parser):
-                        raise ValueError, "Parser %s specified in Parsed class %s is not a Parser class" % (parsername, cls.__name__)
+                        raise ValueError("Parser %s specified in Parsed class %s is not a Parser class" % (parsername, cls.__name__))
                 # parser is a string
                 elif parser in Parser.classes:
                     parsername = parser
                     parser = Parser.classes[parsername]
                 else:
-                    raise ValueError, "Invalid Parser specification %r in Parsed class %s" % (parser, cls.__name__)
+                    raise ValueError("Invalid Parser specification %r in Parsed class %s" % (parser, cls.__name__))
 
                 # build class Parser, replace class _parser by the Parser instance object
 
@@ -139,7 +142,7 @@ class Parsed(ProxyUni):
                 cls._parser.build(**kwargs)
                 # return cls._parser
         else:
-            raise TypeError, "Parsed class %s does not define a parser, check declarations" % cls.__name__
+            raise TypeError("Parsed class %s does not define a parser, check declarations" % cls.__name__)
 
     @classmethod
     def classparse(cls, data, **kwargs):
@@ -169,7 +172,7 @@ class Parsed(ProxyUni):
         # TODO : corrections and error handling
         if not isValid:
             # can try to auto-correct some badly formed names
-            raise NameParseError, errmsg
+            raise NameParseError(errmsg)
 
         # position is set to position of first found Parsed object
         if (result.sub):
@@ -265,20 +268,20 @@ class Parsed(ProxyUni):
         if (cls is Parsed or cls is Token):  # issubclass(cls, Token) ):
             if ptype is not None:
                 if verbose():
-                    print "__new__ called on Parsed/Token %s with type %r" % (cls.__name__, ptype)
+                    print("__new__ called on Parsed/Token %s with type %r" % (cls.__name__, ptype))
                 newcls = Parsed.classes.get(ptype, None)
                 # can only specify an existing subclass of cls
                 if newcls is None:
-                    raise TypeError, "Type %s does not correspond to any existing Parsed sub-class (%s does not exist)" % (ptype, cls.__name__)
+                    raise TypeError("Type %s does not correspond to any existing Parsed sub-class (%s does not exist)" % (ptype, cls.__name__))
                 else:
                     clsname = newcls.__name__
                 if not issubclass(newcls, cls):
-                    raise TypeError, "Type %s would create a class %s that is not a sub-class of the class %s that __new__ was called on" % (ptype, clsname, cls.__name__)
+                    raise TypeError("Type %s would create a class %s that is not a sub-class of the class %s that __new__ was called on" % (ptype, clsname, cls.__name__))
             else:
-                raise TypeError, "Class %s is an abstract class and can't be created directly, you must specify a valid sub-type" % (cls.__name__)
+                raise TypeError("Class %s is an abstract class and can't be created directly, you must specify a valid sub-type" % (cls.__name__))
         else:
             if verbose():
-                print "__new__ called on explicit class %s" % (cls.__name__)
+                print("__new__ called on explicit class %s" % (cls.__name__))
             clsname = cls.__name__
             newcls = cls
 
@@ -354,7 +357,7 @@ class Parsed(ProxyUni):
                 value = ''
         else:
             if debug:
-                print "REPARSE", data, repr(data)
+                print("REPARSE", data, repr(data))
             # reparse unless it's a Token we already know the type of
             value = unicode(data)
             if issubclass(newcls, Token) and newcls is not Token:
@@ -370,25 +373,25 @@ class Parsed(ProxyUni):
             strvalue = unicode(value)
         elif isinstance(value, basestring):
             if debug:
-                print "%s: Will need to reparse value %r" % (clsname, value)
+                print("%s: Will need to reparse value %r" % (clsname, value))
             newcls.classparserbuild(debug=debug)
             if debug:
-                print "VALUE", value, type(value)
+                print("VALUE", value, type(value))
             result = newcls.classparse(value, debug=debug)
             if debug:
-                print "RESULT", result, type(result), isinstance(result, newcls)
+                print("RESULT", result, type(result), isinstance(result, newcls))
             if result is not None and isinstance(result, newcls):
                 strvalue = unicode(result)
                 valid = result._valid
                 sub = result._sub
                 pos = result._pos
                 if debug:
-                    print "SUB", sub
+                    print("SUB", sub)
             else:
                 strvalue = ''
                 valid = False
         else:
-            raise TypeError, "invalid argument(s) %r, cannot be parsed to create a Parsed object of type %s" % (value, clsname)
+            raise TypeError("invalid argument(s) %r, cannot be parsed to create a Parsed object of type %s" % (value, clsname))
 
         if valid:
             # create a unicode object with appropriate string value
@@ -406,7 +409,7 @@ class Parsed(ProxyUni):
             if pos is None or (isinstance(pos, int) and pos >= 0):
                 newobj._pos = pos
             else:
-                raise ValueError, "A Parsed pos can only be None or an unsigned int, %r invalid" % pos
+                raise ValueError("A Parsed pos can only be None or an unsigned int, %r invalid" % pos)
 
         return newobj
 
@@ -431,7 +434,7 @@ class Parsed(ProxyUni):
         elif isinstance(other, basestring):
             othervalid = False
         else:
-            raise TypeError, "cannot add %s and %s" % (type(self), type(other))
+            raise TypeError("cannot add %s and %s" % (type(self), type(other)))
 
         if selfvalid and othervalid:
             # no reparse
@@ -460,13 +463,13 @@ class Parser(object):
             # type argument can be the name of a Parser class or an instance of the class
             ptype = kwargs.get('type', None)
             if ptype is None:
-                raise TypeError, "must specify a Parser class"
+                raise TypeError("must specify a Parser class")
             elif isinstance(ptype, Parser) and not ptype is Parser:
                 parsercls = ptype
             elif ptype in Parser.classes:
                 parsercls = Parser.classes[ptype]
             else:
-                raise TypeError, "invalid Parser type: %s" % ptype
+                raise TypeError("invalid Parser type: %s" % ptype)
         else:
             # subclasses of Parser
             parsercls = cls
@@ -490,7 +493,7 @@ class Parser(object):
         rules = list(rulesDict.keys())
         # Sort them by line number of declaration as it's how the yacc builder works to order rules
         # TODO : some more explicit rule order handling (when precedence isn't an option) ?
-        rules.sort(lambda x, y: cmp(rulesDict[x].func_code.co_firstlineno, rulesDict[y].func_code.co_firstlineno))
+        rules.sort(lambda x, y: cmp(rulesDict[x].__code__.co_firstlineno, rulesDict[y].__code__.co_firstlineno))
         # print "sorted rules:", [(r, parsercls.rulesDict[r].func_code.co_firstlineno) for r in rules]
         rules = tuple(rules)
 
@@ -517,7 +520,7 @@ class Parser(object):
         t.lexer.skip(1)
 
     def p_error(self, p):
-        print "error token", p
+        print("error token", p)
         if p is None:
             warnings.warn("unexpected end of file", ParsingWarning, stacklevel=1)
         else:
@@ -547,7 +550,7 @@ class Parser(object):
                 elif inspect.isfunction(obj) or inspect.ismethod(obj):
                     v = obj.__doc__
                 else:
-                    raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % m[0]
+                    raise SyntaxError("Token definition %s defines neither a string nor a function, unable to parse" % m[0])
                 k = name[2:]
                 tokensDict[k] = obj
             elif name.startswith('p_') and inspect.ismethod(obj) and name != 'p_error':
@@ -567,21 +570,21 @@ class Parser(object):
         start = kwargs.get('start', self.__class__.start)
         parserspath = kwargs.get('outputdir', tempfile.gettempdir())
         if debug:
-            print "nameparse parsers path", parserspath
+            print("nameparse parsers path", parserspath)
         method = kwargs.get('method', 'LALR')
         if debug:
-            print "Build for", self.__class__.__name__
-            print "tokens:"
+            print("Build for", self.__class__.__name__)
+            print("tokens:")
             for t in self.__class__.tokens:
                 # t is not always in tokensDict, not sure if this is bad or not...
                 # print "\t%s = %r" % (t, self.__class__.tokensDict[t])
-                print "\t%s" % (t)
-            print "rules:"
+                print("\t%s" % (t))
+            print("rules:")
             for t in self.__class__.rules:
                 # t is not always in rulesDict, not sure if this is bad or not...
                 # print "\t%s = %r" % (t, self.__class__.rulesDict[t].__doc__)
-                print "\t%s" % (t)
-            print "start: %s" % start
+                print("\t%s" % (t))
+            print("start: %s" % start)
 
         if self.lexer is None:
             lextab = self.__class__.__name__ + "_lex"
@@ -616,7 +619,7 @@ class TokenParser(Parser):
         try:
             self.parser = re.compile(pattern)
         except:
-            raise ValueError, "cannot build Token Parser from pattern %r. you must set the _pattern attribute to a valid regular expression" % pattern
+            raise ValueError("cannot build Token Parser from pattern %r. you must set the _pattern attribute to a valid regular expression" % pattern)
 
     def parse(self, data, **kwargs):
         self.errorcount = 0
@@ -675,11 +678,11 @@ def _printClassTree(cls):
             for d in data:
                 _printTree(d, level)
         else:
-            print data
+            print(data)
 
-    print cls
+    print(cls)
     tree = inspect.getclasstree(cls)
-    print tree
+    print(tree)
     _printTree(tree)
 
 
@@ -702,7 +705,7 @@ class autoparsed(type):
                 if rules is not None:
                     # there's no parser, but there is a set of rules. use this to create a default parser
                     if not isIterable(rules):
-                        raise TypeError, "_rules attribute must be an iterable list of string rules"
+                        raise TypeError("_rules attribute must be an iterable list of string rules")
 
                     # first add the rules to the parserdict as attributes, these will be converted to methods, below
                     parserdict = {}
@@ -742,7 +745,7 @@ class autoparsed(type):
                             v = inspect.getdoc(obj)
                             needsWrapping = False
                         else:
-                            raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % name
+                            raise SyntaxError("Token definition %s defines neither a string nor a function, unable to parse" % name)
 
                         # process the docstring
                         accepts = []
@@ -767,7 +770,7 @@ class autoparsed(type):
                             p_func.__name__ = name
                             p_func.__doc__ = v
                             if verbose():
-                                print "overwriting %s._parser.%s with yacc function: %r" % (classname, name, v)
+                                print("overwriting %s._parser.%s with yacc function: %r" % (classname, name, v))
                             updatedict[name] = p_func
                             rulesDict[name] = p_func
     #                        k = m[0][2:]
@@ -785,11 +788,11 @@ class autoparsed(type):
                         elif inspect.isfunction(obj) or inspect.ismethod(obj):
                             v = obj.__doc__
                         else:
-                            raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % name
+                            raise SyntaxError("Token definition %s defines neither a string nor a function, unable to parse" % name)
                         tokensDict[name] = obj
 
                 if verbose():
-                    print "%s accepts: %s" % (newcls.__name__, list(accepts_set))
+                    print("%s accepts: %s" % (newcls.__name__, list(accepts_set)))
 
                 # find bases
                 bases = []
@@ -806,7 +809,7 @@ class autoparsed(type):
                         try:
                             parser = getattr(module, parsedname + 'Parser')
                         except AttributeError:
-                            raise SyntaxError, "Cannot find parser class for parsed class %s. It should be explicitly or automatically created as %s._parser or be named %sParser" % (parsedname, parsedname, parsedname)
+                            raise SyntaxError("Cannot find parser class for parsed class %s. It should be explicitly or automatically created as %s._parser or be named %sParser" % (parsedname, parsedname, parsedname))
 
                     assert isinstance(parser, Parser) or (inspect.isclass(parser) and issubclass(parser, Parser)), '%s._parser is not a subclass of Parser, it is %r' % (parsedname, parser)
 
@@ -879,7 +882,7 @@ class autoparsed(type):
                 # a rule, which is named after the class
                 token = classdict.get('_token', None)
                 if token is None:
-                    raise TypeError, "Token classes that use the autoparsed metaclass must define a _token attribute"
+                    raise TypeError("Token classes that use the autoparsed metaclass must define a _token attribute")
 
                 # print "automatically setting up token class for %s" % newcls.__name__
 
@@ -915,7 +918,7 @@ class autoparsed(type):
                 parserdict['rulesDict'] = {ruleName: rule}
 
                 # create the Parser class
-                print "creating parser %s" % parserName
+                print("creating parser %s" % parserName)
                 parsercls = type(parserName, (Parser,), parserdict)
                 parsercls.__module__ = module.__name__
                 #setattr( _parser, tokenName, token )
@@ -937,7 +940,7 @@ def _getTokenPatterns(parsercls):
             elif inspect.isfunction(obj) or inspect.ismethod(obj):
                 v = obj.__doc__
             else:
-                raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % name
+                raise SyntaxError("Token definition %s defines neither a string nor a function, unable to parse" % name)
             k = name[2:]
             if k in tokensDict:
                 warnings.warn("Token %s redefined in Parser %s" % (k, parser), UserWarning)
@@ -982,7 +985,7 @@ def process(module=None):
 #            for i in _items:
 #                ldict[i[0]] = i[1]
         else:
-            raise ValueError, "Expected a module"
+            raise ValueError("Expected a module")
 
     else:
         # No module given.  We might be able to get information from the caller.
@@ -1021,7 +1024,7 @@ def process(module=None):
         parserName = token + "Parser"
 
         if verbose():
-            print "adding class %s for token %s of pattern r'%s'" % (parserName, token, pattern)
+            print("adding class %s for token %s of pattern r'%s'" % (parserName, token, pattern))
 
         class ThisTokenParser(TokenParser):
 
@@ -1037,7 +1040,7 @@ def process(module=None):
         parserDict[parserName] = ThisTokenParser
 
         if verbose():
-            print "adding class %s for token %s of pattern r'%s'" % (parsedName, token, pattern)
+            print("adding class %s for token %s of pattern r'%s'" % (parsedName, token, pattern))
 
         class ThisToken(Token):
 

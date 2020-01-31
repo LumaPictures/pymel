@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import os
 import unittest
@@ -597,7 +600,7 @@ class TestInvertibles(object):
     def testInvert(self, pynode, apiClassName, setMethod, setter, getter, setArgTypes):
         import types
 
-        print "testing %s.%s" % (pynode.__name__, setMethod)
+        print("testing %s.%s" % (pynode.__name__, setMethod))
 
         # if getter / setter are classmethods, we will get them as
         # bound args
@@ -829,16 +832,16 @@ def makeComponentCreationTests(evalStringCreator, funcName=None):
             evalStrings = evalStringCreator(self, componentData)
             for evalString in evalStrings:
                 if VERBOSE:
-                    print "trying to create:", evalString, "...",
+                    print("trying to create:", evalString, "...", end=' ')
                 try:
                     self._pyCompFromString(evalString)
                 except Exception:
                     if VERBOSE:
-                        print "FAILED"
+                        print("FAILED")
                     failedComps.append(evalString)
                 else:
                     if VERBOSE:
-                        print "ok"
+                        print("ok")
                     successfulComps.append(evalString)
         if failedComps:
             self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
@@ -1461,14 +1464,14 @@ class testCase_components(unittest.TestCase):
         for compString in self.getComponentStrings():
             printedDone = False
             if VERBOSE:
-                print compString, "-", "creating...",
+                print(compString, "-", "creating...", end=' ')
             try:
                 pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
                 if VERBOSE:
-                    print "selecting...",
+                    print("selecting...", end=' ')
                 try:
                     self._failIfWillMakeMayaCrash(pymelObj)
                     pm.select(pymelObj, r=1)
@@ -1477,10 +1480,10 @@ class testCase_components(unittest.TestCase):
 #                        traceback.print_exc()
                     failedSelections.append(compString)
                 if VERBOSE:
-                    print "done!"
+                    print("done!")
                     printedDone = True
             if VERBOSE and not printedDone:
-                print "FAIL!!!"
+                print("FAIL!!!")
 
         if failedCreation or failedSelections:
             failMsgs = []
@@ -1497,14 +1500,14 @@ class testCase_components(unittest.TestCase):
         for compString in self.getComponentStrings():
             printedDone = False
             if VERBOSE:
-                print compString, "-", "creating...",
+                print(compString, "-", "creating...", end=' ')
             try:
                 pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
                 if VERBOSE:
-                    print "getting repr...",
+                    print("getting repr...", end=' ')
                 try:
                     self._failIfWillMakeMayaCrash(pymelObj)
                     repr(pymelObj)
@@ -1512,10 +1515,10 @@ class testCase_components(unittest.TestCase):
                     failedRepr.append(compString)
                 else:
                     if VERBOSE:
-                        print "done!"
+                        print("done!")
                         printedDone = True
             if VERBOSE and not printedDone:
-                print "FAIL!!!"
+                print("FAIL!!!")
 
         if failedCreation or failedRepr:
             failMsgs = []
@@ -1534,7 +1537,7 @@ class testCase_components(unittest.TestCase):
         for compString,compData in self.getComponentStrings(returnCompData=True):
             printedDone = False
             if VERBOSE:
-                print compString, "-", "creating...",
+                print(compString, "-", "creating...", end=' ')
             try:
                 pymelObj = self._pyCompFromString(compString)
             except Exception:
@@ -1545,7 +1548,7 @@ class testCase_components(unittest.TestCase):
                     continue
 
                 if VERBOSE:
-                    print "iterating...",
+                    print("iterating...", end=' ')
                 try:
                     self._failIfWillMakeMayaCrash(pymelObj)
                     iteration = [x for x in pymelObj]
@@ -1556,7 +1559,7 @@ class testCase_components(unittest.TestCase):
                     failedIterations.append(compString)
                 else:
                     if VERBOSE:
-                        print "comparing (using selection)...",
+                        print("comparing (using selection)...", end=' ')
                     try:
                         pm.select(iteration)
                     except Exception:
@@ -1572,10 +1575,10 @@ class testCase_components(unittest.TestCase):
                             if not self.compsEqual(iterSel, compSel, compData):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
-                                print "done!"
+                                print("done!")
                                 printedDone = True
             if VERBOSE and not printedDone:
-                print "FAIL!!!"
+                print("FAIL!!!")
 
         if failedCreation or failedIterations or failedSelections or iterationUnequal:
             failMsgs = []
@@ -1667,8 +1670,8 @@ class testCase_components(unittest.TestCase):
                     elif (isinstance(comp, pm.SubdEdge) and
                           comp.currentDimension() == 0):
                         raise CrashError
-        except CrashError, e:
-            print "Auto-failing %r to avoid crash..." % comp
+        except CrashError as e:
+            print("Auto-failing %r to avoid crash..." % comp)
             raise unittest.case._ExpectedFailure(sys.exc_info())
 
     def test_multiComponentName(self):
@@ -1805,14 +1808,14 @@ class testCase_components(unittest.TestCase):
             for melString, pyString in evalStringPairs:
                 printedDone = False
                 if VERBOSE:
-                    print melString, "/", pyString, "-", "creating...",
+                    print(melString, "/", pyString, "-", "creating...", end=' ')
                 try:
                     pymelObj = self._pyCompFromString(pyString)
                 except Exception:
                     failedCreation.append(pyString)
                 else:
                     if VERBOSE:
-                        print "comparing...",
+                        print("comparing...", end=' ')
                     try:
                         areEqual = self.compsEqual(melString, pymelObj, componentData)
                     except Exception:
@@ -1823,10 +1826,10 @@ class testCase_components(unittest.TestCase):
                             failedComparison.append(str( (melString, pyString) ))
                         else:
                             if VERBOSE:
-                                print "done!"
+                                print("done!")
                             printedDone = True
                 if not printedDone and VERBOSE:
-                    print "FAIL!!!"
+                    print("FAIL!!!")
 
         if any( (failedCreation, failedDuringCompare, failedComparison) ):
             failMsgs = []
@@ -2024,7 +2027,7 @@ class testCase_components(unittest.TestCase):
 
 
         for typeName, nodeClass in nodeTypes.iteritems():
-            print typeName, nodeClass
+            print(typeName, nodeClass)
             trans = pm.PyNode(self.nodes[typeName])
             assertListCompForNodeClass(trans, pm.nt.Transform)
             shape = trans.getShape()

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 #!/usr/bin/env mayapy
 import sys
 import re
@@ -32,19 +35,19 @@ def test_dynload_modules():
     # so we can import one of the most fundamental and use it's path
     import math
     dynload_dir = dirname( os.path.normpath( math.__file__ ) )
-    print dynload_dir
+    print(dynload_dir)
     bad_modules = []
-    print "testing Maya python installation for missing system libraries"
+    print("testing Maya python installation for missing system libraries")
     for f in glob.glob( os.path.join(dynload_dir, '*.so') ):
         try:
             module_name = os.path.splitext( os.path.basename(f))[0]
             __import__( module_name , globals(), locals() )
-        except ImportError, e:
+        except ImportError as e:
             # % formatter deals with unicode, but keeps str if not unicode
             msg = '%s' % e
             if msg.startswith('lib'):
                 msg += '. create a symbolic link pointing to an existing version of this lib'
-            print "Warning: Could not import module %s: %s" % ( module_name, msg)
+            print("Warning: Could not import module %s: %s" % ( module_name, msg))
             bad_modules.append( module_name )
     return bad_modules
 
@@ -66,7 +69,7 @@ def fix_makefile():
         # ensure python Makefile exists where expected
         makefile = get_makefile_filename()
         if not os.path.exists(makefile):
-            print "PyMEL setup: Makefile not found: %s. Attempting to correct" % makefile
+            print("PyMEL setup: Makefile not found: %s. Attempting to correct" % makefile)
             libdir = get_python_lib(plat_specific=1, standard_lib=1)
             zipinstall = os.path.join( dirname( maya_bin_dir ),'lib', 'python%s%s.zip' % sys.version_info[0:2] )
             if os.path.exists(zipinstall):
@@ -80,14 +83,14 @@ def fix_makefile():
                     f = open(makefile, 'w')
                     f.write(fix_makefile_prefix(data))
                     f.close()
-                    print "PyMEL setup: successfully extracted Makefile from zip install into proper location"
+                    print("PyMEL setup: successfully extracted Makefile from zip install into proper location")
                     return
-                except Exception, e:
+                except Exception as e:
                     import traceback
-                    print "PyMEL setup: an error occurred while trying to fix the Makefile"
+                    print("PyMEL setup: an error occurred while trying to fix the Makefile")
                     traceback.print_exc(e)
             else:
-                print "PyMEL setup: cannot fix Makefile. zip install was not found: %s" % zipinstall
+                print("PyMEL setup: cannot fix Makefile. zip install was not found: %s" % zipinstall)
             print ("distutils will most likely fail, complaining that this is an invalid python install. PyMEL setup\n" +
                     "was unable to properly correct the problem. The root problem is that your python Makefile is missing")
         else:
@@ -97,9 +100,9 @@ def fix_makefile():
             try:
                 f = open(makefile, 'w')
                 f.write(fix_makefile_prefix(data))
-            except Exception, e:
+            except Exception as e:
                 import traceback
-                print "PyMEL setup: an error occurred while trying to fix the Makefile"
+                print("PyMEL setup: an error occurred while trying to fix the Makefile")
                 traceback.print_exc(e)
             finally:
                 f.close()
@@ -146,7 +149,7 @@ def set_default_script_location():
                 is_set = True
                 break
         if not is_set:
-            print "PyMEL setup: setting script install location to %s" % maya_bin_dir
+            print("PyMEL setup: setting script install location to %s" % maya_bin_dir)
             args.append( '--install-scripts=' + maya_bin_dir )
             sys.argv = args
 
@@ -158,7 +161,7 @@ def main():
         # do this first because ez_setup won't import if md5 can't be imported
         res = test_dynload_modules()
         if '_hashlib' in res or '_md5' in res:
-            raise RuntimeError, ("could not import %s compiled modules. this is usually due\n" % len(res) +
+            raise RuntimeError("could not import %s compiled modules. this is usually due\n" % len(res) +
                                 "to Maya's python being compiled on a different flavor or version\n" +
                                 "of linux than you are running.\n" +
                                 "to solve this quickly, for each missing library locate\n" +

@@ -3,6 +3,9 @@ Created on Oct 16, 2012
 
 @author: paulm
 '''
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import os
 import unittest
 import logging

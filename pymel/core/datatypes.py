@@ -2,6 +2,9 @@
 
 A wrap of Maya's Vector, Point, Color, Matrix, TransformationMatrix, Quaternion, EulerRotation types
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import os
 import sys
@@ -17,6 +20,7 @@ from pymel.util.arrays import _toCompOrArrayInstance
 import pymel.internal.factories as _factories
 from pymel.util.enum import Enum
 from pymel.util.mathutils import clamp, blend, gamma
+from functools import reduce
 
 if False:
     from typing import *
@@ -697,7 +701,7 @@ class Vector(VectorN):
         if isinstance(other, Vector):
             return Quaternion(Vector.apicls.rotateTo(Vector(self), Vector(other)))
         else:
-            raise TypeError, "%r is not a Vector instance" % other
+            raise TypeError("%r is not a Vector instance" % other)
 
     def rotateBy(self, *args):
         """ u.rotateBy(*args) --> Vector
@@ -1245,7 +1249,7 @@ class Color(Vector):
         cls = self.__class__
         mode = kwargs.get('mode', None)
         if mode is not None and mode not in cls.modes:
-            raise ValueError, "unknown mode %s for %s" % (mode, util.clsname(self))
+            raise ValueError("unknown mode %s for %s" % (mode, util.clsname(self)))
         # can also use the form <componentname>=<number>
         # for now supports only rgb and hsv flags
         hsvflag = {}
@@ -1847,7 +1851,7 @@ class Matrix(MatrixN):
                     _api.MScriptUtil.createMatrixFromList(value, tmp)
                     data = self.apicls(tmp)
             else:
-                raise TypeError, "cannot assign %s to a %s" % (value, util.clsname(self))
+                raise TypeError("cannot assign %s to a %s" % (value, util.clsname(self)))
 
         self.apicls.assign(self, data)
         return self
@@ -3504,7 +3508,7 @@ class BoundingBox(_api.MBoundingBox):
             return self.min()
         elif item == 1:
             return self.max()
-        raise IndexError, "Index out of range"
+        raise IndexError("Index out of range")
 
     def __melobject__(self):
         """A flat list of 6 values [minx, miny, minz, maxx, maxy, maxz]"""
@@ -3875,23 +3879,23 @@ def getPlugValue(plug):
 
 
 if __name__ == '__main__':
-    print Distance.getInternalUnit()
+    print(Distance.getInternalUnit())
     # centimeters
-    print Distance.getUIUnit()
+    print(Distance.getUIUnit())
     # centimeters
     Distance.setUIUnit('meters')
-    print Distance.getUIUnit()
+    print(Distance.getUIUnit())
     # meters
     d = Distance(12)
-    print d.unit
+    print(d.unit)
     # meters
-    print d
+    print(d)
     1200.0
-    print repr(d)
+    print(repr(d))
     Distance(12.0, unit='meters')
-    print d.asUnit()
+    print(d.asUnit())
     12.0
-    print d.asInternalUnit()
+    print(d.asInternalUnit())
     1200.0
 
     import doctest

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 # Built-in imports
 import os
 import re
@@ -281,7 +284,7 @@ def getCmdInfo(command, version, python=True):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
-    from parsers import CommandDocParser, mayaDocsLocation
+    from .parsers import CommandDocParser, mayaDocsLocation
 
     basicInfo = getCmdInfoBasic(command)
 
@@ -493,7 +496,7 @@ def fixCodeExamples(style='maya', force=False):
                         pass
                 exec(source, globs, locs)
                 return True, None
-            except Exception, e:
+            except Exception as e:
                 _logger.info("stopping evaluation of command {}: {}".format(
                     command, e))
                 _logger.info("full example:\n{}".format(example))
@@ -611,7 +614,7 @@ def fixCodeExamples(style='maya', force=False):
 
                 example = '\n'.join(newlines)
                 addProcessedExample(command, example)
-            except Exception, e:
+            except Exception as e:
                 raise
                 #_logger.info("FAILED: %s: %s" % (command, e) )
 
@@ -630,9 +633,9 @@ def fixCodeExamples(style='maya', force=False):
     _logger.info("Done Fixing Examples")
 
     # restore manipulators and anim options
-    print [manipSize, manipScale]
+    print([manipSize, manipScale])
     cmds.manipOptions(handleSize=manipSize, scale=manipScale)
-    print animOptions
+    print(animOptions)
     cmds.animDisplay(e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
 
     # CmdExamplesCache(examples)
@@ -644,7 +647,7 @@ def fixCodeExamples(style='maya', force=False):
 
 
 def getModuleCommandList(category, version=None):
-    from parsers import CommandModuleDocParser
+    from .parsers import CommandModuleDocParser
     parser = CommandModuleDocParser(category, version)
     return parser.parse()
 
@@ -823,20 +826,20 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                     _logger.info("%s: creation return values need unpacking" % funcName)
                     cmdInfo['resultNeedsUnpacking'] = True
                 elif not obj:
-                    raise ValueError, "returned object is an empty list"
+                    raise ValueError("returned object is an empty list")
                 objTransform = obj[0]
                 obj = obj[-1]
 
             if obj is None:
                 #emptyFunctions.append( funcName )
-                raise ValueError, "Returned object is None"
+                raise ValueError("Returned object is None")
 
             elif not cmds.objExists(obj):
-                raise ValueError, "Returned object %s is Invalid" % obj
+                raise ValueError("Returned object %s is Invalid" % obj)
 
             args = [obj]
 
-    except (TypeError, RuntimeError, ValueError), msg:
+    except (TypeError, RuntimeError, ValueError) as msg:
         _logger.debug("failed creation: %s", msg)
 
     else:
@@ -849,8 +852,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
         #(usePyNode, baseClsName, nodeName)
         flags = cmdInfo['flags']
 
-        hasQueryFlag = flags.has_key('query')
-        hasEditFlag = flags.has_key('edit')
+        hasQueryFlag = 'query' in flags
+        hasEditFlag = 'edit' in flags
 
         anyNumRe = re.compile('\d+')
 
@@ -870,7 +873,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
             try:
                 modes = flagInfo['modes']
                 testModes = False
-            except KeyError, msg:
+            except KeyError as msg:
                 #raise KeyError, '%s: %s' % (flag, msg)
                 #_logger.debug(flag, "Testing modes")
                 flagInfo['modes'] = []
@@ -935,7 +938,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                         _logger.debug('\tresult: %s', val.__repr__())
                         _logger.debug('\tresult type:    %s', resultType)
 
-                except TypeError, msg:
+                except TypeError as msg:
                     # flag is no longer supported
                     if str(msg).startswith('Invalid flag'):
                         # if verbose:
@@ -949,11 +952,11 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                         _logger.info("\t" + str(msg).rstrip('\n'))
                     val = None
 
-                except RuntimeError, msg:
+                except RuntimeError as msg:
                     _logger.info(cmd)
                     _logger.info("\tRuntimeError: " + str(msg).rstrip('\n'))
                     val = None
-                except ValueError, msg:
+                except ValueError as msg:
                     _logger.info(cmd)
                     _logger.info("\tValueError: " + str(msg).rstrip('\n'))
                     val = None
@@ -1032,7 +1035,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                     #_logger.debug('\t%s', editResult.__repr__())
                     #_logger.debug('\t%s %s', argtype, type(editResult))
                     #_logger.debug("SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype']))
-                except TypeError, msg:
+                except TypeError as msg:
                     if str(msg).startswith('Invalid flag'):
                         # if verbose:
                         # flag is no longer supported
@@ -1046,13 +1049,13 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                         _logger.info("\tpredicted arg: %s", argtype)
                         if not 'query' in modes:
                             _logger.info("\tedit only")
-                except RuntimeError, msg:
+                except RuntimeError as msg:
                     _logger.info(cmd)
                     _logger.info("\t" + str(msg).rstrip('\n'))
                     _logger.info("\tpredicted arg: %s", argtype)
                     if not 'query' in modes:
                         _logger.info("\tedit only")
-                except ValueError, msg:
+                except ValueError as msg:
                     _logger.info(cmd)
                     _logger.info("\tValueError: " + str(msg).rstrip('\n'))
                     val = None
@@ -1084,7 +1087,7 @@ def _getNodeHierarchy(version=None):
         except apicache.ManipNodeTypeError:
             continue
         except Exception:
-            print "Error getting inheritance: %s" % nodeType
+            print("Error getting inheritance: %s" % nodeType)
             raise
 
     parentTree = {}
@@ -1157,7 +1160,7 @@ class CmdCache(startup.SubItemCache):
 
         long_version = versions.installName()
 
-        from parsers import mayaDocsLocation
+        from .parsers import mayaDocsLocation
         cmddocs = os.path.join(mayaDocsLocation(long_version), 'CommandsPython')
         assert os.path.exists(cmddocs), "Command documentation does not exist: %s" % cmddocs
 

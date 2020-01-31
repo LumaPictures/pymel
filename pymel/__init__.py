@@ -21,6 +21,9 @@ Special thanks to those studios with the foresight to support an open-source pro
 Attitude Studio, and ImageMovers Digital.
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 
 __versiontuple__ = (1, 1, 0)

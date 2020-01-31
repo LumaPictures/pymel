@@ -83,6 +83,9 @@ An example of a plugin which creates a node::
     def uninitializePlugin(mobject):
         PymelSineNode.deregister(mobject)
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 
 import sys
@@ -239,7 +242,7 @@ for _mpxName, _enumName in mpxNamesToEnumNames.iteritems():
         if _enum is not None:
             mpxClassesToMpxEnums[_mpxCls] = _enum
         else:
-            print "warning: could not find enum MPxNode.%s for class %s" % (_enumName, _mpxName)
+            print("warning: could not find enum MPxNode.%s for class %s" % (_enumName, _mpxName))
     else:
         missingMPx.append(_mpxName)
 
@@ -288,7 +291,7 @@ def _suggestNewMPxValues(classes=None):
         classes = [x for x in allMPx() if x not in mpxClassesToMpxEnums]
 
     if not classes:
-        print "All classes exist in mpxClassesToMpxEnums"
+        print("All classes exist in mpxClassesToMpxEnums")
         return
 
     import pymel.core  # need maya.cmds
@@ -307,22 +310,22 @@ def _suggestNewMPxValues(classes=None):
             mpxNamesToEnumNames[className] = enumStr
             mpxToEnum[className] = enumStr
         else:
-            print "could not find enum for %s" % className
+            print("could not find enum for %s" % className)
 
     if mpxToEnum:
         _, mpxToMaya, mpxToApiEnums = _buildAll()
 
         def prints(d):
             for key in sorted(d.keys()):
-                print "    %r: %r,  # auto" % (key, d[key])
+                print("    %r: %r,  # auto" % (key, d[key]))
 
-        print 'Verify and add these entries to the following dictionaries in pymel.api.plugins'
-        print 'mpxNamesToEnumNames'
+        print('Verify and add these entries to the following dictionaries in pymel.api.plugins')
+        print('mpxNamesToEnumNames')
         prints(mpxToEnum)
-        print 'mpxNamesToApiEnumNames'
+        print('mpxNamesToApiEnumNames')
         prints(dict((k, v) for k, v in mpxToApiEnums.items() if k in mpxToEnum))
         # pprint.pprint(mpxToApiEnums)
-        print 'mpxNamesToMayaNodes'
+        print('mpxNamesToMayaNodes')
         prints(dict((k, v) for k, v in mpxToMaya.items() if k in mpxToEnum))
         # pprint.pprint(mpxToMaya)
 
@@ -423,7 +426,7 @@ def uninitializePlugin(mobject):
 
     plugin = mpx.MFnPlugin(mobject)
     for obj in registered:
-        print "deregistering", obj.name()
+        print("deregistering", obj.name())
         obj.deregisterCommand(plugin)
     registered = set()
 

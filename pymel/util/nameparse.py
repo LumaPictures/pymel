@@ -1,4 +1,7 @@
-from objectParser import *
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from pymel.util.objectParser import *
 
 __all__ = [  # 'NameParseError', 'ParsingWarning',
     #'ProxyUni', 'NameParsed',
@@ -141,7 +144,7 @@ class MayaNameParser(NameSepParser, NameGroupParser):
 
     def p_name_error(self, p):
         'MayaName : error'
-        print "Syntax error in MayaName. Bad expression"
+        print("Syntax error in MayaName. Bad expression")
 
     # a atomic Maya name is in the form (_)*head(_group)*(_)*
     def p_name_concat(self, p):
@@ -342,7 +345,7 @@ class NodeAttributeNameParser(NameIndexParser, MayaNameParser):
 
     def p_nodeattr_error(self, p):
         'Attribute : error'
-        print "Invalid node attribute name"
+        print("Invalid node attribute name")
 
     def p_nodeattr(self, p):
         ''' Attribute : MayaName NameIndex
@@ -700,14 +703,14 @@ class MayaName(NameParsed):
         try:
             self.last.nextName()
         except AttributeError:
-            raise "could not find trailing numbers to increment"
+            raise Exception("could not find trailing numbers to increment")
 
     def prevName(self):
         """Decrement the trailing number of the object by 1"""
         try:
             self.last.prevName()
         except AttributeError:
-            raise "could not find trailing numbers to decrement"
+            raise Exception("could not find trailing numbers to decrement")
 
 
 class NamespaceSep(NameParsed):
@@ -768,7 +771,7 @@ class Namespace(NameParsed):
                     self.setSubItem(i, space)
                     return
                 count += 1
-        raise IndexError, "This node has %s namespaces. The given index %s is out of range" % (len(self.spaces), index)
+        raise IndexError("This node has %s namespaces. The given index %s is out of range" % (len(self.spaces), index))
 
     def pop(self, index=0):
         """Remove an individual namespace (no separator). An index of 0 (default) is the shallowest (leftmost) in the list"""
@@ -1093,7 +1096,7 @@ class MayaNodePath(NameParsed):
             index += 1
 
         if len(parts) <= 2:
-            raise ValueError, "No more objects left to remove"
+            raise ValueError("No more objects left to remove")
         result1 = parts.pop(index)
         result2 = parts.pop(index)
         self._sub = tuple(parts)
@@ -1610,111 +1613,111 @@ def parse(name):
 
 def _decomposeGroup(name, ident=0):
     tab = "\t" * ident
-    print tab + "group:%s (%r)" % (name, name)
-    print tab + "[%s-%s] parts:" % (name.first, name.last), " ".join(name.parts)
-    print tab + "tail:", name.tail
-    print tab + "is ok for head:", name.isAlpha()
+    print(tab + "group:%s (%r)" % (name, name))
+    print(tab + "[%s-%s] parts:" % (name.first, name.last), " ".join(name.parts))
+    print(tab + "tail:", name.tail)
+    print(tab + "is ok for head:", name.isAlpha())
 
 
 def _decomposeName(name, ident=0):
     tab = "\t" * ident
-    print tab + "name: %s (%r)" % (name, name)
-    print tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts)
-    print tab + "[%s-%s] groups: " % (name.first, name.last), " ".join(name.groups)
-    print tab + "tail: ", name.tail
-    print tab + "reduced: ", name.reduced()
+    print(tab + "name: %s (%r)" % (name, name))
+    print(tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts))
+    print(tab + "[%s-%s] groups: " % (name.first, name.last), " ".join(name.groups))
+    print(tab + "tail: ", name.tail)
+    print(tab + "reduced: ", name.reduced())
     for group in name.groups:
         _decomposeGroup(group, ident=ident + 1)
 
 
 def _decomposeNamespace(name, ident=0):
     tab = "\t" * ident
-    print tab + "namespace: %s (%r)" % (name, name)
+    print(tab + "namespace: %s (%r)" % (name, name))
     if name:
-        print tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts)
-        print tab + "separator: %s" % name.separator
-        print tab + "[%s-%s] name spaces:" % (name.first, name.last), " ".join(name.spaces)
-        print tab + "space: ", name.space
-        print tab + "parent: ", name.parent
-        print tab + "path: ", " ".join(name.path)
-        print tab + "parents: ", " ".join(name.parents)
-        print tab + "is absolute:", name.isAbsolute()
+        print(tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts))
+        print(tab + "separator: %s" % name.separator)
+        print(tab + "[%s-%s] name spaces:" % (name.first, name.last), " ".join(name.spaces))
+        print(tab + "space: ", name.space)
+        print(tab + "parent: ", name.parent)
+        print(tab + "path: ", " ".join(name.path))
+        print(tab + "parents: ", " ".join(name.parents))
+        print(tab + "is absolute:", name.isAbsolute())
         for space in name.spaces:
             _decomposeName(space, ident=ident + 1)
 
 
 def _decomposeShortName(name, ident=0):
     tab = "\t" * ident
-    print tab + "short name: %s (%r)" % (name, name)
-    print tab + "[%s-%s] parts: " % (name.first, name.last), " ".join(name.parts)
-    print tab + "namespace: %s" % name.namespace
-    print tab + "name: %s" % name.name
-    print tab + "is absolute namespace: ", name.isAbsoluteNamespace()
+    print(tab + "short name: %s (%r)" % (name, name))
+    print(tab + "[%s-%s] parts: " % (name.first, name.last), " ".join(name.parts))
+    print(tab + "namespace: %s" % name.namespace)
+    print(tab + "name: %s" % name.name)
+    print(tab + "is absolute namespace: ", name.isAbsoluteNamespace())
     _decomposeNamespace(name.namespace, ident=ident + 1)
     _decomposeName(name.name, ident=ident + 1)
 
 
 def _decomposeNodeName(name, ident=0):
     tab = "\t" * ident
-    print tab + "node name: %s (%r)" % (name, name)
-    print tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts)
-    print tab + "separator: %s" % name.separator
-    print tab + "[%s-%s] nodes: " % (name.first, name.last), " ".join(name.nodes)
-    print tab + "node: ", name.node
-    print tab + "parent: ", name.parent
-    print tab + "path: ", " ".join(name.path)
-    print tab + "parents: ", " ".join(name.parents)
-    print tab + "is short name: ", name.isShortName()
-    print tab + "is dag name: ", name.isDagName()
-    print tab + "is long name: ", name.isLongName()
+    print(tab + "node name: %s (%r)" % (name, name))
+    print(tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts))
+    print(tab + "separator: %s" % name.separator)
+    print(tab + "[%s-%s] nodes: " % (name.first, name.last), " ".join(name.nodes))
+    print(tab + "node: ", name.node)
+    print(tab + "parent: ", name.parent)
+    print(tab + "path: ", " ".join(name.path))
+    print(tab + "parents: ", " ".join(name.parents))
+    print(tab + "is short name: ", name.isShortName())
+    print(tab + "is dag name: ", name.isDagName())
+    print(tab + "is long name: ", name.isLongName())
     for node in name.nodes:
         _decomposeShortName(node, ident=ident + 1)
 
 
 def _decomposeNodeAttributeName(name, ident=0):
     tab = "\t" * ident
-    print tab + "node attribute name: %s (%r)" % (name, name)
-    print tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts)
-    print tab + "name: ", name.name
-    print tab + "index: %s" % name.index
-    print tab + "indexValue: %s" % name.indexValue
+    print(tab + "node attribute name: %s (%r)" % (name, name))
+    print(tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts))
+    print(tab + "name: ", name.name)
+    print(tab + "index: %s" % name.index)
+    print(tab + "indexValue: %s" % name.indexValue)
     _decomposeName(name.name, ident=ident + 1)
 
 
 def _decomposeNodeAttributePathName(name, ident=0):
     tab = "\t" * ident
-    print tab + "node attribute path name: %s (%r)" % (name, name)
-    print tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts)
-    print tab + "separator: %s" % name.separator
-    print tab + "[%s-%s] attributes: " % (name.first, name.last), " ".join(name.attributes)
-    print tab + "attribute: ", name.attribute
-    print tab + "parent: ", name.parent
-    print tab + "path: ", " ".join(name.path)
-    print tab + "parents: ", " ".join(name.parents)
+    print(tab + "node attribute path name: %s (%r)" % (name, name))
+    print(tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts))
+    print(tab + "separator: %s" % name.separator)
+    print(tab + "[%s-%s] attributes: " % (name.first, name.last), " ".join(name.attributes))
+    print(tab + "attribute: ", name.attribute)
+    print(tab + "parent: ", name.parent)
+    print(tab + "path: ", " ".join(name.path))
+    print(tab + "parents: ", " ".join(name.parents))
     for attr in name.attributes:
         _decomposeNodeAttributeName(attr, ident=ident + 1)
 
 
 def _decomposeAttributeName(name, ident=0):
     tab = "\t" * ident
-    print tab + "attribute name: %s (%r)" % (name, name)
-    print tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts)
-    print tab + "separator: %s" % name.separator
-    print tab + "node: ", name.node
-    print tab + "attribute: ", name.attribute
+    print(tab + "attribute name: %s (%r)" % (name, name))
+    print(tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts))
+    print(tab + "separator: %s" % name.separator)
+    print(tab + "node: ", name.node)
+    print(tab + "attribute: ", name.attribute)
     _decomposeNodeName(name.node, ident=ident + 1)
     _decomposeNodeAttributePathName(name.attribute, ident=ident + 1)
 
 
 def _decomposeObjectName(name, ident=0):
     tab = "\t" * ident
-    print tab + "That object name is a %s" % name.type.__name__
-    print tab + "object: %s (%r)" % (name.object, name.object)
-    print tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts)
+    print(tab + "That object name is a %s" % name.type.__name__)
+    print(tab + "object: %s (%r)" % (name.object, name.object))
+    print(tab + "[%s-%s] parts: " % (name.parts[0], name.parts[-1]), " ".join(name.parts))
 
-    print tab + "node: ", name.node
-    print tab + "attribute (if any): ", name.attribute
-    print tab + "component (if any): ", name.component
+    print(tab + "node: ", name.node)
+    print(tab + "attribute (if any): ", name.attribute)
+    print(tab + "component (if any): ", name.component)
 
     if name.isNodeName():
         _decomposeNodeName(name.object, ident=ident + 1)
@@ -1723,7 +1726,7 @@ def _decomposeObjectName(name, ident=0):
     elif name.isComponentName():
         _decomposeComponentName(name.object, ident=ident + 1)
     else:
-        raise ValueError, "type should be MayaNodePath, NodeAttribute or Component"
+        raise ValueError("type should be MayaNodePath, NodeAttribute or Component")
 
 
 def _test(expr):
@@ -1732,26 +1735,26 @@ def _test(expr):
     try:
         # name = MayaNodePath(expr)
         name = MayaObjectName(expr)
-    except NameParseError, e:
-        print "NameParseError:", e
+    except NameParseError as e:
+        print("NameParseError:", e)
         try:
-            print "tokens"
+            print("tokens")
             for t in name.tokens:
-                print repr(t)
+                print(repr(t))
         except:
             pass
     else:
-        print "=" * 80
-        print "full name:%s (%r)" % (name, name)
-        print "is valid:", name.isValid()
+        print("=" * 80)
+        print("full name:%s (%r)" % (name, name))
+        print("is valid:", name.isValid())
         _decomposeObjectName(name)
-        print "=" * 80
+        print("=" * 80)
 
 
 def _itest():
     """ Inerractive name parsing test, enter a name and see result decomposition """
 
-    print "Interractive Name Parsing Test"
+    print("Interractive Name Parsing Test")
     while True:
         expr = raw_input("> ")
         if not expr:

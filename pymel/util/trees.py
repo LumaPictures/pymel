@@ -41,6 +41,9 @@ We do NOT recommend using it in external code...
 <BLANKLINE>
 -: 3
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 # Python implementation inspired from Gonzalo Rodrigues "Trees and more trees" in ASPN cookbook
 
 # removed as it's 2.5 only
@@ -50,6 +53,7 @@ import inspect
 import warnings
 import weakref as weak
 from copy import *
+from functools import reduce
 
 #import logging
 #_logger = logging.getLogger(__name__)
@@ -163,7 +167,8 @@ class MetaTree(type):
                 if not self._pRef() is self:
                     return self._pRef()
                 else:
-                    raise RuntimeError, "Loop detected in tree %r on parent of %s", (self, self._get_value())
+                    raise RuntimeError("Loop detected in tree %r on parent "
+                                       "of %s", (self, self._get_value()))
         # only for mutable
 
         @mutabletree
@@ -214,7 +219,7 @@ class MetaTree(type):
                             # should not happen if the usual methods are used
                             for c in iter(parent._subtrees):
                                 if c is s:          # not == of course
-                                    raise RuntimeError, "Self was already present in the childs of parent?"
+                                    raise RuntimeError("Self was already present in the childs of parent?")
                             parent._subtrees.append(s)
                     # now make self point to the new parent instead
                     if self._get_value() is None:
@@ -223,13 +228,13 @@ class MetaTree(type):
                         self._value = parent._value
                         self._subtrees = parent._subtrees
                 else:
-                    raise RuntimeError, "Setting self parent to itself would create a loop in tree %r" % self
+                    raise RuntimeError("Setting self parent to itself would create a loop in tree %r" % self)
             else:
-                raise TypeError, "Can only reparent self to same type '%s' than self, not to '%s'" % (type(self), type(parent))
+                raise TypeError("Can only reparent self to same type '%s' than self, not to '%s'" % (type(self), type(parent)))
 
         def _get_next(self):
             try:
-                return self.siblings().next()
+                return next(self.siblings())
             except StopIteration:
                 return None
 
@@ -247,7 +252,7 @@ class MetaTree(type):
                                 try:
                                     parent._subtrees.remove(self)
                                 except ValueError:
-                                    raise RuntimeError, u"Invalid tree, parent of self '%s' does not have self in its subtrees" % self.value
+                                    raise RuntimeError(u"Invalid tree, parent of self '%s' does not have self in its subtrees" % self.value)
                                 parent._subtrees.append(self)
                         else:
                             if not isinstance(next, self.__class__):
@@ -258,9 +263,9 @@ class MetaTree(type):
                                 for s in it:
                                     if s == self:
                                         try:
-                                            n = it.next()
+                                            n = next(it)
                                         except StopIteration:
-                                            n = iter(parent._subtrees).next()
+                                            n = next(iter(parent._subtrees))
                                         # nothing to do is next is already self's next
                                         if n != next:
                                             # FIXME : we more or less assume it's a list here using remove and insert instead of more generic iterable methods
@@ -268,15 +273,15 @@ class MetaTree(type):
                                             try:
                                                 j = parent._subtrees.index(next)
                                             except ValueError:
-                                                raise ValueError, "Provided next element '%s' is not a sibling of self '%s'" % (next.value, self.value)
+                                                raise ValueError("Provided next element '%s' is not a sibling of self '%s'" % (next.value, self.value))
                                             parent._subtrees.insert(j, self)
                                 # if self was not found, something is very wrong
-                                raise RuntimeError, u"Invalid tree, parent of self '%s' does not have self in its subtrees" % self.value
+                                raise RuntimeError(u"Invalid tree, parent of self '%s' does not have self in its subtrees" % self.value)
                     else:
-                        raise RuntimeError, u"Invalid tree, parent of self '%s' has an empty subtrees list" % self.value
+                        raise RuntimeError(u"Invalid tree, parent of self '%s' has an empty subtrees list" % self.value)
                 else:
-                    raise RuntimeError, u"Invalid tree, parent of self '%s' has an empty subtrees list" % self.value
-            raise ValueError, "Self has no parent, we can't change it's order in the list of its siblings, having none"
+                    raise RuntimeError(u"Invalid tree, parent of self '%s' has an empty subtrees list" % self.value)
+            raise ValueError("Self has no parent, we can't change it's order in the list of its siblings, having none")
         # methods (for both mutable and immutable)
 
         def childs(self):
@@ -298,7 +303,7 @@ class MetaTree(type):
                     if cseq[i] is self:  # not ==
                         return iter(cseq[i + 1:] + cseq[:i])
                 # self should be in it's parents subtrees
-                raise RuntimeError, u"Invalid tree, parent of %s does not have this subtree in its 'childs'" % self.value
+                raise RuntimeError(u"Invalid tree, parent of %s does not have this subtree in its 'childs'" % self.value)
         # Iterates as a nested tuple of values, the same format that can be passe back to init
         # that way if t is a Tree, Tree(list(t)) == Tree(tuple(t)) == t
         # use preorder, postorder, breadth for specific interations
@@ -386,9 +391,9 @@ class MetaTree(type):
             if l == 1:
                 return result[0]
             elif l == 0:
-                raise KeyError, "No  match for %s in Tree" % value
+                raise KeyError("No  match for %s in Tree" % value)
             else:
-                raise KeyError, "More than one match for %s in Tree (%i found)" % (value, l)
+                raise KeyError("More than one match for %s in Tree (%i found)" % (value, l))
 
         def get(self, value, default=tuple()):
             """ Identical to the __getitem__ method but will return a default value instead of raising KeyError
@@ -444,7 +449,7 @@ class MetaTree(type):
             try:
                 sub = self[element]
             except:
-                raise ValueError, "Tree does not contain element '%s'" % element
+                raise ValueError("Tree does not contain element '%s'" % element)
             sub._set_parent(None)
             del sub
 
@@ -705,7 +710,7 @@ class MetaTree(type):
                     roots.append(sub)
 
                 else:
-                    raise ValueError, "None cannot be a tree element"
+                    raise ValueError("None cannot be a tree element")
                 previousWasValue = isValue
 
             if not roots:
@@ -809,9 +814,9 @@ class MetaTree(type):
             if l == 1:
                 return result[0]
             elif l == 0:
-                raise KeyError, "No  match for %s in Tree" % value
+                raise KeyError("No  match for %s in Tree" % value)
             else:
-                raise KeyError, "More than one match for %s in Tree (%i found)" % (value, l)
+                raise KeyError("More than one match for %s in Tree (%i found)" % (value, l))
 
         def get(self, value, default=tuple()):
             """ Identical to the __getitem__ method but will return a default value instead of raising KeyError
@@ -1095,7 +1100,7 @@ class MetaTree(type):
                 elif order is 'self':
                     path = tuple(path)
                 else:
-                    raise ValueError, "Unknown order '%s'" % order
+                    raise ValueError("Unknown order '%s'" % order)
             return iter(path)
 
         def dist(self, element, **kwargs):
@@ -1327,10 +1332,10 @@ class MetaTree(type):
         mutable = None
         indexed = None
         # check for keywords
-        if classdict.has_key('mutable'):
+        if 'mutable' in classdict:
             mutable = (classdict['mutable'] == True)
             del classdict['mutable']
-        if classdict.has_key('indexed'):
+        if 'indexed' in classdict:
             indexed = (classdict['indexed'] == True)
             del classdict['indexed']
         treeType = None
@@ -1355,7 +1360,7 @@ class MetaTree(type):
 
         # if we couldn't determine a tree type from keywords or base classes, raise an exception
         if not treeType:
-            raise TypeError, "Tree classes must derive from another Tree class, or an iterable type that defines __init__, __iter__ and __nonzero__ at least"
+            raise TypeError("Tree classes must derive from another Tree class, or an iterable type that defines __init__, __iter__ and __nonzero__ at least")
         # store the type of iterable used to represent the class subtrees
         newbases = tuple(newbases)
 
@@ -1535,7 +1540,7 @@ def treeFromChildLink(isExactChildFn, *args):
                     pr.graft(c, pr)
                     hasParent = True
                 else:
-                    print pars
+                    print(pars)
                     # should only be one parent, break on first encountered
 
                     err = "A child in Tree cannot have multiple " \

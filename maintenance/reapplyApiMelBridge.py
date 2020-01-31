@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 #!/usr/bin/env mayapy
 import inspect
 import os
@@ -18,14 +21,14 @@ logger = pymel.internal.startup._logger
 
 bridgeCache = apicache.ApiMelBridgeCache()
 bridgeCache.load()
-print "read: {}".format(bridgeCache.path())
+print("read: {}".format(bridgeCache.path()))
 
 for version in apicache.ApiCache.allVersions():
     cacheInst = apicache.ApiCache()
     cacheInst.version = version
     cacheInst.load()
 
-    print "updating: {}".format(cacheInst.path())
+    print("updating: {}".format(cacheInst.path()))
     _util.mergeCascadingDicts(bridgeCache.apiClassOverrides, cacheInst.apiClassInfo,
                               allowDictToListMerging=True)
     cacheInst.save()

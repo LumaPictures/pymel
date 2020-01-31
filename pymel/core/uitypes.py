@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 import os
 import sys
 import re
@@ -368,7 +371,7 @@ else:
 def objectTypeUI(name, **kwargs):
     try:
         return cmds.objectTypeUI(name, **kwargs)
-    except RuntimeError, topError:
+    except RuntimeError as topError:
         try:
             # some ui types (radioCollections) can only be identified with
             # their shortname
@@ -3364,7 +3367,7 @@ class AELoader(type):
             cls = getattr(mod, classname)
             cls(nodename)
         except Exception:
-            print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
+            print("failed to load python attribute editor template '%s.%s'" % (modname, classname))
             import traceback
             traceback.print_exc()
 
@@ -4586,7 +4589,7 @@ class MainProgressBar(ProgressBar):
             line display message to the user indicating that they can cancel
             the operation.
         """
-        from language import melGlobals
+        from .language import melGlobals
         bar = ProgressBar.__new__(
             cls, melGlobals['gMainProgressBar'], create=False)
         bar.setMinValue(minValue)

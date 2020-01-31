@@ -2,13 +2,16 @@
 Defines arguments manipulation utilities, like checking if an argument is iterable, flattening a nested arguments list, etc.
 These utility functions can be used by other util modules and are imported in util's main namespace for use by other pymel modules
 """
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 from collections import deque as _deque
 import sys
 import operator
 import itertools
 
-from utilitytypes import ProxyUnicode
+from .utilitytypes import ProxyUnicode
 
 if False:
     from typing import *
@@ -163,7 +166,7 @@ def expandArgs(*args, **kwargs):
         def _expandArgsTest(arg):
             return isIterable(arg)
     else:
-        raise ValueError, "unknown expand type=%s" % str(tpe)
+        raise ValueError("unknown expand type=%s" % str(tpe))
 
     if postorder:
         return postorderArgs(limit, _expandArgsTest, *args)
@@ -291,7 +294,7 @@ def iterateArgs(*args, **kwargs):
         def _iterateArgsTest(arg):
             return isIterable(arg)
     else:
-        raise ValueError, "unknown expand type=%s" % str(tpe)
+        raise ValueError("unknown expand type=%s" % str(tpe))
 
     if postorder:
         for arg in postorderIterArgs(limit, _iterateArgsTest, *args):

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import os
 import os.path
 import sys
@@ -37,7 +40,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi', 'pyi'),
     buildFailures = []
     pymeldir = os.path.dirname(os.path.dirname(sys.modules[__name__].__file__))
     outputdir = os.path.join(pymeldir, 'extras', 'completion')
-    print "Stub output dir:", outputdir
+    print("Stub output dir:", outputdir)
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
 
@@ -89,7 +92,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi', 'pyi'),
 
     for modulename in modules:
         try:
-            print "making stubs for: %s" % modulename
+            print("making stubs for: %s" % modulename)
             packagestubs(modulename, outputdir=outputdir, extensions=extensions,
                          skip_module_regex=skip_module_regex,
                          import_exclusions=importExclusions,
@@ -109,7 +112,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi', 'pyi'),
 
         pyDir = os.path.join(outputdir, 'py')
         pyRealUtilDir = os.path.join(outputdir, 'pyRealUtil')
-        print "creating %s" % pyRealUtilDir
+        print("creating %s" % pyRealUtilDir)
         copyDir(pyDir, pyRealUtilDir)
 
         srcUtilDir = os.path.join(pymeldir, 'pymel', 'util')
@@ -118,11 +121,11 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi', 'pyi'),
 
     if buildFailures:
         indent = '   '
-        print "WARNING! Module specified failed to build :"
+        print("WARNING! Module specified failed to build :")
         for failedModule, err, traceStr in buildFailures:
-            print "{}{} - {}".format(indent, failedModule, err)
-            print indent * 2 + traceStr.replace('\n', '\n' + indent * 2)
-        print "(Try specify different list of modules for 'modules' keyword " \
-              "argument)"
+            print("{}{} - {}".format(indent, failedModule, err))
+            print(indent * 2 + traceStr.replace('\n', '\n' + indent * 2))
+        print("(Try specify different list of modules for 'modules' keyword " \
+              "argument)")
 
     return outputdir

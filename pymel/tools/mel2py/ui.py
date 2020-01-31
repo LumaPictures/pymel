@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 from pymel.core.windows import *
 
 
@@ -18,7 +21,7 @@ class MelToPythonWindow(Window):
             mel = cmds.cmdScrollFieldExecuter(w.mel, q=1, text=1)
         try:
             py = mel2pyStr(mel)
-        except Exception, e:
+        except Exception as e:
             confirmDialog(t="Mel To Python", m="Conversion Error:\n%s" % e, b=["Ok"], db="Ok")
         else:
             cmds.cmdScrollFieldExecuter(w.python, e=1, text=py)
