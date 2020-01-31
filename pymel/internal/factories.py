@@ -1559,7 +1559,8 @@ class ApiTypeRegister(object):
 
                     cls.refInit[apiTypeName] = apiType
                     cls.inCast[apiTypeName] = cls._makeApiArraySetter(apiType, apiArrayItemType)
-                    # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
+                    # this is double wrapped because of the crashes occuring
+                    # with MDagPathArray. not sure if it's applicable to all arrays
                     if apiType == api.MDagPathArray:
                         # could be a lambdas, but explicit functions are better for debbuging
                         def pymelDagArrayRefCast(x):
@@ -1585,7 +1586,8 @@ class ApiTypeRegister(object):
                     cls.refInit[apiTypeName] = apiType
                     cls.refCast[apiTypeName] = pymelType
                     try:
-                        # automatically handle array types that correspond to this api type (e.g.  MColor and MColorArray )
+                        # automatically handle array types that correspond to
+                        # this api type (e.g.  MColor and MColorArray )
                         arrayTypename = apiTypeName + 'Array'
                         apiArrayType = getattr(api, arrayTypename)
                         # e.g.  'MColorArray', Color, api.MColor
@@ -1639,9 +1641,6 @@ class ApiArgUtil(object):
             else:
                 for i, methodInfo in enumerate(methodInfoList):
 
-                    #argInfo = methodInfo['argInfo']
-
-                    #argList = methodInfo['args']
                     argHelper = ApiArgUtil(apiClassName, methodName, i)
 
                     if argHelper.canBeWrapped():

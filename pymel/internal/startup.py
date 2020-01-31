@@ -848,7 +848,8 @@ class SubItemCache(PymelCache):
 
     def build(self):
         """
-        Used to rebuild cache, either by loading from a cache file, or rebuilding from scratch.
+        Used to rebuild cache, either by loading from a cache file, or
+        rebuilding from scratch.
         """
         data = self.load()
         if data is None:
@@ -878,7 +879,9 @@ class SubItemCache(PymelCache):
                 setattr(self, key, val)
         elif isinstance(obj, (list, tuple)):
             if len(obj) != len(cacheNames):
-                raise ValueError('length of update object (%d) did not match length of cache names (%d)' % (len(obj), len(cacheNames)))
+                raise ValueError('length of update object (%d) did not match '
+                                 'length of cache names (%d)' %
+                                 (len(obj), len(cacheNames)))
             for newVal, name in zip(obj, cacheNames):
                 setattr(self, name, newVal)
         else:
