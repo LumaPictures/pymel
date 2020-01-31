@@ -379,6 +379,9 @@ PyMEL
         mel.myMelScript(x.type(), trans) # automatic handling of mel procedures
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 __test__ = False
 
@@ -401,7 +404,7 @@ cmds.file(newFile=1, force=1)
 objs = cmds.ls(type='transform')
 if objs is not None:  # returns None when it finds no matches
     for x in objs:
-        print mm.eval('longNameOf("%s")' % x)
+        print(mm.eval('longNameOf("%s")' % x))
 
         # make and break some connections
         cmds.connectAttr('%s.sx' % x, '%s.sy' % x)
@@ -444,7 +447,7 @@ import pymel.core as pm
 
 pm.newFile(force=1)
 for x in pm.ls(type='transform'):
-    print x.longName()  # object oriented design
+    print(x.longName())  # object oriented design
 
     # make and break some connections
     x.sx >> x.sy  # connection operator

@@ -1,6 +1,9 @@
 """
 Functions for creating UI elements, as well as their class counterparts.
 """
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 import re
 import sys
@@ -79,9 +82,9 @@ def _findLongName(name, type=None):
     uiObjs = _util.listForNone(_lsUI(**kwargs))
     res = [x for x in uiObjs if x.endswith('|' + name)]
     if len(res) > 1:
-        raise ValueError, "found more than one UI element matching the name %s" % name
+        raise ValueError("found more than one UI element matching the name %s" % name)
     elif len(res) == 0:
-        raise ValueError, "could not find a UI element matching the name %s" % name
+        raise ValueError("could not find a UI element matching the name %s" % name)
     return res[0]
 
 
@@ -91,7 +94,7 @@ Modified:
   - long defaults to True
   - if no type is passed, defaults to all known types
     """
-    import uitypes
+    from . import uitypes
     return [uitypes.PyUI(x) for x in _lsUI(**kwargs)]
 
 scriptTableCmds = {}
@@ -103,7 +106,7 @@ Maya Bug Fix:
     - fixed getCellCmd to work with python functions, previously only worked with mel callbacks
         IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
     """
-    import uitypes
+    from . import uitypes
     cb = kwargs.pop('getCellCmd', kwargs.pop('gcc', None))
     cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc', None))
 
@@ -389,7 +392,7 @@ def showsHourglass(func):
 
 
 def pathButtonGrp(name=None, *args, **kwargs):
-    import uitypes
+    from . import uitypes
     if name is None or not cmds.textFieldButtonGrp(name, ex=1):
         create = True
     else:
@@ -399,7 +402,7 @@ def pathButtonGrp(name=None, *args, **kwargs):
 
 
 def folderButtonGrp(name=None, *args, **kwargs):
-    import uitypes
+    from . import uitypes
     if name is None or not cmds.textFieldButtonGrp(name, ex=1):
         create = True
     else:
@@ -409,12 +412,12 @@ def folderButtonGrp(name=None, *args, **kwargs):
 
 
 def vectorFieldGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     return uitypes.VectorFieldGrp(*args, **kwargs)
 
 
 def uiTemplate(name=None, force=False, exists=None):
-    import uitypes
+    from . import uitypes
     if exists:
         return cmds.uiTemplate(name, exists=1)
     else:
@@ -426,7 +429,7 @@ def setParent(*args, **kwargs):
 Modifications
   - returns None object instead of the string 'NONE'
     """
-    import uitypes
+    from . import uitypes
     result = cmds.setParent(*args, **kwargs)
     if kwargs.get('query', False) or kwargs.get('q', False):
         if result == 'NONE':
@@ -473,7 +476,7 @@ def menu(*args, **kwargs):
 
 
 def autoLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     return uitypes.AutoLayout(*args, **kwargs)
 
 
@@ -635,7 +638,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         win.show()
 
     """
-    import uitypes
+    from . import uitypes
 
     def makeGetter(ctrl, methodName, num):
         def getter():
@@ -801,7 +804,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         setter = ctrl.setText
         #if hasDefault: ctrl.setText( str(default) )
     else:
-        raise TypeError, "Unsupported dataType: %s" % dataType
+        raise TypeError("Unsupported dataType: %s" % dataType)
 #        else:
 #            ctrl = uitypes.TextFieldGrp( l=labelStr )
 #            getter = makeEvalGetter( ctrl.getText )
@@ -821,14 +824,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
 
 def getMainProgressBar():
-    import uitypes
+    from . import uitypes
     return uitypes.ProgressBar(melGlobals['gMainProgressBar'])
 
 # ------ Do not edit below this line --------
 
 @_factories.addCmdDocs
 def attrColorSliderGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -847,7 +850,7 @@ def attrColorSliderGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def attrControlGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -866,7 +869,7 @@ def attrControlGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def attrEnumOptionMenu(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -885,7 +888,7 @@ def attrEnumOptionMenu(*args, **kwargs):
 
 @_factories.addCmdDocs
 def attrEnumOptionMenuGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -904,7 +907,7 @@ def attrEnumOptionMenuGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def attrFieldGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -923,7 +926,7 @@ def attrFieldGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def attrFieldSliderGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -942,7 +945,7 @@ def attrFieldSliderGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def attrNavigationControlGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -961,7 +964,7 @@ def attrNavigationControlGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def attributeMenu(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -980,7 +983,7 @@ def attributeMenu(*args, **kwargs):
 
 @_factories.addCmdDocs
 def colorIndexSliderGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -999,7 +1002,7 @@ def colorIndexSliderGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def colorSliderButtonGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1018,7 +1021,7 @@ def colorSliderButtonGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def colorSliderGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1037,7 +1040,7 @@ def colorSliderGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def columnLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1056,7 +1059,7 @@ def columnLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def colorEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.colorEditor(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ColorEditor)
@@ -1064,7 +1067,7 @@ def colorEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def floatField(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1083,7 +1086,7 @@ def floatField(*args, **kwargs):
 
 @_factories.addCmdDocs
 def floatFieldGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1102,7 +1105,7 @@ def floatFieldGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def floatScrollBar(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1121,7 +1124,7 @@ def floatScrollBar(*args, **kwargs):
 
 @_factories.addCmdDocs
 def floatSlider(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1140,7 +1143,7 @@ def floatSlider(*args, **kwargs):
 
 @_factories.addCmdDocs
 def floatSlider2(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1159,7 +1162,7 @@ def floatSlider2(*args, **kwargs):
 
 @_factories.addCmdDocs
 def floatSliderButtonGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1178,7 +1181,7 @@ def floatSliderButtonGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def floatSliderGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1197,7 +1200,7 @@ def floatSliderGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def frameLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1216,7 +1219,7 @@ def frameLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def iconTextButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1235,7 +1238,7 @@ def iconTextButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def iconTextCheckBox(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1254,7 +1257,7 @@ def iconTextCheckBox(*args, **kwargs):
 
 @_factories.addCmdDocs
 def iconTextRadioButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1273,7 +1276,7 @@ def iconTextRadioButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def iconTextRadioCollection(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1292,7 +1295,7 @@ def iconTextRadioCollection(*args, **kwargs):
 
 @_factories.addCmdDocs
 def iconTextScrollList(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1311,7 +1314,7 @@ def iconTextScrollList(*args, **kwargs):
 
 @_factories.addCmdDocs
 def iconTextStaticLabel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1330,7 +1333,7 @@ def iconTextStaticLabel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def intField(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1349,7 +1352,7 @@ def intField(*args, **kwargs):
 
 @_factories.addCmdDocs
 def intFieldGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1368,7 +1371,7 @@ def intFieldGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def intScrollBar(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1387,7 +1390,7 @@ def intScrollBar(*args, **kwargs):
 
 @_factories.addCmdDocs
 def intSlider(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1406,7 +1409,7 @@ def intSlider(*args, **kwargs):
 
 @_factories.addCmdDocs
 def intSliderGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1425,7 +1428,7 @@ def intSliderGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def paneLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1444,7 +1447,7 @@ def paneLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def panel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1463,7 +1466,7 @@ def panel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def radioButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1482,7 +1485,7 @@ def radioButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def radioButtonGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1501,7 +1504,7 @@ def radioButtonGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def radioCollection(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.radioCollection(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RadioCollection)
@@ -1509,7 +1512,7 @@ def radioCollection(*args, **kwargs):
 
 @_factories.addCmdDocs
 def radioMenuItemCollection(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.radioMenuItemCollection(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RadioMenuItemCollection)
@@ -1517,7 +1520,7 @@ def radioMenuItemCollection(*args, **kwargs):
 
 @_factories.addCmdDocs
 def symbolButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1536,7 +1539,7 @@ def symbolButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def symbolCheckBox(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1555,7 +1558,7 @@ def symbolCheckBox(*args, **kwargs):
 
 @_factories.addCmdDocs
 def textCurves(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.textCurves(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.TextCurves)
@@ -1563,7 +1566,7 @@ def textCurves(*args, **kwargs):
 
 @_factories.addCmdDocs
 def textField(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1582,7 +1585,7 @@ def textField(*args, **kwargs):
 
 @_factories.addCmdDocs
 def textFieldButtonGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1601,7 +1604,7 @@ def textFieldButtonGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def textFieldGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1620,7 +1623,7 @@ def textFieldGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def text(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1639,7 +1642,7 @@ def text(*args, **kwargs):
 
 @_factories.addCmdDocs
 def textScrollList(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1663,7 +1666,7 @@ def textScrollList(*args, **kwargs):
 
 @_factories.addCmdDocs
 def toolButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1682,7 +1685,7 @@ def toolButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def toolCollection(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.toolCollection(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ToolCollection)
@@ -1690,7 +1693,7 @@ def toolCollection(*args, **kwargs):
 
 @_factories.addCmdDocs
 def window(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1709,7 +1712,7 @@ def window(*args, **kwargs):
 
 @_factories.addCmdDocs
 def blendShapeEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.blendShapeEditor(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.BlendShapeEditor)
@@ -1717,7 +1720,7 @@ def blendShapeEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def blendShapePanel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1736,7 +1739,7 @@ def blendShapePanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def button(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1755,7 +1758,7 @@ def button(*args, **kwargs):
 
 @_factories.addCmdDocs
 def checkBox(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1774,7 +1777,7 @@ def checkBox(*args, **kwargs):
 
 @_factories.addCmdDocs
 def checkBoxGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1793,7 +1796,7 @@ def checkBoxGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def confirmDialog(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.confirmDialog(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ConfirmDialog)
@@ -1801,7 +1804,7 @@ def confirmDialog(*args, **kwargs):
 
 @_factories.addCmdDocs
 def fontDialog(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.fontDialog(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FontDialog)
@@ -1809,7 +1812,7 @@ def fontDialog(*args, **kwargs):
 
 @_factories.addCmdDocs
 def formLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1830,7 +1833,7 @@ _menu = menu
 
 @_factories.addCmdDocs
 def menu(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1849,7 +1852,7 @@ def menu(*args, **kwargs):
 
 @_factories.addCmdDocs
 def menuBarLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1868,7 +1871,7 @@ def menuBarLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def menuEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1887,7 +1890,7 @@ def menuEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def menuItem(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1906,7 +1909,7 @@ def menuItem(*args, **kwargs):
 
 @_factories.addCmdDocs
 def menuSet(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.menuSet(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.MenuSet)
@@ -1914,7 +1917,7 @@ def menuSet(*args, **kwargs):
 
 @_factories.addCmdDocs
 def promptDialog(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.promptDialog(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.PromptDialog)
@@ -1922,7 +1925,7 @@ def promptDialog(*args, **kwargs):
 
 @_factories.addCmdDocs
 def scrollField(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1941,7 +1944,7 @@ def scrollField(*args, **kwargs):
 
 @_factories.addCmdDocs
 def scrollLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1960,7 +1963,7 @@ def scrollLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def scriptedPanel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1979,7 +1982,7 @@ def scriptedPanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def scriptedPanelType(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.scriptedPanelType(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ScriptedPanelType)
@@ -1987,7 +1990,7 @@ def scriptedPanelType(*args, **kwargs):
 
 @_factories.addCmdDocs
 def shelfButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2006,7 +2009,7 @@ def shelfButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def shelfLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2025,7 +2028,7 @@ def shelfLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def shelfTabLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2044,7 +2047,7 @@ def shelfTabLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def tabLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2063,7 +2066,7 @@ def tabLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def outlinerEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2082,7 +2085,7 @@ def outlinerEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def optionMenu(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2106,7 +2109,7 @@ def optionMenu(*args, **kwargs):
 
 @_factories.addCmdDocs
 def outlinerPanel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2125,7 +2128,7 @@ def outlinerPanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def optionMenuGrp(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2149,7 +2152,7 @@ def optionMenuGrp(*args, **kwargs):
 
 @_factories.addCmdDocs
 def animCurveEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2168,7 +2171,7 @@ def animCurveEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def animDisplay(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.animDisplay(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AnimDisplay)
@@ -2176,7 +2179,7 @@ def animDisplay(*args, **kwargs):
 
 @_factories.addCmdDocs
 def separator(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2195,7 +2198,7 @@ def separator(*args, **kwargs):
 
 @_factories.addCmdDocs
 def visor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2214,7 +2217,7 @@ def visor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def layout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2233,7 +2236,7 @@ def layout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def layoutDialog(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2252,7 +2255,7 @@ def layoutDialog(*args, **kwargs):
 
 @_factories.addCmdDocs
 def layerButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2271,7 +2274,7 @@ def layerButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def hyperGraph(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2290,7 +2293,7 @@ def hyperGraph(*args, **kwargs):
 
 @_factories.addCmdDocs
 def hyperPanel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2309,7 +2312,7 @@ def hyperPanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def hyperShade(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.hyperShade(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.HyperShade)
@@ -2317,7 +2320,7 @@ def hyperShade(*args, **kwargs):
 
 @_factories.addCmdDocs
 def rowColumnLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2336,7 +2339,7 @@ def rowColumnLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def rowLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2355,7 +2358,7 @@ def rowLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def renderWindowEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2374,7 +2377,7 @@ def renderWindowEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def glRenderEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.glRenderEditor(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.GlRenderEditor)
@@ -2384,7 +2387,7 @@ _scriptTable = scriptTable
 
 @_factories.addCmdDocs
 def scriptTable(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2403,7 +2406,7 @@ def scriptTable(*args, **kwargs):
 
 @_factories.addCmdDocs
 def keyframeStats(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2422,7 +2425,7 @@ def keyframeStats(*args, **kwargs):
 
 @_factories.addCmdDocs
 def keyframeOutliner(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2441,7 +2444,7 @@ def keyframeOutliner(*args, **kwargs):
 
 @_factories.addCmdDocs
 def canvas(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2460,7 +2463,7 @@ def canvas(*args, **kwargs):
 
 @_factories.addCmdDocs
 def channelBox(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2479,7 +2482,7 @@ def channelBox(*args, **kwargs):
 
 @_factories.addCmdDocs
 def gradientControl(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2498,7 +2501,7 @@ def gradientControl(*args, **kwargs):
 
 @_factories.addCmdDocs
 def gradientControlNoAttr(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2517,7 +2520,7 @@ def gradientControlNoAttr(*args, **kwargs):
 
 @_factories.addCmdDocs
 def gridLayout(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2536,7 +2539,7 @@ def gridLayout(*args, **kwargs):
 
 @_factories.addCmdDocs
 def messageLine(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2555,7 +2558,7 @@ def messageLine(*args, **kwargs):
 
 @_factories.addCmdDocs
 def popupMenu(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2574,7 +2577,7 @@ def popupMenu(*args, **kwargs):
 
 @_factories.addCmdDocs
 def modelEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2598,7 +2601,7 @@ def modelEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def modelPanel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2617,7 +2620,7 @@ def modelPanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def helpLine(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2636,7 +2639,7 @@ def helpLine(*args, **kwargs):
 
 @_factories.addCmdDocs
 def hardwareRenderPanel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2655,7 +2658,7 @@ def hardwareRenderPanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def image(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2674,7 +2677,7 @@ def image(*args, **kwargs):
 
 @_factories.addCmdDocs
 def nodeIconButton(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2693,7 +2696,7 @@ def nodeIconButton(*args, **kwargs):
 
 @_factories.addCmdDocs
 def commandLine(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2712,7 +2715,7 @@ def commandLine(*args, **kwargs):
 
 @_factories.addCmdDocs
 def progressBar(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2731,7 +2734,7 @@ def progressBar(*args, **kwargs):
 
 @_factories.addCmdDocs
 def defaultLightListCheckBox(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2750,7 +2753,7 @@ def defaultLightListCheckBox(*args, **kwargs):
 
 @_factories.addCmdDocs
 def exclusiveLightCheckBox(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2769,7 +2772,7 @@ def exclusiveLightCheckBox(*args, **kwargs):
 
 @_factories.addCmdDocs
 def clipSchedulerOutliner(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2788,7 +2791,7 @@ def clipSchedulerOutliner(*args, **kwargs):
 
 @_factories.addCmdDocs
 def clipEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.clipEditor(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ClipEditor)
@@ -2796,7 +2799,7 @@ def clipEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def deviceEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     res = cmds.deviceEditor(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.DeviceEditor)
@@ -2804,7 +2807,7 @@ def deviceEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def devicePanel(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2823,7 +2826,7 @@ def devicePanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def dynPaintEditor(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2842,7 +2845,7 @@ def dynPaintEditor(*args, **kwargs):
 
 @_factories.addCmdDocs
 def nameField(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2861,7 +2864,7 @@ def nameField(*args, **kwargs):
 
 @_factories.addCmdDocs
 def cmdScrollFieldExecuter(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2880,7 +2883,7 @@ def cmdScrollFieldExecuter(*args, **kwargs):
 
 @_factories.addCmdDocs
 def cmdScrollFieldReporter(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2899,7 +2902,7 @@ def cmdScrollFieldReporter(*args, **kwargs):
 
 @_factories.addCmdDocs
 def cmdShell(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2918,7 +2921,7 @@ def cmdShell(*args, **kwargs):
 
 @_factories.addCmdDocs
 def nameField(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -2937,7 +2940,7 @@ def nameField(*args, **kwargs):
 
 @_factories.addCmdDocs
 def palettePort(*args, **kwargs):
-    import uitypes
+    from . import uitypes
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:

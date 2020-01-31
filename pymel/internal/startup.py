@@ -2,6 +2,9 @@
 Maya-related functions, which are useful to both `api` and `core`, including `mayaInit` which ensures
 that maya is initialized in standalone mode.
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 import os.path
 import sys
 import glob
@@ -16,7 +19,7 @@ from collections import namedtuple
 import pymel.versions as versions
 from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName
-import plogging
+from . import plogging
 
 
 # There are FOUR different ways maya might be started, all of which are
@@ -179,12 +182,12 @@ def _mayaInit(forversion=None):
     oldSkipSetup = os.environ.get('MAYA_SKIP_USERSETUP_PY')
     os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
     try:
-        if not aboutExists and not sys.modules.has_key('maya.standalone'):
+        if not aboutExists and 'maya.standalone' not in sys.modules:
             try:
                 _logger.debug("startup.mayaInit: running standalone.initialize")
                 import maya.standalone  # @UnresolvedImport
                 maya.standalone.initialize(name="python")
-            except ImportError, e:
+            except ImportError as e:
                 raise ImportError("%s: pymel was unable to intialize maya.standalone" % e)
 
         try:
@@ -292,7 +295,7 @@ def initMEL():
 
                     maya.mel.eval('source "%s"' % f.encode(encoding))
 
-    except Exception, e:
+    except Exception as e:
         _logger.error("could not perform Maya initialization sequence: failed on %s: %s" % (f, e))
     finally:
         om.MMessage.removeCallbacks(callbacks)
@@ -470,7 +473,7 @@ def fixMayapy2011SegFault():
                 import sys
                 atexit._run_exitfuncs()
                 try:
-                    print "pymel: hard exiting to avoid mayapy crash..."
+                    print("pymel: hard exiting to avoid mayapy crash...")
                 except Exception:
                     pass
                 import os
@@ -676,7 +679,7 @@ class PymelCache(object):
             _logger.debug(self._actionMessage('Loading', 'from', newPath))
             try:
                 finalData = self.fromRawData(func(newPath))
-            except Exception, e:
+            except Exception as e:
                 self._errorMsg('read', 'from', newPath, e)
             else:
                 self._lastReadPath = newPath
@@ -697,7 +700,7 @@ class PymelCache(object):
 
         try:
             func(self.toRawData(data), newPath)
-        except Exception, e:
+        except Exception as e:
             self._errorMsg('write', 'to', newPath, e)
         else:
             self._lastWritePath = newPath

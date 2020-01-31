@@ -1,6 +1,9 @@
 """
 Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 # Built-in imports
 import re
@@ -527,7 +530,7 @@ if docstringMode == 'html':
             try:
                 cmdlist[cmd]['example'] = example
             except KeyError:
-                print "found an example for an unknown command:", cmd
+                print("found an example for an unknown command:", cmd)
                 pass
 
 
@@ -747,7 +750,7 @@ class Callback(object):
     def logCallbackError(cls, callback, exception=None, trace=None,
                          creationTrace=None):
         if exception is None:
-            exception = sys.exc_value
+            exception = sys.exc_info()[1]
         if trace is None:
             trace = traceback.format_exc()
         if creationTrace is None:
@@ -774,7 +777,7 @@ Error Trace:
 
     @classmethod
     def printRecentError(cls, index=0):
-        print cls.formatRecentError(index=index)
+        print(cls.formatRecentError(index=index))
 
     def __init__(self, func, *args, **kwargs):
         self.func = func
@@ -787,7 +790,7 @@ Error Trace:
         try:
             try:
                 return self.func(*self.args, **self.kwargs)
-            except Exception, e:
+            except Exception as e:
                 self.logCallbackError(self)
                 raise
         finally:
@@ -805,7 +808,7 @@ class CallbackWithArgs(Callback):
         try:
             try:
                 return self.func(*self.args + args, **kwargsFinal)
-            except Exception, e:
+            except Exception as e:
                 self.logCallbackError(self)
                 raise
         finally:
@@ -828,7 +831,7 @@ def makeUICallback(origCallback, args, doPassSelf):
         newargs = tuple(newargs)
         try:
             res = origCallback(*newargs)
-        except Exception, e:
+        except Exception as e:
             # if origCallback was ITSELF a Callback obj, it will have
             # already logged the error..
             if not isinstance(origCallback, Callback):
@@ -1071,7 +1074,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
                 elif res:
                     try:
                         res = returnFunc(res)
-                    except Exception, e:
+                    except Exception as e:
                         pass
             return res
         newFunc = newFuncWithReturnFunc
@@ -1416,7 +1419,7 @@ class ApiTypeRegister(object):
     def _makeArraySetter(apiTypeName, length, initFunc):
         def setArray(array):
             if len(array) != length:
-                raise ValueError, 'Input list must contain exactly %s %ss' % (length, apiTypeName)
+                raise ValueError('Input list must contain exactly %s %ss' % (length, apiTypeName))
             safeArrayPtr = initFunc()
             for i, val in enumerate(array):
                 safeArrayPtr[i] = val
@@ -1647,7 +1650,7 @@ class ApiArgUtil(object):
 
                 # if it is still None then we didn't find anything
                 if methodIndex is None:
-                    raise TypeError, "method %s of %s cannot be wrapped" % (methodName, apiClassName)
+                    raise TypeError("method %s of %s cannot be wrapped" % (methodName, apiClassName))
 
         self.methodInfo = apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
         self.methodIndex = methodIndex
@@ -1708,8 +1711,8 @@ class ApiArgUtil(object):
 
     @staticmethod
     def isValidEnum(enumTuple):
-        if apiClassInfo.has_key(enumTuple[0]) and \
-                apiClassInfo[enumTuple[0]]['enums'].has_key(enumTuple[1]):
+        if enumTuple[0] in apiClassInfo and \
+                enumTuple[1] in apiClassInfo[enumTuple[0]]['enums']:
             return True
         return False
 
@@ -1744,7 +1747,7 @@ class ApiArgUtil(object):
                 else:
                     if direction == 'in':
                         assert argtype in ApiTypeRegister.inCast or \
-                            defaults.has_key(argname) or \
+                            argname in defaults or \
                             argtype == self.apiClassName, \
                             '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
 
@@ -1759,7 +1762,7 @@ class ApiArgUtil(object):
                     else:
                         # in+out, or something else weird...
                         return False
-        except AssertionError, msg:
+        except AssertionError as msg:
             #_logger.debug( str(msg) )
             return False
 
@@ -1974,7 +1977,7 @@ class ApiArgUtil(object):
         try:
             return apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
         except ValueError:
-            raise ValueError, "expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input)
+            raise ValueError("expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input))
 
     @staticmethod
     def fromInternalUnits(result, returnType, unit=None):
@@ -3053,13 +3056,13 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
                 # note that conversion to the correct type is done here
                 return owner(self.value)
             else:
-                raise AttributeError, "Class constants on %s are only defined on the class" % (owner.__name__)
+                raise AttributeError("Class constants on %s are only defined on the class" % (owner.__name__))
 
         def __set__(self, instance, value):
-            raise AttributeError, "class constant cannot be set"
+            raise AttributeError("class constant cannot be set")
 
         def __delete__(self, instance):
-            raise AttributeError, "class constant cannot be deleted"
+            raise AttributeError("class constant cannot be deleted")
 
     def __new__(cls, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
@@ -3206,7 +3209,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             try:
                 # return MetaMayaTypeWrapper.ClassConstant(newcls(attr))
                 return MetaMayaTypeWrapper.ClassConstant(attr)
-            except Exception, e:
+            except Exception as e:
                 _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
         #------------------------
         # Class Constants
@@ -3607,7 +3610,7 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraA
     else:
         try:
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), classDict)
-        except TypeError, msg:
+        except TypeError as msg:
             # for the error: metaclass conflict: the metaclass of a derived
             # class must be a (non-strict) subclass of the metaclasses of all
             # its bases
@@ -3924,7 +3927,7 @@ class VirtualClassManager(object):
                 # it's a custom class: test for disallowed attributes
                 badAttrs = self.INVALID_ATTRS.intersection(each_cls.__dict__)
                 if badAttrs:
-                    raise ValueError, 'invalid attribute name(s) %s: these special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
+                    raise ValueError('invalid attribute name(s) %s: these special attributes are not allowed on virtual nodes' % ', '.join(badAttrs))
 
         assert parentCls, "passed class must be a subclass of a PyNode type"
         #assert issubclass( vclass, parentCls ), "%s must be a subclass of %s" % ( vclass, parentCls )
@@ -3988,11 +3991,11 @@ registerVirtualClass = virtualClasses.register
 
 
 def isValidPyNode(arg):
-    return pyNodeTypesHierarchy.has_key(arg)
+    return arg in pyNodeTypesHierarchy
 
 
 def isValidPyNodeName(arg):
-    return pyNodeNamesToPyNodes.has_key(arg)
+    return arg in pyNodeNamesToPyNodes
 
 
 def toApiTypeStr(obj, default=None):

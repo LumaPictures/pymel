@@ -1,6 +1,9 @@
 """
 Contains classes corresponding to the Maya type hierarchy, including `DependNode`, `Transform`, `Mesh`, and `Camera`.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import os
 import re
@@ -565,10 +568,10 @@ class DependNode(general.PyNode):
         except AttributeError:
             try:
                 return DependNode.attr(self, attr)
-            except general.MayaAttributeError, e:
+            except general.MayaAttributeError as e:
                 # since we're being called via __getattr__ we don't know whether the user was intending
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
-                raise AttributeError, "%r has no attribute or method named '%s'" % (self, attr)
+                raise AttributeError("%r has no attribute or method named '%s'" % (self, attr))
 
     @_util.universalmethod
     def attrSpec(obj, attr):  # @NoSelf
@@ -3763,7 +3766,7 @@ class Transform(DagNode):
             # print "Transform.__getattr__(%r)" % attr
             # Functions through normal inheritance
             res = DependNode.__getattr__(self, attr)
-        except AttributeError, e:
+        except AttributeError as e:
             # Functions via shape inheritance , and then, implicitly, Attributes
             for shape in self.getShapes():
                 try:
@@ -3785,7 +3788,7 @@ class Transform(DagNode):
             # print "Transform.__setattr__", attr, val
             # Functions through normal inheritance
             return DependNode.__setattr__(self, attr, val)
-        except AttributeError, e:
+        except AttributeError as e:
             # Functions via shape inheritance , and then, implicitly, Attributes
             # print "Trying shape"
             shape = self.getShape()
@@ -3810,7 +3813,7 @@ class Transform(DagNode):
         # print "ATTR: Transform"
         try:
             res = self._attr(attr, checkShape)
-        except general.MayaAttributeError, e:
+        except general.MayaAttributeError as e:
             if checkShape:
                 try:
                     res = self.getShape().attr(attr)
@@ -8691,7 +8694,7 @@ class SelectionSet(_api.MSelectionList):
         if isinstance(item, (DependNode, DagNode, general.Attribute)):
             return self.apicls.hasItem(self, item.__apiobject__())
         elif isinstance(item, general.Component):
-            raise NotImplementedError, 'Components not yet supported'
+            raise NotImplementedError('Components not yet supported')
         else:
             return self.apicls.hasItem(self, general.PyNode(item).__apiobject__())
 
@@ -8714,7 +8717,7 @@ class SelectionSet(_api.MSelectionList):
         general.PyNode
         """
         if index >= len(self):
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         plug = _api.MPlug()
         obj = _api.MObject()
@@ -8747,7 +8750,7 @@ class SelectionSet(_api.MSelectionList):
         if isinstance(item, (DependNode, DagNode, general.Attribute)):
             return self.apicls.replace(self, index, item.__apiobject__())
         elif isinstance(item, general.Component):
-            raise NotImplementedError, 'Components not yet supported'
+            raise NotImplementedError('Components not yet supported')
         else:
             return self.apicls.replace(self, general.PyNode(item).__apiobject__())
 
@@ -8796,7 +8799,7 @@ class SelectionSet(_api.MSelectionList):
         if isinstance(item, (DependNode, DagNode, general.Attribute)):
             return self.apicls.add(self, item.__apiobject__())
         elif isinstance(item, general.Component):
-            raise NotImplementedError, 'Components not yet supported'
+            raise NotImplementedError('Components not yet supported')
         else:
             return self.apicls.add(self, general.PyNode(item).__apiobject__())
 
@@ -8812,7 +8815,7 @@ class SelectionSet(_api.MSelectionList):
         general.PyNode
         """
         if index >= len(self):
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         return self.apicls.remove(self, index)
 
     def isSubSet(self, other):
@@ -10486,7 +10489,7 @@ class SkinCluster(GeometryFilter):
             try:
                 geometry = geometry.getShape()
             except:
-                raise TypeError, "%s is a transform with no shape" % geometry
+                raise TypeError("%s is a transform with no shape" % geometry)
 
         if isinstance(geometry, GeometryShape):
             components = _api.toComponentMObject(geometry.__apimdagpath__())
@@ -10516,7 +10519,7 @@ class SkinCluster(GeometryFilter):
             try:
                 geometry = geometry.getShape()
             except:
-                raise TypeError, "%s is a transform with no shape" % geometry
+                raise TypeError("%s is a transform with no shape" % geometry)
 
         if isinstance(geometry, GeometryShape):
             components = _api.toComponentMObject(geometry.__apimdagpath__())

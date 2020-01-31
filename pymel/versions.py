@@ -7,6 +7,9 @@ Class for storing apiVersions, which are the best method for comparing versions.
     ...     print "The current version is later than Maya 2008"
     The current version is later than Maya 2008
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import re
 import struct
@@ -210,7 +213,7 @@ def flavor():
     try:
         return maya.cmds.about(product=1).split()[1]
     except AttributeError:
-        raise RuntimeError, "This method cannot be used until maya is fully initialized"
+        raise RuntimeError("This method cannot be used until maya is fully initialized")
 
 
 def isUnlimited():
@@ -259,4 +262,4 @@ def isEval():
     try:
         return maya.cmds.about(evalVersion=1)
     except AttributeError:
-        raise RuntimeError, "This method cannot be used until maya is fully initialized"
+        raise RuntimeError("This method cannot be used until maya is fully initialized")

@@ -1,4 +1,7 @@
 "Parser for Maya.env"
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import sys
 import os
@@ -156,7 +159,7 @@ class EnvLex:
             tok = self.lexer.token()
             if not tok:
                 break
-            print tok
+            print(tok)
 
 # second level lexer : os dependant parsing of values and variable substitution
 
@@ -210,7 +213,7 @@ class ValueLex:
                 warnings.warn("Line %i: $VAR should be used on linux or osx, \%VAR\% on nt" % self.lexer.lineno, ExecutionWarning)
                 self.warn.VAR = True
         v = t.value.lstrip('$')
-        if self.symbols.has_key(v):
+        if v in self.symbols:
             t.value = self.symbols[v]
         return t
 
@@ -221,7 +224,7 @@ class ValueLex:
                 warnings.warn("Line %i: $VAR should be used on linux or osx, \%VAR\% on nt" % self.lexer.lineno, ExecutionWarning)
                 self.warn.VAR = True
         v = t.value.strip('%')
-        if self.symbols.has_key(v):
+        if v in self.symbols:
             t.value = self.symbols[v]
         return t
     # Assignation sign, ignore spaces around it
@@ -256,7 +259,7 @@ class ValueLex:
             tok = self.lexer.token()
             if not tok:
                 break
-            print tok
+            print(tok)
 
 # Do the 2 level parse of a Maya.env format text and return a symbol table of the declared env vars
 
@@ -295,7 +298,7 @@ def parse(text, environ=os.environ, osname=os.name):
                     # change it here
                     newvalue = None
                     action = 'Ignore'
-                    if symbols.has_key(var):
+                    if var in symbols:
 
                         # For these variables ONLY, maya will append the value in maya.env to an exisiting environment variable
                         # (Default is for already defined value to override value in maya.env)
@@ -324,14 +327,14 @@ def parse(text, environ=os.environ, osname=os.name):
                         symbols[var] = newvalue
                         newsymbols[var] = newvalue
                     if action == 'Set':
-                        print u"%s set to value %s" % (var, unicode(newvalue))
+                        print(u"%s set to value %s" % (var, unicode(newvalue)))
                     elif action == 'Add':
-                        print u"%s was already set, appending value: %s" % (var, unicode(newvalue))
+                        print(u"%s was already set, appending value: %s" % (var, unicode(newvalue)))
                     elif action == 'Ignore':
-                        print u"%s was already set, ignoring line: %s" % (var, unicode(tok.value))
+                        print(u"%s was already set, ignoring line: %s" % (var, unicode(tok.value)))
                 var = value = None
             elif tok.type == 'CANCEL':
-                print "Line was ignored due to parsing errors: %s" % unicode(tok.value)
+                print("Line was ignored due to parsing errors: %s" % unicode(tok.value))
                 var = value = None
             else:
                 pass
@@ -388,7 +391,7 @@ def parseMayaenv(envLocation=None, version=None):
                 #_logger.debug("%s was set or modified" % v)
                 os.environ[v] = envVars[v]
             # add to syspath
-            if envVars.has_key('PYTHONPATH'):
+            if 'PYTHONPATH' in envVars:
                 #_logger.debug("sys.path will be updated")
                 plist = os.environ['PYTHONPATH'].split(os.pathsep)
                 for p in plist:
@@ -400,7 +403,7 @@ def parseMayaenv(envLocation=None, version=None):
             return success
     else:
         if version:
-            print"Found no suitable Maya.env file for Maya version %s" % version
+            print("Found no suitable Maya.env file for Maya version %s" % version)
         else:
-            print"Found no suitable Maya.env file"
+            print("Found no suitable Maya.env file")
         return False

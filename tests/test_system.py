@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import os
 import unittest
 import tempfile
@@ -13,7 +16,7 @@ class testCase_references(unittest.TestCase):
 
     def setUp(self):
         self.temp = tempfile.mkdtemp(prefix='referencesTest')
-        print "created temp dir: %s" % self.temp
+        print("created temp dir: %s" % self.temp)
 
         # Refs:
         #  sphere.ma
@@ -33,7 +36,7 @@ class testCase_references(unittest.TestCase):
         #        :cone1:cubeInCone:sphere => sphere.ma
 
         # create sphere file
-        print "sphere file"
+        print("sphere file")
 #        cmds.file(new=1, f=1)
         pm.newFile(f=1)
         sphere = pm.polySphere()
@@ -42,7 +45,7 @@ class testCase_references(unittest.TestCase):
         self.sphereFile = pm.saveAs( os.path.join( self.temp, 'sphere.ma' ), f=1 )
 
         # create cube file
-        print "cube file"
+        print("cube file")
         pm.newFile(f=1)
         pm.polyCube()
         pm.createReference( self.sphereFile, namespace='sphere' )
@@ -50,7 +53,7 @@ class testCase_references(unittest.TestCase):
         self.cubeFile = pm.saveAs( os.path.join( self.temp, 'cube.ma' ), f=1 )
 
         # create cone file
-        print "cone file"
+        print("cone file")
         pm.newFile(f=1)
         pm.polyCone()
         pm.createReference( self.cubeFile, namespace='cubeInCone' )
@@ -58,7 +61,7 @@ class testCase_references(unittest.TestCase):
         pm.PyNode('cubeInCone:sphere:pSphere1').attr('translateZ').set(2)
         self.coneFile = pm.saveAs( os.path.join( self.temp, 'cone.ma' ), f=1 )
 
-        print "master file"
+        print("master file")
         pm.newFile(f=1)
         self.sphereRef1 = pm.createReference( self.sphereFile, namespace='sphere1' )
         pm.PyNode('sphere1:pSphere1').attr('translateY').set(2)
@@ -129,19 +132,19 @@ class testCase_references(unittest.TestCase):
             refDepth = thisDepth
 
     def test_basic_file_cmds(self):
-        print "Exporting all", os.path.join( self.temp, 'all.ma' )
+        print("Exporting all", os.path.join( self.temp, 'all.ma' ))
         expFile = pm.exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
-        print "Importing"
+        print("Importing")
         # if we don't do this newFile first, maya crashes...
         #   BSPR-18231 Maya crashes on import after exporting with references
         pm.newFile(f=1)
         pm.importFile( expFile )
-        print "Exporting all"
+        print("Exporting all")
         pm.exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
-        print "Exporting animation"
+        print("Exporting animation")
         pm.exportAnim( os.path.join( self.temp, 'anim.ma' ), force=1)
         pm.select(pm.SCENE.persp)
-        print "Exporting selected animation"
+        print("Exporting selected animation")
         pm.exportSelectedAnim( os.path.join( self.temp, 'selAnim.ma' ), force=1)
 
     def test_file_reference(self):
@@ -238,7 +241,7 @@ class testCase_references(unittest.TestCase):
         sphereRefs = [x for x in pm.listReferences(recursive=True)
                       if x.path.endswith('sphere.ma')]
         for ref in sphereRefs:
-            print "testing failed ref edits on: %s" % ref
+            print("testing failed ref edits on: %s" % ref)
             self.assertEqual(1, len(pm.referenceQuery(ref,successfulEdits=False,failedEdits=True,es=True)))
             self.assertEqual(1, len(cmds.referenceQuery(str(ref.refNode), successfulEdits=False,failedEdits=True,es=True)))
 
@@ -476,7 +479,7 @@ class testCase_references(unittest.TestCase):
                 if not loaded:
                     ref = pm.FileReference(namespace=ns)
                     if not loaded:
-                        print "unloading: %r" % ns
+                        print("unloading: %r" % ns)
                         ref.unload()
 
             pprint(loadedByNS)

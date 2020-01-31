@@ -2,6 +2,9 @@
 Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import inspect
 import types
@@ -162,13 +165,13 @@ class metaStatic(Singleton):
                 if not self:
                     return super(newcls, self).__init__(*p, **k)
                 else:
-                    raise TypeError, "'" + classname + "' object does not support redefinition"
+                    raise TypeError("'" + classname + "' object does not support redefinition")
         newdict = {'__init__': __init__}
         # hide methods with might herit from a mutable base
 
         def __getattribute__(self, name):
             if name in newcls._hide:
-                raise AttributeError, "'" + classname + "' object has no attribute '" + name + "'"
+                raise AttributeError("'" + classname + "' object has no attribute '" + name + "'")
             else:
                 return super(newcls, self).__getattribute__(name)
         newdict['__getattribute__'] = __getattribute__
@@ -177,11 +180,11 @@ class metaStatic(Singleton):
         # prevent item assignation or deletion
 
         def __setitem__(self, key, value):
-            raise TypeError, "'%s' object does not support item assignation" % (self.__class__)
+            raise TypeError("'%s' object does not support item assignation" % (self.__class__))
         newdict['__setitem__'] = __setitem__
 
         def __delitem__(self, key):
-            raise TypeError, "'%s' object does not support item deletion" % (self.__class__)
+            raise TypeError("'%s' object does not support item deletion" % (self.__class__))
         newdict['__delitem__'] = __delitem__
         # Now add methods of the defined class, as long as it doesn't try to redefine
         # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
@@ -246,11 +249,11 @@ class ModuleInterceptor(object):
     def __getattr__(self, attr):
         try:
             return getattr(self.module, attr)
-        except AttributeError, msg:
+        except AttributeError as msg:
             try:
                 self.callback(self.module, attr)
             except:
-                raise AttributeError, msg
+                raise AttributeError(msg)
 
 # read only decorator
 
@@ -277,7 +280,7 @@ class metaReadOnlyAttr(type):
             if hasattr(c, '__readonly__'):
                 readonly.update(c.__readonly__)
         if name in readonly:
-            raise AttributeError, "attribute %s is a read only class attribute and cannot be modified on class %s" % (name, cls.__name__)
+            raise AttributeError("attribute %s is a read only class attribute and cannot be modified on class %s" % (name, cls.__name__))
         else:
             super(metaReadOnlyAttr, cls).__setattr__(name, value)
 
@@ -418,7 +421,7 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
             wrapper.__name__ = method.__name__
             return wrapper
     else:
-        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'
+        raise TypeError('Must specify either a dataAttrName or a dataFuncName')
 
     class Proxy(object):
         # make a default __init__ which sets the dataAttr...
@@ -457,12 +460,12 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
                 try:
                     setattr(Proxy, attrName, _methodWrapper(attrValue))
                 except AttributeError:
-                    print "proxyClass: error adding proxy method %s.%s" % (classname, attrName)
+                    print("proxyClass: error adding proxy method %s.%s" % (classname, attrName))
             else:
                 try:
                     setattr(Proxy, attrName, ProxyAttribute(attrName))
                 except AttributeError:
-                    print "proxyClass: error adding proxy attribute %s.%s" % (classname, attrName)
+                    print("proxyClass: error adding proxy attribute %s.%s" % (classname, attrName))
 
     Proxy.__name__ = classname
     if module is not None:
@@ -686,7 +689,7 @@ class LazyLoadModule(types.ModuleType):
                 assert hasattr(args[0], '__call__'), 'first argument must be callable'
                 callback = args[0]
             else:
-                raise ValueError, "must supply at least one argument"
+                raise ValueError("must supply at least one argument")
             if len(args) >= 2:
                 assert hasattr(args[1], '__iter__'), 'second argument must be iterable'
                 cb_args = args[1]
@@ -699,9 +702,9 @@ class LazyLoadModule(types.ModuleType):
             else:
                 cb_kwargs = {}
             if len(args) > 3:
-                raise ValueError, "if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively"
+                raise ValueError("if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively")
         else:
-            raise ValueError, "the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})"
+            raise ValueError("the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})")
         self._lazyModule_addAttr(attr, callback, *cb_args, **cb_kwargs)
 
     def __getitem__(self, attr):
@@ -756,7 +759,7 @@ class LazyDocStringError(Exception):
     pass
 
 
-class LazyDocString(types.StringType):
+class LazyDocString(bytes):
 
     """
     Set the __doc__ of an object to an instance of this class in order to have
@@ -853,7 +856,7 @@ class LazyDocString(types.StringType):
     def __repr__(self):
         return repr(str(self))
 
-for _name, _method in inspect.getmembers(types.StringType, inspect.isroutine):
+for _name, _method in inspect.getmembers(bytes, inspect.isroutine):
     if _name.startswith('_'):
         continue
 
@@ -957,7 +960,7 @@ class TwoWayDict(dict):
         self._reverse[v] = k
 
     def has_value(self, v):
-        return self._reverse.has_key(v)
+        return v in self._reverse
 
     def __delitem__(self, k):
         del self._reverse[self[k]]

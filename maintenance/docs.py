@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import os
 import glob
@@ -20,7 +23,7 @@ useStubs = False
 if useStubs:
     sys.path.insert(0, stubdir)
     import pymel
-    print pymel.__file__
+    print(pymel.__file__)
 else:
     import pymel
     # make sure dynamic modules are fully loaded
@@ -85,7 +88,7 @@ def monkeypatch_autosummary():
     import sphinx.ext.autosummary
     import inspect
     if sphinx.util.inspect.safe_getattr.__module__ != 'sphinx.util.inspect':
-        print "already patched"
+        print("already patched")
         return
 
     _orig_safe_getattr = sphinx.util.inspect.safe_getattr
@@ -97,7 +100,7 @@ def monkeypatch_autosummary():
             if hasattr(obj, '__name__') and \
                     obj.__name__ in {'pymel.core.other'} and \
                     name in internal_cmds:
-                print "SKIP %s.%s" % (obj.__name__, name)
+                print("SKIP %s.%s" % (obj.__name__, name))
                 # raising an AttributeError silently skips the object
                 raise AttributeError
         return _orig_safe_getattr(obj, name, *defargs)
@@ -112,7 +115,7 @@ def monkeypatch_autosummary():
 def generate(clean=True):
     """delete build and auto-generated source directories and re-generate a 
     top-level documentation source file for each module."""
-    print "generating %s - %s" % (docsdir, datetime.datetime.now())
+    print("generating %s - %s" % (docsdir, datetime.datetime.now()))
     monkeypatch_autosummary()
     from sphinx.ext.autosummary.generate import main as sphinx_autogen
 
@@ -123,18 +126,18 @@ def generate(clean=True):
 
     sphinx_autogen( [''] + '--templates ../templates modules.rst'.split() )
     sphinx_autogen( [''] + '--templates ../templates'.split() + glob.glob('generated/pymel.*.rst') )
-    print "...done generating %s - %s" % (docsdir, datetime.datetime.now())
+    print("...done generating %s - %s" % (docsdir, datetime.datetime.now()))
 
 def clean_build():
     "delete existing build directory"
     if os.path.exists(buildrootdir):
-        print "removing %s - %s" % (buildrootdir, datetime.datetime.now())
+        print("removing %s - %s" % (buildrootdir, datetime.datetime.now()))
         shutil.rmtree(buildrootdir)
 
 def clean_generated():
     "delete existing generated directory"
     if os.path.exists(gendir):
-        print "removing %s - %s" % (gendir, datetime.datetime.now())
+        print("removing %s - %s" % (gendir, datetime.datetime.now()))
         shutil.rmtree(gendir)
 
 def find_dot():
@@ -168,7 +171,7 @@ class NoSubprocessWindow(object):
         import inspect
         import subprocess
         if os.name == 'nt':
-            origInit = subprocess.Popen.__init__.im_func
+            origInit = subprocess.Popen.__init__.__func__
             self.origInit = origInit
 
             argspec = inspect.getargspec(self.origInit)
@@ -193,7 +196,7 @@ class NoSubprocessWindow(object):
 
 def build(clean=True, opts=None, filenames=None, **kwargs):
     from sphinx import main as sphinx_build
-    print "building %s - %s" % (docsdir, datetime.datetime.now())
+    print("building %s - %s" % (docsdir, datetime.datetime.now()))
 
     if clean or not os.path.isdir(gendir):
         generate(clean=clean)
@@ -231,9 +234,9 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
     opts.append(BUILD)
     if filenames is not None:
         opts.extend(filenames)
-    print "sphinx_build({!r})".format(opts)
+    print("sphinx_build({!r})".format(opts))
 
     with NoSubprocessWindow():
         sphinx_build(opts)
-    print "...done building %s - %s" % (docsdir, datetime.datetime.now())
+    print("...done building %s - %s" % (docsdir, datetime.datetime.now()))
 

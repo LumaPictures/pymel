@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import os
 import sys
 import maya.utils
@@ -100,7 +103,7 @@ class TestMayaIntegration(unittest.TestCase):
         for codeStr, messages in errorCodes:
             try:
                 eval(codeStr)
-            except Exception, e:
+            except Exception as e:
                 type, value, traceback = sys.exc_info()
                 for level in range(3):
                     res = maya.utils.formatGuiException(type, value, traceback, level)
@@ -113,21 +116,21 @@ class TestMayaIntegration(unittest.TestCase):
 
                     expected = messages[level]
                     if res != expected:
-                        print 'level: %d' % level
-                        print '*' * 60
-                        print "raw res:"
-                        print rawres
-                        print '*' * 60
+                        print('level: %d' % level)
+                        print('*' * 60)
+                        print("raw res:")
+                        print(rawres)
+                        print('*' * 60)
 
-                        print '*' * 60
-                        print "res:"
-                        print res
-                        print '*' * 60
+                        print('*' * 60)
+                        print("res:")
+                        print(res)
+                        print('*' * 60)
 
-                        print '*' * 60
-                        print "expected:"
-                        print expected
-                        print '*' * 60
+                        print('*' * 60)
+                        print("expected:")
+                        print(expected)
+                        print('*' * 60)
                     self.assertEqual( res, expected )
             finally:
                 del traceback

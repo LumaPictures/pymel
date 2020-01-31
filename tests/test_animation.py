@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import unittest
 import traceback
@@ -22,7 +25,7 @@ class TestConstraintVectorQuery(testing.TestCaseExtended):
         constrained = cmds.polyCube()[0]
 
         constr = cmd(target, constrained)
-        print constr
+        print(constr)
 
         self.assertVectorsEqual(cmd(constr, q=1, worldUpVector=1), [0,1,0])
         self.assertVectorsEqual(constr.getWorldUpVector(), [0,1,0])

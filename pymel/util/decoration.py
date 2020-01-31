@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 
 def decorated(origFunc, newFunc, decoration=None):
@@ -95,7 +98,7 @@ def interface_wrapper(doer, args=(), varargs=None, varkw=None, defaults=None):
         name=name, signature=signature, origFunc=storageName,
         args=','.join(args))
 
-    exec(defStr) in g
+    exec((defStr), g)
 
     func = g[name]
     func.__doc__ = doer.__doc__

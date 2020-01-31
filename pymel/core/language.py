@@ -1,6 +1,9 @@
 """
 Functions and classes related to scripting, including `MelGlobals` and `Mel`
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import sys
 import os
 import inspect
@@ -492,7 +495,7 @@ class MelGlobals(collections.MutableMapping, _Parent):
                 try:
                     type = cls.getType(variable)
                 except TypeError:
-                    raise KeyError, variable
+                    raise KeyError(variable)
 
         variable = cls.initVar(type, variable)
 
@@ -663,7 +666,7 @@ class OptionVarDict(collections.MutableMapping):
 
     def __getitem__(self, key):
         if key not in self:
-            raise KeyError, key
+            raise KeyError(key)
         val = cmds.optionVar(q=key)
         if isinstance(val, list):
             val = OptionVarList(val, key)
@@ -687,13 +690,13 @@ class OptionVarDict(collections.MutableMapping):
             elif issubclass(listType, float):
                 flag = 'floatValue'
             else:
-                raise TypeError, ('%r is unsupported; Only strings, ints, float, lists, and their subclasses are supported' % listType)
+                raise TypeError('%r is unsupported; Only strings, ints, float, lists, and their subclasses are supported' % listType)
 
             cmds.optionVar(**{flag: [key, val[0]]})  # force to this datatype
             flag += "Append"
             for elem in val[1:]:
                 if not isinstance(elem, listType):
-                    raise TypeError, 'all elements in list must be of the same datatype'
+                    raise TypeError('all elements in list must be of the same datatype')
                 cmds.optionVar(**{flag: [key, elem]})
 
     def keys(self):
@@ -862,7 +865,7 @@ class MelCallable(object):
             try:
                 return self.__dict__[command]
             except KeyError:
-                raise AttributeError, "object has no attribute '%s'" % command
+                raise AttributeError("object has no attribute '%s'" % command)
 
         return MelCallable(head=self.full_name, name=command)
 
@@ -992,7 +995,7 @@ class Mel(object):
             try:
                 return self.__dict__[command]
             except KeyError:
-                raise AttributeError, "object has no attribute '%s'" % command
+                raise AttributeError("object has no attribute '%s'" % command)
 
         return MelCallable(head='', name=command)
 
@@ -1027,9 +1030,9 @@ class Mel(object):
             script = util.path(script)
             modulePath = script.namebase
             folder = script.parent
-            print modulePath
-            if not sys.modules.has_key(modulePath):
-                print "importing"
+            print(modulePath)
+            if modulePath not in sys.modules:
+                print("importing")
                 module = __import__(modulePath, globals(), locals(), [''])
                 sys.modules[modulePath] = module
 
@@ -1112,7 +1115,7 @@ class Mel(object):
                     message += '\n' + fmtCmd
             else:
                 message += '\nScript:\n%s' % fmtCmd
-            raise e, message
+            raise e(message)
         else:
             resType = res.resultType()
 

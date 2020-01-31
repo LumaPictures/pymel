@@ -6,6 +6,9 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 import sys
 import os
 import re
@@ -49,7 +52,7 @@ def _getPymelTypeFromObject(obj, name):
     if obj.hasFn(_api.MFn.kDependencyNode):
         fnDepend = _api.MFnDependencyNode(obj)
         mayaType = fnDepend.typeName()
-        import nodetypes
+        from . import nodetypes
         # make sure that if we have a dag node, we return at least DagNode
         # instead of DependNode - otherwise, we will end up with
         # __apiobjects__ = {'MDagPath':MDagPath(...)}, but a pymel type of
@@ -160,7 +163,7 @@ def select(*args, **kwargs):
     """
     try:
         cmds.select(*args, **kwargs)
-    except TypeError, msg:
+    except TypeError as msg:
         if args == ([],):
             for modeFlag in ('add', 'af', 'addFirst',
                              'd', 'deselect',
@@ -170,7 +173,7 @@ def select(*args, **kwargs):
             # The mode is replace, clear the selection
             cmds.select(cl=True)
         else:
-            raise TypeError, msg
+            raise TypeError(msg)
 #select.__doc__ = mel.help('select') + select.__doc__
 
 
@@ -238,7 +241,7 @@ def connectAttr(source, destination, **kwargs):
     if kwargs.get('force', False) or kwargs.get('f', False):
         try:
             cmds.connectAttr(source, destination, **kwargs)
-        except RuntimeError, e:
+        except RuntimeError as e:
             if unicode(e) != 'Maya command error':
                 # we only want to pass on a certain connection error.  all others we re-raise
                 raise e
@@ -352,7 +355,7 @@ def getAttr(attr, default=None, **kwargs):
         return res
 
     # perhaps it error'd because it's a mixed compound, or a multi attribute
-    except RuntimeError, e:
+    except RuntimeError as e:
         try:
             pyattr = Attribute(attr)
             # mixed compound takes precedence, because by default, compound
@@ -596,7 +599,7 @@ def setAttr(attr, *args, **kwargs):
     try:
         # print args, kwargs
         cmds.setAttr(attr, *args, **kwargs)
-    except TypeError, msg:
+    except TypeError as msg:
         val = kwargs.pop('type', kwargs.pop('typ', False))
         typ = addAttr(attr, q=1, at=1)
         if val == 'string' and typ == 'enum':
@@ -605,8 +608,8 @@ def setAttr(attr, *args, **kwargs):
             args = (index, )
             cmds.setAttr(attr, *args, **kwargs)
         else:
-            raise TypeError, msg
-    except RuntimeError, msg:
+            raise TypeError(msg)
+    except RuntimeError as msg:
         # normally this is handled in pmcmds, but setAttr error is different
         # for some reason can't use 'startswith' because of Autodesk test
         # strings wrapped in commas
@@ -689,7 +692,7 @@ def addAttr(*args, **kwargs):
         elif type in dataTypes:
             kwargs['dt'] = type
         else:
-            raise TypeError, "type not supported"
+            raise TypeError("type not supported")
 
     at = kwargs.pop('attributeType', kwargs.pop('at', None))
     if at is not None:
@@ -840,9 +843,9 @@ def hasAttr(pyObj, attr, checkShape=True):
     bool
     """
     if not isinstance(pyObj, PyNode):
-        raise TypeError, "hasAttr requires a PyNode instance and a string"
+        raise TypeError("hasAttr requires a PyNode instance and a string")
 
-    import nodetypes
+    from . import nodetypes
     if isinstance(pyObj, nodetypes.Transform):
         try:
             pyObj.attr(attr, checkShape=checkShape)
@@ -863,8 +866,8 @@ def hasAttr(pyObj, attr, checkShape=True):
 
 def _toEnumStr(enums):
     if isinstance(enums, dict):
-        firstKey = enums.iterkeys().next()
-        firstVal = enums.itervalues().next()
+        firstKey = next(enums.iterkeys())
+        firstVal = next(enums.itervalues())
         if isinstance(firstKey, basestring) and isinstance(firstVal, int):
             enums = ['%s=%s' % (key, val) for key, val in enums.iteritems()]
         elif isinstance(firstKey, int) and isinstance(firstVal, basestring):
@@ -1356,7 +1359,7 @@ def nodeType(node, **kwargs):
 #    obj = None
 #    objName = None
 
-    import nodetypes
+    from . import nodetypes
 
     if isinstance(node, nodetypes.DependNode):
         pass
@@ -1824,7 +1827,7 @@ def duplicate(*args, **kwargs):
             try:
                 newShape = PyNode(cmds.parent(dupeShape, origParent, shape=True,
                                               addObject=True, relative=True)[0])
-            except RuntimeError, e:
+            except RuntimeError as e:
                 # Maya 2014 introduced a bug (Change request #: BSPR-12597) with
                 # using parent to instance a shape, where it will error when
                 # trying to make some material connections...
@@ -1905,7 +1908,7 @@ def rename(obj, newname, **kwargs):
 Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
     """
-    import nodetypes
+    from . import nodetypes
     import pymel.core.other as other
     # added catch to use object name explicitly when object is a Pymel Node
     if isinstance(newname, nodetypes.DagNode):
@@ -2114,7 +2117,7 @@ def spaceLocator(*args, **kwargs):
     Modifications:
         - returns a single Transform instead of a list with a single locator
     """
-    import nodetypes
+    from . import nodetypes
 
     res = cmds.spaceLocator(**kwargs)
 
@@ -2302,7 +2305,7 @@ class PyNode(_util.ProxyUnicode):
             MDagPath, MPlug
             string/unicode
         """
-        import nodetypes
+        from . import nodetypes
         # print cls.__name__, cls
 
         pymelType = None
@@ -2505,7 +2508,7 @@ class PyNode(_util.ProxyUnicode):
                                       (cls.__melnode__,
                                        cls.__melcmd__.__name__))
                         res = cls.__melcmd__(**kwargs)
-                    except Exception, e:
+                    except Exception as e:
                         _logger.debug('failed to create %s' % e)
                         pass
                     else:
@@ -2797,7 +2800,7 @@ class PyNode(_util.ProxyUnicode):
         forbiddenKeys = ['all', 'allDependencyNodes', 'adn', 'allDagObjects' 'ado', 'clear', 'cl']
         for key in forbiddenKeys:
             if key in kwargs:
-                raise TypeError, "'%s' is an inappropriate keyword argument for object-oriented implementation of this command" % key
+                raise TypeError("'%s' is an inappropriate keyword argument for object-oriented implementation of this command" % key)
         # stringify
         return cmds.select(self.name(), **kwargs)
 
@@ -3168,7 +3171,7 @@ class Attribute(PyNode):
         try:
             return self.attr(attr)
         except MayaAttributeError:
-            raise AttributeError, "%r has no attribute or method named '%s'" % (self, attr)
+            raise AttributeError("%r has no attribute or method named '%s'" % (self, attr))
     # Added the __call__ so to generate a more appropriate exception when a class method is not found
 
     def __call__(self, *args, **kwargs):
@@ -3206,7 +3209,7 @@ class Attribute(PyNode):
                 yield self[i]
             # return self[0]
         else:
-            raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
+            raise TypeError("%s is not a multi-attribute and cannot be iterated over" % self)
 
     def __str__(self):
         # type: () -> str
@@ -3327,7 +3330,7 @@ class Attribute(PyNode):
             name = ''
             node = self.plugNode()
             if includeNode:
-                import nodetypes
+                from . import nodetypes
                 if isinstance(node, nodetypes.DagNode):
                     name = node.name(long=fullDagPath)
                 else:
@@ -3515,7 +3518,7 @@ class Attribute(PyNode):
             # else :
             #    raise TypeError, "%s is not a multi attribute" % self
         except:
-            raise TypeError, "%s is not an array (multi) attribute" % self
+            raise TypeError("%s is not an array (multi) attribute" % self)
 
     # TODO : do not list all children elements by default, allow to do
     #        skinCluster1.weightList.elements() for first level elements weightList[x]
@@ -3561,7 +3564,7 @@ class Attribute(PyNode):
         try:
             return self._getArrayIndices()[1]
         except RuntimeError:
-            raise TypeError, "%s is not an array (multi) attribute" % self
+            raise TypeError("%s is not an array (multi) attribute" % self)
 
     def numElements(self):
         # type: () -> int
@@ -3594,7 +3597,7 @@ class Attribute(PyNode):
         try:
             return self._getArrayIndices()[0]
         except RuntimeError:
-            raise TypeError, "%s is not an array (multi) attribute" % self
+            raise TypeError("%s is not an array (multi) attribute" % self)
 
     # enums
     getEnums = getEnums
@@ -6144,7 +6147,7 @@ class Component1D64(DiscreteComponent):
         # The ContinuousComponent version works fine for us - just
         # make sure we grab the original function object, not the method
         # object, since we don't inherit from ContinuousComponent
-        _sliceToIndices = ContinuousComponent._sliceToIndices.im_func
+        _sliceToIndices = ContinuousComponent._sliceToIndices.__func__
 
         # We're basically having to fall back on strings here, so revert 'back'
         # to the string implementation of various methods...
@@ -6276,7 +6279,7 @@ class MeshVertex(MItComponent1D):
             array = _api.MIntArray()
             self.__apimfn__().getConnectedVertices(array)
             return component.currentItemIndex() in [array[i] for i in range(array.length())]
-        raise TypeError, 'type %s is not supported' % type(component)
+        raise TypeError('type %s is not supported' % type(component))
 
     def getColor(self, *args, **kwargs):
         # type: (*Any, **Any) -> datatypes.Color
@@ -6512,7 +6515,7 @@ class MeshEdge(MItComponent1D):
             index1 = self.__apimfn__().index(1)
             return component.currentItemIndex() in [index0, index1]
 
-        raise TypeError, 'type %s is not supported' % type(component)
+        raise TypeError('type %s is not supported' % type(component))
 # ------ Do not edit below this line --------
 
     @_f.addApiDocs(_api.MItMeshEdge, 'getLength')
@@ -6661,7 +6664,7 @@ class MeshFace(MItComponent1D):
         if isinstance(component, MeshVertex):
             return self.isConnectedToVertex(component.currentItemIndex())
 
-        raise TypeError, 'type %s is not supported' % type(component)
+        raise TypeError('type %s is not supported' % type(component))
 # ------ Do not edit below this line --------
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'geomChanged')

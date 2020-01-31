@@ -1,44 +1,47 @@
 """Imports all of pymel into one namespace, for use during interactive scripting"""
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 
 import sys
 import pymel as _pymel
 _pymel.all = sys.modules[__name__]
 
-import internal
-import internal.startup
-doFinalize = internal.startup.finalizeEnabled
-internal.startup.finalizeEnabled = False
-import internal.plogging as plogging
-import internal.factories as factories
-import mayautils
+from pymel import internal
+import pymel.internal.startup
+doFinalize = pymel.internal.startup.finalizeEnabled
+pymel.internal.startup.finalizeEnabled = False
+from pymel.internal import plogging
+from pymel.internal import factories
+from pymel import mayautils
 
 #logger = plogging.getplogging.pymelLogger(__name__)
 plogging.pymelLogger.debug('imported internal')
 
-import api
+from pymel import api
 plogging.pymelLogger.debug('imported api')
 
-from core import *
+from pymel.core import *
 plogging.pymelLogger.debug('imported core')
 
 # for wrapped math functions
-from util.arrays import *
+from pymel.util.arrays import *
 
-import core.datatypes as datatypes
+from pymel.core import datatypes
 
-import versions
+from pymel import versions
 
-from core import nodetypes
-from core.nodetypes import *
+from pymel.core import nodetypes
+from pymel.core.nodetypes import *
 
 # if in batch mode we may not have UI commands
 if not cmds.about(batch=True):
-    from core.uitypes import *
+    from pymel.core.uitypes import *
 
 # These two were imported into 'old' pymel top level module,
 # so make sure they're imported here as well
-import core
-import tools
+from pymel import core
+from pymel import tools
 
 # some submodules do 'import pymel.core.pmcmds as cmds' -
 # this ensures that when the user does 'from pymel import *',
@@ -47,5 +50,5 @@ import maya.cmds as cmds
 
 # Run delayed finalize now, so that if userSetup imports all,
 # it has access to everything it should
-internal.startup.finalizeEnabled = doFinalize
-internal.startup.finalize()
+pymel.internal.startup.finalizeEnabled = doFinalize
+pymel.internal.startup.finalize()

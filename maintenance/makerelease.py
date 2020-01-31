@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 '''Package up a pymel release.'''
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 # Ideally this should use the python interpreter used by mayapy, but without LD_LIBRARY_PATH or PYTHONHOME set
 
@@ -44,12 +47,12 @@ def unload_pymel_modules():
 
 def make_new_caches(release_dir, new_ext=".pyc.zip"):
     # need to run in a subprocess, so we can use mayapy
-    print "looking for mayapy..."
+    print("looking for mayapy...")
     mayapy = which("mayapy")
     if not mayapy:
         msg = "ERROR: couldn't find a mayapy executable!"
         raise RuntimeError(msg)
-    print "found mayapy: {}".format(mayapy)
+    print("found mayapy: {}".format(mayapy))
 
     cmd = '''import maintenance.makerelease
 maintenance.makerelease._make_new_caches({!r}, new_ext={!r})'''.format(
@@ -62,7 +65,7 @@ maintenance.makerelease._make_new_caches({!r}, new_ext={!r})'''.format(
         pypath = os.pathsep.join(release_dir, pypath)
     environ['PYTHONPATH'] = pypath
     args = [mayapy, "-c", cmd]
-    print "running: {!r}".format(args)
+    print("running: {!r}".format(args))
     check_call(args, cwd=release_dir, env=environ)
 
 
@@ -126,20 +129,20 @@ def _make_new_caches(release_dir, new_ext=".py.zip"):
         if version is not None:
             cache_obj.version = version
         data = cache_obj.read()
-        print "Writing out {} as {}...".format(cachename, new_ext)
+        print("Writing out {} as {}...".format(cachename, new_ext))
         cache_obj.write(data, ext=new_ext)
         if (not os.path.isfile(cache_obj._lastWritePath)
                 or not cache_obj._lastWritePath.endswith(new_ext)):
             raise RuntimeError("error writing out {} as a {} cache"
                                .format(fullcache, new_ext))
         os.remove(fullcache)
-        print "...success, removed {}".format(fullcache)
+        print("...success, removed {}".format(fullcache))
 
 
 def makerelease(full_ver, maintenance=THIS_DIR):
     baseVer = re.split('[a-zA-Z]', full_ver)[0]
-    print "Release version is %r" % full_ver
-    print "Release base version is %r" % baseVer
+    print("Release version is %r" % full_ver)
+    print("Release base version is %r" % baseVer)
 
     os.chdir(maintenance)
 
@@ -151,7 +154,7 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     release_dir = join(release_base, "pymel-{}".format(full_ver))
     release_zip = release_dir + '.zip'
 
-    print "release directory:", release_dir
+    print("release directory:", release_dir)
 
     if not os.path.isdir(release_base):
         os.mkdir(release_base)
@@ -159,7 +162,7 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     sys.path.insert(0, src_root)
 
     import pymel
-    print "current pymel version is: %r" % pymel.__version__
+    print("current pymel version is: %r" % pymel.__version__)
     assert pymel.__file__.startswith(src_root)
     if pymel.__version__ != baseVer:
         raise RuntimeError("current pymel version {} does not match release"
@@ -167,13 +170,13 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     assert pymel.__version__ == baseVer
     unload_pymel_modules()
 
-    print "checking completion stubs"
+    print("checking completion stubs")
     assert os.path.isdir(completion_py_dir)
     sys.path.insert(0, completion_py_dir)
     try:
         import pymel
         assert pymel.__file__.startswith(completion_py_dir)
-        print "current stub version is: %r" % pymel.__version__
+        print("current stub version is: %r" % pymel.__version__)
         if pymel.__version__ != baseVer:
             raise RuntimeError("current pymel stub version {} does not match"
                                " release version {}".format(pymel.__version__,
@@ -203,15 +206,15 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     #fi
 
     if exists(release_dir):
-        print "removing existing folder"
+        print("removing existing folder")
         rmtree(release_dir)
 
     if exists(release_zip):
-        print "removing existing zip"
+        print("removing existing zip")
         os.remove(release_zip)
 
     args = ['git', 'clone', '--shared', src_root, release_dir]
-    print args
+    print(args)
     check_call(args)
     assert os.path.isdir(release_dir)
 
@@ -219,7 +222,7 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     try:
         import pymel
         try:
-            print "release pymel version is: %r" % pymel.__version__
+            print("release pymel version is: %r" % pymel.__version__)
             assert pymel.__file__.startswith(src_root)
             if pymel.__version__ != baseVer:
                 raise RuntimeError("current release version {} does not match release"
@@ -236,10 +239,10 @@ def makerelease(full_ver, maintenance=THIS_DIR):
             if item.startswith(prefix):
                 fullitem = join(release_dir, item)
                 if os.path.isdir(fullitem):
-                    print "removing dir: {}".format(fullitem)
+                    print("removing dir: {}".format(fullitem))
                     rmtree(fullitem)
                 else:
-                    print "removing file: {}".format(fullitem)
+                    print("removing file: {}".format(fullitem))
                     os.remove(fullitem)
 
     rmprefix(release_dir, '.git')
@@ -256,25 +259,25 @@ def makerelease(full_ver, maintenance=THIS_DIR):
     import compileall
     compileall.compile_dir(release_dir)
 
-    print "copying docs"
+    print("copying docs")
     rmtree(join(release_dir, 'docs'))
     copytree(join(src_root, 'docs', 'build', baseVer),
              join(release_dir, 'docs'))
 
-    print "copying stubs"
+    print("copying stubs")
     copytree(join(src_root, 'extras', 'completion'),
              join(release_dir, 'extras', 'completion'))
 
     git_rev = check_output(['git', 'rev-parse', 'HEAD'])
 
     with open(join(release_dir, 'README'), 'a') as f:
-        print "adding version info"
+        print("adding version info")
         f.write("\n")
         f.write("Release ver: %s\n" % full_ver)
         f.write("Pymel ver: %s\n" % baseVer)
         f.write("Git commit: %s\n" % git_rev)
 
-    print "zipping"
+    print("zipping")
     with zipfile.ZipFile(release_zip, "w",
                          compression=zipfile.ZIP_DEFLATED) as f:
         # this means that the root inside of the zip will be, ie,

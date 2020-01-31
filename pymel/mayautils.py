@@ -1,6 +1,9 @@
 """Utilities for getting Maya resource directories, sourcing scripts, and executing deferred.
 
 These do not require initialization of maya.standalone"""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import os
 import sys
@@ -45,25 +48,25 @@ def source(file, searchPath=None, recurse=False):
     _logger.debug("looking for file as: " + filepath)
     while not os.path.exists(filepath):
         try:
-            p = os.path.abspath(os.path.realpath(itpath.next()))
+            p = os.path.abspath(os.path.realpath(next(itpath)))
             filepath = os.path.join(p, filename)
             _logger.debug('looking for file as: ' + filepath)
             if recurse and not filepath.exists():
                 itsub = os.walk(p)
                 while not os.path.exists(filepath):
                     try:
-                        root, dirs, files = itsub.next()
+                        root, dirs, files = next(itsub)
                         itdirs = iter(dirs)
                         while not os.path.exists(filepath):
                             try:
-                                filepath = os.path.join(root, itdirs.next(), filename)
+                                filepath = os.path.join(root, next(itdirs), filename)
                                 _logger.debug('looking for file as: ' + filepath)
                             except:
                                 pass
                     except:
                         pass
         except:
-            raise ValueError, "File '" + filename + "' not found in path"
+            raise ValueError("File '" + filename + "' not found in path")
             # In case the raise exception is replaced by a warning don't
             # forget to return here
             return
@@ -216,7 +219,7 @@ def executeDeferred(func, *args, **kwargs):
             if args or kwargs:
                 raise ValueError('if passing a string to be executed, no '
                                  'additional args may be passed')
-            exec func
+            exec(func)
         else:
             func(*args, **kwargs)
 

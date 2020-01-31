@@ -1,17 +1,20 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import pymel.core as pm
 
 s = pm.polySphere()[0]  # second in list is the history node, if construction history is on
 c = pm.polyCube()[0]
 
-print c, s
+print(c, s)
 c.setTranslation([0, 2, 0])
 s.setTranslation([1, -2, 0])
 
 g = pm.group(s, c, n='newGroup')
 
-print "The children of %s are %s" % (g, g.getChildren())
+print("The children of %s are %s" % (g, g.getChildren()))
 # print g.getChildren()[0].getShape()
-print "difference =", c.translate.get() - s.translate.get()  # basic vector operation
+print("difference =", c.translate.get() - s.translate.get())  # basic vector operation
 
 s2 = s.duplicate()[0]
 
@@ -34,10 +37,10 @@ exportScene = currScene.parent / 'pymel_test_ref.ma'
 
 # if a file already exists where we want to export, delete it first
 if exportScene.exists():
-    print "removing existing pymel export scene"
+    print("removing existing pymel export scene")
     exportScene.remove()
 
-print "exporting new scene:", exportScene
+print("exporting new scene:", exportScene)
 pm.exportSelected(exportScene, f=1)
 
 # delete the original group
@@ -50,13 +53,13 @@ for i in range(1, 4):
     # first we list all the nodes in the new reference, and get the first in the list.
     # this will be the 'newGroup' node.
     allRefNodes = ref.nodes()
-    print "moving", allRefNodes[0]
+    print("moving", allRefNodes[0])
     allRefNodes[0].tx.set(2 * i)
 
 # print out some information about our newly created references
 allRefs = pm.listReferences()
 for r in allRefs:
-    print r.namespace, r.refNode, r.withCopyNumber()
+    print(r.namespace, r.refNode, r.withCopyNumber())
 
 # the namespace property of the FileReference class can be used to set the namespace as well as to get it.
 allRefs[2].namespace = 'super'
@@ -74,7 +77,7 @@ except:
 
 for node in pm.ls(ns + ':*', type='transform'):
     newname = node.swapNamespace('bar')
-    print "renaming %s to %s" % (node, newname)
+    print("renaming %s to %s" % (node, newname))
     node.rename(newname)
 
 # unload the other one

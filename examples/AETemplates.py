@@ -23,6 +23,9 @@ To check which python templates are loaded::
 The example below demonstrates the simplest case, which is the first. It provides a layout for the mib_amb_occlusion
 mental ray shader.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from pymel.core import *
 
@@ -52,17 +55,17 @@ class MentalRayTemplate(LocalizedTemplate):
 
 class AEmib_amb_occlusionTemplate(MentalRayTemplate):
     def colorChanged(self, node):
-        print "changed", node
+        print("changed", node)
     def new(self, attr):
-        print "new", attr
+        print("new", attr)
         self.samplesCtrl = cmds.attrFieldSliderGrp(attribute=attr, min=0,
             sliderMinValue=2, sliderMaxValue=256,
             step=1.0, sliderStep=1.0, label=self._applyLocalization("kSamples"))
     def replace(self, attr):
-        print "replace", attr
+        print("replace", attr)
         self.samplesCtrl(e=1,attribute=attr)
     def buildBody(self, nodeName):
-        print "building", nodeName
+        print("building", nodeName)
         self.beginLayout("kParams",collapse=0)
         self.callCustom(self.new, self.replace, "samples")
         self.addControl("bright", label="kBright", changeCommand=self.colorChanged)
