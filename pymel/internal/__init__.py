@@ -5,9 +5,3 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 from .plogging import getLogger
-#from envparse import *
-#from version import *
-#assert mayaInit()
-#from pwarnings import *
-#import plogging
-#from plogging import getLogger

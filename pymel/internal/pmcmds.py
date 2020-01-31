@@ -24,10 +24,11 @@ import os
 import types
 
 import pymel.util as util
-import pymel.versions as versions
-#import mayautils
 import maya.cmds
 import warnings
+
+if False:
+    from typing import *
 
 __all__ = ['getMelRepresentation']
 _thisModule = sys.modules[__name__]
@@ -48,6 +49,7 @@ def _testDecorator(function):
 
 
 def getCmdName(inFunc):
+    # type: (types.FunctionType) -> str
     '''Use in place of inFunc.__name__ when inFunc could be a maya.cmds cmd
 
     handles stubFuncs
@@ -110,10 +112,9 @@ def getMelRepresentation(args, recursionLimit=None, maintainDicts=True):
 
 
 def addWrappedCmd(cmdname, cmd=None):
+    # type: (str, Optional[types.FunctionType]) -> None
     if cmd is None:
         cmd = getattr(maya.cmds, cmdname)
-
-    # if cmd.__name__ == 'dummyFunc': print cmdname
 
     def wrappedCmd(*args, **kwargs):
         # we must get the cmd each time, because maya delays loading of functions until they are needed.
@@ -123,8 +124,9 @@ def addWrappedCmd(cmdname, cmd=None):
         # convert args to mel-friendly representation
         new_args = getMelRepresentation(args)
 
-        # flatten list. this is necessary for list of components.  see Issue 71.  however, be sure that it's not an empty list/tuple
-        if len(new_args) == 1 and util.isIterable(new_args[0]) and len(new_args[0]):  # isinstance( new_args[0], (tuple, list) ):
+        # flatten list. this is necessary for list of components.
+        # see Issue 71.  however, be sure that it's not an empty list/tuple
+        if len(new_args) == 1 and util.isIterable(new_args[0]) and len(new_args[0]):
             new_args = new_args[0]
 
         new_kwargs = getMelRepresentation(kwargs)
@@ -143,8 +145,10 @@ def addWrappedCmd(cmdname, cmd=None):
                 # re-raise error
                 raise
 
-        # when editing, some of maya.cmds functions return empty strings and some return idiotic statements like 'Values Edited'.
-        # however, for UI's in particular, people use the edit command to get a pymel class for existing objects.
+        # when editing, some of maya.cmds functions return empty strings and
+        # some return idiotic statements like 'Values Edited'.
+        # however, for UI's in particular, people use the edit command to get
+        # a pymel class for existing objects.
         # return None when we get an empty string
         try:
             if res == '' and kwargs.get('edit', kwargs.get('e', False)):
@@ -193,7 +197,6 @@ def addWrappedCmd(cmdname, cmd=None):
 
     # so that we can identify that this is a wrapped maya command
     setattr(_thisModule, cmdname, wrappedCmd)
-    #globals()[cmdname] = wrappedCmd
 
 
 def removeWrappedCmd(cmdname):

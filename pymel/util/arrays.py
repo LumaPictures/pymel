@@ -21,15 +21,18 @@ import operator
 import itertools
 import copy
 import inspect
+import math
 import sys
+from math import pi, exp
 
 from .arguments import isNumeric, clsname
 from .utilitytypes import readonly, metaReadOnlyAttr
-from math import pi, exp
-import math
 from . import mathutils
-import sys
+from .mathutils import blend, clamp, conjugate, imag, real, round
 from functools import reduce
+
+if False:
+    from typing import *
 # 1.0/sys.maxint on 64-bit systems is too precise for maya to manage...
 eps = 1.0 / (2 ** 30)
 from __builtin__ import sum as _sum, min as _min, max as _max, abs as _abs
@@ -1251,6 +1254,7 @@ class Array(object):
 
     @classmethod
     def _defaultshape(cls, shape=None, ndim=None, size=None):
+        # type: (Optional[Tuple[int, ...]], Optional[int], Optional[int]) -> Tuple[Tuple[int, ...], int, int]
         """ Checks provided shape and size vs class shape, dim and size,
             returns provided shape, dim and size if valid or
             class's default shape, dim, size tuple if they exist and none are provided """
@@ -1310,28 +1314,33 @@ class Array(object):
 
         # check for conformity with class constants
         if cls_size is not None and newsize != cls_size:
-            raise TypeError("class %s has a fixed size %s and it cannot be changed" % (cls.__name__, cls_size))
+            raise TypeError("class %s has a fixed size %s and it cannot be "
+                            "changed" % (cls.__name__, cls_size))
         if cls_ndim is not None and newndim != cls_ndim:
-            raise TypeError("class %s has a fixed number of dimensions %s and it cannot be changed" % (cls.__name__, cls_ndim))
-#            if newdim < cls_ndim :
-#                newshape = tuple([1]*(cls_ndim-newdim) + newshape)
-#                newdim = cls_ndim
-#            else :
-#                raise TypeError, "class %s has a fixed number of dimensions %s and it cannot be changed" % (cls.__name__, cls_ndim)
+            raise TypeError("class %s has a fixed number of dimensions %s and "
+                            "it cannot be changed" % (cls.__name__, cls_ndim))
+
         if cls_shape is not None and newshape != cls_shape:
-            raise TypeError("class %s has a fixed shape %s and it cannot be changed" % (cls.__name__, cls_shape))
+            raise TypeError("class %s has a fixed shape %s and it cannot be "
+                            "changed" % (cls.__name__, cls_shape))
 
         # check for coherence
         if newndim != shapedim:
-            raise ValueError("provided number of dimensions %s is incompatible with shape %s" % (newndim, newshape))
+            raise ValueError("provided number of dimensions %s is incompatible "
+                             "with shape %s" % (newndim, newshape))
         if shapesize is not None and newsize != shapesize:
-            raise ValueError("provided size %s is incompatible with shape %s" % (newsize, newshape))
+            raise ValueError("provided size %s is incompatible with "
+                             "shape %s" % (newsize, newshape))
 
         return newshape, newndim, newsize
 
     @classmethod
     def _expandshape(cls, shape=None, ndim=None, size=None, reference=None):
-        """ Expands shape that contains at most one undefined number of components for one dimension (-1) using known size """
+        # type: (Optional[Tuple[int, ...]], Optional[int], Optional[int], Optional[Any]) -> Tuple[Tuple[int, ...], int, int]
+        """
+        Expands shape that contains at most one undefined number of components
+        for one dimension (-1) using known size
+        """
 
         # check shape vs class attributes
         shape, ndim, size = cls._defaultshape(shape, ndim, size)
@@ -1348,20 +1357,24 @@ class Array(object):
         nb = newshape.count(-1)
         if size is None:
             if nb > 0:
-                raise ValueError("cannot expand shape %s without an indication of size" % (shape,))
+                raise ValueError("cannot expand shape %s without an indication "
+                                 "of size" % (shape,))
             else:
                 size = reduce(operator.mul, shape, 1)
 
         # expands unknown dimension sizes (-1) if size is known
         if nb > 0:
             if nb > 1:
-                # ambiguous specification, more than one unknown dimension, means multiple ways to conform to size
+                # ambiguous specification, more than one unknown dimension,
+                # means multiple ways to conform to size
                 # unless size is 0
                 if size == 0:
                     newshape = [0] * ndim
                     newsize = 0
                 else:
-                    raise ValueError("can only specify one unknown dimension on shape %s to try and fit it to size %s" % (shape, size))
+                    raise ValueError(
+                        "can only specify one unknown dimension on shape %s to "
+                        "try and fit it to size %s" % (shape, size))
             else:
                 newsize = 1
                 for i, dim in enumerate(newshape):
@@ -1377,11 +1390,13 @@ class Array(object):
                     newshape[unknown] = 0
                 newsize = reduce(operator.mul, newshape, 1)
             if newsize != size:
-                raise ValueError("unable to match the required size %s with shape %s" % (size, shape))
+                raise ValueError("unable to match the required size %s with "
+                                 "shape %s" % (size, shape))
             shape = tuple(newshape)
 
         if not cls._shapecheck(shape):
-            raise TypeError("shape %s is incompatible with class %s" % (shape, cls.__name__))
+            raise TypeError("shape %s is incompatible with class %s" %
+                            (shape, cls.__name__))
 
         return shape, ndim, size
 
@@ -1442,7 +1457,10 @@ class Array(object):
                     if ind < 0:
                         ind = shape[i] + ind
                     if ind < 0 or ind >= shape[i]:
-                        raise ValueError("Array of shape %s has %s components on axis %s, index %s from %s is out of bounds" % (shape, shape[i], i, ind, index))
+                        raise ValueError(
+                            "Array of shape %s has %s components on axis %s, "
+                            "index %s from %s is out of bounds" %
+                            (shape, shape[i], i, ind, index))
                     if expand:
                         ind = [ind]
                 index[i] = ind
@@ -1575,21 +1593,25 @@ class Array(object):
                 array = Array(value)
                 shape = array.shape
             except:
-                raise TypeError("%s cannot be converted to Array or any Array sub-class" % (clsname(value)))
+                raise TypeError("%s cannot be converted to Array or any Array "
+                                "sub-class" % (clsname(value)))
         else:
             shape = None
         for c in inspect.getmro(cls):
             if issubclass(c, Array):
                 if isinstance(value, c):
-                    # return value directly so we don't add a shallow copy if type is already ok
+                    # return value directly so we don't add a shallow copy if
+                    # type is already ok
                     return value
                 else:
                     try:
-                        # use array as if value was a generator, it would not be able to iterate again
+                        # use array as if value was a generator, it would not
+                        # be able to iterate again
                         return c(array, shape=shape)
                     except:
                         pass
-        raise TypeError("%s cannot be converted to %s" % (clsname(value), cls.__name__))
+        raise TypeError("%s cannot be converted to %s" %
+                        (clsname(value), cls.__name__))
 
     @classmethod
     def _toCompOrConvert(cls, value):
@@ -1601,13 +1623,16 @@ class Array(object):
             # a single numeric value
             return value
         else:
-            raise TypeError("invalid value type %s cannot be converted to %s or Array" % (clsname(value), cls.__name__))
+            raise TypeError("invalid value type %s cannot be converted to %s "
+                            "or Array" % (clsname(value), cls.__name__))
 
     def __new__(cls, *args, **kwargs):
         """ cls.__new__(...) --> cls
 
-            Creates a new Array instance without calling __init__, the created instance will be of the
-            class cls (an Array subclass) default shape (if any) and set to the class default value.
+            Creates a new Array instance without calling __init__, the created
+            instance will be of the
+            class cls (an Array subclass) default shape (if any) and set to the
+            class default value.
             See Array, MatrixN or VectorN help for more information.
         """
         shape = kwargs.get('shape', None)
@@ -1648,10 +1673,12 @@ class Array(object):
     def __init__(self, *args, **kwargs):
         """ a.__init__(...)
 
-            Initializes Array a from one or more iterable, nested lists or numeric values,
+            Initializes Array a from one or more iterable, nested lists or
+            numeric values,
             See Array, MatrixN or VectorN help for more information.
 
-            Note : __init__ from another Array acts as a shallow copy, not a deepcopy, unless
+            Note : __init__ from another Array acts as a shallow copy, not a
+            deepcopy, unless
             the Array argument is resized or reshaped.
         """
 
@@ -1691,7 +1718,8 @@ class Array(object):
                 # allow initialize from a single numeric value
                 data = args
             else:
-                raise TypeError("an %s element can only be another Array, an iterable of numerics or a numeric value" % (cls.__name__))
+                raise TypeError("an %s element can only be another Array, an "
+                                "iterable of numerics or a numeric value" % (cls.__name__))
 
             if data is not None:
                 # can re-shape on creation if self if of a specific diferent shape
@@ -1715,15 +1743,18 @@ class Array(object):
 
                 if shape != dshape:
                     # accept expanding but not shrinking to catch casting errors
-                    # will initialize self to at least an empty Array or an array of one numeric value,
+                    # will initialize self to at least an empty Array or an
+                    # array of one numeric value,
 
                     # multiple -1 (MatrixN init for instance)
                     shape = list(shape)
                     unknown = shape.count(-1)
-                    # multiple unknown dimensions can't be expanded with the size info, we'll use the new shape instead
+                    # multiple unknown dimensions can't be expanded with the
+                    # size info, we'll use the new shape instead
                     if unknown > 1:
                         difdim = max(ndim - dndim, 0)
-                        # replace extra unknown dimensions with 1 from first dimensions
+                        # replace extra unknown dimensions with 1 from first
+                        # dimensions
                         for i in range(difdim):
                             if unknown > 1:
                                 if shape[i] == -1:
@@ -1731,7 +1762,8 @@ class Array(object):
                                     unknown -= 1
                             else:
                                 break
-                        # then for the last unkown dimensions, consider them common to the target class and data, copy data's
+                        # then for the last unkown dimensions, consider them
+                        # common to the target class and data, copy data's
                         for i in range(difdim, ndim):
                             if unknown > 1:
                                 if shape[i] == -1:
@@ -1841,7 +1873,9 @@ class Array(object):
                     if subsize >= vsize:
                         value.resize(shape=subshape)
                     else:
-                        raise ValueError("value of shape %s cannot be fit in a %s of shape %s, some data would be lost" % (vshape, cls.__name__, shape))
+                        raise ValueError("value of shape %s cannot be fit in a "
+                                         "%s of shape %s, some data would be "
+                                         "lost" % (vshape, cls.__name__, shape))
                 if vdim < ndim:
                     siter = new.subiter(vdim)
                     for i in xrange(len(siter)):
@@ -1849,16 +1883,19 @@ class Array(object):
                 else:
                     new = cls(copy.deepcopy(value), shape=shape)
             else:
-                raise ValueError("fill value has more dimensions or is larger than the specified desired shape")
+                raise ValueError("fill value has more dimensions or is larger "
+                                 "than the specified desired shape")
 
         return new
 
     def fill(self, value=None):
         """ a.fill([value])
 
-            Fills the array in place with the given value, if no value is given a is filled with the default class values
+            Fills the array in place with the given value, if no value is
+            given a is filled with the default class values
 
-            Note : value is copied (deepcopy) as many times as it is inserted in a, not referenced.
+            Note : value is copied (deepcopy) as many times as it is inserted
+            in a, not referenced.
 
             Examples:
 
@@ -1901,7 +1938,8 @@ class Array(object):
     def appended(self, other, axis=0):
         """ a.appended(b[, axis=0]) --> Array
 
-            Returns the Array obtained by appending b at the end of a as iterated on axis.
+            Returns the Array obtained by appending b at the end of a as
+            iterated on axis.
 
             Note : returns a deepcopy of a.appends(b[, axis=0]).
 
@@ -1979,7 +2017,9 @@ class Array(object):
         try:
             new = cls._convert(new)
         except:
-            raise ValueError("cannot append a %s of shape %s on axis %s of %s of shape %s" % (clsname(other), oshape, axis, clsname(self), shape))
+            raise ValueError("cannot append a %s of shape %s on axis %s of %s "
+                             "of shape %s" % (clsname(other), oshape, axis,
+                                              clsname(self), shape))
 
         return new
 
@@ -2069,7 +2109,9 @@ class Array(object):
         if axis < 0:
             axis += ndim
         if axis not in range(ndim):
-            raise ValueError("cannot append on axis %s, axis does not exist for %s of shape %s" % (axis, clsname(self), shape))
+            raise ValueError("cannot append on axis %s, axis does not exist "
+                             "for %s of shape %s" %
+                             (axis, clsname(self), shape))
         itself = self.axisiter(axis)
         itemshape = itself.itemshape
         itemdim = len(itemshape)
@@ -6530,6 +6572,7 @@ class VectorN(Array):
 
     # length methods can be more efficient than for Arrays as there is only one axis
     def sqlength(self):
+        # type: () -> float
         """ u.sqlength() --> float
 
             Returns the square length of u, ie u.dot(u).
@@ -6538,6 +6581,7 @@ class VectorN(Array):
         return reduce(operator.add, map(lambda x: x ** 2, self))
 
     def length(self):
+        # type: () -> float
         """ u.length() --> float
 
             Returns the length of u, ie sqrt(u.dot(u))

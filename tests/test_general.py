@@ -1,10 +1,15 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-import sys, os, inspect, unittest, logging
+
+import sys
+import os
+import inspect
+import unittest
+import logging
 import types
+
 import maya.OpenMaya as om
-#from testingutils import setupUnittestModule
 from pymel.core import *
 import pymel.core as pm
 import pymel.core.general
@@ -14,8 +19,6 @@ import pymel.internal.pmcmds as pmcmds
 import pymel.core.datatypes as dt
 import pymel.core.nodetypes as nt
 import tempfile
-#import pymel
-#import maya.cmds as cmds
 
 # Name mangling happens if we try to use __name inside a UnitTest class...
 from maya.app.commands import __makeStubFunc as _makeStubFunc

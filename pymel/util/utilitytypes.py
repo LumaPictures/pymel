@@ -77,7 +77,9 @@ class Singleton(type):
         newdict = {'__new__': __new__}
         for k in classdict:
             if k in newdict:
-                warnings.warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
+                warnings.warn("Attribute %r is predefined in class %r of "
+                              "type %r and can't be overriden" %
+                              (k, classname, mcl.__name__))
             else:
                 newdict[k] = classdict[k]
 
@@ -259,7 +261,9 @@ class ModuleInterceptor(object):
 
 
 def readonly(f):
-    """ Marks a class member as protected, allowing metaProtected to prevent re-assignation on the classes it generates """
+    """ Marks a class member as protected, allowing metaProtected to prevent
+    re-assignation on the classes it generates
+    """
     f.__readonly__ = None
     return f
 
@@ -298,33 +302,8 @@ class metaReadOnlyAttr(type):
         readonly['__readonly__'] = None
         classdict['__readonly__'] = readonly
 
-        # the use of __slots__ protects instance attributes
-#        slots = []
-#        if '__slots__' in classdict :
-#            slots = list(classdict['__slots__'])
-
         # create the new class
         newcls = super(metaReadOnlyAttr, mcl).__new__(mcl, classname, bases, classdict)
-
-#        if hasattr(newcls, '__slots__') :
-#            for s in newcls.__slots__ :
-#                if s not in slots :
-#                    slots.append(s)
-#        type.__setattr__(newcls, '__slots__', slots)
-
-        # unneeded through the use of __slots__
-#        def __setattr__(self, name, value):
-#            """ overload __setattr__ to forbid overloading of read only class info on a class instance """
-#            try :
-#                readonly = newcls.__readonly__
-#            except :
-#                readonly = {}
-#            if name in readonly :
-#                raise AttributeError, "attribute '%s' is a read only class attribute of class %s and cannot be overloaded on an instance of class %s" % (name, self.__class__.__name__, self.__class__.__name__)
-#            else :
-#                super(newcls, self).__setattr__(name, value)
-#
-#        type.__setattr__(newcls, '__setattr__', __setattr__)
 
         return newcls
 
@@ -339,9 +318,11 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
                module=None):
     # type: (type, str, str, str, Iterable[str], bool, bool, Any) -> None
     """
-    This function will generate a proxy class which keeps the internal data separate from the wrapped class. This
-    is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
-    will break hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
+    This function will generate a proxy class which keeps the internal data
+    separate from the wrapped class. This is useful for emulating immutable
+    types such as str and tuple, while using mutable data.  Be aware that
+    changing data will break hashing.  not sure the best solution to this,
+    but a good approach would be to subclass your proxy and implement
     a valid __hash__ method.
 
     Parameters
@@ -375,7 +356,8 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
     :rtype: `type`
     """
 
-    assert not (dataAttrName and dataFuncName), 'Cannot use attribute and function for data storage. Choose one or the other.'
+    assert not (dataAttrName and dataFuncName), \
+        'Cannot use attribute and function for data storage. Choose one or the other.'
 
     if dataAttrName:
         class ProxyAttribute(object):
@@ -412,8 +394,6 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
                                    self.name)
 
         def _methodWrapper(method):
-            # print method
-            #@functools.wraps(f)
             def wrapper(self, *args, **kwargs):
                 return method(getattr(self, dataFuncName)(), *args, **kwargs)
 
@@ -702,9 +682,12 @@ class LazyLoadModule(types.ModuleType):
             else:
                 cb_kwargs = {}
             if len(args) > 3:
-                raise ValueError("if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively")
+                raise ValueError(
+                    "if args and kwargs are desired, they should be passed as "
+                    "a tuple and dictionary, respectively")
         else:
-            raise ValueError("the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})")
+            raise ValueError("the item must be set to a callable, or to a "
+                             "3-tuple of (callable, (args,), {kwargs})")
         self._lazyModule_addAttr(attr, callback, *cb_args, **cb_kwargs)
 
     def __getitem__(self, attr):
@@ -824,7 +807,10 @@ class LazyDocString(bytes):
 
     def __init__(self, argList):
         if len(argList) < 2:
-            raise LazyDocStringError('LazyDocString must be initialized with an iterable of the form: LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )')
+            raise LazyDocStringError(
+                'LazyDocString must be initialized with an iterable of the '
+                'form: LazyDocString( [documentedObj, '
+                'docGetter, arg1, arg2, ...] )')
         documentedObj = argList[0]
         docGetter = argList[1]
         if len(argList) > 2:
@@ -842,7 +828,9 @@ class LazyDocString(bytes):
             # sure we can change the __doc__ of this object!
             documentedObj.__doc__ = 'LazyDocString placeholder'
         except AttributeError:
-            raise LazyDocStringError('cannot modify the docstring of %r objects' % documentedObj.__class__.__name__)
+            raise LazyDocStringError(
+                'cannot modify the docstring of %r objects' %
+                documentedObj.__class__.__name__)
         self.documentedObj = documentedObj
         self.docGetter = docGetter
         self.args = args
@@ -867,13 +855,13 @@ for _name, _method in inspect.getmembers(bytes, inspect.isroutine):
     setattr(LazyDocString, _name, makeMethod(_name))
 
 
-def addLazyDocString(object, creator, *creatorArgs, **creatorKwargs):
+def addLazyDocString(obj, creator, *creatorArgs, **creatorKwargs):
     """helper for LazyDocString.  Equivalent to :
 
         object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
     """
-    lazyDoc = LazyDocString((object, creator, creatorArgs, creatorKwargs))
-    object.__doc__ = lazyDoc
+    lazyDoc = LazyDocString((obj, creator, creatorArgs, creatorKwargs))
+    obj.__doc__ = lazyDoc
 
 
 class TwoWayDict(dict):
