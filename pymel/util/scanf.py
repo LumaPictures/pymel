@@ -138,8 +138,12 @@ an explicit width instead if you can help it."""
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 
+from builtins import next
+from builtins import *
+from builtins import object
 import sys
 from string import whitespace as WHITESPACE
 from string import digits as DIGITS
@@ -514,7 +518,7 @@ def makeIgnoredHandler(handler):
     return f
 
 
-class CompiledPattern:
+class CompiledPattern(object):
 
     def __init__(self, handlers, formatString):
         self.handlers = handlers

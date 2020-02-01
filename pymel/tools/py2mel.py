@@ -4,6 +4,13 @@ Convert python callables into MEL procedures
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import filter
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 import inspect
 import re
 import types
@@ -397,7 +404,7 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
             newArgNames = []
             for argName in argNames:
                 # can only filter out optional args
-                if argName not in defaults or filter(argName):
+                if argName not in defaults or list(filter(argName)):
                     newArgNames.append(argName)
                 else:
                     del defaults[argName]
@@ -441,7 +448,7 @@ class WrapperCommand(plugins.Command):
         if isinstance(result, dict):
             # convert a dictionary into a 2d list
             newResult = []
-            for key, value in result.items():
+            for key, value in list(result.items()):
                 newResult.append(key)
                 newResult.append(value)
             mpx.MPxCommand.setResult(newResult)
@@ -728,7 +735,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
 
                     defaultNames = flagInfo['argNames'][-ndefaults:]
                     defaultVals = flagArgs[-ndefaults:]
-                    kwargs = dict(zip(defaultNames, defaultVals))
+                    kwargs = dict(list(zip(defaultNames, defaultVals)))
 
                     res = getattr(inst, methodName)(*args, **kwargs)
                 else:  # property

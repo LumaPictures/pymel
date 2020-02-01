@@ -1,6 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import *
+from builtins import object
 import sys
 import os
 import glob
@@ -226,7 +229,7 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
             raise RuntimeError("passed in graphviz_dot binary did not exist:"
                                " {}".format(dot))
 
-    for key, value in kwargs.iteritems():
+    for key, value in kwargs.items():
         opts.append('-D')
         opts.append( key.strip() + '=' + value.strip() )
     opts.append('-P')

@@ -1,12 +1,14 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 # ----------------------------------------------------------------------
 # clex.py
 #
 # A lexer for ANSI C.
 # ----------------------------------------------------------------------
 
+from builtins import *
 import sys
 sys.path.insert(0, "../..")
 

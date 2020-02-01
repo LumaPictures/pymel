@@ -16,7 +16,11 @@ The wrapped commands in this module are the starting point for any other pymel c
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import str
+from past.builtins import basestring
+from builtins import *
 import inspect
 import sys
 import re
@@ -92,7 +96,7 @@ def getMelRepresentation(args, recursionLimit=None, maintainDicts=True):
 
     if maintainDicts and util.isMapping(args):
         newargs = dict(args)
-        argIterable = args.iteritems()
+        argIterable = iter(args.items())
         isList = False
     else:
         newargs = list(args)
@@ -109,6 +113,36 @@ def getMelRepresentation(args, recursionLimit=None, maintainDicts=True):
     if isList:
         newargs = tuple(newargs)
     return newargs
+
+
+def _createFunction(func, oldname, newname):
+
+    old_code = func.__code__
+    # want to change the name, not just of the func, but of the underlying
+    # code object - this makes it much easier to get useful information when
+    # using cProfile
+    # unfortunately, this isn't easy - have to get hacky...
+    # ...we could do it with a big string and exec, but then we'd lose both
+    # syntax highlighting, and file + lineno info...
+    new_code = types.CodeType(old_code.co_argcount,
+                              old_code.co_nlocals,
+                              old_code.co_stacksize,
+                              old_code.co_flags,
+                              old_code.co_code,
+                              old_code.co_consts,
+                              old_code.co_names,
+                              old_code.co_varnames,
+                              old_code.co_filename,
+                              '%s_wrapped' % oldname,  # unicode no good in py2
+                              old_code.co_firstlineno,
+                              old_code.co_lnotab,
+                              old_code.co_freevars,
+                              old_code.co_cellvars)
+    return types.FunctionType(new_code,
+                              func.__globals__,
+                              newname,  # unicode no good in py2
+                              func.__defaults__,
+                              func.__closure__)
 
 
 def addWrappedCmd(cmdname, cmd=None):
@@ -158,38 +192,15 @@ def addWrappedCmd(cmdname, cmd=None):
         return res
 
     oldname = getattr(cmd, '__name__', None)
-    if isinstance(oldname, str):
+    if isinstance(oldname, basestring):
         # Don't use cmd.__name__, as this could be 'stubFunc'
         newname = getCmdName(cmd)
     else:
-        newname = str(cmdname)
+        newname = cmdname
 
-    old_code = wrappedCmd.__code__
-    # want to change the name, not just of the func, but of the underlying
-    # code object - this makes it much easier to get useful information when
-    # using cProfile
-    # unfortunately, this isn't easy - have to get hacky...
-    # ...we could do it with a big string and exec, but then we'd lose both
-    # syntax highlighting, and file + lineno info...
-    new_code = types.CodeType(old_code.co_argcount,
-                              old_code.co_nlocals,
-                              old_code.co_stacksize,
-                              old_code.co_flags,
-                              old_code.co_code,
-                              old_code.co_consts,
-                              old_code.co_names,
-                              old_code.co_varnames,
-                              old_code.co_filename,
-                              str('%s_wrapped' % cmdname),  # unicode no good
-                              old_code.co_firstlineno,
-                              old_code.co_lnotab,
-                              old_code.co_freevars,
-                              old_code.co_cellvars)
-    wrappedCmd = types.FunctionType(new_code,
-                                    wrappedCmd.__globals__,
-                                    str(newname),  # unicode no good
-                                    wrappedCmd.__defaults__,
-                                    wrappedCmd.__closure__)
+    if sys.version_info[0] < 3:
+        wrappedCmd = _createFunction(wrappedCmd, cmdname, newname)
+
     wrappedCmd.__doc__ = cmd.__doc__
 
     # for debugging, to make sure commands got wrapped...

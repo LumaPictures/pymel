@@ -5,7 +5,13 @@ A wrap of Maya's Vector, Point, Color, Matrix, TransformationMatrix, Quaternion,
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import str
+from builtins import map
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 import os
 import sys
 import math
@@ -20,6 +26,7 @@ from pymel.util.arrays import _toCompOrArrayInstance
 import pymel.internal.factories as _factories
 from pymel.util.enum import Enum
 from functools import reduce
+from future.utils import with_metaclass
 
 if False:
     from typing import *
@@ -40,7 +47,7 @@ def _patchMVector():
 
     def __iter__(self):
         """ Iterates on all components of a Maya api Vector """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield _api.MVector.__getitem__(self, i)
     type.__setattr__(_api.MVector, '__iter__', __iter__)
 
@@ -53,7 +60,7 @@ def _patchMFloatVector():
 
     def __iter__(self):
         """ Iterates on all components of a Maya api FloatVector """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield _api.MFloatVector.__getitem__(self, i)
     type.__setattr__(_api.MFloatVector, '__iter__', __iter__)
 
@@ -66,7 +73,7 @@ def _patchMPoint():
 
     def __iter__(self):
         """ Iterates on all components of a Maya api Point """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield _api.MPoint.__getitem__(self, i)
     type.__setattr__(_api.MPoint, '__iter__', __iter__)
 
@@ -79,7 +86,7 @@ def _patchMFloatPoint():
 
     def __iter__(self):
         """ Iterates on all components of a Maya api FloatPoint """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield _api.MFloatPoint.__getitem__(self, i)
     type.__setattr__(_api.MFloatPoint, '__iter__', __iter__)
 
@@ -92,7 +99,7 @@ def _patchMColor():
 
     def __iter__(self):
         """ Iterates on all components of a Maya api Color """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield _api.MColor.__getitem__(self, i)
     type.__setattr__(_api.MColor, '__iter__', __iter__)
 
@@ -106,8 +113,8 @@ def _patchMMatrix():
 
     def __iter__(self):
         """ Iterates on all 4 rows of a Maya api Matrix """
-        for r in xrange(4):
-            yield Array([_api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(self, r), c) for c in xrange(4)])
+        for r in range(4):
+            yield Array([_api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(self, r), c) for c in range(4)])
     type.__setattr__(_api.MMatrix, '__iter__', __iter__)
 
 
@@ -120,8 +127,8 @@ def _patchMFloatMatrix():
 
     def __iter__(self):
         """ Iterates on all 4 rows of a Maya api FloatMatrix """
-        for r in xrange(4):
-            yield Array([_api.MScriptUtil.getFloatArrayItem(_api.MFloatMatrix.__getitem__(self, r), c) for c in xrange(4)])
+        for r in range(4):
+            yield Array([_api.MScriptUtil.getFloatArrayItem(_api.MFloatMatrix.__getitem__(self, r), c) for c in range(4)])
     type.__setattr__(_api.MFloatMatrix, '__iter__', __iter__)
 
 
@@ -146,7 +153,7 @@ def _patchMQuaternion():
 
     def __iter__(self):
         """ Iterates on all components of a Maya api Quaternion """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield _api.MQuaternion.__getitem__(self, i)
     type.__setattr__(_api.MQuaternion, '__iter__', __iter__)
 
@@ -159,7 +166,7 @@ def _patchMEulerRotation():
 
     def __iter__(self):
         """ Iterates on all components of a Maya api EulerRotation """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield _api.MEulerRotation.__getitem__(self, i)
     type.__setattr__(_api.MEulerRotation, '__iter__', __iter__)
 
@@ -228,10 +235,10 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeRegistry):
                 # definition for component names
                 type.__setattr__(newcls, 'cnames', cnames)
                 subsizes = [reduce(operator.mul, shape[i + 1:], 1)
-                            for i in xrange(ndim)]
+                            for i in range(ndim)]
                 for index, compname in enumerate(cnames):
                     coords = []
-                    for i in xrange(ndim):
+                    for i in range(ndim):
                         c = index // subsizes[i]
                         index -= c * subsizes[i]
                         coords.append(c)
@@ -286,7 +293,7 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeRegistry):
 # to the class methods
 
 
-class Vector(VectorN):
+class Vector(with_metaclass(MetaMayaArrayTypeWrapper, VectorN)):
 
     """
     A 3 dimensional vector class that wraps Maya's api Vector class
@@ -302,7 +309,6 @@ class Vector(VectorN):
         >>> print(v)
         [1.0, 2.0, 3.0]
     """
-    __metaclass__ = MetaMayaArrayTypeWrapper
     __slots__ = ()
     # class specific info
     apicls = _api.MVector
@@ -422,7 +428,7 @@ class Vector(VectorN):
         ms.createFromDouble(*l)
         p = ms.asDoublePtr()
         self.apicls.get(self, p)
-        return tuple([ms.getDoubleArrayItem(p, i) for i in xrange(self.size)])
+        return tuple([ms.getDoubleArrayItem(p, i) for i in range(self.size)])
 
     def __len__(self):
         """ Number of components in the Vector instance, 3 for Vector, 4 for Point and Color """
@@ -1031,7 +1037,7 @@ class Point(Vector):
         if len(args) > 2:
             tol = kwargs.get('tol', None)
             n = (args[0] - self) ^ (args[1] - self)
-            return reduce(operator.and_, map(lambda x: n.isParallel(x, tol), [(args[0] - self) ^ (a - self) for a in args[2:]]), True)
+            return reduce(operator.and_, [n.isParallel(x, tol) for x in [(args[0] - self) ^ (a - self) for a in args[2:]]], True)
         else:
             return True
 
@@ -1055,7 +1061,7 @@ class Point(Vector):
             pOnEdge = False
             tol = _api.MPoint_kTol
             # all args should be MPoints
-            for i in xrange(np):
+            for i in range(np):
                 if not isinstance(q[i], Point):
                     try:
                         q[i] = Point(q[i])
@@ -1065,7 +1071,7 @@ class Point(Vector):
                                         (util.clsname(q[i])))
             # if p sits on an edge, it' a limit case and there is an easy solution,
             # all weights are 0 but for the 2 edge end points
-            for i in xrange(np):
+            for i in range(np):
                 next = (i + 1) % np
 
                 e = ((q[next] - q[i]) ^ (p - q[i])).sqlength()
@@ -1090,7 +1096,7 @@ class Point(Vector):
                     break
             # If p not on edge, use the cotangents method
             if not pOnEdge:
-                for i in xrange(np):
+                for i in range(np):
                     prev = (i + np - 1) % np
                     next = (i + 1) % np
 
@@ -1550,8 +1556,7 @@ class Color(Vector):
 
 # to specify space of transforms
 
-class Space(_api.MSpace):
-    __metaclass__ = _factories.MetaMayaTypeRegistry
+class Space(with_metaclass(_factories.MetaMayaTypeRegistry, _api.MSpace)):
     __slots__ = ()
     apicls = _api.MSpace
 # ------ Do not edit below this line --------
@@ -1658,7 +1663,7 @@ def equivalentSpace(space1, space2, rotationOnly=False):
 # mm(3,2)
 # 3.0
 
-class Matrix(MatrixN):
+class Matrix(with_metaclass(MetaMayaArrayTypeWrapper, MatrixN)):
 
     """
     A 4x4 transformation matrix based on api Matrix
@@ -1682,7 +1687,6 @@ class Matrix(MatrixN):
 
 
     """
-    __metaclass__ = MetaMayaArrayTypeWrapper
     __slots__ = ()
     apicls = _api.MMatrix
     shape = (4, 4)
@@ -1864,7 +1868,7 @@ class Matrix(MatrixN):
         mat = self.matrix
         return tuple(tuple(
             _api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(mat, r), c)
-            for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
+            for c in range(Matrix.shape[1])) for r in range(Matrix.shape[0]))
         # ptr = _api.Matrix(self.matrix).matrix
         # return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
 
@@ -2279,7 +2283,7 @@ class Quaternion(Matrix):
         ms.createFromDouble(*l)
         p = ms.asDoublePtr()
         self.apicls.get(self, p)
-        return tuple([ms.getDoubleArrayItem(p, i) for i in xrange(self.size)])
+        return tuple([ms.getDoubleArrayItem(p, i) for i in range(self.size)])
 
     def __getitem__(self, i):
         return self._getitem(i)
@@ -2719,7 +2723,7 @@ class TransformationMatrix(Matrix):
 # ------ Do not edit above this line --------
 
 
-class EulerRotation(Array):
+class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
 
     """
     unit handling:
@@ -2750,7 +2754,6 @@ class EulerRotation(Array):
 
 
     """
-    __metaclass__ = MetaMayaArrayTypeWrapper
     __slots__ = ()
     apicls = _api.MEulerRotation
     shape = (3,)
@@ -2879,7 +2882,7 @@ class EulerRotation(Array):
 
             # In case they do something like pass in a mix of Angle objects and
             # float numbers, convert to correct unit one-by-one...
-            for i in xrange(3):
+            for i in range(3):
                 if isinstance(args[i], Angle):
                     args[i] = args[i].asUnit('radians')
                 elif self.unit != 'radians' and not isinstance(args[i], Angle):
@@ -2918,7 +2921,7 @@ class EulerRotation(Array):
         ms.createFromDouble(*l)
         p = ms.asDoublePtr()
         self.apicls.get(self, p)
-        return tuple([ms.getDoubleArrayItem(p, i) for i in xrange(self.size)])
+        return tuple([ms.getDoubleArrayItem(p, i) for i in range(self.size)])
 
     def __contains__(self, value):
         """ True if at least one of the vector components is equal to the argument """
@@ -3235,7 +3238,7 @@ class EulerRotation(Array):
 
 
 class Unit(float):
-    __slots__ = ['unit', 'data', '_unit']
+    __slots__ = ['data', '_unit']
 
     # TODO: implement proper equality comparison - currently,
     # Distance(5, 'meters') == Distance(5, 'centimeters')
@@ -3483,9 +3486,8 @@ class Angle(Unit):
 # ------ Do not edit above this line --------
 
 
-class BoundingBox(_api.MBoundingBox):
+class BoundingBox(with_metaclass(_factories.MetaMayaTypeRegistry, _api.MBoundingBox)):
     apicls = _api.MBoundingBox
-    __metaclass__ = _factories.MetaMayaTypeRegistry
     __slots__ = ()
 
     def __init__(self, *args):

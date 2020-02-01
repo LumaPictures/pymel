@@ -1,6 +1,12 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import os
 import sys
 import re
@@ -19,6 +25,7 @@ from pymel.core import other
 from pymel.core import rendering
 from pymel.core import system
 from pymel.core import windows
+from future.utils import with_metaclass
 
 if False:
     from typing import *
@@ -86,7 +93,7 @@ def toPyQtObject(mayaName):
         if ptr is None:
             ptr = mui.MQtUtil.findMenuItem(mayaName)
     if ptr is not None:
-        return sip.wrapinstance(long(ptr), qtcore.QObject)
+        return sip.wrapinstance(int(ptr), qtcore.QObject)
 
 
 def toPyQtControl(mayaName):
@@ -102,7 +109,7 @@ def toPyQtControl(mayaName):
     import PyQt4.QtGui as qtgui
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is not None:
-        return sip.wrapinstance(long(ptr), qtgui.QWidget)
+        return sip.wrapinstance(int(ptr), qtgui.QWidget)
 
 
 def toPyQtLayout(mayaName):
@@ -118,7 +125,7 @@ def toPyQtLayout(mayaName):
     import PyQt4.QtGui as qtgui
     ptr = mui.MQtUtil.findLayout(mayaName)
     if ptr is not None:
-        return sip.wrapinstance(long(ptr), qtgui.QWidget)
+        return sip.wrapinstance(int(ptr), qtgui.QWidget)
 
 
 def toPyQtWindow(mayaName):
@@ -134,7 +141,7 @@ def toPyQtWindow(mayaName):
     import PyQt4.QtGui as qtgui
     ptr = mui.MQtUtil.findWindow(mayaName)
     if ptr is not None:
-        return sip.wrapinstance(long(ptr), qtgui.QWidget)
+        return sip.wrapinstance(int(ptr), qtgui.QWidget)
 
 
 def toPyQtMenuItem(mayaName):
@@ -152,7 +159,7 @@ def toPyQtMenuItem(mayaName):
     import PyQt4.QtGui as qtgui
     ptr = mui.MQtUtil.findMenuItem(mayaName)
     if ptr is not None:
-        return sip.wrapinstance(long(ptr), qtgui.QAction)
+        return sip.wrapinstance(int(ptr), qtgui.QAction)
 
 # PYSIDE VERSIONS
 
@@ -182,7 +189,7 @@ def pysideWrapInstance(ptr, base=None):
         import PySide.QtGui as qtwidgets
         from shiboken import wrapInstance
 
-    qObj = wrapInstance(long(ptr), qtcore.QObject)
+    qObj = wrapInstance(int(ptr), qtcore.QObject)
 
     metaObj = qObj.metaObject()
     cls = metaObj.className()
@@ -197,7 +204,7 @@ def pysideWrapInstance(ptr, base=None):
         base = getattr(qtwidgets, superCls)
     else:
         base = qtwidgets.QWidget
-    return wrapInstance(long(ptr), base)
+    return wrapInstance(int(ptr), base)
 
 
 def toPySideObject(mayaName):
@@ -225,7 +232,7 @@ def toPySideObject(mayaName):
         if ptr is None:
             ptr = mui.MQtUtil.findMenuItem(mayaName)
     if ptr is not None:
-        return pysideWrapInstance(long(ptr), qtcore.QObject)
+        return pysideWrapInstance(int(ptr), qtcore.QObject)
 
 
 def toPySideControl(mayaName):
@@ -248,7 +255,7 @@ def toPySideControl(mayaName):
 
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is not None:
-        return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+        return pysideWrapInstance(int(ptr), qtwidgets.QWidget)
 
 
 def toPySideLayout(mayaName):
@@ -271,7 +278,7 @@ def toPySideLayout(mayaName):
 
     ptr = mui.MQtUtil.findLayout(mayaName)
     if ptr is not None:
-        return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+        return pysideWrapInstance(int(ptr), qtwidgets.QWidget)
 
 
 def toPySideWindow(mayaName):
@@ -293,7 +300,7 @@ def toPySideWindow(mayaName):
         import PySide.QtGui as qtwidgets
     ptr = mui.MQtUtil.findWindow(mayaName)
     if ptr is not None:
-        return pysideWrapInstance(long(ptr), qtwidgets.QWidget)
+        return pysideWrapInstance(int(ptr), qtwidgets.QWidget)
 
 
 def toPySideMenuItem(mayaName):
@@ -317,7 +324,7 @@ def toPySideMenuItem(mayaName):
 
     ptr = mui.MQtUtil.findMenuItem(mayaName)
     if ptr is not None:
-        return pysideWrapInstance(long(ptr), qtwidgets.QAction)
+        return pysideWrapInstance(int(ptr), qtwidgets.QAction)
 
 # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
 try:
@@ -396,7 +403,7 @@ def objectTypeUI(name, **kwargs):
             raise topError
 
 
-class PyUI(unicode):
+class PyUI(str):
     __melui__ = None
 
     def __new__(cls, name=None, create=False, **kwargs):
@@ -464,7 +471,7 @@ class PyUI(unicode):
         # correct for optionMenu
         if newcls == PopupMenu and cmds.optionMenu(name, ex=1):
             newcls = OptionMenu
-        return unicode.__new__(newcls, name)
+        return str.__new__(newcls, name)
 
     @staticmethod
     def _isBeingCreated(name, create, kwargs):
@@ -486,7 +493,7 @@ class PyUI(unicode):
         -------
         PyUI
         """
-        buf = unicode(self).split('|')[:-1]
+        buf = str(self).split('|')[:-1]
         if len(buf) == 2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
             # pre-2011, windows with menus can have a strange name:
             # ex.  window1|window1|menu1
@@ -503,7 +510,7 @@ class PyUI(unicode):
         -------
         unicode
         """
-        return unicode(self).split('|')[-1]
+        return str(self).split('|')[-1]
 
     def name(self):
         # type: () -> unicode
@@ -512,7 +519,7 @@ class PyUI(unicode):
         -------
         unicode
         """
-        return unicode(self)
+        return str(self)
 
     def window(self):
         # type: () -> Window
@@ -1785,7 +1792,7 @@ class TextScrollList(PyUI):
     def selectAll(self):
         """select all items"""
         numberOfItems = self.getNumberOfItems()
-        self.selectIndexedItems(range(1, numberOfItems + 1))
+        self.selectIndexedItems(list(range(1, numberOfItems + 1)))
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(windows.textScrollList)
     __melcmd_isinfo__ = False
@@ -3377,7 +3384,7 @@ class AELoader(type):
         return cls._loaded
 
 
-class AETemplate(object):
+class AETemplate(with_metaclass(AELoader, object)):
 
     """
     To create an Attribute Editor template using python, do the following:
@@ -3401,8 +3408,6 @@ class AETemplate(object):
         from pymel.core.uitypes import AELoader
         print AELoader.loadedTemplates()
     """
-
-    __metaclass__ = AELoader
 
     _nodeType = None
 

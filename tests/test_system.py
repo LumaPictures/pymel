@@ -1,6 +1,10 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import zip
+from builtins import str
+from builtins import *
 import os
 import unittest
 import tempfile
@@ -475,7 +479,7 @@ class testCase_references(unittest.TestCase):
             # a reference node... and if a parent reference node is unloaded,
             # they may be come invalid
 
-            for ns, loaded in loadedByNS.iteritems():
+            for ns, loaded in loadedByNS.items():
                 if not loaded:
                     ref = pm.FileReference(namespace=ns)
                     if not loaded:
@@ -486,7 +490,7 @@ class testCase_references(unittest.TestCase):
 
             # All files should now be set up with the appropriate
             # loaded/unloaded refs... confirm
-            for ns, loaded in loadedByNS.iteritems():
+            for ns, loaded in loadedByNS.items():
                 try:
                     wasLoaded = pm.FileReference(namespace=ns).isLoaded()
                 except RuntimeError:
@@ -535,7 +539,7 @@ class testCase_references(unittest.TestCase):
 
                 # then, find any sub-permutations for refs which are loaded
                 possibleSubPermutations = []
-                for ns, loaded in topByNamespace.iteritems():
+                for ns, loaded in topByNamespace.items():
                     if loaded and ns in subPermutationsByNS:
                         possibleSubPermutations.append(subPermutationsByNS[ns])
 
@@ -653,7 +657,7 @@ class testCase_fileInfo(unittest.TestCase):
     def setUp(self):
         pm.newFile(f=1)
         self.rawDict = {'testKey': 'testValue'}
-        for key, val in self.rawDict.iteritems():
+        for key, val in self.rawDict.items():
             cmds.fileInfo(key, val)
 
     def test_get(self):
@@ -670,9 +674,9 @@ class testCase_fileInfo(unittest.TestCase):
 
     def test_delitem(self):
         _dict = {}
-        self.assertNotEqual(_dict.items(), pm.fileInfo.items())
+        self.assertNotEqual(list(_dict.items()), list(pm.fileInfo.items()))
         del pm.fileInfo['testKey']
-        self.assertEqual(_dict.items(), pm.fileInfo.items())
+        self.assertEqual(list(_dict.items()), list(pm.fileInfo.items()))
 
     def test_iter(self):
         self.assertEqual(sorted(pm.fileInfo), sorted(self.rawDict))

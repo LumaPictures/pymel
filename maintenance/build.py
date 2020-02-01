@@ -4,7 +4,14 @@ Regenerate the core modules using parsed data and templates
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import compileall
 import inspect
 import keyword
@@ -183,7 +190,7 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
     #         unpackFlags.append(repr(flagInfo.get('shortname', flag)))
 
     unpackFlags = set()
-    for flag, flagInfo in cmdInfo.get('flags', {}).iteritems():
+    for flag, flagInfo in cmdInfo.get('flags', {}).items():
         if flagInfo.get('resultNeedsUnpacking', False):
             unpackFlags.add(flagInfo.get('longname', flag))
             unpackFlags.add(flagInfo.get('shortname', flag))
@@ -415,7 +422,7 @@ class VersionedCaches(object):
 
             trueVersions = [ver]
             # remove other versions with this value
-            for i in xrange(len(remainingVersions) - 1, -1, -1):
+            for i in range(len(remainingVersions) - 1, -1, -1):
                 ver = remainingVersions[i]
                 if byVersion[ver] == currentValue:
                     trueVersions.append(ver)
@@ -704,7 +711,7 @@ class ModuleGenerator(object):
         lines = self.moduleLines[moduleName]
 
         # trim off last START_MARKER and anything after
-        for i in xrange(len(lines) - 1, -1, -1):
+        for i in range(len(lines) - 1, -1, -1):
             if lines[i] == START_MARKER:
                 del lines[i:]
                 break
@@ -1429,7 +1436,7 @@ class ApiMethodGenerator(MelMethodGenerator):
             def non_deprecated_methods_first():
 
                 deprecated = []
-                for methodName, info in classInfo['methods'].iteritems():
+                for methodName, info in classInfo['methods'].items():
 
                     try:
                         basePymelName = classInfo.get('pymelMethods', {})[methodName]
@@ -1454,7 +1461,7 @@ class ApiMethodGenerator(MelMethodGenerator):
 
                     # make sure we know how to deal with all args
                     unknownType = False
-                    for argName, argType in info[overloadIndex]['types'].viewitems():
+                    for argName, argType in info[overloadIndex]['types'].items():
                         if isinstance(argType, tuple):
                             # it's an enum, check next arg
                             continue
@@ -1615,7 +1622,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
         # build some constants on the class
         constant = {}
         # constants in class definition will be converted from api class to created class
-        for name, attr in self.existingClass.__dict__.iteritems():
+        for name, attr in self.existingClass.__dict__.items():
             # to add the wrapped api class constants as attributes on the wrapping class,
             # convert them to own class
             if isinstance(attr, self.apicls):

@@ -4,8 +4,17 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 # Built-in imports
+from builtins import zip
+from builtins import str
+from builtins import map
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
+from future.utils import with_metaclass
 import re
 import types
 import os
@@ -526,7 +535,7 @@ simpleCommandWraps = {
 if docstringMode == 'html':
     examples = cmdcache.CmdProcessedExamplesCache().read()
     if examples:
-        for cmd, example in examples.iteritems():
+        for cmd, example in examples.items():
             try:
                 cmdlist[cmd]['example'] = example
             except KeyError:
@@ -711,7 +720,7 @@ def _getTimeRangeFlags(cmdName):
     except KeyError:
         pass
     else:
-        for flag, data in flagDocs.iteritems():
+        for flag, data in flagDocs.items():
             args = data['args']
             if isinstance(args, basestring) and args.lower() == 'timerange':
                 commandFlags.update([flag, data['shortname']])
@@ -839,7 +848,7 @@ def makeUICallback(origCallback, args, doPassSelf):
                                           creationTrace=creationTraceback)
             raise
         if isinstance(res, util.ProxyUnicode):
-            res = unicode(res)
+            res = str(res)
         return res
     return callback
 
@@ -950,7 +959,7 @@ def convertTimeValues(rawVal):
     # will be left alone...
     if (isinstance(rawVal, (list, tuple))
             and 1 <= len(rawVal) <= 2
-            and all(isinstance(x, (basestring, int, long, float))
+            and all(isinstance(x, (basestring, int, int, float))
                     for x in rawVal)):
         values = list(rawVal)
     else:
@@ -979,7 +988,7 @@ def convertTimeValues(rawVal):
 def maybeConvert(val, castFunc):
     if isinstance(val, list):
         try:
-            return map(castFunc, val)
+            return list(map(castFunc, val))
         except:
             return val
     elif val:
@@ -1067,7 +1076,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
                         res = returnFunc(res[0])
                     else:
                         try:
-                            res = map(returnFunc, res)
+                            res = list(map(returnFunc, res))
                         except:
                             pass
 
@@ -1081,7 +1090,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
 
     createUnpack = cmdInfo.get('resultNeedsUnpacking', False)
     unpackFlags = set()
-    for flag, flagInfo in cmdInfo.get('flags', {}).iteritems():
+    for flag, flagInfo in cmdInfo.get('flags', {}).items():
         if flagInfo.get('resultNeedsUnpacking', False):
             unpackFlags.add(flagInfo.get('longname', flag))
             unpackFlags.add(flagInfo.get('shortname', flag))
@@ -1604,9 +1613,9 @@ ApiTypeRegister.register('short', int)
 ApiTypeRegister.register('uint', int)
 ApiTypeRegister.register('uchar', int)
 #ApiTypeRegister.register('long', int)
-ApiTypeRegister.register('char', unicode)
-ApiTypeRegister.register('MString', unicode)
-ApiTypeRegister.register('MStringArray', list, apiArrayItemType=unicode)
+ApiTypeRegister.register('char', str)
+ApiTypeRegister.register('MString', str)
+ApiTypeRegister.register('MStringArray', list, apiArrayItemType=str)
 ApiTypeRegister.register('MIntArray', int, apiArrayItemType=int)
 ApiTypeRegister.register('MFloatArray', float, apiArrayItemType=float)
 ApiTypeRegister.register('MDoubleArray', float, apiArrayItemType=float)
@@ -2126,7 +2135,7 @@ class ApiArgUtil(object):
         return self.methodInfo.get('deprecated', False)
 
 
-class ApiUndo(object):
+class ApiUndo(with_metaclass(util.Singleton, object)):
 
     """
     this is based on a clever prototype that Dean Edmonds posted on python_inside_maya
@@ -2146,7 +2155,6 @@ class ApiUndo(object):
           the numeric attribute.
 
     """
-    __metaclass__ = util.Singleton
 
     def __init__(self):
         self.node_name = '__pymelUndoNode'
@@ -2868,7 +2876,7 @@ def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
             pymelType = pymelType.pymelName()
 
         pymelType = repr(pymelType)  # .replace("'", "`")
-        if typ in ApiTypeRegister.arrayItemTypes.keys():
+        if typ in list(ApiTypeRegister.arrayItemTypes.keys()):
             pymelType = 'List[%s]' % pymelType
         return pymelType
 
@@ -3443,7 +3451,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             #                 # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
             #             # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
 
-        for name, attr in classdict.iteritems():
+        for name, attr in classdict.items():
             type.__setattr__(newcls, name, attr)
 
         return newcls

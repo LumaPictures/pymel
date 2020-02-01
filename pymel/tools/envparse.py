@@ -2,7 +2,11 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import str
+from builtins import *
+from builtins import object
 import sys
 import os
 import os.path
@@ -24,7 +28,7 @@ _logger = logging.getLogger(__name__)
 # when line is encountered
 
 
-class EnvLex:
+class EnvLex(object):
 
     """ ply.lex lexer class to parse Maya.env file """
 
@@ -164,11 +168,11 @@ class EnvLex:
 # second level lexer : os dependant parsing of values and variable substitution
 
 
-class ValueLex:
+class ValueLex(object):
 
     """ second level lexer to parse right-values depending on os name """
 
-    class Warn:
+    class Warn(object):
 
         """ a ValueLex subclass to reset warning count """
 
@@ -327,14 +331,14 @@ def parse(text, environ=os.environ, osname=os.name):
                         symbols[var] = newvalue
                         newsymbols[var] = newvalue
                     if action == 'Set':
-                        print(u"%s set to value %s" % (var, unicode(newvalue)))
+                        print(u"%s set to value %s" % (var, str(newvalue)))
                     elif action == 'Add':
-                        print(u"%s was already set, appending value: %s" % (var, unicode(newvalue)))
+                        print(u"%s was already set, appending value: %s" % (var, str(newvalue)))
                     elif action == 'Ignore':
-                        print(u"%s was already set, ignoring line: %s" % (var, unicode(tok.value)))
+                        print(u"%s was already set, ignoring line: %s" % (var, str(tok.value)))
                 var = value = None
             elif tok.type == 'CANCEL':
-                print("Line was ignored due to parsing errors: %s" % unicode(tok.value))
+                print("Line was ignored due to parsing errors: %s" % str(tok.value))
                 var = value = None
             else:
                 pass

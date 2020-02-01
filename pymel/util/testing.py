@@ -1,6 +1,12 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 import sys
 import os
 import types
@@ -8,7 +14,7 @@ import doctest
 import modulefinder
 import traceback
 import inspect
-from StringIO import StringIO
+from io import StringIO
 from unittest import *
 
 import pymel.util
@@ -301,7 +307,7 @@ def permutations(sequence, length=None):
         yield []
 
     else:
-        for i in xrange(len(sequence)):
+        for i in range(len(sequence)):
             for subpermutation in permutations(sequence[:i] + sequence[i + 1:], length - 1):
                 yield [sequence[i]] + subpermutation
 
@@ -310,7 +316,7 @@ def isOneToOne(dict):
     """
     Tests if the given dictionary is one to one (if dict[x]==dict[y], x==y)
     """
-    return len(set(dict.itervalues())) == len(dict)
+    return len(set(dict.values())) == len(dict)
 
 
 def isEquivalenceRelation(inputs, outputs, dict):
@@ -323,8 +329,8 @@ def isEquivalenceRelation(inputs, outputs, dict):
     inputs = set(inputs)
     output = set(outputs)
     if len(inputs) == len(outputs) and \
-            set(dict.iterkeys()) == inputs and \
-            set(dict.itervalues()) == outputs:
+            set(dict.keys()) == inputs and \
+            set(dict.values()) == outputs:
 
         return True
     else:

@@ -5,7 +5,12 @@ These types can be shared by other utils modules and imported into util main nam
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+import collections.abc
+from builtins import str
+from builtins import *
+from builtins import object
 import inspect
 import types
 import operator
@@ -458,9 +463,12 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 # and ProxyUnicode itself has now had so many methods removed from it that
 # it's no longer really a good proxy for unicode.
 
-# NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
-# ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
-ProxyUnicode = proxyClass(unicode, 'ProxyUnicode', module=__name__, dataFuncName='name',
+# NOTE: This may move back to core.general, depending on whether the
+# __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
+# ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
+#                           remove=['__getitem__', 'translate'])
+# 2009 Beta 2.1 has issues with passing classes with __getitem__
+ProxyUnicode = proxyClass(str, 'ProxyUnicode', module=__name__, dataFuncName='name',
                           remove=['__doc__', '__getslice__', '__contains__', '__len__',
                                   '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
                                   'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
@@ -638,7 +646,7 @@ class LazyLoadModule(types.ModuleType):
 
     @property
     def __all__(self):
-        public = [x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_')]
+        public = [x for x in list(self.__dict__.keys()) + list(self.__class__.__dict__.keys()) if not x.startswith('_')]
         return public
 
     @classmethod
@@ -677,7 +685,7 @@ class LazyLoadModule(types.ModuleType):
                 cb_args = ()
                 cb_kwargs = {}
             if len(args) == 3:
-                assert operator.isMappingType(args[2]), 'third argument must be a mapping type'
+                assert isinstance(args[2], collections.abc.Mapping), 'third argument must be a mapping type'
                 cb_kwargs = args[2]
             else:
                 cb_kwargs = {}
@@ -742,7 +750,7 @@ class LazyDocStringError(Exception):
     pass
 
 
-class LazyDocString(bytes):
+class LazyDocString(object):
 
     """
     Set the __doc__ of an object to an instance of this class in order to have
@@ -983,7 +991,7 @@ class TwoWayDict(dict):
         else:
             tempDict = {}
         tempDict.update(kwargs)
-        for key, val in tempDict.iteritems():
+        for key, val in tempDict.items():
             self[key] = val
 
     def get_key(self, v):
