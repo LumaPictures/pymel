@@ -1212,8 +1212,8 @@ class CmdCache(startup.SubItemCache):
         plugins.unloadAllPlugins()
 
         self.nodeHierarchy = _getNodeHierarchy(long_version)
-        nodeFunctions = [x[0] for x in self.nodeHierarchy]
-        nodeFunctions += list(nodeTypeToNodeCommand.values())
+        nodeFunctions = {x[0] for x in self.nodeHierarchy}
+        nodeFunctions.update(x for x in nodeTypeToNodeCommand.values() if x)
 
         _logger.info("Rebuilding the list of Maya commands...")
 
@@ -1310,8 +1310,9 @@ class CmdCache(startup.SubItemCache):
         # corrections that are always made, to both loaded and freshly built caches
         util.mergeCascadingDicts(cmdlistOverrides, self.cmdlist)
         # add in any nodeCommands added after cache rebuild
-        self.nodeCommandList = set(self.nodeCommandList).union(nodeTypeToNodeCommand.values())
-        self.nodeCommandList = sorted(self.nodeCommandList)
+        nodeCommandList = set(self.nodeCommandList)
+        nodeCommandList.update(x for x in nodeTypeToNodeCommand.values() if x)
+        self.nodeCommandList = sorted(nodeCommandList)
 
         for module, funcNames in moduleCommandAdditions.items():
             for funcName in funcNames:

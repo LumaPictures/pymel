@@ -852,10 +852,15 @@ class FileInfo(collections.MutableMapping):
             raise RuntimeError("error getting fileInfo for key %r - "
                                "more than one value returned" % item)
         else:
-            if isinstance(result[0], str):
-                return result[0].decode('string_escape')
+            value = result[0]
+            if sys.version_info[0] < 3:
+                if isinstance(value, bytes):
+                    return value.decode('string_escape')
+                else:
+                    # unicode
+                    return value.decode('unicode_escape')
             else:
-                return result[0].decode('unicode_escape')
+                return value
 
     def __setitem__(self, item, value):
         cmds.fileInfo(item, value)
