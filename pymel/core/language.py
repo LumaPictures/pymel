@@ -124,6 +124,7 @@ def pythonToMelCmd(command, *args, **kwargs):
     but this caused problems with the mel "button" function, which has a
     "command" flag.
     '''
+    _factories.loadCmdCache()
     strArgs = [pythonToMel(arg) for arg in args]
 
     if kwargs:
