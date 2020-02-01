@@ -6,10 +6,12 @@ Created on Oct 16, 2012
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 # used to have tests for util.isClassRunningStack, but it turned out
 # inspect.stack() could cause crashes in some cases...
 
+from builtins import *
 import unittest
 from pymel.util.scanf import (sscanf, fscanf, CharacterBufferFromIterable,
                               makeCharBuffer, handleWhitespace, handleChar,
@@ -135,12 +137,12 @@ class ScanfTests(unittest.TestCase):
         self.assertEquals(("  ",), sscanf("              xyz", "%2c"))
 
     def testFscanf(self):
-        import StringIO
-        b = StringIO.StringIO("hello world")
+        import io
+        b = io.StringIO("hello world")
         self.assertEquals(("hello", " ", "world"), fscanf(b, "%s%c%s"))
         # Check that calling fscanf() twice doesn't
         # drop the last character
-        b2 = StringIO.StringIO("hello world")
+        b2 = io.StringIO("hello world")
         self.assertEquals(("hello",), fscanf(b2, "%s"))
         self.assertEquals((" ",), fscanf(b2, "%c"))
         self.assertEquals(("world",), fscanf(b2, "%s"))

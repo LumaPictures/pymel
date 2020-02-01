@@ -37,7 +37,16 @@ the results::
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
 
+from past.builtins import cmp
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import sys
 import os
 import warnings
@@ -53,6 +62,7 @@ import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as versions
+from future.utils import with_metaclass
 if False:
     from typing import *
     from maya import cmds
@@ -196,7 +206,7 @@ class UndoChunk(object):
 # ==============================================================================
 # Namespace
 # ==============================================================================
-class Namespace(unicode):
+class Namespace(str):
 
     @classmethod
     def getCurrent(cls):
@@ -280,7 +290,7 @@ class Namespace(unicode):
         -------
         Namespace
         """
-        if (unicode(self) != u":"):
+        if (str(self) != u":"):
             return self.__class__(':'.join(self.splitAll()[:-1]))
 
     def ls(self, pattern="*", **kwargs):
@@ -328,8 +338,8 @@ class Namespace(unicode):
         try:
             # workaround: namespaceInfo sometimes returns duplicates
             seen = set()
-            namespaces = map(self.__class__, [ns for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
-                                              if not (ns in seen or seen.add(ns))])
+            namespaces = list(map(self.__class__, [ns for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+                                              if not (ns in seen or seen.add(ns))]))
 
             if not internal:
                 for i in [":UI", ":shared"]:
@@ -597,7 +607,7 @@ class Translator(object):
 
     def __init__(self, name):
         assert name in cmds.translator(q=1, list=1), "%s is not the name of a registered translator" % name
-        self._name = unicode(name)
+        self._name = str(name)
 
     def __str__(self):
         return self._name
@@ -687,7 +697,7 @@ class WorkspaceEntryDict(object):
     has_key = __contains__
 
 
-class Workspace(object):
+class Workspace(with_metaclass(_util.Singleton, object)):
 
     """
     This class is designed to lend more readability to the often confusing workspace command.
@@ -731,7 +741,6 @@ class Workspace(object):
         Path('...')
 
     """
-    __metaclass__ = _util.Singleton
 
     objectTypes = WorkspaceEntryDict('objectType')
     fileRules = WorkspaceEntryDict('fileRule')
@@ -860,14 +869,14 @@ class FileInfo(collections.MutableMapping):
     def __call__(self, *args, **kwargs):
         if kwargs.get('query', kwargs.get('q', False)):
             if not args:
-                return self.items()
+                return list(self.items())
             else:
                 return self[args[0]]
         else:
             cmds.fileInfo(*args, **kwargs)
 
     def items(self):
-        return zip(self.keys(), self.values())
+        return list(zip(self.keys(), self.values()))
 
     def keys(self):
         return cmds.fileInfo(q=True)[::2]
@@ -1325,7 +1334,7 @@ class FileReference(object):
         if pathOrRefNode:
             if isinstance(pathOrRefNode, (basestring, Path)):
                 try:
-                    self._refNode = general.PyNode(mcmds.referenceQuery(unicode(pathOrRefNode), referenceNode=1))
+                    self._refNode = general.PyNode(mcmds.referenceQuery(str(pathOrRefNode), referenceNode=1))
                 except RuntimeError:
                     pass
             if not self._refNode:
@@ -1335,7 +1344,7 @@ class FileReference(object):
                     try:
                         self._refNode = general.PyNode(pathOrRefNode)
                     except general.MayaObjectError:
-                        pathOrRefNode = unicode(pathOrRefNode)
+                        pathOrRefNode = str(pathOrRefNode)
                         try:
                             refNodeName = mcmds.file(pathOrRefNode, q=1, referenceNode=1)
                         except RuntimeError:
@@ -1417,28 +1426,28 @@ class FileReference(object):
     def __repr__(self):
         return u'%s(%r, refnode=%r)' % (self.__class__.__name__,
                                         self.withCopyNumber(),
-                                        unicode(self.refNode))
+                                        str(self.refNode))
 
     def __str__(self):
         return self.withCopyNumber()
 
     def __gt__(self, other):
-        return self.withCopyNumber().__gt__(unicode(other))
+        return self.withCopyNumber().__gt__(str(other))
 
     def __ge__(self, other):
-        return self.withCopyNumber().__ge__(unicode(other))
+        return self.withCopyNumber().__ge__(str(other))
 
     def __lt__(self, other):
-        return self.withCopyNumber().__lt__(unicode(other))
+        return self.withCopyNumber().__lt__(str(other))
 
     def __le__(self, other):
-        return self.withCopyNumber().__le__(unicode(other))
+        return self.withCopyNumber().__le__(str(other))
 
     def __eq__(self, other):
-        return self.withCopyNumber().__eq__(unicode(other))
+        return self.withCopyNumber().__eq__(str(other))
 
     def __ne__(self, other):
-        return self.withCopyNumber().__ne__(unicode(other))
+        return self.withCopyNumber().__ne__(str(other))
 
     def __hash__(self):
         return hash(self.withCopyNumber())
@@ -1915,7 +1924,7 @@ class ReferenceEdit(str):
         elif self.type == "disconnectAttr":
             if elements[0].startswith("-"):
                 elements.append(elements.pop(0))
-            refNode, otherNode = map(_safeRefPyNode, elements[:2])
+            refNode, otherNode = list(map(_safeRefPyNode, elements[:2]))
             editData['sourceNode'] = refNode
             editData['targetNode'] = otherNode
             otherNode, refNode = sorted([otherNode, refNode], key=lambda n: self.namespace in n)
@@ -1924,7 +1933,7 @@ class ReferenceEdit(str):
         elif self.type == "connectAttr":
             if elements[0].startswith("-"):
                 elements.append(elements.pop(0))
-            refNode, otherNode = map(_safeRefPyNode, elements[:2])
+            refNode, otherNode = list(map(_safeRefPyNode, elements[:2]))
             editData['sourceNode'] = refNode
             editData['targetNode'] = otherNode
             otherNode, refNode = sorted([otherNode, refNode], key=lambda n: self.namespace in n)
@@ -1932,7 +1941,7 @@ class ReferenceEdit(str):
             del elements[:2]
         else:
             editData['node'] = _safeRefPyNode(elements.pop(0))
-        editData['parameters'] = map(str, elements)
+        editData['parameters'] = list(map(str, elements))
 
         return editData
 

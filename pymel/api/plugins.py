@@ -86,8 +86,11 @@ An example of a plugin which creates a node::
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 
+from builtins import *
+from builtins import object
 import sys
 import os
 import inspect
@@ -234,7 +237,7 @@ mpxNamesToMayaNodes = {
 # those that are to mpxClassesToMpxEnums
 mpxClassesToMpxEnums = {}
 missingMPx = []
-for _mpxName, _enumName in mpxNamesToEnumNames.iteritems():
+for _mpxName, _enumName in mpxNamesToEnumNames.items():
     _mpxCls = getattr(mpx, _mpxName, None)
 
     if _mpxCls:
@@ -253,7 +256,7 @@ for _mpxName in missingMPx:
 
 del _mpxName, _enumName, _enum
 
-pluginMayaTypes = set(mpxNamesToMayaNodes.itervalues())
+pluginMayaTypes = set(mpxNamesToMayaNodes.values())
 
 NON_CREATABLE = set(['MPxManipContainer',
                      'MPxManipulatorNode',
@@ -280,7 +283,7 @@ def enumToStr():
 def _guessEnumStrFromMpxClass(className):
     assert className.startswith('MPx')
     name = className[3:]
-    enums = enumToStr().values()
+    enums = list(enumToStr().values())
     enumStr = 'k' + name
     if enumStr in enums:
         return enumStr
@@ -469,7 +472,7 @@ class BasePluginMixin(object):
         size = (end - start) + 1
         md5 = hashlib.md5()
         md5.update(name)
-        id = start + long(md5.hexdigest(), 16) % size
+        id = start + int(md5.hexdigest(), 16) % size
         return om.MTypeId(id)
 
     @classmethod
@@ -932,7 +935,7 @@ def _buildPluginHierarchy(dummyClasses=None):
     # NON_CREATABLE, because post 2012, we should be able to query inheritance
     # without needing to create a node...
     inheritances = {}
-    for pluginType, dummyClass in dummyClasses.iteritems():
+    for pluginType, dummyClass in dummyClasses.items():
         nodeType = dummyClass.mayaName()
         wasRegistered = dummyClass.isRegistered()
         if not wasRegistered:
@@ -959,7 +962,7 @@ def _buildMpxNamesToApiEnumNames(dummyClasses=None, dummyNodes=None):
     mpxToEnumNames = {}
     with _DummyPluginNodesMaker(dummyClasses=dummyClasses,
                                 alreadyCreated=dummyNodes) as nodeMaker:
-        for mpxCls, mayaNode in nodeMaker.nodes.iteritems():
+        for mpxCls, mayaNode in nodeMaker.nodes.items():
             mobj = api.toMObject(mayaNode)
             mpxToEnumNames[mpxCls.__name__] = mobj.apiTypeStr()
     return mpxToEnumNames
@@ -978,7 +981,7 @@ def _buildMpxNamesToMayaNodes(hierarchy=None):
     if hierarchy is None:
         hierarchy = _buildPluginHierarchy()
     mpxNamesToMayaNodes = {}
-    for mpxCls, parents in hierarchy.iteritems():
+    for mpxCls, parents in hierarchy.items():
         if not parents:
             mayaType = hierarchy[mpx.MPxNode][-1]
         else:
@@ -997,7 +1000,7 @@ def _createDummyPluginNodeClasses():
     import logging
     pymelPlugClasses = []
 
-    for obj in globals().itervalues():
+    for obj in globals().values():
         if inspect.isclass(obj) and issubclass(obj, DependNode):
             pymelPlugClasses.append(obj)
 
@@ -1033,7 +1036,7 @@ class _DummyPluginNodesMaker(object):
         self.toDelete = []
 
     def __enter__(self):
-        for mpxCls, pyCls in self.dummyClasses.iteritems():
+        for mpxCls, pyCls in self.dummyClasses.items():
             if not pyCls.isRegistered():
                 self.toUnregister.append(pyCls)
                 pyCls.register()
@@ -1196,7 +1199,7 @@ def pluginCommands(pluginName, reportedOnly=False):
     logger = logging.getLogger('pymel')
 
     commands = []
-    for cmdType, pluginToCmds in UNREPORTED_COMMANDS.iteritems():
+    for cmdType, pluginToCmds in UNREPORTED_COMMANDS.items():
         try:
             moreCmds = maya.cmds.pluginInfo(pluginName, query=1, **{cmdType: 1})
         except TypeError:  # will get this if it's a flag pluginInfo doesn't know

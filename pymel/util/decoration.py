@@ -1,8 +1,11 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 
+from builtins import str
+from builtins import *
 def decorated(origFunc, newFunc, decoration=None):
     """
     Copies the original function's name/docs/signature to the new function, so that the docstrings

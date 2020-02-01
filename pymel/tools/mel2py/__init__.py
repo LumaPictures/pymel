@@ -166,7 +166,9 @@ quickly as i can.
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
 
+from builtins import *
 from . import melparse
 try:
     from pymel.util.external.ply.lex import LexError
@@ -316,7 +318,7 @@ def _makePackages():
     # Maps from a package (in tuple form) to base directory
     packages = {}
 
-    for moduleName, melfile in melparse.batchData.currentModules.iteritems():
+    for moduleName, melfile in melparse.batchData.currentModules.items():
         if moduleName.count('.') < 1:
             continue
         package = tuple(moduleName.split('.')[:-1])
@@ -327,7 +329,7 @@ def _makePackages():
                 "package %s did not match melfile %s directory structure" % ('.'.join(package), melfile)
             packages[package] = util.path.joinpath(*(melfile.splitall()[:-(len(package) + 1)]))
 
-    for packageTuple, baseDir in packages.iteritems():
+    for packageTuple, baseDir in packages.items():
         if not baseDir.isdir():
             baseDir.makedirs()
         curDir = baseDir
@@ -494,7 +496,7 @@ def mel2py(input, outputDir=None,
 
     importCnt = 0
     succeeded = []
-    for moduleName, melfile in batchData.currentModules.iteritems():
+    for moduleName, melfile in batchData.currentModules.items():
         print(melfile, moduleName)
 
         if melfile in batchData.scriptPath_to_moduleText:

@@ -7,8 +7,10 @@ and define a UserWarning class that does only print it's message (no line or mod
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from past.builtins import basestring
+from builtins import *
 import warnings
-from warnings import formatwarning, linecache
 
 
 def formatwarning(message, category, filename, lineno, line=None):

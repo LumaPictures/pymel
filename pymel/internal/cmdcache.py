@@ -1,7 +1,12 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
 # Built-in imports
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 import os
 import re
 import inspect
@@ -207,7 +212,7 @@ util.setCascadingDictItem(cmdlistOverrides, ('pointOnPolyConstraint', 'resultNee
 
 def getCmdInfoBasic(command):
     typemap = {
-        'string': unicode,
+        'string': str,
         'length': float,
         'float': float,
         'angle': float,
@@ -319,7 +324,7 @@ def getCmdInfo(command, version, python=True):
         # if we have a "true" mel boolean flag, then getCmdInfoBasic will return
         # numArgs == 0, but parsing the PYTHON docs will return a numArgs of 1;
         # keep the numArgs of 0
-        for flag, flagInfo in parser.flags.iteritems():
+        for flag, flagInfo in parser.flags.items():
             if flagInfo.get('args') == bool and flagInfo.get('numArgs') == 1:
                 basicFlagInfo = basicFlags.get(flag, {})
                 if (basicFlagInfo.get('args') == bool
@@ -686,7 +691,7 @@ def getModule(funcName, knownModuleCmds):
     # elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
     #    module = 'node'
     else:
-        for moduleName, commands in knownModuleCmds.iteritems():
+        for moduleName, commands in knownModuleCmds.items():
             if funcName in commands:
                 module = moduleName
                 break
@@ -991,7 +996,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                         if isinstance(argtype, list):
                             val = []
                             for typ in argtype:
-                                if type == unicode or isinstance(type, basestring):
+                                if type == str or isinstance(type, basestring):
                                     val.append('persp')
                                 else:
                                     if 'query' in modes:
@@ -1000,7 +1005,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                                     else:
                                         val.append(typ(1))
                         else:
-                            if argtype == unicode or isinstance(argtype, basestring):
+                            if argtype == str or isinstance(argtype, basestring):
                                 val = 'persp'
                             elif 'query' in modes:
                                 val = argtype(0)
@@ -1106,8 +1111,8 @@ def _getNodeHierarchy(version=None):
 
     parentTree = {}
     # Convert inheritance lists node=>parent dict
-    for nodeType, inheritance in inheritances.iteritems():
-        for i in xrange(len(inheritance)):
+    for nodeType, inheritance in inheritances.items():
+        for i in range(len(inheritance)):
             child = inheritance[i]
             if i == 0:
                 if child == 'dependNode':
@@ -1208,7 +1213,7 @@ class CmdCache(startup.SubItemCache):
 
         self.nodeHierarchy = _getNodeHierarchy(long_version)
         nodeFunctions = [x[0] for x in self.nodeHierarchy]
-        nodeFunctions += nodeTypeToNodeCommand.values()
+        nodeFunctions += list(nodeTypeToNodeCommand.values())
 
         _logger.info("Rebuilding the list of Maya commands...")
 
@@ -1278,7 +1283,7 @@ class CmdCache(startup.SubItemCache):
         # split the cached data for lazy loading
         cmdDocList = {}
         examples = {}
-        for cmdName, cmdInfo in self.cmdlist.iteritems():
+        for cmdName, cmdInfo in self.cmdlist.items():
             try:
                 examples[cmdName] = cmdInfo.pop('example')
             except KeyError:
@@ -1289,7 +1294,7 @@ class CmdCache(startup.SubItemCache):
                 newCmdInfo['description'] = cmdInfo.pop('description')
             newFlagInfo = {}
             if 'flags' in cmdInfo:
-                for flag, flagInfo in cmdInfo['flags'].iteritems():
+                for flag, flagInfo in cmdInfo['flags'].items():
                     newFlagInfo[flag] = {'docstring': flagInfo.pop('docstring')}
                 newCmdInfo['flags'] = newFlagInfo
 
@@ -1308,7 +1313,7 @@ class CmdCache(startup.SubItemCache):
         self.nodeCommandList = set(self.nodeCommandList).union(nodeTypeToNodeCommand.values())
         self.nodeCommandList = sorted(self.nodeCommandList)
 
-        for module, funcNames in moduleCommandAdditions.iteritems():
+        for module, funcNames in moduleCommandAdditions.items():
             for funcName in funcNames:
                 currModule = self.cmdlist[funcName]['type']
                 if currModule != module:
@@ -1321,11 +1326,11 @@ class CmdCache(startup.SubItemCache):
     def _modifyTypes(self, data, predicate, converter):
         '''convert between class names and class objects'''
         cmdlist = data[self.itemIndex('cmdlist')]
-        for cmdinfo in cmdlist.viewvalues():
+        for cmdinfo in cmdlist.values():
             flags = cmdinfo.get('flags')
             if not flags:
                 continue
-            for flaginfo in flags.viewvalues():
+            for flaginfo in flags.values():
                 args = flaginfo.get('args')
                 if not args:
                     continue

@@ -2,6 +2,10 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import str
+from builtins import range
+from builtins import *
 import sys
 import os
 
@@ -10,7 +14,7 @@ import logging.config
 from logging import *
 # The python 2.6 version of 'logging' hides these functions, so we need to import explcitly
 from logging import getLevelName, root, info, debug, warning, error, critical
-import ConfigParser
+import configparser
 
 import maya
 import pymel.util as util
@@ -101,7 +105,7 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     handlers, by setting the 'remove_existing_handlers' option in the appropriate
     section to True.
     """
-    cp = ConfigParser.ConfigParser(defaults)
+    cp = configparser.ConfigParser(defaults)
     if hasattr(cp, 'readfp') and hasattr(fname, 'readline'):
         cp.readfp(fname)
     else:
@@ -123,7 +127,7 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     # ...instead, just ignore any PlaceHolder instances we get, as they
     # won't have any handlers to worry about anyway
     # thanks to pierre.augeard for pointing this one out
-    for loggerName, logger in root.manager.loggerDict.iteritems():
+    for loggerName, logger in root.manager.loggerDict.items():
         # Make sure it's not a PlaceHolder
         if isinstance(logger, logging.Logger):
             # make sure you get a COPY of handlers!
@@ -135,16 +139,7 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
         # Handlers add themselves to logging._handlers
         handlers = logging.config._install_handlers(cp, formatters)
 
-        if sys.version_info >= (2, 6):
-            logging.config._install_loggers(cp, handlers,
-                                            disable_existing_loggers=0)
-        else:
-            logging.config._install_loggers(cp, handlers)
-            # The _install_loggers function disables old-loggers, so we need to
-            # re-enable them
-            for k, v in logging.root.manager.loggerDict.iteritems():
-                if hasattr(v, 'disabled') and v.disabled:
-                    v.disabled = 0
+        logging.config._install_loggers(cp, handlers, 0)
 
         # Now re-add any removed handlers, if needed
         secNames = cp.get('loggers', 'keys').split(',')

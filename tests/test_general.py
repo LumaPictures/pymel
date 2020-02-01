@@ -1,6 +1,12 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+
+from builtins import str
+from builtins import range
+from builtins import *
+from builtins import object
 
 import sys
 import os
@@ -658,7 +664,7 @@ class testCase_apiUndo(unittest.TestCase):
         self.origUndoState = cmds.undoInfo(q=1, state=1)
         # reset all undo queues
         cmds.undoInfo(state=0)
-        for chunksClosed in xrange(100):
+        for chunksClosed in range(100):
             chunkName = cmds.undoInfo(q=1, chunkName=1)
             if not chunkName:
                 break

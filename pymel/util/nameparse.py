@@ -1,6 +1,13 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
+
+from builtins import input
+from builtins import str
+from builtins import range
+from builtins import *
+
 from pymel.util.objectParser import *
 
 __all__ = [  # 'NameParseError', 'ParsingWarning',
@@ -1756,7 +1763,7 @@ def _itest():
 
     print("Interractive Name Parsing Test")
     while True:
-        expr = raw_input("> ")
+        expr = input("> ")
         if not expr:
             break
         _test(expr)

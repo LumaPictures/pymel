@@ -1,7 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 #!/usr/bin/env mayapy
+from builtins import *
 import inspect
 import os
 import sys
